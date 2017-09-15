@@ -54,6 +54,7 @@ class shopFrontendShippingController extends waJsonController
                 }
             }
             foreach ($shipping_ids as $shipping_id) {
+                //$shipping->getRate($shipping_id);
                 $this->response[$shipping_id] = $this->getRates($shipping_id, $items, $address, $total);
             }
         }
@@ -70,6 +71,7 @@ class shopFrontendShippingController extends waJsonController
     protected function getRates($shipping_id, $items, $address, $total)
     {
         try {
+            //XXX use shopCheckoutShipping class
             $plugin = shopShipping::getPlugin(null, $shipping_id);
             $weight_unit = $plugin->allowedWeightUnit();
             $dimension = shopDimension::getInstance()->getDimension('weight');
@@ -101,7 +103,13 @@ class shopFrontendShippingController extends waJsonController
             }
             unset($item);
 
-            $rates = $plugin->getRates($items, $address, array('total_price' => $total));
+            $params = array(
+                'total_price' => $total,
+            );
+            if ($shipping_params = waRequest::post('shipping_'.$shipping_id)) {
+                $params['shipping_params'] = $shipping_params;
+            }
+            $rates = $plugin->getRates($items, $address, $params);
             if (is_array($rates)) {
                 $is_html = waRequest::request('html');
                 foreach ($rates as $r_id => &$r) {
@@ -129,7 +137,6 @@ class shopFrontendShippingController extends waJsonController
                 unset($r);
                 return array_values($rates);
             } elseif (!$rates) {
-                // @todo: translate
                 return _w('Not available');
             }
         } catch (waException $ex) {

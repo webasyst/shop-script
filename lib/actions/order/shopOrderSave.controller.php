@@ -124,10 +124,10 @@ class shopOrderSaveController extends waJsonController
         if (!empty($discount_description)) {
             $data['shipping'] = $this->cast($data['shipping']);
             $data = array(
-                'total'    => $data['total'] + $this->cast($data['discount']) - $data['shipping'],
-                'discount' => 0,
-                'params'   => ifempty($data['params'], array()) + $params,
-            ) + $data;
+                    'total'    => $data['total'] + $this->cast($data['discount']) - $data['shipping'],
+                    'discount' => 0,
+                    'params'   => ifempty($data['params'], array()) + $params,
+                ) + $data;
 
             if ($id) {
                 // Add keys from shop_order not present in $data
@@ -201,11 +201,15 @@ class shopOrderSaveController extends waJsonController
         if ($previous_discount != $order['discount']) {
             if (empty($discount_description)) {
                 if ($just_created) {
-                    $discount_description = sprintf_wp('Discount specified manually during order creation: %s',
-                        shop_currency($order['discount'], $order['currency'], $order['currency']));
+                    $discount_description = sprintf_wp(
+                        'Discount specified manually during order creation: %s',
+                        shop_currency($order['discount'], $order['currency'], $order['currency'])
+                    );
                 } else {
-                    $discount_description = sprintf_wp('Discount modified manually via backend editor: %s',
-                        shop_currency($order['discount'], $order['currency'], $order['currency']));
+                    $discount_description = sprintf_wp(
+                        'Discount modified manually via backend editor: %s',
+                        shop_currency($order['discount'], $order['currency'], $order['currency'])
+                    );
                 }
             }
 
@@ -328,7 +332,18 @@ class shopOrderSaveController extends waJsonController
 
             $plugin_info = $model->getById($shipping_id);
             $plugin = shopShipping::getPlugin($plugin_info['plugin'], $shipping_id);
-            $rates = $plugin->getRates($this->getOrderItems($data['items'], $plugin->allowedWeightUnit()), $shipping_address);
+
+            $params = array();
+            if ($shipping_params = waRequest::post('shipping_'.$shipping_id)) {
+                foreach ($shipping_params as $key => $value) {
+                    if (strpos('_', $key) === 0) {
+                        unset($shipping_params[$key]);
+                    }
+                }
+
+                $params['shipping_params'] = $shipping_params;
+            }
+            $rates = $plugin->getRates($this->getOrderItems($data['items'], $plugin->allowedWeightUnit()), $shipping_address, $params);
             $empty_address = $plugin->allowedAddress() === false;
             $data['params']['shipping_plugin'] = $plugin->getId();
             $data['params']['shipping_name'] = $plugin_info['name'];
@@ -348,13 +363,17 @@ class shopOrderSaveController extends waJsonController
                 }
             }
 
-            if (waRequest::post('shipping'.$shipping_id)) {
-                foreach (waRequest::post('shipping_'.$shipping_id) as $k => $v) {
+            //XXX reset previous shipping params?
+
+            if ($shipping_params) {
+                foreach ($shipping_params as $k => $v) {
                     $data['params']['shipping_params_'.$k] = $v;
                 }
             }
+
         } else {
-            foreach (array('id', 'rate_id', 'plugin', 'name', 'est_delivery') as $k) {
+
+            foreach (array('id', 'rate_id', 'plugin', 'name', 'est_delivery',) as $k) {
                 $data['params']['shipping_'.$k] = null;
             }
         }
@@ -641,7 +660,7 @@ class shopOrderSaveController extends waJsonController
         $variant_ids = array();
 
         $data = array(
-            'items' => array()
+            'items' => array(),
         );
 
         foreach ($items as $index => $item_id) {
@@ -673,7 +692,7 @@ class shopOrderSaveController extends waJsonController
                             'service_id'         => $service_id,
                             'price'              => $prices[$group][$k],
                             'quantity'           => $quantity,
-                            'service_variant_id' => null
+                            'service_variant_id' => null,
                         );
                         if ($group == 'item') {        // it's item for update: $k is ID of item
                             $p_item['id'] = $k;
@@ -819,7 +838,7 @@ class shopOrderSaveController extends waJsonController
                 'currency'           => '',
                 'quantity'           => $quantity,
                 'service_variant_id' => null,
-                'stock_id'           => !empty($stocks[$index]['product']) ? $stocks[$index]['product'] : null
+                'stock_id'           => !empty($stocks[$index]['product']) ? $stocks[$index]['product'] : null,
             );
             if (!empty($services[$index])) {
                 foreach ($services[$index] as $service_id) {
@@ -834,7 +853,7 @@ class shopOrderSaveController extends waJsonController
                         'currency'           => '',
                         'quantity'           => $quantity,
                         'service_variant_id' => null,
-                        'stock_id'           => null
+                        'stock_id'           => null,
                     );
                     if (!empty($variants[$index][$service_id])) {
                         $variant_ids[] = (int)$variants[$index][$service_id];

@@ -2,12 +2,11 @@
 
 class shopCheckoutConfirmation extends shopCheckout
 {
-    protected $step_id = 'confirmation';
+    protected $step_id = self::STEP_CONFIRMATION;
 
     public function display()
     {
-
-        $settings = wa('shop')->getConfig()->getCheckoutSettings();
+        $settings = self::getCheckoutSettings();
 
         if (waRequest::get('terms')) {
             if (!empty($settings['confirmation']['terms'])) {
@@ -18,33 +17,43 @@ class shopCheckoutConfirmation extends shopCheckout
             }
         }
 
-        $cart = new shopCart();
-        $items = $cart->items(false);
-
-        $subtotal = $cart->total(false);
-        $order = array('contact' => $this->getContact(), 'total' => $subtotal, 'items' => $items);
-        $order['discount'] = shopDiscounts::calculate($order);
-
         $contact = $this->getContact();
 
-        $view = wa()->getView();
         if (!$contact) {
-            $view->assign('error', _w('Not enough data in the contact information to place the order.'));
+            $this->assign('error', _w('Not enough data in the contact information to place the order.'));
             return;
         }
 
+        $order = array(
+            'contact' => $contact,
+            'total'   => $this->cart->total(false),
+            'items'   => $this->cart->items(false),
+        );
+
+        $order['discount'] = shopDiscounts::calculate($order);
+
         $shipping_address = $contact->getFirst('address.shipping');
         if (!$shipping_address) {
-            $shipping_address = array('data' => array(), 'value' => '');
+            $shipping_address = array(
+                'data'  => array(),
+                'value' => '',
+            );
         }
         $billing_address = $contact->getFirst('address.billing');
         if (!$billing_address) {
-            $billing_address = array('data' => array(), 'value' => '');
+            $billing_address = array(
+                'data'  => array(),
+                'value' => '',
+            );
         }
 
-        $discount_rate = ((float)$subtotal) ? ($order['discount'] / $subtotal) : 0;
-        $taxes = shopTaxes::apply($items, array('shipping' => $shipping_address['data'],
-            'billing' => $billing_address['data'], 'discount_rate' => $discount_rate));
+        $taxes_params = array(
+            'shipping'      => $shipping_address['data'],
+            'billing'       => $billing_address['data'],
+            'discount_rate' => ($order['total']) ? ($order['discount'] / $order['total']) : 0,
+        );
+
+        $taxes = shopTaxes::apply($order['items'], $taxes_params);
 
         $tax = 0;
         $tax_included = 0;
@@ -57,23 +66,15 @@ class shopCheckoutConfirmation extends shopCheckout
             }
         }
 
-        if (!isset($order['shipping'])) {
-            $shipping_step = new shopCheckoutShipping();
-            $rate = $shipping_step->getRate();
-            if ($rate) {
-                $order['shipping'] = $rate['rate'];
-            } else {
-                $order['shipping'] = 0;
-            }
-        }
-
-        $plugin_model = new shopPluginModel();
+        $shipping_step = new shopCheckoutShipping();
+        $shipping_step->verify($order);
 
         $params = array();
+
         if ($shipping = $this->getSessionData('shipping')) {
             $params['shipping_id'] = $shipping['id'];
             if ($shipping['id']) {
-                $plugin_info = $plugin_model->getById($shipping['id']);
+                $plugin_info = $this->plugin_model->getById($shipping['id']);
                 $params['shipping_rate_id'] = $shipping['rate_id'];
                 $params['shipping_name'] = $shipping['name'];
                 $params['shipping_description'] = $plugin_info['description'];
@@ -82,38 +83,27 @@ class shopCheckoutConfirmation extends shopCheckout
 
         if ($payment_id = $this->getSessionData('payment')) {
             $params['payment_id'] = $payment_id;
-            $plugin_info = $plugin_model->getById($payment_id);
+            $plugin_info = $this->plugin_model->getById($payment_id);
             $params['payment_name'] = $plugin_info['name'];
             $params['payment_plugin'] = $plugin_info['plugin'];
             $params['payment_description'] = $plugin_info['description'];
         }
 
-        $view->assign(array(
-            'params' => $params,
-            'contact' => $contact,
-            'items' => $items,
-            'shipping' => $order['shipping'],
-            'discount' => $order['discount'],
-            'total' => $subtotal - $order['discount'] + $order['shipping'] + $tax,
-            'tax' => $tax_included + $tax,
-            'subtotal' => $subtotal,
+        $this->assign(array(
+            'params'           => $params,
+            'contact'          => $contact,
+            'items'            => $order['items'],
+            'shipping'         => $order['shipping'],
+            'discount'         => $order['discount'],
+            'total'            => $order['total'] - $order['discount'] + $order['shipping'] + $tax,
+            'tax'              => $tax_included + $tax,
+            'subtotal'         => $order['total'],
             'shipping_address' => $shipping_address,
-            'billing_address' => !empty($settings['contactinfo']['fields']['address.billing']) ? $billing_address : false,
-            'terms' => !empty($settings['confirmation']['terms']) ? $settings['confirmation']['terms'] : false
+            'billing_address'  => !empty($settings['contactinfo']['fields']['address.billing']) ? $billing_address : false,
+            'terms'            => !empty($settings['confirmation']['terms']) ? $settings['confirmation']['terms'] : false,
         ));
 
-        $checkout_flow = new shopCheckoutFlowModel();
-        $step_number = shopCheckout::getStepNumber('confirmation');
-        // IF no errors
-        $checkout_flow->add(array(
-            'step' => $step_number
-        ));
-        // ELSE
-//        $checkout_flow->add(array(
-//            'step' => $step_number,
-//            'description' => ERROR MESSAGE HERE
-//        ));
-
+        $this->addFlowStep();
     }
 
 
@@ -125,7 +115,7 @@ class shopCheckoutConfirmation extends shopCheckout
         if ($comment = waRequest::post('comment')) {
             $this->setSessionData('comment', $comment);
         }
-        $settings = wa('shop')->getConfig()->getCheckoutSettings();
+        $settings = self::getCheckoutSettings();
         if (!empty($settings['confirmation']['terms']) && !waRequest::post('terms')) {
             return false;
         }
@@ -134,11 +124,21 @@ class shopCheckoutConfirmation extends shopCheckout
 
     public function getOptions($config)
     {
-        $terms = include(wa('shop')->getConfig()->getAppPath('lib/config/data/terms.php'));
+        $terms = array();
+        $terms_path = wa('shop')->getConfig()->getAppPath('lib/config/data/terms.php');
+        if (file_exists($terms_path)) {
+            $terms = include($terms_path);
+            if (!is_array($terms)) {
+                $terms = array();
+            }
+        }
         $locale = wa()->getLocale();
         if (!isset($terms[$locale])) {
             $locale = 'en_US';
         }
+
+        $terms = isset($terms[$locale]) ? $terms[$locale] : reset($terms);
+
         return '<div class="field">
                 <div class="name">'._w('Terms of service').'<br><span class="hint">HTML</span></div>
                 <div class="value">
@@ -148,7 +148,7 @@ class shopCheckoutConfirmation extends shopCheckout
                     <p class="hint">'._w('If you want your customers to be prompted to read and agree to your company’s terms of service, refund and privacy policies or any other legal information during the checkout, enter the text to the field above. A checkbox to agree and a link to read this legal information will be shown on the Confirmation checkout step.').'
                     <a id="confirmation-generate-terms" href="#" class="inline-link"><b><i>'._w('Generate sample policy').'</i></b></a></p>
                 </div>
-                <div style="display:none" id="confirmation-terms-sample">'.$terms[$locale].'</div>
+                <div style="display:none" id="confirmation-terms-sample">'.$terms.'</div>
                 <script>
                     $("#confirmation-generate-terms").click(function () {
                         var t = $("#confirmation-terms");
@@ -168,5 +168,4 @@ class shopCheckoutConfirmation extends shopCheckout
                 </script>
             </div>';
     }
-
 }

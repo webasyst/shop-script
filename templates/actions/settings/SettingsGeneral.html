@@ -73,7 +73,7 @@
                         {foreach $_d_routes as $_r_id => $_r}
                             <div class="value no-shift s-settings-storefront-list">
                                 <a href="?action=storefronts#/design/theme={ifset($_r.theme, 'default')}&domain={urlencode($_d)}&route={$_r_id}&action=settings">
-                                    {$_d}/{$_r.url}
+                                    {$domains[$_d]|default:$_d|escape}/{$_r.url}
                                     <i class="icon10 settings"></i>
                                 </a>
                             </div>

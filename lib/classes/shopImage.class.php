@@ -54,6 +54,9 @@ class shopImage
     public function save($file = null, $quality = null)
     {
         $config = wa('shop')->getConfig();
+        /**
+         * @var shopConfig $config
+         */
         if ($quality === null) {
             $quality = $config->getSaveQuality();
             if (!$quality) {
@@ -110,6 +113,9 @@ class shopImage
         $sizes = (array) $sizes;
         $product_id = $image['product_id'];
         $config = wa('shop')->getConfig();
+        /**
+         * @var shopConfig $config
+         */
         if (!empty($sizes) && !empty($image) && $product_id) {
             $thumbs_path = self::getThumbsPath($image);
             if (!file_exists($thumbs_path) && !waFiles::create($thumbs_path)) {
@@ -144,6 +150,9 @@ class shopImage
     public static function generateThumb($src_image_path, $size, $max_size = false)
     {
         $image = waImage::factory($src_image_path);
+        /**
+         * @var waImageImagick|waImageGd $image
+         */
         $width = $height = null;
         $size_info = self::parseSize($size);
         $type = $size_info['type'];
@@ -207,20 +216,14 @@ class shopImage
         if (count($ar_size) == 1) {
             $type = 'max';
             $height = $width;
-        } else {
-            if ($width == $height) { // crop
-                $type = 'crop';
-            } else {
-                if ($width && $height) { // rectange
-                    $type = 'rectangle';
-                } else
-                    if (is_null($width)) {
-                           $type = 'height';
-                       } else
-                        if (is_null($height)) {
-                           $type = 'width';
-                        }
-            }
+        } elseif ($width == $height) { // crop
+            $type = 'crop';
+        } elseif ($width && $height) { // rectangle
+            $type = 'rectangle';
+        } elseif (is_null($width)) {
+            $type = 'height';
+        } elseif (is_null($height)) {
+            $type = 'width';
         }
         return array(
             'type'   => $type,
@@ -292,7 +295,11 @@ class shopImage
     public static function getUrl($image, $size = null, $absolute = false)
     {
         if (!$size) {
-            $size = wa('shop')->getConfig()->getImageSize('default');
+            $config = wa('shop')->getConfig();
+            /**
+             * @var shopConfig $config
+             */
+            $size = $config->getImageSize('default');
         }
         if (isset($image['filename']) && strlen($image['filename'])) {
             $n = $image['filename'];
@@ -328,7 +335,7 @@ class shopImage
             return null;
         }
         $size = !is_null($size) ? $size : wa('shop')->getConfig()->getImageSize('thumb');
-        ;
+
         $rate = $image['width'] / $image['height'];
         $revert_rate = $image['height'] / $image['width'];
 

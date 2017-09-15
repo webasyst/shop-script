@@ -28,7 +28,6 @@ class shopOrderEditAction extends waViewAction
             if ($order['contact_id']) {
                 $has_contacts_rights = shopHelper::getContactRights($order['contact_id']);
 
-
                 $shipping_address = shopHelper::getOrderAddress($order['params'], 'shipping');
 
                 if (!empty($order['contact_id'])) {
@@ -90,12 +89,14 @@ class shopOrderEditAction extends waViewAction
 
     private function getShipMethods($shipping_address, $order)
     {
+        $shipping_id = null;
         if ($order) {
             $order_items = $order['items'];
             $order_currency = $order['currency'];
             $order_total = $order['subtotal'] - $order['discount'];
             if (!empty($order['params']['shipping_id'])) {
-                $allow_external_for = array($order['params']['shipping_id']);
+                $shipping_id = $order['params']['shipping_id'];
+                $allow_external_for = array($shipping_id);
             } else {
                 $allow_external_for = array();
             }
@@ -105,12 +106,26 @@ class shopOrderEditAction extends waViewAction
             $order_currency = null;
             $order_total = 0;
         }
-        return shopHelper::getShippingMethods($shipping_address, $order_items, array(
+        $params = array(
             'currency'           => $order_currency,
             'total_price'        => $order_total,
             'no_external'        => true,
             'allow_external_for' => $allow_external_for,
-        ));
+            'shipping_params'    => array(),
+            'custom_html'        => true,
+        );
+
+        if ($shipping_id && !empty($order['params'])) {
+            foreach ($order['params'] as $name => $value) {
+                if (preg_match('@^shipping_params_(.+)$@', $name, $matches)) {
+                    if (!isset($params['shipping_params'][$shipping_id])) {
+                        $params['shipping_params'][$shipping_id] = array();
+                    }
+                    $params['shipping_params'][$shipping_id][$matches[1]] = $value;
+                }
+            }
+        }
+        return shopHelper::getShippingMethods($shipping_address, $order_items, $params);
     }
 
     private function getOrder($order_id)

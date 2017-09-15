@@ -302,13 +302,38 @@
                     <td class="align-right" colspan="2">
                         <div class="s-order-aux-box">
                             [`Shipping`]
+                            {if !empty($order.shipping_id)}
+                                {$_shipping_id=$order.shipping_id}
+                            {else}
+                                {$_shipping_id=''}
+                            {/if}
+
+                            {$_json_encode_options = 0}
+                            {if defined('JSON_UNESCAPED_UNICODE')}{$_json_encode_options = constant('JSON_UNESCAPED_UNICODE')}{/if}
+
                             <select id="shipping_methods" name="shipping_id" style="max-width: 250px;">
                                 <option value=""></option>
                                 {foreach $shipping_methods as $m_id => $m}
-                                    <option {if !empty($order.shipping_id) && $order.shipping_id === $m_id}selected{/if} data-rate="{$m.rate}" value="{$m_id}"{if !empty($m.external)} data-external="1"{/if}>{$m.name|truncate:80}</option>
+                                    <option {if $_shipping_id === $m_id}selected{/if}
+                                            data-test="2"
+                                            {if !empty($m.custom_data)}{foreach $m.custom_data as $_custom_field => $_custom_value}
+                                            data-{$_custom_field|escape}={$_custom_value|json_encode:$_json_encode_options|escape}
+                                            {/foreach}{/if}
+                                            data-rate="{$m.rate}" value="{$m_id}"{if !empty($m.external)} data-external="1"{/if}>{$m.name|truncate:80|escape}</option>
                                 {/foreach}
                             </select>
                             <div id="shipping-info"></div>
+                            <div id="shipping-custom">
+                                {$_shipping_id={$_shipping_id|regex_replace:'@\..+$@':''}}
+                                <!--{$_shipping_id} -->
+                                {foreach $shipping_methods as $m_id => $m}
+                                    {if !empty($m.custom_html)}
+                                        {$_m_id={$m_id|regex_replace:'@\..+$@':''}}
+                                        <!--{$_m_id} -->
+                                        <div id="shipping-custom-{$_m_id}" class="fields form" {if $_shipping_id !== $_m_id}style="display:none"{/if}>{$m.custom_html}</div>
+                                    {/if}
+                                {/foreach}
+                            </div>
                         </div>
                     </td>
                     <td class="align-right nowrap">

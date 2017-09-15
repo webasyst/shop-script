@@ -18,67 +18,63 @@ class shopFrontendCheckoutAction extends waViewAction
         }
 
         $title = _w('Checkout');
-        if ($current_step == 'success') {
+        if ($current_step == shopCheckout::STEP_SUCCESS) {
             $this->success();
-        } else {
-            $cart = new shopCart();
-            if (!$cart->count() && $current_step != 'error' && ($current_step != 'confirmation' || !waRequest::get('terms'))) {
-                $current_step = 'error';
-                $this->view->assign('error', _w('Your shopping cart is empty. Please add some products to cart, and then proceed to checkout.'));
+        } elseif ($this->verify($current_step)) {
+            if (waRequest::method() == 'post') {
+
+                // checkout auth
+                if (waRequest::post('wa_auth_login')) {
+                    $login_action = new shopLoginAction();
+                    $login_action->run();
+                } else {
+                    $errors = array();
+                    $redirect = false;
+                    $step_keys = array_keys($steps);
+                    $last_step = end($step_keys) == $current_step;
+
+                    foreach ($steps as $step_id => $step) {
+                        if ($step_id == $current_step) {
+                            $step_instance = $this->getStep($step_id);
+                            if ($step_instance->execute()) {
+                                $redirect = true;
+                            }
+                        } elseif ($redirect) {
+                            $this->redirect(wa()->getRouteUrl('/frontend/checkout', array('step' => $step_id)));
+                        } elseif ($last_step) {
+                            $step_instance = $this->getStep($step_id);
+                            if ($e = $step_instance->getErrors()) {
+                                $errors = array_merge($errors, $e);
+                            }
+                        }
+
+                    }
+
+                    // last step
+                    if ($redirect && !$errors) {
+                        if ($order_id = $this->createOrder($errors)) {
+                            wa()->getStorage()->set('shop/success_order_id', $order_id);
+                            $this->redirect(wa()->getRouteUrl('/frontend/checkout', array('step' => shopCheckout::STEP_SUCCESS)));
+                        } else {
+                            $current_step = shopCheckout::STEP_ERROR;
+                        }
+                    }
+
+                    if ($errors) {
+                        $this->view->assign('error', implode('<br>', $errors));
+                    }
+                }
+            } else {
+                $this->view->assign('error', '');
             }
 
-            if ($current_step != 'error') {
-                if (waRequest::method() == 'post') {
-                    // checkout auth
-                    if (waRequest::post('wa_auth_login')) {
-                        $login_action = new shopLoginAction();
-                        $login_action->run();
-                    } else {
-                        $errors = array();
-                        $redirect = false;
-                        $step_keys = array_keys($steps);
-                        $last_step = end($step_keys) == $current_step;
-                        foreach ($steps as $step_id => $step) {
-                            if ($step_id == $current_step) {
-                                $step_instance = $this->getStep($step_id);
-                                if ($step_instance->execute()) {
-                                    $redirect = true;
-                                }
-                            } elseif ($redirect) {
-                                $this->redirect(wa()->getRouteUrl('/frontend/checkout', array('step' => $step_id)));
-                            } elseif ($last_step) {
-                                $step_instance = $this->getStep($step_id);
-                                if ($e = $step_instance->getErrors()) {
-                                    $errors = array_merge($errors, $e);
-                                }
-                            }
-
-                        }
-                        // last step
-                        if ($redirect && !$errors) {
-                            if ($order_id = $this->createOrder($errors)) {
-                                wa()->getStorage()->set('shop/success_order_id', $order_id);
-                                $this->redirect(wa()->getRouteUrl('/frontend/checkout', array('step' => 'success')));
-                            } else {
-                                $current_step = 'error';
-                            }
-                        }
-
-                        if ($errors) {
-                            $this->view->assign('error', implode('<br>', $errors));
-                        }
-                    }
-                } else {
-                    $this->view->assign('error', '');
+            if ($current_step != shopCheckout::STEP_ERROR) {
+                if (empty($steps[$current_step])) {
+                    throw new waException(_ws('Page not found'), 404);
                 }
-                if ($current_step != 'error') {
-                    if (empty($steps[$current_step])) {
-                        throw new waException(_ws('Page not found'), 404);
-                    }
-                    $title .= ' - ' . $steps[$current_step]['name'];
-                    $steps[$current_step]['content'] = $this->getStep($current_step)->display();
-                    $this->view->assign('checkout_steps', $steps);
-                }
+                $title .= ' - '.$steps[$current_step]['name'];
+                $steps[$current_step]['content'] = $this->getStep($current_step)->display();
+                $this->view->assign('checkout_steps', $steps);
             }
         }
         $this->getResponse()->setTitle($title);
@@ -97,6 +93,21 @@ class shopFrontendCheckoutAction extends waViewAction
             $this->setLayout(new shopFrontendLayout());
             $this->setThemeTemplate('checkout.html');
         }
+    }
+
+    protected function verify(&$current_step)
+    {
+        $cart = new shopCart();
+        if (!$cart->count()
+            &&
+            $current_step != shopCheckout::STEP_ERROR
+            &&
+            ($current_step != shopCheckout::STEP_CONFIRMATION || !waRequest::get('terms'))
+        ) {
+            $current_step = shopCheckout::STEP_ERROR;
+            $this->view->assign('error', _w('Your shopping cart is empty. Please add some products to cart, and then proceed to checkout.'));
+        }
+        return $current_step != shopCheckout::STEP_ERROR;
     }
 
     protected function success()
@@ -135,34 +146,41 @@ class shopFrontendCheckoutAction extends waViewAction
                 }
             }
             $order['id'] = shopHelper::encodeOrderId($order_id);
-            if (wa()->getStorage()->get('shop/success_order_id') == $order_id) {
-                $domain = wa()->getRouting()->getDomain(null, true);
-                $domain_config_path = $this->getConfig()->getConfigPath('domains/'.$domain.'.php', true, 'site');
-                if (file_exists($domain_config_path)) {
-                    /**
-                     * @var $domain_config array
-                     */
-                    $domain_config = include($domain_config_path);
-                    // if google analytics
-                    if (isset($domain_config['google_analytics']) && !is_array($domain_config['google_analytics'])) {
-                        $domain_config['google_analytics'] = array(
-                            'code' => $domain_config['google_analytics']
-                        );
-                    }
-                    if (!empty($domain_config['google_analytics']['code'])) {
-                        $this->getResponse()->addGoogleAnalytics(
-                            $this->getGoogleAnalytics($order, !empty($domain_config['google_analytics']['universal'])));
-                    }
-                }
-                // to show ga code only once
-                wa()->getStorage()->del('shop/success_order_id');
-            }
+            $this->addGoogleAnalytics($order, $order_id);
         } else {
             $order['id'] = shopHelper::encodeOrderId($order_id);
         }
         $this->view->assign('order', $order);
         if (isset($payment)) {
             $this->view->assign('payment', $payment);
+        }
+    }
+
+    protected function addGoogleAnalytics($order, $order_id)
+    {
+
+        if (wa()->getStorage()->get('shop/success_order_id') == $order_id) {
+            $domain = wa()->getRouting()->getDomain(null, true);
+            $domain_config_path = $this->getConfig()->getConfigPath('domains/'.$domain.'.php', true, 'site');
+            if (file_exists($domain_config_path)) {
+                /**
+                 * @var $domain_config array
+                 */
+                $domain_config = include($domain_config_path);
+                // if google analytics
+                if (isset($domain_config['google_analytics']) && !is_array($domain_config['google_analytics'])) {
+                    $domain_config['google_analytics'] = array(
+                        'code' => $domain_config['google_analytics']
+                    );
+                }
+                if (!empty($domain_config['google_analytics']['code'])) {
+                    $this->getResponse()->addGoogleAnalytics(
+                        $this->getGoogleAnalytics($order, !empty($domain_config['google_analytics']['universal']))
+                    );
+                }
+            }
+            // to show ga code only once
+            wa()->getStorage()->del('shop/success_order_id');
         }
     }
 
@@ -182,7 +200,7 @@ class shopFrontendCheckoutAction extends waViewAction
             $result = "ga('require', 'ecommerce', 'ecommerce.js');\n";
             $result .= "ga('ecommerce:addTransaction', {
                 'id': '" . $order['id'] . "',           // transaction ID - required
-                'affiliation': '" . htmlspecialchars($title) . "',  // affiliation or store name
+                'affiliation': '" . htmlspecialchars($title, ENT_QUOTES, 'utf-8') . "',  // affiliation or store name
                 'revenue': '" . $this->formatPrice($order['total']) . "',          // total - required
                 'shipping': '" . $this->formatPrice($order['shipping']) . "',              // shipping
                 'tax': '" . $this->formatPrice($order['tax']) . "',           // tax
@@ -193,7 +211,7 @@ class shopFrontendCheckoutAction extends waViewAction
                 $sku = $item['type'] == 'product' ? $item['sku_code'] : '';
                 $result .= "ga('ecommerce:addItem', {
                 'id': '" . $order['id'] . "',           // transaction ID - required
-                'name': '" . htmlspecialchars($item['name']) . "',        // product name
+                'name': '" . htmlspecialchars($item['name'], ENT_QUOTES, 'utf-8') . "',        // product name
                 'sku': '" . $sku . "',           // SKU/code - required
                 'category': '',   // category or variation
                 'price': '" . $this->formatPrice($item['price']) . "',          // unit price - required
@@ -205,7 +223,7 @@ class shopFrontendCheckoutAction extends waViewAction
         } else {
             $result = "_gaq.push(['_addTrans',
                 '" . $order['id'] . "',           // transaction ID - required
-                '" . htmlspecialchars($title) . "',  // affiliation or store name
+                '" . htmlspecialchars($title, ENT_QUOTES, 'utf-8') . "',  // affiliation or store name
                 '" . $this->getBasePrice($order['total'], $order['currency']) . "',          // total - required
                 '" . $this->getBasePrice($order['tax'], $order['currency']) . "',           // tax
                 '" . $this->getBasePrice($order['shipping'], $order['currency']) . "',              // shipping
@@ -308,28 +326,7 @@ class shopFrontendCheckoutAction extends waViewAction
         $order['discount_description'] = null;
         $order['discount'] = shopDiscounts::apply($order, $order['discount_description']);
 
-        if (isset($checkout_data['shipping'])) {
-            $order['params']['shipping_id'] = $checkout_data['shipping']['id'];
-            $order['params']['shipping_rate_id'] = $checkout_data['shipping']['rate_id'];
-            $shipping_step = new shopCheckoutShipping();
-            $rate = $shipping_step->getRate($order['params']['shipping_id'], $order['params']['shipping_rate_id']);
-            $order['params']['shipping_plugin'] = $rate['plugin'];
-            $order['params']['shipping_name'] = $rate['name'];
-            if (isset($rate['est_delivery'])) {
-                $order['params']['shipping_est_delivery'] = $rate['est_delivery'];
-            }
-            if (!isset($order['shipping'])) {
-                $order['shipping'] = $rate['rate'];
-            }
-            if (!empty($order['params']['shipping'])) {
-                foreach ($order['params']['shipping'] as $k => $v) {
-                    $order['params']['shipping_params_'.$k] = $v;
-                }
-                unset($order['params']['shipping']);
-            }
-        } else {
-            $order['shipping'] = 0;
-        }
+        $this->parseShippingParams($order, $checkout_data);
 
         if (isset($checkout_data['payment'])) {
             $order['params']['payment_id'] = $checkout_data['payment'];
@@ -572,5 +569,40 @@ class shopFrontendCheckoutAction extends waViewAction
             self::$steps[$step_id] = new $class_name();
         }
         return self::$steps[$step_id];
+    }
+
+    protected function parseShippingParams(&$order, $checkout_data)
+    {
+        if (isset($checkout_data['shipping'])) {
+            $order['params']['shipping_id'] = $checkout_data['shipping']['id'];
+            $order['params']['shipping_rate_id'] = $checkout_data['shipping']['rate_id'];
+
+            $shipping_step = $this->getStep('shipping');
+            /**
+             * @var shopCheckoutShipping $shipping_step
+             */
+            //TODO use shopCheckout::verify()
+            $rate = $shipping_step->getRate($order['params']['shipping_id'], $order['params']['shipping_rate_id']);
+
+            $order['params']['shipping_plugin'] = $rate['plugin'];
+            $order['params']['shipping_name'] = $rate['name'];
+            if (isset($rate['est_delivery'])) {
+                $order['params']['shipping_est_delivery'] = $rate['est_delivery'];
+            }
+            if (!isset($order['shipping'])) {
+                $order['shipping'] = $rate['rate'];
+            }
+            if (!empty($order['params']['shipping'])) {
+                foreach ($order['params']['shipping'] as $k => $v) {
+                    if (strpos($k, '_') !== 0) {
+                        # save params without leading '_'
+                        $order['params']['shipping_params_'.$k] = $v;
+                    }
+                }
+                unset($order['params']['shipping']);
+            }
+        } else {
+            $order['shipping'] = 0;
+        }
     }
 }

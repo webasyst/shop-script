@@ -165,7 +165,7 @@
                 return false;
             });
             if (this.options.order) {
-                $.order_list.updateListItems(this.options.order);
+                if ($.order_list) $.order_list.updateListItems(this.options.order);
                 var container = ($.order_list.container || $("#s-content"));
                 container.find('.selected').removeClass('selected');
                 container.find('.order[data-order-id=' + this.options.order.id + ']').

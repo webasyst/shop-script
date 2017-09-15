@@ -168,4 +168,16 @@ class shopShipping extends waAppShipping
         }
         return shopHelper::getWaOrder($order, $options);
     }
+
+    public static function getParams($shipping_id)
+    {
+        if ($shipping_params = waRequest::post('shipping_'.$shipping_id)) {
+            foreach ($shipping_params as $key => $value) {
+                if (strpos('_', $key) === 0) {
+                    unset($shipping_params[$key]);
+                }
+            }
+        }
+        return is_array($shipping_params) ? $shipping_params : null;
+    }
 }

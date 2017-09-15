@@ -9640,7 +9640,7 @@ msgid "Transaction date"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsAnalytics.html:10
-msgid "Order was paid or marked as completed"
+msgid "Order was marked as paid or completed"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsAnalytics.html:14
@@ -9648,7 +9648,7 @@ msgid "Order was created"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsAnalytics.html:17
-msgid "Orders in sales reports will be grouped by the date selected."
+msgid "Choose an order action to associate its date with the order amount in <a href=\"?action=reports\">sales reports</a>."
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:651

@@ -1,8 +1,12 @@
 <?php
 
+/**
+ * Class shopCheckoutContactinfo
+ * @property-read waContactFieldValuesModel $contact_field_values_model
+ */
 class shopCheckoutContactinfo extends shopCheckout
 {
-    protected $step_id = 'contactinfo';
+    protected $step_id = self::STEP_CONTACTINFO;
     /**
      * @var waContactForm
      */
@@ -19,7 +23,7 @@ class shopCheckoutContactinfo extends shopCheckout
             $this->form->setValue($contact);
 
             // Make sure there are no more than one address of each type in the form
-            foreach(array('address', 'address.shipping', 'address.billing') as $fld) {
+            foreach (array('address', 'address.shipping', 'address.billing') as $fld) {
                 if (isset($this->form->values[$fld]) && count($this->form->values[$fld]) > 1) {
                     $this->form->values[$fld] = array(reset($this->form->values[$fld]));
                 }
@@ -30,31 +34,21 @@ class shopCheckoutContactinfo extends shopCheckout
         if ($this->form->fields('address.shipping') && $this->form->fields('address.billing')) {
             if (empty($this->form->values['address.shipping'])
                 || empty($this->form->values['address.billing'][0]['value'])
-                || $this->form->values['address.shipping'][0]['value'] == $this->form->values['address.billing'][0]['value'])
-            {
+                || $this->form->values['address.shipping'][0]['value'] == $this->form->values['address.billing'][0]['value']
+            ) {
                 $billing_matches_shipping = true;
             }
         }
 
         $view = wa()->getView();
-        $view->assign('checkout_contact_form', $this->form);
-        $view->assign('billing_matches_shipping', $billing_matches_shipping);
-        $view->assign('customer', $contact ? $contact : new waContact());
+        $this->assign('checkout_contact_form', $this->form);
+        $this->assign('billing_matches_shipping', $billing_matches_shipping);
+        $this->assign('customer', $contact ? $contact : new waContact());
         if (!$view->getVars('error')) {
             $view->assign('error', array());
         }
 
-        $checkout_flow = new shopCheckoutFlowModel();
-        $step_number = shopCheckout::getStepNumber('contactinfo');
-        // IF no errors
-        $checkout_flow->add(array(
-            'step' => $step_number
-        ));
-        // ELSE
-//        $checkout_flow->add(array(
-//            'step' => $step_number,
-//            'description' => ERROR MESSAGE HERE
-//        ));
+        $this->addFlowStep();
     }
 
     public function getErrors()
@@ -111,8 +105,8 @@ class shopCheckoutContactinfo extends shopCheckout
 
             $subject = _w('Spammy order alert');
             $view->assign(array(
-                'customer' => $customer,
-                'customer_fields' => $customer_fields
+                'customer'        => $customer,
+                'customer_fields' => $customer_fields,
             ));
             $body = $view->fetch(wa()->getAppPath('templates/mail/AntispamAlert.html', 'shop'));
 
@@ -142,7 +136,11 @@ class shopCheckoutContactinfo extends shopCheckout
         // when billing is set up to match shipping address.
         if (waRequest::request('billing_matches_shipping') && $this->form->fields('address.shipping') && $this->form->fields('address.billing')) {
             $subfields = $this->form->fields('address.billing')->getParameter('fields');
-            foreach($subfields as $i => $sf) {
+            /**
+             * @var waContactField[] $subfields
+             */
+            foreach ($subfields as $i => $sf) {
+
                 if ($sf->isRequired()) {
                     $subfields[$i] = clone $sf;
                     $subfields[$i]->setParameter('required', false);
@@ -156,8 +154,8 @@ class shopCheckoutContactinfo extends shopCheckout
                 $errors = $this->form->errors();
                 if (!empty($errors['spam'])) {
                     $this->sendSpamAlert();
-                    wa()->getView()->assign('errors', array(
-                        'all' => $errors['spam']
+                    $this->assign('errors', array(
+                        'all' => $errors['spam'],
                     ));
                 }
             }
@@ -197,7 +195,7 @@ class shopCheckoutContactinfo extends shopCheckout
                 }
                 $errors['all'] .= '<br> '._w('Please double-check the address above, or return to the shipping step and select another shipping option.');
                 $errors['all'] .= '<input type="hidden" name="ignore_shipping_error" value="1">';
-                wa()->getView()->assign('errors', $errors);
+                $this->assign('errors', $errors);
                 return false;
                 */
             }
@@ -232,7 +230,7 @@ class shopCheckoutContactinfo extends shopCheckout
                     if (isset($errors['email'])) {
                         $errors['email'] = implode(', ', $errors['email']);
                     }
-                    wa()->getView()->assign('errors', $errors);
+                    $this->assign('errors', $errors);
                     return false;
                 }
             }
@@ -247,7 +245,7 @@ class shopCheckoutContactinfo extends shopCheckout
         if ($agreed !== null) {
             wa()->getStorage()->set('shop_checkout_contactinfo_agreement', !!$agreed);
             if (!$agreed) {
-                wa()->getView()->assign('errors', array(
+                $this->assign('errors', array(
                     'service_agreement' => _w('Please confirm your agreement'),
                 ));
                 return false;
@@ -276,8 +274,7 @@ class shopCheckoutContactinfo extends shopCheckout
 
         $fields_unsorted = waContactFields::getAll('all');
         $config['fields'] = array();
-        $cfvm = new waContactFieldValuesModel();
-        foreach($options as $fld_id => $opts) {
+        foreach ($options as $fld_id => $opts) {
             if ($fld_id == '%FID%') {
                 continue;
             }
@@ -288,6 +285,9 @@ class shopCheckoutContactinfo extends shopCheckout
             $field = ifset($fields_unsorted[$fld_id_no_ext]);
 
             if ($field && $fld_id_no_ext == 'address') {
+                /**
+                 * @var waContactCompositeField $field
+                 */
                 $existing_subfields = $field->getFields();
 
                 // Special treatment for subfields of shipping and billing address:
@@ -300,8 +300,8 @@ class shopCheckoutContactinfo extends shopCheckout
 
                     // Copy settings if subfield is turned on, or required, or is hidden
                     $fields = array();
-                    foreach($options['address']['fields'] as $sf_id => $sf_opts) {
-                        if (!empty($sf_opts['required']) || ( !empty($sf_opts['_disabled']) && !empty($sf_opts['_default_value_enabled']) && empty($sf_opts['_deleted']) ) || !empty($opts['fields'][$sf_id])) {
+                    foreach ($options['address']['fields'] as $sf_id => $sf_opts) {
+                        if (!empty($sf_opts['required']) || (!empty($sf_opts['_disabled']) && !empty($sf_opts['_default_value_enabled']) && empty($sf_opts['_deleted'])) || !empty($opts['fields'][$sf_id])) {
                             if (isset($existing_subfields[$sf_id])) {
                                 $fields[$sf_id] = $sf_opts;
                             }
@@ -312,7 +312,10 @@ class shopCheckoutContactinfo extends shopCheckout
                 } else {
                     // Actual address field with no ext.
                     // Do not allow to completely delete standard set of address subfields, just disable.
-                    foreach($existing_subfields as $sf) {
+                    foreach ($existing_subfields as $sf) {
+                        /**
+                         * @var waContactField $sf
+                         */
                         if ($sf->getParameter('app_id') !== 'shop' && empty($opts['fields'][$sf->getId()])) {
                             $opts['fields'][$sf->getId()] = $sf->getParameters();
                             $opts['fields'][$sf->getId()]['_disabled'] = 1;
@@ -336,13 +339,13 @@ class shopCheckoutContactinfo extends shopCheckout
 
                 // For conditional fields, update ID in database: replace temporary id with new one
                 if ($field instanceof waContactConditionalField) {
-                    $cfvm->changeField($fld_id_no_ext, $field->getId());
+                    $this->contact_field_values_model->changeField($fld_id_no_ext, $field->getId());
                 }
 
                 $fld_id = $field->getId().$field_ext;
                 $new_field = true;
             }
-            list($local_opts, $sys_opts) = self::tidyOpts($field, $fld_id, $opts);
+            list($local_opts, $sys_opts) = $this->tidyOpts($field, $fld_id, $opts);
             if ($local_opts === null || $sys_opts === null) {
                 continue;
             }
@@ -355,7 +358,7 @@ class shopCheckoutContactinfo extends shopCheckout
                     waContactFields::createField($field);
                     waContactFields::enableField($field, 'person');
                     $fields_unsorted[$field->getId()] = $field;
-                } else if ($sys_opts) {
+                } elseif ($sys_opts) {
                     waContactFields::updateField($field);
                     waContactFields::enableField($field, 'person');
                 }
@@ -364,22 +367,26 @@ class shopCheckoutContactinfo extends shopCheckout
         }
 
         // Delete garbage from wa_contact_field_values
-        $cfvm->exec("DELETE FROM wa_contact_field_values WHERE field RLIKE '__[0-9]+$'");
+        $this->contact_field_values_model->exec("DELETE FROM wa_contact_field_values WHERE field RLIKE '__[0-9]+$'");
 
         return $config;
     }
 
     /**
      * Create new waContactField of appropriate type from given array of options.
+     * @xxx probable security hole
+     * @param array $opts
+     * @param array $occupied_keys
+     * @return null|waContactField
      */
-    public static function createFromOpts($opts, $occupied_keys=array())
+    public static function createFromOpts($opts, $occupied_keys = array())
     {
         if (!is_array($opts) || empty($opts['_type'])) {
             return null;
         }
 
         // Generate field_id from name
-        $fld_id = shopHelper::transliterate((string) ifset($opts['localized_names'], ''));
+        $fld_id = shopHelper::transliterate((string)ifset($opts['localized_names'], ''));
         if (!$fld_id) {
             $fld_id = 'f';
         }
@@ -397,8 +404,8 @@ class shopCheckoutContactinfo extends shopCheckout
         $options = array(
             'app_id' => 'shop',
         );
-        $ftype = strtolower($opts['_type']);
-        switch($ftype) {
+        $_type = strtolower($opts['_type']);
+        switch ($_type) {
             case 'textarea':
                 $class = 'waContactStringField';
                 $options['storage'] = 'waContactDataStorage';
@@ -408,9 +415,9 @@ class shopCheckoutContactinfo extends shopCheckout
                 $class = 'waContactRadioSelectField';
                 break;
             default:
-                $class = 'waContact'.ucfirst($ftype).'Field';
+                $class = 'waContact'.ucfirst($_type).'Field';
         }
-        if (!$ftype || !class_exists($class)) {
+        if (!$_type || !class_exists($class)) {
             return null;
         }
         return new $class($fld_id, '', $options);
@@ -421,8 +428,12 @@ class shopCheckoutContactinfo extends shopCheckout
      * Return list($local_opts, $sys_opts) to save for this $field.
      * Local options are saved to shop app config. System options to contacts app config.
      * If any of option sets returned is null, this field is skipped all together.
+     * @param waContactField $field
+     * @param string $fld_id
+     * @param array $opts
+     * @return array
      */
-    protected static function tidyOpts($field, $fld_id, $opts)
+    protected function tidyOpts($field, $fld_id, $opts)
     {
         if ($fld_id == '%FID%' || !is_array($opts) || !empty($opts['_deleted']) || empty($opts['localized_names'])) {
             return array(null, null);
@@ -443,9 +454,9 @@ class shopCheckoutContactinfo extends shopCheckout
                 return array(
                     array(
                         'hidden' => true,
-                        'value' => $opts['_default_value'],
+                        'value'  => $opts['_default_value'],
                     ),
-                    array()
+                    array(),
                 );
             } else {
                 return array(null, null);
@@ -455,7 +466,14 @@ class shopCheckoutContactinfo extends shopCheckout
 
         $sys_opts = array();
 
-        if (in_array(get_class($field), array('waContactSelectField', 'waContactRadioSelectField', 'waContactChecklistField', 'waContactBranchField'))) {
+        $option_classes = array(
+            'waContactSelectField',
+            'waContactRadioSelectField',
+            'waContactChecklistField',
+            'waContactBranchField',
+        );
+
+        if (in_array(get_class($field), $option_classes)) {
             if (!empty($opts['options']) && is_array($opts['options'])) {
 
                 if ($field instanceof waContactBranchField) {
@@ -465,17 +483,17 @@ class shopCheckoutContactinfo extends shopCheckout
                 }
 
                 // get rid of empty last element
-                if ( ( $el = trim(array_pop($opts['options'])))) {
+                if (($el = trim(array_pop($opts['options'])))) {
                     $opts['options'][] = $el;
                 }
 
                 $branch_hide = array();
                 $select_options = array();
-                foreach($opts['options'] as $i => $v) {
+                foreach ($opts['options'] as $i => $v) {
                     $v = trim($v);
                     $select_options[$v] = $v;
                     if ($field instanceof waContactBranchField && !empty($opts['hide'][$i])) {
-                        $branch_hide[$v] = explode(',', (string) $opts['hide'][$i]);
+                        $branch_hide[$v] = explode(',', (string)$opts['hide'][$i]);
                     }
                 }
 
@@ -494,7 +512,7 @@ class shopCheckoutContactinfo extends shopCheckout
                 }
             }
             unset($opts['options']);
-        } else if ($field instanceof waContactCompositeField) {
+        } elseif ($field instanceof waContactCompositeField) {
             if (empty($opts['fields']) || !is_array($opts['fields'])) {
                 return array(null, null);
             }
@@ -514,8 +532,7 @@ class shopCheckoutContactinfo extends shopCheckout
 
                     // For conditional fields, update ID in database: replace temporary id with new one
                     if ($sf instanceof waContactConditionalField) {
-                        $cfvm = new waContactFieldValuesModel();
-                        $cfvm->changeField($sf_id, $sf->getId());
+                        $this->contact_field_values_model->changeField($sf_id, $sf->getId());
                     }
 
                     $sf_id = $sf->getId();
@@ -524,7 +541,7 @@ class shopCheckoutContactinfo extends shopCheckout
                     $subfields_sys[$sf_id] = $sf; // make sure it is saved to system config
                 }
 
-                list($o, $sys_o) = self::tidyOpts($sf, $sf_id, $o);
+                list($o, $sys_o) = $this->tidyOpts($sf, $sf_id, $o);
                 if ($o === null || $sys_o === null) {
                     continue;
                 }
@@ -548,7 +565,7 @@ class shopCheckoutContactinfo extends shopCheckout
         if ($field->getParameter('app_id') == 'shop') {
             $sys_opts += $opts;
             $opts = array();
-            foreach(waContactFields::$customParameters as $k => $v) {
+            foreach (waContactFields::$customParameters as $k => $v) {
                 if (isset($sys_opts[$k])) {
                     $opts[$k] = $sys_opts[$k];
                 }
@@ -559,5 +576,18 @@ class shopCheckoutContactinfo extends shopCheckout
         }
         return array($opts, $sys_opts);
     }
-}
 
+    public function __get($name)
+    {
+        static $instances = array();
+        $value = null;
+        if (!isset($instances[$name])) {
+            switch ($name) {
+                case 'contact_field_values_model':
+                    $instances[$name] = new waContactFieldValuesModel();
+                    break;
+            }
+        }
+        return isset($instances[$name]) ? $instances[$name] : parent::__get($name);
+    }
+}

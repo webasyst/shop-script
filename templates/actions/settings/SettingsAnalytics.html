@@ -7,14 +7,14 @@
             <div class="name">[`Transaction date`]</div>
             <div class="value no-shift"><label>
                 <input type="radio" name="settings[reports_date_type]" value="paid"{if ifset($settings.reports_date_type) != 'create'} checked{/if}>
-                [`Order was paid or marked as completed`]
+                [`Order was marked as paid or completed`]
             </label></div>
             <div class="value no-shift"><label>
                 <input type="radio" name="settings[reports_date_type]" value="create"{if ifset($settings.reports_date_type) == 'create'} checked{/if}>
                 [`Order was created`]
             </label></div>
             <div class="value">
-                <p class="hint">[`Orders in sales reports will be grouped by the date selected.`]</p>
+                <p class="hint">[`Choose an order action to associate its date with the order amount in <a href="?action=reports">sales reports</a>.`]</p>
             </div>
         </div>
         <div class="field">

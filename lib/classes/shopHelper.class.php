@@ -61,6 +61,7 @@ class shopHelper
                 $params['title_wrapper'] = '%s';
                 $params['description_wrapper'] = '<br><span class="hint">%s</span>';
                 $params['control_wrapper'] = '<div class="name">%s</div><div class="value">%s %s</div>';
+                $params['control_separator'] = '</div><div class="value>"';
 
                 $controls = array();
                 foreach ($custom_fields as $name => $row) {
@@ -123,6 +124,8 @@ class shopHelper
      *     'payment'     => [int] payment method id for which available shipping methods must be returned
      *     'currency'    => [string] currency code to convert shipping rates to
      *     'total_price' => [float] arbitrary total order items cost to be taken into account for obtaining shipping rates
+     *     'no_external' => [bool]
+     *     'allow_external_for' => int[] array of external shipping methods' ids
      * @return array
      */
     public static function getShippingMethods($address = null, $items = array(), $params = array())
@@ -143,14 +146,15 @@ class shopHelper
 
             foreach ($methods as $m) {
                 if ($m['available']) {
-                    $plugin = shopShipping::getPlugin($m['plugin'], $m['id']);
+                    $method_id = $m['id'];
+                    $plugin = shopShipping::getPlugin($m['plugin'], $method_id);
                     $plugin_info = $plugin->info($m['plugin']);
                     $plugin_currency = (array)$plugin->allowedCurrency();
 
                     $total = null;
                     if ($plugin_currency != $currency) {
                         if (!$config->getCurrencies($plugin_currency)) {
-                            $result[$m['id']] = array(
+                            $result[$method_id] = array(
                                 'plugin'   => $m['plugin'],
                                 'logo'     => $m['logo'],
                                 'icon'     => $plugin_info['icon'],
@@ -197,15 +201,25 @@ class shopHelper
                     if (!empty($params['no_external']) && !empty($plugin_info['external']) && !in_array($m['id'], $params['allow_external_for'])) {
                         $rates = '';
                     } else {
-                        $rates = $plugin->getRates($items, $address ? $address : array(), $total ? array('total_price' => $total) : array());
+                        $shipping_params = array();
+                        if ($total) {
+                            $shipping_params['total_price'] = $total;
+                        }
+                        if (!empty($params['shipping_params'][$method_id])) {
+                            $shipping_params['shipping_params'] = $params['shipping_params'][$method_id];
+                        }
+
+                        $rates = $plugin->getRates($items, $address ? $address : array(), $shipping_params);
                     }
 
                     if (is_array($rates)) {
+                        $key = null;
                         foreach ($rates as $rate_id => $info) {
                             if (is_array($info)) {
+                                $key = $method_id.'.'.$rate_id;
                                 $rate = is_array($info['rate']) ? max($info['rate']) : $info['rate'];
                                 $rate = (float)shop_currency($rate, reset($plugin_currency), $currency, false);
-                                $result[$m['id'].'.'.$rate_id] = array(
+                                $result[$key] = array(
                                     'plugin'   => $m['plugin'],
                                     'logo'     => $m['logo'],
                                     'icon'     => $plugin_info['icon'],
@@ -215,13 +229,53 @@ class shopHelper
                                     'currency' => $currency,
                                     'external' => !empty($plugin_info['external']),
                                 );
-                                foreach (array('est_delivery', 'comment') as $field) {
+                                foreach (array('est_delivery', 'comment', 'custom_data') as $field) {
                                     if (isset($info[$field]) && !is_null($info[$field])) {
-                                        $result[$m['id'].'.'.$rate_id][$field] = $info[$field];
+                                        $result[$key][$field] = $info[$field];
                                     }
                                 }
                             }
                         }
+
+                        if ($key && !empty($params['custom_html']) && $plugin->getProperties('backend_custom_fields')) {
+                            $order = new waOrder(
+                                array(
+                                    'contact_id'       => null,
+                                    'contact'          => null,
+                                    'items'            => $items,
+                                    'shipping_address' => $address,
+                                    'shipping_params'=>ifset($params['shipping_params'][$method_id]),
+                                )
+                            );
+                            $custom_fields = $plugin->customFields($order);
+                            if ($custom_fields) {
+                                $control_params = array();
+                                $control_params['namespace'] = 'shipping_'.$m['id'];
+                                $control_params['title_wrapper'] = '%s';
+                                $control_params['description_wrapper'] = '<br><span class="hint">%s</span>';
+                                $control_params['control_wrapper'] = '<div class="field"><div class="name">%s</div><div class="value">%s %s</div></div>';
+                                $control_params['control_separator'] = '</div><div class="value">';
+
+                                $controls = array();
+                                foreach ($custom_fields as $name => $row) {
+                                    $row = array_merge($row, $control_params);
+                                    if (!empty($order_params['shipping_id']) && ($m['id'] == $order_params['shipping_id']) && isset($order_params['shipping_params_'.$name])) {
+                                        $row['value'] = $order_params['shipping_params_'.$name];
+                                    }
+                                    if (!empty($row['control_type'])) {
+                                        $controls[$name] = waHtmlControl::getControl($row['control_type'], $name, $row);
+                                    }
+                                }
+                                if ($controls) {
+                                    $custom_html = '';
+                                    foreach ($controls as $c) {
+                                        $custom_html .= $c;
+                                    }
+                                    $result[$key]['custom_html'] = $custom_html;
+                                }
+                            }
+                        }
+
                     } elseif (is_string($rates)) {
                         $result[$m['id']] = array(
                             'plugin'   => $m['plugin'],
@@ -234,45 +288,6 @@ class shopHelper
                             'currency' => $currency,
                             'external' => !empty($plugin_info['external']),
                         );
-                    }
-
-                    if (!empty($params['custom_html'])) {
-                        $order = new waOrder(
-                            array(
-                                'contact_id'       => null,
-                                'contact'          => null,
-                                'items'            => $items,
-                                'shipping_address' => $address,
-                            )
-                        );
-                        $custom_fields = $plugin->customFields($order);
-                        if ($custom_fields) {
-                            $params = array();
-                            $params['namespace'] = 'shipping_'.$m['id'];
-                            $params['title_wrapper'] = '%s';
-                            $params['description_wrapper'] = '<br><span class="hint">%s</span>';
-                            $params['control_wrapper'] = '<div class="name">%s</div><div class="value">%s %s</div>';
-
-                            $controls = array();
-                            foreach ($custom_fields as $name => $row) {
-                                $row = array_merge($row, $params);
-                                if (!empty($order_params['shipping_id']) && ($m['id'] == $order_params['shipping_id']) && isset($order_params['shipping_params_'.$name])) {
-                                    $row['value'] = $order_params['shipping_params_'.$name];
-                                }
-                                if (!empty($row['control_type'])) {
-                                    $controls[$name] = waHtmlControl::getControl($row['control_type'], $name, $row);
-                                }
-                            }
-                            if ($controls) {
-                                $custom_html = '';
-                                foreach ($controls as $c) {
-                                    $custom_html .= '<div class="field">'.$c.'</div>';
-                                }
-                                end($result);
-                                $key = key($result);
-                                $result[$key]['custom_html'] = $custom_html;
-                            }
-                        }
                     }
                 }
             }
@@ -902,10 +917,23 @@ class shopHelper
         return mb_strtolower($url);
     }
 
-    public static function getPromoImageUrl($id, $ext)
+    public static function getPromoImageUrl($id, $ext, $size = null)
     {
         $v = @filemtime(wa('shop')->getDataPath('promos/'.$id.'.'.$ext, true));
-        return wa('shop')->getDataUrl('promos/'.$id.'.'.$ext, true).($v ? '?v='.$v : '');
+
+        if ($params = array_filter(compact('v'))) {
+            $params = '?'.http_build_query($params);
+        } else {
+            $params = '';
+        }
+
+        if ($size) {
+            $name = sprintf('%s.%s.%s', $id, $size, $ext);
+        } else {
+            $name = sprintf('%s.%s', $id, $ext);
+        }
+
+        return wa('shop')->getDataUrl('promos/'.$name, true).$params;
     }
 
     public static function getWritableTypes($contact = null)

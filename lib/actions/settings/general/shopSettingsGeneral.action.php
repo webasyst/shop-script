@@ -108,7 +108,21 @@ class shopSettingsGeneralAction extends waViewAction
 
         $this->view->assign('saved', waRequest::post());
 
-        $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));
+        $routes =  wa()->getRouting()->getByApp('shop');
+
+        $domains = array_keys($routes);
+        $domains = array_combine($domains, $domains);
+        if (class_exists('waIdna')) {
+            $idna = new waIdna();
+            foreach ($domains as &$domain) {
+                $domain = $idna->decode($domain);
+            }
+            unset($domain);
+        }
+
+        $this->view->assign('routes', $routes);
+
+        $this->view->assign('domains', $domains);
 
         $this->view->assign('installer', $this->getUser()->getRights('installer', 'backend'));
 

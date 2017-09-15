@@ -387,16 +387,17 @@ class shopConfig extends waAppConfig
         }
         $plugin_model = new shopPluginModel();
         if (!$plugin_model->countByField('type', 'shipping') && isset($steps['shipping'])) {
-            unset($steps['shipping']);
+            unset($steps[shopCheckout::STEP_SHIPPING]);
         }
         if (!$plugin_model->countByField('type', 'payment') && isset($steps['payment'])) {
-            unset($steps['payment']);
+            unset($steps[shopCheckout::STEP_PAYMENT]);
         }
         reset($steps);
         return $steps;
     }
 
-    public function getSaveQuality($for2x = false) {
+    public function getSaveQuality($for2x = false)
+    {
         $quality = $this->getOption('image_save_quality'.($for2x ? '_2x' : ''));
         if (!$quality) {
             $quality = $for2x ? 70 : 90;
@@ -407,7 +408,7 @@ class shopConfig extends waAppConfig
     public function getRoundingOptions()
     {
         $result = wa('shop')->getConfig()->getOption('rounding_options');
-        foreach($result as &$label) {
+        foreach ($result as &$label) {
             $label = _w($label);
         }
         unset($label);

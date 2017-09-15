@@ -3946,7 +3946,7 @@ msgstr "Заказ %s был отменен"
 
 #: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:107
 msgid "Your order %s has been cancelled. If you want your order to be re-opened, please contact us."
-msgstr "Ваш заказ %s был отменен. Если вы хотите восстановить ваш заказ, пожалуйста, свяжитесь с нами."
+msgstr "Ваш заказ %s был отменен. Если вы хотите восстановить свой заказ, пожалуйста, свяжитесь с нами."
 
 msgid "Affiliate program"
 msgstr "Партнерская программа"
@@ -5675,7 +5675,7 @@ msgstr "Вы должны прочитать и принять Условия п
 
 #: /wa-apps/shop/themes/default/checkout.confirmation.html:70
 msgid "I have read and agree to the <a href=\"%s\" target=\"_blank\">Terms of service</a>"
-msgstr "Я ознакомился (ознакомилась) с <a href=\"%s\" target=\"_blank\">Условиями предоставления услуг</a> и принимаю их"
+msgstr "Я принимаю <a href=\"%s\" target=\"_blank\">Условия предоставления услуг</a>"
 
 msgid "Click “Save” button below to commit changes."
 msgstr "Нажмите на кнопку «Сохранить», чтобы подтвердить изменения."
@@ -7619,8 +7619,8 @@ msgid "Page title"
 msgstr "Заголовок страницы"
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:39
-msgid "Enable to temporarily hide this category from the storefront"
-msgstr "Временно скрывает товар на сайте"
+msgid "Hide links to this category in the storefront"
+msgstr "Не показывать ссылки на эту категорию на витрине"
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:69
 #: /wa-apps/shop/lib/classes/shopProductListAction.class.php:257
@@ -8461,16 +8461,16 @@ msgid "Transaction date"
 msgstr "Дата транзакции"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsAnalytics.html:10
-msgid "Order was paid or marked as completed"
-msgstr "Заказ был оплачен или отмечен как выполнен"
+msgid "Order was marked as paid or completed"
+msgstr "Заказ был оплачен или выполнен"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsAnalytics.html:14
 msgid "Order was created"
-msgstr "Заказ был оформлен"
+msgstr "Заказ был создан"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsAnalytics.html:17
-msgid "Orders in sales reports will be grouped by the date selected."
-msgstr "Заказы в отчетах о продажах будут сгруппированы на основе выбранной даты."
+msgid "Choose an order action to associate its date with the order amount in <a href=\"?action=reports\">sales reports</a>."
+msgstr "Выберите действие с заказом, с датой которого нужно связать сумму заказа в <a href=\"?action=reports\">отчетах о продажах</a>."
 
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:651
 msgid "%d image imported with errors"
@@ -10549,10 +10549,10 @@ msgid "---INSERT A LINK HERE!---"
 msgstr "---ВСТАВЬТЕ СЮДА ССЫЛКУ НА ДОКУМЕНТ!---"
 
 msgid "I agree to %spersonal data protection policy%s"
-msgstr "Я соглашаюсь с %sполитикой обработки персональных данных%s"
+msgstr "Я принимаю условия %sполитики обработки персональных данных%s"
 
 msgid "By submitting this form I agree to %spersonal data protection policy%s"
-msgstr "Нажимая на кнопку подтверждения, я соглашаюсь с %sполитикой обработки персональных данных%s"
+msgstr "Нажимая на кнопку подтверждения, я принимаю условия %sполитики обработки персональных данных%s"
 
 msgid "Do not require consent to personal data protection policy"
 msgstr "Не требовать согласия с политикой обработки персональных данных"

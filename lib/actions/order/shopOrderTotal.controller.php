@@ -33,15 +33,15 @@ class shopOrderTotalController extends waJsonController
         $shipping_items = array();
         foreach ($items as $i) {
             if (isset($values['skus'][$i['sku_id']])) {
-                $w = $values['skus'][$i['sku_id']];
+                $i['weight'] = $values['skus'][$i['sku_id']];
             } else {
-                $w = isset($values[$i['product_id']]) ? $values[$i['product_id']] : 0;
+                $i['weight'] = isset($values[$i['product_id']]) ? $values[$i['product_id']] : 0;
             }
             $shipping_items[] = array(
-                'name' => '',
-                'price' => $i['price'],
+                'name'     => '',
+                'price'    => $i['price'],
                 'quantity' => $i['quantity'],
-                'weight' => $w
+                'weight'   => $i['weight'],
             );
         }
 
@@ -62,23 +62,50 @@ class shopOrderTotalController extends waJsonController
         // Prepare order data for discount calculation
         $order = array(
             'currency' => $currency,
-            'contact' => $contact,
-            'items'   => $this->itemsForDiscount($currency, $items),
-            'total'   => waRequest::post('subtotal'),
+            'contact'  => $contact,
+            'items'    => $this->itemsForDiscount($currency, $items),
+            'total'    => waRequest::post('subtotal'),
         );
-        if ($order_id) {
+        if (!empty($order_info)) {
             $order['id'] = $order_info['id'];
         }
 
         $this->response['discount_description'] = '';
         $this->response['discount'] = shopDiscounts::calculate($order, false, $this->response['discount_description']);
 
-        $this->response['shipping_methods'] = shopHelper::getShippingMethods($shipping_address, $shipping_items, array(
-            'currency' => $currency,
-            'total_price' => $total,
-            'no_external' => true,
+        $method_params = array(
+            'currency'           => $currency,
+            'total_price'        => $total,
+            'no_external'        => true,
             'allow_external_for' => array(waRequest::request('shipping_id', 0, 'int')),
-        ));
+            'custom_html'        => true,
+            'shipping_params'    => array(),
+        );
+
+        if (!empty($order['id'])) {
+            $order_params_model = new shopOrderParamsModel();
+            $order['params'] = $order_params_model->get($order['id']);
+
+            if ($order['params'] && $order['params']['shipping_id']) {
+                $shipping_id = $order['params']['shipping_id'];
+                foreach ($order['params'] as $name => $value) {
+                    if (preg_match('@^shipping_params_(.+)$@', $name, $matches)) {
+                        if (!isset($method_params['shipping_params'][$shipping_id])) {
+                            $method_params['shipping_params'][$shipping_id] = array();
+                        }
+                        $method_params['shipping_params'][$shipping_id][$matches[1]] = $value;
+                    }
+                }
+            }
+        }
+
+        foreach (waRequest::post() as $name => $value) {
+            if (preg_match('@^shipping_(\d+)$@', $name, $matches)) {
+                $method_params['shipping_params'][$matches[1]] = $value;
+            }
+        }
+
+        $this->response['shipping_methods'] = shopHelper::getShippingMethods($shipping_address, $shipping_items, $method_params);
         // for saving order in js
         $this->response['shipping_method_ids'] = array_keys($this->response['shipping_methods']);
     }
@@ -91,9 +118,9 @@ class shopOrderTotalController extends waJsonController
     {
         $products = array();
         $services = array();
-        foreach($items_tree as $i) {
+        foreach ($items_tree as $i) {
             $products[$i['product_id']] = $i['product_id'];
-            foreach(ifset($i['services'], array()) as $s) {
+            foreach (ifset($i['services'], array()) as $s) {
                 $services[$s['id']] = $s['id'];
             }
         }
@@ -102,7 +129,7 @@ class shopOrderTotalController extends waJsonController
         $product_model = new shopProductModel();
         $products = $product_model->getById($products);
         $product_skus_model = new shopProductSkusModel();
-        foreach($product_skus_model->getByField('product_id', array_keys($products), true) as $row) {
+        foreach ($product_skus_model->getByField('product_id', array_keys($products), true) as $row) {
             $products[$row['product_id']]['skus'][$row['id']] = $row;
         }
 
@@ -110,55 +137,63 @@ class shopOrderTotalController extends waJsonController
         $service_model = new shopServiceModel();
         $services = $service_model->getById($services);
         $service_variants_model = new shopServiceVariantsModel();
-        foreach($service_variants_model->getByField('service_id', array_keys($services), true) as $row) {
+        foreach ($service_variants_model->getByField('service_id', array_keys($services), true) as $row) {
             $services[$row['service_id']]['variants'][$row['id']] = $row;
         }
 
         $items = array();
-        foreach($items_tree as $i) {
+        foreach ($items_tree as $i) {
             $i += array(
-                'type' => 'product',
-                'service_id' => null,
+                'type'               => 'product',
+                'service_id'         => null,
                 'service_variant_id' => null,
-                'purchase_price' => 0,
-                'sku_code' => '',
-                'name' => 'product_id='.$i['product_id'],
+                'purchase_price'     => 0,
+                'sku_code'           => '',
+                'name'               => 'product_id='.$i['product_id'],
             );
 
             if (!empty($products[$i['product_id']]['skus'][$i['sku_id']])) {
                 $product = $products[$i['product_id']];
                 $sku = $product['skus'][$i['sku_id']];
                 $i = array(
-                    'purchase_price' => shop_currency($sku['purchase_price'], $product['currency'], $order_currency, false),
-                    'sku_code' => $sku['sku'],
-                    'name' => ifempty($sku['name'], ifempty($product['name'], $i['name'])),
-                ) + $i + array(
-                    'product' => $product,
-                );
+                        'purchase_price' => shop_currency($sku['purchase_price'], $product['currency'], $order_currency, false),
+                        'sku_code'       => $sku['sku'],
+                        'name'           => ifempty($sku['name'], ifempty($product['name'], $i['name'])),
+                    )
+                    +
+                    $i
+                    +
+                    array(
+                        'product' => $product,
+                    );
             }
 
             $item_services = ifset($i['services'], array());
             unset($i['services']);
             $items[] = $i;
-            foreach($item_services as $s) {
+            foreach ($item_services as $s) {
                 $i = array(
-                    'type' => 'service',
-                    'price' => $s['price'],
-                    'service_id' => $s['id'],
-                    'service_variant_id' => 0,
-                    'purchase_price' => 0,
-                    'name' => 'service_id='.$i['service_id'],
-                ) + $i;
+                        'type'               => 'service',
+                        'price'              => $s['price'],
+                        'service_id'         => $s['id'],
+                        'service_variant_id' => 0,
+                        'purchase_price'     => 0,
+                        'name'               => 'service_id='.$i['service_id'],
+                    ) + $i;
 
                 if (!empty($services[$s['id']]['variants'])) {
                     $service = $services[$s['id']];
                     $variant = reset($service['variants']);
                     $i = array(
-                        'name' => $service['name'].($variant['name'] ? ' ('.$variant['name'].')' : ''),
-                        'service_variant_id' => $variant['id'],
-                    ) + $i + array(
-                        'service' => $service,
-                    );
+                            'name'               => $service['name'].($variant['name'] ? ' ('.$variant['name'].')' : ''),
+                            'service_variant_id' => $variant['id'],
+                        )
+                        +
+                        $i
+                        +
+                        array(
+                            'service' => $service,
+                        );
                 }
                 $items[] = $i;
             }

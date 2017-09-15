@@ -136,13 +136,13 @@ class shopOrderAction extends waViewAction
                         $tracking = <<<HTML
 <i class="icon16 loading" id="{$id}"></i>
 <script type="text/javascript">
-(function () {
-    $.get('?module=order&action=tracking&order_id={$order['id']}',function(data){
-        if(data && data.status=='ok'){
-            $('#{$id}').replaceWith(data.data.tracking);
-        }
-    });
-})();
+    (function () {
+        $.get('?module=order&action=tracking&order_id={$order['id']}', function (data) {
+            if (data && data.status === 'ok') {
+                $('#{$id}').replaceWith(data.data.tracking);
+            }
+        });
+    })();
 </script>
 HTML;
 
@@ -332,10 +332,10 @@ HTML;
         if (!$id) {
             return array();
         }
-        $order = $this->_getOrder($id);
+        $order = $this->getRawOrder($id);
         if (!$order) {
             $id = shopHelper::decodeOrderId($id);
-            $order = $this->_getOrder($id);
+            $order = $this->getRawOrder($id);
             if (!$order) {
                 return array();
             }
@@ -382,7 +382,7 @@ HTML;
         return $this->model;
     }
 
-    private function _getOrder($id)
+    private function getRawOrder($id)
     {
         $order = $this->getModel()->getOrder($id);
         if (!$order) {
