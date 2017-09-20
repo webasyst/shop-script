@@ -16,6 +16,14 @@
             <input type="hidden" name="section" value="outlets">
             <div class="block double-padded form">
                 <div class="field-group">
+                    <div class="value">
+                        <p><i class="icon16 info"></i>Открывайте этот раздел каждый раз после изменения точек продаж в личном кабинете «Яндекс.Маркета»,
+                            чтобы обновлять кеш точек продаж в Shop-Script.<br>
+                        Или настройте задание CRON для автоматического обновления кеша — с частотой выполнения не реже, чем каждые {$ttl} секунд:</p>
+                        <pre>{$cron_command|escape}</pre>
+                    </div>
+                </div>
+                <div class="field-group">
 
                     {foreach $outlets as $outlet}
                         <div class="field">
@@ -72,17 +80,17 @@
                                                 {/foreach}
                                             </select>
                                             <br>
-                                            <span class="hint">Выберите службу доставки, для которой указанная точка продаж является пунктом выдачи заказов.</span>
+                                            <span class="hint">Выберите службу доставки, для которой указанная точка продаж является пунктом выдачи заказов.<br>
+                                                Настройте этот вид доставки в конфигурации кампании для программы «Заказ на маркете»
+                                                и выберите для него «Тип доставки → Самовывоз (пункты выдачи заказов)».</span>
                                         </div>
                                     </div>
                                 {/if}
-                                {*
+{*
                                 <div class="value">
                                     <pre>{$outlet|var_export:true|escape}</pre>
                                 </div>
-                                *}
-    
-                                
+*}
                             </div>
                         </div>
                     {/foreach}

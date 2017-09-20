@@ -5,6 +5,7 @@
  *
  * @property-read string $status
  * @property-read int $campaign_id
+ * @property-read int $region_id
  * @property-read string $sub_status
  * @property-read string $sub_status_description
  * @property-read int $shipping_id
@@ -238,10 +239,15 @@ class shopYandexmarketPluginOrder extends waOrder
             if (!empty($data['campaign_id'])) {
                 if ($home_region = $plugin->getCampaignRegion($data['campaign_id'])) {
                     $home_region_id = ifset($home_region['id']);
+                    $data['region_id'] = shopYandexmarketPlugin::getOutletRegion($home_region);
                 }
             }
 
             $address = self::parseAddress($delivery, $home_region_id);
+
+            if (!empty($delivery['region'])) {
+                $data['region_id'] = shopYandexmarketPlugin::getOutletRegion($delivery['region']);
+            }
 
             if (!empty($address)) {
                 $data['shipping_address'] = $address;

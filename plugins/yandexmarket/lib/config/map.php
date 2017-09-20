@@ -12,6 +12,7 @@ return array(
                 'url'                   => true,
                 'price'                 => true,
                 'oldprice'              => true,
+                'purchase_price'        => false,
                 'currencyId'            => true,
                 'vat'                   => false,
                 'categoryId'            => true,
@@ -52,6 +53,7 @@ return array(
                 'url'                   => true,
                 'price'                 => true,
                 'oldprice'              => true,
+                'purchase_price'        => false,
                 'currencyId'            => true,
                 'vat'                   => false,
                 'categoryId'            => true,
@@ -130,6 +132,7 @@ return array(
                 'url'                   => true,
                 'price'                 => true,
                 'oldprice'              => true,
+                'purchase_price'        => false,
                 'currencyId'            => true,
                 'vat'                   => false,
                 'categoryId'            => true,
@@ -174,6 +177,7 @@ return array(
                 'url'                   => true,
                 'price'                 => true,
                 'oldprice'              => true,
+                'purchase_price'        => false,
                 'currencyId'            => true,
                 'vat'                   => false,
                 'categoryId'            => true,
@@ -212,6 +216,7 @@ return array(
                 'url'               => true,
                 'price'             => true,
                 'oldprice'          => true,
+                'purchase_price'    => false,
                 'currencyId'        => true,
                 'vat'               => false,
                 'categoryId'        => true,
@@ -246,35 +251,36 @@ return array(
         'artist.title' => array(
             'name'   => 'Музыкальная и видео продукция (artist.title)',
             'fields' => array(
-                'available'    => true,
-                'id'           => true,
-                'url'          => true,
-                'price'        => true,
-                'oldprice'     => true,
-                'currencyId'   => true,
-                'vat'          => false,
-                'categoryId'   => true,
-                'picture'      => false,
-                'store'        => false,
-                'pickup'       => false,
-                'delivery'     => false,
-                'artist'       => false,
-                'title'        => true,
-                'year'         => false,
-                'media'        => false,
-                'starring'     => false,
+                'available'      => true,
+                'id'             => true,
+                'url'            => true,
+                'price'          => true,
+                'oldprice'       => true,
+                'purchase_price' => false,
+                'currencyId'     => true,
+                'vat'            => false,
+                'categoryId'     => true,
+                'picture'        => false,
+                'store'          => false,
+                'pickup'         => false,
+                'delivery'       => false,
+                'artist'         => false,
+                'title'          => true,
+                'year'           => false,
+                'media'          => false,
+                'starring'       => false,
                 /**
                  * Актеры.
                  **/
-                'director'     => false,
+                'director'       => false,
                 /**
                  * Режиссер.
                  **/
-                'originalName' => false,
+                'originalName'   => false,
                 /**
                  * Оригинальное название.
                  **/
-                'country'      => false,
+                'country'        => false,
                 /**
                  * Страна.
                  */
@@ -387,7 +393,7 @@ return array(
          * ),
          * ),
          */
-        'id'           => array(
+        'id'       => array(
             'type'        => 'fixed',
             'name'        => 'идентификатор товарного предложения',
             'description' => '',
@@ -395,7 +401,7 @@ return array(
             'source'      => 'field:id',
             'field'       => 'offer',
         ),
-        'group_id'     => array(
+        'group_id' => array(
             'type'        => 'fixed',
             'name'        => 'идентификатор группы товарного предложения',
             'description' => '',
@@ -405,21 +411,22 @@ return array(
             'format'      => '%d',
             'callback'    => true,
         ),
-        'url'          => array(
+        'url'      => array(
             'type'        => 'fixed',
             'name'        => 'URL — адрес страницы товара',
             'description' => '',
             'format'      => '%0.512s',
             'source'      => 'field:frontend_url',
         ),
-        'price'        => array(
+        'price'    => array(
             'type'        => 'fixed',
             'name'        => 'Цена',
             'description' => 'Цена товарного предложения округляется и выводится в зависимости от настроек пользователя.',
             'format'      => '%0.2f',
             'source'      => 'field:price',
         ),
-        'oldprice'     => array(
+
+        'oldprice'       => array(
             'type'        => 'fixed',
             'name'        => 'Старая цена',
             'description' => 'Старая цена товарного предложения округляется и выводится в зависимости от настроек пользователя.',
@@ -427,7 +434,15 @@ return array(
             'source'      => 'field:compare_price',
             'callback'    => true,
         ),
-        'currencyId'   => array(
+        'purchase_price' => array(
+            'type'        => 'fixed',
+            'name'        => 'Закупочная цена',
+            'description' => '',
+            'format'      => '%d',
+            'source'      => 'field:purchase_price',
+            'callback'    => true,
+        ),
+        'currencyId'     => array(
             'type'        => 'fixed',
             'name'        => 'Идентификатор валюты товара',
             'description' => 'Для корректного отображения цены в национальной валюте необходимо использовать идентификатор с соответствующим значением цены.',
@@ -442,25 +457,25 @@ return array(
             ),
             'source'      => 'field:currency',
         ),
-        'vat'          => array(
+        'vat'            => array(
             'type'        => 'adjustable',
             'name'        => 'Ставки НДС',
             'description' => 'Выберите «Налоговые ставки», чтобы передать для товаров ставки НДС в прайс-листе.
 Налоговые ставки используются для предоплаты на «Маркете» и также передаются через API программы «Заказ на Маркете» для заказанных товаров.',
             'source'      => 'field:tax_id',
         ),
-        'categoryId'   => array(
+        'categoryId'     => array(
             'type'        => 'fixed',
             'name'        => 'Идентификатор категории товара ',
             'description' => '(целое число не более 18 знаков). Товарное предложение может принадлежать только к одной категории.',
             'source'      => 'field:category_id',
         ),
-        'picture'      => array(
+        'picture'        => array(
             'type'   => 'fixed',
             'name'   => 'Ссылка на изображение соответствующего товарного предложения',
             'source' => 'field:images',
         ),
-        'downloadable' => array(
+        'downloadable'   => array(
             'type'        => 'adjustable',
             'name'        => 'Цифровой товар',
             'description' => 'Обозначение товара, который можно скачать',
@@ -821,7 +836,7 @@ return array(
             'name'        => 'Вес товара',
             'description' => 'Только число — в килограммах с учетом упаковки.
 Нулевой вес не будет экспортирован.',
-            'format'      => '%0.4f',
+            'format'      => '%0.3f',
             'source'      => 'feature:weight',
         ),
         'dimensions'            => array(
@@ -1040,6 +1055,7 @@ return array(
 Добавить дополнительный параметр <tt>yandexmarket.local_delivery_cost</tt> возможно при редактировании товара, вкладка «Описание и SEO», поле «Дополнительные параметры».'
                 .' В текстовое поле добавьте строку вида <b>yandexmarket.local_delivery_cost=100</b>.',
             'path'        => 'delivery-options/option[cost]',
+            'virtual'     => true,
             'callback'    => true,
             'values'      => array(
                 'fixed' => 'Фиксированная стоимость доставки',
@@ -1055,10 +1071,10 @@ return array(
             'help'     => 'Экспорт рекомендуемых товаров на основе автоматического выбора требует дополнительных ресурсов сервера.',
             'params'   => false,
             'function' => array(
-                'cross_selling.static' => 'Перекрестные продажи (Cross-selling), только выбранные в ручную для товара',
-                'cross_selling.all'    => 'Перекрестные продажи (Cross-selling)',
-                'upselling.static'     => 'Схожие и альтернативные товары, только выбранные в ручную для товара',
-                'upselling.all'        => 'Схожие и альтернативные товары',
+                'cross_selling.static' => 'Перекрестные продажи (cross-selling) — выбранные вручную для товара',
+                'cross_selling.all'    => 'Перекрестные продажи (cross-selling) — автоматический подбор',
+                'upselling.static'     => 'Схожие и альтернативные товары (upselling) — выбранные вручную для товара',
+                'upselling.all'        => 'Схожие и альтернативные товары (upselling) — автоматический подбор',
             ),
             'sources'  => array(
                 'function',
@@ -1068,8 +1084,10 @@ return array(
             'type'        => 'adjustable',
             'name'        => '<param>',
             'description' => 'Дополнительные произвольные характеристики товара.',
-            'help'        => 'Если тип характеристики магазина не имеет единицы измерения, но ее необходимо передать в «Яндекс.Маркет», то можно задать название'
-                .' единицы измерения (параметр <tt>unit</tt>) в названии характеристики в скобках, например: «<b>Вес (кг)</b>».',
+            'help'        => 'Если у характеристики нет единицы измерения, но какую-то фиксированную единицу нужно передать в «Яндекс.Маркет», напишите эту единицу выше в поле для'
+                .' атрибута <tt>unit</tt> или добавьте нужную единицу в скобках в названии характеристики в настройках магазина.<br>'
+                .'Если в названии характеристики есть слово в скобках, но в «Яндекс.Маркет» не нужно экспортировать атрибут <tt>unit</tt>,'
+                .' введите пробел в поле для этого атрибута.',
         ),
     ),
 );

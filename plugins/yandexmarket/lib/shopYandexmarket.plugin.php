@@ -11,6 +11,15 @@ class shopYandexmarketPlugin extends shopPlugin
     private $api_limits;
 
     private $api_url = 'https://api.partner.market.yandex.ru/v2/';
+    private static $level = array(
+        'SUBJECT_FEDERATION',
+        'REPUBLIC',
+    );
+
+    public static function getTTL()
+    {
+        return 14400;
+    }
 
     public function customMap()
     {
@@ -210,8 +219,8 @@ HTML;
                 try {
                     $data = json_decode($order['params']['yandexmarket.status'], true);
                     $params = array(
-                       'yandexmarket.campaign_id'=>array('value'=>$order['params'][ 'yandexmarket.campaign_id']),
-                       'yandexmarket.id'=>array('value'=>$order['params']['yandexmarket.id']),
+                        'yandexmarket.campaign_id' => array('value' => $order['params']['yandexmarket.campaign_id']),
+                        'yandexmarket.id'          => array('value' => $order['params']['yandexmarket.id']),
                     );
                     $this->changeOrderState($order['id'], $params, $data);
                     $model = new shopOrderParamsModel();
@@ -799,11 +808,11 @@ HTML;
                 $campaign['orders_count'] = ifset($data['pager']['total'], '-');
             }
 
-            if (false) {
+            if (!empty($options['bids'])) {
                 $data = $this->apiRequest(sprintf('campaigns/%d/bids', $campaign['id']));
                 foreach (ifset($data['offers']) as $offer) {
                     if (isset($campaign['feeds'][$offer['id']])) {
-
+                        //TODO
                     }
                 }
             }
@@ -832,7 +841,6 @@ HTML;
             }
 
 
-
             $campaigns[$campaign['id']] = $campaign;
             unset($campaign);
         }
@@ -843,7 +851,6 @@ HTML;
 
         return $campaigns;
     }
-
 
 
     private static function workupCampaign(&$campaign)
@@ -924,7 +931,7 @@ HTML;
         }
 
         #add settlement info
-        $campaign['settlements'] =self::getMatchedSettlements($campaign['domain']);
+        $campaign['settlements'] = self::getMatchedSettlements($campaign['domain']);
     }
 
     private static function getSettlements()
@@ -1055,37 +1062,61 @@ HTML;
         return $stats;
     }
 
-    /**
-     * @param $campaign_id
-     * @param bool $flush
-     * @return array
-     * @throws waException
-     * @see https://tech.yandex.ru/market/partner/doc/dg/reference/get-campaigns-id-outlets-docpage/
-     */
-    public function getOutlets($campaign_id, $flush = false)
+    private function getRawOutlets($campaign_id, $region_id = null)
     {
-        $key = sprintf('outlets/%s', $campaign_id);
-        $cache = new waVarExportCache($key, 3600, 'shop/plugins/yandexmarket');
-        $outlets = $cache ? $cache->get() : null;
-        if ($outlets == null) {
-            $params = array(
-                'page'     => 0,
-                'pageSize' => 50,
-            );
-            $outlets = array();
-            do {
-                $data = $this->apiRequest(sprintf('campaigns/%d/outlets', $campaign_id), $params);
-                $pager = ifset($data['pager'], array());
-                if (!empty($data['outlets'])) {
-                    $outlets = array_merge($outlets, $data['outlets']);
-                    ++$params['page'];
+        $params = array(
+            'page'     => 0,
+            'pageSize' => 50,
+        );
+        if ($region_id) {
+            $params['regionId'] = $region_id;
+        }
+        $outlets = array();
+        do {
+            if ($params['page'] > 50) {
+                break;
+            }
+            $data = $this->apiRequest(sprintf('campaigns/%d/outlets', $campaign_id), $params);
+            $pager = ifset($data['pager'], array());
+            if (!empty($data['outlets'])) {
+                foreach ($data['outlets'] as $outlet) {
+                    if (!empty($outlet['region'])) {
+                        $outlet['region_id'] = self::getOutletRegion($outlet['region']);
+                    }
+
+                    $outlets[$outlet['id']] = $outlet;
                 }
-            } while (!empty($data['outlets']) && ifset($pager['pageSize']) == $params['pageSize']);
-            if ($cache && ($outlets !== null)) {
-                $cache->set($outlets);
+                ++$params['page'];
+            } else {
+                break;
+            }
+        } while (!empty($data['outlets']) && ifset($pager['pageSize']) == $params['pageSize']);
+
+        if (count($outlets) == 2500) {
+            $region = $this->getRegions($region_id);
+            foreach ($region['children'] as $region_id => $name) {
+                $outlets += $this->getRawOutlets($campaign_id, $region_id);
             }
         }
 
+        return $outlets;
+    }
+
+    public static function getOutletRegion($region)
+    {
+        $region_id = $region['id'];
+        while (!empty($region['parent'])) {
+            $region = $region['parent'];
+            $region_id = $region['id'];
+            if (in_array($region['type'], self::$level, true)) {
+                break;
+            }
+        }
+        return $region_id;
+    }
+
+    private static function workupOutlets(&$outlets)
+    {
         $map = array(
             'status'     => array(
                 'name' => array(
@@ -1126,20 +1157,88 @@ HTML;
                     'NOT_DEFINED' => 'status-gray',
                     'RETAIL'      => 'ss shop',
                 ),
-            )
+            ),
         );
 
-
-        foreach ($outlets as &$outlet) {
-            foreach (array_keys($map) as $field) {
-                $outlet[$field.'Icon'] = ifset($map[$field]['icon'][$outlet[$field]]);
-                $outlet[$field.'Name'] = ifset($map[$field]['name'][$outlet[$field]]);
+        if ($outlets) {
+            foreach ($outlets as &$outlet) {
+                foreach (array_keys($map) as $field) {
+                    $outlet[$field.'Icon'] = ifset($map[$field]['icon'][$outlet[$field]]);
+                    $outlet[$field.'Name'] = ifset($map[$field]['name'][$outlet[$field]]);
+                }
+                if ($outlet['status'] == 'FAILED') {
+                    $outlet['statusName'] .= ' '.$outlet['reason'];
+                }
+                unset($outlet);
             }
-            if ($outlet['status'] == 'FAILED') {
-                $outlet['statusName'] .= ' '.$outlet['reason'];
-            }
-            unset($outlet);
+        } else {
+            $outlets = array();
         }
+    }
+
+    /**
+     * @param int $campaign_id
+     * @param int $region_id
+     * @return array
+     * @throws waException
+     * @see https://tech.yandex.ru/market/partner/doc/dg/reference/get-campaigns-id-outlets-docpage/
+     */
+    public function getOutlets($campaign_id, $region_id = null)
+    {
+        $key = sprintf('outlets/%s/%s', $campaign_id, md5(var_export(self::$level, true)));
+
+        $cache = new waVarExportCache($key, self::getTTL(), 'shop/plugins/yandexmarket');
+        $outlets = null;
+        $data = null;
+        if ($region_id) {
+            if ($cache->isCached()) {
+                $data = $cache->get();
+
+                if (($data['regions'] === true) || in_array($region_id, $data['regions'])) {
+                    $outlets = $data['outlets'];
+                }
+            }
+        }
+        if (($region_id === null) || ($outlets === null)) {
+
+            if (!$region_id) {
+                $root_region = null;
+                $campaign_region = $this->getCampaignRegion($campaign_id, true);
+                while (!empty($campaign_region['parent'])) {
+                    $campaign_region = $campaign_region['parent'];
+                    $root_region = $campaign_region['id'];
+                };
+            } else {
+                $root_region = $region_id;
+            }
+            $outlets = array();
+
+            if ($root_region) {
+                $outlets += $this->getRawOutlets($campaign_id, $root_region);
+            }
+
+            if ($cache) {
+                if (!$data || !$region_id) {
+                    $data = array(
+                        'regions' => $region_id ? array($region_id) : true,
+                        'outlets' => $outlets,
+                    );
+                } else {
+                    $data['regions'][] = $region_id;
+                    $data['outlets'] = $outlets;
+                }
+                $cache->set($data);
+            }
+        }
+
+        if ($region_id) {
+            foreach ($outlets as $id => $outlet) {
+                if ($outlet['region_id'] != $region_id) {
+                    unset($outlets[$id]);
+                }
+            }
+        }
+        self::workupOutlets($outlets);
         return $outlets;
     }
 
@@ -1153,7 +1252,7 @@ HTML;
     public function getCampaignRegion($campaign_id, $flush = false)
     {
         $key = sprintf('region/%s', $campaign_id);
-        $cache = new waVarExportCache($key, 3600, 'shop/plugins/yandexmarket');
+        $cache = new waVarExportCache($key, self::getTTL(), 'shop/plugins/yandexmarket');
         $region = $cache ? $cache->get($key, 'yandexmarket') : null;
         if ($flush || ($region == null)) {
             $data = $this->apiRequest(sprintf('campaigns/%d/region', $campaign_id));
@@ -1175,7 +1274,7 @@ HTML;
     public function getRegion($region_id, $flush = false)
     {
         $key = sprintf('regions/%s', $region_id);
-        $cache = new waVarExportCache($key, 3600, 'shop/plugins/yandexmarket');
+        $cache = new waVarExportCache($key, self::getTTL(), 'shop/plugins/yandexmarket');
         $region = $cache ? $cache->get() : null;
         if ($flush || ($region == null)) {
             $data = $this->apiRequest(sprintf('regions/%d', $region_id));
@@ -1184,6 +1283,48 @@ HTML;
             if ($cache && ($region !== null)) {
                 $cache->set($region);
             }
+        }
+        return $region;
+    }
+
+    public function getRegions($region_id = null)
+    {
+        $region_id = max(0, intval($region_id));
+        if ($region_id) {
+            $key = sprintf('/regions/%d/children', $region_id);
+            $cache = new waVarExportCache($key, self::getTTL(), 'shop/plugins/yandexmarket');
+            $region = $cache->get();
+            if ($region == null) {
+
+                $params = array(
+                    'page'     => 1,
+                    'pageSize' => 100,
+                );
+
+                $response = $this->apiRequest($key, $params);
+                $region = $response['regions'];
+                $cache->set($region);
+            }
+            $region['formatted'] = shopYandexmarketPluginOrder::parseAddress($region, null, true);
+            $children = array();
+            if (!empty($region['children'])) {
+                foreach ($region['children'] as $info) {
+                    if (!preg_match('@^(Прочее|Обще|Другие|Универсальн)@ui', $info['name'])) {
+                        $children[$info['id']] = $info['name'];
+                    }
+                }
+            }
+            $region['children'] = $children;
+        } else {
+            $region_map = include(dirname(__FILE__).'/config/regions.php');
+
+            $region = array(
+                'children' => array(),
+            );
+            foreach ($region_map as $id => $info) {
+                $region['children'][$id] = $info['name'];
+            }
+
         }
         return $region;
     }
@@ -1392,9 +1533,16 @@ HTML;
         return ifset($description[$status], $status);
     }
 
+    /**
+     * @param string|array $string
+     * @return array
+     */
     public static function getDays($string)
     {
-        return array_map('intval', array_filter(preg_split('@\D+@', trim($string), 2), 'strlen'));
+        if (!is_array($string)) {
+            $string = array_filter(preg_split('@\D+@', trim($string), 2), 'strlen');
+        }
+        return array_map('intval', $string);
     }
 
     public function orderDeleteFormHandler($data, $event_name = null)

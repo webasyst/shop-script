@@ -365,6 +365,15 @@
         </div>
 
         <div class="field">
+            <div class="name">Закупочная цена</div>
+            <div class="value no-shift">
+                <label for="s-plugin-yandexmarket-export-purchase-price">
+                    <input name="export[purchase_price]" id="s-plugin-yandexmarket-export-purchase-price" type="checkbox" value="1"{if !empty($export.purchase_price)} checked="checked" {/if}> Экспортировать закупочную цену в параметр <tt>&lt;purchase_price&gt;</tt>
+                </label>
+            </div>
+        </div>
+
+        <div class="field">
             <div class="name">Скрытые категории</div>
             <div class="value no-shift"><label for="s-plugin-yandexmarket-export-hidden-categories">
                     <input name="export[hidden_categories]" id="s-plugin-yandexmarket-export-hidden-categories" type="checkbox" value="1"{if !empty($export.hidden_categories)} checked="checked" {/if} > Выгружать скрытые категории

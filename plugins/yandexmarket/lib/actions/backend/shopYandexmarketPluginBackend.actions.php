@@ -217,42 +217,8 @@ class shopYandexmarketPluginBackendActions extends waViewActions
     public function regionAction()
     {
         try {
-            $region_id = max(0, waRequest::request('region_id', 0, waRequest::TYPE_INT));
-            if ($region_id) {
-                $params = array(
-                    'page'     => 1,
-                    'pageSize' => 100,
-                );
-
-                $key = sprintf('/regions/%d/children', $region_id);
-                $cache = new waVarExportCache($key, 7200, 'shop/plugins/yandexmarket');
-                $region = $cache->get();
-                if ($region == null) {
-                    $response = $this->plugin()->apiRequest($key, $params);
-                    $region = $response['regions'];
-                    $cache->set($region);
-                }
-                $region['formatted'] = shopYandexmarketPluginOrder::parseAddress($region, null, true);
-                $children = array();
-                if (!empty($region['children'])) {
-                    foreach ($region['children'] as $info) {
-                        if (!preg_match('@^(Прочее|Обще|Другие|Универсальн)@ui', $info['name'])) {
-                            $children[$info['id']] = $info['name'];
-                        }
-                    }
-                }
-                $region['children'] = $children;
-            } else {
-                $region_map = include($path = dirname(__FILE__).'/../../config/regions.php');
-
-                $region = array(
-                    'children' => array(),
-                );
-                foreach ($region_map as $id => $info) {
-                    $region['children'][$id] = $info['name'];
-                }
-
-            }
+            $region_id = waRequest::request('region_id', 0, waRequest::TYPE_INT);
+            $region = $this->plugin()->getRegions($region_id);
             asort($region['children']);
             $this->view->assign('region', $region);
         } catch (waException $ex) {
@@ -338,7 +304,7 @@ class shopYandexmarketPluginBackendActions extends waViewActions
             $features = array();
             foreach ($map as $type_map) {
                 foreach ($type_map['fields'] as $info) {
-                    if (!empty($info['source']) && preg_match('@^feature:([\w\d_\-]+)$@', $info['source'], $matches)) {
+                    if (!empty($info['source']) && preg_match('@^feature:([\w\d_\-]+)(:.*)?$@', $info['source'], $matches)) {
                         $features[] = $matches[1];
                     }
                 }
@@ -361,8 +327,8 @@ class shopYandexmarketPluginBackendActions extends waViewActions
                     $feature['units'][] = $unit['title'];
                 }
                 $feature['units'] = implode(', ', $feature['units']);
-            } elseif (preg_match('@\(([^\)]+)\)$@', $feature['name'], $matches)) {
-                $feature['units'] = trim($matches[1]);
+            } elseif (preg_match('@\(([^\)]+)\)\s*$u@', $feature['name'], $matches)) {
+                $feature['suggest'] = trim($matches[1]);
             }
             unset($feature);
         }

@@ -558,7 +558,7 @@ class shopYandexmarketPluginApiActions extends waActions
                 $offset_day = $offset;
                 while ($day <= $to_days) {
                     $current_week_day = ($offset_day + $week_day) % 7;
-                    $current_date = strtotime(sprintf('+%d days', ($offset_day + $week_day)));
+                    $current_date = strtotime(sprintf('+%d days', $offset_day));
 
                     if ($timezone) {
                         $date = waDateTime::date('d-m-Y', $current_date, $timezone);
@@ -595,7 +595,7 @@ class shopYandexmarketPluginApiActions extends waActions
             }
             if ($interval === '') {
                 $interval = array(32);
-            } elseif (!is_array($interval)) {
+            } else {
                 $interval = shopYandexmarketPlugin::getDays($interval);
             }
         }
@@ -907,7 +907,7 @@ class shopYandexmarketPluginApiActions extends waActions
         //XXX CPA add setting: allow add pickup points from profile
         $outlets = null;
         try {
-            $outlets = $this->getPlugin()->getOutlets($order->campaign_id);
+            $outlets = $this->getPlugin()->getOutlets($order->campaign_id, $order->region_id);
         } catch (waException $ex) {
             $message = $ex->getMessage();
             waLog::log(sprintf('%d: %s', $order->campaign_id, $message), 'shop/plugins/yandexmarket/api.error.log');

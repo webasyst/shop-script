@@ -246,6 +246,16 @@ class shopYandexmarketPluginRunController extends waLongActionController
                 case 'windows-1251':
                     setlocale(LC_CTYPE, 'ru_RU.CP-1251', 'ru_RU.CP1251', 'ru_RU.win');
                     break;
+                case 'utf-8':
+                    setlocale(LC_CTYPE, 'ru_RU.UTF-8', 'en_US.UTF-8');
+                    break;
+            }
+
+            $locale = setlocale(LC_NUMERIC, 0);
+            if ($locale !== 'C') {
+                if (false === setlocale(LC_NUMERIC, 'C')) {
+                    $this->error('setlocale LC_NUMERIC into C failed');
+                }
             }
 
             $this->data['offset'] = array(
@@ -291,6 +301,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
         $default_export_config = array(
             'zero_stock'        => 0,
             'compare_price'     => 0,
+            'purchase_price'    => 0,
             'sku'               => 0,
             'sku_group'         => '',
             'hidden_categories' => 0,
@@ -425,6 +436,12 @@ class shopYandexmarketPluginRunController extends waLongActionController
                             switch ($source) {
                                 case 'feature':
                                     if (strpos($field, 'param.') === 0) {
+                                        $unit = null;
+                                        if (strpos($value, ':')) {
+                                            list($value, $unit) = explode(':', $value, 2);
+                                            $info['source'] = 'feature:'.$value;
+                                        }
+                                        $info['source_unit'] = $unit;
                                         $feature_code = $value;
                                         if ($feature = $feature_model->getByCode($feature_code)) {
                                             $info['source_name'] = $feature['name'];
@@ -1247,7 +1264,11 @@ SQL;
                         if (!empty($info['source']) && !ifempty($info['category'])) {
                             $value = null;
 
-                            list($source, $param) = explode(':', $info['source'], 2);
+                            if (strpos($info['source'], ':')) {
+                                list($source, $param) = explode(':', $info['source'], 2);
+                            } else {
+                                $source = $info['source'];
+                            }
                             switch ($source) {
                                 case 'params':
                                     $options['params'] = true;
@@ -1632,6 +1653,7 @@ SQL;
                             if (count($skus) == 1) {
                                 $product['price'] = $sku['price'];
                                 $product['compare_price'] = $sku['compare_price'];
+                                $product['purchase_price'] = $sku['purchase_price'];
                                 $product['file_name'] = $sku['file_name'];
                                 $product['sku'] = $sku['sku'];
                                 $product['count'] = $sku['count'];
@@ -1728,6 +1750,7 @@ SQL;
                         case 'sku':
                         case 'group_id':
                         case 'compare_price':
+                        case 'purchase_price':
                             $value = ifset($sku[$param], $value);
                             break;
                         default:
@@ -1753,6 +1776,10 @@ SQL;
                     }
 
                     $product['features'] = $features_model->getValues($product['id'], ifset($sku['id']));
+                }
+                if (strpos($param, ':')) {
+                    $unit = null;
+                    list($param, $unit) = explode(':', $param, 2);
                 }
                 if (($param == 'weight') && !empty($sku['id']) && !isset($product['features'][$param])) {
                     $features = $features_model->getValues($product['id']);
@@ -1872,15 +1899,17 @@ SQL;
                 $data[$field.'.raw'] = $value;
                 $value = $this->format($field, $value, array(), $offer);
             }
-            if (!in_array($value, array(null, false, ''), true) # non empty value
-                && empty($map[$field_id]['virtual']) # value should be exported
-            ) {
-                if (!empty($map[$field_id]['path']) && (is_array($value) && !empty($value['path']))) {
-                    $field = preg_replace('@\[[^\]]+\]@', '', $map[$field_id]['path']);
-                    unset($value['path']);
+
+            if (!in_array($value, array(null, false, ''), true)) {# non empty value
+                $virtual = !empty($map[$field_id]['virtual']) && empty($map[$field_id]['callback']);
+                if (!$virtual) {
+                    if (!empty($map[$field_id]['path']) && (is_array($value) && !empty($value['path']))) {
+                        $field = preg_replace('@\[[^\]]+\]@', '', $map[$field_id]['path']);
+                        unset($value['path']);
+                    }
+                    $this->addDomValue($product_xml, $field, $value, $map[$field_id]['attribute']);
+                    $data[$field] = $value;
                 }
-                $this->addDomValue($product_xml, $field, $value, $map[$field_id]['attribute']);
-                $data[$field] = $value;
             }
         }
         $offers->appendChild($product_xml);
@@ -2007,7 +2036,6 @@ SQL;
          * <vendor>
          */
 
-        static $currency_model;
         static $size;
         switch ($field) {
             case 'group_id':
@@ -2111,55 +2139,36 @@ SQL;
 
                 $value = ifempty($this->data['schema'], 'http://').ifempty($this->data['base_url'], 'localhost').$value;
                 break;
+            case 'purchase_price':
+                if (empty($value) || empty($this->data['export']['purchase_price'])) {
+                    $value = null;
+                } else {
+                    $value = $this->convertCurrency($value, $data, $sku_data);
+                }
+                break;
             case 'oldprice':
                 /**
                  * @see https://yandex.ru/support/partnermarket/oldprice.html
                  */
                 if (empty($value) || empty($this->data['export']['compare_price'])) {
                     $value = null;
-                    break;
-                } elseif (empty($info) && !empty($data['price'])) {
-                    //it's second stage
-                    $rate = $data['price'] / $value;
-                    if (($rate < 0.05) || ($rate > 0.95)) {
-                        $value = null;
-                    }
-                    break;
                 } else {
-                    //no break
-                }
-            case 'price':
-                $_currency_converted = false;
-
-                if (!$currency_model) {
-                    $currency_model = new shopCurrencyModel();
-                }
-
-                if ($sku_data) {
-                    if (!in_array($data['currency'], $this->data['currency'])) {
-
-                        $_currency_converted = true;
-                        $value = $currency_model->convert($value, $data['currency'], $this->data['primary_currency']);
-                        $data['currency'] = $this->data['primary_currency'];
-                    }
-                } else {
-                    if (!in_array($data['currency'], $this->data['currency'])) {
-                        #value in default currency
-                        if ($this->data['default_currency'] != $this->data['primary_currency']) {
-                            $value = $currency_model->convert($value, $this->data['default_currency'], $this->data['primary_currency']);
+                    if (empty($info) && !empty($data['price'])) {
+                        //it's second stage
+                        $rate = $data['price'] / $value;
+                        if (($rate < 0.05) || ($rate > 0.95)) {
+                            $value = null;
                         }
-                        $_currency_converted = true;
-                        $data['currency'] = $this->data['primary_currency'];
-                    } elseif ($this->data['default_currency'] != $data['currency']) {
-                        $_currency_converted = true;
-                        $value = $currency_model->convert($value, $this->data['default_currency'], $data['currency']);
+                    }
+                    if (empty($value)) {
+                        $value = null;
+                    } else {
+                        $value = $this->convertCurrency($value, $data, $sku_data);
                     }
                 }
-
-                if ($value && class_exists('shopRounding') && !empty($_currency_converted)) {
-                    $value = shopRounding::roundCurrency($value, $data['currency']);
-                }
-                unset($_currency_converted);
+                break;
+            case 'price':
+                $value = $this->convertCurrency($value, $data, $sku_data);
                 break;
             case 'currencyId':
                 if (!in_array($value, $this->data['currency'])) {
@@ -2168,7 +2177,10 @@ SQL;
                 break;
             case 'rate':
                 if (!in_array($value, array('CB', 'CBRF', 'NBU', 'NBK'))) {
-                    $info['format'] = '%0.4f';
+                    $value = round($value, 4);
+                    $chunk = preg_replace('@[0]+$@', '', abs($value - floor($value)) * 10000);
+                    $chunk = mb_strlen($chunk);
+                    $info['format'] = $chunk ? sprintf('%%0.%df', $chunk) : '%d';
                 }
                 break;
             case 'available':
@@ -2391,10 +2403,8 @@ SQL;
                             $value = floatval($value);
                             break;
                     }
-
-                } else {
-                    $value = floatval($value);
                 }
+                $value = max(0, round(floatval(str_replace(',', '.', $value)), 3));
                 if (empty($value)) {
                     $value = null;
                 }
@@ -2517,17 +2527,31 @@ SQL;
                 }
 
                 if (empty($info)) {
-                    if (isset($this->data['delivery-option']) || isset($data['local_delivery_days']) || isset($data['local_delivery_before'])) {
+                    if (empty($data['delivery']) || ($data['delivery'] === 'true')) {
                         $option = isset($this->data['delivery-option']) ? $this->data['delivery-option'] : array();
                         if ($value === null) {
                             $value = max(0, floatval(ifset($option['cost'])));
                         }
+
+                        $days = ifset($data['local_delivery_days'], ifset($option['days']));
+                        $days = shopYandexmarketPlugin::getDays($days);
+                        if (count($days) == 2) {
+                            sort($days);
+                            $days = implode('-', $days);
+                        } elseif (count($days)) {
+                            $days = max(0, max($days));
+                        } else {
+                            $days = 31;
+                        }
+
                         $value = array(
                             'cost'         => $value,
-                            'days'         => ifset($data['local_delivery_days'], ifset($option['days'])),
+                            'days'         => $days,
                             'order-before' => ifset($data['local_delivery_before'], ifset($option['order-before'], 24)),
                             'path'         => true,
                         );
+                    } else {
+                        $value = null;
                     }
                 }
 
@@ -2539,7 +2563,7 @@ SQL;
                         sort($value);
                         $value = implode('-', $value);
                     } else {
-                        $value = max(0, $value);
+                        $value = max(0, max($value));
                     }
                 } else {
                     $value = null;
@@ -2604,7 +2628,7 @@ SQL;
                 //plan - property
                 break;
             case 'param':
-                $unit = null;
+                $unit = ifset($info['source_unit'], null);
                 $name = ifset($info['source_name'], '');
 
                 if ($value instanceof shopDimensionValue) {
@@ -2636,16 +2660,20 @@ SQL;
                         $value = implode(', ', $values);
                     } else {
                         if (preg_match('@^(.+)\s*\(([^\)]+)\)\s*$@', $name, $matches)) {
-                            //feature name based unit
-                            $unit = $matches[2];
+                            if (empty($unit)) {
+                                //feature name based unit
+                                $unit = $matches[2];
+                            }
                             $name = $matches[1];
                         }
                         $value = implode(', ', $value);
                     }
 
                 } elseif (preg_match('@^(.+)\s*\(([^\)]+)\)\s*$@', $name, $matches)) {
-                    //feature name based unit
-                    $unit = $matches[2];
+                    if (empty($unit)) {
+                        //feature name based unit
+                        $unit = $matches[2];
+                    }
                     $name = $matches[1];
                 }
                 $value = trim((string)$value);
@@ -2653,10 +2681,13 @@ SQL;
                     $value = null;
                 } else {
                     $value = array(
-                        'name'  => $name,
-                        'unit'  => $unit,
+                        'name'  => trim($name),
                         'value' => trim((string)$value),
                     );
+                    $unit = trim($unit);
+                    if ($unit) {
+                        $value['unit'] = $unit;
+                    }
                 }
                 break;
             case 'downloadable':
@@ -2702,6 +2733,45 @@ SQL;
         }
 
         return $price >= ifempty($this->data['export']['min_price'], 0.5);
+    }
+
+    private function convertCurrency($value, &$data, $sku_data)
+    {
+        static $currency_model;
+        $_currency_converted = false;
+
+        if (!$currency_model) {
+            $currency_model = new shopCurrencyModel();
+        }
+
+        if (isset($data['currency'])) {
+            if ($sku_data) {
+                if (!in_array($data['currency'], $this->data['currency'])) {
+
+                    $_currency_converted = true;
+                    $value = $currency_model->convert($value, $data['currency'], $this->data['primary_currency']);
+                    $data['currency'] = $this->data['primary_currency'];
+                }
+            } else {
+                if (!in_array($data['currency'], $this->data['currency'])) {
+                    #value in default currency
+                    if ($this->data['default_currency'] != $this->data['primary_currency']) {
+                        $value = $currency_model->convert($value, $this->data['default_currency'], $this->data['primary_currency']);
+                    }
+                    $_currency_converted = true;
+                    $data['currency'] = $this->data['primary_currency'];
+                } elseif ($this->data['default_currency'] != $data['currency']) {
+                    $_currency_converted = true;
+                    $value = $currency_model->convert($value, $this->data['default_currency'], $data['currency']);
+                }
+            }
+
+            if ($value && class_exists('shopRounding') && !empty($_currency_converted)) {
+                $value = shopRounding::roundCurrency($value, $data['currency']);
+            }
+        }
+        unset($_currency_converted);
+        return $value;
     }
 
     public function exchangeReport()
