@@ -45,7 +45,7 @@ class shopCheckoutPayment extends shopCheckout
                 }
             } else {
                 $methods[$key]['error'] = _w('Not available');
-                //unset($methods[$key]);
+                unset($methods[$key]);
             }
         }
 

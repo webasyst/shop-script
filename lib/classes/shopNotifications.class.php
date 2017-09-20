@@ -37,7 +37,12 @@ class shopNotifications
                 if (!$n['source'] || ($n['source'] == $data['source'])) {
                     $method = 'send'.ucfirst($n['transport']);
                     if (method_exists('shopNotifications', $method)) {
-                        self::$method($n, $data);
+                        try {
+                            self::$method($n, $data);
+                        } catch (Exception $ex) {
+                            $error = sprintf('Unable to send %s notifications for order %s: %s', ucfirst($n['transport']), $data['order_id'], $ex->getMessage());
+                            waLog::log($error, 'shop/notifications.log');
+                        }
                     }
                 }
             }
@@ -115,7 +120,7 @@ class shopNotifications
                 $data['action_data']['params'] = array();
                 $log_params_model = new shopOrderLogParamsModel();
                 $params = $log_params_model->getByField('log_id', $data['action_data']['id'], true);
-                foreach($params as $p) {
+                foreach ($params as $p) {
                     $data['action_data']['params'][$p['name']] = $p['value'];
                 }
             }
@@ -423,6 +428,7 @@ SQL;
         }
         $order_id = $data['order']['id'];
         $data['order']['id'] = shopHelper::encodeOrderId($order_id);
+
 
         $view = wa()->getView();
         $view->assign($data);

@@ -181,11 +181,21 @@
                     $.post("?module=settings&action=notificationsTest&id="+id, {
                         order_id: order_id,
                         to: to
-                    }, function() {
+                    }, function(response) {
                         dialog.find(':input').attr('disabled', false);
                         dialog.find('.s-msg-after-button').hide();
                         dialog.find('.before-send').hide();
                         dialog.find('.after-send').show();
+                        if(response.status ==='ok'){
+                            dialog.find('.after-send .errormsg').hide();
+                            dialog.find('.after-send .successmsg').show();
+                        } else {
+                            var error = dialog.find('.after-send .errormsg');
+                            error.text(response.errors);
+                            error.show();
+                            dialog.find('.after-send .successmsg').hide();
+                        }
+
                     });
 
                     return false;

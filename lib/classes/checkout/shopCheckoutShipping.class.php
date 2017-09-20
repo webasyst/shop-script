@@ -47,7 +47,7 @@ class shopCheckoutShipping extends shopCheckout
     {
         $shipping = null;
         if ($selected_shipping) {
-            if (isset($methods[$shipping['id']])) {
+            if (isset($methods[$selected_shipping['id']])) {
                 $shipping = $selected_shipping;
             }
         }
