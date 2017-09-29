@@ -473,7 +473,7 @@ class shopHelper
 
         $customer_delivery_time = null;
         if (!empty($order_params['shipping_params_desired_delivery.interval'])) {
-            if (preg_match('~^\d\d:\d\d-\d\d:\d\d$~', $order_params['shipping_params_desired_delivery.interval'])) {
+            if (preg_match('~^\d{1,2}:\d\d-\d{1,2}:\d\d$~', $order_params['shipping_params_desired_delivery.interval'])) {
                 list($from_hours, $from_minutes, $to_hours, $to_minutes) = preg_split('~:|-~', $order_params['shipping_params_desired_delivery.interval']);
                 $customer_delivery_time = compact('from_hours', 'from_minutes', 'to_hours', 'to_minutes');
             }
