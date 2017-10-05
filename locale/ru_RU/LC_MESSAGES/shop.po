@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 1.8.11\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -2446,8 +2446,8 @@ msgstr "Использован партнерский бонус (%s) для д�
 msgid "Refund bonus used to get discount for order %s"
 msgstr "Восстановление бонуса, потраченного на скидку в заказе %s"
 
-msgid "By customer category, %s%%%%"
-msgstr "По категории покупателя, %s%%%%"
+msgid "By customer category, %s%%"
+msgstr "По категории покупателя, %s%%"
 
 msgid "By order total, %s%%"
 msgstr "По сумме заказа, %s%%"
@@ -7419,6 +7419,12 @@ msgstr "Магазин настроен на использование сумм
 msgid "Discount specified manually"
 msgstr "Скидка указана вручную"
 
+msgid "Automatically calculate discount according to rules set up in store and plugin settings"
+msgstr "Автоматически рассчитать скидку в соотствии с правилами в настройках магазина и плагинов"
+
+msgid "Manually edit automatically calculated discount"
+msgstr "Вручную исправьте автоматически рассчитанную скидку"
+
 msgid "Product list settings"
 msgstr "Настройки списка товаров"
 
@@ -10577,3 +10583,21 @@ msgstr "Не обновляется действиями с заказами"
 
 msgid "With option “Not updated by order actions”, products’ stock level is supposed to be updated only during data exchange with accounting software, which is used to manage product stock updates."
 msgstr "Вариант «Не обновляется действиями с заказами» предполагает, что складские остатки товаров должны обновляться путем обмена данными с системой учета, с помощью которой выполняется управление остатками."
+
+msgid "Total discount for this order item: %s."
+msgstr "Общая скидка на этот товар: %s."
+
+msgid "Hold previous calculated discount"
+msgstr "Сохранена ранее рассчитаная скидка"
+
+msgid "Total discount breakdown"
+msgstr "Состав итоговой скидки"
+
+msgid "applicable to individual items:"
+msgstr "скидка на заказанные товары:"
+
+msgid "applicable to entire order:"
+msgstr "скидка на весь заказ:"
+
+msgid "Edit discount"
+msgstr "Изменить скидку"

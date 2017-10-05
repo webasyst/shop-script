@@ -358,9 +358,16 @@ SQL;
         $order_items_model = new shopOrderItemsModel();
         $order['items'] = $order_items_model->getItems($id, $extend);
 
+        $order['items_total_discount'] = 0.0;
+
         if ($escape) {
             if (!empty($order['items'])) {
                 foreach ($order['items'] as &$product) {
+                    if (!empty($product['item']['total_discount'])) {
+                        $product['item']['total_discount'] = floatval($product['item']['total_discount']);
+                        $order['items_total_discount'] += $product['item']['total_discount'];
+                    }
+
                     if (!empty($product['name'])) {
                         $product['name'] = htmlspecialchars($product['name']);
                     }

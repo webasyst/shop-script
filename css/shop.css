@@ -167,6 +167,7 @@ ul.tags { list-style-type: none; margin: 0; padding: 0; }
 --------- */
 
 #s-order-items { margin-left: -5px; }
+#s-order-items tr { page-break-inside: avoid; }
 
 .s-order { position: relative; box-shadow: -11px 1px 13px -11px #ccc; z-index: 83; background: #fff; margin-right: 7px; }
 .s-order .s-overhanging-plus { margin-left: -12px; }

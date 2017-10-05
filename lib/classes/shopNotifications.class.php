@@ -40,7 +40,12 @@ class shopNotifications
                         try {
                             self::$method($n, $data);
                         } catch (Exception $ex) {
-                            $error = sprintf('Unable to send %s notifications for order %s: %s', ucfirst($n['transport']), $data['order_id'], $ex->getMessage());
+                            $error = sprintf(
+                                'Unable to send %s notifications for order %s: %s',
+                                ucfirst($n['transport']),
+                                ifset($data['order_id'], ifset($data['id'])),
+                                $ex->getMessage()
+                            );
                             waLog::log($error, 'shop/notifications.log');
                         }
                     }

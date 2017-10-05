@@ -296,8 +296,8 @@
             });
         },
 
-        ordersNewAction: function () {
-            this.load('?module=order&action=edit', function() {
+        ordersNewAction: function (params) {
+            this.load('?module=order&action=edit'+(params ? '&'+params : ''), function() {
                 if ($.order_list) {
                     $.order_list.finit();
                 }

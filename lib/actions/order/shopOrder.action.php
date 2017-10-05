@@ -305,6 +305,10 @@ HTML;
             'action_link',
             'info_section'
         )));
+        if (waRequest::get('printable')) {
+            $template = $this->getTemplate();
+            $this->setTemplate(preg_replace('@(\.html)$@', '.printable$1', $template));
+        }
     }
 
     protected function formatSalesChannel($params)

@@ -440,7 +440,40 @@
 
                     <!-- order action links -->
                     <ul class="menu-v with-icons compact workflow-actions">
-                        <li><a href="#" target="_blank" class="js-print" data-selector="div.s-order"><i class="icon16 print"></i>[`Printable version`]</a></li>
+                        <li>
+                            <a href="{$wa_app_url}?module=order&id={$order.id}&printable=true" class="js-show-print-page"><i class="icon16 print"></i>[`Printable version`]</a>
+                            <script>
+                                ( function($) {
+                                    $(".workflow-actions .js-show-print-page").on("click", function(event) {
+                                        event.preventDefault();
+                                        showWindow($(this).attr('href'));
+                                    });
+
+                                    function showWindow(href) {
+                                        var $window = $(window),
+                                            window_w = $window.width(),
+                                            window_h = $window.height();
+
+                                        var params_array = [
+                                            ["top", parseInt(window_h * .025)],
+                                            ["left", parseInt(window_w * .025)],
+                                            ["height", parseInt(window_h * .95)],
+                                            ["width", parseInt(window_w * .95)]
+                                        ];
+
+                                        var params = [];
+
+                                        $.each(params_array, function(index, item) {
+                                            var param_string = item[0] + "=" + item[1];
+                                            params.push(param_string);
+                                        });
+
+                                        window.open(href, "wa-shop-order-print", params.join(","));
+                                    }
+
+                                })(jQuery);
+                            </script>
+                        </li>
                         {foreach $top_buttons as $b}
                             <li>{$b}</li>
                         {/foreach}

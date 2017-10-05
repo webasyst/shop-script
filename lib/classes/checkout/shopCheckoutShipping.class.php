@@ -249,7 +249,7 @@ class shopCheckoutShipping extends shopCheckout
 
             // When free shipping coupon is used, display all rates as 0
             $checkout_data = wa('shop')->getStorage()->read('shop/checkout');
-            if (!empty($checkout_data['coupon_code'])) {
+            if (!empty($checkout_data['coupon_code']) && ($m['rate'] !== null)) {
                 empty($cm) && ($cm = new shopCouponModel());
                 $coupon = $cm->getByField('code', $checkout_data['coupon_code']);
                 if ($coupon && $coupon['type'] == '$FS') {
@@ -442,25 +442,27 @@ class shopCheckoutShipping extends shopCheckout
             $product_ids[] = $item['product_id'];
             $sku_ids[] = $item['sku_id'];
         }
-        $feature_model = new shopFeatureModel();
-        $f = $feature_model->getByCode('weight');
-        if (!$f) {
-            $values = array();
-        } else {
-            $values_model = $feature_model->getValuesModel($f['type']);
-            $values = $values_model->getProductValues($product_ids, $f['id']);
-        }
-
+        $values = array();
         #get weight unit multiplier
         $m = null;
-        if ($values) {
-            if ($weight_unit) {
-                $dimension = shopDimension::getInstance()->getDimension('weight');
-                if ($weight_unit != $dimension['base_unit']) {
-                    $m = $dimension['units'][$weight_unit]['multiplier'];
+
+        $feature_model = new shopFeatureModel();
+        $f = $feature_model->getByCode('weight');
+        if ($f) {
+            $values_model = $feature_model->getValuesModel($f['type']);
+            if ($values_model) {
+                $values = $values_model->getProductValues($product_ids, $f['id']);
+                if ($values) {
+                    if ($weight_unit) {
+                        $dimension = shopDimension::getInstance()->getDimension('weight');
+                        if ($weight_unit != $dimension['base_unit']) {
+                            $m = $dimension['units'][$weight_unit]['multiplier'];
+                        }
+                    }
                 }
             }
         }
+
 
         foreach ($cart_items as &$item) {
             if (isset($values['skus'][$item['sku_id']])) {

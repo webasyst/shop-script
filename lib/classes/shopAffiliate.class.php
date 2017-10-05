@@ -60,7 +60,7 @@ class shopAffiliate
 
             // Fetch product info
             $product_ids = array();
-            foreach($order['items'] as $i) {
+            foreach ($order['items'] as $i) {
                 $product_ids[$i['product_id']] = true;
             }
             $pm = new shopProductModel();
@@ -68,7 +68,7 @@ class shopAffiliate
 
             // Calculate total value of affiliatable order items
             $items_total = 0;
-            foreach($order['items'] as $i) {
+            foreach ($order['items'] as $i) {
                 $p = $products[$i['product_id']];
                 $type_id = $p['type_id'];
                 if ($i['type'] == 'product' && $type_id && !empty($product_types[$type_id])) {
@@ -103,14 +103,25 @@ class shopAffiliate
             return 0;
         }
 
+        if (empty($order['currency'])) {
+            $shop_config = wa('shop')->getConfig();
+            /**
+             * @var shopConfig $shop_config
+             */
+            $currency = $shop_config->getCurrency();
+        } else {
+            $currency = $order['currency'];
+        }
+
         $atm = new shopAffiliateTransactionModel();
         $atm->applyBonus(
             $order['contact_id'],
             self::calculateBonus($order),
             $order_id,
-            sprintf_wp('Bonus for the order %s totalling %s',
+            sprintf_wp(
+                'Bonus for the order %s totalling %s',
                 shopHelper::encodeOrderId($order_id),
-                waCurrency::format('%{s}', $order['total'], ifempty($order['currency'], wa('shop')->getConfig()->getCurrency()))
+                waCurrency::format('%{s}', $order['total'], $currency)
             )
         );
     }
@@ -136,9 +147,13 @@ class shopAffiliate
         }
 
         $atm = new shopAffiliateTransactionModel();
-        $atm->applyBonus($order['contact_id'], $params['affiliate_bonus'], $order_id,
+        $atm->applyBonus(
+            $order['contact_id'],
+            $params['affiliate_bonus'],
+            $order_id,
             sprintf_wp('Refund bonus used to get discount for order %s', shopHelper::encodeOrderId($order_id)),
-            shopAffiliateTransactionModel::TYPE_ORDER_CANCEL);
+            shopAffiliateTransactionModel::TYPE_ORDER_CANCEL
+        );
     }
 
     public static function cancelBonus($order_or_id)
@@ -161,8 +176,13 @@ class shopAffiliate
         }
 
         $atm = new shopAffiliateTransactionModel();
-        $atm->applyBonus($order['contact_id'], -self::calculateBonus($order), $order_id, '',
-            shopAffiliateTransactionModel::TYPE_ORDER_CANCEL);
+        $atm->applyBonus(
+            $order['contact_id'],
+            -self::calculateBonus($order),
+            $order_id,
+            '',
+            shopAffiliateTransactionModel::TYPE_ORDER_CANCEL
+        );
     }
 
     /** Convert affiliate bonus into default currency. */
@@ -172,9 +192,17 @@ class shopAffiliate
         return $points * $usage_rate;
     }
 
+    /**
+     * @param mixed[string] $order
+     * @param waContact $contact
+     * @param bool $apply
+     * @param float $other_discounts
+     * @param string $d description
+     * @return float
+     */
     public static function discount(&$order, $contact, $apply, $other_discounts, &$d = null)
     {
-        // Make sure affiliation program is enabled, set up properly and appllicable for given order
+        // Make sure affiliation program is enabled, set up properly and applicable for given order
         if (!$contact || !$contact->getId()) {
             return 0;
         }
@@ -216,9 +244,14 @@ class shopAffiliate
         }
         $max_bonus = $customer['affiliate_bonus'] + $prev_affiliate_bonus;
 
-        $default_currency = wa('shop')->getConfig()->getCurrency(true);
+        $shop_config = wa('shop')->getConfig();
+        /**
+         * @var shopConfig $shop_config
+         */
+
+        $default_currency = $shop_config->getCurrency(true);
         if (empty($order['currency'])) {
-            $order_currency = wa('shop')->getConfig()->getCurrency(false);
+            $order_currency = $shop_config->getCurrency(false);
         } else {
             $order_currency = $order['currency'];
         }
@@ -270,4 +303,3 @@ class shopAffiliate
         return $discount;
     }
 }
-

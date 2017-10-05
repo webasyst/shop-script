@@ -138,12 +138,21 @@ class shopOrderSaveController extends waJsonController
             $o = array_diff_key($o, $data);
             $data += $o;
 
-            // Apply (or recalculate) discounts
-            $discount_description = null;
-            if ($id) {
-                $data['discount'] = shopDiscounts::reapply($data, $discount_description);
+            if (strpos($discount_description, '%HOLD%') === 0) {
+                $data['discount'] = max(0, waRequest::post('discount'));
+                $discounts = $this->post('item_total_discount', array(), 'edit');
+                foreach ($data['items'] as &$item) {
+                    $item['total_discount'] = max(0, ifset($discounts[$item['id']]));
+                    unset($item);
+                }
             } else {
-                $data['discount'] = shopDiscounts::apply($data, $discount_description);
+                // Apply (or recalculate) discounts
+                $discount_description = null;
+                if ($id) {
+                    $data['discount'] = shopDiscounts::reapply($data, $discount_description);
+                } else {
+                    $data['discount'] = shopDiscounts::apply($data, $discount_description);
+                }
             }
 
             $data['total'] = $data['total'] - $data['discount'] + $data['shipping'];
@@ -168,9 +177,9 @@ class shopOrderSaveController extends waJsonController
                 if ($id && !empty($item['id']) && !isset($item['total_discount'])) {
                     $item['total_discount'] = ifset($old_items[$item['id']]['total_discount'], 0);
                 }
-                $tmp_discount += ifset($item['total_discount'], 0);
+                $tmp_discount += round(ifset($item['total_discount'], 0), 4);
             }
-            if ($tmp_discount > $data['discount']) {
+            if ($tmp_discount > round($data['discount'], 4)) {
                 foreach ($data['items'] as &$item) {
                     $item['total_discount'] = 0;
                 }
@@ -198,7 +207,7 @@ class shopOrderSaveController extends waJsonController
         $order['discount'] = (float)$order['discount'];
 
         // Save discount description to order log
-        if ($previous_discount != $order['discount']) {
+        if (($previous_discount != $order['discount']) || (!empty($order['discount']) && $discount_description)) {
             if (empty($discount_description)) {
                 if ($just_created) {
                     $discount_description = sprintf_wp(
@@ -211,6 +220,8 @@ class shopOrderSaveController extends waJsonController
                         shop_currency($order['discount'], $order['currency'], $order['currency'])
                     );
                 }
+            } elseif (strpos($discount_description, '%HOLD%') === 0) {
+                $discount_description = str_replace('%HOLD%', _w('Hold previous calculated discount'), $discount_description);
             }
 
             $order_log_model = new shopOrderLogModel();

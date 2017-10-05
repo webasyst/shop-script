@@ -72,6 +72,12 @@ class shopOrderTotalController extends waJsonController
 
         $this->response['discount_description'] = '';
         $this->response['discount'] = shopDiscounts::calculate($order, false, $this->response['discount_description']);
+        $this->response['items_discount'] = array();
+        $template = _w('Total discount for this order item: %s.');
+        foreach ($order['items'] as $id => $item) {
+            $item['total_discount'] = round(ifset($item['total_discount'], 0), 4);
+            $this->response['items_discount'][$id] = empty($item['total_discount']) ? false : sprintf($template, shop_currency_html(-$item['total_discount']));
+        }
 
         $method_params = array(
             'currency'           => $currency,
@@ -106,6 +112,15 @@ class shopOrderTotalController extends waJsonController
         }
 
         $this->response['shipping_methods'] = shopHelper::getShippingMethods($shipping_address, $shipping_items, $method_params);
+
+        if (isset($order['shipping']) && ($order['shipping'] == 0)) {
+            foreach ($this->response['shipping_methods'] as &$m) {
+                if (!is_string($m['rate'])) {
+                    $m['rate'] = 0;
+                }
+                unset($m);
+            }
+        }
         // for saving order in js
         $this->response['shipping_method_ids'] = array_keys($this->response['shipping_methods']);
     }
@@ -155,10 +170,14 @@ class shopOrderTotalController extends waJsonController
             if (!empty($products[$i['product_id']]['skus'][$i['sku_id']])) {
                 $product = $products[$i['product_id']];
                 $sku = $product['skus'][$i['sku_id']];
+                if (!empty($sku['name'])) {
+                    $i['name'] = sprintf('%s (%s)', ifempty($product['name'], $i['name']), $sku['name']);
+                } else {
+                    $i['name'] = ifempty($product['name'], $i['name']);
+                }
                 $i = array(
                         'purchase_price' => shop_currency($sku['purchase_price'], $product['currency'], $order_currency, false),
                         'sku_code'       => $sku['sku'],
-                        'name'           => ifempty($sku['name'], ifempty($product['name'], $i['name'])),
                     )
                     +
                     $i
