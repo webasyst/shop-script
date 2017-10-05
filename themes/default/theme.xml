@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="3.2.5">
+<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="3.2.6">
     <name locale="en_US">Default 3.0</name>
     <name locale="ru_RU">Дефолт 3.0</name>
     <files>
         <file path="index.html" parent="1">
         </file>
         <file path="default.css" parent="1">
+        </file>
+        <file path="css/home.slider.css">
         </file>
         <file path="default.shop.css">
         </file>
@@ -22,11 +24,11 @@
     	</file>
     	<file path="main.html">
             <description locale="en_US">Main storefront layout and navigation</description>
-            <description locale="ru_RU">Основное макет вывода содержимого и навигации в интернет-магазине</description>
+            <description locale="ru_RU">Основной макет отображения содержимого и навигации в интернет-магазине</description>
         </file>
         <file path="footer.html">
             <description locale="en_US">App specific footer content</description>
-            <description locale="ru_RU">Содержимое футера приложения</description>
+            <description locale="ru_RU">Содержимое подвала приложения</description>
         </file>
         <file path="category.html">
             <description locale="en_US">Wrapper for a category page</description>
@@ -34,7 +36,7 @@
         </file>
         <file path="list-thumbs.html">
             <description locale="en_US">Product list thumbnail view</description>
-            <description locale="ru_RU">Список товаров эскизами</description>
+            <description locale="ru_RU">Список товаров в виде эскизов</description>
         </file>
         <file path="list-thumbs-mini.html">
             <description locale="en_US">Recommended product list (mini thumbnails)</description>
@@ -49,16 +51,16 @@
             <description locale="ru_RU">Блок добавления товара в корзину</description>
         </file>
         <file path="product.js">
-            <description locale="en_US">Product page JS</description>
-            <description locale="ru_RU">JS-скрипты страницы товара</description>
+            <description locale="en_US">Product page JavaScript</description>
+            <description locale="ru_RU">JavaScript-код страницы товара</description>
         </file>
         <file path="product.page.html">
             <description locale="en_US">Product static subpage content</description>
             <description locale="ru_RU">Информационная подстраница товара</description>
         </file>
         <file path="review.html">
-            <description locale="en_US">A single product review template</description>
-            <description locale="ru_RU">Шаблон вывода одного отзыва о товаре</description>
+            <description locale="en_US">Single product review template</description>
+            <description locale="ru_RU">Шаблон отображения одного отзыва о товаре</description>
         </file>
         <file path="reviews.html">
             <description locale="en_US">Product review list</description>
@@ -73,12 +75,12 @@
             <description locale="ru_RU">Страница с товарами корзины</description>
         </file>
         <file path="cart.js">
-            <description locale="en_US">Cart JS</description>
-            <description locale="ru_RU">JS-скрипты корзины</description>
+            <description locale="en_US">Cart page JavaScript</description>
+            <description locale="ru_RU">JavaScript-код страницы корзины</description>
         </file>
         <file path="checkout.html">
             <description locale="en_US">Checkout core wrapper</description>
-            <description locale="ru_RU">Единый шаблон страниц оформления заказа</description>
+            <description locale="ru_RU">Общий шаблон страниц оформления заказа</description>
         </file>
         <file path="checkout.shipping.html">
             <description locale="en_US">Checkout: shipping option selection</description>
@@ -90,19 +92,19 @@
         </file>
         <file path="checkout.contactinfo.html">
             <description locale="en_US">Checkout: customer contact information form</description>
-            <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
+            <description locale="ru_RU">Оформление заказа: форма заполнения контактной информации покупателя</description>
         </file>
         <file path="checkout.confirmation.html">
             <description locale="en_US">Checkout: order confirmation</description>
-            <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
+            <description locale="ru_RU">Оформление заказа: подтверждение заказа</description>
         </file>
         <file path="checkout.success.html">
-            <description locale="en_US">Checkout: thank you page</description>
-            <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
+            <description locale="en_US">Checkout: “Thank you!” page</description>
+            <description locale="ru_RU">Оформление заказа: страница с благодарностью об оформленном заказе</description>
         </file>
         <file path="checkout.error.html">
             <description locale="en_US">Checkout: error page</description>
-            <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
+            <description locale="ru_RU">Оформление заказа: страница с сообщением об ошибке</description>
         </file>
         <file path="my.nav.html">
             <description locale="en_US">Customer account navigation menu</description>
@@ -124,10 +126,14 @@
         </file>
         <file path="home.html">
             <description locale="en_US">Storefront homepage</description>
-            <description locale="ru_RU">Главная витрина магазина</description>
+            <description locale="ru_RU">Главная страница витрины</description>
+        </file>
+        <file path="home.slider.html">
+            <description locale="en_US">Слайдер на главной странице</description>
+            <description locale="ru_RU">Homepage slider</description>
         </file>
         <file path="search.html">
-            <description locale="en_US">Wrapper for product search (filtering) results, e.g. by name, tag, or manufacturer</description>
+            <description locale="en_US">Wrapper for product search (filtering) results; e.g., by name, tag, or manufacturer</description>
             <description locale="ru_RU">Обертка для страницы поиска (фильтрации) товаров, например, по тегу, ключевому слову или производителю</description>
         </file>
         <file path="page.html">
@@ -145,8 +151,8 @@
         <file path="default.js" parent="1">
         </file>
         <file path="reviews.js">
-            <description locale="en_US">Reviews JS</description>
-            <description locale="ru_RU">Скрипты отзывов</description>
+            <description locale="en_US">Reviews JavaScript</description>
+            <description locale="ru_RU">JavaScript-код отзывов</description>
         </file>
     </files>
     <settings>
@@ -164,14 +170,20 @@
                 <option value="promos">
                     <name locale="ru_RU">Промо-карточки</name>
                     <name locale="en_US">Promo cards</name>
-                    <description locale="ru_RU">В слайдере будут показаны промо-карточки, созданные в разделе Товары > Промо</description>
-                    <description locale="en_US">Promo cards will be displayed on the main slider (use Products > Promos to create new promo cards)</description>
+                    <description locale="ru_RU">В слайдере будут показаны промо-карточки, созданные в разделе «Товары → Промо».</description>
+                    <description locale="en_US">Promo cards editable in “Products → Promos” section will be displayed in home page slider.</description>
                 </option>
                 <option value="products">
                     <name locale="ru_RU">Товары</name>
                     <name locale="en_US">Products</name>
-                    <description locale="ru_RU">В слайдере будут показаны промо-товары из списка, идентификатор которого задан настройкой ниже. Новые списки товаров создаются в разделе Товары > Списки.</description>
-                    <description locale="en_US">Slider will present products from a product set which ID is specified in the setting below. New product sets can be created in Products > Sets.</description>
+                    <description locale="ru_RU">В слайдере будут показаны основные изображения товаров из списка с указанным ниже идентификатором. Списки товаров редактируются в разделе «Товары → Списки».</description>
+                    <description locale="en_US">Slider will display main images of products from a product set with ID specified below. Product sets are editable in “Products → Sets” section.</description>
+                </option>
+                <option value="products_wide">
+                    <name locale="ru_RU">Товары: последнее фото в качестве фона</name>
+                    <name locale="en_US">Products: last photo as a background</name>
+                    <description locale="ru_RU">В слайдере будут показаны последние изображения товаров из списка с указанным ниже идентификатором — в качестве фона по размерам всего слайдера.</description>
+                    <description locale="en_US">Slider will display last images of products from a product set with ID specified below, as background for entire slider area.</description>
                 </option>
                 <option value="hidden">
                     <name locale="ru_RU">Не показывать слайдер</name>
@@ -183,8 +195,8 @@
             <value>promo</value>
             <name locale="en_US">Slider product set ID</name>
             <name locale="ru_RU">Список промо-товаров в слайдере</name>
-            <description locale="ru_RU">Идентификатор списка товаров «Промо». Товары из этого списка будут показаны в слайдере, если так указано в настройке слайдера выше.</description>
-            <description locale="en_US">Products from this slider promo product set will be shown in the storefront slider if it is setup that way in the setting above.</description>
+            <description locale="ru_RU">Идентификатор списка товаров, которые будут показаны в слайдере, если это выбрано в настройке слайдера выше.</description>
+            <description locale="en_US">ID of product set whose products will be shown in homepage slider if selected in the corresponding setting above.</description>
         </setting>
         <setting var="homepage_promocards_below_the_slider" control_type="checkbox">
             <value>1</value>
@@ -211,7 +223,7 @@
         <setting var="homepage_onsale_title" control_type="text">
             <value locale="en_US">ON SALE</value>
             <value locale="ru_RU">Распродажа</value>
-            <name locale="en_US">Title above the list of products featured on homepage</name>
+            <name locale="en_US">Title above homepage featured product list</name>
             <name locale="ru_RU">Заголовок над списком промо-товаров</name>
             <description locale="en_US"><![CDATA[If provided, <b>{$date}</b> will be replaced with the current date]]></description>
             <description locale="ru_RU"><![CDATA[Переменная <b>{$date}</b> в заголовке (если указана) будет заменена на текущую дату]]></description>
@@ -233,18 +245,18 @@
         <setting var="homepage_blogposts" control_type="checkbox">
             <value>1</value>
             <name locale="en_US">Show latest blog posts on storefront homepage</name>
-            <name locale="ru_RU">Показывать последние посты блога на главной странице интернет-магазина</name>
+            <name locale="ru_RU">Показывать последние записи блога на главной странице интернет-магазина</name>
         </setting>
 
         <setting var="divider_storefront_sidebar" control_type="group_divider">
             <value></value>
             <name locale="en_US">Storefront sidebar</name>
-            <name locale="ru_RU">Боковая панель на витрине</name>
+            <name locale="ru_RU">Боковая панель витрины</name>
         </setting>
         <setting var="homepage_sidebar_layout" control_type="select">
             <value>right</value>
             <name locale="en_US">Display homepage sidebar</name>
-            <name locale="ru_RU">Показывать боковую панель на витрине</name>
+            <name locale="ru_RU">Показывать на витрине боковую панель</name>
             <options>
                 <option value="right">
                     <name locale="ru_RU">Справа</name>
@@ -314,7 +326,7 @@
 
         <setting var="divider_shop" control_type="group_divider">
             <value></value>
-            <name locale="en_US">Store common settings</name>
+            <name locale="en_US">Сommon store settings</name>
             <name locale="ru_RU">Общие настройки магазина</name>
         </setting>
         <setting var="category_nav_mode" control_type="radio">
@@ -324,7 +336,7 @@
             <options>
                 <option value="dropdown">
                     <name locale="ru_RU">Выпадающее меню «Каталог товаров»</name>
-                    <name locale="en_US">Drop-down “Shop by Department”</name>
+                    <name locale="en_US">Drop-down menu “Shop by Department”</name>
                     <description locale="ru_RU">Выпадающее развернутое меню с полным каталогом товаров.</description>
                     <description locale="en_US">Category list will be available under the "Shop by Department" header link.</description>
                 </option>
@@ -345,24 +357,24 @@
                     <name locale="ru_RU">Показывать все значения крупно в ряд</name>
                     <name locale="en_US">Display all options inline</name>
                     <description locale="ru_RU">Для товаров в режиме продажи «Выбор характеристик» значения характеристик будут показаны одной строкой друг за другом. Рекомендуется, если названия значений относительно короткие и по ним однозначно можно определить, о какой характеристике товара идет речь, например, XL, 16 GB, 13”.</description>
-                    <description locale="en_US">For products which are sold in selectable features mode, all feature values will be displayed inline. Great if feature value names are self-explanatory and explicit in context of a product, e.g. XL, 16 GB, 13”.</description>
+                    <description locale="en_US">For products which are sold in selectable features mode, all feature values will be displayed inline. Great if feature value names are self-explanatory and explicit in the context of a product; e.g., “XL”, “16 GB”, “13”.</description>
                 </option>
                 <option value="select">
                     <name locale="ru_RU"><![CDATA[Выбор из списка &lt;select&gt;]]></name>
                     <name locale="en_US"><![CDATA[&lt;select&gt; HTML control]]></name>
                     <description locale="ru_RU"><![CDATA[Для товаров в режиме продажи «Выбор характеристик» значения характеристик будут предложены на выбор с помощью стандартного выбора &lt;select&gt;. Рекомендуется, если названия значений характеристик содержат более одного-двух слов или по значениям нельзя однозначно понять, о какой характеристике товара идет речь, например, «до 10 часов», «не предусмотрено».]]></description>
-                    <description locale="en_US"><![CDATA[For products which are sold in selectable features mode, feature values will be displayed using a &lt;select&gt; HTML control. Recommended if value names are either too long or ambiguous in context of a product, e.g. “up to 10 hours”, “yes”.]]></description>
+                    <description locale="en_US"><![CDATA[For products which are sold in selectable features mode, feature values will be displayed using a &lt;select&gt; HTML control. Recommended if value names are either too long or ambiguous in the context of a product, e.g. “up to 10 hours”, “yes”.]]></description>
                 </option>
             </options>
         </setting>
         <setting var="cart_crossselling" control_type="select">
             <value>common</value>
             <name locale="ru_RU">Рекомендуемые товары в корзине</name>
-            <name locale="en_US">Cross-selling in cart</name>
+            <name locale="en_US">Cross-selling products on shopping cart page</name>
             <options>
                 <option value="single">
                     <name locale="ru_RU">Единый список рекомендуемых товаров на основе всего содержимого корзины</name>
-                    <name locale="en_US">Common recommended product list based on entire cart content</name>
+                    <name locale="en_US">Common recommended product list based on entire cart contents</name>
                 </option>
                 <option value="many">
                     <name locale="ru_RU">Отдельные списки рекомендуемых товаров отдельно для каждого товара</name>
@@ -382,7 +394,7 @@
         </setting>
         <setting var="ajax_filters" control_type="checkbox">
             <value>1</value>
-            <name locale="en_US">AJAX-enabled product by-feature filtering</name>
+            <name locale="en_US">AJAX-enabled product filtering by features</name>
             <name locale="ru_RU">AJAX-фильтры товаров по характеристикам</name>
         </setting>
 
@@ -397,14 +409,14 @@
     </thumbs>
     <about locale="en_US">
 <![CDATA[
-<p><b>Default</b> is a universal adaptive design theme family for all basic Webasyst apps: Site, Blog, Photos, Shop-Script, and others. The parent (main) theme of the family, which includes the basic set of CSS rules and the common layout template index.html, is the Default theme for the Site application. All Default design themes used in other applications (e.g., Blog, Shop-Script or Photos) link common CSS and index.html layout file from the main theme.</p>
-<p>Default design themes automatically link CSS depending on a visitor's device. Supported devices and platforms: iOS or Android based mobile devices, tablet computers such as iPad, common desktop computers and laptops.</p>
+<p><b>Default</b> is a universal adaptive design theme family for basic Webasyst apps: Site, Blog, Photos, Shop-Script, and others. The parent (main) theme of the family, which includes the basic set of CSS rules and the common layout template index.html, is the Default theme for Site app. All Default design themes used by other apps; e.g., Blog, Shop-Script, or Photos, utilize common CSS and index.html layout files provided by the main theme.</p>
+<p>Default design themes automatically enable appropriate CSS for a particular visitor's device. Supported devices and platforms are iOS and Android based smartphones, tablet computers such as iPad, common desktop computers, and laptops.</p>
 ]]>
     </about>
     <about locale="ru_RU">
 <![CDATA[
-<p><b>Default</b> — это универсальное семейство адаптивных тем дизайна для всех базовых приложений фреймворка Вебасист: Сайт, Блог, Фото, Shop-Script и других. Родительской (основной) темой семейства, включающей в себя базовый набор CSS-стилей и общий макет дизайна index.html, является тема Default для приложения «Сайт». Все темы дизайна Default для других приложений (Блог, Фото, Shop-Script и других) используют базовый CSS и index.html из родительской (основной) темы.</p>
-<p>Темы дизайна семейства Default оптимизированы для всех современных браузеров, планшетных компьютеров и мобильных устройств на основе iOS и Android. CSS-стили подключаются в зависимости от разрешения и типа устройства, которым пользуется посетитель сайта.</p>
+<p>«<b>Дефолт</b>» — это универсальное семейство адаптивных тем дизайна для базовых приложений фреймворка Вебасист: «Сайт», «Блог», «Фото», Shop-Script и других. Родительской (основной) темой семейства, включающей в себя базовый набор CSS-стилей и общий макет дизайна index.html, является тема «Дефолт» для приложения «Сайт». Все темы дизайна «Дефолт» для других приложений («Блог», «Фото», Shop-Script и других) используют базовый CSS-код и файл index.html из родительской (основной) темы.</p>
+<p>Темы дизайна семейства «Дефолт» оптимизированы для всех современных браузеров, планшетных компьютеров и мобильных устройств на основе iOS и Android. CSS-стили подключаются в зависимости от разрешения и типа устройства, которым пользуется посетитель сайта.</p>
 ]]>
     </about>
     <locales>
