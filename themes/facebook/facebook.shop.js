@@ -34,7 +34,7 @@ $(document).ready(function () {
         $.post(f.attr('action') + '?html=1', f.serialize(), function (response) {
             if (response.status == 'ok') {
                 var cart_total = $(".cart-total");
-                
+
                 cart_total.closest('#cart').removeClass('empty');
                 cart_total.html(response.data.total);
 
@@ -63,10 +63,10 @@ $(document).ready(function () {
             $(window).lazyLoad && $(window).lazyLoad('reload');
         });
     });
-    
+
     //LAZYLOADING
     if ($.fn.lazyLoad) {
-    
+
         var paging = $('.lazyloading-paging');
         if (!paging.length) {
             return;
@@ -79,10 +79,10 @@ $(document).ready(function () {
         paging.hide();
         var win = $(window);
         var loading_str = paging.data('loading-str') || 'Loading...';
-        
+
         // prevent previous launched lazy-loading
         win.lazyLoad('stop');
-        
+
         // check need to initialize lazy-loading
         var next = current.next();
         if (next.length) {
@@ -90,9 +90,9 @@ $(document).ready(function () {
                 container: '#product-list .product-list',
                 load: function() {
                     win.lazyLoad('sleep');
-    
+
                     var paging = $('.lazyloading-paging').hide();
-                    
+
                     // determine actual current and next item for getting actual url
                     var current = paging.find('li.selected');
                     var next = current.next();
@@ -101,13 +101,13 @@ $(document).ready(function () {
                         win.lazyLoad('stop');
                         return;
                     }
-    
+
                     var product_list = $('#product-list .product-list');
                     var loading = paging.parent().find('.loading').parent();
                     if (!loading.length) {
                         loading = $('<div><i class="icon16 loading"></i>'+loading_str+'</div>').insertBefore(paging);
                     }
-    
+
                     loading.show();
                     $.get(url, function(html) {
                         var tmp = $('<div></div>').html(html);
@@ -118,7 +118,7 @@ $(document).ready(function () {
                         var tmp_paging = tmp.find('.lazyloading-paging').hide();
                         paging.replaceWith(tmp_paging);
                         paging = tmp_paging;
-                        
+
                         // check need to stop lazy-loading
                         var current = paging.find('li.selected');
                         var next = current.next();
@@ -127,14 +127,20 @@ $(document).ready(function () {
                         } else {
                             win.lazyLoad('stop');
                         }
-                        
+
                         loading.hide();
                         tmp.remove();
                     });
                 }
             });
         }
-    
+
     }
-    
+
+});
+
+$(window).on("load", function() {
+    if (typeof FB !== "undefined") {
+        FB.Canvas.scrollTo(0,0);
+    }
 });
