@@ -10587,8 +10587,11 @@ msgstr "Вариант «Не обновляется действиями с з�
 msgid "Total discount for this order item: %s."
 msgstr "Общая скидка на этот товар: %s."
 
-msgid "Hold previous calculated discount"
-msgstr "Сохранена ранее рассчитаная скидка"
+msgid "Total discount for this service: %s."
+msgstr "Общая скидка на эту услугу: %s."
+
+msgid "Previously calculated discount was preserved"
+msgstr "Сохранена ранее рассчитанная скидка"
 
 msgid "Total discount breakdown"
 msgstr "Состав итоговой скидки"

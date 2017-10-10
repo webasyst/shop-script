@@ -389,6 +389,8 @@ SQL;
                             }
                             if (!empty($service['item']['name'])) {
                                 $service['item']['name'] = htmlspecialchars($service['item']['name']);
+                                $service['item']['total_discount'] = floatval($service['item']['total_discount']);
+                                $order['items_total_discount'] += $service['item']['total_discount'];
                             }
                             if (!empty($service['variants'])) {
                                 foreach ($service['variants'] as &$variant) {

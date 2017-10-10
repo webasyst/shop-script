@@ -73,10 +73,28 @@ class shopOrderTotalController extends waJsonController
         $this->response['discount_description'] = '';
         $this->response['discount'] = shopDiscounts::calculate($order, false, $this->response['discount_description']);
         $this->response['items_discount'] = array();
-        $template = _w('Total discount for this order item: %s.');
+        $template = array(
+            'product' => _w('Total discount for this order item: %s.'),
+            'service' => _w('Total discount for this service: %s.'),
+        );
         foreach ($order['items'] as $id => $item) {
             $item['total_discount'] = round(ifset($item['total_discount'], 0), 4);
-            $this->response['items_discount'][$id] = empty($item['total_discount']) ? false : sprintf($template, shop_currency_html(-$item['total_discount']));
+
+            if (!empty($item['total_discount'])) {
+                switch ($item['type']) {
+                    case 'service':
+                        $selector = sprintf('%d_%d', $item['_parent_index'], $item['service_id']);
+                        break;
+                    default:
+                        $selector = $item['_index'];
+                        break;
+                }
+                $this->response['items_discount'][] = array(
+                    'value'    => $item['total_discount'],
+                    'html'     => sprintf($template[$item['type']], shop_currency_html(-$item['total_discount'])),
+                    'selector' => $selector,
+                );
+            }
         }
 
         $method_params = array(
@@ -157,7 +175,7 @@ class shopOrderTotalController extends waJsonController
         }
 
         $items = array();
-        foreach ($items_tree as $i) {
+        foreach ($items_tree as $index => $i) {
             $i += array(
                 'type'               => 'product',
                 'service_id'         => null,
@@ -165,8 +183,9 @@ class shopOrderTotalController extends waJsonController
                 'purchase_price'     => 0,
                 'sku_code'           => '',
                 'name'               => 'product_id='.$i['product_id'],
+                '_index'             => $index,
             );
-
+            unset($product);
             if (!empty($products[$i['product_id']]['skus'][$i['sku_id']])) {
                 $product = $products[$i['product_id']];
                 $sku = $product['skus'][$i['sku_id']];
@@ -175,23 +194,19 @@ class shopOrderTotalController extends waJsonController
                 } else {
                     $i['name'] = ifempty($product['name'], $i['name']);
                 }
-                $i = array(
-                        'purchase_price' => shop_currency($sku['purchase_price'], $product['currency'], $order_currency, false),
-                        'sku_code'       => $sku['sku'],
-                    )
-                    +
-                    $i
-                    +
-                    array(
-                        'product' => $product,
-                    );
+                $i['purchase_price'] = shop_currency($sku['purchase_price'], $product['currency'], $order_currency, false);
+                $i['sku_code'] = $sku['sku'];
+
+                $i += compact('product');
             }
 
             $item_services = ifset($i['services'], array());
             unset($i['services']);
             $items[] = $i;
+
             foreach ($item_services as $s) {
                 $i = array(
+                        '_parent_index'   => $index,
                         'type'               => 'service',
                         'price'              => $s['price'],
                         'service_id'         => $s['id'],
@@ -203,16 +218,10 @@ class shopOrderTotalController extends waJsonController
                 if (!empty($services[$s['id']]['variants'])) {
                     $service = $services[$s['id']];
                     $variant = reset($service['variants']);
-                    $i = array(
-                            'name'               => $service['name'].($variant['name'] ? ' ('.$variant['name'].')' : ''),
-                            'service_variant_id' => $variant['id'],
-                        )
-                        +
-                        $i
-                        +
-                        array(
-                            'service' => $service,
-                        );
+                    $i['name'] = $service['name'].($variant['name'] ? ' ('.$variant['name'].')' : '');
+                    $i['service_variant_id'] = $variant['id'];
+
+                    $i += compact('service', 'product');
                 }
                 $items[] = $i;
             }

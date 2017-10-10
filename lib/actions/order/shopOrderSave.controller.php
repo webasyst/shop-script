@@ -135,14 +135,19 @@ class shopOrderSaveController extends waJsonController
             } else {
                 $o = $this->getModel()->getEmptyRow();
             }
+            $old_items = ifset($o['items'], array());
             $o = array_diff_key($o, $data);
             $data += $o;
 
             if (strpos($discount_description, '%HOLD%') === 0) {
                 $data['discount'] = max(0, waRequest::post('discount'));
-                $discounts = $this->post('item_total_discount', array(), 'edit');
+                //$discounts = $this->post('item_total_discount', array(), 'edit');
+
                 foreach ($data['items'] as &$item) {
-                    $item['total_discount'] = max(0, ifset($discounts[$item['id']]));
+                    $item['total_discount'] = 0;
+                    if (isset($item['id']) && isset($old_items[$item['id']])) {
+                        $item['total_discount'] = max(0, ifset($old_items[$item['id']]['total_discount']));
+                    }
                     unset($item);
                 }
             } else {
@@ -221,7 +226,11 @@ class shopOrderSaveController extends waJsonController
                     );
                 }
             } elseif (strpos($discount_description, '%HOLD%') === 0) {
-                $discount_description = str_replace('%HOLD%', _w('Hold previous calculated discount'), $discount_description);
+                $discount_description = str_replace(
+                    '%HOLD%',
+                    _w('Previously calculated discount was preserved'),
+                    $discount_description
+                );
             }
 
             $order_log_model = new shopOrderLogModel();

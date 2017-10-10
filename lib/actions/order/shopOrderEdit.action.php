@@ -120,10 +120,27 @@ class shopOrderEditAction extends waViewAction
                 }
             }
 
-            $template = _w('Total discount for this order item: %s.');
+            $template = array(
+                'product' => _w('Total discount for this order item: %s.'),
+                'service' => _w('Total discount for this service: %s.'),
+            );
             foreach ($data['items'] as $id => $item) {
                 $item['total_discount'] = round(ifset($item['total_discount'], 0), 4);
-                $discount['items_discount'][$id] = empty($item['total_discount']) ? false : sprintf($template, shop_currency_html(-$item['total_discount']));
+                if (!empty($item['total_discount'])) {
+                    switch ($item['type']) {
+                        case 'service':
+                            $selector = sprintf('%d_%d', $item['_parent_index'], $item['service_id']);
+                            break;
+                        default:
+                            $selector = $item['_index'];
+                            break;
+                    }
+                    $discount['items_discount'][] = array(
+                        'value'    => $item['total_discount'],
+                        'html'     => sprintf($template[$item['type']], shop_currency_html(-$item['total_discount'])),
+                        'selector' => $selector,
+                    );
+                }
             }
         }
 
@@ -318,78 +335,88 @@ class shopOrderEditAction extends waViewAction
      * Convert tree-like structure where services are part of products
      * into flat list where services and products are on the same level.
      */
-    protected function itemsForDiscount($order_currency, $raw_items)
+    protected function itemsForDiscount($order_currency, $items_tree)
     {
-        $products = array();
-        $services = array();
-        $items_tree = array();
-        foreach ($raw_items as $i) {
-            $product_id = $i['item']['product_id'];
-            foreach (ifset($i['services'], array()) as $s) {
-                $services[$s['id']] = $s['id'];
-            }
-            $items_tree[$i['item']['id']] = $i['item'];
-
-            unset($i['item']);
-            unset($i['services']);
-            $products[$product_id] = $i;
-        }
-
         $items = array();
-        foreach ($items_tree as $i) {
-            $product_id = $i['product_id'];
-            $sku_id = $i['sku_id'];
-            $item_services = ifset($i['services'], array());
-            unset($i['services']);
 
-            $i += array(
-                'type'               => 'product',
-                'service_id'         => null,
-                'service_variant_id' => null,
-                'purchase_price'     => 0,
-                'sku_code'           => '',
-                'name'               => 'product_id='.$product_id,
-            );
+        foreach ($items_tree as $index => $i) {
+            $product = $i;
+            $items[] = $this->workupProductItem($i['item'], $product, $order_currency, $index);
 
-            if (!empty($products[$product_id]['skus'][$sku_id])) {
-                $product = $products[$product_id];
-                $sku = $product['skus'][$sku_id];
-
-                if (!empty($sku['name'])) {
-                    $i['name'] = sprintf('%s (%s)', ifempty($product['name'], $i['name']), $sku['name']);
-                } else {
-                    $i['name'] = ifempty($product['name'], $i['name']);
+            if (!empty($i['services'])) {
+                foreach ($i['services'] as $service) {
+                    if (!empty($service['item'])) {
+                        $items[] = $this->workupServiceItem($service, $product, $index);
+                    }
                 }
-
-                $i['purchase_price'] = shop_currency($sku['purchase_price'], $product['currency'], $order_currency, false);
-                $i['sku_code'] = $sku['sku'];
-                $i['product'] = $product;
-            }
-
-
-            $items[] = $i;
-
-            foreach ($item_services as $s) {
-                $i = array(
-                        'type'               => 'service',
-                        'price'              => $s['price'],
-                        'service_id'         => $s['id'],
-                        'service_variant_id' => 0,
-                        'purchase_price'     => 0,
-                        'name'               => 'service_id='.$i['service_id'],
-                    ) + $i;
-
-                if (!empty($services[$s['id']]['variants'])) {
-                    $service = $services[$s['id']];
-                    $variant = reset($service['variants']);
-                    $i['name'] = $service['name'].($variant['name'] ? ' ('.$variant['name'].')' : '');
-                    $i['service_variant_id'] = $variant['id'];
-                    $i['service'] = $service;
-                }
-                $items[] = $i;
             }
         }
 
         return $items;
+    }
+
+    private function workupProductItem($i, &$product, $order_currency, $index)
+    {
+        unset($product['item']);
+        if (!empty($product['services'])) {
+            foreach ($product['services'] as &$s) {
+                unset($s['item']);
+            }
+            unset($s);
+        }
+
+        $product_id = $i['product_id'];
+        $sku_id = $i['sku_id'];
+        unset($i['services']);
+
+        $i += array(
+            'type'               => 'product',
+            'service_id'         => null,
+            'service_variant_id' => null,
+            'purchase_price'     => 0,
+            'sku_code'           => '',
+            'name'               => 'product_id='.$product_id,
+        );
+
+        if (!empty($product['skus'][$sku_id])) {
+            $sku = $product['skus'][$sku_id];
+
+            if (!empty($sku['name'])) {
+                $i['name'] = sprintf('%s (%s)', ifempty($product['name'], $i['name']), $sku['name']);
+            } else {
+                $i['name'] = ifempty($product['name'], $i['name']);
+            }
+
+            $i['purchase_price'] = shop_currency($sku['purchase_price'], $product['currency'], $order_currency, false);
+            $i['sku_code'] = $sku['sku'];
+            $i['product'] = $product;
+            $i['_index'] = $index;
+        }
+        return $i;
+    }
+
+    private function workupServiceItem($service, $product, $index)
+    {
+        $s = $service['item'];
+        unset($service['item']);
+
+        $s = array(
+                'type'               => 'service',
+                'price'              => $s['price'],
+                'service_id'         => $service['id'],
+                'service_variant_id' => 0,
+                'purchase_price'     => 0,
+                'name'               => 'service_id='.$s['service_id'],
+            ) + $s;
+
+
+        $variant = reset($service['variants']);
+        $s['name'] = $service['name'].($variant['name'] ? ' ('.$variant['name'].')' : '');
+        $s['service_variant_id'] = $variant['id'];
+        $s['service'] = $service;
+        $s['product'] = $product;
+        $s['_parent_index'] = $index;
+
+        return $s;
     }
 }

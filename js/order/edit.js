@@ -102,7 +102,7 @@ $.order_edit = {
             return false;
         });
 
-        this.updateTotal(false);
+        this.updateTotal(0);
         $('.s-order-item').each(function () {
             var item = $(this);
             updateStockIcon(item);
@@ -468,7 +468,6 @@ $.order_edit = {
             $edit_discount_button.hide();
 
             $('.js-item-total-discount').hide();
-            $(':input[name^="item_total_discount"]').attr('disabled', true);
         }
 
         $edit_discount_button.click(function () {
@@ -486,18 +485,23 @@ $.order_edit = {
             $discount_input.val($update_discount_button.data('value') || 0).change();
             $discount_description_input.val($update_discount_button.data('description'));
 
-
             $discount_input.attr('title',$discount_description_input.data('edit-manually-msg'));
             var items_discount = $update_discount_button.data('items_discount') || [];
             for (var index = 0; index < items_discount.length; index++) {
                 if (items_discount[index]) {
-                    $('#order-items tr[data-index="' + index + '"] .js-item-total-discount').html(items_discount[index]).show();
+                    var selector = '#order-items span.js-item-total-discount';
+                    selector += '[data-discount-id="' + items_discount[index]['selector'] + '"]';
+
+                    var $discount = $(selector);
+                    if ($discount.length) {
+                        $discount.html(items_discount[index]['html']).show();
+                    }
                 }
             }
             $update_discount_button.hide().data('just-recalculated', true);
             updateTooltipVisibility();
-            var duration = 50;
-            var delta = 75;
+            var duration = 25;
+            var delta = 50;
             if ($tooltip_icon.is(':visible')) {
                 $tooltip_icon.fadeOut(duration += delta, function () {
                     $tooltip_icon.fadeIn(duration += delta, function () {
@@ -508,8 +512,8 @@ $.order_edit = {
                                         $tooltip_icon.fadeOut(duration += delta, function () {
                                             $tooltip_icon.fadeIn(duration += delta, function () {
                                                 // many animation
-                                                //          @    such blinks
-                                                //   wow
+                                                // @ such blinks
+                                                // wow
                                             });
                                         });
                                     });
@@ -543,25 +547,10 @@ $.order_edit = {
         }
     },
 
-    updateTotal: function (ajax) {
+    getOrderItems: function(container, init) {
+        var items = [];
 
-        var ajax = ajax === undefined ? true : ajax;
-        var container = $.order_edit.container;
-        if (!container.find('.s-order-item').length) {
-            $("#subtotal").text(0);
-            $("#total").text(0);
-            return;
-        }
-        var subtotal = 0;
-        var $discount_input = $('#discount');
-
-        // Data for orderTotal controller
-        var data = {};
-        var customer = $("#s-order-edit-customer").find('[name^="customer["]').serializeArray();
-        for (var i = 0; i < customer.length; i++) {
-            data[customer[i].name] = customer[i].value;
-        }
-        data.items = [];
+        var order_content = [];
 
         container.find('.s-order-item').each(function () {
             var tr = $(this);
@@ -570,35 +559,105 @@ $.order_edit = {
             var price = $.order_edit.parseFloat(tr.find('.s-orders-product-price input').val());
             var quantity = $.order_edit.parseFloat(tr.find('input.s-orders-quantity').val());
 
-            subtotal += price * quantity;
+            // get SKU id
+            var sku_input = tr.find('input[name^=sku]:not(:radio)').add(tr.find('input[name^=sku]:checked')).first();
+            var sku_id = sku_input.val() || 0;
+
+            var order_item = {
+                "product_id": product_id,
+                "sku_id": sku_id,
+                "services":[]
+            }
 
             if (tr.find('.s-orders-services').length) {
                 tr.find('.s-orders-services input:checkbox:checked').each(function () {
                     var li = $(this).closest('li');
                     var service_price = $.order_edit.parseFloat(li.find('input.s-orders-service-price').val());
+                    var service_id = $(this).val();
 
                     services.push({
-                        id: $(this).val(),
+                        id: service_id,
                         price: service_price
                     });
 
-                    subtotal += service_price * quantity;
-
+                    order_item.services.push(service_id);
                 });
             }
+            order_item.services.sort();
+            order_item.services = order_item.services.join('_');
 
-            // get SKU id
-            var sku_input = tr.find('input[name^=sku]:not(:radio)').add(tr.find('input[name^=sku]:checked')).first();
-            var sku_id = sku_input.val() || 0;
-
-            data.items.push({
+            items.push({
                 product_id: product_id,
                 quantity: quantity,
                 price: price,
                 sku_id: sku_id,
                 services: services
             });
+
+            order_content.push(order_item);
         });
+        order_content = this.reduceOrderContent(order_content);
+        if (init) {
+            container.data('order-content', order_content);
+        } else {
+            if (container.data('order-content') !== order_content) {
+                var $discount_input = $('#discount');
+                $discount_input.trigger('keyup');
+            }
+        }
+        return items;
+    },
+    
+    getOrderItemsSubtotal: function(items){
+        var subtotal = 0;
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            subtotal += item.price * item.quantity;
+            for (var s_i = 0; s_i < item.services.length; s_i++) {
+                var service = item.services[s_i];
+                subtotal += service.price * item.quantity;
+            }
+        }
+        return subtotal;
+    },
+
+    reduceOrderContent: function (order_content) {
+        order_content.sort(function (a, b) {
+            var delta = a.product_id - b.product_id;
+            if (delta == 0) {
+                delta = a.sku_id - b.sku_id;
+            }
+            if (delta == 0) {
+                delta = a.services.localeCompare(b.services);
+            }
+        });
+
+        return order_content.map(function (order_item) {
+            return '*' + order_item.product_id + ':' + order_item.sku_id + ':' + order_item.services;
+        }).join(';');
+    },
+
+    updateTotal: function (ajax) {
+        var ajax = ajax === undefined ? true : ajax;
+        var container = $.order_edit.container;
+        if (!container.find('.s-order-item').length) {
+            $("#subtotal").text(0);
+            $("#total").text(0);
+            return;
+        }
+        var $discount_input = $('#discount');
+
+        // Data for orderTotal controller
+        var data = {};
+        var customer = $("#s-order-edit-customer").find('[name^="customer["]').serializeArray();
+        for (var i = 0; i < customer.length; i++) {
+            data[customer[i].name] = customer[i].value;
+        }
+
+        data.items = $.order_edit.getOrderItems(container, ajax === 0);
+
+        var subtotal = $.order_edit.getOrderItemsSubtotal(data.items);
+
         data.subtotal = subtotal;
         var discount = $.order_edit.parseFloat($discount_input.val() || 0);
         data.discount = discount;

@@ -267,7 +267,7 @@
             {% } else { %}
                 <input type="text" name="price[add][{%#index%}][product]" value="{%#''+product.skus[chosen_sku_id].price%}" class="short"><span style="padding-top: 2px;">{%#currency%}</span>
             {% } %}
-            <br/><span class="hint js-item-total-discount"></span>
+            <br/><span class="hint js-item-total-discount" data-discount-id="{%#index%}"></span>
         </td>
         <td class="valign-top min-width"><a href="#" class="s-order-item-delete"><i class="icon16 delete"></i></a></td>
     </tr>
@@ -357,6 +357,7 @@
                                       data-price="{%#service.price%}"
                                       {% if (service.currency === $.order_edit.getPercentSymbol()) { %}data-percent-price="{%#service.percent_price%}"{% } %}
                         class="short s-orders-service-price" >{%#currency%}
+                <br/><span class="hint js-item-total-discount" data-discount-id="{%#index%}_{%#service_id%}"></span>
             </li>
         {% } %}
     </ul>

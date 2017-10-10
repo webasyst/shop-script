@@ -181,17 +181,19 @@ class shopPromosActions extends waViewActions
                 }
 
                 // save image
-                $path = wa('shop')->getDataPath('promos/', true);
-                $filepath = $path.sprintf('%s.%s', $id, $file_info['extension']);
-                $files = waFiles::listdir($path);
-                $pattern = sprintf('@^%d\.@', $id);
-                foreach ($files as $file) {
-                    if (preg_match($pattern, $file)) {
-                        waFiles::delete($path.$file);
+                if (!empty($file_info)) {
+                    $path = wa('shop')->getDataPath('promos/', true);
+                    $filepath = $path.sprintf('%s.%s', $id, $file_info['extension']);
+                    $files = waFiles::listdir($path);
+                    $pattern = sprintf('@^%d\.@', $id);
+                    foreach ($files as $file) {
+                        if (preg_match($pattern, $file)) {
+                            waFiles::delete($path.$file);
+                        }
                     }
-                }
 
-                waFiles::move($file_info['filepath'], $filepath);
+                    waFiles::move($file_info['filepath'], $filepath);
+                }
                 $this->clearUpload();
 
                 // Save storefronts
