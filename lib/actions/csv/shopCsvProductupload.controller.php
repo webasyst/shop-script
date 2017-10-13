@@ -128,12 +128,22 @@ class shopCsvProductuploadController extends shopUploadController
                 $plugin_id = preg_replace('@-plugin$@', '_plugin', $plugin_id);
                 if (isset($custom_plugin_fields['product'])) {
                     foreach ($custom_plugin_fields['product'] as $field_id => $field_name) {
-                        $fields['product_custom_fields'][$plugin_id.':'.$field_id] = $field_name;
+                        if ($flat){
+                            # do not include %plugin_id%_plugin for flat mode
+                            $fields['product_custom_fields'][$field_id] = $field_name;
+                        } else{
+                            $fields['product_custom_fields'][$plugin_id.':'.$field_id] = $field_name;
+                        }
                     }
                 }
                 if (isset($custom_plugin_fields['sku'])) {
                     foreach ($custom_plugin_fields['sku'] as $field_id => $field_name) {
-                        $fields['sku_custom_fields']['skus:-1:'.$plugin_id.':'.$field_id] = $field_name;
+                        if ($flat){
+                            # do not include %plugin_id%_plugin for flat mode
+                            $fields['sku_custom_fields']['skus:-1:'.$field_id] = $field_name;
+                        } else {
+                            $fields['sku_custom_fields']['skus:-1:'.$plugin_id.':'.$field_id] = $field_name;
+                        }
                     }
                 }
             }
@@ -157,6 +167,8 @@ class shopCsvProductuploadController extends shopUploadController
             }
             $fields += $fields_['sku'];
             $fields += $fields_['product'];
+            $fields += $fields_['sku_custom_fields'];
+            $fields += $fields_['product_custom_fields'];
         }
 
         return $fields;
