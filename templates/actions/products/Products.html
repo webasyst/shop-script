@@ -52,6 +52,11 @@
     <div class="block">
         <h6 class="heading">[`Badge`]</h6>
         <ul class="menu-v with-icons">
+            
+            <!-- plugin hook: 'backend_products.toolbar_badge_li' -->
+            {* @event backend_products.%plugin_id%.toolbar_badge_li *}
+            {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.toolbar_badge_li)}{/foreach}{/if}
+            
             {$badges = shopProductModel::badges()}
             {foreach $badges as $bid => $b}
                 <li data-action='set-badge' data-type="{$bid}">
