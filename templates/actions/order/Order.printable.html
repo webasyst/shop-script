@@ -161,94 +161,10 @@
                         {/if}
 
                         <div class="clear-right"></div>
-
-                        {* ORDER COMMENT *}
-                        {if $order.comment}
-                            <pre class="block double-padded s-order-comment">{$order.comment|escape}</pre>
-                        {/if}
-
-                        {* ORDER CONTENT *}
-                        <table id="s-order-items" class="light s-order-readable">
-                            {if $order.items}
-                                <tr>
-                                    <th colspan="2"></th>
-                                    <th class="align-right">[`Qty`]</th>
-                                    <th class="align-right">[`Total`]</th>
-                                </tr>
-
-                                {$subtotal = 0}
-                                {foreach $order.items as $item}
-                                    <tr data-id="{$item.id}" {if $item.type == 'service'} class="small"{/if}>
-                                        <td class="min-width valign-top">
-                                            {if $item.type != 'service'}
-                                                {if !empty($item.image_id)}
-                                                    {$wa->shop->productImgHtml(['id' => $item.product_id, 'image_id' => $item.image_id, 'image_filename' => $item.image_filename, 'ext' => $item.ext], '48x48')}
-                                                {else}
-                                                    <img src="{$wa_app_static_url}img/image-dummy-small.png" class="not-found" style="width: 48px; height: 48px;">
-                                                {/if}
-                                            {/if}
-                                        </td>
-                                        <td>
-                                            {if $item.type == 'service'}<span class="gray s-overhanging-plus">+</span> {/if}
-                                            <a href="?action=products#/{if $item.type=='product'}product/{$item.product_id}{else}services/{$item.service_id}{/if}/">{$item.name}</a>
-                                            {if !empty($item.sku_code)}
-                                                <br><span class="hint">{$item.sku_code|escape}</span>
-                                            {/if}
-
-                                            {if !empty($item.stock)}
-                                                <br><span class="small">@{$item.stock.name|escape}</span>
-                                            {/if}
-                                            {if !empty($item.stock_icon)}
-                                                <br>{$item.stock_icon}
-                                            {/if}
-                                        </td>
-                                        <td class="align-right nowrap"><span class="gray">{wa_currency_html($item.price, $order.currency)} &times;</span> {$item.quantity}</td>
-                                        <td class="align-right nowrap">{wa_currency_html($item.price * $item.quantity, $order.currency)}</td>
-                                    </tr>
-                                    {$subtotal = $subtotal + $item.price*$item.quantity}
-                                {/foreach}
-                                <tr class="no-border">
-                                    <td colspan="2"></td>
-                                    <td class="align-right"><br>[`Subtotal`]</td>
-                                    <td class="align-right nowrap"><br>{wa_currency_html($subtotal, $order.currency)}</td>
-                                </tr>
-                            {else}
-                                <tr>
-                                    <td colspan="4" class="s-empty-order-note">[`Order content is unknown`]</td>
-                                </tr>
-                            {/if}
-                            <tr class="no-border">
-                                <td colspan="2"></td>
-                                <td class="align-right">
-                                    [`Discount`]
-                                    {if !empty($order.coupon)}
-                                        <a href="#/coupons/{$order.coupon.id|escape}"><i class="icon16 ss coupon"></i><strong>{$order.coupon.code|escape}</strong></a>
-                                    {/if}
-                                </td>
-                                <td class="align-right nowrap">&minus; {wa_currency_html($order.discount, $order.currency)}</td>
-                            </tr>
-                            {if isset($params.shipping_name) || $order.shipping > 0}
-                                <tr class="no-border">
-                                    <td colspan="2"></td>
-                                    <td class="align-right">[`Shipping`]</td>
-                                    <td class="align-right nowrap">{wa_currency_html($order.shipping, $order.currency)}</td>
-                                </tr>
-                            {/if}
-                            <tr class="no-border">
-                                <td colspan="2"></td>
-                                <td class="align-right">[`Tax`]</td>
-                                <td class="align-right nowrap">{wa_currency_html($order.tax, $order.currency)}</td>
-                            </tr>
-                            <tr class="no-border bold large" style="font-size: 150%;">
-                                <td colspan="2"></td>
-                                <td class="align-right">[`Total`]</td>
-                                <td class="align-right nowrap">{wa_currency_html($order.total, $order.currency)}</td>
-                            </tr>
-                        </table>
                     </div>
 
                     {* SIDEBAR *}
-                    <div class="s-split-order-sidebar float-right s-order-aux">
+                    <div class="s-split-order-sidebar s-order-aux">
 
                         {* BUTTON *}
                         <div class="block half-padded s-printable-print-button align-center">
@@ -266,6 +182,90 @@
                         {/if}
                     </div>
                 </div>
+
+                {* ORDER COMMENT *}
+                {if $order.comment}
+                    <pre class="block double-padded s-order-comment">{$order.comment|escape}</pre>
+                {/if}
+
+                {* ORDER CONTENT *}
+                <table id="s-order-items" class="light s-order-readable">
+                    {if $order.items}
+                        <tr>
+                            <th colspan="2"></th>
+                            <th class="align-right">[`Qty`]</th>
+                            <th class="align-right">[`Total`]</th>
+                        </tr>
+
+                        {$subtotal = 0}
+                        {foreach $order.items as $item}
+                            <tr data-id="{$item.id}" {if $item.type == 'service'} class="small"{/if}>
+                                <td class="min-width valign-top">
+                                    {if $item.type != 'service'}
+                                        {if !empty($item.image_id)}
+                                            {$wa->shop->productImgHtml(['id' => $item.product_id, 'image_id' => $item.image_id, 'image_filename' => $item.image_filename, 'ext' => $item.ext], '48x48')}
+                                        {else}
+                                            <img src="{$wa_app_static_url}img/image-dummy-small.png" class="not-found" style="width: 48px; height: 48px;">
+                                        {/if}
+                                    {/if}
+                                </td>
+                                <td>
+                                    {if $item.type == 'service'}<span class="gray s-overhanging-plus">+</span> {/if}
+                                    <a href="?action=products#/{if $item.type=='product'}product/{$item.product_id}{else}services/{$item.service_id}{/if}/">{$item.name}</a>
+                                    {if !empty($item.sku_code)}
+                                        <br><span class="hint">{$item.sku_code|escape}</span>
+                                    {/if}
+
+                                    {if !empty($item.stock)}
+                                        <br><span class="small">@{$item.stock.name|escape}</span>
+                                    {/if}
+                                    {if !empty($item.stock_icon)}
+                                        <br>{$item.stock_icon}
+                                    {/if}
+                                </td>
+                                <td class="align-right nowrap"><span class="gray">{wa_currency_html($item.price, $order.currency)} &times;</span> {$item.quantity}</td>
+                                <td class="align-right nowrap">{wa_currency_html($item.price * $item.quantity, $order.currency)}</td>
+                            </tr>
+                            {$subtotal = $subtotal + $item.price*$item.quantity}
+                        {/foreach}
+                        <tr class="no-border">
+                            <td colspan="2"></td>
+                            <td class="align-right"><br>[`Subtotal`]</td>
+                            <td class="align-right nowrap"><br>{wa_currency_html($subtotal, $order.currency)}</td>
+                        </tr>
+                    {else}
+                        <tr>
+                            <td colspan="4" class="s-empty-order-note">[`Order content is unknown`]</td>
+                        </tr>
+                    {/if}
+                    <tr class="no-border">
+                        <td colspan="2"></td>
+                        <td class="align-right">
+                            [`Discount`]
+                            {if !empty($order.coupon)}
+                                <a href="#/coupons/{$order.coupon.id|escape}"><i class="icon16 ss coupon"></i><strong>{$order.coupon.code|escape}</strong></a>
+                            {/if}
+                        </td>
+                        <td class="align-right nowrap">&minus; {wa_currency_html($order.discount, $order.currency)}</td>
+                    </tr>
+                    {if isset($params.shipping_name) || $order.shipping > 0}
+                        <tr class="no-border">
+                            <td colspan="2"></td>
+                            <td class="align-right">[`Shipping`]</td>
+                            <td class="align-right nowrap">{wa_currency_html($order.shipping, $order.currency)}</td>
+                        </tr>
+                    {/if}
+                    <tr class="no-border">
+                        <td colspan="2"></td>
+                        <td class="align-right">[`Tax`]</td>
+                        <td class="align-right nowrap">{wa_currency_html($order.tax, $order.currency)}</td>
+                    </tr>
+                    <tr class="no-border bold large" style="font-size: 150%;">
+                        <td colspan="2"></td>
+                        <td class="align-right">[`Total`]</td>
+                        <td class="align-right nowrap">{wa_currency_html($order.total, $order.currency)}</td>
+                    </tr>
+                </table>
             </div>
         </div>
     {/if}

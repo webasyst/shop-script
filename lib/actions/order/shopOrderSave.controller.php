@@ -141,7 +141,6 @@ class shopOrderSaveController extends waJsonController
 
             if (strpos($discount_description, '%HOLD%') === 0) {
                 $data['discount'] = max(0, waRequest::post('discount'));
-                //$discounts = $this->post('item_total_discount', array(), 'edit');
 
                 foreach ($data['items'] as &$item) {
                     $item['total_discount'] = 0;
@@ -185,6 +184,7 @@ class shopOrderSaveController extends waJsonController
                 $tmp_discount += round(ifset($item['total_discount'], 0), 4);
             }
             if ($tmp_discount > round($data['discount'], 4)) {
+                waLog::log(sprintf('Discount for items reset because it [%f] more then total discount [%f] for order %d', $tmp_discount, $data['discount'], $id), 'shop.order.log');
                 foreach ($data['items'] as &$item) {
                     $item['total_discount'] = 0;
                 }
