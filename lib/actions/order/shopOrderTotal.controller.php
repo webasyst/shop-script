@@ -49,6 +49,9 @@ class shopOrderTotalController extends waJsonController
         if ($order_id) {
             $order_model = new shopOrderModel();
             $order_info = $order_model->getById($order_id);
+            if (empty($order_info)) {
+                throw new waException('Order not found', 404);
+            }
             $currency = $order_info['currency'];
         } else {
             $currency = waRequest::post('currency');
@@ -91,7 +94,7 @@ class shopOrderTotalController extends waJsonController
                 }
                 $this->response['items_discount'][] = array(
                     'value'    => $item['total_discount'],
-                    'html'     => sprintf($template[$item['type']], shop_currency_html(-$item['total_discount'])),
+                    'html'     => sprintf($template[$item['type']], shop_currency_html(-$item['total_discount'], $currency, $currency)),
                     'selector' => $selector,
                 );
             }

@@ -137,7 +137,7 @@ class shopOrderEditAction extends waViewAction
                     }
                     $discount['items_discount'][] = array(
                         'value'    => $item['total_discount'],
-                        'html'     => sprintf($template[$item['type']], shop_currency_html(-$item['total_discount'])),
+                        'html'     => sprintf($template[$item['type']], shop_currency_html(-$item['total_discount'], $data['currency'], $data['currency'])),
                         'selector' => $selector,
                     );
                 }
