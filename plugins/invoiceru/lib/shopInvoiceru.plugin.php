@@ -9,7 +9,7 @@ class shopInvoiceruPlugin extends shopPrintformPlugin
 
     /**
      * For backward compatibility with SS6 use this method
-     * @param data|int|waOrder $order
+     * @param array|int|waOrder $order
      * @return string
      */
     public function renderForm($order)
@@ -89,47 +89,7 @@ class shopInvoiceruPlugin extends shopPrintformPlugin
         }
         $items = $order->items;
         $view->assign(compact('settings', 'items', 'contact'));
-        
+
         return $data;
-    }
-
-    /**
-     * @param waOrder $order
-     * @return array
-     */
-    private function getItems($order)
-    {
-        $items = $order->items;
-        $product_model = new shopProductModel();
-        foreach ($items as & $item) {
-            $data = $product_model->getById($item['product_id']);
-            $item['tax_id'] = ifset($data['tax_id']);
-            $item['currency'] = $order->currency;
-        }
-
-        unset($item);
-        $params = array(
-            'billing'  => $order->billing_address,
-            'shipping' => $order->shipping_address,
-        );
-        shopTaxes::apply($items, $params, $order->currency);
-
-        if ($order->discount) {
-            if ($order->total + $order->discount - $order->shipping > 0) {
-                $k = 1.0 - ($order->discount) / ($order->total + $order->discount - $order->shipping);
-            } else {
-                $k = 0;
-            }
-
-            foreach ($items as & $item) {
-                if ($item['tax_included']) {
-                    $item['tax'] = round($k * $item['tax'], 4);
-                }
-                $item['price'] = round($k * $item['price'], 4);
-                $item['total'] = round($k * $item['total'], 4);
-            }
-            unset($item);
-        }
-        return $items;
     }
 }
