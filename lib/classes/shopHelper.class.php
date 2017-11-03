@@ -49,7 +49,7 @@ class shopHelper
             array(
                 'contact_id' => $order ? $order['contact_id'] : null,
                 'contact'    => $order ? new waContact($order['contact_id']) : null,
-                'params'     => $order_params
+                'params'     => $order_params,
             )
         );
         foreach ($methods as $m_id => $m) {
@@ -244,7 +244,7 @@ class shopHelper
                                     'contact'          => null,
                                     'items'            => $items,
                                     'shipping_address' => $address,
-                                    'shipping_params'=>ifset($params['shipping_params'][$method_id]),
+                                    'shipping_params'  => ifset($params['shipping_params'][$method_id]),
                                 )
                             );
                             $custom_fields = $plugin->customFields($order);
@@ -686,7 +686,7 @@ class shopHelper
             if (!$stock_id || empty($stocks[$stock_id])) {
                 $bounds = array(
                     'critical_count' => shopStockModel::CRITICAL_DEFAULT,
-                    'low_count'      => shopStockModel::LOW_DEFAULT
+                    'low_count'      => shopStockModel::LOW_DEFAULT,
                 );
             } else {
                 $bounds = $stocks[$stock_id];
@@ -782,7 +782,7 @@ class shopHelper
             $form = shopContactForm::loadConfig(
                 $fields_config,
                 array(
-                    'namespace' => 'customer'
+                    'namespace' => 'customer',
                 )
             );
 
@@ -790,7 +790,7 @@ class shopHelper
             $form = waContactForm::loadConfig(
                 $fields_config,
                 array(
-                    'namespace' => 'customer'
+                    'namespace' => 'customer',
                 )
             );
         }
@@ -823,25 +823,13 @@ class shopHelper
     /**
      * Verifies current user's access rights to contact with specified id.
      *
+     * @deprecated Shop app no longer considers access rights to other applications.
      * @param int|null $contact_id Contact id. If not specified, access rights to all contacts are verified.
      * @return bool
      */
     public static function getContactRights($contact_id = null)
     {
-        $rights = false;
-        if (wa()->appExists('contacts')) {
-            if ($contact_id) {
-                wa('contacts');
-                $contact_rights = new contactsRightsModel();
-                if ($contact_rights->getRight(null, $contact_id)) {
-                    $rights = true;
-                }
-            } else {
-                $rights = wa()->getUser()->getRights('contacts');
-                $rights = $rights && !empty($rights['backend']);
-            }
-        }
-        return $rights;
+        return true;
     }
 
     /**
@@ -1005,7 +993,7 @@ SQL;
                     $storefronts[] = array(
                         'domain' => $domain,
                         'route'  => $route,
-                        'url'    => $url
+                        'url'    => $url,
                     );
                 } else {
                     $storefronts[] = $url;
@@ -1164,6 +1152,8 @@ SQL;
 
                         if ($currency != $current_currency) {
                             $value = shop_currency($value, $current_currency, $currency, false);
+                        } elseif (($info = waCurrency::getInfo($currency)) && isset($info['precision'])) {
+                            $value = round($value, $info['precision']);
                         }
                     } else {
                         throw new waException(sprintf('Unknown currency "%s"', $currency));
@@ -1260,15 +1250,15 @@ SQL;
                 'sku'            => ifset($item['sku_code']),
                 'tax_rate'       => ifset($item['tax_percent']),
                 'description'    => '',
-                'price'          => $item['price'],
-                'quantity'       => ifset($item['quantity'], 0),
-                'total'          => $item['price'] * $item['quantity'],
+                'price'          => (float)$item['price'],
+                'quantity'       => (int)ifset($item['quantity'], 0),
+                'total'          => (float)$item['price'] * (int)$item['quantity'],
                 'type'           => ifset($item['type'], 'product'),
                 'product_id'     => ifset($item['product_id']),
-                'weight'         => ifset($item['weight']),
-                'weight_unit'    => $options['weight'],
-                'total_discount' => $item['total_discount'],
-                'discount'       => $item['quantity'] ? ($item['total_discount'] / $item['quantity']) : 0.0,
+                'weight'         => (float)ifset($item['weight']),
+                'weight_unit'    => (float)$options['weight'],
+                'total_discount' => (float)$item['total_discount'],
+                'discount'       => (float)($item['quantity'] ? ($item['total_discount'] / $item['quantity']) : 0.0),
             );
 
 
@@ -1297,7 +1287,7 @@ SQL;
             'shipping' => 0.0,
             'discount' => 0.0,
             'tax'      => 0.0,
-            'params'=>array(),
+            'params'   => array(),
         );
 
         $default_currency = self::getEnv('default_currency');
@@ -1336,12 +1326,56 @@ SQL;
 
             $order['currency'] = $target_currency;
 
-            foreach ($order['items'] as &$item) {
-                $item['price'] = $item['price'] * $rate;
+        }
+
+        if (isset($options['discount'])) {
+
+            $items_total_discount = 0.0;
+            $items_total = 0.0;
+
+            $map = array();
+
+            foreach ($order['items'] as $item_id => &$item) {
                 if (isset($item['total_discount'])) {
-                    $item['total_discount'] = $item['total_discount'] * $rate;
+                    $items_total_discount += $item['total_discount'];
                 }
+                $map[$item_id] = $item['price'];
+                $items_total += $item['price'] * $item['quantity'];
                 unset($item);
+            }
+
+            asort($map, SORT_NUMERIC);
+
+            #correct items prices & discount
+            if ($order['discount'] != $items_total_discount) {
+                $discount = $order['discount'];// - $items_total_discount;
+                $discount_rate = min(1.0, ($discount / $items_total));
+                $n = count($order['items']);
+
+                foreach ($map as $item_id => $_price) {
+                    $item = &$order['items'][$item_id];
+                    --$n;
+                    $item_discount = self::workupValue($item['price'] * $discount_rate, 'price', $order['currency'], $order['currency']);
+                    $item_total_discount = ($item_discount * $item['quantity']);
+                    if (!$n && (($item_total_discount > $discount) || ($item_total_discount < $discount))) {
+                        $item_discount = self::workupValue($discount / $item['quantity'], 'price', $order['currency'], $order['currency']);
+                        $_error = abs($item_total_discount - $discount);
+                        waLog::log(var_export(compact('item_total_discount', 'discount', 'item_discount', '_error'), true), 'round_discount.error.log');
+                        $discount = 0;
+                    } else {
+                        $discount -= ($item_discount * $item['quantity']);
+                    }
+                    if (empty($options['discount'])) {
+                        $item['price'] -= $item_discount;
+                        $item['total_discount'] = 0;
+                    } else {
+                        $item['total_discount'] = $item_discount * $item['quantity'];
+                    }
+
+                    unset($item);
+                }
+
+                $order['discount'] = $discount;
             }
         }
 
@@ -1350,6 +1384,20 @@ SQL;
             'shipping_address' => $shipping_address,
             'billing_address'  => $billing_address,
         );
+
+
+        $tax_included = null;
+        foreach ($order['items'] as $item_id => $item) {
+            if (isset($item['tax_included'])) {
+                if ($tax_included !== null) {
+                    if ($tax_included != !!$item['tax_included']) {
+                        $tax_included = 0;
+                    }
+                } else {
+                    $tax_included = !!$item['tax_included'];
+                }
+            }
+        }
 
         $order_data = array(
             #common data
@@ -1392,6 +1440,14 @@ SQL;
 
         if (!empty($options['weight'])) {
             $order_data['weight_unit'] = $options['weight'];
+        }
+
+        if (in_array($tax_included, array(true, false), true)) {
+            $order_data['tax_included'] = $tax_included;
+        }
+
+        if (isset($order['params']['shipping_tax_percent'])) {
+            $order_data['shipping_tax_rate'] = $order['params']['shipping_tax_percent'];
         }
 
         return waOrder::factory($order_data);

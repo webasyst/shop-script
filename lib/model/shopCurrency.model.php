@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Class shopCurrencyModel
+ * array(
+ *  'code'=>'char(3)',
+ *  'rate'=>'decimal(18,10)',
+ *  'rounding'=>'decimal(8,2),
+ *  'round_up_only'=>'int(11)',
+ *  'sort'=>int(11),
+ * )
+ */
 class shopCurrencyModel extends waModel
 {
     protected $table = 'shop_currency';
@@ -56,7 +66,7 @@ class shopCurrencyModel extends waModel
                     if (isset($currencies[$code])) {
                         $c['rate'] = (double)$c['rate'];
                         if (!((double)$c['rounding'])) {
-                            $c['rounding'] = null;
+                            $c['rounding'] = self::getRounding($currencies[$code]);
                         }
                         $data[$code] = $currencies[$code] + $c;
                         $data[$code]['is_primary'] = $primary == $code;
@@ -307,12 +317,15 @@ class shopCurrencyModel extends waModel
             return false;
         }
         $sort = $this->query("SELECT MAX(sort) sort FROM `{$this->table}`")->fetchField('sort') + 1;
-        $result = $this->insert(array(
-            'code' => $code,
-            'sort' => $sort
-        ));
+        $rounding = self::getRounding($currencies[$code]);
+        $data = array(
+            'code'     => $code,
+            'sort'     => $sort,
+            'rounding' => $rounding,
+        );
+        $result = $this->insert($data);
         $this->deleteCache();
-        return $result;
+        return $result ? $data : $result;
     }
 
     public function deleteCache()
@@ -457,5 +470,14 @@ class shopCurrencyModel extends waModel
         }
         $this->deleteCache();
         return true;
+    }
+
+    public static function getRounding($currency)
+    {
+        $rounding = null;
+        if (isset($currency['precision']) && wa_is_int($currency['precision']) && $currency['precision'] > 0 && $currency['precision'] <= 4) {
+            return pow(10, -$currency['precision']);
+        }
+        return $rounding;
     }
 }

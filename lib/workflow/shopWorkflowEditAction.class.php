@@ -3,10 +3,13 @@
 class shopWorkflowEditAction extends shopWorkflowAction
 {
     private $order_item;
-    protected function price($value)
+    protected function price($value, $currency = null)
     {
         if (strpos($value, ',') !== false) {
             $value = str_replace(',', '.', $value);
+        }
+        if ($currency) {
+            waCurrency::round($value, $currency);
         }
         return (double)$value;
     }
@@ -44,12 +47,27 @@ class shopWorkflowEditAction extends shopWorkflowAction
 
         foreach ($data['items'] as &$item) {
             $item['currency'] = $order['currency'];
-            $item['price'] = $this->price($item['price']);
-            //XXX check, that services && products not deleted
+            $item['price'] = $this->price($item['price'], $order['currency']);
+
             if ($item['service_id']) {
-                $item['service'] = $services[$item['service_id']];
+                if (isset($services[$item['service_id']])) {
+                    $item['service'] = $services[$item['service_id']];
+                } else {
+                    $item['service'] = array(
+                        'name' => $item['name'],
+                        'id'   => $item['service_id'],
+                    );
+                }
             } else {
-                $item['product'] = $products[$item['product_id']];
+                if (isset($products[$item['product_id']])) {
+                    $item['product'] = $products[$item['product_id']];
+                } else {
+                    $item['product'] = array(
+                        'name'   => $item['name'],
+                        'id'     => $item['product_id'],
+                        'sku_id' => $item['sku_id'],
+                    );
+                }
             }
             $subtotal += $item['price'] * $item['quantity'];
         }
@@ -58,6 +76,8 @@ class shopWorkflowEditAction extends shopWorkflowAction
         foreach (array('shipping', 'discount') as $k) {
             if (!isset($data[$k])) {
                 $data[$k] = 0;
+            } else {
+                $data[$k] = $this->price($data[$k], $order['currency']);
             }
         }
         $contact = new waContact($order['contact_id']);
@@ -80,7 +100,28 @@ class shopWorkflowEditAction extends shopWorkflowAction
             'discount_rate' => $discount_rate,
         );
 
+        if (!empty($data['params']['shipping_tax_id'])) {
+            $data['items']['%shipping%'] = array(
+                'type'     => 'shipping',
+                'tax_id'   => $data['params']['shipping_tax_id'],
+                'quantity' => 1,
+                'price'    => $data['shipping'],
+                'currency' => $order['currency'],
+            );
+        }
+
         $taxes = shopTaxes::apply($data['items'], $taxes_params, $order['currency']);
+
+        if (isset($data['items']['%shipping%']['tax'])) {
+            $data['params']['shipping_tax'] = $data['items']['%shipping%']['tax'];
+            $data['params']['shipping_tax_percent'] = $data['items']['%shipping%']['tax_percent'];
+            $data['params']['shipping_tax_included'] = $data['items']['%shipping%']['tax_included'];
+        } else {
+            $data['params']['shipping_tax'] = null;
+            $data['params']['shipping_tax_percent'] = null;
+            $data['params']['shipping_tax_included'] = null;
+        }
+        unset($data['items']['%shipping%']);
         $tax = $tax_included = 0;
         foreach ($taxes as $t) {
             if (isset($t['sum'])) {
@@ -92,7 +133,7 @@ class shopWorkflowEditAction extends shopWorkflowAction
         }
 
         $data['tax'] = $tax_included + $tax;
-        $data['total'] = $subtotal + $tax + $this->price($data['shipping']) - $this->price($data['discount']);
+        $data['total'] = $subtotal + $tax + $data['shipping'] - $data['discount'];
 
         // for logging changes in stocks
         shopProductStocksLogModel::setContext(

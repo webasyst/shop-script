@@ -61,7 +61,7 @@
         {if !empty($service.item)}
             {if !empty($service.fake)}
                 <label>
-                    <input type="checkbox" disabled="disabled" checked="checked">
+                    <input type="checkbox" checked="checked" class="js-fake-service-selected">
                     <input type="text" name="name[edit][{$service.item.id}]" value="{$service.item.name}" class="small">
                     <input type="hidden" name="service[edit][{$index}][item][{$service.item.id}]" value="{$service_id}">
                     {if $service.item.service_variant_id !== null}
@@ -89,7 +89,7 @@
                     </select>
                {/if}
             {/if}
-            <input type="text" name="price[edit][item][{$service.item.id}]" value="{$service.item.price}"
+            <input type="text" name="price[edit][item][{$index}][{$service.item.id}]" value="{$service.item.price}"
                                         data-currency="{$service.currency}"
                                         data-price="{$service.item.price}"
                                         {if $service.currency == '%'}data-percent-price="{$service.percent_price}"{/if}
@@ -114,7 +114,7 @@
                     {/foreach}
                 </select>
             {/if}
-            <input type="text" name="price[edit][new][{$service_id}]" value="{$service.price}"
+            <input type="text" name="price[edit][new][{$index}][{$service_id}]" value="{$service.price}"
                                         data-currency="{$service.currency}"
                                         data-price="{$service.price}"
                                         {if $service.currency == '%'}data-percent-price="{$service.percent_price}"{/if}

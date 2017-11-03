@@ -76,7 +76,7 @@ class shopFrontendCartSaveController extends waJsonController
                 'items' => $cart->items(false)
             ));
             $this->response['add_affiliate_bonus'] = sprintf(
-                _w("This order will add +%s points to your affiliate bonus."),
+                _w("This order will add <strong>+%s bonuses</strong> to  your account, which you will be able to spend on getting additional discounts later."),
                 round($add_affiliate_bonus, 2)
             );
             $affiliate_bonus = $affiliate_discount = 0;
@@ -85,6 +85,7 @@ class shopFrontendCartSaveController extends waJsonController
                 $customer = $customer_model->getById($this->getUser()->getId());
                 $affiliate_bonus = $customer ? round($customer['affiliate_bonus'], 2) : 0;
             }
+            $order['total'] = $total;
             $affiliate_discount = shopFrontendCartAction::getAffiliateDiscount($affiliate_bonus, $order);
             $this->response['affiliate_discount'] = $is_html ? shop_currency_html($affiliate_discount, true) : shop_currency($affiliate_discount, true);
         }

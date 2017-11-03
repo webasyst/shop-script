@@ -96,21 +96,22 @@ SQL;
             return $this->getRawItems($order_id);
         }
 
-        $this->getOrder($order_id);
+        $order = $this->getOrder($order_id);
 
         $data = array();
         $type = null;
-        foreach ($this->getRawItems($order_id) as $item) {
+        foreach ($this->getRawItems($order['id']) as $item) {
             if ($item['type'] == 'product') {
                 $sku_id = $item['sku_id'];
                 $product = &$data[];
-                $product = $this->getProductInfo($item['product_id'], $sku_id, $order_id);
+                $product = $this->getProductInfo($item['product_id'], $sku_id, $order['id']);
 
                 if (empty($product)) {
                     $product = array(
-                        'id'   => $item['product_id'],
-                        'fake' => true,
-                        'skus' => array()
+                        'id'       => $item['product_id'],
+                        'fake'     => true,
+                        'skus'     => array(),
+                        'currency' => $order['currency'],
                     );
                 }
 
@@ -151,7 +152,8 @@ SQL;
                         'name'       => '',
                         'fake'       => true,
                         'variant_id' => '',
-                        'variants'   => array()
+                        'variants'   => array(),
+                        'currency'   => $order['currency'],
                     );
                 }
                 $product['services'][$service_id]['item'] = $this->formatItem($item);
@@ -160,7 +162,7 @@ SQL;
                 }
             }
             if (empty($product['fake'])) {
-                $this->workupProduct($product, $order_id);
+                $this->workupProduct($product, $order);
             }
         }
         return $data;
@@ -248,6 +250,7 @@ SQL;
         }
         if ($order_id) {
             $order = $this->getOrder($order_id);
+            $order_id = $order;
             $currency = $order['currency'];
         }
 
@@ -281,7 +284,11 @@ SQL;
         foreach ($services as &$service) {
             $default_price = null;
             $default_percent_price = null;
+            if (!isset($service['currency'])) {
+                $service['currency'] = $currency;
+            }
             foreach ($service['variants'] as &$variant) {
+                $variant['price'] = waCurrency::round($variant['price'], $currency);
                 $variant['price_str'] = ($variant['price'] >= 0 ? '+' : '-').wa_currency($variant['price'], $currency);
                 $variant['price_html'] = ($variant['price'] >= 0 ? '+' : '-').wa_currency_html($variant['price'], $currency);
                 if ($variant['status'] == shopProductServicesModel::STATUS_DEFAULT) {

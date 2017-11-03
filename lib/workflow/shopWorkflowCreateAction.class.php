@@ -84,6 +84,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             $currency = $data['currency'];
         } else {
             $currency = $this->getConfig()->getCurrency(false);
+            $data['currency'] = $currency;
         }
         $rate_model = new shopCurrencyModel();
         $row = $rate_model->getById($currency);
@@ -101,10 +102,14 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                     $item['purchase_price'] = shop_currency($item['purchase_price'], $item['currency'], null, false);
                 }
                 $item['currency'] = $currency;
+            } else {
+                $item['price'] = shop_currency($item['price'], $item['currency'], $currency, false);
             }
             $subtotal += $item['price'] * $item['quantity'];
         }
         unset($item);
+
+        $data['shipping'] = shop_currency($data['shipping'], $currency, $currency, false);
 
         // Calculate discount, unless already set
         if ($data['discount'] === '') {
@@ -126,12 +131,30 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         if (!$billing_address) {
             $billing_address = $contact->getFirst('address');
         }
+
         $discount_rate = $subtotal ? ($data['discount'] / $subtotal) : 0;
-        $taxes = shopTaxes::apply($data['items'], array(
+        $taxes_params = array(
             'shipping'      => isset($shipping_address['data']) ? $shipping_address['data'] : array(),
             'billing'       => isset($billing_address['data']) ? $billing_address['data'] : array(),
-            'discount_rate' => $discount_rate
-        ));
+            'discount_rate' => $discount_rate,
+        );
+        if (!empty($data['params']['shipping_tax_id'])) {
+            $data['items']['%shipping%'] = array(
+                'type'     => 'shipping',
+                'tax_id'   => $data['params']['shipping_tax_id'],
+                'quantity' => 1,
+                'price'    => $data['shipping'],
+                'currency' => $currency,
+            );
+        }
+        $taxes = shopTaxes::apply($data['items'], $taxes_params, $currency);
+        if (isset($data['items']['%shipping%']['tax'])) {
+            $data['params']['shipping_tax'] = $data['items']['%shipping%']['tax'];
+            $data['params']['shipping_tax_percent'] = $data['items']['%shipping%']['tax_percent'];
+            $data['params']['shipping_tax_included'] = $data['items']['%shipping%']['tax_included'];
+        }
+        unset($data['items']['%shipping%']);
+
         $tax = $tax_included = 0;
         foreach ($taxes as $t) {
             if (isset($t['sum'])) {

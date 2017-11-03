@@ -2,15 +2,16 @@
 
 class shopWorkflowRestoreAction extends shopWorkflowAction
 {
-    public function execute($oder_id = null)
+    public function execute($order_id = null)
     {
         // Restore previous state
         $params = array();
-        $this->state_id = $this->order_log_model->getPreviousState($oder_id, $params);
-
+        $this->state_id = $this->order_log_model->getPreviousState($order_id, $params);
+        shopAffiliate::reapplyDiscount($order_id);
         // Restore order.paid_*, customer.total_spent and customer.affiliation_bonus
         $paid_date = ifset($params['paid_date']);
         if ($paid_date) {
+
             $t = strtotime($paid_date);
             $result['update'] = array(
                     'paid_year' => date('Y', $t),

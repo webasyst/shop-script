@@ -55,9 +55,9 @@ class shopOrderSaveController extends waJsonController
 
         // Save customer
         if (!empty($form) && !empty($contact)) {
-
             foreach ((array)$form->post() as $fld_id => $fld_data) {
-                if (!$fld_data) {
+                //turn off checkbox
+                if (!$fld_data && !($form->fields($fld_id) instanceof waContactCheckboxField)) {
                     continue;
                 }
                 if ($fld_id == 'address.shipping') {
@@ -166,25 +166,21 @@ class shopOrderSaveController extends waJsonController
 
             // Remove keys from shop_order previously not present in $data
             $data = array_diff_key($data, $o);
+        } else {
+            foreach ($data['items'] as &$item) {
+                $item['total_discount'] = 0;
+                unset($item);
+            }
         }
 
         // Make sure sum of item discounts does not exceed total discount
         if (isset($data['discount'])) {
             $tmp_discount = 0;
-            if ($id) {
-                $items_model = new shopOrderItemsModel();
-                $old_items = $items_model->getByField('order_id', $id, 'id');
-            } else {
-                $old_items = array();
-            }
             foreach ($data['items'] as $item) {
-                if ($id && !empty($item['id']) && !isset($item['total_discount'])) {
-                    $item['total_discount'] = ifset($old_items[$item['id']]['total_discount'], 0);
-                }
                 $tmp_discount += round(ifset($item['total_discount'], 0), 4);
             }
-            if ($tmp_discount > round($data['discount'], 4)) {
-                waLog::log(sprintf('Discount for items reset because it [%f] more then total discount [%f] for order %d', $tmp_discount, $data['discount'], $id), 'shop.order.log');
+            if (round($tmp_discount, 4) > round($data['discount'], 4)) {
+                waLog::log(sprintf('Discount for items reset because it [%f] more then total discount [%f] for order %d', $tmp_discount, $data['discount'], $id), 'shop/order.log');
                 foreach ($data['items'] as &$item) {
                     $item['total_discount'] = 0;
                 }
@@ -324,7 +320,7 @@ class shopOrderSaveController extends waJsonController
 
     /**
      * @param mixed [string] $data
-     * @param waContact $data ['contact']
+     * @param waContact[] $data ['contact']
      * @param $id
      */
     private function getParams(&$data, $id)
@@ -332,6 +328,7 @@ class shopOrderSaveController extends waJsonController
         $model = new shopPluginModel();
 
         $shipping_address = array();
+
         if (!empty($data['contact'])) {
             $address = $data['contact']->getFirst('address.shipping');
             if (!$address) {
@@ -367,6 +364,7 @@ class shopOrderSaveController extends waJsonController
             $empty_address = $plugin->allowedAddress() === false;
             $data['params']['shipping_plugin'] = $plugin->getId();
             $data['params']['shipping_name'] = $plugin_info['name'];
+            $data['params']['shipping_tax_id'] = ifset($plugin_info['options']['tax_id']);
 
             if ($rates && is_array($rates)) {
                 if (!$rate_id) {
@@ -467,8 +465,8 @@ class shopOrderSaveController extends waJsonController
             return array();
         }
         $data['comment'] = waRequest::post('comment', null, waRequest::TYPE_STRING_TRIM);
-        $data['shipping'] = $this->cast(waRequest::post('shipping', 0));
-        $data['discount'] = $this->cast(waRequest::post('discount', 0));
+        $data['shipping'] = $this->cast(waRequest::post('shipping', 0), $data['currency']);
+        $data['discount'] = $this->cast(waRequest::post('discount', 0), $data['currency']);
         $data['tax'] = 0;
         $data['total'] = $this->calcTotal($data);
         $data['params']['storefront'] = waRequest::post('storefront', null, waRequest::TYPE_STRING_TRIM);
@@ -702,7 +700,13 @@ class shopOrderSaveController extends waJsonController
 
             if (!empty($services[$index])) {
                 foreach ($services[$index] as $group => $services_grouped) {
+                    /**
+                     * @var string $group one of 'new','edit', 'item', 'add'
+                     */
                     foreach ($services_grouped as $k => $service_id) {
+                        /**
+                         * @var int $k
+                         */
                         $service_ids[] = $service_id;
                         $p_item = &$data['items'][];
                         $p_item = array(
@@ -710,7 +714,7 @@ class shopOrderSaveController extends waJsonController
                             'sku_id'             => $skus[$item_id],
                             'type'               => 'service',
                             'service_id'         => $service_id,
-                            'price'              => $prices[$group][$k],
+                            'price'              => $prices[$group][$index][$k],
                             'quantity'           => $quantity,
                             'service_variant_id' => null,
                         );
@@ -732,6 +736,7 @@ class shopOrderSaveController extends waJsonController
         }
 
         $order_currency = $this->getModel()->select('currency')->where('id=?', $order_id)->fetchField();
+        $data['currency'] = $order_currency;
         if ($product_ids) {
             $products = $this->getFields($product_ids, 'product', 'name, tax_id, currency');
             $skus = $this->getFields($sku_ids, 'product_skus', 'name, sku, purchase_price');
@@ -914,22 +919,34 @@ class shopOrderSaveController extends waJsonController
         return $data;
     }
 
-    public function calcTotal($data)
+    public function calcTotal(&$data)
     {
         $total = 0;
-        foreach ($data['items'] as $item) {
-            $total += $this->cast($item['price']) * (int)$item['quantity'];
+        $fields = array('price');
+        foreach ($data['items'] as &$item) {
+            foreach ($fields as $field) {
+                if (isset($item[$field])) {
+                    $item[$field] = $this->cast($item[$field], $data['currency']);
+                }
+            }
+            $total += $item['price'] * (int)$item['quantity'];
+            unset($item);
         }
         if ($total == 0) {
             return $total;
         }
-        return $total - $this->cast($data['discount']) + $this->cast($data['shipping']);
+        $data['discount'] = $this->cast($data['discount'], $data['currency']);
+        $data['shipping'] = $this->cast($data['shipping'], $data['currency']);
+        return $total - $data['discount'] + $data['shipping'];
     }
 
-    private function cast($value)
+    private function cast($value, $currency = null)
     {
         if (strpos($value, ',') !== false) {
             $value = str_replace(',', '.', $value);
+        }
+        if (!empty($currency)) {
+            return waCurrency::round($value, $currency);
         }
         return str_replace(',', '.', (double)$value);
     }

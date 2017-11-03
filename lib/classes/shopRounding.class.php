@@ -35,11 +35,12 @@ class shopRounding
         /**
          * @var shopConfig $config
          */
-        $curs = $config->getCurrencies();
-        if (empty($curs[$currency_id]) || empty($curs[$currency_id]['rounding'])) {
+        $currencies = $config->getCurrencies();
+        if (empty($currencies[$currency_id]) || empty($currencies[$currency_id]['rounding'])) {
             return (float)$amount;
         }
-        return self::round($amount, $curs[$currency_id]['rounding'], $force_round_up || ifset($curs[$currency_id]['round_up_only']));
+        $currency = $currencies[$currency_id];
+        return self::round($amount, $currency['rounding'], $force_round_up || ifset($currency['round_up_only']));
     }
 
     public static function getRoundingVars($rounding)
@@ -110,11 +111,15 @@ class shopRounding
                         continue; // does not break on partly loaded data
                     }
                     $p['frontend_'.$k] = $p['unconverted_'.$k] = $p[$k];
-                    if ($p[$k] > 0 && $p['unconverted_currency'] != $frontend_currency) {
-                        $p['frontend_'.$k] = shop_currency($p[$k], $default_currency, $frontend_currency, false);
-                        if (!empty($curs[$frontend_currency]['rounding'])) {
-                            $p['frontend_'.$k] = shopRounding::roundCurrency($p['frontend_'.$k], $frontend_currency);
-                            $p[$k] = shop_currency($p['frontend_'.$k], $frontend_currency, $default_currency, false);
+                    if ($p[$k] > 0) {
+                        if ($p['unconverted_currency'] != $frontend_currency) {
+                            $p['frontend_'.$k] = shop_currency($p[$k], $default_currency, $frontend_currency, false);
+                            if (!empty($curs[$frontend_currency]['rounding'])) {
+                                $p['frontend_'.$k] = shopRounding::roundCurrency($p['frontend_'.$k], $frontend_currency);
+                                $p[$k] = shop_currency($p['frontend_'.$k], $frontend_currency, $default_currency, false);
+                            }
+                        } else {
+                            $p['frontend_'.$k]= $p[$k] = shop_currency($p[$k], $frontend_currency, $frontend_currency, false);
                         }
                     }
                 }
@@ -179,6 +184,8 @@ class shopRounding
                     $sku['frontend_'.$k] = shop_currency($sku[$k], $product_currency, $frontend_currency, false);
                     if ($convert_currency) {
                         $sku[$k] = $sku['frontend_'.$k] = shopRounding::roundCurrency($sku['frontend_'.$k], $frontend_currency);
+                    } else {
+                        $sku[$k] = $sku['frontend_'.$k];
                     }
                 }
             }
@@ -192,14 +199,8 @@ class shopRounding
 
     public static function isEnabled()
     {
-        $config = wa('shop')->getConfig();
-        /**
-         * @var shopConfig $config
-         */
-
-        $curs = $config->getCurrencies();
-        $frontend_currency = $config->getCurrency(false);
-        return !empty($curs[$frontend_currency]['rounding']);
+        // Rounding is always enabled now, but used to be disabled in the past.
+        return true;
     }
 
     public static function roundServices(&$services)
@@ -229,6 +230,8 @@ class shopRounding
                         $s['frontend_price'] = shopRounding::roundCurrency($s['frontend_price'], $frontend_currency);
                         $s['price'] = shop_currency($s['frontend_price'], $frontend_currency, $default_currency, false);
                     }
+                } else {
+                    $s['price'] = shop_currency($s['frontend_price'], $frontend_currency, $frontend_currency, false);
                 }
             }
 
@@ -266,6 +269,8 @@ class shopRounding
          */
         $curs = $config->getCurrencies();
         $frontend_currency = $config->getCurrency(false);
+
+        $round_services = wa()->getSetting('round_services');
         foreach ($variants as &$v) {
             $service = ifset($services[$v['service_id']]);
             $service_currency = ifset($service['unconverted_currency'], ifset($service['currency']));
@@ -279,10 +284,14 @@ class shopRounding
             }
 
             $v['frontend_price'] = $v['unconverted_price'] = $v['price'];
-            if ($v['price'] > 0 && $service_currency != $frontend_currency) {
-                $v['frontend_price'] = shop_currency($v['price'], $service_currency, $frontend_currency, false);
-                if (!empty($curs[$frontend_currency]['rounding'])) {
-                    $v['price'] = $v['frontend_price'] = shopRounding::roundCurrency($v['frontend_price'], $frontend_currency);
+            if ($v['price'] > 0) {
+                if (($service_currency != $frontend_currency) || $round_services) {
+                    $v['frontend_price'] = shop_currency($v['price'], $service_currency, $frontend_currency, false);
+                    if (!empty($curs[$frontend_currency]['rounding'])) {
+                        $v['price'] = $v['frontend_price'] = shopRounding::roundCurrency($v['frontend_price'], $frontend_currency);
+                    }
+                } else {
+                    $v['price'] = shop_currency($v['price'], $frontend_currency, $frontend_currency, false);
                 }
             }
         }

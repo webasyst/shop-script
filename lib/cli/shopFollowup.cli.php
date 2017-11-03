@@ -107,6 +107,13 @@ class shopFollowupCli extends waCliController
                         // Recipient info
                         $contact = new shopCustomer($o['contact_id']);
 
+                        $contact_data = $contact->getCustomerData();
+                        foreach (ifempty($contact_data, array()) as $field_id => $value) {
+                            if ($field_id !== 'contact_id') {
+                                $contact[$field_id] = $value;
+                            }
+                        }
+
                         if (self::sendFollowup($f, $o, $contact)) {
                             if ($f['transport'] === 'email') {
                                 ++$sent_count;

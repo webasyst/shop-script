@@ -84,7 +84,7 @@ abstract class shopSortableModel extends waModel
     {
         $field = $this->remapId($value);
         $all = (!is_array($this->id) && is_array($value)) ? (is_array($this->id) ? true : $this->id) : false;
-        return self::getByField($field, $all);
+        return $this->getByField($field, $all);
     }
 
     /**
@@ -96,7 +96,7 @@ abstract class shopSortableModel extends waModel
      */
     public function updateById($id, $data, $options = null, $return_object = false)
     {
-        return self::updateByField($this->remapId($id), $data, $options, $return_object);
+        return $this->updateByField($this->remapId($id), $data, $options, $return_object);
     }
 
     public function insert($data, $type = 0)

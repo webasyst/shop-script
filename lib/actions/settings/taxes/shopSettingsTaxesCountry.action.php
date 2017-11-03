@@ -33,7 +33,7 @@ class shopSettingsTaxesCountryAction extends waViewAction
 
                 // Country regions
                 $rm = new waRegionModel();
-                foreach($rm->getByCountry($country_iso3) as $r) {
+                foreach ($rm->getByCountry($country_iso3) as $r) {
                     $r['css_class'] = 'highlighted just-added hidden';
                     $r['tax_name'] = '';
                     $r['tax_value'] = '';
@@ -54,4 +54,3 @@ class shopSettingsTaxesCountryAction extends waViewAction
         ));
     }
 }
-

@@ -79,24 +79,38 @@ class shopDiscounts
         $discount = $total_item_discount + $order_discount;
         if ($discount || strlen($order_discount_description)) {
             if (wa('shop')->getConfig()->getOption('discount_description') && strlen($items_description)) {
-                $description .= _wp('applicable to individual items:').'<br/>';
+                $description .= sprintf('<h5>%s</h5>', _wp('applicable to individual items:'));
                 $description .= $items_description;
             }
             if (self::getDiscountCombineType() == 'sum') {
                 if ($order_discount || strlen($order_discount_description)) {
                     if (strlen($description)) {
-                        $description .= _wp('applicable to entire order:').'<br/>';
+                        $icon = <<<HTML
+<i class="icon16 ss orders-all"></i>
+HTML;
+                        $description .= sprintf('<h5>%s%s</h5>', $icon, _wp('applicable to entire order:'));
                     }
-                    $description .= '<ul>'.$order_discount_description.'</ul><br>';
+                    $description .= '<ul>'.$order_discount_description.'</ul>';
                 }
+                $description .= <<<HTML
+<i class="icon16  ss discounts-bw"></i>
+HTML;
                 $description .= sprintf_wp('Shop is set up to use sum of all discounts: %s', shop_currency_html($discount, $currency, $currency));
             } else {
                 if ($order_discount || strlen($order_discount_description)) {
                     if (strlen($description)) {
-                        $description .= _wp('applicable to entire order:').'<br/>';
+                        $icon = <<<HTML
+<i class="icon16 ss orders-all"></i>
+HTML;
+
+                        $description .= sprintf('<h5>%s%s</h5>', $icon, _wp('applicable to entire order:'));
                     }
                     $description .= $order_discount_description.'<br>';
                 }
+
+                $description .= <<<HTML
+<i class="icon16 ss discounts-bw"></i>
+HTML;
                 $description .= sprintf_wp('Shop is set up to use single largest of all discounts: %s', shop_currency_html($discount, $currency, $currency));
             }
         }
@@ -111,6 +125,8 @@ class shopDiscounts
             }
         }
 
+        // Round to currency precision
+        $discount = shop_currency($discount, $currency, $currency, false);
         // Round the discount if set up to do so
         if ($discount && wa()->getEnv() == 'frontend' && waSystem::getSetting('round_discounts', '', 'shop') && $discount < ifset($order['total'], 0)) {
             $rounded_discount = shopRounding::roundCurrency($discount, $currency, true);
@@ -201,14 +217,14 @@ class shopDiscounts
             $discount = $percent * $order['total'] / 100.0;
             foreach ($order['items'] as $item_id => $item) {
                 $item_discount = $percent * $item['price'] / 100.0;
-                $item_discount = shop_currency($item_discount, $item['currency'], $order['currency'], false) * $item['quantity'];
+                $item_discount = shop_currency($item_discount * $item['quantity'], $item['currency'], $order['currency'], false);
                 $result['items'][$item_id] = array(
                     'discount'    => $item_discount,
                     'description' => $description,
                 );
                 $discount -= $item_discount;
             }
-            $discount = round($discount, 4);
+            $discount = shop_currency(max(0, $discount), $order['currency'], $order['currency'], false);
             if ($discount) {
                 $result['discount'] = $discount;
                 $result['description'] = $description;
@@ -474,17 +490,25 @@ class shopDiscounts
             $order['items'][$item_id]['total_discount'] = $item['discount'];
             $total_items_discount += $item['discount'];
 
+            switch ($item['type']) {
+                case 'service':
+                    $items_description .= <<<HTML
+<i class="icon16 ss service"></i>
+HTML;
+                    break;
+
+            }
             $items_description .= $item['name'];
             if (self::getDiscountCombineType() == 'sum') {
                 $items_description .= '<ul>'.$item['discount_description'].'</ul>';
                 if ($count > 1) {
-                    $format = _wp('Total discount for this order item: %s.');
+                    $format = _w('Total discount for this order item: %s.');
+
                     $_item_discount = shop_currency_html($item['discount'], $currency, $currency);
                     $items_description .= sprintf($format, $_item_discount);
-                    $items_description .= '<br/>';
                 }
             } else {
-                $items_description .=' &minus; ';
+                $items_description .= ' &minus; ';
                 $items_description .= $item['discount_description'];
             }
             $items_description .= '<br>';
@@ -515,6 +539,7 @@ class shopDiscounts
 
         if ($discount) {
             if (!empty($discount['discount'])) {
+                $discount['discount'] = waCurrency::round($discount['discount'], $currency);
                 if (!isset($discount['description'])) {
                     $name = $plugin_id ? self::getPluginName($plugin_id) : '';
                     $description = $name.(strlen($name) ? ': ' : '').shop_currency_html($discount['discount'], $currency, $currency);

@@ -1,6 +1,8 @@
 (function($) {
     $.fn.rateWidget = function(options, ext, value) {
 
+        var supportsTouch = !!('ontouchstart' in window || navigator.msMaxTouchPoints);
+
         var settings;
         var self = this;
         if (!this || !this.length) {
@@ -56,24 +58,28 @@
                 self.attr('data-rate', settings.rate);
             }
             self.find('i:lt(' + self.attr('data-rate') + ')').removeClass('star-empty').addClass('star');
-            self.mouseover(function(e) {
-                if (settings.hold.call(self)) {
-                    return;
-                }
-                var target = e.target;
-                if (target.tagName == 'I') {
-                    target = $(target);
-                    target.prevAll()
-                        .removeClass('star star-empty').addClass('star-hover').end()
-                        .removeClass('star star-empty').addClass('star-hover');
-                    target.nextAll().removeClass('star star-hover').addClass('star-empty');
-                }
-            }).mouseleave(function() {
-                if (settings.hold.call(self)) {
-                    return;
-                }
-                update.call(self, self.attr('data-rate'));
-            });
+
+            if (!supportsTouch) {
+                self.mouseover(function(e) {
+                    if (settings.hold.call(self)) {
+                        return;
+                    }
+                    var target = e.target;
+                    if (target.tagName == 'I') {
+                        target = $(target);
+                        target.prevAll()
+                            .removeClass('star star-empty').addClass('star-hover').end()
+                            .removeClass('star star-empty').addClass('star-hover');
+                        target.nextAll().removeClass('star star-hover').addClass('star-empty');
+                    }
+                }).mouseleave(function() {
+                    if (settings.hold.call(self)) {
+                        return;
+                    }
+                    update.call(self, self.attr('data-rate'));
+                });
+            }
+
             self.click(function(e) {
                 if (settings.hold.call(self)) {
                     return;
@@ -143,6 +149,10 @@
                 update.call(self, 0);
             });
             this.data('inited', true);
+
+            self[0].addEventListener("touchend", function(event) {
+                $(event.target).trigger("click");
+            }, false);
         }
 
         function update(new_rate) {

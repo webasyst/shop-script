@@ -224,8 +224,14 @@
                                     </td>
                                     <td>
                                         {if $item.type == 'service'}<span class="gray s-overhanging-plus">+</span> {/if}
-                                        <a href="?action=products#/{if $item.type=='product'}product/{$item.product_id}{else}services/{$item.service_id}{/if}/">{$item.name}</a>
-                                        {if !empty($item.sku_code)}
+
+                                        {if !empty($item.deleted)}
+                                            {$item.name} <span class="gray">{if $item.type == 'product'}[`deleted product`]{else}[`deleted service`]{/if}</span>
+                                        {else}
+                                            <a href="?action=products#/{if $item.type=='product'}product/{$item.product_id}{else}services/{$item.service_id}{/if}/">{$item.name}</a>
+                                        {/if}
+
+                                        {if !empty($item.sku_code) && empty($item.deleted)}
                                             <br><span class="hint">{$item.sku_code|escape}</span>
                                         {/if}
 
