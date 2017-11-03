@@ -1,7 +1,7 @@
 // Product Class
 var Product = ( function($) {
 
-    function Product(options) {
+    Product = function(options) {
         var that = this;
 
         // DOM
@@ -129,7 +129,7 @@ var Product = ( function($) {
             }
             return false;
         });
-    }
+    };
 
     Product.prototype.onSkusChange = function() {
         var that = this;
@@ -144,6 +144,10 @@ var Product = ( function($) {
         if (sku) {
             //
             that.updateSkuServices(sku.id);
+            //
+            if (sku.image_id) {
+                that.changeImage(sku.image_id);
+            }
             //
             if (sku.available) {
                 $button.removeAttr('disabled');
@@ -193,9 +197,9 @@ var Product = ( function($) {
         // DOM
         var $button = that.$button;
 
-        // TODO: change image on change skus
-        if ( $link.data('image-id') ) {
-
+        var image_id = $link.data('image-id');
+        if (image_id) {
+            that.changeImage(image_id);
         }
 
         if ($link.data('disabled')) {
@@ -347,7 +351,7 @@ var Product = ( function($) {
         }
     };
 
-    Product.prototype.updatePrice = function (price, compare_price) {
+    Product.prototype.updatePrice = function(price, compare_price) {
         var that = this;
 
         // DOM
@@ -362,7 +366,7 @@ var Product = ( function($) {
             compare_sum;
 
         //
-        if (price) {
+        if (price || price === 0) {
             that.price = price;
             $price.data("price", price);
         } else {
@@ -431,7 +435,24 @@ var Product = ( function($) {
         }
     };
 
-    return Product
+    Product.prototype.changeImage = function(image_id) {
+        var that = this;
+
+        if (image_id) {
+            var $imageLink = $("#product-image-" + image_id);
+            if ($imageLink.length) {
+                var $link = $("#product-core-image a"),
+                    $image = $link.find("img"),
+                    image_uri = $imageLink[0].href;
+
+                $link.attr("href", image_uri);
+                $image.attr("src", image_uri);
+            }
+        }
+    };
+
+    return Product;
+
 })(jQuery);
 
 // Change Photo on Click at Product Page

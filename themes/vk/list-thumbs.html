@@ -4,7 +4,7 @@
     <!-- sorting -->
     {$sort_fields = [
         'name' => '[`Name`]',
-        'price' => '[`Price`]',        
+        'price' => '[`Price`]',
         'total_sales' => '[`Bestsellers`]',
         'rating' => '[`Customer rating`]',
         'create_datetime'=>'[`Date added`]',
@@ -39,21 +39,24 @@
             <h5 itemprop="name">
                 {$p.name}
             </h5>
-            {if $p.summary}<span itemprop="description" class="description">{$p.summary|truncate:100}</span>{/if}                
+            {if $p.summary}<span itemprop="description" class="description">{$p.summary|truncate:100}</span>{/if}
         </a>
         <div itemprop="offers" class="offers" itemscope itemtype="http://schema.org/Offer">
+            <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
+            <meta itemprop="price" content="{shop_currency($p.price, null, null, 0)}">
+
             {if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency($p.compare_price)} </span>{/if}
 
             {if $available}
-                <form class="purchase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if} method="post" action="{$wa->getUrl('/frontendCart/add')}">
-                    <span class="price nowrap" itemprop="price">{shop_currency_html($p.price)}</span>
+                <form class="purchase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if} method="post" action="{$wa->getUrl('shop/frontendCart/add')}">
+                    <span class="price nowrap">{shop_currency_html($p.price)}</span>
                     <input type="hidden" name="product_id" value="{$p.id}">
                     <input type="submit" value="[`Add to cart`]" class="vk-button">
                     <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $p.name, $wa->getUrl('shop/frontend/cart'))}</span>
                 </form>
                 <link itemprop="availability" href="http://schema.org/InStock" />
             {else}
-                <span class="price nowrap" itemprop="price">{shop_currency_html($p.price)}</span>
+                <span class="price nowrap">{shop_currency_html($p.price)}</span>
                 <div class="out-of-stock"><strong>{if $wa->shop->settings('ignore_stock_count')}[`Pre-order only`]{else}[`Out of stock`]{/if}</strong></div>
                 <link itemprop="availability" href="http://schema.org/OutOfStock" />
             {/if}

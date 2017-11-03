@@ -7,7 +7,7 @@
 
 {$promos = $wa->shop->productSet('promo')}
 {$bestsellers = $wa->shop->productSet('bestsellers')}
-{$promocards = $wa->shop->promos()}
+{$promocards = $wa->shop->promos('link', '900')}
 
 {if (empty($promos) && empty($bestsellers))}
     <article class="wa-welcome">
@@ -44,12 +44,12 @@
     </section>
 {/if}
 
-{* @event frontend_nav.%plugin_id% *}
-{foreach $frontend_nav as $_}{$_}{/foreach}
-
 <!-- NAVIGATION -->
 {include file="layout-nav.html" inline}
 <!-- END NAVIGATION -->
+
+{* @event frontend_nav.%plugin_id% *}
+{foreach $frontend_nav as $_}{$_}{/foreach}
 
 <!-- plugin hook: 'frontend_homepage' -->
 {* @event frontend_homepage.%plugin_id% *}

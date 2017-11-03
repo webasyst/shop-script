@@ -26,12 +26,12 @@
                         <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
                             {if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency_html($p.compare_price)} </span>{/if}
                             <p class="purchase"><span class="price nowrap">{shop_currency_html($p.price)}</span></p>
-                            <meta itemprop="price" content="{$p.price}">
-                            <meta itemprop="priceCurrency" content="{$wa->shop->primaryCurrency()}">
+                            <meta itemprop="price" content="{shop_currency($p.price, null, null, 0)}">
+                            <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
                         </div>
-                    
+
                         {if $p.summary}<p itemprop="description">{strip_tags($p.summary)}</p>{/if}
-                           
+
                     </div>
                     <div class="image">
                         {$badge_html = $wa->shop->badgeHtml($p.badge)}
@@ -40,7 +40,7 @@
                         {/if}
                         {$wa->shop->productImgHtml($p, '400', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
                     </div>
-    
+
                 </a>
             </li>
             {/foreach}
@@ -50,7 +50,7 @@
         {/if}
     </div>
 
-    {if $promocards = $wa->shop->promos()}
+    {if $promocards = $wa->shop->promos('link', '900')}
         <!-- PROMOS -->
         {strip}
         <section class="promos">
@@ -72,21 +72,21 @@
     <!-- plugin hook: 'frontend_homepage' -->
     {* @event frontend_homepage.%plugin_id% *}
     {foreach $frontend_homepage as $_}{$_}{/foreach}
-    
+
     <div class="content">
-    
+
         <h3 class="title align-center">
             {sprintf('[`Special offers for %s`]', $smarty.now|wa_datetime:"humandate")}
         </h3>
-        
+
         <br>
-    
+
         {if $bestsellers}
             {include file="list-thumbs.html" products=$bestsellers}
         {else}
             <p class="hint align-center"><em>{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','bestsellers')}</em></p>
         {/if}
-        
+
     </div>
 
     <!-- BULLETS -->

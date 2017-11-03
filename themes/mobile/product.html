@@ -45,7 +45,10 @@
 
     {if $product.images}
         <!-- PRODUCT IMAGES -->
-        <figure class="product-gallery">
+        <figure class="gallery-section">
+
+            {$badge_html = $wa->shop->badgeHtml($product.badge)}
+            {if $badge_html}<div class="badge-wrapper">{$badge_html}</div>{/if}
 
             <!-- main image -->
             <div class="product-core-image image" id="product-core-image">
@@ -156,7 +159,15 @@
                         <td class="name">
                             {$features[$f_code].name|escape}
                         </td>
-                        <td class="value" itemprop="{$f_code|escape}">
+
+                        {$_true_params = ["weight", "brand", "model", "width", "height", "depth", "color", "manufacturer"]}
+                        {$_is_good_param = ($f_code|in_array:$_true_params)}
+                        {$_itemprop = ""}
+                        {if $_is_good_param}
+                            {$_itemprop = $f_code}
+                        {/if}
+
+                        <td class="value" itemprop="{$_itemprop|escape}">
                             {if is_array($f_value)}
                                 {if $features[$f_code].type == 'color'}
                                     {implode('<br /> ', $f_value)}

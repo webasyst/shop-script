@@ -1,10 +1,25 @@
 {* @event frontend_header.%plugin_id% *}
-{foreach $frontend_header as $_}{$_}{/foreach}            
+{foreach $frontend_header as $_}{$_}{/foreach}
 
-<main class="wa-shop-wrapper" role="main" itemscope itemtype="http://schema.org/{if $action == 'default'}Store{else}WebPage{/if}">
-    {if $action == 'default'}
+{$_use_store_schema = false}
+{if !empty($action) && ($action === "default")}
+    {$_use_store_schema = true}
+{/if}
+
+<main class="wa-shop-wrapper" role="main" itemscope itemtype="{if $_use_store_schema}http://schema.org/Store{else}http://schema.org/WebPage{/if}">
+    {if $_use_store_schema}
+        {if !empty($theme_settings.store_address)}
+            <meta itemprop="address" content="{$theme_settings.store_address}">
+        {/if}
+        {if !empty($theme_settings.store_price_range)}
+            <meta itemprop="priceRange" content="{$theme_settings.store_price_range}">
+        {/if}
+        {if !empty($theme_settings.logo)}
+            {$_absolute_thumb_uri = "{$wa->url(true)}{$wa_theme_url|substr:1}{$theme_settings.logo}?v{$wa_theme_version}"}
+            <meta itemprop="image" content="{$_absolute_thumb_uri|escape}">
+        {/if}
+
         <meta itemprop="name" content="{$wa->shop->settings('name')}">
-        <meta itemprop="address" content="{$wa->shop->settings('country')}">
         <meta itemprop="telephone" content="{$wa->shop->settings('phone')}">
         <meta itemprop="currenciesAccepted" content="{$wa->shop->currency()}">
     {/if}
