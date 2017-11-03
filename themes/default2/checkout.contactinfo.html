@@ -1,0 +1,157 @@
+<div class="checkout-content" data-step-id="contactinfo">
+    <div id="checkout-contact-form">
+        {if $wa->isAuthEnabled() && !$wa->user()->isAuth()}
+            {$wa->authAdapters()}
+        {/if}
+        <div class="wa-form">
+            {$checkout_contact_form->html()}
+
+            {* When both billing and shipping addresses are enabled, billing address matches shipping address
+             * unless user specifically wants to edit billing address separately. *}
+            {if $billing_matches_shipping}
+                <div class="wa-field billing-address-fake" style="display:none;">
+                    <div class="wa-name">{$checkout_contact_form->fields('address.billing')->getName(null, true)}</div>
+                    <div class="wa-value">
+                        [`Matches shipping address`] <a href="javascript:void(0)" id="edit-billing-address-link">[`Edit billing address`]</a>
+                    </div>
+                </div>
+                <script>(function() { "use strict";
+                    if (!$) { return; }
+                    var $edit_billing_address_link = $('#edit-billing-address-link');
+                    var $billing_address_fake = $edit_billing_address_link.closest('.wa-field');
+                    var $billing_address_wrapper = $edit_billing_address_link.closest('.wa-form').find('.wa-field-address-billing');
+                    var $shipping_address_wrapper = $edit_billing_address_link.closest('.wa-form').find('.wa-field-address-shipping');
+                    if (!$edit_billing_address_link.length || !$billing_address_fake.length || !$billing_address_wrapper.length || !$shipping_address_wrapper.length) {
+                        return;
+                    }
+
+                    $billing_address_fake.insertAfter($billing_address_wrapper)
+                        .append('<input type="hidden" name="billing_matches_shipping" value="1">')
+                        .show();
+                    $billing_address_wrapper.hide();
+
+                    $edit_billing_address_link.on('click', function() {
+                        $billing_address_wrapper.show();
+                        $billing_address_fake.remove();
+
+                        // Fill all fields in billing address
+                        $shipping_address_wrapper.find(':input[name^="customer[address.shipping]"]').each(function() {
+                            var $fld = $(this);
+                            if ($fld.is(':radio')) {
+                                if ($fld.is(':checked')) {
+                                    $billing_address_wrapper.find('[name="'+$fld.attr('name').replace('address.shipping', 'address.billing')+'"]').filter(function() {
+                                        return this.value == $fld.val();
+                                    }).prop('checked', true);
+                                }
+                            } else {
+                                $billing_address_wrapper.find('[name="'+$fld.attr('name').replace('address.shipping', 'address.billing')+'"]').val($fld.val()).change();
+                            }
+                        });
+                    });
+
+                    // Update billing country when user selects shipping country
+                    // so that region field is able to reload itself
+                    $shipping_address_wrapper.find(':input[name="customer[address.shipping][country]"]').change(function() {
+                        $billing_address_wrapper.find(':input[name="customer[address.billing][country]"]').val($(this).val()).change();
+                    });
+
+                })();</script>
+            {/if}
+
+            {if !empty($checkout_steps.contactinfo.service_agreement) && !empty($checkout_steps.contactinfo.service_agreement_hint)}
+                <div class="wa-field service-agreement-wrapper">
+                    <div class="wa-value">
+                        <label>
+                            {if $checkout_steps.contactinfo.service_agreement == 'checkbox'}
+                                <input type="hidden" name="service_agreement" value="">
+                                <input type="checkbox" name="service_agreement" value="1"{if $wa->post('service_agreement') || $wa->storage('shop_checkout_contactinfo_agreement')} checked{/if}>
+                            {/if}
+                            {$checkout_steps.contactinfo.service_agreement_hint}
+                        </label>
+                        {if !empty($errors.service_agreement)}
+                            <em class="error">{$errors.service_agreement|escape}</em>
+                        {/if}
+                    </div>
+                </div>
+            {/if}
+
+            {if $wa->isAuthEnabled() && !$wa->user()->isAuth()}
+            <div class="wa-field">
+                <div class="wa-value">
+                    <label><input type="checkbox" {if $wa->post('create_user')}checked{/if} id="create-user" name="create_user" value="1"> [`Create permanent user account`] <i class="icon16 like"></i></label>
+                    {if shopAffiliate::isEnabled()}
+                        <p class="hint">
+                            [`Registered customers apply for affiliate bonuses and discounts on future orders.`]
+                            {$add_affiliate_bonus = round(shopAffiliate::calculateBonus(['items' => $wa->shop->cart->items(), 'total' => $wa->shop->cart->total()]), 2)}
+                            {if !empty($add_affiliate_bonus)}
+                                {sprintf("[`This order will add +%s points to your affiliate bonus.`]", $add_affiliate_bonus)}
+                            {/if}
+                        </p>
+                    {/if}
+                </div>
+            </div>
+            <div id="create-user-div" style="display:none">
+                <div class="wa-field">
+                    <div class="wa-name">
+                        [`Email`]
+                    </div>
+                    <div class="wa-value">
+                        {if !empty($errors.email)}<p>{/if}
+                        <input {if !empty($errors.email)}class="error"{/if} name="login" type="text" value="{$wa->post('login', $customer->get('email', 'default'))|escape}">
+                        {if !empty($errors.email)}</p>
+                        <em class="errormsg">{$errors.email}</em>
+                        {/if}
+                    </div>
+                </div>
+                <div class="wa-field">
+                    <div class="wa-name">
+                        [`Password`]
+                    </div>
+                    <div class="wa-value">
+                        <input {if !empty($errors.password)}class="error"{/if} name="password" type="password" value="{$wa->post('password')|escape}">
+                        {if !empty($errors.password)}<br><em class="errormsg">{$errors.password}</em>{/if}
+                    </div>
+                </div>
+            </div>
+            <script type="text/javascript">
+                $(function () {
+                    var e = $('input[name="customer[email]"]');
+                    if (e.length) {
+                        e.on('keyup', function () {
+                           if ($("#create-user-div").is(':visible')) {
+                               $('#create-user-div input[name="login"]').val($(this).val());
+                           }
+                        });
+                        $('#create-user-div input[name="login"]').on('keyup', function () {
+                            e.val($(this).val());
+                        })
+                    }
+                    $("#create-user").change(function () {
+                        if ($(this).is(':checked')) {
+                            $("#create-user-div").show().find('input').removeAttr('disabled');
+                            var l = $(this).closest('form').find('input[name="customer[email]"]');
+                            if (l.length && l.val()) {
+                                $('#create-user-div input[name="login"]').val(l.val());
+                            }
+                        } else {
+                            $("#create-user-div").hide().find('input').attr('disabled', 'disabled').val('');
+                        }
+                    }).change();
+                });
+            </script>
+            {/if}
+            {if !empty($errors.all)}
+            <p class="error">{$errors.all}</p>
+            {/if}
+        </div>
+    </div>
+
+    <!-- plugin hook: 'frontend_checkout' -->
+    {* @event frontend_checkout.%plugin_id% *}
+    {foreach $frontend_checkout as $_}{$_}{/foreach}
+
+    {if !empty($error)}
+    <div class="checkout-result error">{$error}</div>
+    {/if}
+
+</div>
