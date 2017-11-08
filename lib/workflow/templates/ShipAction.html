@@ -1,6 +1,6 @@
-{*
- * This template is used for both "Ship" and "Edit shipping details" action forms.
- *}
+{* This template is used for both "Ship" and "Edit shipping details" action forms. *}
+{* Note: this template is also used in CRM applications. *}
+
 <form id="wf-ship-form" action="?module=workflow&action=perform" method="post">
     <input type="hidden" name="id" value="{$order_id}">
     <input type="hidden" name="action_id" value="{$action_id}">
@@ -83,10 +83,17 @@
     {/if}
 
     <br><br>
-    <input type="submit" value="[`Save`]"> [`or`] <a class="cancel inline-link" href="#"><b><i>[`cancel`]</i></b></a>
+
+    {* ".js-form-footer-actions" and ".js-submit-button" classes are required for dialog in CRM app. *}
+    <footer class="js-form-footer-actions">
+        <input class="button green js-submit-button" type="submit" value="[`Save`]">
+        [`or`]
+        <a class="cancel inline-link js-cancel-button" href="javascript:void(0);"><b><i>[`cancel`]</i></b></a>
+    </footer>
 </form>
 
 <script type="text/javascript">(function() { "use strict";
+
 
     var show_couriers = {if $couriers}1{else}0{/if};
     var datepicker_format = {waDateTime::getFormatJS('date')|json_encode};
@@ -102,7 +109,7 @@
     }
 
     // cancel link
-    $form.find('> a.cancel').click(function () {
+    $form.find('.js-cancel-button').click(function () {
         $('#workflow-content').empty().hide();
         $('.workflow-actions').show();
         return false;
@@ -190,7 +197,8 @@
 
         $form.find(':submit').attr('disabled', true);
         $.post($form.attr('action'), $form.serialize(), function () {
-            $.order.reload();
+            $form.trigger("formSend"); // this event is used in CRM app
+            if ("order" in $) { $.order.reload(); }
         }, "json");
         return false;
     });

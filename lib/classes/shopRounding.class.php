@@ -113,10 +113,10 @@ class shopRounding
                     $p['frontend_'.$k] = $p['unconverted_'.$k] = $p[$k];
                     if ($p[$k] > 0) {
                         if ($p['unconverted_currency'] != $frontend_currency) {
-                            $p['frontend_'.$k] = shop_currency($p[$k], $default_currency, $frontend_currency, false);
+                            $p['frontend_'.$k] = shop_currency($p[$k], $default_currency, $frontend_currency, null);
                             if (!empty($curs[$frontend_currency]['rounding'])) {
                                 $p['frontend_'.$k] = shopRounding::roundCurrency($p['frontend_'.$k], $frontend_currency);
-                                $p[$k] = shop_currency($p['frontend_'.$k], $frontend_currency, $default_currency, false);
+                                $p[$k] = shop_currency($p['frontend_'.$k], $frontend_currency, $default_currency, null);
                             }
                         } else {
                             $p['frontend_'.$k]= $p[$k] = shop_currency($p[$k], $frontend_currency, $frontend_currency, false);

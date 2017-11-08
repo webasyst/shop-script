@@ -1080,8 +1080,11 @@ class shopProduct implements ArrayAccess
             $source_path = shopImage::getPath($image);
             $original_file = shopImage::getOriginalPath($image);
             $image['product_id'] = $duplicate->getId();
-            if ($sku_id = array_search($image['id'], $sku_images)) {
-                $sku_id = $sku_map[$sku_id];
+            $sku_id = array();
+            if ($source_sku_id = array_keys($sku_images, $image['id'])) {
+                foreach ($source_sku_id as $_sku_id) {
+                    $sku_id[] = $sku_map[$_sku_id];
+                }
             }
             unset($image['id']);
             try {

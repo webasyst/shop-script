@@ -502,7 +502,7 @@ function shop_currency($n, $in_currency = null, $out_currency = null, $format = 
         }
     }
 
-    if (($info = waCurrency::getInfo($out_currency)) && isset($info['precision'])) {
+    if (($format !== null) && ($info = waCurrency::getInfo($out_currency)) && isset($info['precision'])) {
         $n = round($n, $info['precision']);
     }
 

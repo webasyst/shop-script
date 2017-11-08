@@ -59,6 +59,7 @@ class shopFeatureModel extends waModel
             'type'       => self::TYPE_VARCHAR,
             'selectable' => 0,
             'multiple'   => 0,
+            'status'     => 'public',
         );
         $feature = array_merge($default, $feature);
         $feature['selectable'] = intval($feature['selectable']);
@@ -79,8 +80,9 @@ class shopFeatureModel extends waModel
                 foreach ($child_features as $child_feature) {
                     $n = preg_replace('/^.*(\.\d)$/', '$1', $child_feature['code']);
                     $data = array(
-                        'code' => $feature['code'].$n,
-                        'name' => $feature['name'].$n,
+                        'code'   => $feature['code'].$n,
+                        'name'   => $feature['name'].$n,
+                        'status' => $feature['status'],
                     );
                     $this->updateById($child_feature['id'], $data);
                 }
@@ -249,6 +251,70 @@ SQL;
     }
 
     /**
+     * @param mixed [string] $options
+     * @param int $limit
+     * @return array
+     */
+    public function getFilterFeatures($options = array(), $limit = 500)
+    {
+        $where = array(
+            'parent_id IS NULL',
+            'union' => array(),
+        );
+        $options += array(
+            'status'   => self::STATUS_PUBLIC,
+            'count'    => true,
+            'interval' => false,
+        );
+        foreach ($options as $field => $value) {
+            switch ($field) {
+                case 'type_id':
+                    //join
+                    break;
+                case 'status':
+                    $where[$field] = $this->getWhereByField($field, $value);
+                    break;
+                case 'code':
+                case 'id':
+                    $where/*['union']*/
+                    [$field] = $this->getWhereByField($field, $value);
+                    break;
+                case 'interval':
+                    if (!empty($value)) {
+                        $where['union'][] = sprintf("type='%s'", self::TYPE_DOUBLE);
+                        $where['union'][] = sprintf("type LIKE '%s.%%'", self::TYPE_DIMENSION);
+                        $where['union'][] = sprintf("type LIKE '%s.%%'", self::TYPE_RANGE);
+                        // } else {
+                        $where['union'][] = 'selectable=1';
+                        $where['union'][] = sprintf("type='%s'", self::TYPE_BOOLEAN);
+                    }
+                    break;
+                case 'count':
+                    if (!empty($value)) {
+                        if ($value === true) {
+                            $where[$field] = '`count` > 0';
+                        } else {
+                            $where[$field] = sprintf('`count` > %d', max(1, $value));
+                        }
+                    }
+                    break;
+                default:
+                    $where[$field] = $this->getWhereByField($field, $value);
+                    break;
+
+            }
+        }
+        if (count($where['union'])) {
+            $where['union'] = '('.implode(') OR (', $where['union']).')';
+        } else {
+            unset($where['union']);
+        }
+
+        $where = '('.implode(') AND (', $where).')';
+        return $this->select('*')->where($where)->limit($limit)->order('count DESC')->fetchAll('id');
+    }
+
+    /**
      *
      * Get features with their values
      * @param $field
@@ -308,7 +374,6 @@ SQL;
             $feature['values'] = array();
         }
         unset($feature);
-
         $types = $this->groupByValueType($features);
         foreach ($types as $type => $ids) {
             if ($model = self::getValuesModel($type)) {

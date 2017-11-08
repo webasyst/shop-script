@@ -1,3 +1,5 @@
+{* Note: this template is also used in CRM applications. *}
+
 <div class="block double-padded s-unsettled-order-settle-form">
     <h1><em>[`Unsettled order`]</em> <i class="icon16 loading" style="display: none;"></i></h1>
     <p><em>[`This order was received via sales channel that did not provide any information on the order content and the customer. If it is a duplicate of an existing order (or a payment confirmation for an existing order), merge orders by <strong>selecting the master order below</strong>.`]</em></p>
@@ -52,8 +54,9 @@
         {/foreach}
     {/if}
 
-    <div class="js-settle-form-actions">
-        <input type="submit" class="button yellow" value="[`Merge orders`]" data-confirm="{'[`This will replace selected order %id% details with the amount (%amount%) and status (%state%) of this unsettled order. Are you sure?`]'|replace:'%state%':"%state% → {$order.state->getName()|default:$order.state_id|default:'error'}"|replace:'%amount%':"%amount% → {$order.total_str|default:'unknown'|strip_tags}"|escape}"
+    {* ".js-form-footer-actions" and ".js-submit-button" classes are required for dialog in CRM app. *}
+    <div class="js-settle-form-actions js-form-footer-actions">
+        <input type="submit" class="button yellow js-submit-button" value="[`Merge orders`]" data-confirm="{'[`This will replace selected order %id% details with the amount (%amount%) and status (%state%) of this unsettled order. Are you sure?`]'|replace:'%state%':"%state% → {$order.state->getName()|default:$order.state_id|default:'error'}"|replace:'%amount%':"%amount% → {$order.total_str|default:'unknown'|strip_tags}"|escape}"
         > [`or`] <a href="#" class="inline">[`mark this order as settled`]</a>
     </div>
 
@@ -99,13 +102,17 @@
             $form.find(':input').attr('disabled','disabled');
             $('.s-unsettled-order-settle-form i.icon16.loading:first').show();
             $.post($form.attr('action'), data, function (response) {
-                if (response.data.params
-                        && response.data.params['workflow.settle_target_id']
-                        && (response.data.params['workflow.settle_target_id'] != response.data.order_id)
-                ) {
-                    window.location.hash = '/order/' + response.data.params['workflow.settle_target_id'] + '/';
-                } else {
-                    $.order.reload();
+                $form.trigger("formSend"); // this event is used in CRM app
+
+                if ("order" in $) {
+                    if (response.data.params
+                            && response.data.params['workflow.settle_target_id']
+                            && (response.data.params['workflow.settle_target_id'] != response.data.order_id)
+                    ) {
+                        window.location.hash = '/order/' + response.data.params['workflow.settle_target_id'] + '/';
+                    } else {
+                        $.order.reload();
+                    }
                 }
 
             }, "json");

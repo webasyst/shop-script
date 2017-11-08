@@ -1,3 +1,5 @@
+{* Note: this template is also used in CRM applications. *}
+
 <form id="wf-pay-form" action="?module=workflow&action=perform" method="post">
     <input type="hidden" name="id" value="{$order_id}">
     <input type="hidden" name="action_id" value="{$action_id}">
@@ -10,23 +12,34 @@
         {/foreach}
     {/if}
     <br><br>
-    <input type="submit" value="[`Save`]"> [`or`] <a class="cancel inline-link" href="#"><b><i>[`cancel`]</i></b></a>
+
+    {* ".js-form-footer-actions" and ".js-submit-button" classes are required for dialog in CRM app. *}
+    <footer class="js-form-footer-actions">
+        <input class="button green js-submit-button" type="submit" value="[`Send`]">
+        [`or`]
+        <a class="cancel inline-link js-cancel-button" href="javascript:void(0);"><b><i>[`cancel`]</i></b></a>
+    </footer>
 </form>
 
-<script type="text/javascript">
-    // cancel link
-    $('#wf-pay-form > a.cancel').click(function() {
-        $('#workflow-content').empty().hide();
-        $('.workflow-actions').show();
-        return false;
-    });
+<script>
+    ( function($) {
+        var $form = $("#wf-pay-form");
 
-    $("#wf-pay-form").submit(function () {
-        var f = $(this);
-        f.find(':submit').attr('disabled', true);
-        $.post(f.attr('action'), f.serialize(), function () {
-            $.order.reload();
-        }, "json");
-        return false;
-    });
+        // cancel link
+        $('#wf-pay-form .js-cancel-button').click(function() {
+            $('#workflow-content').empty().hide();
+            $('.workflow-actions').show();
+            return false;
+        });
+
+        $("#wf-pay-form").submit(function () {
+            var f = $(this);
+            f.find(':submit').attr('disabled', true);
+            $.post(f.attr('action'), f.serialize(), function () {
+                $form.trigger("formSend"); // this event is used in CRM app
+                if ("order" in $) { $.order.reload(); }
+            }, "json");
+            return false;
+        });
+    })(jQuery);
 </script>

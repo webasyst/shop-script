@@ -47,14 +47,20 @@ class shopProductSkuSettingsAction extends waViewAction
         $features_model = new shopFeatureModel();
 
         $features = array();
+        $selectable_features = array();
         foreach ($features_model->getByType($product->type_id, 'code', true) as $f) {
             if ($f['multiple'] || $f['code'] == 'weight') {
-                $features[$f['code']] = $f;
+                if (!empty($f['selectable'])) {
+                    $selectable_features[$f['code']] = $f;
+                } else {
+                    $features[$f['code']] = $f;
+                }
             }
+
         }
 
         // attach values
-        $features = $features_model->getValues($features);
+        $features = $features_model->getValues($selectable_features) + $features;
 
         return $features;
     }

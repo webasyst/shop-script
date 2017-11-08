@@ -12,6 +12,11 @@ class shopSettingsFollowupsAction extends waViewAction
 
         $transports = $this->getTransports();
 
+        $config = $this->getConfig();
+        /**
+         * @var shopConfig $config
+         */
+
         // Save data when POST came
         if ($id && waRequest::post()) {
             if (waRequest::post('delete')) {
@@ -37,7 +42,7 @@ class shopSettingsFollowupsAction extends waViewAction
                 $empty_row = $fm->getEmptyRow();
                 $followup = array_intersect_key($followup, $empty_row) + $empty_row;
                 unset($followup['id']);
-                $followup['delay'] = ((float) str_replace(',', '.', ifset($followup['delay'], '3'))) * 3600;
+                $followup['delay'] = ((float)str_replace(array(' ', ','), array('', '.'), ifset($followup['delay'], '3'))) * 3600;
                 if (empty($followup['name'])) {
                     $followup['name'] = _w('<no name>');
                 }
@@ -51,7 +56,7 @@ class shopSettingsFollowupsAction extends waViewAction
 
                 // In restricted mail mode it's only allowed to use notifications
                 // with default text. This is useful for demo and trial accounts.
-                if(wa('shop')->getConfig()->getOption('restricted_mail')) {
+                if ($config->getOption('restricted_mail')) {
                     if (isset($transports[$followup['transport']]['template'])) {
                         $followup['body'] = $transports[$followup['transport']]['template'];
                     } else {
@@ -140,8 +145,8 @@ class shopSettingsFollowupsAction extends waViewAction
         $this->view->assign('test_orders', $test_orders);
         $this->view->assign('last_cron', (int)wa()->getSetting('last_followup_cli'));
         $this->view->assign('cron_ok', ((int)wa()->getSetting('last_followup_cli') + 3600*36) > time());
-        $this->view->assign('cron_command', 'php '.wa()->getConfig()->getRootPath().'/cli.php shop followup');
-        $this->view->assign('default_email_from', $this->getConfig()->getGeneralSettings('email'));
+        $this->view->assign('cron_command', 'php '.$config->getRootPath().'/cli.php shop followup');
+        $this->view->assign('default_email_from', $config->getGeneralSettings('email'));
         $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));
         $this->view->assign('transports', $transports);
         $this->view->assign('sms_from', $this->getSmsFrom());
@@ -186,5 +191,4 @@ class shopSettingsFollowupsAction extends waViewAction
         }
         return $sms_from;
     }
-
 }

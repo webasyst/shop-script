@@ -1,4 +1,5 @@
 <?php
+
 class shopProductFeaturesAction extends waViewAction
 {
     public function execute()
@@ -31,7 +32,7 @@ class shopProductFeaturesAction extends waViewAction
                 foreach ($changed_features as $code => $value) {
                     if (isset($product->features[$code])) {
                         if (is_array($value)) {
-                            $intersect = array_unique(array_merge($value, (array) $product->features[$code]));
+                            $intersect = array_unique(array_merge($value, (array)$product->features[$code]));
                             if (count($value) == count($intersect)) {
                                 unset($changed_features[$code]);
                             }
@@ -65,11 +66,18 @@ class shopProductFeaturesAction extends waViewAction
                 $features += $model->getByField('code', $codes, 'code');
             }
 
+            $selectable_features = array();
+
             foreach ($features as $code => & $feature) {
                 $feature['feature_id'] = intval($feature['id']);
+                if (!empty($feature['selectable'])) {
+                    $selectable_features[$code] = $feature;
+                }
+                unset($feature);
             }
-            unset($feature);
-            $features = $model->getValues($features);
+
+            # fill selectable features' values
+            $features = $model->getValues($selectable_features) + $features;
 
             $this->view->assign('features', $features);
         }
