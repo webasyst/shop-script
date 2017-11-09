@@ -403,6 +403,8 @@ return array(
         'virtualstock_id' => array('int', 11),
         'purchase_price' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         'total_discount' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
+        'tax_percent' => array('decimal', "7,4", 'null' => 1, 'default' => 'null'),
+        'tax_included' => array('int', "1",'null' => 1, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'order_type' => array('order_id', 'type'),

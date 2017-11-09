@@ -26,7 +26,7 @@ class shopFollowupCli extends waCliController
         $time = array(
             'now'    => time(),
             'offset' => 60*60,
-            'delay'  => 30*60, //delay should be smaller, then offset
+            'delay'  => 30*60, // delay should be smaller than offset
         );
         $time['datetime'] = date('Y-m-d H:i:s', $time['now']);
 
