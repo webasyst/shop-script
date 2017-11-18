@@ -15,17 +15,25 @@ class shopSettingsCurrenciesAction extends waViewAction
             $c['rate'] = $this->formatFloat($c['rate']);
         }
         unset($c);
-        $primary = $this->getConfig()->getCurrency();
+
+        $config = $this->getConfig();
+        /**
+         * @var shopConfig $config
+         */
+
+        $wa = wa('shop');
+        $primary = $config->getCurrency();
         $system_currencies = $this->getSystemCurrencies();
         $this->view->assign(array(
             'currencies' => $currencies,
             'primary' => $primary,
-            'use_product_currency' => wa('shop')->getSetting('use_product_currency'),
+            'use_product_currency' => $wa->getSetting('use_product_currency'),
             'system_currencies' => $system_currencies,
             'rest_system_currencies' => array_diff_key($system_currencies, $currencies),
-            'rounding_options' => wa('shop')->getConfig()->getRoundingOptions(),
-            'round_discounts' => wa('shop')->getSetting('round_discounts', 0),
-            'round_shipping' => wa('shop')->getSetting('round_shipping', 0),
+            'rounding_options' => $config->getRoundingOptions(),
+            'round_discounts' => $wa->getSetting('round_discounts', 0),
+            'round_shipping' => $wa->getSetting('round_shipping', 0),
+            'round_services' => $wa->getSetting('round_services', 0),
             'product_count' => $this->getProductCount($primary)
         ));
     }
@@ -52,5 +60,4 @@ class shopSettingsCurrenciesAction extends waViewAction
         ksort($system_currencies);
         return $system_currencies;
     }
-
 }

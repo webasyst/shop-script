@@ -84,7 +84,7 @@ class shopProductServicesModel extends waModel
      * @param int $service_id
      * @param array $data
      *
-     * Exmple of format
+     * Example of format
      *
      *    array (
      *     75 => // id of variant
@@ -618,6 +618,23 @@ class shopProductServicesModel extends waModel
             WHERE ps.service_id = $service_id AND ps.product_id = $product_id AND ps.sku_id IS NOT NULL AND ps.service_variant_id IS NULL
             ORDER BY ps.product_id
         ")->fetchAll('sku_id');
+    }
+
+    public static function workupItemServices(&$service, $item)
+    {
+        if ($service['currency'] == '%') {
+            $round_services = wa()->getSetting('round_services');
+            foreach ($service['variants'] as &$variant) {
+                $variant['price'] = shop_currency($variant['price'] * $item['price'] / 100, $item['currency'], $item['currency'], false);
+
+                if ($round_services) {
+                    $variant['price'] = shopRounding::roundCurrency($variant['price'], $item['currency']);
+                }
+                unset($variant);
+            }
+            reset($service['variants']);
+            $service['currency'] = $item['currency'];
+        }
     }
 
     /**

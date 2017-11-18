@@ -70,6 +70,11 @@
                                     <input type="text" name="rate[{%#o.code%}]" value="1" id="s-rate-{%#o.code%}-input" style="display:none;" class="numerical short">
                                     {/literal}{$primary}{literal}
 
+
+                                    <div class="rounding-readonly float-right" style="display:none;">
+                                        <span class="rounding-value"></span>
+                                        <span class="rounding-up-only-enabled">[`(up only)`]</span>
+                                    </div>
                                     <div class="rounding">
                                         <select name="rounding[{%#o.code%}]">
                                             {/literal}{foreach $rounding_options as $o_value => $o_label}
@@ -119,6 +124,13 @@
                             [`Rounding is always applied when product price is converted to storefront currency, if rounding is enabled for that currency.`]
                         </span>
                     </label></div>
+                    <div class="value no-shift"><label>
+                            <input type="checkbox" name="round_services" value="1"{if !empty($round_services)} checked{/if}>
+                            [`For service cost`]
+                            <br><span class="hint">
+                            [`If checked, service cost in newly placed orders will be rounded according to order currency settings.`]
+                        </span>
+                        </label></div>
                     <div class="value no-shift"><label>
                         <input type="checkbox" name="round_discounts" value="1"{if !empty($round_discounts)} checked{/if}>
                         [`For total discount amount`]

@@ -17,17 +17,27 @@ class shopFollowupCli extends waCliController
         $asm->set('shop', 'last_followup_cli', time());
 
         $where = array(
-            'datetime>= s:from',
-            'datetime < s:to',
-            'after_state_id=s:state_id',
-            'after_state_id != before_state_id',
+            '(datetime >= s:from)',
+            '(datetime < s:to)',
+            '(after_state_id = s:state_id)',
+            '(after_state_id != before_state_id)',
         );
         $where = implode(' AND ', $where);
+        $time = array(
+            'now'    => time(),
+            'offset' => 60*60,
+            'delay'  => 30*60, // delay should be smaller than offset
+        );
+        $time['datetime'] = date('Y-m-d H:i:s', $time['now']);
 
         foreach ($fm->getAllEnabled() as $f) {
+            if (empty($f['last_cron_time'])) {
+                $f['last_cron_time'] = $time['datetime'];
+            }
+            $f['last_cron_timestamp'] = strtotime($f['last_cron_time']);
             $search_params = array(
-                'from'     => date('Y-m-d H:i:s', strtotime($f['last_cron_time']) - 24 * 3600),
-                'to'       => date('Y-m-d H:i:s', time() - $f['delay'] - 1 * 3600),
+                'from'     => date('Y-m-d H:i:s', $f['last_cron_timestamp'] - $time['offset']),
+                'to'       => date('Y-m-d H:i:s', $time['now'] - $f['delay'] - $time['delay']),
                 'state_id' => $f['state_id'],
             );
 
@@ -107,6 +117,13 @@ class shopFollowupCli extends waCliController
                         // Recipient info
                         $contact = new shopCustomer($o['contact_id']);
 
+                        $contact_data = $contact->getCustomerData();
+                        foreach (ifempty($contact_data, array()) as $field_id => $value) {
+                            if ($field_id !== 'contact_id') {
+                                $contact[$field_id] = $value;
+                            }
+                        }
+
                         if (self::sendFollowup($f, $o, $contact)) {
                             if ($f['transport'] === 'email') {
                                 ++$sent_count;
@@ -135,7 +152,7 @@ class shopFollowupCli extends waCliController
                 wa()->event('followup_send', $event_params);
             }
             $fm->updateById($f['id'], array(
-                'last_cron_time' => date('Y-m-d H:i:s', strtotime($f['last_cron_time'])),
+                'last_cron_time' => $time['datetime'],
             ));
         }
     }

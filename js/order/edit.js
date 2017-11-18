@@ -266,8 +266,10 @@ $.order_edit = {
         // calculations
         this.container.off('change', '.s-orders-services input').on('change', '.s-orders-services input', $.order_edit.updateTotal);
         this.container.off('change', '.s-orders-product-price input').on('change', '.s-orders-product-price input', function () {
-            var price = $.order_edit.parseFloat($(this).val());
-            $.order_edit.container.find('.s-orders-service-price').each(function () {
+            var $this = $(this);
+            var price = $.order_edit.parseFloat($this.val());
+            var $scope = $this.parents('tr:first');
+            $scope.find('.s-orders-service-price').each(function () {
                 var item = $(this);
                 if (item.data('currency') === '%' && item.attr('data-price') === item.val()) {
                     var p = price * (item.data('percentPrice') / 100);
@@ -367,7 +369,9 @@ $.order_edit = {
 
                 // submit optimization
                 // disable that services that aren't checked
-                $('.s-orders-services input[name^=service]:not(:checked)', this.form).each(function () {
+                var selector = '.s-orders-services input[name^="service"][type="checkbox"]:not(:checked)'
+                    + ',' + '.s-orders-services input.js-fake-service-selected[type="checkbox"]:not(:checked)';
+                $(selector, this.form).each(function () {
                     var item = $(this);
                     item.closest('li').find(':input').attr('disabled', true);
                 });
@@ -790,6 +794,8 @@ $.order_edit = {
 
     editSubmit: function (always) {
         var form = this.form;
+
+        $.shop.trace('editSubmit',form.serialize());
         return $.shop.jsonPost(
             form.attr('action'),
             form.serialize(),

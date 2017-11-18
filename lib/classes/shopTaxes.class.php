@@ -11,21 +11,23 @@ class shopTaxes
      */
     public static function apply(&$items, $params, $currency = null)
     {
-        $addresses = array_intersect_key($params, array('billing' => 1, 'shipping' => 1));
         $discount_rate = min(1.0, max(0, ifset($params['discount_rate'], 0)));
         $items_discount = 0.0;
 
         $order_total = 0;
         $order_total_without_discounts = 0;
         foreach ($items as $item) {
-            $_p = shop_currency($item['price'] * $item['quantity'], $item['currency'], $currency, false);
+            if ($item['type'] != 'shipping') {
+                $_p = shop_currency($item['price'] * $item['quantity'], $item['currency'], $currency, false);
 
-            if (!empty($item['total_discount'])) {
-                $items_discount += $item['total_discount'];
-            } else {
-                $order_total_without_discounts += $_p;
+                if (!empty($item['total_discount'])) {
+                    $items_discount += $item['total_discount'];
+                } else {
+                    $order_total_without_discounts += $_p;
+                }
+                $order_total += $_p;
+                unset($_p);
             }
-            $order_total += $_p;
         }
 
         if ($items_discount) {
@@ -58,7 +60,7 @@ class shopTaxes
             }
 
             $i['tax'] = 0;
-            $i['tax_percent'] = 0;
+            $i['tax_percent'] = null;
             $i['tax_included'] = 0;
         }
         unset($i);
@@ -67,6 +69,52 @@ class shopTaxes
             return array();
         }
 
+        $addresses = array_intersect_key($params, array('billing' => 1, 'shipping' => 1));
+        $result = self::getTaxes($tax_ids, $addresses);
+
+        // Compute tax values for each item, and total tax
+        foreach ($items as &$i) {
+            $tax_id = ifempty($i['tax_id']);
+            $i['tax_percent'] = ifset($result[$tax_id]['rate'], null);
+            $i['tax_included'] = ifset($result[$tax_id]['included']);
+
+            if ($i['type'] != 'shipping') {
+                if (!empty($i['total_discount'])) {
+                    $p = $i['price'] * $i['quantity'] - $i['total_discount'];
+                } else {
+                    $p = (1 - $discount_rate) * $i['price'] * $i['quantity'];
+                }
+            } else {
+                $p = $i['price'] * $i['quantity'];
+            }
+
+            $p = shop_currency($p, $i['currency'], $currency, false);
+            $r = max(0.0, ifset($result[$tax_id]['rate'], 0.0));
+
+            if ($i['tax_included']) {
+                $i['tax'] = $p * $r / (100.0 + $r);
+            } else {
+                $i['tax'] = $p * $r / 100.0;
+            }
+
+            $i['tax'] = waCurrency::round($i['tax'], $currency);
+
+            if ($i['tax_included']) {
+                $result[$tax_id]['sum_included'] += $i['tax'];
+            } elseif ($i['tax']) {
+                $result[$tax_id]['sum'] += $i['tax'];
+            }
+        }
+        unset($i);
+
+        return $result;
+    }
+
+    protected static function getTaxes($tax_ids, $addresses)
+    {
+        if (empty($tax_ids)) {
+            return array();
+        }
         $result = array();
         $tm = new shopTaxModel();
         $trm = new shopTaxRegionsModel();
@@ -98,35 +146,46 @@ class shopTaxes
                 $result[$tax_id]['name'] = $taxes[$tax_id]['name'];
             }
         }
+        return $result;
+    }
+
+    public static function shipping($shipping, $params, $currency = null)
+    {
+        $addresses = array_intersect_key($params, array('billing' => 1, 'shipping' => 1));
+
+
+        $tax_ids = array($shipping['tax_id']);
+
+
+            $shipping['tax'] = 0;
+            $shipping['tax_percent'] = null;
+            $shipping['tax_included'] = 0;
+
+        $result = self::getTaxes($tax_ids, $addresses);
 
         // Compute tax values for each item, and total tax
-        foreach ($items as &$i) {
-            $tax_id = ifempty($i['tax_id']);
-            $i['tax_percent'] = ifset($result[$tax_id]['rate'], 0.0);
-            $i['tax_included'] = ifset($result[$tax_id]['included']);
+        $tax_id = ifempty($shipping['tax_id']);
+        $shipping['tax_percent'] = ifset($result[$tax_id]['rate'], null);
+        $shipping['tax_included'] = ifset($result[$tax_id]['included']);
 
-            if (!empty($i['total_discount'])) {
-                $p = $i['price'] * $i['quantity'] - $i['total_discount'];
-            } else {
-                $p = (1 - $discount_rate) * $i['price'] * $i['quantity'];
-            }
+        $p = $shipping['price'];
 
-            $p = shop_currency($p, $i['currency'], $currency, false);
-            $r = max(0.0, ifset($result[$tax_id]['rate'], 0.0));
+        $p = shop_currency($p, $shipping['currency'], $currency, false);
+        $r = max(0.0, ifset($result[$tax_id]['rate'], 0.0));
 
-            if ($i['tax_included']) {
-                $i['tax'] = $p * $r / (100.0 + $r);
-            } else {
-                $i['tax'] = $p * $r / 100.0;
-            }
-
-            if ($i['tax_included']) {
-                $result[$tax_id]['sum_included'] += $i['tax'];
-            } elseif ($i['tax']) {
-                $result[$tax_id]['sum'] += $i['tax'];
-            }
+        if ($shipping['tax_included']) {
+            $shipping['tax'] = $p * $r / (100.0 + $r);
+        } else {
+            $shipping['tax'] = $p * $r / 100.0;
         }
-        unset($i);
+
+        $shipping['tax'] = waCurrency::round($shipping['tax'], $currency);
+
+        if ($shipping['tax_included']) {
+            $result[$tax_id]['sum_included'] += $shipping['tax'];
+        } elseif ($shipping['tax']) {
+            $result[$tax_id]['sum'] += $shipping['tax'];
+        }
 
         return $result;
     }

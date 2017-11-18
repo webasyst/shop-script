@@ -9,6 +9,21 @@ class shopOrderTotalController extends waJsonController
 {
     public function execute()
     {
+        $order_id = waRequest::post('order_id');
+        if ($order_id) {
+            $order_model = new shopOrderModel();
+            $order_info = $order_model->getById($order_id);
+            if (empty($order_info)) {
+                throw new waException('Order not found', 404);
+            }
+            $currency = $order_info['currency'];
+        } else {
+            $currency = waRequest::post('currency');
+            if (!$currency) {
+                $currency = $this->getConfig()->getCurrency();
+            }
+        }
+
         $items = waRequest::post('items');
         $product_ids = array();
         foreach ($items as $i) {
@@ -31,33 +46,20 @@ class shopOrderTotalController extends waJsonController
         }
 
         $shipping_items = array();
-        foreach ($items as $i) {
+        foreach ($items as &$i) {
             if (isset($values['skus'][$i['sku_id']])) {
                 $i['weight'] = $values['skus'][$i['sku_id']];
             } else {
                 $i['weight'] = isset($values[$i['product_id']]) ? $values[$i['product_id']] : 0;
             }
+            $i['price']=shop_currency($i['price'], $currency, $currency, false);
             $shipping_items[] = array(
                 'name'     => '',
                 'price'    => $i['price'],
                 'quantity' => $i['quantity'],
                 'weight'   => $i['weight'],
             );
-        }
-
-        $order_id = waRequest::post('order_id');
-        if ($order_id) {
-            $order_model = new shopOrderModel();
-            $order_info = $order_model->getById($order_id);
-            if (empty($order_info)) {
-                throw new waException('Order not found', 404);
-            }
-            $currency = $order_info['currency'];
-        } else {
-            $currency = waRequest::post('currency');
-            if (!$currency) {
-                $currency = $this->getConfig()->getCurrency();
-            }
+            unset($i);
         }
 
         $total = waRequest::post('subtotal') - waRequest::post('discount');
@@ -67,7 +69,7 @@ class shopOrderTotalController extends waJsonController
             'currency' => $currency,
             'contact'  => $contact,
             'items'    => $this->itemsForDiscount($currency, $items),
-            'total'    => waRequest::post('subtotal'),
+            'total'    => shop_currency(waRequest::post('subtotal'), $currency, $currency, false),
         );
         if (!empty($order_info)) {
             $order['id'] = $order_info['id'];
@@ -113,7 +115,7 @@ class shopOrderTotalController extends waJsonController
             $order_params_model = new shopOrderParamsModel();
             $order['params'] = $order_params_model->get($order['id']);
 
-            if ($order['params'] && $order['params']['shipping_id']) {
+            if ($order['params'] && !empty($order['params']['shipping_id'])) {
                 $shipping_id = $order['params']['shipping_id'];
                 foreach ($order['params'] as $name => $value) {
                     if (preg_match('@^shipping_params_(.+)$@', $name, $matches)) {
@@ -211,7 +213,7 @@ class shopOrderTotalController extends waJsonController
                 $i = array(
                         '_parent_index'   => $index,
                         'type'               => 'service',
-                        'price'              => $s['price'],
+                        'price'              => shop_currency($s['price'], $order_currency, $order_currency, false),
                         'service_id'         => $s['id'],
                         'service_variant_id' => 0,
                         'purchase_price'     => 0,

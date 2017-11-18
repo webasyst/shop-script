@@ -58,8 +58,8 @@
                         </div>
                         <div itemprop="offers" class="info" itemscope itemtype="http://schema.org/Offer">
                             <span class="price nowrap">{shop_currency_html($slide.price)}</span>
-                            <meta itemprop="price" content="{$slide.price}">
-                            <meta itemprop="priceCurrency" content="{$wa->shop->primaryCurrency()}">
+                            <meta itemprop="price" content="{shop_currency($slide.price, null, null, 0)}">
+                            <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
                         </div>
                     </a>
                 </li>

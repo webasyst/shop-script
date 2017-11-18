@@ -238,7 +238,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
                                                 'max' => shop_currency($range['max'], null, null, false),
                                             );
                                         }
-                                    } else {
+                                    } elseif (isset($filters['price']['min'])) {
                                         $filters['price']['min'] = max($filter_data['price_min'], $filters['price']['min']);
                                     }
                                     break;
@@ -258,7 +258,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
                                                 'max' => shop_currency($range['max'], null, null, false),
                                             );
                                         }
-                                    } else {
+                                    } elseif (isset($filters['price']['max'])) {
                                         $filters['price']['max'] = min($filter_data['price_max'], $filters['price']['max']);
                                     }
                                     break;

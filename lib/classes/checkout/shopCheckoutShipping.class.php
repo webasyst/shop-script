@@ -587,9 +587,9 @@ class shopCheckoutShipping extends shopCheckout
             if (is_array($result['rate'])) {
                 $result['rate'] = max($result['rate']);
             }
-            if ($currency != $current_currency) {
-                $result['rate'] = shop_currency($result['rate'], $currency, $current_currency, false);
-            }
+
+            // if $current_currency == $currency it's will be rounded to currency precision
+            $result['rate'] = shop_currency($result['rate'], $currency, $current_currency, false);
 
             // rounding
             if ($result['rate'] && wa()->getSetting('round_shipping')) {
@@ -598,6 +598,7 @@ class shopCheckoutShipping extends shopCheckout
         }
         $result['plugin'] = $plugin->getId();
         $result['name'] = $plugin_info['name'].(!empty($result['name']) ? ' ('.$result['name'].')' : '');
+        $result['tax_id'] = ifset($plugin_info['options']['tax_id']);
         return $result;
     }
 

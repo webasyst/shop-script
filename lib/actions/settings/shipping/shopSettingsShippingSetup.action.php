@@ -10,6 +10,9 @@ class shopSettingsShippingSetupAction extends waViewAction
         try {
             $this->view->assign('plugin_id', $plugin_id = waRequest::get('plugin_id'));
             $this->view->assign('plugin', $info = shopShipping::getPluginInfo($plugin_id));
+
+            $taxes_mode = new shopTaxModel();
+            $this->view->assign('taxes', $taxes_mode->getAll());
             $params = array(
                 'namespace' => "shipping[settings]",
                 'value'     => waRequest::post('shipping[settings]'),

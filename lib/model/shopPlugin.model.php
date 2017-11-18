@@ -43,14 +43,15 @@ class shopPluginModel extends shopSortableModel
 
     public function deleteByField($field, $value = null)
     {
-        if (is_array($field)) {
-            $items = $this->getByField($field, $this->id);
-            $ids = array_keys($items);
-        } elseif ($field == $this->id) {
+        if ($field == $this->id) {
             $ids = $value;
         } else {
-            $items = $this->getByField($field, $value, $this->id);
-            $ids = array_keys($items);
+            if (is_array($field)) {
+                $where = $this->getWhereByField($field);
+            } else {
+                $where = $this->getWhereByField($field, $value);
+            }
+            $ids = $this->select($this->id)->where($where)->fetchField($this->id);
         }
         $res = false;
         if ($ids) {
@@ -62,8 +63,67 @@ class shopPluginModel extends shopSortableModel
         return $res;
     }
 
+    public function insert($data, $type = 0)
+    {
+        $this->encodeOptions($data);
+        return parent::insert($data, $type);
+    }
+
+    public function updateByField($field, $value, $data = null, $options = null, $return_object = false)
+    {
+        if (is_array($field)) {
+            $plugin = &$value;
+        } else {
+            $plugin = &$data;
+        }
+        if (isset($plugin['options'])) {
+            $this->encodeOptions($plugin);
+        }
+        unset($plugin);
+        return parent::updateByField($field, $value, $data, $options, $return_object);
+    }
+
+    public function getByField($field, $value = null, $all = false, $limit = false)
+    {
+        $result = parent::getByField($field, $value, $all, $limit);
+        if ($result) {
+            $as_array = is_array($field) ? $value : $all;
+            if ($as_array) {
+                $plugins =& $result;
+            } else {
+                $plugins = array(
+                    &$result,
+                );
+            }
+            foreach ($plugins as &$plugin) {
+                $this->decodeOptions($plugin);
+                unset($plugin);
+            }
+            unset($plugins);
+        }
+        return $result;
+    }
+
     public function getPlugin($id, $type)
     {
         return $this->getByField(array($this->id => $id, $this->context => $type));
+    }
+
+    protected function decodeOptions(&$plugin)
+    {
+        if (!empty($plugin['options'])) {
+            $plugin['options'] = @json_decode($plugin['options'], true);
+        }
+        if (empty($plugin['options'])) {
+            $plugin['options'] = array();
+        }
+    }
+
+    protected function encodeOptions(&$plugin)
+    {
+        if (empty($plugin['options'])) {
+            $plugin['options'] = array();
+        }
+        $plugin['options'] = @json_encode($plugin['options']);
     }
 }

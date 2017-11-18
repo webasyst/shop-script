@@ -387,8 +387,14 @@ class shopOrderEditAction extends waViewAction
                 $i['name'] = ifempty($product['name'], $i['name']);
             }
 
-            $i['purchase_price'] = shop_currency($sku['purchase_price'], $product['currency'], $order_currency, false);
-            $i['sku_code'] = $sku['sku'];
+            if (empty($sku['fake'])) {
+                $i['purchase_price'] = shop_currency($sku['purchase_price'], $product['currency'], $order_currency, false);
+                $i['sku_code'] = $sku['sku'];
+            } else {
+                $i['purchase_price'] = 0;
+                $i['sku_code'] = null;
+            }
+
             $i['product'] = $product;
             $i['_index'] = $index;
         }

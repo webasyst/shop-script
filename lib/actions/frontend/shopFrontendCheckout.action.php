@@ -586,6 +586,7 @@ class shopFrontendCheckoutAction extends waViewAction
 
             $order['params']['shipping_plugin'] = $rate['plugin'];
             $order['params']['shipping_name'] = $rate['name'];
+            $order['params']['shipping_tax_id'] = $rate['tax_id'];
             if (isset($rate['est_delivery'])) {
                 $order['params']['shipping_est_delivery'] = $rate['est_delivery'];
             }

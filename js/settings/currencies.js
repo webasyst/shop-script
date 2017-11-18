@@ -133,13 +133,20 @@ $.extend($.settings = $.settings || {}, {
 
                 var tr_new = tr.prev();
                 jsonPost('?module=settings&action=currencyAdd', { code: value },
-                    function() {
-                        tr_new.show();
-                        tr_new.find('.settings').trigger('click');
-                        change_dialog.find('select').append('<option value="'+value+'" data-rate="1">'+value+'</option>');
+                    function(response) {
+                        if(response.status==='ok') {
+                            $.shop.trace('response', response.data);
+                            tr_new.show();
+                            tr_new.find('.settings').trigger('click');
+                            tr_new.find('select[name^="rounding\['+response.data.code+'\]"]').val(response.data.rounding);
+                            change_dialog.find('select').append('<option value="' + value + '" data-rate="1">' + value + '</option>');
 
-                        if (self.find('option:not(:disabled)').length < 2) {
-                            self.remove();
+                            if (self.find('option:not(:disabled)').length < 2) {
+                                self.remove();
+                            }
+                        } else {
+                            tr_new.remove();
+                            option.attr('disabled', false).show();
                         }
                     },
                     function() {

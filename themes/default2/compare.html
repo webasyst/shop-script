@@ -1,0 +1,133 @@
+<ul class="compare-diff-all">
+    <li class="selected"><a id="compare-all" href="#" class="inline-link"><b><i>[`All features`]</i></b></a></li>
+    <li><a id="compare-diff" href="#" class="inline-link"><b><i>[`Different`]</i></b></a></li>
+</ul>        
+<h1>[`Compare products`]</h1>
+{literal}
+<script type="text/javascript">
+$(function () {
+    $("#compare-all").click(function () {
+        $("#compare-table tr.same").show();
+        $(this).closest('ul').find('li.selected').removeClass('selected');
+        $(this).parent().addClass('selected');
+        return false;
+    });
+    $("#compare-diff").click(function () {
+        $("#compare-table tr.same").hide();
+        $(this).closest('ul').find('li.selected').removeClass('selected');
+        $(this).parent().addClass('selected');
+        return false;
+    });
+    $(".compare-remove").on('click', function () {
+        var compare = $.cookie('shop_compare');
+        if (compare) {
+            compare = compare.split(',');
+        } else {
+            compare = [];
+        }
+        var i = $.inArray($(this).data('product') + '', compare);
+        if (i != -1) {
+            compare.splice(i, 1)
+        }
+        if (compare.length) {
+            $.cookie('shop_compare', compare.join(','), { expires: 30, path: '/'});
+        } else {
+            $.cookie('shop_compare', null, {path: '/'});
+        }
+    });
+
+    $('#compare-clear').on('click', function () {
+        $.cookie('shop_compare', null, {path: '/'});
+        location.href = location.href.replace(/compare\/.*/, 'compare/');
+    });
+
+    var fixed = $("#compare-table-fixed").append($("#compare-table > thead").clone());
+
+    $(window).on("scroll", function(e, force) {
+        var offset = $(this).scrollTop();
+        var tableOffset = $("#compare-table").offset().top;
+
+        if (offset >= tableOffset && (fixed.is(":hidden") || force)) {
+            fixed.css('left', $("#compare-table").offset().left);
+            fixed.css('width', $("#compare-table").width());
+            $("#compare-table > thead th").each(function (i) {
+                fixed.find('th:eq(' + i + ')').css('width', $(this).width());
+            });
+            fixed.show();
+        } else if (offset < tableOffset) {
+            fixed.hide();
+        }
+    });
+    $(window).resize(function () {
+        $(window).trigger('scroll', true);
+    });
+});
+</script>
+{/literal}
+
+{if count($products)}
+    {$td_width = round((100-25)/max(1,count($products)))}
+    <table id="compare-table" class="compare">
+        <thead>
+            <tr>
+                <th></th>
+                {$product_names = ''}
+                {foreach $products as $p name=product_names}
+                    <td width="{$td_width}%">
+                        <a href="{$wa->getUrl('/frontend/product/', ['product_url' => $p.url])}">
+                            {$wa->shop->productImgHtml($p, '96x96', ['itemprop' => 'image', 'id' => 'product-image', 'default' => "`$wa_theme_url`img/dummy96.png", 'title' => $p.name|cat:' ':strip_tags($p.summary)|escape])}
+                            <u>{$p.name}</u>
+                        </a>
+                        <a data-product="{$p.id}" class="compare-remove" href="{$p.delete_url}" title="[`Remove from comparison list`]"><i class="icon16 remove"></i></a>
+    
+                        {$product_names = $product_names|cat:($p.name)}
+                        {if !$smarty.foreach.product_names.last}{$product_names = $product_names|cat:', '}{/if}
+    
+                    </td>
+                {/foreach}
+            </tr>
+        </thead>
+        <tr>
+            <th>[`Price`]</th>
+            {foreach $products as $p}
+                <td width="{$td_width}%">
+                    <span class="price nowrap">{shop_currency_html($p.price)}</span>
+                </td>
+            {/foreach}
+        </tr>
+        {foreach $features as $f_id=>$f}
+        <tr{if $f.same} class="same"{/if}>
+            <th>{$f.name}</th>
+            {foreach $products as $p}
+                <td>
+                {if isset($p.features[$f_id])}
+                    {if is_array($p.features[$f_id])}
+                        {implode('<br> ', $p.features[$f_id])}
+                    {else}
+                        {$p.features[$f_id]}
+                    {/if}
+                {else}
+                    <span class="gray">&mdash;</span>
+                {/if}
+                </td>
+            {/foreach}
+        </tr>
+        {/foreach}
+    </table>
+    
+    <div class="align-center">
+        <input id="compare-clear" type="button" class="gray" value="[`Clear comparison list`]">
+    </div>
+    
+    <table id="compare-table-fixed" class="compare compare-fixed" style="position: fixed; top: 0px; display:none; background: white;"></table>
+    <style>
+        #compare-leash { display: none; }
+        .page-content { overflow-x: scroll; }
+    </style>
+    {$wa->title( sprintf('[`Compare %s`]', $product_names) )}
+    
+{else}
+
+    <p>[`Product comparison list is empty.`]</p>
+
+{/if}

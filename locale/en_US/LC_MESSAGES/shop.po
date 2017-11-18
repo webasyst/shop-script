@@ -3733,7 +3733,7 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:209
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:239
-msgid "An array containing information about the customer according to the Contacts app setup and your storefront’s checkout contact info form"
+msgid "Customer-related data array"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:217
@@ -7524,7 +7524,7 @@ msgid "Core content loaded according to the requested resource: product, categor
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:136 /wa-apps/shop/lib/config/site.php:188
-msgid "Product id. Other elements of <em>$product</em> available in this template are listed below"
+msgid "Product ID. Other elements of <em>$product</em> object available in this template are listed below."
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:138 /wa-apps/shop/lib/config/site.php:190
@@ -9811,6 +9811,11 @@ msgstr ""
 #: /wa-apps/shop/templates/actions/product/Product.html:177
 #: /wa-apps/shop/lib/actions/product/shopProductSave.controller.php:169
 msgid "Based on your average monthly sales volume for %s during last three months (%d units per month), you will run out of this product in <strong>%d days</strong> (on %s)."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:196
+#: /wa-apps/shop/lib/actions/product/shopProductSave.controller.php:169
+msgid "Based on your average monthly sales volume for %s during last three months (%d units per month), you will run out of this product in more than 10 years (on %s)."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/promos/PromosEditor.html:2

@@ -3,7 +3,7 @@
     {if $wa->get('cart')}
         {$wa->shop->productImgHtml($product, '96x96', [ 'itemprop' => 'image', 'id' => 'product-image', 'alt' => $product.name|escape ])}
     {/if}
-    
+
     {if $product.sku_type}
 
     <!-- SELECTABLE FEATURES selling mode -->
@@ -34,6 +34,7 @@
             <label{if !$sku.available} class="disabled"{/if}>
             <input name="sku_id" type="radio" value="{$sku.id}"{if !$sku.available} disabled="true"{/if}{if !$sku_available}data-disabled="1"{/if}{if $sku.id == $product.sku_id} checked="checked"{/if} data-compare-price="{shop_currency($sku.compare_price, $product.currency, null, 0)}" data-price="{shop_currency($sku.price, $product.currency, null, 0)}"{if $sku.image_id} data-image-id="{$sku.image_id}"{/if}> <span itemprop="name">{$sku.name|escape}</span>
             {if $sku.sku}<span class="hint" itemprop="name">{$sku.sku|escape}</span>{/if}
+            <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
             <meta itemprop="price" content="{shop_currency($sku.price, $product.currency)}">
             <span class="price tiny nowrap">{shop_currency_html($sku.price, $product.currency)}</span>
             {if (!($sku.count === null) && $sku.count <= 0)}
@@ -53,6 +54,7 @@
     <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
         {$sku = $product.skus[$product.sku_id]}
         {if $sku.sku}<span class="hint" itemprop="name">{$sku.sku|escape}</span>{/if}
+        <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
         <meta itemprop="price" content="{shop_currency($sku.price, $product.currency)}">
         {if !$sku.available}
         <link itemprop="availability" href="http://schema.org/Discontinued" />

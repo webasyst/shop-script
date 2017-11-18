@@ -74,8 +74,8 @@
                                                 <span class="s-compare-price compare-at-price nowrap">{shop_currency_html($product.compare_price)}</span>
                                             {/if}
                                             <span class="s-price price nowrap">{shop_currency_html($product.price)}</span>
-                                            <meta itemprop="price" content="{$product.price}">
-                                            <meta itemprop="priceCurrency" content="{$wa->shop->primaryCurrency()}">
+                                            <meta itemprop="price" content="{shop_currency($product.price, null, null, 0)}">
+                                            <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
                                         </div>
                                     {/if}
 
@@ -138,8 +138,8 @@
                                             <span class="s-compare-price compare-at-price nowrap">{shop_currency_html($product.compare_price)}</span>
                                         {/if}
                                         <span class="s-price price nowrap">{shop_currency_html($product.price)}</span>
-                                        <meta itemprop="price" content="{$product.price}">
-                                        <meta itemprop="priceCurrency" content="{$wa->shop->primaryCurrency()}">
+                                        <meta itemprop="price" content="{shop_currency($product.price, null, null, 0)}">
+                                        <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
                                     </div>
                                 {/if}
 

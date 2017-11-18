@@ -1,15 +1,52 @@
 <?php
-$path = wa()->getDataPath('products', true, 'shop');
-waFiles::write($path.'/thumb.php', '<?php
-$file = realpath(dirname(__FILE__)."/../../../../")."/wa-apps/shop/lib/config/data/thumb.php";
+$target_path = wa()->getDataPath('products/', true, 'shop');
+$source_path = wa()->getAppPath('lib/config/data/', 'shop');
+
+// generate product thumb via php on demand
+$target = $target_path.'thumb.php';
+if (!file_exists($target)) {
+    $php_file = '<?php
+$file = dirname(__FILE__)."/../../../../"."/wa-apps/shop/lib/config/data/thumb.php";
 
 if (file_exists($file)) {
     include($file);
 } else {
     header("HTTP/1.0 404 Not Found");
 }
-');
-waFiles::copy(wa()->getAppPath('lib/config/data/.htaccess', 'shop'), $path.'/.htaccess');
+';
+    waFiles::write($target, $php_file);
+}
+
+$target = $target_path.'.htaccess';
+if (!file_exists($target)) {
+    waFiles::copy($source_path.'.htaccess', $target);
+}
+
+// generate promos thumb via php on demand
+
+$target_path = wa()->getDataPath('promos/', true, 'shop');
+
+$target = $target_path.'thumb.php';
+if (!file_exists($target)) {
+    $file = '<?php
+$file = dirname(__FILE__)."/../../../../"."wa-apps/shop/lib/config/data/promos.thumb.php";
+
+if (file_exists($file)) {
+    include($file);
+} else {
+    header("HTTP/1.0 404 Not Found");
+}
+';
+    waFiles::write($target, $file);
+}
+
+
+$target = $target_path.'.htaccess';
+if (!file_exists($target)) {
+    waFiles::copy($source_path.'.htaccess', $target);
+}
+
+// currency
 $currency_model = new shopCurrencyModel();
 $model = new waAppSettingsModel();
 $model->set('shop', 'welcome', 1);

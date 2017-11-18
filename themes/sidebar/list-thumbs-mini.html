@@ -4,7 +4,7 @@
 {foreach $products as $p}
     {$available = $wa->shop->settings('ignore_stock_count') || $p.count === null || $p.count > 0}
     <li itemscope itemtype ="http://schema.org/Product">
-        
+
         <a href="{$p.frontend_url}" title="{$p.name}">
             <div class="image">
                 {* $badge_html = $wa->shop->badgeHtml($p.badge)}
@@ -24,15 +24,15 @@
                 {if !empty($without_form)}
                 <div class="purshase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if}>
                     <span class="price nowrap">{shop_currency_html($p.price)}</span>
-                    <meta itemprop="price" content="{$p.price}">
-                    <meta itemprop="priceCurrency" content="{$wa->shop->primaryCurrency()}">
+                    <meta itemprop="price" content="{shop_currency($p.price, null, null, 0)}">
+                    <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
                     <input type="button" data-product_id="{$p.id}" data-url="{$wa->getUrl('shop/frontendCart/add')}" value="[`Add to cart`]">
                 </div>
                 {else}
                 <form class="purchase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if} method="post" action="{$wa->getUrl('shop/frontendCart/add')}">
                     <span class="price nowrap">{shop_currency_html($p.price)}</span>
-                    <meta itemprop="price" content="{$p.price}">
-                    <meta itemprop="priceCurrency" content="{$wa->shop->primaryCurrency()}">
+                    <meta itemprop="price" content="{shop_currency($p.price, null, null, 0)}">
+                    <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
                     <input type="hidden" name="product_id" value="{$p.id}">
                     <input type="submit" value="[`Add to cart`]">
                     <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $p.name, $wa->getUrl('shop/frontend/cart'))}</span>
@@ -41,8 +41,8 @@
                 <link itemprop="availability" href="http://schema.org/InStock" />
             {else}
                 <span class="price nowrap">{shop_currency_html($p.price)}</span>
-                <meta itemprop="price" content="{$p.price}">
-                <meta itemprop="priceCurrency" content="{$wa->shop->primaryCurrency()}">
+                <meta itemprop="price" content="{shop_currency($p.price, null, null, 0)}">
+                <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
                 <div class="out-of-stock"><strong>{if $wa->shop->settings('ignore_stock_count')}[`Pre-order only`]{else}[`Out of stock`]{/if}</strong></div>
                 <link itemprop="availability" href="http://schema.org/OutOfStock" />
             {/if}

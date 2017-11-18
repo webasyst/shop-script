@@ -280,7 +280,7 @@ class shopFrontendCartAddController extends waJsonController
                 'items' => $this->cart->items(false)
             ));
             $this->response['add_affiliate_bonus'] = sprintf(
-                _w("This order will add +%s points to your affiliate bonus."),
+                _w("This order will add <strong>+%s bonuses</strong> to  your account, which you will be able to spend on getting additional discounts later."),
                 round($add_affiliate_bonus, 2)
             );
             $affiliate_bonus = $affiliate_discount = 0;

@@ -47,7 +47,9 @@
 
 /* Category */
 
-.sub-categories { margin-bottom: 20px; }
+.sub-categories { margin: 0 0 20px; padding: 0; }
+.sub-categories li { display: inline-block; padding: 0 0 0 1em; margin: 0; list-style: none; }
+.sub-categories li:first-child { padding-left: 0; }
 
 .filters { background: #eee; width: 240px; padding: 15px; float: right; }
 .filters input[type="text"] { font-size: 0.9em; width: 50px; text-align: right; }

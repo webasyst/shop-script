@@ -189,14 +189,14 @@
                     <td style="border: 0;">
                     </td>
                     <td style="border: 0; padding: 16px 0 0;">
-                        {if !empty($customer.email)}
+                        {if strlen($customer->get('email', 'default'))}
                             <p style="margin: 10px 0 0;">
-                                [`Email`]: {$customer->get("email", "default")|escape}
+                                [`Email`]: {$customer->get('email', 'default')|escape}
                             </p>
                         {/if}
-                        {if !empty($customer.phone)}
+                        {if strlen($customer->get('phone', 'default'))}
                             <p style="margin: 10px 0 0;">
-                                [`Phone`]: {$customer->get("phone", "default")|escape}
+                                [`Phone`]: {$customer->get('phone', 'default')|escape}
                             </p>
                         {/if}
                     </td>

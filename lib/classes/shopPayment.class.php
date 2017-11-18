@@ -274,6 +274,9 @@ class shopPayment extends waAppPayment
         }
 
         $options = array();
+        if ($payment_plugin && is_object($payment_plugin) && method_exists($payment_plugin, 'getProperties')) {
+            $options['discount'] = $payment_plugin->getProperties('discount');
+        }
 
         if ($payment_plugin && is_object($payment_plugin) && (method_exists($payment_plugin, 'allowedCurrency'))) {
             $allowed_currencies = $payment_plugin->allowedCurrency();

@@ -17,12 +17,6 @@
                     <a href="{$p.frontend_url}" title="{$p.name}">
                         {$wa->shop->productImgHtml($p, '200@2x', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
                     </a>
-                    {$badge_html = $wa->shop->badgeHtml($p.badge)}
-                    {if $badge_html}
-                        <div class="badge-wrapper">
-                            <div class="">{$badge_html}</div>
-                        </div>
-                    {/if}
                 </figure>
 
                 <!-- ITEM TEXT -->
@@ -35,11 +29,15 @@
                             {/if}
                         </a>
                     </h3>
+
                     {if !empty($p.summary)}<meta itemprop="description" content="{strip_tags($p.summary)}">{/if}
 
+                    {$badge_html = $wa->shop->badgeHtml($p.badge)}
+                    {if $badge_html}<div class="badge-wrapper">{$badge_html}</div>{/if}
+
                     <div itemprop="offers" class="offers" itemscope itemtype="http://schema.org/Offer">
-                        <meta itemprop="price" content="{$p.price}">
-                        <meta itemprop="priceCurrency" content="{$wa->shop->primaryCurrency()}">
+                        <meta itemprop="price" content="{shop_currency($p.price, null, null, 0)}">
+                        <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
 
                         {if $available}
                             <form class="purchase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if} method="post" action="{$wa->getUrl('/frontendCart/add')}">

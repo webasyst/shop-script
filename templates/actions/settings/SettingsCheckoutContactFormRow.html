@@ -24,7 +24,7 @@
         <input type="text" class="name-input" placeholder="[`Field name`]" name="{$prefix}[{$fid}][localized_names]" value="{$f->getName()|escape}">
 
         {if !$new_field}
-            <span class="name-hint hint">{localizedType f=$f}</span>
+            <span class="name-hint hint"><em>{$fid}</em> &mdash; {localizedType f=$f}</span>
             {if $f->getType() === 'Composite'}
                 <ul class="hint">
                     {foreach $f->getParameter('fields') as $sf}

@@ -3,81 +3,95 @@
 <span class="errormsg">{$error|escape}</span>
 {else}
 <form>
-	<!-- GENERAL SHIPPING OPTION PARAMS -->
-	<div class="field-group">
+    <!-- GENERAL SHIPPING OPTION PARAMS -->
+    <div class="field-group">
 
-		<div class="block half-padded float-right">
-			<ul class="menu-h with-icons">
+        <div class="block half-padded float-right">
+            <ul class="menu-h with-icons">
             {if isset($plugin.status) && !empty($plugin.id)}
-				<li><a href="#/shipping/plugin/delete/{$plugin.id}/" class="js-action js-confirm" data-confirm-text="[`This will permanently delete this shipping option. Are you sure?`]" style="position: relative; z-index: 99;"><i class="icon16 delete"></i>[`Delete this shipping option`]</a></li>
+                <li><a href="#/shipping/plugin/delete/{$plugin.id}/" class="js-action js-confirm" data-confirm-text="[`This will permanently delete this shipping option. Are you sure?`]" style="position: relative; z-index: 99;"><i class="icon16 delete"></i>[`Delete this shipping option`]</a></li>
             {/if}
-			</ul>
-		</div>
+            </ul>
+        </div>
 
         <h1 class="js-bread-crumbs"><a href="#/shipping/" class="back">&larr; [`Shipping`]</a>&nbsp;{$plugin.name|escape}</h1>
 
-		<div class="field">
-			<div class="name">
-    			<label for="s-shipping-plugin-status">[`Enabled`]</label>
-			</div>
-			<div class="value">
+        <div class="field">
+            <div class="name">
+                <label for="s-shipping-plugin-status">[`Enabled`]</label>
+            </div>
+            <div class="value">
                 <input name="shipping[id]" type="hidden" value="{$plugin_id|escape}">
                 <input name="shipping[plugin]" type="hidden" value="{$plugin.plugin|escape}">
-				<input name="shipping[status]" type="checkbox"{if !empty($plugin.status)} checked="checked"{/if} id="s-shipping-plugin-status" value="1">
-			</div>
-		</div>
-		<div class="field">
-			<div class="name">
-				<label for="s-shipping-plugin-name">[`Shipping option name`]</label>
-			</div>
-			<div class="value">
-				<input name="shipping[name]" type="text" value="{$plugin.name|escape}" class="bold" id="s-shipping-plugin-name">
-			</div>
-		</div>
-		<div class="field">
-			<div class="name">
-				<label for="s-shipping-plugin-logo">[`Logo URL`]</label>
-			</div>
-			<div class="value">
-				<input name="shipping[logo]" type="text" class="long" value="{$plugin.logo|default:$plugin.img|escape}" id="s-shipping-plugin-logo">
+                <input name="shipping[status]" type="checkbox"{if !empty($plugin.status)} checked="checked"{/if} id="s-shipping-plugin-status" value="1">
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">
+                <label for="s-shipping-plugin-name">[`Shipping option name`]</label>
+            </div>
+            <div class="value">
+                <input name="shipping[name]" type="text" value="{$plugin.name|escape}" class="bold" id="s-shipping-plugin-name">
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">
+                <label for="s-shipping-plugin-logo">[`Logo URL`]</label>
+            </div>
+            <div class="value">
+                <input name="shipping[logo]" type="text" class="long" value="{$plugin.logo|default:$plugin.img|escape}" id="s-shipping-plugin-logo">
                 <img src="{$plugin.logo|default:$plugin.img}" class="s-payment-shipping-logo float-right">
-				<p class="hint">{sprintf('[`A collection of shipping option icons is available for free: <a href="%1$s" target="_blank">%1$s</a> <i class="icon10 new-window"></i>`]','[`http://www.shop-script.com/help/729/payment-shipping-icons/`]')}</p>
-			</div>
-		</div>
-		<div class="field">
-			<div class="name">
-				[`Description`]
-			</div>
-			<div class="value">
-				<textarea name="shipping[description]">{$plugin.description|escape}</textarea>
-				<p class="hint">[`HTML. Shipping option description is shown to customer during the checkout.`]</p>
-			</div>
-		</div>
+                <p class="hint">{sprintf('[`A collection of shipping option icons is available for free: <a href="%1$s" target="_blank">%1$s</a> <i class="icon10 new-window"></i>`]','[`http://www.shop-script.com/help/729/payment-shipping-icons/`]')}</p>
+            </div>
+        </div>
+        {if !empty($taxes)}
+        <div class="field">
+            <div class="name"><label for="s-shipping-plugin-taxable">[`Taxable`]</label></div>
+            <div class="value">
+                <select name="shipping[options][tax_id]" id="s-shipping-plugin-taxable">
+                    <option value=""{if empty($plugin.options.tax_id)} selected{/if}>[`No`]</option>
+                    {foreach $taxes as $tax}
+                        <option value="{$tax.id|escape}"{if !empty($plugin.options.tax_id) && ($tax.id==$plugin.options.tax_id)} selected{/if}>{$tax.name|escape}</option>
+                    {/foreach}
+                </select>
+                <p class="hint">[`Select a tax rule to be applied to shipping rates calculated by this plugin.`]</p>
+            </div>
+        </div>
+        {/if}
+        <div class="field">
+            <div class="name">
+                <label for="s-shipping-plugin-description">[`Description`]</label>
+            </div>
+            <div class="value">
+                <textarea name="shipping[description]" id="s-shipping-plugin-description">{$plugin.description|escape}</textarea>
+                <p class="hint">[`HTML. Shipping option description is shown to customer during the checkout.`]</p>
+            </div>
+        </div>
         {*
-		<div class="field">
-			<div class="name">
+        <div class="field">
+            <div class="name">
                 [`Delivery info`]
-			</div>
-			<div class="value">
-				<textarea name="shipping[email_description]">{$plugin.email_description|default:''|escape}</textarea>
-				<p class="hint">[`Optional text to be sent to customer with the order notification email. Plain text, no HTML allowed.`]</p>
-			</div>
-		</div>
+            </div>
+            <div class="value">
+                <textarea name="shipping[email_description]">{$plugin.email_description|default:''|escape}</textarea>
+                <p class="hint">[`Optional text to be sent to customer with the order notification email. Plain text, no HTML allowed.`]</p>
+            </div>
+        </div>
         *}
-	</div>
+    </div>
 
-	<!-- CUSTOM SHIPPING MODULE PARAMS -->
-	<div class="field-group">
-    	{$settings_html}
-	</div>
+    <!-- CUSTOM SHIPPING MODULE PARAMS -->
+    <div class="field-group">
+        {$settings_html}
+    </div>
 
-	<div class="field-group">
-		<div class="field">
-			<div class="value submit">
-				<input type="submit" class="button green" value="[`Save`]"> [`or`] <a href="#/shipping/" class="inline-link">[`cancel`]</a>
+    <div class="field-group">
+        <div class="field">
+            <div class="value submit">
+                <input type="submit" class="button green" value="[`Save`]"> [`or`] <a href="#/shipping/" class="inline-link">[`cancel`]</a>
                 <span id="settings-shipping-form-status" style="display:none"><!-- message placeholder --></span>
-			</div>
-		</div>
-	</div>
+            </div>
+        </div>
+    </div>
 </form>
 {/if}

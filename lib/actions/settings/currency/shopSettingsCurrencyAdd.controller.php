@@ -11,7 +11,8 @@ class shopSettingsCurrencyAddController extends waJsonController
             return;
         }
         $currency_model = new shopCurrencyModel();
-        if (!$currency_model->add($code)) {
+        $this->response = $currency_model->add($code);
+        if (!$this->response) {
             $this->errors[] = _w("Unknown code");
             return;
         }

@@ -3932,6 +3932,9 @@ msgstr "Скидка на сумму %s"
 msgid "Recalculation of order total, new discount: %s"
 msgstr "Пересчет суммы заказа, новая скидка: %s"
 
+msgid "Recalculation of discount after order is restored"
+msgstr "Повторное применение скидки после восстановления заказа"
+
 #: /wa-apps/shop/templates/actions/settings/SettingsPayment.html:24
 msgid "Browse for more payment modules in the Installer app…"
 msgstr "Установить новые модули оплаты с помощью приложения «Инсталлер»…"
@@ -4026,7 +4029,7 @@ msgid "Core content loaded according to the requested resource: product, categor
 msgstr "Основное содержимое, отображаемое в зависимости от типа текущей страницы: товар, категория, результаты поиска, инф. страница и т. д."
 
 #: /wa-apps/shop/lib/config/site.php:88
-msgid "Product id. Other elements of <em>$product</em> available in this template are listed below"
+msgid "Product ID. Other elements of <em>$product</em> object available in this template are listed below."
 msgstr "ID товара. Остальные элементы объекта <em>$product</em>, доступные в этом шаблоне, перечислены ниже"
 
 #: /wa-apps/shop/lib/config/site.php:102
@@ -4046,16 +4049,16 @@ msgid "Returns current cart object"
 msgstr "Возвращает объект корзины покупателя"
 
 #: /wa-apps/shop/lib/config/site.php:127
-msgid "Returns array of subcategories of the specified category. Omit parent category for the entire array of categories"
-msgstr "Возвращает массив подкатегорий указанной категории. Не включает родительскую категорию для всего массива категорий. Параметры:<br><strong>$id</strong> &mdash; id категории, которая должна считаться родительской;<br><strong>$depth</strong> &mdash; глубина захвата подкатегорий;<br><strong>$tree</strong> &mdash; флаг, обозначающий необходимость получить список категорий в виде иерархического дерева (<strong>true</strong>) либо плоского массива (<strong>false</strong>);<br><strong>$params</strong> &mdash; флаг, обозначающий необходимость получить доп. параметры категорий;<br><strong>$route</strong> &mdash; массив параметров поселения, для которого необходимо получить список категорий;"
+msgid "Returns array of visible subcategories of specified parent category.<br><strong>$id</strong> (default: <em>0</em>): ID of parent category whose subcategories must be returned. By default, categories starting from top level are returned.<br><strong>$depth</strong> (default: <em>null</em>): depth of subcategory tree. By default, entire category tree is returned.<br><strong>$tree</strong> (default: <em>false</em>): flag requiring to return categories as a tree (<em>true</em>) or a flat array (<em>false</em>).<br><strong>$params</strong> (default: <em>false</em>): flag requiring to return categories with their extra parameters. By default, categories are returned without extra parameters.<br><strong>$route</strong> (default: <em>null</em>): array of route parameters of the storefront for which visible categories must be returned. By default, returned categories are not necessarily limited to certain storefronts."
+msgstr "Возвращает массив подкатегорий указанной категории.<br><strong>$id</strong> (по умолчанию: <em>0</em>): ID родительской категории, подкатегории которой нужно получить. По умолчанию возвращаются категории начиная с самого верхнего уровня.<br><strong>$depth</strong> (по умолчанию: <em>null</em>): глубина захвата дерева подкатегорий. По умолчанию возвращается все дерево категорий.<br><strong>$tree</strong> (по умолчанию: <em>false</em>): флаг, обозначающий необходимость вернуть категории в виде дерева (<em>true</em>) или плоского массива (<em>false</em>).<br><strong>$params</strong> (по умолчанию: <em>false</em>): флаг, обозначающий необходимость вернуть категории с доп. параметрами. По умолчанию категории возвращаются без доп. параметров.<br><strong>$route</strong> (по умолчанию: <em>null</em>): массив параметров маршрутизации витрины, для которой нужно получить список категорий. По умолчанию возвращается список категорий без учета привязки к конкретной витрине."
 
 #: /wa-apps/shop/lib/config/site.php:128
 msgid "Returns array of cross-sell products.<em>$product_id</em> can be either a number (ID of the specified base product) or an array of products IDs"
 msgstr "Возвращает массив товаров, рекомендуемых функцией перекрестных продаж. <em>$product_id</em> может содержать либо число (ID указанного основного товара), либо массив ID товаров."
 
 #: /wa-apps/shop/lib/config/site.php:129
-msgid "Returns current currency object"
-msgstr "Возвращает объект текущей валюты"
+msgid "Returns current currency’s properties object."
+msgstr "Возвращает объект со свойствами текущей валюты."
 
 #: /wa-apps/shop/lib/config/site.php:130
 msgid "Returns product object by <em>$product_id</em>"
@@ -5279,8 +5282,8 @@ msgid "The list of order params may vary depending on your workflow and plugin s
 msgstr "Список параметров заказа может быть различным в зависимости от настроек обработки заказов и их статусов."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:220
-msgid "An array containing information about the customer according to the Contacts app setup and your storefront’s checkout contact info form"
-msgstr "Массив данных покупателя в соответствии с настройками приложения «Контакты» и формы заполнения контактных данных при оформлении заказа"
+msgid "Customer-related data array"
+msgstr "Массив информации о покупателе"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:228
 msgid "Customer full name"
@@ -5370,7 +5373,8 @@ msgstr "Все доступные способы оплаты"
 
 # msgid "Shipping options"
 # msgstr "Способы доставки"
-#: /wa-apps/shop/lib/config/site.php:87 /wa-apps/shop/lib/config/site.php:91
+#: /wa-apps/shop/lib/config/site.php:87
+#: /wa-apps/shop/lib/config/site.php:91
 msgid "All available shipping options"
 msgstr "Все доступные способы доставки"
 
@@ -5519,31 +5523,31 @@ msgid "Product average rating (float, 0 to 5)"
 msgstr "Средняя оценка покупателей (действительное число от 0 до 5)"
 
 #: /wa-apps/shop/lib/config/site.php:182
-msgid "Array of product SKUs"
+msgid "Array of product’s SKUs"
 msgstr "Массив артикулов товара"
 
 #: /wa-apps/shop/lib/config/site.php:183
-msgid "Array of product images"
+msgid "Array of product’s images"
 msgstr "Массив изображений товара"
 
 #: /wa-apps/shop/lib/config/site.php:184
-msgid "Array of product categories"
+msgid "Array of product’s categories"
 msgstr "Массив категорий товара"
 
 #: /wa-apps/shop/lib/config/site.php:185
-msgid "Array of product tags"
+msgid "Array of product’s tags"
 msgstr "Массив тегов товара"
 
 #: /wa-apps/shop/lib/config/site.php:186
-msgid "Array of product static info pages"
+msgid "Array of product’s subpages"
 msgstr "Массив информационных страниц товара"
 
 #: /wa-apps/shop/lib/config/site.php:187
-msgid "Array of product features and values"
+msgid "Array of product’s features and their values"
 msgstr "Массив значений характеристик товара"
 
 #: /wa-apps/shop/lib/config/site.php:139
-msgid "Array of product reviews"
+msgid "Array of product’s reviews"
 msgstr "Массив отзывов о товаре"
 
 #: /wa-apps/shop/lib/config/site.php:140
@@ -6421,7 +6425,8 @@ msgstr "Новый профиль"
 msgid "Perform action to all selected orders?"
 msgstr "Выполнить действие со всеми выбранными заказами?"
 
-#: /wa-apps/shop/js/product/list.js:407 /wa-apps/shop/js/product/list.js:568
+#: /wa-apps/shop/js/product/list.js:407
+#: /wa-apps/shop/js/product/list.js:568
 msgid "Drag products here"
 msgstr "Перетащите товары сюда"
 
@@ -6524,7 +6529,8 @@ msgstr "Автоматически перемещать вниз списка в
 msgid "When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more."
 msgstr "Товары, которых нет на складе, будут автоматически перемещены вниз всех списков товаров на витрине интернет-магазина: в результатах поиска, в списках товаров внутри категорий, в результатах фильтрации товаров и т. д."
 
-#: /wa-apps/shop/lib/config/site.php:177 /wa-apps/shop/lib/config/site.php:181
+#: /wa-apps/shop/lib/config/site.php:177
+#: /wa-apps/shop/lib/config/site.php:181
 #: /wa-apps/shop/lib/config/site.php:182
 msgid "Setting <em>$available_only = true</em> will automatically exclude all out-of-stock products from the return"
 msgstr "Настройка <em>$available_only = true</em> автоматически исключит из результата все товары, которых нет на складе."
@@ -7272,7 +7278,8 @@ msgstr "Купить"
 #: /wa-apps/shop/themes/facebook/home.html:9
 #: /wa-apps/shop/themes/nifty/home.html:9
 #: /wa-apps/shop/themes/pinboard/home.html:9
-#: /wa-apps/shop/themes/sidebar/home.html:9 /wa-apps/shop/themes/vk/home.html:9
+#: /wa-apps/shop/themes/sidebar/home.html:9
+#: /wa-apps/shop/themes/vk/home.html:9
 msgid "Start by <a href=\"%s\">creating a product</a> in your store backend."
 msgstr "Начните с <a href=\"%s\">создания товара</a> в бекенде интернет-магазина."
 
@@ -8638,7 +8645,12 @@ msgstr "Доступный остаток на складе"
 #: /wa-apps/shop/templates/actions/product/Product.html:177
 #: /wa-apps/shop/lib/actions/product/shopProductSave.controller.php:169
 msgid "Based on your average monthly sales volume for %s during last three months (%d units per month), you will run out of this product in <strong>%d days</strong> (on %s)."
-msgstr "При сохранении динамики продаж %s на уровне последних трех месяцев (в среднем в течение месяца продается %d шт), этот товар полностью закончится на складе через <strong>%d дней</strong> (%s)."
+msgstr "При сохранении динамики продаж %s на уровне последних трех месяцев (в среднем в течение месяца продается %d шт) этот товар полностью закончится на складе через <strong>%d дней</strong> (%s)."
+
+#: /wa-apps/shop/templates/actions/product/Product.html:196
+#: /wa-apps/shop/lib/actions/product/shopProductSave.controller.php:169
+msgid "Based on your average monthly sales volume for %s during last three months (%d units per month), you will run out of this product in more than 10 years (on %s)."
+msgstr "При сохранении динамики продаж %s на уровне последних трех месяцев (в среднем в течение месяца продается %d шт) этот товар полностью закончится на складе более чем через 10 лет (%s)."
 
 #: /wa-apps/shop/templates/actions/promos/PromosEditor.html:2
 #: /wa-apps/shop/templates/actions/promos/PromosDefault.html:25
@@ -9226,7 +9238,8 @@ msgstr "Главная страница"
 msgid "Social sharing Title (og:title)"
 msgstr "Заголовок (og:title)"
 
-#: /wa-apps/shop/lib/config/site.php:41 /wa-apps/shop/lib/config/site.php:58
+#: /wa-apps/shop/lib/config/site.php:41
+#: /wa-apps/shop/lib/config/site.php:58
 msgid "For detailed information on Open Graph parameters and examples please refer to <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>"
 msgstr "Подробная информация о возможных вариантах значений параметров Open Graph опубликована на сайте протокола <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>"
 
@@ -10314,7 +10327,7 @@ msgstr "Массив параметров действия с заказом, н
 
 #: /wa-apps/shop/lib/config/site.php:248
 msgid "Current order status"
-msgstr ""
+msgstr "Текущий статус заказа"
 
 #: /wa-apps/shop/lib/workflow/templates/RefundAction.html:5
 msgid "Attention: money will be returned to customer via payment gate"
@@ -10604,3 +10617,73 @@ msgstr "скидка на весь заказ:"
 
 msgid "Edit discount"
 msgstr "Изменить скидку"
+
+msgid "For service cost"
+msgstr "Для стоимости услуг"
+
+msgid "If checked, service cost in newly placed orders will be rounded according to order currency settings."
+msgstr "Включите, чтобы округлять стоимость услуг в новых заказах в соответствии с настройками валют."
+
+msgid "Day number of customer’s date of birth"
+msgstr "Номер дня в дате рождения покупателя"
+
+msgid "Month number of customer’s date of birth"
+msgstr "Номер месяца в дате рождения покупателя"
+
+msgid "Year number of customer’s date of birth"
+msgstr "Номер года в дате рождения покупателя"
+
+msgid "Customer’s name"
+msgstr "Имя покупателя"
+
+msgid "Customer’s company name"
+msgstr "Название компании покупателя"
+
+msgid "Customer’s job title"
+msgstr "Рабочая должность покупателя"
+
+msgid "Customer’s phone number"
+msgstr "Телефонный номер покупателя"
+
+msgid "Customer’s email address"
+msgstr "Email-адрес покупателя"
+
+msgid "Customer’s street address"
+msgstr "Улица и номер дома в адресе покупателя"
+
+msgid "Customer’s city name"
+msgstr "Название города покупателя"
+
+msgid "Customer’s ZIP code"
+msgstr "Почтовый индекс покупателя"
+
+msgid "Customer’s region name"
+msgstr "Название региона (области) в адресе покупателя"
+
+msgid "Customer’s country name"
+msgstr "Название страны в адресе покупателя"
+
+msgid "Returns array of specified product’s cross-selling items.<br><strong>$id</strong> of product whose cross-selling items must be returned.<br><strong>$limit</strong> (default: <em>5</em>) limits the number of returned items.<br><strong>$available_only</strong> (default: <em>false</em>) excludes out-of-stock products from the result. By default, out-of-stock products are not skipped."
+msgstr "Возвращает массив предложений для перекрестных продаж (cross-selling) указанного товара.<br><strong>$id</strong> товара, для которого нужно вернуть предложения перекрестных продаж.<br><strong>$limit</strong> (по умолчанию: <em>5</em>) ограничивает количество возвращаемых товаров.<br><strong>$available_only</strong> (по умолчанию: <em>false</em>) исключает из результатов товары, отсутствующие на складе. По умолчанию отсутствующие товары не пропускаются."
+
+msgid "To get product-related information, first create a product object by passing its numeric ID; e.g., <em>'product_id'</em> property of an item in <em>$order.items</em> array."
+msgstr "Чтобы получить информацию о товаре, сначала создайте объект товара, указав его числовой ID, например, свойство <em>'product_id'</em> элемента массива <em>$order.items</em>."
+
+msgid "Returns product URL for specified storefront address. E.g., use <em>$order.params.storefront</em> containing the storefront on which a product was purchased by a customer."
+msgstr "Возвращает URL товара для витрины с указанным адресом. Например, укажите переменную <em>$order.params.storefront</em> с адресом витрины, на которой покупатель заказал товар."
+
+msgid "Returns array of product’s upselling items.<br><strong>$limit</strong> (default: <em>5</em>) limits the number of returned items.<br><strong>$available_only</strong> (default: <em>false</em>) excludes out-of-stock products from the result. By default, out-of-stock products are not skipped."
+msgstr "Возвращает массив предложений аналогичных товаров (upselling) для данного товара.<br><strong>$limit</strong> (по умолчанию: <em>5</em>) ограничивает количество возвращаемых товаров.<br><strong>$available_only</strong> (по умолчанию: <em>false</em>) исключает из результатов товары, отсутствующие на складе. По умолчанию отсутствующие товары не пропускаются."
+
+msgid "Returns array of product’s cross-selling items.<br><strong>$limit</strong> (default: <em>5</em>) limits the number of returned items.<br><strong>$available_only</strong> (default: <em>false</em>) excludes out-of-stock products from the result. By default, out-of-stock products are not skipped."
+msgstr "Возвращает массив предложений для перекрестных продаж (cross-selling) данного товара.<br><strong>$limit</strong> (по умолчанию: <em>5</em>) ограничивает количество возвращаемых товаров.<br><strong>$available_only</strong> (по умолчанию: <em>false</em>) исключает из результатов товары, отсутствующие на складе. По умолчанию отсутствующие товары не пропускаются."
+
+msgid "Select a tax rule to be applied to shipping rates calculated by this plugin."
+msgstr "Выберите налоговое правило, которое должно применяться к стоимости доставки, рассчитанной этим плагином."
+
+msgid "deleted product"
+msgstr "товар удален"
+
+msgid "deleted service"
+msgstr "услуга удалена"
+

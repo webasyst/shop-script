@@ -47,25 +47,6 @@ class shopCheckoutConfirmation extends shopCheckout
             );
         }
 
-        $taxes_params = array(
-            'shipping'      => $shipping_address['data'],
-            'billing'       => $billing_address['data'],
-            'discount_rate' => ($order['total']) ? ($order['discount'] / $order['total']) : 0,
-        );
-
-        $taxes = shopTaxes::apply($order['items'], $taxes_params);
-
-        $tax = 0;
-        $tax_included = 0;
-        foreach ($taxes as $t) {
-            if (isset($t['sum'])) {
-                $tax += $t['sum'];
-            }
-            if (isset($t['sum_included'])) {
-                $tax_included += $t['sum_included'];
-            }
-        }
-
         $shipping_step = new shopCheckoutShipping();
         $shipping_step->verify($order);
 
@@ -76,6 +57,7 @@ class shopCheckoutConfirmation extends shopCheckout
             if ($shipping['id']) {
                 $plugin_info = $this->plugin_model->getById($shipping['id']);
                 $params['shipping_rate_id'] = $shipping['rate_id'];
+                $params['shipping_tax_id'] = ifset($plugin_info['options']['tax_id']);
                 $params['shipping_name'] = $shipping['name'];
                 $params['shipping_description'] = $plugin_info['description'];
             }
@@ -88,6 +70,45 @@ class shopCheckoutConfirmation extends shopCheckout
             $params['payment_plugin'] = $plugin_info['plugin'];
             $params['payment_description'] = $plugin_info['description'];
         }
+
+        $taxes_params = array(
+            'shipping'      => $shipping_address['data'],
+            'billing'       => $billing_address['data'],
+            'discount_rate' => ($order['total']) ? ($order['discount'] / $order['total']) : 0,
+        );
+
+        $config = wa('shop')->getConfig();
+        /**
+         * @var shopConfig $config
+         */
+
+        $frontend_currency = $config->getCurrency(false);
+
+        if (!empty($params['shipping_tax_id'])) {
+            $order['items']['%shipping%'] = array(
+                'type'     => 'shipping',
+                'tax_id'   => $params['shipping_tax_id'],
+                'quantity' => 1,
+                'price'    => $order['shipping'],
+                'currency' => $frontend_currency,
+            );
+        }
+
+        $taxes = shopTaxes::apply($order['items'], $taxes_params, $frontend_currency);
+        unset($order['items']['%shipping%']);
+
+        $tax = 0;
+        $tax_included = 0;
+        foreach ($taxes as $t) {
+            if (isset($t['sum'])) {
+                $tax += $t['sum'];
+            }
+            if (isset($t['sum_included'])) {
+                $tax_included += $t['sum_included'];
+            }
+        }
+
+        unset($order['items']['%shipping%']);
 
         $this->assign(array(
             'params'           => $params,

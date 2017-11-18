@@ -356,7 +356,7 @@ SQL;
         }
 
         $order_items_model = new shopOrderItemsModel();
-        $order['items'] = $order_items_model->getItems($id, $extend);
+        $order['items'] = $order_items_model->getItems($extend ? $order : $order['id'], $extend);
 
         $order['items_total_discount'] = 0.0;
 

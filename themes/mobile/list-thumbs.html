@@ -41,8 +41,8 @@
                         </div>
                         <link itemprop="availability" href="http://schema.org/OutOfStock" />
                     {/if}
-                    <meta itemprop="price" content="{$p.price}">
-                    <meta itemprop="priceCurrency" content="{$wa->shop->primaryCurrency()}">
+                    <meta itemprop="price" content="{shop_currency($p.price, null, null, 0)}">
+                    <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
 
                     <!-- LINK -->
                     <a class="item-link" href="{$p.frontend_url}" title="{$p.name}">[`Buy`]</a>
@@ -52,7 +52,7 @@
     </ul>
 
     {if isset($pages_count) && $pages_count > 1}
-        <div class="s-paging-wrapper {if $theme_settings.pagination == "lazyloading"}is-lazy-loading{/if}" data-loading-text="[`Loading...`]">
+        <div class="s-paging-wrapper {if ifset($theme_settings.pagination) == "lazyloading"}is-lazy-loading{/if}" data-loading-text="[`Loading...`]">
             {wa_pagination total=$pages_count attrs=["class" => "s-paging-list"]}
         </div>
     {/if}
@@ -60,7 +60,7 @@
     <script>
         ( function($) {
             var $products = $("#s-products-wrapper").removeAttr("id");
-            var initLazyLoading = {if isset($pages_count) && $pages_count > 1 && $theme_settings.pagination == "lazyloading"}true{else}false{/if};
+            var initLazyLoading = {if isset($pages_count) && $pages_count > 1 &&  ifset($theme_settings.pagination) == "lazyloading"}true{else}false{/if};
             if (initLazyLoading) {
                 new LazyLoading({
                     $wrapper: $products,

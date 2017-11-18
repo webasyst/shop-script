@@ -1,5 +1,41 @@
 <?php
-
+/**
+ * shopAffiliate::discount()
+ * - Calculate and/or apply duscount when user spends affiliate bonus on an order.
+ * - This is called as a part of shopDiscount::calculate() / ::apply() and should not be directly called by hand.
+ * - When applying:
+ *   - Decrease order total (by applying a discount).
+ *   - Decrease customer's affiliate bunus.
+ *   - Save amount of affiliate points used to order params `affiliate_bonus`.
+ *
+ * shopAffiliate::refundDiscount()
+ * - Reverse of application of discount()
+ * - Increase customer's affiliate bonus by amount previously saved in params `affiliate_bonus`
+ *
+ * shopAffiliate::reapplyDiscount()
+ * - Re-apply ::discount() again e.g. when a deleted order is restored.
+ * - Decrease customer's affiliate bonus by amount previously saved in params `affiliate_bonus`
+ *
+ *
+ *
+ * shopAffiliate::calculateBonus()
+ * - Used everyehere to calculate amount of affiliation points to be credited
+ *   to customer's account when they properly pay for a given order.
+ * - Does not update anything, just performs the calculation.
+ *
+ * shopAffiliate::applyBonus()
+ * - Increase customer's affiliation account after he properly paid for a given order.
+ *
+ * shopAffiliate::cancelBonus()
+ * - Decrease customer's affiliation account after a previously paid order
+ *   is refunded or deleted.
+ *
+ * shopAffiliate::convertBonus()
+ * - Calculate how much does a given amount of affiliation points worth
+ *   in terms of discount. Input is affiliation points, output is
+ *   shop's main (default) currency.
+ *
+ */
 class shopAffiliate
 {
     public static function isEnabled()
@@ -301,5 +337,35 @@ class shopAffiliate
         $order['params']['affiliate_bonus'] = $bonus_used;
 
         return $discount;
+    }
+
+    public static function reapplyDiscount($order_or_id)
+    {
+        if (wa_is_int($order_or_id)) {
+            $order_id = $order_or_id;
+            $om = new shopOrderModel();
+            $order = $om->getOrder($order_id);
+        } else {
+            $order = $order_or_id;
+            $order_id = $order['id'];
+        }
+        if (!$order['contact_id']) {
+            return;
+        }
+        $cm = new shopCustomerModel();
+        $customer = $cm->getById($order['contact_id']);
+        if (!$customer) {
+            return;
+        }
+
+        $bonus = ifset($order['params']['affiliate_bonus']) ? $order['params']['affiliate_bonus'] : null;
+
+        $atm = new shopAffiliateTransactionModel();
+        $atm->applyBonus(
+            $order['contact_id'],
+            -$bonus,
+            $order_id,
+            _w('Recalculation of discount after order is restored')
+        );
     }
 }

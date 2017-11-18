@@ -407,11 +407,14 @@ class shopConfig extends waAppConfig
 
     public function getRoundingOptions()
     {
-        $result = wa('shop')->getConfig()->getOption('rounding_options');
-        foreach ($result as &$label) {
-            $label = _w($label);
+        static $result = null;
+        if ($result === null) {
+            $result = wa('shop')->getConfig()->getOption('rounding_options');
+            foreach ($result as &$label) {
+                $label = _w($label);
+            }
+            unset($label);
         }
-        unset($label);
         return $result;
     }
 
@@ -498,6 +501,11 @@ function shop_currency($n, $in_currency = null, $out_currency = null, $format = 
             $n = $n / ifempty($currencies[$out_currency]['rate'], 1.0);
         }
     }
+
+    if (($format !== null) && ($info = waCurrency::getInfo($out_currency)) && isset($info['precision'])) {
+        $n = round($n, $info['precision']);
+    }
+
     if ($format === 'h') {
         return wa_currency_html($n, $out_currency);
     } elseif ($format) {

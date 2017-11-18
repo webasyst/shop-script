@@ -70,13 +70,21 @@
                                         <em class="hint">{_w('%d order', '%d orders', $customer.number_of_orders)}</em>
                                     {/if}
                                 </h3>
-                                {if $main_contact_info}
-                                    <ul class="menu-v with-icons compact">
+
+                                <ul class="menu-v with-icons compact">
+                                    {if $main_contact_info}
                                         {foreach $main_contact_info as $top_field}
                                             <li>{if $top_field.id != 'im'}<i class="icon16 {$top_field.id}"></i>{/if}{$top_field.value}</li>
                                         {/foreach}
-                                    </ul>
-                                {/if}
+                                    {/if}
+                                    <!-- plugin hook: 'backend_order_print.info_section' -->
+                                    {* @event backend_order_print.%plugin_id%.info_section *}
+                                    {if !empty($backend_order_print)}
+                                        {foreach $backend_order_print as $_}
+                                            <li>{if (!empty($_.info_section))}{$_.info_section}{/if}</li>
+                                        {/foreach}
+                                    {/if}
+                                </ul>
                             </div>
                         </div>
 
