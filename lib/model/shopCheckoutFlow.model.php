@@ -64,7 +64,12 @@ class shopCheckoutFlowModel extends waModel
         $step_names = array(
             _w('Cart')
         );
-        foreach (wa('shop')->getConfig()->getCheckoutSettings() as $item) {
+        $shop_config =wa('shop')->getConfig();
+        /**
+         * @var shopConfig $shop_config
+         */
+        $settings = $shop_config->getCheckoutSettings();
+        foreach ($settings as $item) {
             $step_names[] = $item['name'];
         }
         $step_names[] = _w('Order was placed');
@@ -90,8 +95,8 @@ class shopCheckoutFlowModel extends waModel
         unset($st);
 
         return $stat;
-   }
-    
+    }
+
     public function clear()
     {
         $this->query("DELETE FROM `{$this->table}` WHERE 1");

@@ -210,7 +210,9 @@ class shopConfig extends waAppConfig
                          'map'                   => 'google',
                          'gravatar_default'      => 'custom',
                          'require_captcha'       => 1, // is captcha is required for add reviews
-                         'require_authorization' => 0 // is authorization is required for add reviews
+                         'require_authorization' => 0, // is authorization is required for add reviews
+                         'review_service_agreement'      => '',
+                         'review_service_agreement_hint' => '',
                      ) as $k => $value) {
                 $settings[$k] = isset($all_settings[$k]) ? $all_settings[$k] : $value;
             }
@@ -385,16 +387,17 @@ class shopConfig extends waAppConfig
         }
         $plugin_model = new shopPluginModel();
         if (!$plugin_model->countByField('type', 'shipping') && isset($steps['shipping'])) {
-            unset($steps['shipping']);
+            unset($steps[shopCheckout::STEP_SHIPPING]);
         }
         if (!$plugin_model->countByField('type', 'payment') && isset($steps['payment'])) {
-            unset($steps['payment']);
+            unset($steps[shopCheckout::STEP_PAYMENT]);
         }
         reset($steps);
         return $steps;
     }
 
-    public function getSaveQuality($for2x = false) {
+    public function getSaveQuality($for2x = false)
+    {
         $quality = $this->getOption('image_save_quality'.($for2x ? '_2x' : ''));
         if (!$quality) {
             $quality = $for2x ? 70 : 90;
@@ -404,11 +407,14 @@ class shopConfig extends waAppConfig
 
     public function getRoundingOptions()
     {
-        $result = wa('shop')->getConfig()->getOption('rounding_options');
-        foreach($result as &$label) {
-            $label = _w($label);
+        static $result = null;
+        if ($result === null) {
+            $result = wa('shop')->getConfig()->getOption('rounding_options');
+            foreach ($result as &$label) {
+                $label = _w($label);
+            }
+            unset($label);
         }
-        unset($label);
         return $result;
     }
 
@@ -495,6 +501,11 @@ function shop_currency($n, $in_currency = null, $out_currency = null, $format = 
             $n = $n / ifempty($currencies[$out_currency]['rate'], 1.0);
         }
     }
+
+    if (($format !== null) && ($info = waCurrency::getInfo($out_currency)) && isset($info['precision'])) {
+        $n = round($n, $info['precision']);
+    }
+
     if ($format === 'h') {
         return wa_currency_html($n, $out_currency);
     } elseif ($format) {

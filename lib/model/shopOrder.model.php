@@ -356,11 +356,18 @@ SQL;
         }
 
         $order_items_model = new shopOrderItemsModel();
-        $order['items'] = $order_items_model->getItems($id, $extend);
+        $order['items'] = $order_items_model->getItems($extend ? $order : $order['id'], $extend);
+
+        $order['items_total_discount'] = 0.0;
 
         if ($escape) {
             if (!empty($order['items'])) {
                 foreach ($order['items'] as &$product) {
+                    if (!empty($product['item']['total_discount'])) {
+                        $product['item']['total_discount'] = floatval($product['item']['total_discount']);
+                        $order['items_total_discount'] += $product['item']['total_discount'];
+                    }
+
                     if (!empty($product['name'])) {
                         $product['name'] = htmlspecialchars($product['name']);
                     }
@@ -382,6 +389,8 @@ SQL;
                             }
                             if (!empty($service['item']['name'])) {
                                 $service['item']['name'] = htmlspecialchars($service['item']['name']);
+                                $service['item']['total_discount'] = floatval($service['item']['total_discount']);
+                                $order['items_total_discount'] += $service['item']['total_discount'];
                             }
                             if (!empty($service['variants'])) {
                                 foreach ($service['variants'] as &$variant) {
@@ -509,20 +518,23 @@ SQL;
 
     public function returnProductsToStocks($order_id)
     {
-        $order_params_model = new shopOrderParamsModel();
-        $reduced = $order_params_model->isReduced($order_id);
-        if (!$reduced) {
-            return;
+        $app_settings_model = new waAppSettingsModel();
+        if (!$app_settings_model->get('shop', 'disable_stock_count')) {
+            $order_params_model = new shopOrderParamsModel();
+            $reduced = $order_params_model->isReduced($order_id);
+            if (!$reduced) {
+                return;
+            }
+
+            $items_model = new shopOrderItemsModel();
+            $items = $items_model->select('*')->where("type='product' AND order_id = ".(int)$order_id)->fetchAll();
+
+            $items_stocks = $items_model->correctItemsStocks($items, $order_id, true);
+
+            $items_model->updateStockCount($items_stocks);
+            $order_params_model->unsetReduced($order_id);
+            $order_params_model->incReturnTimes($order_id);
         }
-
-        $items_model = new shopOrderItemsModel();
-        $items = $items_model->select('*')->where("type='product' AND order_id = ".(int)$order_id)->fetchAll();
-
-        $items_stocks = $items_model->correctItemsStocks($items, $order_id, true);
-
-        $items_model->updateStockCount($items_stocks);
-        $order_params_model->unsetReduced($order_id);
-        $order_params_model->incReturnTimes($order_id);
     }
 
     public function reduceProductsFromStocks($order_id)

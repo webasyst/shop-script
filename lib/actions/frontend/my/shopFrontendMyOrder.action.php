@@ -79,6 +79,15 @@ class shopFrontendMyOrderAction extends shopFrontendAction
             $contact = new waContact($order['contact_id']);
         }
 
+        $contact_data = new shopCustomer(wa()->getUser()->getId());
+        $contact_data = $contact_data->getCustomerData();
+
+        foreach (ifempty($contact_data, array()) as $field_id => $value) {
+            if ($field_id !== 'contact_id') {
+                $contact[$field_id] = $value;
+            }
+        }
+
         $payment = '';
         if (!empty($order['params']['payment_id']) && !$order['paid_date']) {
             try {
@@ -124,6 +133,7 @@ class shopFrontendMyOrderAction extends shopFrontendAction
 
         $this->view->assign('order', $order);
         $this->view->assign('contact', $contact);
+        $this->view->assign('customer', $contact);
         $this->view->assign('shipping_address', $shipping_address);
         $this->view->assign('billing_address', $billing_address);
         $this->view->assign('subtotal', $subtotal);

@@ -108,7 +108,7 @@
                         <div class="name">[`Sending rules`]</div>
                         <div class="value">
                             [`Send in`]
-                            <input type="text" class="short numerical" name="followup[delay]" value="{(ifset($followup.delay, 3*24*3600) / 3600.0)|wa_format_number:0}">
+                            <input type="text" class="short numerical" name="followup[delay]" value="{(ifempty($followup.delay, 3*24*3600) / 3600.0)|wa_format_number:0}">
                             [`hours after the order was set to state`]
                             <select name="followup[state_id]">
                                 {foreach $states as $id => $s}
@@ -117,10 +117,17 @@
                             </select>
                         </div>
                         <div class="value no-shift">
-                            <input type="hidden" name="followup[first_order_only]" value="1">
+                            <input type="hidden" name="followup[first_order_only]" value="0">
                             <label>
-                                <input type="checkbox" name="followup[first_order_only]" value=""{if !$followup.first_order_only} checked{/if}>
-                                [`Send follow-up after recurrent orders too`]
+                                <input type="checkbox" name="followup[first_order_only]" value="1"{if !empty($followup.first_order_only)} checked{/if}>
+                                [`Send for customer‘s first paid order only`]
+                            </label>
+                        </div>
+                        <div class="value no-shift">
+                            <input type="hidden" name="followup[same_state_id]" value="0">
+                            <label>
+                                <input type="checkbox" name="followup[same_state_id]" value="1"{if !empty($followup.same_state_id)} checked{/if}>
+                                [`Send only if order status has not been changed from the one selected above`]
                             </label>
                         </div>
                     </div>
@@ -491,3 +498,7 @@
     {/if}
 })();
 </script>
+
+{foreach $backend_followup_edit as $plugin_id => $_}
+<div class="hidden followup-plugin-wrapper {$plugin_id}">{$_}</div>
+{/foreach}

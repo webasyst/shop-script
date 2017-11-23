@@ -46,6 +46,54 @@
         </div>
         {/if}
 
+
+
+        <div class="field">
+            <div class="name">
+                Время приема и доставки заказов
+            </div>
+            <div class="value no-shift">
+                <label><input type="radio" name="campaign[shipping_methods][{$method_id}][order_before_mode]"
+                              value="0" {if empty($campaign.shipping_methods[$method_id]['order_before_mode'])} checked="checked"{/if}>&nbsp;Совпадают со временем работы магазина</label>
+            </div>
+            <div class="value">
+                <label><input type="radio" name="campaign[shipping_methods][{$method_id}][order_before_mode]"
+                              value="generic" {if ifset($campaign.shipping_methods[$method_id]['order_before_mode'])==='generic'} checked="checked"{/if}>&nbsp;Без учета дня недели</label>
+            </div>
+            <div class="value">
+                <label><input type="radio" name="campaign[shipping_methods][{$method_id}][order_before_mode]"
+                              value="per-day" {if ifset($campaign.shipping_methods[$method_id]['order_before_mode'])==='per-day'} checked="checked"{/if}>&nbsp;В соответствии с режимом работы</label>
+            </div>
+
+            <div class="value js-delivery-time-generic-options">
+                {$campaign.shipping_methods[$method_id]['order_before']=min(24,max(1,intval(ifset($campaign.shipping_methods[$method_id]['order_before'],24))))}
+                <input type="text" name="campaign[shipping_methods][{$method_id}][order_before]" value="{$campaign.shipping_methods[$method_id]['order_before']|escape}" placeholder="24"
+                       class="numerical short" id="s-plugin-yandexmarket-campaign-order_before">
+            </div>
+
+            {$_week_days = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']}
+            {foreach $_week_days as $_day => $_name}
+                <div class="value js-delivery-time-options">
+                    <input type="text" placeholder="17" class="numerical short" size="2"
+                           name="campaign[shipping_methods][{$method_id}][order_before_per_day][{$_day}][before]"
+                           value="{$campaign.shipping_methods[$method_id]['order_before_per_day'][$_day]|default:$campaign.shipping_methods[$method_id]['order_before']|default:24|escape}"
+                    >&nbsp;<label{if !empty($_schedule.weeklyHolidays) && in_array($_day+1,$_schedule.weeklyHolidays)}
+                        class="grey"
+                            {/if}>
+                        <input type="checkbox" name="campaign[shipping_methods][{$method_id}][order_before_per_day][{$_day}][workday]" value="1"
+
+                                {if !empty($campaign.shipping_methods[$method_id]['order_before_per_day'][$_day])} checked="checked"{/if}>&nbsp;{$_name|escape}
+                    </label>
+                </div>
+            {/foreach}
+            <div class="value">
+                    <span class="hint">Дни и время приема и доставки заказов. Указанные сроки и условия доставки действуют до наступления указанного времени только по указанным дням.<br>
+                    <strong>Если выбраны отдельные дни недели для доставки заказов, то эти дни должны точно соответствовать дням, выбранным в настройке «4. Общие параметры доставки → Дни и время приема и доставки заказов».</strong><br>
+                    <em>Время</em> для этого способа доставки может отличаться от указанного в настройке «4. Общие параметры доставки → Дни и время приема и доставки заказов».<br>
+                    <i class="icon10 exclamation"></i>Настройки должны соответствовать настройкам в кабинете «Яндекс.Маркета», чтобы не возникло ошибок по качеству.</span>
+            </div>
+        </div>
+
         <div class="field">
             <div class="name">
                 Сроки доставки
@@ -136,15 +184,16 @@
                             {if ifempty($campaign.shipping_methods[$method_id]['type'],'DELIVERY')=='DELIVERY'} selected="selected"{/if}
                     >Курьерская доставка
                     </option>
-{*                    <option value="PICKUP"
+                    <option value="PICKUP"
                             title="PICKUP"
-                            {if ifset($campaign.shipping_methods[$method_id]['type'])=='PICKUP'}
-                            selected="selected"
+                            {if empty($campaign.pickup_map) || !in_array($method_id,$campaign.pickup_map)}
+                                disabled="disabled"
+                            {elseif ifset($campaign.shipping_methods[$method_id]['type'])=='PICKUP'}
+                                selected="selected"
                             {/if}
-                            disabled="disabled"
                     >Самовывоз (пункты выдачи заказов)
                     </option>
-*}
+
                     <option value="POST"
                             title="POST"
                             {if ifset($campaign.shipping_methods[$method_id]['type'])=='POST'}

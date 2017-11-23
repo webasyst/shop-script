@@ -285,6 +285,7 @@ class shopFrontendProductAction extends shopFrontendAction
         $product->tags = array_map('htmlspecialchars', $product->tags);
 
         $this->view->assign('currency_info', $this->getCurrencyInfo());
+        $this->view->assign('stocks', shopHelper::getStocks(true));
 
         /**
          * @event frontend_product
@@ -295,8 +296,6 @@ class shopFrontendProductAction extends shopFrontendAction
          * @return array[string][string]string $return[%plugin_id%]['block'] html output
          */
         $this->view->assign('frontend_product', wa()->event('frontend_product', $product, array('menu', 'cart', 'block_aux', 'block')));
-
-        $this->view->assign('stocks', shopHelper::getStocks(true));
 
         // default title and meta fields
         if (!$is_cart && !empty($meta_fields)) {
@@ -400,6 +399,9 @@ class shopFrontendProductAction extends shopFrontendAction
 
         // Fill in gaps in $skus_services
         foreach ($skus_services as $sku_id => &$sku_services) {
+            if (!isset($product['skus'][$sku_id])) {
+                continue;
+            }
             $sku_price = $product['skus'][$sku_id]['price'];
             foreach ($services as $service_id => $service) {
                 if (isset($sku_services[$service_id])) {
@@ -447,11 +449,14 @@ class shopFrontendProductAction extends shopFrontendAction
                 continue;
             }
             if ($s['currency'] == '%') {
-                foreach ($s['variants'] as $v_id => $v) {
-                    $s['variants'][$v_id]['price'] = $v['price'] * $product['skus'][$product['sku_id']]['price'] / 100;
-                }
-                $s['currency'] = $product['currency'];
+                $item = array(
+                    'price'    => $product['skus'][$product['sku_id']]['price'],
+                    'currency' => $product['currency'],
+                );
+                shopProductServicesModel::workupItemServices($s, $item);
             }
+
+
 
             if (count($s['variants']) == 1) {
                 $v = reset($s['variants']);
@@ -494,7 +499,12 @@ class shopFrontendProductAction extends shopFrontendAction
     protected function getPrice($price, $currency, $product_price, $product_currency)
     {
         if ($currency == '%') {
-            return shop_currency($price * $product_price / 100, $product_currency, null, 0);
+            $round_services = wa()->getSetting('round_services');
+            if ($round_services) {
+                return shopRounding::roundCurrency($price * $product_price / 100, $product_currency);
+            } else {
+                return shop_currency($price * $product_price / 100, $product_currency, null, 0);
+            }
         } else {
             return shop_currency($price, $currency, null, 0);
         }

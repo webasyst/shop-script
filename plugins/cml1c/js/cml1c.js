@@ -103,6 +103,10 @@
                     return result;
                 });
 
+                $('#s-cml1c-auto input[readonly=readonly]').click(function () {
+                    $(this).select()
+                });
+
                 var button = $('#s-cml1c-auto').find(':checkbox[name="enabled"]:first').iButton({
                     labelOn: "",
                     labelOff: "",
@@ -132,11 +136,13 @@
                                 $field.show(200);
                                 if (data.data.url) {
                                     $field.find(":input:first").val(data.data.url);
+                                    $field.find(":input:last").val(data.data.url+'moysklad/');
 
                                     $field.find('.cml1c-url').show();
                                     $field.find('.js-cml1c-settlement').hide();
                                 } else {
                                     $field.find(":input:first").val('');
+                                    $field.find(":input:last").val('');
 
                                     $field.find('.js-cml1c-settlement').show();
                                     $field.find('.cml1c-url').hide();
@@ -741,7 +747,7 @@
                     var value = 'f:' + ui.item.value;
 
                     if (!$features.find('option[value="' + value + '"]:first').length) {
-                        var $option = $('<option/>');
+                        var $option = $('<option></option>');
                         $option.text(ui.item.name);
                         $option.attr('value', value);
                         $option.attr('title', ui.item.value);

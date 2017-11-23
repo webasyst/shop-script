@@ -27,13 +27,33 @@ class shopNotifications
         self::prepareData($data);
 
         if ($notifications) {
+            if (isset($data['storefront_route'])) {
+                $old_route = wa()->getRouting()->getRoute();
+                $old_domain = wa()->getRouting()->getDomain();
+                wa()->getRouting()->setRoute($data['storefront_route'], ifset($data['storefront_domain']));
+            }
+
             foreach ($notifications as $n) {
                 if (!$n['source'] || ($n['source'] == $data['source'])) {
                     $method = 'send'.ucfirst($n['transport']);
                     if (method_exists('shopNotifications', $method)) {
-                        self::$method($n, $data);
+                        try {
+                            self::$method($n, $data);
+                        } catch (Exception $ex) {
+                            $error = sprintf(
+                                'Unable to send %s notifications for order %s: %s',
+                                ucfirst($n['transport']),
+                                ifset($data['order_id'], ifset($data['id'])),
+                                $ex->getMessage()
+                            );
+                            waLog::log($error, 'shop/notifications.log');
+                        }
                     }
                 }
+            }
+
+            if (isset($data['storefront_route'])) {
+                wa()->getRouting()->setRoute($old_route, $old_domain);
             }
         }
 
@@ -57,25 +77,65 @@ class shopNotifications
 
         $method = 'send'.ucfirst($n['transport']);
         if (method_exists('shopNotifications', $method)) {
+            if (isset($data['storefront_route'])) {
+                $old_route = wa()->getRouting()->getRoute();
+                $old_domain = wa()->getRouting()->getDomain();
+                wa()->getRouting()->setRoute($data['storefront_route'], ifset($data['storefront_domain']));
+            }
+
             if ($to !== null) {
                 $n['to'] = $to;
             }
             self::$method($n, $data);
+
+            if (isset($data['storefront_route'])) {
+                wa()->getRouting()->setRoute($old_route, $old_domain);
+            }
         }
     }
 
     protected static function prepareData(&$data)
     {
+        if (!is_array($data['order'])) {
+            $order_model = new shopOrderModel();
+            $data['order'] = $order_model->getById($data['order']);
+        }
+
+        if (empty($data['status'])) {
+            $workflow = new shopWorkflow();
+            $status = $workflow->getStateById($data['order']['state_id']);
+            if ($status) {
+                $data['status'] = $status->getName();
+            } else {
+                $data['status'] = $data['order']['state_id'];
+            }
+        }
+
         $params_model = new shopOrderParamsModel();
         $data['order']['params'] = $params_model->get($data['order']['id'], true);
 
         $items_model = new shopOrderItemsModel();
         $data['order']['items'] = $items_model->getItems($data['order']['id']);
 
+        // last order_log entry
+        if (!isset($data['action_data'])) {
+            $order_log_model = new shopOrderLogModel();
+            $data['action_data'] = $order_log_model->where("order_id = ? AND action_id <> ''", $data['order']['id'])->order('id DESC')->limit(1)->fetchAssoc();
+            if ($data['action_data']) {
+                $data['action_data']['params'] = array();
+                $log_params_model = new shopOrderLogParamsModel();
+                $params = $log_params_model->getByField('log_id', $data['action_data']['id'], true);
+                foreach ($params as $p) {
+                    $data['action_data']['params'][$p['name']] = $p['value'];
+                }
+            }
+        }
+
         // Routing params to generate full URLs to products
         $source = 'backend';
         $storefront_route = null;
         $storefront_domain = null;
+        $storefront_route_url = null;
         if (isset($data['order']['params']['storefront'])) {
             $storefront = $data['order']['params']['storefront'];
             if (substr($storefront, -1) === '/') {
@@ -94,6 +154,7 @@ class shopNotifications
                     $st = rtrim(rtrim($domain, '/').'/'.$r['url'], '/.*');
                     if ($st == $storefront) {
                         $storefront_route = $r;
+                        $storefront_route_url = $r['url'];
                         $storefront_domain = $domain;
                         break 2;
                     }
@@ -101,6 +162,8 @@ class shopNotifications
             }
         }
         $data['source'] = $source;
+        $data['storefront_route'] = $storefront_route;
+        $data['storefront_domain'] = $storefront_domain;
 
         // Products info
         $product_ids = array();
@@ -123,7 +186,7 @@ class shopNotifications
         foreach ($products as &$p) {
             $p['frontend_url'] = wa()->getRouteUrl('shop/frontend/product', array(
                 'product_url' => $p['url'],
-            ), true, $storefront_domain, $storefront_route['url']);
+            ), true, $storefront_domain, $storefront_route_url);
             if (!empty($p['image'])) {
                 if ($d !== $root_url) {
                     foreach (array('thumb_url', 'big_url', 'crop_url') as $url_type) {
@@ -134,7 +197,7 @@ class shopNotifications
         }
         unset($p);
 
-        $config = wa()->getConfig();
+        $config = wa('shop')->getConfig();
         /**
          * @var shopConfig $config
          */
@@ -146,9 +209,10 @@ class shopNotifications
         }
 
         $absolute_image_url = true;
-
-        $product_skus_model = new shopProductSkusModel();
-        $sql = <<<SQL
+        $skus = array();
+        if ($sku_ids) {
+            $product_skus_model = new shopProductSkusModel();
+            $sql = <<<SQL
 SELECT
   s.id       sku_id,
   s.product_id,
@@ -162,17 +226,18 @@ WHERE
   AND s.id IN (i:sku_ids)
 SQL;
 
-        $skus = $product_skus_model->query($sql, compact('sku_ids'))->fetchAll('sku_id');
+            $skus = $product_skus_model->query($sql, compact('sku_ids'))->fetchAll('sku_id');
 
-        foreach ($skus as &$sku) {
-            foreach ($sizes as $size_id => $size) {
-                $sku['image'][$size_id.'_url'] = shopImage::getUrl($sku, $size, $absolute_image_url);
-                if ($d !== $root_url) {
-                    $sku['image'][$size_id.'_url'] = $d.substr($sku['image'][$size_id.'_url'], $root_url_len);
+            foreach ($skus as &$sku) {
+                foreach ($sizes as $size_id => $size) {
+                    $sku['image'][$size_id.'_url'] = shopImage::getUrl($sku, $size, $absolute_image_url);
+                    if ($d !== $root_url) {
+                        $sku['image'][$size_id.'_url'] = $d.substr($sku['image'][$size_id.'_url'], $root_url_len);
+                    }
+
                 }
-
+                unset($sku);
             }
-            unset($sku);
         }
 
         // URLs and products for order items
@@ -182,11 +247,11 @@ SQL;
                     'id'   => $data['order']['id'],
                     'code' => $data['order']['params']['auth_code'],
                     'item' => $i['id'],
-                ), true, $storefront_domain, $storefront_route['url']);
+                ), true, $storefront_domain, $storefront_route_url);
             }
             if (!empty($products[$i['product_id']])) {
                 $i['product'] = $products[$i['product_id']];
-                if (!empty($skus[$i['sku_id']]['image'])) {
+                if (isset($skus[$i['sku_id']]) && !empty($skus[$i['sku_id']]['image'])) {
                     $i['product']['image'] = $skus[$i['sku_id']]['image'];
                 }
             } else {
@@ -196,7 +261,6 @@ SQL;
 
         unset($i);
 
-
         // Shipping info
         if (!empty($data['order']['params']['shipping_id'])) {
             try {
@@ -205,7 +269,14 @@ SQL;
             }
         }
 
+        // Shipping date and time
+        $data['shipping_interval'] = null;
+        list($data['shipping_date'], $data['shipping_time_start'], $data['shipping_time_end']) = shopHelper::getOrderShippingInterval($data['order']['params']);
+        if ($data['shipping_date']) {
+            $data['shipping_interval'] = wa_date('shortdate', $data['shipping_date']).', '.$data['shipping_time_start'].'–'.$data['shipping_time_end'];
+        }
 
+        // Signup url
         if (isset($data['order']['params']['signup_url'])) {
             $data['signup_url'] = $data['order']['params']['signup_url'];
             unset($data['order']['params']['signup_url']);
@@ -238,7 +309,10 @@ SQL;
             $data['add_affiliate_bonus'] = shopAffiliate::calculateBonus($data['order']);
         }
 
-        $data['order_url'] = wa()->getRouteUrl('/frontend/myOrderByCode', array('id' => $data['order']['id'], 'code' => ifset($data['order']['params']['auth_code'])), true);
+        $data['order_url'] = wa()->getRouteUrl('/frontend/myOrderByCode', array(
+            'id' => $data['order']['id'],
+            'code' => ifset($data['order']['params']['auth_code'])
+        ), true, $storefront_domain, $storefront_route_url);
 
         shopHelper::workupOrders($data['order'], true);
 
@@ -259,6 +333,8 @@ SQL;
         // empty defaults, to avoid notices
         $empties = self::getDataEmpties();
         $data = self::arrayMergeRecursive($data, $empties);
+
+        return $data;
     }
 
     private static function getDataEmpties()
@@ -357,6 +433,7 @@ SQL;
         }
         $order_id = $data['order']['id'];
         $data['order']['id'] = shopHelper::encodeOrderId($order_id);
+
 
         $view = wa()->getView();
         $view->assign($data);
@@ -526,18 +603,22 @@ SQL;
             return;
         }
 
+        $order = $data['order'];
+        $notification_text = _w('New order').' '.shopHelper::encodeOrderId($order['id']);
+        $notification_text .= ' - '.wa_currency($order['total'], $order['currency']);
+
         // Send to recipients, grouped by domain name they registered to
         $results = array();
         foreach ($host_client_ids as $shop_url => $client_ids) {
             $request_data = array(
                 'app_id'             => "0b854471-089a-4850-896b-86b33c5a0198",
                 'data'               => array(
-                    'order_id' => $data['order']['id'],
+                    'order_id' => $order['id'],
                     'shop_url' => $shop_url,
                 ),
                 'include_player_ids' => array_values($client_ids),
                 'contents'           => array(
-                    "en" => _w('New order').' '.shopHelper::encodeOrderId($data['order']['id']),
+                    "en" => $notification_text,
                 ),
 
                 'ios_badgeType'  => 'Increase',

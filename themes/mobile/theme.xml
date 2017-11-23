@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="mobile" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:mobile" version="1.0.3">
+<theme id="mobile" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:mobile" version="1.1.5">
     <name locale="en_US">Mobile</name>
     <name locale="ru_RU">Mobile</name>
     <files>
@@ -147,14 +147,6 @@
         <file path="mobile.js" parent="1">
         </file>
     </files>
-    <about locale="en_US">
-<![CDATA[
-]]>
-    </about>
-    <about locale="ru_RU">
-<![CDATA[
-]]>
-    </about>
     <settings>
         <setting var="selectable_features_control" control_type="radio">
             <value>inline</value>
@@ -192,18 +184,51 @@
         </setting>
         <setting var="related_view_type" control_type="select">
             <value>thumbs</value>
-            <name locale="ru_RU">Тип представления связанных товаров</name>
-            <name locale="en_US">Type of related items</name>
+            <name locale="ru_RU">Рекомендуемые товары</name>
+            <name locale="en_US">Recommended products display</name>
             <options>
                 <option value="table">
-                    <name locale="ru_RU">Список</name>
+                    <name locale="ru_RU">Списком</name>
                     <name locale="en_US">List</name>
                 </option>
                 <option value="thumbs">
-                    <name locale="ru_RU">Таблица</name>
+                    <name locale="ru_RU">Таблицей</name>
                     <name locale="en_US">Table</name>
                 </option>
             </options>
+        </setting>
+        <setting var="homepage_bxslider_mode" control_type="radio">
+            <value>promos</value>
+            <name locale="ru_RU">Слайдер</name>
+            <name locale="en_US">Slider</name>
+            <options>
+                <option value="promos">
+                    <name locale="ru_RU">Промо-карточки</name>
+                    <name locale="en_US">Promo cards</name>
+                    <description locale="ru_RU">В слайдере будут показаны промо-карточки, созданные в разделе Товары > Промо</description>
+                    <description locale="en_US">Promo cards will be displayed on the main slider (use Products > Promos to create new promo cards)</description>
+                </option>
+                <option value="products">
+                    <name locale="ru_RU">Товары</name>
+                    <name locale="en_US">Products</name>
+                    <description locale="ru_RU">В слайдере будут показаны промо-товары из списка, идентификатор которого задан настройкой ниже. Новые списки товаров создаются в разделе Товары > Списки.</description>
+                    <description locale="en_US">Slider will present products from a product set which ID is specified in the setting below. New product sets can be created in Products > Sets.</description>
+                </option>
+                <option value="hidden">
+                    <name locale="ru_RU">Не показывать слайдер</name>
+                    <name locale="en_US">Don’t show the slider</name>
+                </option>
+            </options>
+        </setting>
+        <setting var="store_address" control_type="text">
+            <value></value>
+            <name locale="en_US">Store Address</name>
+            <name locale="ru_RU">Адрес магазина</name>
+        </setting>
+        <setting var="store_price_range" control_type="text">
+            <value></value>
+            <name locale="en_US">Store price range</name>
+            <name locale="ru_RU">Ценовой диапазон магазина</name>
         </setting>
     </settings>
     <locales>

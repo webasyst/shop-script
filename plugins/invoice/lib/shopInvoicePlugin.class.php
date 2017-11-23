@@ -2,6 +2,12 @@
 
 class shopInvoicePlugin extends shopPrintformPlugin
 {
+    public function renderPrintform($data)
+    {
+        $this->setOrderOption('items', null);
+        return parent::renderPrintform($data);
+    }
+
     public function preparePrintform($data, waView $view)
     {
         $config = wa('shop')->getConfig();

@@ -78,12 +78,16 @@
         {% } %}
         <td class="align-right">{%=product_currency_html%}</td>
         <td class="short align-right s-product-sku-purchase-price">
+            {% if (product.edit_rights) { %}
             <input class="short"
                    placeholder="0"
                    name="product[{%#product.id%}][sku][{%#sku.id%}][purchase_price]"
                    value="{%#sku.purchase_price_float%}"
                    {% if (!product.edit_rights) { %}readonly="readonly"{% } %}
             >
+            {% } else { %}
+             &nbsp;
+            {% } %}
         </td>
         <td class="short align-right s-product-sku-compare-price">
             <input class="short strike"

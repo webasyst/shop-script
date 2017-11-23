@@ -125,7 +125,7 @@
 
                             <xsl:if test="(//comment())[last()]">
                                 <li><i class="icon16 info"></i>
-                                    <xsl:value-of select="(//comment())[last()]" />
+                                    <xsl:value-of select="(//comment())[last()]"/>
                                 </li>
                             </xsl:if>
                         </ul>
@@ -158,7 +158,10 @@
                                 </xsl:variable>
                                 <tr>
                                     <td>
-                                        <xsl:value-of select="Номер"/>
+                                        <xsl:variable name="order_id">
+                                            <xsl:value-of select="Ид"/>
+                                        </xsl:variable>
+                                        <a href="?action=orders#/orders/id={$order_id}/" target="_blank"><xsl:value-of select="Номер"/><i class="icon16 new-window"></i></a>
                                     </td>
                                     <td>
                                         <xsl:value-of select="Дата"/>
@@ -225,7 +228,16 @@
                                         <ul class="menu-v with-icons">
                                             <xsl:for-each select="Товары/Товар">
                                                 <xsl:if test="Ид != 'ORDER_DELIVERY'">
-                                                    <li><i class="icon16 box"></i>
+                                                    <xsl:variable name="order_item_type">
+                                                        <xsl:value-of select="ЗначенияРеквизитов/ЗначениеРеквизита[Наименование='ВидНоменклатуры']/Значение"/>
+                                                    </xsl:variable>
+                                                    <li title="{$order_item_type}">
+                                                        <xsl:if test="ЗначенияРеквизитов/ЗначениеРеквизита[Наименование='ВидНоменклатуры']/Значение='Товар'">
+                                                            <i class="icon16 box"></i>
+                                                        </xsl:if>
+                                                        <xsl:if test="ЗначенияРеквизитов/ЗначениеРеквизита[Наименование='ВидНоменклатуры']/Значение='Услуга'">
+                                                            <i class="icon16 plus"></i>
+                                                        </xsl:if>
                                                         <xsl:value-of select="Наименование"/><xsl:text> </xsl:text><xsl:value-of
                                                             select="Количество"/><xsl:value-of select="БазоваяЕдиница"/>
                                                         <xsl:text> по </xsl:text><xsl:value-of select="ЦенаЗаЕдиницу"/>

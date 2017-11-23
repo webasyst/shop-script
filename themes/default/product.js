@@ -126,7 +126,13 @@ function Product(form, options) {
                     }, 600, function () {
                         $(this).remove();
                         cart_total.html(response.data.total);
-                        $('#cart-content').append($('<div class="cart-just-added"></div>').html( self.getEscapedText( self.add2cart.find('span.added2cart').text() ) ));
+
+                        var $addedText = $('<div class="cart-just-added"></div>').html( self.getEscapedText( self.add2cart.find('span.added2cart').text() ) );
+                        $('#cart-content').append($addedText);
+                        setTimeout( function() {
+                            $addedText.remove();
+                        }, 2000);
+
                         if ($('#cart').hasClass('fixed'))
                             $('.cart-to-checkout').slideDown(200);
                     });

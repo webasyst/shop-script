@@ -7,7 +7,7 @@ $(function () {
             $(".cart-discount").closest('div.row').show();
         }
         $(".cart-discount").html('&minus; ' + data.discount);
-        
+
         if (data.add_affiliate_bonus) {
             $(".affiliate").show().html(data.add_affiliate_bonus);
         } else {
@@ -102,11 +102,11 @@ $(function () {
         $(this).closest('form').append('<input type="hidden" name="use_affiliate" value="0">').submit();
         return false;
     });
-    
+
     $("#use-coupon").click(function () {
         $('#discount-row:hidden').slideToggle(200);
         $('#discount-row').addClass('highlighted');
-        $('#apply-coupon-code:hidden').show();        
+        $('#apply-coupon-code:hidden').show();
         $('#apply-coupon-code input[type="text"]').focus();
         return false;
     });
@@ -157,7 +157,13 @@ $(function () {
                     cart_total.closest('#cart').removeClass('empty');
                     cart_total.html(response.data.total);
                     $('#cart').addClass('fixed');
-                    $('#cart-content').append($('<div class="cart-just-added"></div>').html(f.find('span.added2cart').text()));
+
+                    var $addedText = $('<div class="cart-just-added"></div>').html(f.find('span.added2cart').text());
+                    $('#cart-content').append($addedText);
+                    setTimeout( function() {
+                        $addedText.remove();
+                    }, 2000);
+
                     $('.cart-to-checkout').slideDown(200);
                 });
             }

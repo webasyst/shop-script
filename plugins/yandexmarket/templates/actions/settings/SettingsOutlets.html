@@ -3,43 +3,122 @@
 {if !empty($error)}
 
     {include file="../../includes/api.error.html"
-        message='Для отображения списка точек продаж настройте <a href="?action=plugins#/yandexmarket/api/">авторизацию партнерского API</a> и проверьте настройки кампании в
-личном кабинете «Яндекс.Маркета».'}
+        message='Для отображения списка точек продаж настройте <a href="?action=plugins#/yandexmarket/api/">авторизацию партнерского API</a> и проверьте настройки кампании в личном кабинете «Яндекс.Маркета».'}
 
 {else}
 
     <h1>Кампания №{$campaign_id|escape} — справочник точек продаж</h1>
-    
     {if empty($outlets)}
         <strong class="highlighted">В вашем личном кабинете на сайте «Яндекс.Маркета» не настроено ни одной точки продаж.</strong>
     {else}
-        <div class="block double-padded">
-    
-            <ul class="menu-v" style="max-height: 600px; overflow-y: auto; overflow-x: hidden;">
-                {foreach $outlets as $outlet}
-                    <li class="hint"{* title="{"`$outlet.type` `$outlet.id`"|escape}"*}>
-        
-                        {if !empty($outlet.type)}
-                            <i class="icon16 {$outlet.typeIcon}"></i>
-                        {/if}
-                        <strong>{$outlet.name|escape}</strong> (тип <tt>{$outlet.type|escape}</tt> — «{$outlet.typeName|escape}»)
-                        
-                        {if !empty($outlet.statusIcon)}
-                            &nbsp;&nbsp;&nbsp;&nbsp;<i class="icon10 {$outlet.statusIcon}" title="{$outlet.statusName|escape}"></i>
-                            {$outlet.statusName|escape}
-                        {/if}
-        
-                        {if !empty($outlet.visibility)}
-                            &nbsp;&nbsp;&nbsp;&nbsp;<i class="icon10 {$outlet.visibilityIcon}" title="{$outlet.visibilityName|escape}"></i>
-                            {$outlet.visibilityName|escape}
-                        {/if}
-                    </li>
-                {/foreach}
-            </ul>
-            
-            <p class="hint"><i class="icon10 info"></i>Точки продаж настраиваются в личном кабинете в «Яндекс.Маркете».</p>
+        <form method="post" action="?plugin=yandexmarket&module=settings&action=campaignSave" id="s-plugin-yandexmarket-campaign-outlets-form">
+            <input type="hidden" name="campaign_id" value="{$campaign_id|escape}">
+            <input type="hidden" name="section" value="outlets">
+            <div class="block double-padded form">
+                <div class="field-group">
+                    <div class="value">
+                        <p><i class="icon16 info"></i>Открывайте этот раздел каждый раз после изменения точек продаж в личном кабинете «Яндекс.Маркета»,
+                            чтобы обновлять кеш точек продаж в Shop-Script.<br>
+                        Или настройте задание CRON для автоматического обновления кеша — с частотой выполнения не реже, чем каждые {$ttl} секунд:</p>
+                        <pre>{$cron_command|escape}</pre>
+                    </div>
+                </div>
+                <div class="field-group">
+
+                    {foreach $outlets as $outlet}
+                        <div class="field">
+                            <div class="name" style="margin-bottom: 2em;">
+                                {if !empty($outlet.type)}
+                                    <i class="icon16 {$outlet.typeIcon}"></i>
+                                {/if}
+                                <strong class="large black">{$outlet.name|escape}</strong>
+                                <ul class="menu-v with-icons compact" style="white-space: nowrap;">
+
+                                    {if !empty($outlet.statusIcon)}
+                                        <li class="small">
+                                            <i class="icon10 {$outlet.statusIcon}" title="{$outlet.statusName|escape}"></i>{$outlet.statusName|escape}
+                                        </li>
+                                    {/if}
+
+                                    {if !empty($outlet.visibility)}
+                                        <li class="small">
+                                            <i class="icon10 {$outlet.visibilityIcon}" title="{$outlet.visibilityName|escape}"></i>{$outlet.visibilityName|escape}
+
+                                        </li>
+                                    {/if}
+                                </ul>
+                            </div>
+                            
+                            <div style="padding-left: 3em;">
+                                <div class="value">
+                                    <span class="hint">Тип <tt>{$outlet.type|escape}</tt> — «{$outlet.typeName|escape}».</span>
+                                </div>
+                            
+                                {if !empty($stocks) && in_array($outlet.type, ['RETAIL','MIXED'])}
+                                    <div class="value">
+                                        <div class="name">Торговый зал:</div>
+                                        <div class="value not-implemented">
+                                            <select name="campaign[booking][{$outlet.id}]">
+                                                <option value="0">Выберете склад</option>
+                                                {foreach $stocks as $stock}
+                                                    <option value="{$stock.id}"{if !empty($campaign.booking[$outlet.id]) && ($campaign.booking[$outlet.id]==$stock.id)} selected="selected"{/if}>{$stock.name|escape}</option>
+                                                {/foreach}
+                                            </select>
+                                            <br/>
+                                            <span class="hint">Укажите склад</span>
+                                        </div>
+                                    </div>
+                                {/if}
+                                {if !empty($shipping_methods) && in_array($outlet.type, ['DEPOT','MIXED'])}
+                                    <div class="value">
+                                        <div class="name">Плагин доставки:</div>
+                                        <div class="value">
+                                            <select name="campaign[pickup_map][{$outlet.id}]">
+                                                <option value="">—</option>
+                                                {foreach $shipping_methods as $_id => $_info}
+                                                    <option value="{$_id}"{if !empty($campaign.pickup_map[$outlet.id]) && ($campaign.pickup_map[$outlet.id]==$_id)} selected="selected"{/if}>{$_info.name|escape}</option>
+                                                {/foreach}
+                                            </select>
+                                            <br>
+                                            <span class="hint">Выберите службу доставки, для которой указанная точка продаж является пунктом выдачи заказов.<br>
+                                                Настройте этот вид доставки в конфигурации кампании для программы «Заказ на маркете»
+                                                и выберите для него «Тип доставки → Самовывоз (пункты выдачи заказов)».</span>
+                                        </div>
+                                    </div>
+                                {/if}
+{*
+                                <div class="value">
+                                    <pre>{$outlet|var_export:true|escape}</pre>
+                                </div>
+*}
+                            </div>
+                        </div>
+                    {/foreach}
+
+                </div>
+
+
+                <div class="clear"></div>
+
+            <div class="field-group">
+                <div class="field">
+                    <div class="value">
+                        {$wa->csrf()}
+                        <div class="value">
+                            <input type="submit" value="Сохранить" class="button green">
+                            <span id="s-plugin-yandexmarket-campaign-outlets-form-status" style="display:none"><!-- message placeholder --></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <p class="hint"><i class="icon10 info"></i>Список доступных точек продаж настраивается в личном кабинете «Яндекс.Маркета».</p>
+            </div>
+
         
         </div>
+        </form>
         
         {if count($outlets) > 5}
             <h1 class="js-bread-crumbs"><a href="{$settings_url}" class="back">&larr; Кампании на Маркете</a></h1>
@@ -48,3 +127,85 @@
 
 {/if}
 <div class="clear"></div>
+
+
+<script type="text/javascript">
+    (function () {
+        "use strict";
+        var $form = $('#s-plugin-yandexmarket-campaign-outlets-form');
+
+        var timer = null;
+        var icon = {
+            submit: '<i style="vertical-align:middle" class="icon16 loading"></i>',
+            success: '<i style="vertical-align:middle" class="icon16 yes"></i>',
+            error: '<i style="vertical-align:middle" class="icon16 no"></i>'
+        };
+        var displayMessage = function (status, message) {
+            /* enable previous disabled inputs */
+
+            var $container = $('#s-plugin-yandexmarket-campaign-outlets-form-status');
+            $container.empty().show();
+            var $parent = $container.parents('div.value');
+            $parent.removeClass('errormsg successmsg status');
+
+            if (timer) {
+                clearTimeout(timer);
+            }
+            var timeout = null;
+            $container.append(icon[status] || '');
+            switch (status) {
+                case 'submit':
+                    $parent.addClass('status');
+                    break;
+                case 'error':
+                    $parent.addClass('errormsg');
+                    for (var i = 0; i < message.length; i++) {
+                        $container.append(message[i][0]);
+                    }
+                    timeout = 20000;
+                    break;
+                case 'success':
+                    if (message) {
+                        $parent.addClass('successmsg');
+                        $container.append(message);
+                    }
+                    timeout = 3000;
+                    break;
+            }
+            if (timeout) {
+                timer = setTimeout(function () {
+                    $parent.removeClass('errormsg successmsg status');
+                    $container.empty().show();
+                }, timeout);
+            }
+        };
+
+        $form.submit(function () {
+            displayMessage('submit');
+            $.ajax({
+                type: 'POST',
+                url: $form.attr('action'),
+                data: $form.serializeArray(),
+                iframe: true,
+                dataType: 'json',
+                success: function (data, textStatus, jqXHR) {
+                    if (data && (data.status === 'ok')) {
+                        var message = '[s`Saved`]';
+                        if (data.data && data.data.message) {
+                            message = data.data.message;
+                        }
+                        displayMessage('success', message);
+                    } else {
+                        displayMessage('error', data.errors || []);
+                    }
+                },
+                error: function (jqXHR, errorText) {
+                    displayMessage('error', [
+                        [errorText]
+                    ]);
+                }
+            });
+            return false;
+        });
+    }());
+</script>

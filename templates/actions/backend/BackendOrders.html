@@ -1,11 +1,15 @@
 {wa_js file="js/order/order.min.js"}
     {$wa_url}wa-content/js/jquery-plugins/jquery-tooltip/jquery.tooltip.patched.min.js
+    {$wa_app_static_url}js/order/timepicker/jquery.timepicker.min.js
     {$wa_app_static_url}js/tmpl.min.js
     {$wa_app_static_url}js/lazy.load.js
     {$wa_app_static_url}js/orders.js
     {$wa_app_static_url}js/order/list.js
     {$wa_app_static_url}js/order/edit.js
 {/wa_js}
+
+<link href="{$wa_app_static_url}js/order/timepicker/jquery.timepicker.css?v{$wa->version()}" rel="stylesheet" type="text/css" />
+
 <div class="s-alert s-orders-mobile-notice" id="s-orders-mobile-notice" data-alert="mobile-app">
     <div class="t-layout">
         <div class="t-column">
@@ -263,6 +267,7 @@
             {% } else { %}
                 <input type="text" name="price[add][{%#index%}][product]" value="{%#''+product.skus[chosen_sku_id].price%}" class="short"><span style="padding-top: 2px;">{%#currency%}</span>
             {% } %}
+            <br/><span class="hint js-item-total-discount" data-discount-id="{%#index%}"></span>
         </td>
         <td class="valign-top min-width"><a href="#" class="s-order-item-delete"><i class="icon16 delete"></i></a></td>
     </tr>
@@ -352,6 +357,7 @@
                                       data-price="{%#service.price%}"
                                       {% if (service.currency === $.order_edit.getPercentSymbol()) { %}data-percent-price="{%#service.percent_price%}"{% } %}
                         class="short s-orders-service-price" >{%#currency%}
+                <br/><span class="hint js-item-total-discount" data-discount-id="{%#index%}_{%#service_id%}"></span>
             </li>
         {% } %}
     </ul>

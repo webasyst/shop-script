@@ -51,21 +51,21 @@ HTML
         href="https://oauth.yandex.ru/authorize?response_type=token&client_id=%api_client_id%" target="_blank">
         ссылке</a>, подтвердите права и введите токен в это поле.</p>
 <script type="text/javascript">
-(function () {
-    "use strict";
-    var input = $('input[name$="\[api_client_id\]"]');
-    if(input.length){
-        input.bind('change',function(){
-            var href = $('input[name$="\[api_oauth_token\]"]').parent().find('a:first');
-            if(this.value!=''){
-                href.attr('href', href.data('href').replace(/%api_client_id%/, this.value));
-                href.parents('p').show();
-            } else {
-                href.parents('p').hide();
-            }
-        }).trigger('change');
-    }
-})();
+    (function () {
+        "use strict";
+        var input = $('input[name$="\[api_client_id\]"]');
+        if (input.length) {
+            input.bind('change', function () {
+                var href = $('input[name$="\[api_oauth_token\]"]').parent().find('a:first');
+                if (this.value !== '') {
+                    href.attr('href', href.data('href').replace(/%api_client_id%/, this.value));
+                    href.parents('p').show();
+                } else {
+                    href.parents('p').hide();
+                }
+            }).trigger('change');
+        }
+    })();
 </script>
 HTML
         ,

@@ -320,8 +320,8 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
                 $sku['name'][] = ifset($value['value'], $value['id']);
 
                 #correct price
-                if (isset($data[$feature_id]['values'][$value_id]['price'])) {
-                    self::parseSkuPrice($sku, $data[$feature_id]['values'][$value_id]['price']);
+                if (isset($data[$code]['values'][$value_id]['price'])) {
+                    self::parseSkuPrice($sku, $data[$code]['values'][$value_id]['price']);
                 }
 
                 #set counts per stock

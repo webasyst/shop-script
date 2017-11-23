@@ -313,6 +313,7 @@ return array(
         'name' => array('varchar', 255, 'null' => 0),
         'delay' => array('int', 10, 'unsigned' => 1, 'null' => 0),
         'first_order_only' => array('tinyint', 3, 'unsigned' => 1, 'null' => 0, 'default' => '1'),
+        'same_state_id' => array('tinyint', 4, 'default' => '0'),
         'subject' => array('text', 'null' => 0),
         'body' => array('text', 'null' => 0),
         'last_cron_time' => array('datetime', 'null' => 0),
@@ -377,10 +378,12 @@ return array(
         'is_first' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
         'unsettled' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
         'comment' => array('text'),
+        'shipping_datetime'=> array('datetime'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'state_id' => 'state_id',
             'contact_id' => 'contact_id',
+            'shipping_datetime'=>'shipping_datetime',
         ),
     ),
     'shop_order_items' => array(
@@ -400,6 +403,8 @@ return array(
         'virtualstock_id' => array('int', 11),
         'purchase_price' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         'total_discount' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
+        'tax_percent' => array('decimal', "7,4"),
+        'tax_included' => array('int', 1, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'order_type' => array('order_id', 'type'),
@@ -477,6 +482,7 @@ return array(
         'logo' => array('text', 'null' => 0),
         'status' => array('int', 11, 'null' => 0),
         'sort' => array('int', 11, 'null' => 0),
+        'options' => array('text'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'type' => 'type',
@@ -504,8 +510,8 @@ return array(
         'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
         'type_id' => array('int', 11),
         'image_id' => array('int', 11),
-        'image_filename' => array('varchar', 225, 'null' => 0, 'default' => ''),
-        'video_url' => array('varchar', 225),
+        'image_filename' => array('varchar', 255, 'null' => 0, 'default' => ''),
+        'video_url' => array('varchar', 255),
         'sku_id' => array('int', 11),
         'ext' => array('varchar', 10),
         'url' => array('varchar', 255),
@@ -564,7 +570,7 @@ return array(
         'width' => array('int', 5, 'null' => 0, 'default' => '0'),
         'height' => array('int', 5, 'null' => 0, 'default' => '0'),
         'size' => array('int', 11),
-        'filename' => array('varchar', 225, 'null' => 0, 'default' => ''),
+        'filename' => array('varchar', 255, 'null' => 0, 'default' => ''),
         'original_filename' => array('varchar', 255),
         'ext' => array('varchar', 10),
         'badge_type' => array('int', 4),
@@ -971,5 +977,5 @@ return array(
         'sort' => array('int', 11, 'null' => 0),
         ':keys' => array(
         ),
-    )
+    ),
 );

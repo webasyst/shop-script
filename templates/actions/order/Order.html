@@ -120,21 +120,57 @@
                                 {$shipping_address}
                             </p>
                             {if !empty($custom_fields)}
-                                <p>
+                                <p class="s-order-shipping-custom-fields">
                                     {foreach $custom_fields as $f}
                                         {$f.title}: {$f.value}<br>
                                     {/foreach}
                                 </p>
                             {/if}
+                            {if $customer_delivery_date || $customer_delivery_date_str}
+                                <p class="s-order-customer-delivery-date{if !empty($shipping_date)} grey{/if}">
+                                    [`Preferred shipping time:`]
+                                    {if $customer_delivery_date}
+                                        <span class="customer-delivery-date">{wa_date('date', $customer_delivery_date, waDateTime::getDefaultTimezone())|escape}</span>
+                                    {elseif $customer_delivery_date_str}
+                                        <span>{$customer_delivery_date_str|escape}</span>
+                                    {/if}
+                                    {if $customer_delivery_time}
+                                        {if $customer_delivery_date}
+                                            &nbsp;
+                                        {/if}
+                                        <span class="customer-delivery-time-from">{$customer_delivery_time.from_hours|escape}:{$customer_delivery_time.from_minutes|escape}</span>
+                                        -
+                                        <span class="customer-delivery-time-to">{$customer_delivery_time.to_hours|escape}:{$customer_delivery_time.to_minutes|escape}</span>
+                                    {/if}
+                                </p>
+                            {/if}
+
                             {if !empty($courier)}
                                 <!-- Courier -->
                                 <h3>
                                     <span class="gray">[`Courier`] —</span> <a href="#/orders/search/params.courier_id={$courier.id}/" class="bold highlighted">{$courier.name|escape}</a>
-                                    {*
-                                        <a href="javascript:void(0)"  class="wf-action hint" data-action-id="ship" data-container="#workflow-content"><i class="icon10 edit"></i></a>
-                                    *}
                                 </h3>
                             {/if}
+
+                            {strip}
+                                {$edit_shipping_details_available = false}
+                                {if !empty($order.state)}
+                                    {$available_actions = $order.state->getActions()}
+                                    {$edit_shipping_details_available = !empty($available_actions.editshippingdetails)}
+                                {/if}
+                                {if $edit_shipping_details_available || !empty($shipping_date)}
+                                    <p style="padding-left: 20px;">
+                                        {if !empty($shipping_date)}
+                                            [`Shipping time`]: {wa_date('date', $shipping_date, waDateTime::getDefaultTimezone())|escape} {$shipping_time_start|escape} - {$shipping_time_end|escape}
+                                            {if !empty($order.state)}<br>{/if}
+                                        {/if}
+                                        {if $edit_shipping_details_available}
+                                            <a href="javascript:void(0)" class="wf-action hint" data-action-id="editshippingdetails" data-container="#workflow-content">[`Edit shipping details`]</a>
+                                        {/if}
+                                    </p>
+                                {/if}
+                            {/strip}
+
                             <!-- shipping plugin output -->
                             {if !empty($params.tracking_number)}
                                 <h3>
@@ -188,8 +224,14 @@
                                     </td>
                                     <td>
                                         {if $item.type == 'service'}<span class="gray s-overhanging-plus">+</span> {/if}
-                                        <a href="?action=products#/{if $item.type=='product'}product/{$item.product_id}{else}services/{$item.service_id}{/if}/">{$item.name}</a>
-                                        {if !empty($item.sku_code)}
+
+                                        {if !empty($item.deleted)}
+                                            {$item.name} <span class="gray">{if $item.type == 'product'}[`deleted product`]{else}[`deleted service`]{/if}</span>
+                                        {else}
+                                            <a href="?action=products#/{if $item.type=='product'}product/{$item.product_id}{else}services/{$item.service_id}{/if}/">{$item.name}</a>
+                                        {/if}
+
+                                        {if !empty($item.sku_code) && empty($item.deleted)}
                                             <br><span class="hint">{$item.sku_code|escape}</span>
                                         {/if}
 
@@ -378,11 +420,11 @@
                                             <strong>{if $row.action}{$row.action->getOption('log_record')|escape}{else}{$row.action_id}{/if}</strong>
 
                                             {if $row.text}
-                                                <p{if $row.action_id == 'message' || $row.action_id == 'comment' || $row.action_id == 'pay' || $row.action_id == 'ship'} class="s-order-timeline-message{if $row.action_id == 'message'} blue{elseif $row.action_id == 'ship'} yellow{/if}"{/if}>{$row.text|nl2br}</p>
+                                                <p{if $row.action_id == 'message' || $row.action_id == 'comment' || $row.action_id == 'pay' || $row.action_id == 'ship'} class="s-order-timeline-message{if $row.action_id == 'message'} blue{elseif $row.action_id == 'ship'} yellow{/if}"{/if}>{$row.text|regex_replace:'@\<br\s*/?\>\r?(\n)@':'$1'|nl2br}</p>
                                             {/if}
                                         {else}
                                             {if $row.text}
-                                                <p>{$row.text|nl2br}</p>
+                                                <p>{$row.text|regex_replace:'@\<br\s*/?\>\r?(\n)@':'$1'|nl2br}</p>
                                             {/if}
                                         {/if}
                                     </div>
@@ -404,7 +446,40 @@
 
                     <!-- order action links -->
                     <ul class="menu-v with-icons compact workflow-actions">
-                        <li><a href="#" target="_blank" class="js-print" data-selector="div.s-order"><i class="icon16 print"></i>[`Printable version`]</a></li>
+                        <li>
+                            <a href="{$wa_app_url}?module=order&id={$order.id}&printable=true" class="js-show-print-page"><i class="icon16 print"></i>[`Printable version`]</a>
+                            <script>
+                                ( function($) {
+                                    $(".workflow-actions .js-show-print-page").on("click", function(event) {
+                                        event.preventDefault();
+                                        showWindow($(this).attr('href'));
+                                    });
+
+                                    function showWindow(href) {
+                                        var $window = $(window),
+                                            window_w = $window.width(),
+                                            window_h = $window.height();
+
+                                        var params_array = [
+                                            ["top", parseInt(window_h * .025)],
+                                            ["left", parseInt(window_w * .025)],
+                                            ["height", parseInt(window_h * .95)],
+                                            ["width", parseInt(window_w * .95)]
+                                        ];
+
+                                        var params = [];
+
+                                        $.each(params_array, function(index, item) {
+                                            var param_string = item[0] + "=" + item[1];
+                                            params.push(param_string);
+                                        });
+
+                                        window.open(href, "wa-shop-order-print", params.join(","));
+                                    }
+
+                                })(jQuery);
+                            </script>
+                        </li>
                         {foreach $top_buttons as $b}
                             <li>{$b}</li>
                         {/foreach}

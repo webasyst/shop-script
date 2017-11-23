@@ -2,7 +2,8 @@
 
 class shopSettingsCurrencyChangeRateController extends waJsonController
 {
-    public function execute() {
+    public function execute()
+    {
         $code = waRequest::post('code', '', waRequest::TYPE_STRING_TRIM);
         if ($code) {
             $this->changeSingle($code);
@@ -18,24 +19,36 @@ class shopSettingsCurrencyChangeRateController extends waJsonController
         $rounding = waRequest::post('rounding', array(), 'array');
         $rates = waRequest::post('rate', array(), 'array');
 
+        $currencies = waCurrency::getAll(true);
+
         $clear_cache = false;
         $currency_model = new shopCurrencyModel();
-        foreach($currency as $code) {
-            $update = array();
-            if (isset($round_up_only[$code])) {
-                $update['round_up_only'] = (int) !!$round_up_only[$code];
-            }
-            if (isset($rounding[$code])) {
-                $update['rounding'] = ifempty($rounding[$code], null);
-            }
-            if ($update) {
-                $currency_model->updateById($code, $update);
-                $clear_cache = true;
-            }
+        foreach ($currency as $code) {
+            if (isset($currencies[$code])) {
 
-            $rate = (float) str_replace(',', '.', ifset($rates[$code]));
-            if ($rate >= 0) {
-                $currency_model->changeRate($code, $rate);
+                $update = array();
+
+                if (isset($round_up_only[$code])) {
+                    $update['round_up_only'] = (int)!!$round_up_only[$code];
+                }
+
+                if (isset($rounding[$code])) {
+                    $update['rounding'] = ifempty($rounding[$code], null);
+                }
+
+                if (empty($update['rounding'])) {
+                    $update['rounding'] = shopCurrencyModel::getRounding($currencies[$code]);
+                }
+
+                if ($update) {
+                    $currency_model->updateById($code, $update);
+                    $clear_cache = true;
+                }
+
+                $rate = (float)str_replace(',', '.', ifset($rates[$code]));
+                if ($rate >= 0) {
+                    $currency_model->changeRate($code, $rate);
+                }
             }
         }
 

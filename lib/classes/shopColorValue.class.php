@@ -23,7 +23,7 @@ class shopColorValue implements ArrayAccess
     private $value;
     private $id;
     private $sort;
-    private $_data;
+    private $internal_data;
 
     public function __construct($row)
     {
@@ -43,10 +43,10 @@ class shopColorValue implements ArrayAccess
             case self::HSV:
             case self::RGB:
             case self::CMYK:
-                if (!isset($this->_data[$field])) {
-                    $this->_data[$field] = $this->convert($field, $this->code);
+                if (!isset($this->internal_data[$field])) {
+                    $this->internal_data[$field] = $this->convert($field, $this->code);
                 }
-                return $this->_data[$field];
+                return $this->internal_data[$field];
             case 'style':
                 $style = "";
                 if ($this->code !== null) {
@@ -57,7 +57,6 @@ class shopColorValue implements ArrayAccess
                         $color = 0x000000;
                     }
 
-
                     $style .= "color:{$this->convert(self::HEX, $color)};";
                     $style .= "background-color:{$this->hex};";
                 }
@@ -66,18 +65,15 @@ class shopColorValue implements ArrayAccess
                 break;
             case 'html':
                 $name = htmlentities(ifempty($this->value, $this->hex), ENT_QUOTES, 'utf-8');
-                return <<<HTML
-<span style="white-space: nowrap;">{$this->icon}{$name}</span>
-HTML;
-
+                $html = '<span style="white-space: nowrap;">%s%s</span>';
+                return sprintf($html, $this->icon, $name);
                 break;
             case 'icon':
                 if ($this->code === null) {
                     return null;
                 } else {
-                    return <<<HTML
- <i class="icon16 color" style="background:{$this->hex};"></i>
-HTML;
+                    $html = '<i class="icon16 color" style="background:%s;"></i>';
+                    return sprintf($html, $this->hex);
                 }
                 break;
             case 'compare':
@@ -111,7 +107,7 @@ HTML;
             $locale = wa()->getLocale();
         }
         if (!isset($color_spaces[$locale])) {
-            $path = realpath(dirname(__FILE__)).'/../config/data/color.'.$locale.'.php';
+            $path = dirname(__FILE__).'/../config/data/color.'.$locale.'.php';
             if (file_exists($path)) {
                 $color_spaces[$locale] = include($path);
             } elseif ($locale != 'en_US') {
@@ -287,8 +283,7 @@ HTML;
             }
 
             if (empty($raw) && !empty($pattern)) {
-                $args = array_merge(array($pattern), (array)$value);
-                $value = call_user_func_array('sprintf', $args);
+                $value = vsprintf($pattern, (array)$value);
             }
         }
         return $value;

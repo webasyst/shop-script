@@ -6,7 +6,7 @@
 {* @event frontend_category.%plugin_id% *}
 {foreach $frontend_category as $_}{$_}{/foreach}
 
-<!-- filtering by product features -->    
+<!-- filtering by product features -->
 {if !empty($filters)}
 <div class="filters{if !empty($theme_settings.ajax_filters)} ajax{/if}">
     <form method="get" action="{$wa->currentUrl(0,1)}">
@@ -46,7 +46,7 @@
         <input type="submit" value="[`Filter products`]">
     </form>
 </div>
-{/if}    
+{/if}
 
 <!-- description -->
 {if $category.description}
@@ -55,11 +55,13 @@
 
 <!-- subcategories -->
 {if $category.subcategories}
-    <div class="sub-categories">
+    <ul class="sub-categories">
         {foreach $category.subcategories as $sc}
-            <a href="{$sc.url}">{$sc.name|escape}</a><br />
+            <li>
+                <a href="{$sc.url}">{$sc.name|escape}</a>
+            </li>
         {/foreach}
-    </div>
+    </ul>
 {/if}
 
 <div id="product-list">

@@ -22,7 +22,7 @@
     <ul class="menu-h s-product-nav" id="s-product-frontend-links">
         <li class="s-inline-mixed-string">
             [`Public link`]:
-            {foreach array_reverse($frontend_urls) as $frontend_url}
+            {foreach array_slice(array_reverse($frontend_urls), 0, 100) as $frontend_url}
                 <span class="s-product-frontend-url-not-empty">
                     <a href="{$frontend_url.url}" target="_blank"><span>{$frontend_url.url}</span></a>
                 </span>
@@ -186,10 +186,18 @@
 
                             {if $report_rights && $forecast.date !== null}
                                 <p class="small"><em>
-                                {sprintf(
-                                    _w('Based on your average monthly sales volume for %s during last three months (%d units per month), you will run out of this product in <strong>%d days</strong> (on %s).'),
-                                    $product.name|escape, $forecast.sold_rounded, $forecast.days, wa_date("humandate", $forecast.date)
-                                )}
+                                        {if $forecast.days < shopProduct::MAX_FORECAST_DAYS} {* this is 10 years *}
+                                            {sprintf(
+                                            _w('Based on your average monthly sales volume for %s during last three months (%d units per month), you will run out of this product in <strong>%d days</strong> (on %s).'),
+                                            $product.name|escape, $forecast.sold_rounded, $forecast.days, wa_date("humandate", $forecast.date)
+                                            )}
+                                        {else}
+                                            {sprintf(
+                                            _w('Based on your average monthly sales volume for %s during last three months (%d units per month), you will run out of this product in more than 10 years (on %s).'),
+                                            $product.name|escape, $forecast.sold_rounded, wa_date("humandate", $forecast.date)
+                                            )}
+                                        {/if}
+
                                 </em></p>
                             {/if}
 
@@ -864,7 +872,7 @@
                 <div class="field">
                     <div class="name">[`META Description`]</div>
                     <div class="value">
-                        <textarea id="s-product-meta-description" name="product[meta_description]" placeholder="{shopProduct::getDefaultMetaDescription($product)}">{$product.meta_description|escape}</textarea>
+                        <textarea id="s-product-meta-description" name="product[meta_description]" placeholder="{shopProduct::getDefaultMetaDescription($product)|escape}">{$product.meta_description|escape}</textarea>
                         <br>
                         <span class="hint">{sprintf('[`Variables <strong>%s</strong> will be replaced with the actual product information when displaying it on the storefront. Can be used in title and META fields.`]','&#123;$name&#125;, &#123;$summary&#125;, &#123;$price&#125;')}</span>
                     </div>

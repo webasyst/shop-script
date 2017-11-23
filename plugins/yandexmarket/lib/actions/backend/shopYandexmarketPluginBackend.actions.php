@@ -26,6 +26,8 @@ class shopYandexmarketPluginBackendActions extends waViewActions
         $routing = wa()->getRouting();
         $settlements = array();
 
+        $this->view->assign('custom_map', $this->plugin()->customMap());
+
         $profile = $this->getProfile();
         $current_domain = &$profile['config']['domain'];
 
@@ -61,6 +63,8 @@ class shopYandexmarketPluginBackendActions extends waViewActions
 
         $this->view->assign('company', ifempty($profile['config']['company'], $config->getGeneralSettings('name')));
         $this->view->assign('company_name', ifempty($profile['config']['company_name'], $config->getGeneralSettings('name')));
+        $this->view->assign('company_phone', ifempty($profile['config']['company_phone']));
+        $this->view->assign('default_phone', $config->getGeneralSettings('phone'));
 
         $type_model = new shopTypeModel();
         $this->view->assign('types', $type_model->getAll());
@@ -73,7 +77,12 @@ class shopYandexmarketPluginBackendActions extends waViewActions
         if ($profile_map) {
             foreach ($map as $type => &$type_map) {
                 foreach ($type_map['fields'] as $field => &$info) {
-                    $info['source'] = ifempty($profile_map[$type][$field], 'skip:');
+                    $source = ifempty($profile_map[$type][$field], 'skip:');
+                    if ($source && strpos($source, '@')) {
+                        list($source, $option) = explode('@', $source, 2);
+                        $info['options'] = array_fill_keys(explode('@', $option), true);
+                    }
+                    $info['source'] = $source;
                     unset($profile_map[$type][$field]);
                     unset($info);
                 }
@@ -87,6 +96,10 @@ class shopYandexmarketPluginBackendActions extends waViewActions
                     $info_field = (strpos($field, 'param.') === 0) ? 'param.*' : $field;
                     if (isset($map[$type]['fields'][$info_field])) {
                         $info = $map[$type]['fields'][$info_field];
+                        if ($source && strpos($source, '@')) {
+                            list($source, $option) = explode('@', $source, 2);
+                            $info['options'] = array_fill_keys(explode('@', $option), true);
+                        }
                         $info['source'] = ifempty($source, 'skip:');
 
                         $map[$type]['fields'][$field] = $info;
@@ -101,6 +114,7 @@ class shopYandexmarketPluginBackendActions extends waViewActions
         $this->view->assign('type_map', $map);
         $this->view->assign('params', array('params' => $params));
         $this->view->assign('export', $export);
+        $this->view->assign('trace', ifset($profile['config']['trace']));
 
 
         $this->view->assign('types_map', ifset($profile['config']['types'], array()));
@@ -110,6 +124,8 @@ class shopYandexmarketPluginBackendActions extends waViewActions
             'ignore_stock_count' => $app_settings_model->get('shop', 'ignore_stock_count', 0),
         );
         $this->view->assign('app_settings', $app_settings);
+        $cron_template = 'php %s/cli.php shop yandexmarketPluginExport %d';
+        $this->view->assign('cron_command', sprintf($cron_template, wa()->getConfig()->getRootPath(), $profile['id']));
 
 
         $this->assignMapFeatures($map);
@@ -122,6 +138,7 @@ class shopYandexmarketPluginBackendActions extends waViewActions
             'file_name'   => _w('Attachment'),
             'count'       => _w('In stock'),
             'type_id'     => _w('Product type'),
+            'tax_id'     => _w('Tax rates'),
         );
 
         $stock_model = new shopStockModel();
@@ -200,42 +217,8 @@ class shopYandexmarketPluginBackendActions extends waViewActions
     public function regionAction()
     {
         try {
-            $region_id = max(0, waRequest::request('region_id', 0, waRequest::TYPE_INT));
-            if ($region_id) {
-                $params = array(
-                    'page'     => 1,
-                    'pageSize' => 100,
-                );
-
-                $key = sprintf('/regions/%d/children', $region_id);
-                $cache = new waVarExportCache($key, 7200, 'shop/plugins/yandexmarket');
-                $region = $cache->get();
-                if ($region == null) {
-                    $response = $this->plugin()->apiRequest($key, $params);
-                    $region = $response['regions'];
-                    $cache->set($region);
-                }
-                $region['formatted'] = shopYandexmarketPluginOrder::parseAddress($region, null, true);
-                $children = array();
-                if (!empty($region['children'])) {
-                    foreach ($region['children'] as $info) {
-                        if (!preg_match('@^(Прочее|Обще|Другие|Универсальн)@ui', $info['name'])) {
-                            $children[$info['id']] = $info['name'];
-                        }
-                    }
-                }
-                $region['children'] = $children;
-            } else {
-                $region_map = include($path = dirname(__FILE__).'/../../config/regions.php');
-
-                $region = array(
-                    'children' => array()
-                );
-                foreach ($region_map as $id => $info) {
-                    $region['children'][$id] = $info['name'];
-                }
-
-            }
+            $region_id = waRequest::request('region_id', 0, waRequest::TYPE_INT);
+            $region = $this->plugin()->getRegions($region_id);
             asort($region['children']);
             $this->view->assign('region', $region);
         } catch (waException $ex) {
@@ -262,6 +245,9 @@ class shopYandexmarketPluginBackendActions extends waViewActions
         static $plugin;
         if (!$plugin) {
             $plugin = wa()->getPlugin($this->plugin_id);
+            /**
+             * @var shopYandexmarketPlugin $plugin
+             */
         }
         return $plugin;
     }
@@ -318,7 +304,7 @@ class shopYandexmarketPluginBackendActions extends waViewActions
             $features = array();
             foreach ($map as $type_map) {
                 foreach ($type_map['fields'] as $info) {
-                    if (!empty($info['source']) && preg_match('@^feature:([\w\d_\-]+)$@', $info['source'], $matches)) {
+                    if (!empty($info['source']) && preg_match('@^feature:([\w\d_\-]+)(:.*)?$@', $info['source'], $matches)) {
                         $features[] = $matches[1];
                     }
                 }
@@ -341,8 +327,8 @@ class shopYandexmarketPluginBackendActions extends waViewActions
                     $feature['units'][] = $unit['title'];
                 }
                 $feature['units'] = implode(', ', $feature['units']);
-            } elseif (preg_match('@\(([^\)]+)\)$@', $feature['name'], $matches)) {
-                $feature['units'] = trim($matches[1]);
+            } elseif (preg_match('@\(([^\)]+)\)\s*$u@', $feature['name'], $matches)) {
+                $feature['suggest'] = trim($matches[1]);
             }
             unset($feature);
         }

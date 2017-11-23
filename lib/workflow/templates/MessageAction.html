@@ -1,3 +1,5 @@
+{* Note: this template is also used in CRM applications. *}
+
 <form id="wf-message-form" action="?module=workflow&action=perform" method="post">
     <input type="hidden" name="id" value="{$order_id}">
     <input type="hidden" name="action_id" value="{$action_id}">
@@ -24,7 +26,7 @@
         </div>
 
         <div class="field">
-            <div class="name">[`Sender`]</div>
+            <div class="name"><label for="{if !empty($contact_email)}transport-email{elseif !empty($sms_from) && !empty($contact_phone)}transport-sms{/if}">[`Sender`]</label></div>
             <div class="value no-shift">
                 {if !empty($contact_email)}
                 <select id="transport-email" name="sender"{if $transport != 'email'} style="display:none" disabled{/if}>
@@ -62,34 +64,44 @@
         {/foreach}
     {/if}
 
-    <input class="button green" type="submit" value="[`Send`]"> [`or`] <a class="cancel inline-link" href="#"><b><i>[`cancel`]</i></b></a>
+    {* ".js-form-footer-actions" and ".js-submit-button" classes are required for dialog in CRM app. *}
+    <footer class="js-form-footer-actions">
+        <input class="button green js-submit-button" type="submit" value="[`Send`]">
+        [`or`]
+        <a class="cancel inline-link js-cancel-button" href="javascript:void(0);"><b><i>[`cancel`]</i></b></a>
+    </footer>
 </form>
 
-<script type="text/javascript">
-    // cancel link
-    $('#wf-message-form > a.cancel').click(function() {
-        var el = $(this).closest('.workflow-content');
-        el.empty().hide();
-        el.prev().show();
-        return false;
-    });
+<script>
+    ( function($) {
+        var $form = $("#wf-message-form");
 
-    $("#wf-message-form").submit(function () {
-        var f = $(this);
-        f.find(':submit').attr('disabled', true);
-        $.post(f.attr('action'), f.serialize(), function () {
-            $.order.reload();
-        }, "json");
-        return false;
-    });
+        // cancel link
+        $('#wf-message-form .js-cancel-button').click(function() {
+            var el = $(this).closest('.workflow-content');
+            el.empty().hide();
+            el.prev().show();
+            return false;
+        });
 
-    $('#wf-message-form .transport').change(function () {
-        if ($('#wf-message-form .transport:checked').val() == 'sms') {
-            $('#transport-email').hide().attr('disabled', 'disabled');
-            $('#transport-sms').show().removeAttr('disabled');
-        } else {
-            $('#transport-sms').hide().attr('disabled', 'disabled');
-            $('#transport-email').show().removeAttr('disabled');
-        }
-    });
+        $("#wf-message-form").submit(function () {
+            var f = $(this);
+            f.find(':submit').attr('disabled', true);
+            $.post(f.attr('action'), f.serialize(), function () {
+                $form.trigger("formSend"); // this event is used in CRM app
+                if ("order" in $) { $.order.reload(); }
+            }, "json");
+            return false;
+        });
+
+        $('#wf-message-form .transport').change(function () {
+            if ($('#wf-message-form .transport:checked').val() == 'sms') {
+                $('#transport-email').hide().attr('disabled', 'disabled');
+                $('#transport-sms').show().removeAttr('disabled');
+            } else {
+                $('#transport-sms').hide().attr('disabled', 'disabled');
+                $('#transport-email').show().removeAttr('disabled');
+            }
+        });
+    })(jQuery);
 </script>

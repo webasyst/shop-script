@@ -6,15 +6,39 @@ class shopTaxes
     /**
      * @param array $items order items to modify
      * @param array $params 'billing' => array(...), 'shipping' => array(...), 'discount_rate' => float
+     * @param string $currency
      * @return array : tax_id => array ( rate => float, included => bool, name => string )
      */
     public static function apply(&$items, $params, $currency = null)
     {
-        $addresses = array_intersect_key($params, array('billing' => 1, 'shipping' => 1));
-        $discount_rate = ifset($params['discount_rate'], 0);
+        $discount_rate = min(1.0, max(0, ifset($params['discount_rate'], 0)));
+        $items_discount = 0.0;
+
+        $order_total = 0;
+        $order_total_without_discounts = 0;
+        foreach ($items as $item) {
+            if ($item['type'] != 'shipping') {
+                $_p = shop_currency($item['price'] * $item['quantity'], $item['currency'], $currency, false);
+
+                if (!empty($item['total_discount'])) {
+                    $items_discount += $item['total_discount'];
+                } else {
+                    $order_total_without_discounts += $_p;
+                }
+                $order_total += $_p;
+                unset($_p);
+            }
+        }
+
+        if ($items_discount) {
+            $order_discount = $order_total * $discount_rate;
+            $discount = $order_discount - $items_discount;
+            $discount_rate = $order_total_without_discounts > 0 ? ($discount / $order_total_without_discounts) : 0;
+        }
+
         $tax_ids = array();
         $parent_tax_id = null;
-        foreach($items as &$i) {
+        foreach ($items as &$i) {
             if ($i['type'] == 'product') {
                 $parent_tax_id = isset($i['product']['tax_id']) ?
                     $i['product']['tax_id'] :
@@ -29,14 +53,14 @@ class shopTaxes
                         $tax_ids[] = $i['tax_id'] = $parent_tax_id;
                     }
                 } else {
-                   $tax_ids[] = $i['tax_id'] = $i['service']['tax_id'];
+                    $tax_ids[] = $i['tax_id'] = $i['service']['tax_id'];
                 }
             } elseif (!empty($i['tax_id'])) {
                 $tax_ids[] = $i['tax_id'];
             }
 
             $i['tax'] = 0;
-            $i['tax_percent'] = 0;
+            $i['tax_percent'] = null;
             $i['tax_included'] = 0;
         }
         unset($i);
@@ -45,56 +69,39 @@ class shopTaxes
             return array();
         }
 
-        $result = array();
-        $tm = new shopTaxModel();
-        $trm = new shopTaxRegionsModel();
-        $taxes = $tm->getById($tax_ids);
-        foreach($taxes as $t) {
-            $result[$t['id']] = array(
-                'rate' => 0.0,
-                'included' => $t['included'],
-                'name' => $t['name'],
-                'sum_included' => 0.0,
-                'sum' => 0.0,
-            );
-
-            // Check if there are rates based on country and region
-            $result[$t['id']]['rate'] = $trm->getByTaxAddress($t['id'], $addresses[$t['address_type']]);
-        }
-
-        // Rates by zip code override rates by region, when applicable
-        $main_country = wa()->getSetting('country', null, 'shop');
-        foreach (array('shipping', 'billing') as $addr_type) {
-            // ZIP-based rates are only applied to main shop country
-            if (empty($addresses[$addr_type]['zip']) || (!empty($addresses[$addr_type]['country']) && $addresses[$addr_type]['country'] !== $main_country)) {
-                continue;
-            }
-
-            $tzcm = new shopTaxZipCodesModel();
-            foreach($tzcm->getByZip($addresses[$addr_type]['zip'], $addr_type, $tax_ids) as $tax_id => $rate) {
-                $result[$tax_id]['rate'] = $rate;
-                $result[$tax_id]['name'] = $taxes[$tax_id]['name'];
-            }
-        }
+        $addresses = array_intersect_key($params, array('billing' => 1, 'shipping' => 1));
+        $result = self::getTaxes($tax_ids, $addresses);
 
         // Compute tax values for each item, and total tax
-        foreach($items as &$i) {
+        foreach ($items as &$i) {
             $tax_id = ifempty($i['tax_id']);
-            $i['tax_percent'] = ifset($result[$tax_id]['rate'], 0.0);
+            $i['tax_percent'] = ifset($result[$tax_id]['rate'], null);
             $i['tax_included'] = ifset($result[$tax_id]['included']);
 
-            $p = shop_currency((1 - $discount_rate) * $i['price'] * $i['quantity'], $i['currency'], $currency, false);
-            $r = ifset($result[$tax_id]['rate'], 0.0);
+            if ($i['type'] != 'shipping') {
+                if (!empty($i['total_discount'])) {
+                    $p = $i['price'] * $i['quantity'] - $i['total_discount'];
+                } else {
+                    $p = (1 - $discount_rate) * $i['price'] * $i['quantity'];
+                }
+            } else {
+                $p = $i['price'] * $i['quantity'];
+            }
+
+            $p = shop_currency($p, $i['currency'], $currency, false);
+            $r = max(0.0, ifset($result[$tax_id]['rate'], 0.0));
 
             if ($i['tax_included']) {
-                $i['tax'] = $p*$r/(100.0+$r);
+                $i['tax'] = $p * $r / (100.0 + $r);
             } else {
-                $i['tax'] = $p*$r/100.0;
+                $i['tax'] = $p * $r / 100.0;
             }
+
+            $i['tax'] = waCurrency::round($i['tax'], $currency);
 
             if ($i['tax_included']) {
                 $result[$tax_id]['sum_included'] += $i['tax'];
-            } elseif  ($i['tax']) {
+            } elseif ($i['tax']) {
                 $result[$tax_id]['sum'] += $i['tax'];
             }
         }
@@ -103,11 +110,91 @@ class shopTaxes
         return $result;
     }
 
+    protected static function getTaxes($tax_ids, $addresses)
+    {
+        if (empty($tax_ids)) {
+            return array();
+        }
+        $result = array();
+        $tm = new shopTaxModel();
+        $trm = new shopTaxRegionsModel();
+        $taxes = $tm->getById($tax_ids);
+        foreach ($taxes as $t) {
+            $result[$t['id']] = array(
+                'rate'         => 0.0,
+                'included'     => $t['included'],
+                'name'         => $t['name'],
+                'sum_included' => 0.0,
+                'sum'          => 0.0,
+            );
+
+            // Check if there are rates based on country and region
+            $result[$t['id']]['rate'] = $trm->getByTaxAddress($t['id'], $addresses[$t['address_type']]);
+        }
+
+        // Rates by zip code override rates by region, when applicable
+        $main_country = wa()->getSetting('country', null, 'shop');
+        foreach (array('shipping', 'billing') as $address_type) {
+            // ZIP-based rates are only applied to main shop country
+            if (empty($addresses[$address_type]['zip']) || (!empty($addresses[$address_type]['country']) && $addresses[$address_type]['country'] !== $main_country)) {
+                continue;
+            }
+
+            $tzcm = new shopTaxZipCodesModel();
+            foreach ($tzcm->getByZip($addresses[$address_type]['zip'], $address_type, $tax_ids) as $tax_id => $rate) {
+                $result[$tax_id]['rate'] = $rate;
+                $result[$tax_id]['name'] = $taxes[$tax_id]['name'];
+            }
+        }
+        return $result;
+    }
+
+    public static function shipping($shipping, $params, $currency = null)
+    {
+        $addresses = array_intersect_key($params, array('billing' => 1, 'shipping' => 1));
+
+
+        $tax_ids = array($shipping['tax_id']);
+
+
+            $shipping['tax'] = 0;
+            $shipping['tax_percent'] = null;
+            $shipping['tax_included'] = 0;
+
+        $result = self::getTaxes($tax_ids, $addresses);
+
+        // Compute tax values for each item, and total tax
+        $tax_id = ifempty($shipping['tax_id']);
+        $shipping['tax_percent'] = ifset($result[$tax_id]['rate'], null);
+        $shipping['tax_included'] = ifset($result[$tax_id]['included']);
+
+        $p = $shipping['price'];
+
+        $p = shop_currency($p, $shipping['currency'], $currency, false);
+        $r = max(0.0, ifset($result[$tax_id]['rate'], 0.0));
+
+        if ($shipping['tax_included']) {
+            $shipping['tax'] = $p * $r / (100.0 + $r);
+        } else {
+            $shipping['tax'] = $p * $r / 100.0;
+        }
+
+        $shipping['tax'] = waCurrency::round($shipping['tax'], $currency);
+
+        if ($shipping['tax_included']) {
+            $result[$tax_id]['sum_included'] += $shipping['tax'];
+        } elseif ($shipping['tax']) {
+            $result[$tax_id]['sum'] += $shipping['tax'];
+        }
+
+        return $result;
+    }
+
     /**
      * Creates new or modifies existing tax.
      *
      * Examples:
-     *
+     * <pre>
 
         // Pass id to modify existing tax:
         shopTaxes::save(array(
@@ -171,10 +258,12 @@ class shopTaxes
                 // '%RW' = Rest of the world
             ),
         ));
-
+</pre>
+     *
      *
      * @param array $tax_data
      * @return array DB row from shop_tax, including id (useful for new record)
+     * @throws waException
      */
     public static function save($tax_data)
     {
@@ -213,17 +302,17 @@ class shopTaxes
         $tzcm->deleteByField('tax_id', $tax['id']);
         if (!empty($tax_data['zip_codes']) && is_array($tax_data['zip_codes'])) {
             $rows = array();
-            foreach($tax_data['zip_codes'] as $code => $rate) {
+            foreach ($tax_data['zip_codes'] as $code => $rate) {
                 if (!$code) {
                     continue;
                 }
                 $code = str_replace('*', '%', $code);
-                $rate = (float) str_replace(',', '.', ifempty($rate, '0'));
+                $rate = (float)str_replace(',', '.', ifempty($rate, '0'));
                 $rows[$code] = array(
-                    'tax_id' => $tax['id'],
-                    'zip_expr' => $code,
+                    'tax_id'    => $tax['id'],
+                    'zip_expr'  => $code,
                     'tax_value' => $rate,
-                    'sort' => count($rows),
+                    'sort'      => count($rows),
                 );
             }
             if ($rows) {
@@ -238,30 +327,30 @@ class shopTaxes
         $trm->deleteByField('tax_id', $tax['id']);
         if (!empty($tax_data['countries']) && is_array($tax_data['countries'])) {
             $region_rates = array();
-            foreach($tax_data['countries'] as $country_iso3 => $country_data) {
-                $country_global_rate = (float) str_replace(',', '.', ifempty($country_data['global_rate'], '0'));
+            foreach ($tax_data['countries'] as $country_iso3 => $country_data) {
+                $country_global_rate = (float)str_replace(',', '.', ifempty($country_data['global_rate'], '0'));
 
                 $no_region_added = true;
                 $params_added = false;
                 if (!empty($country_data['regions']) && is_array($country_data['regions'])) {
-                    foreach($country_data['regions'] as $region_code => $region_data) {
+                    foreach ($country_data['regions'] as $region_code => $region_data) {
                         if (is_array($region_data)) {
                             $tax_value_modifier = ifempty($region_data['tax_value_modifier']);
-                            $tax_value = (float) str_replace(',', '.', ifempty($region_data['tax_value'], '0'));
+                            $tax_value = (float)str_replace(',', '.', ifempty($region_data['tax_value'], '0'));
                             $tax_name = ifempty($region_data['name']);
                         } else {
                             $tax_name = null;
                             $tax_value_modifier = '';
-                            $tax_value = (float) str_replace(',', '.', $region_data);
+                            $tax_value = (float)str_replace(',', '.', $region_data);
                         }
                         $params = null;
 
                         if ($tax_value_modifier) {
                             $params = serialize(array(
                                 'tax_value_modifier' => $tax_value_modifier,
-                                'tax_value' => $tax_value,
+                                'tax_value'          => $tax_value,
                             ));
-                            switch($tax_value_modifier) {
+                            switch ($tax_value_modifier) {
                                 case '*':
                                     $tax_value *= $country_global_rate;
                                     break;
@@ -279,12 +368,12 @@ class shopTaxes
                         }
 
                         $region_rates[] = array(
-                            'tax_id' => $tax['id'],
-                            'tax_name' => $tax_name,
+                            'tax_id'       => $tax['id'],
+                            'tax_name'     => $tax_name,
                             'country_iso3' => $country_iso3,
-                            'region_code' => $region_code,
-                            'tax_value' => $tax_value,
-                            'params' => $params,
+                            'region_code'  => $region_code,
+                            'tax_value'    => $tax_value,
+                            'params'       => $params,
                         );
 
                         if ($params) {
@@ -296,12 +385,12 @@ class shopTaxes
 
                 if ($no_region_added || $params_added || $country_global_rate > 0) {
                     $region_rates[] = array(
-                        'tax_id' => $tax['id'],
-                        'tax_name' => null,
+                        'tax_id'       => $tax['id'],
+                        'tax_name'     => null,
                         'country_iso3' => $country_iso3,
-                        'region_code' => null,
-                        'tax_value' => $country_global_rate,
-                        'params' => null,
+                        'region_code'  => null,
+                        'tax_value'    => $country_global_rate,
+                        'params'       => null,
                     );
                 }
             }

@@ -29,7 +29,47 @@ class shopRepairActions extends waActions
         print implode("\n\t", $actions);
     }
 
-    public function productcountsAction()
+    public function productStocksAction()
+    {
+        print "Checking obsolete records at \n";
+        $model = new shopProductStocksModel();
+        $sql = <<<SQL
+SELECT DISTINCT
+  c.stock_id,
+  COUNT(c.sku_id) cnt
+FROM shop_product_stocks c LEFT JOIN shop_stock s ON s.id = c.stock_id
+WHERE s.id IS NULL
+GROUP BY c.stock_id
+SQL;
+        $stocks = $model->query($sql)->fetchAll('stock_id', true);
+        if ($stocks) {
+            foreach ($stocks as $stock_id => $sku_count) {
+                print sprintf("%d obsolete records found at deleted stock with id %d\n", $sku_count, $stock_id);
+            }
+
+            $model->deleteByField('stock_id', array_keys($stocks));
+        }
+
+        $sql = <<<SQL
+SELECT DISTINCT
+  c.sku_id,
+  COUNT(c.sku_id) cnt
+FROM shop_product_stocks c LEFT JOIN shop_product_skus s ON s.id = c.sku_id
+WHERE s.id IS NULL
+GROUP BY c.sku_id
+SQL;
+        $stocks = $model->query($sql)->fetchAll('sku_id', true);
+        if ($stocks) {
+            foreach ($stocks as $sku_id => $sku_count) {
+                print sprintf("%d obsolete records found at deleted SKU with id %d\n", $sku_count, $sku_id);
+            }
+            $model->deleteByField('sku_id', array_keys($stocks));
+        }
+
+        print "Ok";
+    }
+
+    public function productCountsAction()
     {
         $model = new shopProductModel();
         $model->correctCount();
@@ -71,6 +111,122 @@ class shopRepairActions extends waActions
         }
 
         echo "OK";
+    }
+
+    public function cleanupFeaturesAction()
+    {
+        $sqls = array();
+
+        $sqls['feature@shop_feature_values_varchar'] = <<<SQL
+DELETE v FROM shop_feature_values_varchar v
+LEFT JOIN shop_feature f
+ON
+v.feature_id=f.id
+WHERE f.id IS NULL
+SQL;
+
+        $sqls['feature@shop_feature_values_text'] = <<<SQL
+DELETE v FROM shop_feature_values_text v
+LEFT JOIN shop_feature f
+ON
+v.feature_id=f.id
+WHERE f.id IS NULL
+SQL;
+
+        $sqls['feature@shop_feature_values_range'] = <<<SQL
+DELETE v FROM shop_feature_values_range v
+LEFT JOIN shop_feature f
+ON
+v.feature_id=f.id
+WHERE f.id IS NULL
+SQL;
+
+        $sqls['feature@shop_feature_values_double'] = <<<SQL
+DELETE v FROM shop_feature_values_double v
+LEFT JOIN shop_feature f
+ON
+v.feature_id=f.id
+WHERE f.id IS NULL
+SQL;
+
+        $sqls['feature@shop_feature_values_dimension'] = <<<SQL
+DELETE v FROM shop_feature_values_dimension v
+LEFT JOIN shop_feature f
+ON
+v.feature_id=f.id
+WHERE f.id IS NULL
+SQL;
+
+        $sqls['feature@shop_feature_values_color'] = <<<SQL
+DELETE v FROM shop_feature_values_color v
+LEFT JOIN shop_feature f
+ON
+v.feature_id=f.id
+WHERE f.id IS NULL
+SQL;
+
+        $sqls['feature@shop_product_features'] = <<<SQL
+DELETE f FROM shop_product_features f
+LEFT JOIN shop_feature ff
+ON
+ff.id=f.feature_id
+WHERE ff.id IS NULL
+SQL;
+
+        $sqls['feature@shop_product_features_selectable'] = <<<SQL
+DELETE f FROM shop_product_features_selectable f
+LEFT JOIN shop_feature ff
+ON
+ff.id=f.feature_id
+WHERE ff.id IS NULL
+SQL;
+
+        $sqls['product@shop_product_features_selectable'] = <<<SQL
+DELETE f FROM shop_product_features_selectable f
+LEFT JOIN shop_product p
+ON
+p.id=f.product_id
+WHERE p.id IS NULL
+SQL;
+
+        $sqls['product@shop_product_features'] = <<<SQL
+DELETE f FROM shop_product_features f
+LEFT JOIN shop_product p
+ON
+p.id=f.product_id
+WHERE p.id IS NULL
+SQL;
+
+
+        $sqls['sku@shop_product_features'] = <<<SQL
+DELETE f FROM shop_product_features f
+LEFT JOIN shop_product_skus s
+ON
+s.id=f.sku_id
+WHERE
+f.sku_id IS NOT NULL
+AND
+s.id IS NULL
+SQL;
+
+        $model = new waModel();
+        foreach ($sqls as $table => $sql) {
+            $subject = '';
+            if (strpos($table, '@')) {
+                list($subject, $table) = explode('@', $table, 2);
+            }
+
+            $count = $model->query($sql)->affectedRows();
+
+            printf("\n%s records checked in table %s.\n", ucfirst($subject), $table);
+
+            if ($count) {
+                printf("\tDeleted %d obsolete %s record(s) in table %s.\n", $count, $subject, $table);
+            } else {
+                printf("\tNo obsolete %s records found in table %s.\n", $subject, $table);
+            }
+            print "\n";
+        }
     }
 
     public function productRemoveFeaturesSelectableAction()

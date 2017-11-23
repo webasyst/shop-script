@@ -17,9 +17,10 @@ ADD INDEX `id_1c` (  `id_1c` )";
 }
 
 
-
 $tables = array(
-    'shop_feature' => 'code',
+    'shop_feature'          => 'code',
+    'shop_service'          => 'id',
+    'shop_service_variants' => 'service_id',
 );
 foreach ($tables as $table => $field) {
     try {

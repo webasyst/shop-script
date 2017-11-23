@@ -285,12 +285,16 @@
     {$total_amount=0.0}
     {foreach $items as $id => $item}
 
-    {if $item.tax_included}
+    {if !empty($item.tax_included) && !empty($item.tax)}
         {$total_tax=$total_tax+$item.tax}
+        {$item.total_without_tax = $item.total-$item.tax}
+        {$item.price_without_tax = $item.price-round($item.tax/$item.quantity,2)}
+    {else}
+        {$item.total_without_tax = $item.total}
+        {$item.price_without_tax = $item.price}
     {/if}
-    {$total_amount=$total_amount+$item.total}
-
-        {$total_total=$total_total+$item.total}
+        {$total_amount=$total_amount+$item.total}
+        {$total_total=$total_total+$item.total_without_tax}
 
     <tr>
         <td class="b_left b_bottom">{$id+1}</td>
@@ -303,8 +307,8 @@
         <td class="b_left b_bottom rightAlign">&nbsp;</td>
         <td class="b_left b_bottom">&nbsp;</td>
         <td class="b_left b_bottom rightAlign">{$item.quantity|string_format:"%0.3f"}</td>
-        <td class="b_left b_bottom rightAlign nobr">{$item.price|wa_format_amount:$order.currency:'%2'}</td>
-        <td class="b_left b_bottom rightAlign nobr">{if $item.tax_included}{($item.total-$item.tax)|default:0|wa_format_amount:$order.currency:'%2'}{else}{$item.total|default:0|wa_format_amount:$order.currency:'%2'}{/if}</td>
+        <td class="b_left b_bottom rightAlign nobr">{$item.price_without_tax|wa_format_amount:$order.currency:'%2'}</td>
+        <td class="b_left b_bottom rightAlign nobr">{$item.total_without_tax|default:0|wa_format_amount:$order.currency:'%2'}</td>
         <td class="b_left b_bottom">{$item.tax_percent|string_format:"%d"}</td>
         <td class="b_left b_bottom rightAlign">{$item.tax|default:0|wa_format_amount:$order.currency:'%2'}</td>
         <td class="b_left b_bottom b_right rightAlign nobr">{$item.total|wa_format_amount:$order.currency:'%2'}</td>
@@ -433,7 +437,7 @@
                 <td class=leftAlign>Всего отпущено на сумму</td>
             </tr>
             <tr>
-                <td class="underlined leftAlign"><b>{waCurrency::format('%.W{n0} %.2{f0}', $total_amount, $order.currency, 'ru_RU')}, {if !empty($order.tax)}в т.ч. НДС{else}без налога (НДС){/if}</b></td>
+                <td class="underlined leftAlign"><b>{waCurrency::format('%.W{n0} %.2{f0}', $total_amount, $order.currency, 'ru_RU')}, {if !empty($total_tax)}в т.ч. НДС{else}без налога (НДС){/if}</b></td>
             </tr>
             <tr>
                 <td class=separatorCell>&nbsp;</td>

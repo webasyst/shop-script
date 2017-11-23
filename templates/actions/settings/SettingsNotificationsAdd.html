@@ -15,18 +15,14 @@
                     {/foreach}
                 </select>
             </div>
+            <div class="value hint" id="n-description">
+                <!-- description placeholder -->
+            </div>
         </div>
     </div>
 
     <div id="notifications-settings-content" style="display:none">
     <!-- basic notification info -->
-    <div class="field-group">
-        <div class="field">
-            <div class="value" id="n-description">
-                <!-- description placeholder -->
-            </div>
-        </div>
-    </div>
     <div class="field-group">
 
         <div class="field">
@@ -129,3 +125,6 @@
 </script>
 <div class="clear-left"></div>
 
+{foreach $backend_notification_add as $plugin_id => $_}
+<div class="hidden notification-plugin-wrapper add {$plugin_id}">{$_}</div>
+{/foreach}

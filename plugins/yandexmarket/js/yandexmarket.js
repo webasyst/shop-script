@@ -38,15 +38,15 @@ $.extend($.importexport.plugins, {
             var $el = $(el);
             var $parent = $el.parent('div');
 
-            if (el.value == 'feature:%s') {
+            if (el.value === 'feature:%s') {
                 $parent.find('select').hide();
                 $parent.find('.js-value-custom:visible').hide();
                 $parent.find('a.js-action').show();
-                $parent.find('.ui-autocomplete-input:hidden').show().focus();
+                $parent.find('.ui-autocomplete-input:hidden').val('').show().focus();
                 if (el.name.match(/\[param\.[^\]]+]\[source]$/)) {
                     this.setParamName($parent, '', '');
                 }
-            } else if (el.value == 'text:%s') {
+            } else if (el.value === 'text:%s') {
                 $parent.find('select').hide();
                 $parent.find('.ui-autocomplete-input:visible').hide();
                 $parent.find('a.js-action').show();
@@ -59,7 +59,8 @@ $.extend($.importexport.plugins, {
 
                 if (el.name.match(/\[param\.[^\]]+]\[source]$/)) {
                     var $selected = $el.find(':selected');
-                    this.setParamName($parent, $selected.val() == 'skip:' ? '' : $selected.text(), $selected.data('unit') || '');
+                    var value = $selected.val();
+                    this.setParamName($parent, value === 'skip:' ? '' : $selected.text(), $selected.data('unit') || '', value);
                 }
             }
         },
@@ -67,7 +68,7 @@ $.extend($.importexport.plugins, {
         invalidInputChangeHandler: function () {
             var $el = $(this);
             var value = $el.val();
-            if (!value || (value == 'skip:')) {
+            if (!value || (value === 'skip:')) {
                 $el.addClass('error');
             } else {
                 $el.removeClass('error');
@@ -138,7 +139,7 @@ $.extend($.importexport.plugins, {
                 /**
                  * @this HTMLSelectElement
                  */
-                self.helpers.toggle(self.$form.find('div.js-delivery-options, div.js-delivery-included'), event, this.value != 'false');
+                self.helpers.toggle(self.$form.find('div.js-delivery-options, div.js-delivery-included'), event, this.value !== 'false');
                 self.$form.find(':input[name$="\\[deliveryIncluded\\]"]').change();
             }).change();
 
@@ -215,7 +216,11 @@ $.extend($.importexport.plugins, {
                 var checked = $(this).is(':checked');
 
                 var $container = self.$form.find(':input[name="export\\[sku_group\\]"]:first').parents('div.field:first');
+                var $purchase_container = self.$form.find(':input[name="export\\[purchase_price\\]"]:first').parents('div.field:first');
+
                 self.helpers.toggle($container, event, checked);
+                self.helpers.toggle($purchase_container, event, checked);
+
             }).trigger('change');
 
             this.$form.find(':text[readonly="readonly"]').unbind('click.yandexmarket focus.yandexmarket keypress.yandexmarket focus.yandexmarket').bind('click.yandexmarket focus.yandexmarket keypress.yandexmarket focus.yandexmarket', function () {
@@ -296,7 +301,7 @@ $.extend($.importexport.plugins, {
                 focus: self.autocompleteFeature
             });
             $scope.find(':input.js-autocomplete-feature-param').autocomplete({
-                source: '?action=autocomplete&type=feature',//&options[single]=1
+                source: '?action=autocomplete&type=feature',
                 minLength: 2,
                 delay: 300,
                 select: self.autocompleteFeature,
@@ -357,16 +362,60 @@ $.extend($.importexport.plugins, {
             $input.val(ui.item.value);
 
             if ($input.attr('name').match(/\[param\.[^\]]+]\[feature]$/)) {
-                $.shop.trace('unit', ui.item.label);
-                var unit = ui.item.label.match(/[^;]*\(([^\)]+)\);/) || ['', ''];
-                $.importexport.plugins.yandexmarket.setParamName($div, this.value, unit[1] || '');
+                $.shop.trace('unit', ui.item);
+                var label = ui.item.label;
+                var unit = '';
+                var name = '';
+                var matches = null;
+                if (label.match(/^<span\s+/)) {
+                    matches = label.match(/\s+title="([^"]+?:)([^;]+\s*\([^\)]+\));[^"^;]+"/);
+                } else { /* ss6 compatibility */
+                    matches = label.match(/([^;]*)\(([^\)]+)\);/);
+                }
+
+                if (matches) {
+                    name = matches[2];
+                } else {
+                    name = ui.item.name || this.value;
+                }
+
+                matches = name.match(/\s*\(([^\)]+)\)\s*$/);
+                if (matches) {
+                    unit = matches[1];
+                }
+
+                $.importexport.plugins.yandexmarket.setParamName($div, this.value, unit);
             }
 
+            if (event && (event.type === 'autocompleteselect')) {
+                var $select = $this.parent('div').find('select:first');
+
+
+                var $option = $select.find('option[value="feature:' + ui.item.value + '"]');
+                if (!$option.length) {
+                    $option = $select.find('option[value^="feature:' + ui.item.value + ':"]');
+                }
+                $.shop.trace('autocomplete select', [$option.length, $select]);
+                if ($option.length) {
+                    $select.val($option.attr('value')).trigger('change');
+                } else {
+                    $option = $('<option></option>');
+                    $option.val('feature:' + ui.item.value);
+                    $option.text(ui.item.name);
+                    $option.attr('title', ui.item.value);
+                    $option.data('unit', unit);
+                    $select.find('option[value="feature:%s"]').after($option);
+                    $select.val($option.attr('value')).trigger('change');
+                }
+            }
             return false;
         },
 
         paramAdd: function (el, type_id) {
             var $target = $(el).parents('div.field');
+            if (typeof this.data.params[type_id] === 'undefined') {
+                this.data.params[type_id] = 0;
+            }
             $.tmpl('yandexmarket-' + type_id, {id: ++this.data.params[type_id]}).insertBefore($target);
             var $scope = $target.prev('div');
             var self = this;
@@ -384,16 +433,50 @@ $.extend($.importexport.plugins, {
             return false;
         },
 
-        setParamName: function ($div, name, unit) {
+        setParamName: function ($div, name, unit, value) {
             var $container = $div.find('.js-target');
             if (name) {
                 $container.removeClass('grey');
             } else {
                 $container.addClass('grey');
             }
-            $container.find('.js-target-name').text(name.replace(/\([^\)]+\)$/, ''));
-            $container.find('.js-target-unit').text(unit);
-            $.shop.trace('setParamName', [name, unit]);
+            var pattern = /\s*\(([^\)]+)\)\s*$/;
+            var matches = name.match(pattern);
+            var suggest = !!matches;
+            $container.find('.js-target-name').text(name.replace(pattern, ''));
+
+            var $text = $container.find('.js-target-unit');
+            var $input = $container.find(':input');
+            $input.unbind('change, keyup');
+            if (suggest) {
+                $input.attr('placeholder', matches[1]);
+            } else {
+                $input.attr('placeholder', '');
+            }
+
+            if (suggest || !(unit) || ('' + value).match(/^[^:]+:[^:]+:[^:]+/)) {
+                $input.val(unit);
+                $input.show();
+                var self = this;
+                $input.bind('change.yandexmarket, keyup.yandexmarket', function () {
+                    return self.paramUnitHandler($div, $(this));
+                });
+                $text.hide();
+            } else {
+                $text.text(unit);
+                $text.show();
+                $input.hide();
+            }
+            $.shop.trace('setParamName', [name, unit, suggest]);
+        },
+
+        paramUnitHandler: function ($scope, $element) {
+            var unit = $element.val();
+            var $option = $scope.find('option:selected:first');
+            var value = $option.val();
+            value = value.replace(/(feature:)([^:]+)(:[^:]*)?$/, '$1$2:' + unit);
+            $.shop.trace('paramUnitHandler', [unit, $option.val(), value]);
+            $option.val(value);
         },
 
         sourceSelect: function ($el) {
@@ -416,7 +499,7 @@ $.extend($.importexport.plugins, {
             this.form.find('.value.js-required :input:visible:not(:disabled)').each(function () {
                 var $this = $(this);
                 var value = $this.val();
-                if (!value || (value == 'skip:')) {
+                if (!value || (value === 'skip:')) {
                     $this.addClass('error');
                     $this.bind('change.yandexmarket', self.invalidInputChangeHandler);
                     valid = false;
@@ -472,7 +555,7 @@ $.extend($.importexport.plugins, {
                         self.ajax_pull[response.processId] = [];
                         self.ajax_pull[response.processId].push(setTimeout(function () {
                             $.wa.errorHandler = function (xhr) {
-                                return !((xhr.status >= 500) || (xhr.status == 0));
+                                return !((xhr.status >= 500) || (xhr.status === 0));
                             };
                             self.progressHandler(url, response.processId, response);
                         }, 2100));
@@ -554,7 +637,7 @@ $.extend($.importexport.plugins, {
 
             } else {
                 var $description;
-                if (response && (typeof(response.progress) != 'undefined')) {
+                if (response && (typeof(response.progress) !== 'undefined')) {
                     $bar = self.form.find('.progressbar .progressbar-inner');
                     var progress = parseFloat(response.progress.replace(/,/, '.'));
                     $bar.animate({
@@ -573,7 +656,7 @@ $.extend($.importexport.plugins, {
                     $description.text(message);
                     $description.attr('title', title);
                 }
-                if (response && (typeof(response.warning) != 'undefined')) {
+                if (response && (typeof(response.warning) !== 'undefined')) {
                     $description = self.form.find('.progressbar-description');
                     $description.append('<i class="icon16 exclamation"></i><p>' + response.warning + '</p>');
                 }

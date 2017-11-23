@@ -5,6 +5,7 @@
  *
  * @property-read string $status
  * @property-read int $campaign_id
+ * @property-read int $region_id
  * @property-read string $sub_status
  * @property-read string $sub_status_description
  * @property-read int $shipping_id
@@ -220,6 +221,9 @@ class shopYandexmarketPluginOrder extends waOrder
                                 $data['shipping_plugin'] = $shipping_plugin['plugin'];
                                 $data['shipping_name'] = $shipping_plugin['name'];
                             }
+                            if (!empty($delivery['outlet']['id'])) {
+                                $data['outlet_id'] = $delivery['outlet']['id'];
+                            }
                             break;
                     }
                 } else {
@@ -235,10 +239,15 @@ class shopYandexmarketPluginOrder extends waOrder
             if (!empty($data['campaign_id'])) {
                 if ($home_region = $plugin->getCampaignRegion($data['campaign_id'])) {
                     $home_region_id = ifset($home_region['id']);
+                    $data['region_id'] = shopYandexmarketPlugin::getOutletRegion($home_region);
                 }
             }
 
             $address = self::parseAddress($delivery, $home_region_id);
+
+            if (!empty($delivery['region'])) {
+                $data['region_id'] = shopYandexmarketPlugin::getOutletRegion($delivery['region']);
+            }
 
             if (!empty($address)) {
                 $data['shipping_address'] = $address;
@@ -286,9 +295,16 @@ class shopYandexmarketPluginOrder extends waOrder
                 $contact['create_datetime'] = date('Y-m-d H:i:s');
                 $contact['create_app_id'] = 'shop';
 
+
+                if (!empty($data['shipping_address'])) {
+                    $contact['address.shipping'] = array_filter($data['shipping_address']);
+                }
                 $errors = $contact->save();
+                $save_contact = false;
                 if ($contact_id) {
                     waLog::log("Contact {$contact_id} was updated: ".var_export($buyer, true), 'shop/plugins/yandexmarket/order.log');
+                } else {
+                    waLog::log("Contact was created: ".var_export($buyer, true), 'shop/plugins/yandexmarket/order.log');
                 }
                 if ($errors) {
                     waLog::log('Error occurs during save contact: '.var_export($errors, true), 'shop/plugins/yandexmarket/order.error.log');
@@ -299,10 +315,25 @@ class shopYandexmarketPluginOrder extends waOrder
             }
         } else {
             $contact_id = $plugin->getSettings('contact_id');
+            $contact_id = null;
         }
-        if (empty($contact) && $contact_id) {
+        if (empty($contact) /*&& $contact_id*/) {
             $contact = new waContact($contact_id);
+
+            if (!empty($data['shipping_address'])) {
+                $contact['address.shipping'] = array_filter($data['shipping_address']);
+            }
+            if ($save_contact) {
+                $errors = $contact->save();
+                if ($errors) {
+                    waLog::log('Error occurs during save contact: '.var_export($errors, true), 'shop/plugins/yandexmarket/order.error.log');
+                } else {
+                    $contact_id = $contact->getId();
+                    waLog::log("Contact {$contact_id} was created with address: ".var_export($data['shipping_address'], true), 'shop/plugins/yandexmarket/order.log');
+                }
+            }
         }
+
         $data['contact'] = $contact;
         $data['over_sell'] = false;
 

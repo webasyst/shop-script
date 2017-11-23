@@ -499,7 +499,7 @@ class shopOrdersCollection
                 $postprocess_fields[$f] = $f;
                 if ($f == 'subtotal' || $f == 'products') {
                     $postprocess_fields['items'] = 'items';
-                } elseif ($f == 'shipping_info' || $f == 'billing_info') {
+                } elseif ($f == 'shipping_info' || $f == 'billing_info' || $f == 'courier') {
                     $postprocess_fields['params'] = 'params';
                 }
                 if (empty($fields['*'])) {
@@ -531,7 +531,7 @@ class shopOrdersCollection
                 $data[$row['order_id']]['items'][] = $row;
             }
         }
-        if (isset($postprocess_fields['products'])) {
+        if (isset($postprocess_fields['items']) && isset($postprocess_fields['products'])) {
             $product_ids = array();
             foreach ($data as $o) {
                 if (!empty($o['items'])) {
@@ -574,6 +574,36 @@ class shopOrdersCollection
                 }
             }
             unset($o, $it);
+        }
+        if (isset($postprocess_fields['items']) && isset($postprocess_fields['skus'])) {
+            unset($default_values['skus']);
+
+            // Collect sku ids
+            $sku_ids = array();
+            foreach ($data as $o) {
+                if (!empty($o['items'])) {
+                    foreach ($o['items'] as $it) {
+                        if (!empty($it['sku_id'])) {
+                            $sku_ids[$it['sku_id']] = $it['sku_id'];
+                        }
+                    }
+                }
+            }
+
+            // Fetch sku data
+            if ($sku_ids) {
+                $product_skus_model = new shopProductSkusModel();
+                $skus = $product_skus_model->getById($sku_ids);
+
+                foreach ($data as &$o) {
+                    if (!empty($o['items'])) {
+                        foreach ($o['items'] as &$it) {
+                            $it['sku'] = ifset($skus[$it['sku_id']]);
+                        }
+                    }
+                }
+                unset($o, $it);
+            }
         }
 
         if (isset($postprocess_fields['params'])) {
@@ -645,7 +675,7 @@ class shopOrdersCollection
             unset($o);
         }
 
-        if (isset($postprocess_fields['subtotal'])) {
+        if (isset($postprocess_fields['items']) && isset($postprocess_fields['subtotal'])) {
             foreach ($data as &$o) {
                 $subtotal = 0;
                 if (!empty($o['items'])) {
@@ -658,22 +688,65 @@ class shopOrdersCollection
             unset($o);
         }
 
+        if (isset($postprocess_fields['courier'])) {
+            // Figure out courier_ids to load
+            $courier_ids = array();
+            foreach ($data as &$o) {
+                $o['courier'] = null;
+                if (!empty($o['params']['courier_id'])) {
+                    $courier_ids[$o['params']['courier_id']] = $o['params']['courier_id'];
+                }
+            }
+            unset($o);
+
+            if ($courier_ids) {
+                // Fetch couriers info
+                $courier_model = new shopApiCourierModel();
+                $couriers = $courier_model->getById($courier_ids);
+
+                // Hide sensitive api-related fields
+                foreach($couriers as &$c) {
+                    foreach($c as $k => $v) {
+                        if(substr($k, 0, 4) == 'api_') {
+                            unset($c[$k]);
+                        }
+                    }
+                }
+                unset($c);
+
+                // Add courier info to orders
+                foreach ($data as &$o) {
+                    if (!empty($o['params']['courier_id']) && !empty($couriers[$o['params']['courier_id']])) {
+                        $o['courier'] = $couriers[$o['params']['courier_id']];
+                    }
+                }
+                unset($o);
+            }
+        }
+
         if (class_exists('waContactAddressField') && class_exists('waContactAddressDataFormatter')) {
             if (isset($postprocess_fields['shipping_info'])) {
                 $formatter = new waContactAddressDataFormatter();
                 foreach ($data as &$o) {
                     $o['shipping_info'] = array();
-                    if (isset($o['params']['shipping_name'])) {
-                        $o['shipping_info']['name'] = $o['params']['shipping_name'];
-                    }
-                    if (isset($o['params']['shipping_est_delivery'])) {
-                        $o['shipping_info']['est_delivery'] = $o['params']['shipping_est_delivery'];
-                    }
-
                     if(!empty($o['params'])) {
+                        if (isset($o['params']['shipping_name'])) {
+                            $o['shipping_info']['name'] = $o['params']['shipping_name'];
+                        }
+                        if (isset($o['params']['shipping_est_delivery'])) {
+                            $o['shipping_info']['est_delivery'] = $o['params']['shipping_est_delivery'];
+                        }
                         $shipping_address = shopHelper::getOrderAddress($o['params'], 'shipping');
                         if ($shipping_address) {
                             $o['shipping_info']['address'] = $formatter->format(array('data' => $shipping_address));
+                        }
+
+                        list($date, $time_from, $time_to) = shopHelper::getOrderShippingInterval($o['params']);
+                        if ($date) {
+                            $o['shipping_info']['interval_date'] = $date;
+                            $o['shipping_info']['interval_time_from'] = $time_from;
+                            $o['shipping_info']['interval_time_to'] = $time_to;
+                            $o['shipping_info']['interval_formatted'] = wa_date('date', $date).' '.$time_from.'-'.$time_to;
                         }
                     }
 
@@ -989,6 +1062,9 @@ class shopOrdersCollection
                 list($field, $param) = explode(':', $field, 2);
             }
             switch ($field) {
+                case 'shipping_datetime':
+                    $this->order_by = "(o.shipping_datetime IS NOT NULL) DESC, o.shipping_datetime {$order}";
+                    break;
                 case 'updated':
                     $this->order_by = "IFNULL(o.update_datetime, o.create_datetime) {$order}";
                     break;
@@ -997,6 +1073,14 @@ class shopOrdersCollection
                         $this->order_by = sprintf("ABS(o.total * o.rate - %s) %s", str_replace(',', '.', (float)$param), $order);
                     } else {
                         $this->order_by = "o.total * o.rate {$order}";
+                    }
+                    break;
+                case 'state_id':
+                    $workflow = new shopWorkflow();
+                    $state_ids = array_keys($workflow->getAllStates());
+                    if ($state_ids) {
+                        $state_ids = "'".join("','", self::getModel()->escape($state_ids))."'";
+                        $this->order_by = "FIELD(o.state_id, {$state_ids}) {$order}";
                     }
                     break;
                 default:

@@ -3,11 +3,6 @@
 class shopOrderPrintformAction extends waViewAction
 {
     /**
-     * Params of order-list context of order
-     * @var array|null
-     */
-    private $filter_params;
-    /**
      * @var shopOrderModel
      */
     private $model;
@@ -24,7 +19,7 @@ class shopOrderPrintformAction extends waViewAction
             $id = shopHelper::decodeOrderId($id);
             $order = $this->getOrder($id);
             if (!$order) {
-                throw new waException("Unkown order", 404);
+                throw new waException("Unknown order", 404);
             }
         }
 
@@ -133,6 +128,5 @@ class shopOrderPrintformAction extends waViewAction
             return false;
         }
         return $order;
-
     }
 }

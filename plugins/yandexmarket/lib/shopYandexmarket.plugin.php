@@ -3,6 +3,7 @@
 /**
  * Class shopYandexmarketPlugin
  * @see https://help.yandex.ru/partnermarket/yml/about-yml.xml
+ * @see https://tech.yandex.ru/market/partner/doc/dg/reference/all-methods-docpage/
  */
 class shopYandexmarketPlugin extends shopPlugin
 {
@@ -10,13 +11,29 @@ class shopYandexmarketPlugin extends shopPlugin
     private $api_limits;
 
     private $api_url = 'https://api.partner.market.yandex.ru/v2/';
+    private static $level = array(
+        'SUBJECT_FEDERATION',
+        'REPUBLIC',
+    );
+
+    public static function getTTL()
+    {
+        return 14400;
+    }
+
+    public function customMap()
+    {
+        $app_config = wa('shop');
+        $path = $app_config->getConfigPath('shop/plugins/yandexmarket').'/map.php';
+        return file_exists($path);
+    }
 
     private function initTypes()
     {
         $app_config = wa('shop');
         $files = array(
-            $app_config->getAppPath('plugins/yandexmarket', 'shop').'/lib/config/map.php',
             $app_config->getConfigPath('shop/plugins/yandexmarket').'/map.php',
+            $app_config->getAppPath('plugins/yandexmarket', 'shop').'/lib/config/map.php',
         );
 
         $this->types = array();
@@ -28,7 +45,6 @@ class shopYandexmarketPlugin extends shopPlugin
                     /**
                      * @var $data array
                      */
-
                     $missed = array();
                     $sort = array_flip(array_keys($data['fields']));
                     foreach ($data['types'] as &$type) {
@@ -123,6 +139,14 @@ class shopYandexmarketPlugin extends shopPlugin
                                     }
                                     $map[$type]['fields'][$field]['source'] = $post_data['source'];
                                 }
+                                if (!empty($post_data['options']) && !empty($map[$type]['fields'][$field]['available_options'])) {
+                                    $available_options = array_keys($map[$type]['fields'][$field]['available_options']);
+                                    $post_options = array_intersect($available_options, array_keys(array_filter($post_data['options'])));
+                                    $map[$type]['fields'][$field]['options'] = array_fill_keys($post_options, true);
+                                    $map[$type]['fields'][$field]['source'] .= '@'.implode('@', $post_options);
+                                } elseif (isset($map[$type]['fields'][$field]['options'])) {
+                                    unset($map[$type]['fields'][$field]['options']);
+                                }
                             } else {
                                 $map[$type]['fields'][$field]['source'] = $post_data;
                             }
@@ -194,7 +218,11 @@ HTML;
             if (!empty($order['params']['yandexmarket.status'])) {
                 try {
                     $data = json_decode($order['params']['yandexmarket.status'], true);
-                    $this->changeOrderState($order['id'], $order['params'], $data);
+                    $params = array(
+                        'yandexmarket.campaign_id' => array('value' => $order['params']['yandexmarket.campaign_id']),
+                        'yandexmarket.id'          => array('value' => $order['params']['yandexmarket.id']),
+                    );
+                    $this->changeOrderState($order['id'], $params, $data);
                     $model = new shopOrderParamsModel();
                     $model->deleteByField(array('id' => $order['id'], 'name' => 'yandexmarket.status'));
                 } catch (waException $ex) {
@@ -205,19 +233,30 @@ HTML;
                     $error = <<<HTML
 <br/>
 <i class="icon16 exclamation"></i>
-При обновлении статуса заказа №{$order['params']['yandexmarket.id']} на «Яндекс.Маркет» произошла ошибка <b>$code</b>: {$message}
+При обновлении статуса заказа №{$order['params']['yandexmarket.id']} на «Яндекс.Маркет» произошла ошибка <b>{$code}</b>: {$message}
 HTML;
                 }
             }
 
+            $shipping = array();
             if (!empty($order['params']['shipping_est_delivery'])) {
                 $template = <<<HTML
 Дата доставки, указанная для программы «Заказ на Маркете»: <b>%s</b>
 HTML;
-                $shipping = sprintf($template, htmlentities($order['params']['shipping_est_delivery'], ENT_NOQUOTES, 'utf-8'));
+                $shipping[] = sprintf($template, htmlentities($order['params']['shipping_est_delivery'], ENT_NOQUOTES, 'utf-8'));
+            }
+
+            if (!empty($order['params']['yandexmarket.outlet_id'])) {
+
+                //$order['params']['yandexmarket.campaign_id'];
+                $template = <<<HTML
+Выбранная точка продаж для программы «Заказ на Маркете»: <b>%s</b>
+HTML;
+                $shipping[] = sprintf($template, htmlentities($order['params']['yandexmarket.outlet_id'], ENT_NOQUOTES, 'utf-8'));
             }
 
             if (!empty($error) || !empty($shipping)) {
+                $shipping = implode('<br/>', $shipping);
                 $info_section = <<<HTML
 <div class="block not-padded">
 {$error}
@@ -700,6 +739,123 @@ HTML;
      */
     public function getCampaigns($options = array())
     {
+        $hash_pattern = '@/([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})\.xml$@';
+
+        if (!empty($options['campaign_id'])) {
+            $data = $this->apiRequest(sprintf('campaigns/%d', $options['campaign_id']));
+            if (!empty($data['campaign'])) {
+                $data['campaigns'] = array($data['campaign']);
+            }
+        } else {
+            $data = $this->apiRequest('campaigns');
+        }
+        $campaigns = array();
+
+        $feed_map = $this->getSettings('feed_map');
+        $feed_map_changed = false;
+        if (!is_array($feed_map)) {
+            $feed_map = array();
+        }
+
+        foreach (ifset($data['campaigns'], array()) as $campaign) {
+            self::workupCampaign($campaign);
+
+            if (!empty($campaign['settlements']) && (!isset($options['feeds']) || !empty($options['feeds']))) {
+                #add feed info
+                $data = $this->apiRequest(sprintf('campaigns/%d/feeds', $campaign['id']));
+                $campaign['feeds'] = array();
+                if (!empty($data['feeds'])) {
+                    foreach ($data['feeds'] as $feed) {
+                        if (!empty($feed['url']) && preg_match($hash_pattern, $feed['url'], $matches)) {
+                            list($feed['path'], $feed['profile_id']) = $this->getInfoByHash(strtolower($matches[1]));
+                            if (!empty($feed['profile_id'])) {
+                                if (!isset($profiles_list)) {
+                                    $profile_helper = new shopImportexportHelper('yandexmarket');
+                                    $profiles_list = $profile_helper->getList();
+                                }
+
+                                $feed_map_value = sprintf('%d:%d', $feed['profile_id'], $campaign['id']);
+
+                                if (empty($feed_map[$feed['id']]) || ($feed_map[$feed['id']] != $feed_map_value)) {
+                                    $feed_map[$feed['id']] = $feed_map_value;
+                                    $feed_map_changed = true;
+                                }
+
+                                $feed['profile_info'] = ifset($profiles_list[$feed['profile_id']], array());
+                            }
+                            if (!empty($feed['path']) && file_exists($feed['path'])) {
+                                $feed['path_mtime'] = filemtime($feed['path']);
+                            }
+                        }
+                        $campaign['feeds'][$feed['id']] = $feed;
+                    }
+
+                }
+
+            }
+            #add exported offers info
+            if (!empty($options['offers'])) {
+                $data = $this->apiRequest(sprintf('campaigns/%d/offers', $campaign['id']));
+                $campaign['offers_count'] = ifset($data['pager']['total'], '-');
+            }
+
+            #add orders info
+            if (!empty($options['orders'])) {
+                $params = array(
+                    'fromDate' => date('d-m-Y', strtotime('-30days')),
+                );
+                $data = $this->apiRequest(sprintf('campaigns/%d/orders', $campaign['id']), $params);
+                $campaign['orders_count'] = ifset($data['pager']['total'], '-');
+            }
+
+            if (!empty($options['bids'])) {
+                $data = $this->apiRequest(sprintf('campaigns/%d/bids', $campaign['id']));
+                foreach (ifset($data['offers']) as $offer) {
+                    if (isset($campaign['feeds'][$offer['id']])) {
+                        //TODO
+                    }
+                }
+            }
+
+            #Balance info
+            if (!empty($options['balance'])) {
+                $data = $this->apiRequest(sprintf('campaigns/%d/balance', $campaign['id']));
+                $campaign['balance'] = ifset($data['balance'], array());
+                if (isset($campaign['balance']['balance'])) {
+                    $campaign['balance']['balance_str'] = sprintf('%0.2f у.е.', $campaign['balance']['balance']);
+                }
+            }
+
+            #Outlets info
+            if (!empty($options['outlets'])) {
+                $campaign['outlets'] = $this->getOutlets($campaign['id']);
+            }
+
+            #Settings info
+            if (!empty($options['settings'])) {
+                $campaign += $this->apiRequest(sprintf('campaigns/%d/settings', $campaign['id']));
+                if (!empty($campaign['settings']['localRegion']['delivery']['schedule'])) {
+                    $model = new shopYandexmarketCampaignsModel();
+                    $model->set($campaign['id'], 'schedule', $campaign['settings']['localRegion']['delivery']['schedule']);
+                }
+            }
+
+
+            $campaigns[$campaign['id']] = $campaign;
+            unset($campaign);
+        }
+
+        if ($feed_map_changed) {
+            $this->setSettings('feed_map', $feed_map);
+        }
+
+        return $campaigns;
+    }
+
+
+    private static function workupCampaign(&$campaign)
+    {
+
         $map = array(
             'state'     => array(
                 'name'   => array(
@@ -754,164 +910,88 @@ HTML;
             ),
         );
 
-        $settlements = array();
 
-        $domain_routes = wa()->getRouting()->getByApp('shop');
-
-        foreach ($domain_routes as $domain => $routes) {
-            foreach ($routes as $route) {
-                $domain = preg_replace('@^www\.@', '', $domain);
-                $settlement = $domain.'/'.$route['url'];
-                $settlements[] = compact('domain', 'settlement');
+        #add verbal descriptions for state
+        $campaign['stateDescription'] = ifset($map['state']['name'][$campaign['state']], $campaign['state']);
+        $campaign['stateIcon'] = ifset($map['state']['icon'][$campaign['state']]);
+        if (!empty($campaign['stateReasons'])) {
+            foreach ($campaign['stateReasons'] as &$reason) {
+                $reason = ifset($map['state']['reason'][$reason], $reason);
+                unset($reason);
             }
         }
 
-        $routes = wa()->getConfig()->getConfigFile('routing');
-        foreach ($routes as $domain => $alias) {
-            if (!is_array($alias) && isset($domain_routes[$alias])) {
-                foreach ($domain_routes[$alias] as $route) {
+        #add verbal descriptions for CPA state
+        $campaign['stateDescriptionCpa'] = ifset($map['state_cpa']['name'][$campaign['stateCpa']], $campaign['stateCpa']);
+        $campaign['stateIconCpa'] = ifset($map['state_cpa']['icon'][$campaign['stateCpa']]);
+        $campaign['stateReasonsCpa'] = ifempty($campaign['stateReasonsCpa'], array());
+        foreach ($campaign['stateReasonsCpa'] as &$reason) {
+            $reason = ifset($map['state_cpa']['reason'][$reason], $reason);
+            unset($reason);
+        }
+
+        #add settlement info
+        $campaign['settlements'] = self::getMatchedSettlements($campaign['domain']);
+    }
+
+    private static function getSettlements()
+    {
+        static $settlements;
+        if ($settlements === null) {
+            $settlements = array();
+
+            $domain_routes = wa()->getRouting()->getByApp('shop');
+
+            foreach ($domain_routes as $domain => $routes) {
+                foreach ($routes as $route) {
                     $domain = preg_replace('@^www\.@', '', $domain);
                     $settlement = $domain.'/'.$route['url'];
-                    $settlements[] = compact('alias', 'domain', 'settlement');
+                    $settlements[] = compact('domain', 'settlement');
+                }
+            }
+
+            $routes = wa()->getConfig()->getConfigFile('routing');
+            foreach ($routes as $domain => $alias) {
+                if (!is_array($alias) && isset($domain_routes[$alias])) {
+                    foreach ($domain_routes[$alias] as $route) {
+                        $domain = preg_replace('@^www\.@', '', $domain);
+                        $settlement = $domain.'/'.$route['url'];
+                        $settlements[] = compact('alias', 'domain', 'settlement');
+                    }
                 }
             }
         }
 
-        $hash_pattern = '@/([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})\.xml$@';
+        return $settlements;
+    }
 
-        $data = $this->apiRequest('campaigns');
-        $campaigns = array();
+    private static function getMatchedSettlements($expected_domain)
+    {
+        $settlements = self::getSettlements();
+        $matched = array();
 
-        $feed_map = $this->getSettings('feed_map');
-        $feed_map_changed = false;
-        if (!is_array($feed_map)) {
-            $feed_map = array();
-        }
-
-        foreach (ifset($data['campaigns'], array()) as $campaign) {
-            #add settlement info
-            $campaign['settlements'] = array();
-            foreach ($settlements as $settlement) {
-                $settlement_domain = preg_replace('@^www\.@', '', preg_replace('@/.*$@', '', $settlement['domain']));
-                $campaign_domain = preg_replace('@^www\.@', '', $campaign['domain']);
+        foreach ($settlements as $settlement) {
+            $settlement_domain = preg_replace('@^www\.@', '', preg_replace('@/.*$@', '', $settlement['domain']));
+            $campaign_domain = preg_replace('@^www\.@', '', $expected_domain);
+            $l = strlen($campaign_domain) + 1;
+            $settlement_parent_domain = substr($settlement_domain, -$l);
+            if (($settlement_domain == $campaign_domain)
+                || ('.'.$campaign_domain == $settlement_parent_domain)
+            ) {
+                $matched[] = $settlement['settlement'];
+            } elseif (!empty($settlement['alias'])) {
+                $settlement_domain = preg_replace('@^www\.@', '', preg_replace('@/.*$@', '', $settlement['alias']));
+                $campaign_domain = preg_replace('@^www\.@', '', $expected_domain);
                 $l = strlen($campaign_domain) + 1;
                 $settlement_parent_domain = substr($settlement_domain, -$l);
                 if (($settlement_domain == $campaign_domain)
                     || ('.'.$campaign_domain == $settlement_parent_domain)
                 ) {
-                    $campaign['settlements'][] = $settlement['settlement'];
-                } elseif (!empty($settlement['alias'])) {
-                    $settlement_domain = preg_replace('@^www\.@', '', preg_replace('@/.*$@', '', $settlement['alias']));
-                    $campaign_domain = preg_replace('@^www\.@', '', $campaign['domain']);
-                    $l = strlen($campaign_domain) + 1;
-                    $settlement_parent_domain = substr($settlement_domain, -$l);
-                    if (($settlement_domain == $campaign_domain)
-                        || ('.'.$campaign_domain == $settlement_parent_domain)
-                    ) {
-                        $campaign['settlements'][] = $settlement['settlement'];
-                    }
+                    $matched[] = $settlement['settlement'];
                 }
             }
-            if (!empty($campaign['settlements'])) {
-
-                #add feed info
-                $data = $this->apiRequest(sprintf('campaigns/%d/feeds', $campaign['id']));
-                $campaign['feeds'] = array();
-                if (!empty($data['feeds'])) {
-                    foreach ($data['feeds'] as $feed) {
-                        if (!empty($feed['url']) && preg_match($hash_pattern, $feed['url'], $matches)) {
-                            list($feed['path'], $feed['profile_id']) = $this->getInfoByHash(strtolower($matches[1]));
-                            if (!empty($feed['profile_id'])) {
-                                if (!isset($profiles_list)) {
-                                    $profile_helper = new shopImportexportHelper('yandexmarket');
-                                    $profiles_list = $profile_helper->getList();
-                                }
-
-                                $feed_map_value = sprintf('%d:%d', $feed['profile_id'], $campaign['id']);
-
-                                if (empty($feed_map[$feed['id']]) || ($feed_map[$feed['id']] != $feed_map_value)) {
-                                    $feed_map[$feed['id']] = $feed_map_value;
-                                    $feed_map_changed = true;
-                                }
-
-                                $feed['profile_info'] = ifset($profiles_list[$feed['profile_id']], array());
-                            }
-                            if (!empty($feed['path']) && file_exists($feed['path'])) {
-                                $feed['path_mtime'] = filemtime($feed['path']);
-                            }
-                        }
-                        $campaign['feeds'][$feed['id']] = $feed;
-                    }
-
-                }
-
-                #add exported offers info
-                if (!empty($options['offers'])) {
-                    $data = $this->apiRequest(sprintf('campaigns/%d/offers', $campaign['id']));
-                    $campaign['offers_count'] = ifset($data['pager']['total'], '-');
-                }
-
-                #add orders info
-                if (!empty($options['orders'])) {
-                    $params = array(
-                        'fromDate' => date('d-m-Y', strtotime('-30days')),
-                    );
-                    $data = $this->apiRequest(sprintf('campaigns/%d/orders', $campaign['id']), $params);
-                    $campaign['orders_count'] = ifset($data['pager']['total'], '-');
-                }
-
-                if (false) {
-                    $data = $this->apiRequest(sprintf('campaigns/%d/bids', $campaign['id']));
-                    foreach (ifset($data['offers']) as $offer) {
-                        if (isset($campaign['feeds'][$offer['id']])) {
-
-                        }
-                    }
-                }
-
-                #Balance info
-                if (!empty($options['balance'])) {
-                    $data = $this->apiRequest(sprintf('campaigns/%d/balance', $campaign['id']));
-                    $campaign['balance'] = ifset($data['balance'], array());
-                    if (isset($campaign['balance']['balance'])) {
-                        $campaign['balance']['balance_str'] = sprintf('%0.2f у.е.', $campaign['balance']['balance']);
-                    }
-                }
-
-                #Outlets info
-                if (!empty($options['outlets'])) {
-                    $campaign['outlets'] = $this->getOutlets($campaign['id']);
-                }
-            }
-
-            #add verbal descriptions for state
-            $campaign['stateDescription'] = ifset($map['state']['name'][$campaign['state']], $campaign['state']);
-            $campaign['stateIcon'] = ifset($map['state']['icon'][$campaign['state']]);
-            if (!empty($campaign['stateReasons'])) {
-                foreach ($campaign['stateReasons'] as &$reason) {
-                    $reason = ifset($map['state']['reason'][$reason], $reason);
-                    unset($reason);
-                }
-            }
-
-            #add verbal descriptions for CPA state
-            $campaign['stateDescriptionCpa'] = ifset($map['state_cpa']['name'][$campaign['stateCpa']], $campaign['stateCpa']);
-            $campaign['stateIconCpa'] = ifset($map['state_cpa']['icon'][$campaign['stateCpa']]);
-            $campaign['stateReasonsCpa'] = ifempty($campaign['stateReasonsCpa'], array());
-            foreach ($campaign['stateReasonsCpa'] as &$reason) {
-                $reason = ifset($map['state_cpa']['reason'][$reason], $reason);
-                unset($reason);
-            }
-
-            $campaigns[$campaign['id']] = $campaign;
-            unset($campaign);
         }
-
-        if ($feed_map_changed) {
-            $this->setSettings('feed_map', $feed_map);
-        }
-
-        return $campaigns;
+        return $matched;
     }
 
     /**
@@ -982,37 +1062,61 @@ HTML;
         return $stats;
     }
 
-    /**
-     * @param $campaign_id
-     * @param bool $flush
-     * @return array
-     * @throws waException
-     * @see https://tech.yandex.ru/market/partner/doc/dg/reference/get-campaigns-id-outlets-docpage/
-     */
-    public function getOutlets($campaign_id, $flush = false)
+    private function getRawOutlets($campaign_id, $region_id = null)
     {
-        $key = sprintf('outlets/%s', $campaign_id);
-        $cache = new waVarExportCache($key, 3600, 'shop/plugins/yandexmarket');
-        $outlets = $cache ? $cache->get() : null;
-        if ($outlets == null) {
-            $params = array(
-                'page'     => 0,
-                'pageSize' => 50,
-            );
-            $outlets = array();
-            do {
-                $data = $this->apiRequest(sprintf('campaigns/%d/outlets', $campaign_id), $params);
-                $pager = ifset($data['pager'], array());
-                if (!empty($data['outlets'])) {
-                    $outlets = array_merge($outlets, $data['outlets']);
-                    ++$params['page'];
+        $params = array(
+            'page'     => 0,
+            'pageSize' => 50,
+        );
+        if ($region_id) {
+            $params['regionId'] = $region_id;
+        }
+        $outlets = array();
+        do {
+            if ($params['page'] > 50) {
+                break;
+            }
+            $data = $this->apiRequest(sprintf('campaigns/%d/outlets', $campaign_id), $params);
+            $pager = ifset($data['pager'], array());
+            if (!empty($data['outlets'])) {
+                foreach ($data['outlets'] as $outlet) {
+                    if (!empty($outlet['region'])) {
+                        $outlet['region_id'] = self::getOutletRegion($outlet['region']);
+                    }
+
+                    $outlets[$outlet['id']] = $outlet;
                 }
-            } while (!empty($data['outlets']) && ifset($pager['pageSize']) == $params['pageSize']);
-            if ($cache && ($outlets !== null)) {
-                $cache->set($outlets);
+                ++$params['page'];
+            } else {
+                break;
+            }
+        } while (!empty($data['outlets']) && ifset($pager['pageSize']) == $params['pageSize']);
+
+        if (count($outlets) == 2500) {
+            $region = $this->getRegions($region_id);
+            foreach ($region['children'] as $region_id => $name) {
+                $outlets += $this->getRawOutlets($campaign_id, $region_id);
             }
         }
 
+        return $outlets;
+    }
+
+    public static function getOutletRegion($region)
+    {
+        $region_id = $region['id'];
+        while (!empty($region['parent'])) {
+            $region = $region['parent'];
+            $region_id = $region['id'];
+            if (in_array($region['type'], self::$level, true)) {
+                break;
+            }
+        }
+        return $region_id;
+    }
+
+    private static function workupOutlets(&$outlets)
+    {
         $map = array(
             'status'     => array(
                 'name' => array(
@@ -1030,9 +1134,9 @@ HTML;
             ),
             'visibility' => array(
                 'name' => array(
-                    'HIDDEN'  => 'точка продаж выключена',
-                    'UNKNOWN' => 'состояние точки продаж неизвестно',
-                    'VISIBLE' => 'точка продаж включена',
+                    'HIDDEN'  => 'выключена',
+                    'UNKNOWN' => 'состояние неизвестно',
+                    'VISIBLE' => 'включена',
                 ),
                 'icon' => array(
                     'HIDDEN'  => 'status-red',
@@ -1053,20 +1157,88 @@ HTML;
                     'NOT_DEFINED' => 'status-gray',
                     'RETAIL'      => 'ss shop',
                 ),
-            )
+            ),
         );
 
-
-        foreach ($outlets as &$outlet) {
-            foreach (array_keys($map) as $field) {
-                $outlet[$field.'Icon'] = ifset($map[$field]['icon'][$outlet[$field]]);
-                $outlet[$field.'Name'] = ifset($map[$field]['name'][$outlet[$field]]);
+        if ($outlets) {
+            foreach ($outlets as &$outlet) {
+                foreach (array_keys($map) as $field) {
+                    $outlet[$field.'Icon'] = ifset($map[$field]['icon'][$outlet[$field]]);
+                    $outlet[$field.'Name'] = ifset($map[$field]['name'][$outlet[$field]]);
+                }
+                if ($outlet['status'] == 'FAILED') {
+                    $outlet['statusName'] .= ' '.$outlet['reason'];
+                }
+                unset($outlet);
             }
-            if ($outlet['status'] == 'FAILED') {
-                $outlet['statusName'] .= ' '.$outlet['reason'];
-            }
-            unset($outlet);
+        } else {
+            $outlets = array();
         }
+    }
+
+    /**
+     * @param int $campaign_id
+     * @param int $region_id
+     * @return array
+     * @throws waException
+     * @see https://tech.yandex.ru/market/partner/doc/dg/reference/get-campaigns-id-outlets-docpage/
+     */
+    public function getOutlets($campaign_id, $region_id = null)
+    {
+        $key = sprintf('outlets/%s/%s', $campaign_id, md5(var_export(self::$level, true)));
+
+        $cache = new waVarExportCache($key, self::getTTL(), 'shop/plugins/yandexmarket');
+        $outlets = null;
+        $data = null;
+        if ($region_id) {
+            if ($cache->isCached()) {
+                $data = $cache->get();
+
+                if (($data['regions'] === true) || in_array($region_id, $data['regions'])) {
+                    $outlets = $data['outlets'];
+                }
+            }
+        }
+        if (($region_id === null) || ($outlets === null)) {
+
+            if (!$region_id) {
+                $root_region = null;
+                $campaign_region = $this->getCampaignRegion($campaign_id, true);
+                while (!empty($campaign_region['parent'])) {
+                    $campaign_region = $campaign_region['parent'];
+                    $root_region = $campaign_region['id'];
+                };
+            } else {
+                $root_region = $region_id;
+            }
+            $outlets = array();
+
+            if ($root_region) {
+                $outlets += $this->getRawOutlets($campaign_id, $root_region);
+            }
+
+            if ($cache) {
+                if (!$data || !$region_id) {
+                    $data = array(
+                        'regions' => $region_id ? array($region_id) : true,
+                        'outlets' => $outlets,
+                    );
+                } else {
+                    $data['regions'][] = $region_id;
+                    $data['outlets'] = $outlets;
+                }
+                $cache->set($data);
+            }
+        }
+
+        if ($region_id) {
+            foreach ($outlets as $id => $outlet) {
+                if ($outlet['region_id'] != $region_id) {
+                    unset($outlets[$id]);
+                }
+            }
+        }
+        self::workupOutlets($outlets);
         return $outlets;
     }
 
@@ -1080,7 +1252,7 @@ HTML;
     public function getCampaignRegion($campaign_id, $flush = false)
     {
         $key = sprintf('region/%s', $campaign_id);
-        $cache = new waVarExportCache($key, 3600, 'shop/plugins/yandexmarket');
+        $cache = new waVarExportCache($key, self::getTTL(), 'shop/plugins/yandexmarket');
         $region = $cache ? $cache->get($key, 'yandexmarket') : null;
         if ($flush || ($region == null)) {
             $data = $this->apiRequest(sprintf('campaigns/%d/region', $campaign_id));
@@ -1102,7 +1274,7 @@ HTML;
     public function getRegion($region_id, $flush = false)
     {
         $key = sprintf('regions/%s', $region_id);
-        $cache = new waVarExportCache($key, 3600, 'shop/plugins/yandexmarket');
+        $cache = new waVarExportCache($key, self::getTTL(), 'shop/plugins/yandexmarket');
         $region = $cache ? $cache->get() : null;
         if ($flush || ($region == null)) {
             $data = $this->apiRequest(sprintf('regions/%d', $region_id));
@@ -1111,6 +1283,48 @@ HTML;
             if ($cache && ($region !== null)) {
                 $cache->set($region);
             }
+        }
+        return $region;
+    }
+
+    public function getRegions($region_id = null)
+    {
+        $region_id = max(0, intval($region_id));
+        if ($region_id) {
+            $key = sprintf('/regions/%d/children', $region_id);
+            $cache = new waVarExportCache($key, self::getTTL(), 'shop/plugins/yandexmarket');
+            $region = $cache->get();
+            if ($region == null) {
+
+                $params = array(
+                    'page'     => 1,
+                    'pageSize' => 100,
+                );
+
+                $response = $this->apiRequest($key, $params);
+                $region = $response['regions'];
+                $cache->set($region);
+            }
+            $region['formatted'] = shopYandexmarketPluginOrder::parseAddress($region, null, true);
+            $children = array();
+            if (!empty($region['children'])) {
+                foreach ($region['children'] as $info) {
+                    if (!preg_match('@^(Прочее|Обще|Другие|Универсальн)@ui', $info['name'])) {
+                        $children[$info['id']] = $info['name'];
+                    }
+                }
+            }
+            $region['children'] = $children;
+        } else {
+            $region_map = include(dirname(__FILE__).'/config/regions.php');
+
+            $region = array(
+                'children' => array(),
+            );
+            foreach ($region_map as $id => $info) {
+                $region['children'][$id] = $info['name'];
+            }
+
         }
         return $region;
     }
@@ -1319,9 +1533,16 @@ HTML;
         return ifset($description[$status], $status);
     }
 
+    /**
+     * @param string|array $string
+     * @return array
+     */
     public static function getDays($string)
     {
-        return array_map('intval', array_filter(preg_split('@\D+@', trim($string), 2), 'strlen'));
+        if (!is_array($string)) {
+            $string = array_filter(preg_split('@\D+@', trim($string), 2), 'strlen');
+        }
+        return array_map('intval', $string);
     }
 
     public function orderDeleteFormHandler($data, $event_name = null)

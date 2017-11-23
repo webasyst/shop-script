@@ -351,7 +351,7 @@ SQL;
                     if (!empty($skus_alias) && !empty($price_filter)) {
                         // #53.4890
                         foreach ($price_filter as $price_filter_item) {
-                            $this->addWhere("({$skus_alias}.price {$price_filter_item})");
+                            $this->addWhere("({$skus_alias}.primary_price {$price_filter_item})");
                         }
                     }
                 } else {
@@ -1040,10 +1040,6 @@ SQL;
             }
         }
 
-        if (waRequest::param('drop_out_of_stock') == 1) {
-            $fields[] = '(p.count > 0 || p.count IS NULL) AS in_stock';
-        }
-
         return implode(",", $fields);
     }
 
@@ -1055,7 +1051,12 @@ SQL;
     protected function _getOrderBy()
     {
         if ($this->order_by) {
-            return " ORDER BY ".(waRequest::param('drop_out_of_stock') == 1 ? 'in_stock DESC,' : '').$this->order_by;
+            if (waRequest::param('drop_out_of_stock') == 1) {
+                $this->fields[] = '(p.count > 0 || p.count IS NULL) AS in_stock';
+                return " ORDER BY in_stock DESC,".$this->order_by;
+            } else {
+                return " ORDER BY ".$this->order_by;
+            }
         } else {
             return "";
         }
@@ -1268,12 +1269,13 @@ SQL;
             }
         }
 
+        $order = $this->_getOrderBy();
         $sql = "SELECT ".($this->joins && !$this->group_by ? 'DISTINCT ' : '').$this->getFields($fields)." ".$sql;
         $sql .= $this->_getGroupBy();
         if ($this->having) {
             $sql .= " HAVING ".implode(' AND ', $this->having);
         }
-        $sql .= $this->_getOrderBy();
+        $sql .= $order;
         $sql .= " LIMIT ".($offset ? $offset.',' : '').(int)$limit;
 
         $data = $this->getModel()->query($sql)->fetchAll('id');

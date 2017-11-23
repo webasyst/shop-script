@@ -1,24 +1,26 @@
 $(document).ready(function () {
 
     // countdown
-    if ($.fn.countdowntimer) {
-        $('.js-promo-countdown').each(function () {
-            var $this = $(this).html('');
-            var id = ($this.attr('id') || 'js-promo-countdown' + ('' + Math.random()).slice(2));
-            $this.attr('id', id);
-            var start = $this.data('start').replace(/-/g, '/');
-            var end = $this.data('end').replace(/-/g, '/');
-            $this.countdowntimer({
-                startDate: start,
-                dateAndTime: end,
-                size: 'lg'
-            });
-        });
-    }
+    // was reworked
+    // if ($.fn.countdowntimer) {
+    //     $('.js-promo-countdown').each(function () {
+    //         var $this = $(this).html('');
+    //         var id = ($this.attr('id') || 'js-promo-countdown' + ('' + Math.random()).slice(2));
+    //         $this.attr('id', id);
+    //         var start = $this.data('start').replace(/-/g, '/');
+    //         var end = $this.data('end').replace(/-/g, '/');
+    //         $this.countdowntimer({
+    //             startDate: start,
+    //             dateAndTime: end,
+    //             size: 'lg'
+    //         });
+    //     });
+    // }
 
     //SLIDERS
-    $('.homepage-bxslider').bxSlider( { auto : $('.homepage-bxslider li').length > 1, pause : 7000, autoHover : true, pager: $('.homepage-bxslider li').length > 1 });
-    $('.homepage-bxslider').css('height','auto');
+    // inited in templated home.slider.html
+    // $('.homepage-bxslider').bxSlider( { auto : $('.homepage-bxslider li').length > 1, pause : 7000, autoHover : true, pager: $('.homepage-bxslider li').length > 1 });
+    // $('.homepage-bxslider').css('height','auto');
 
     $('.related-bxslider').bxSlider( { minSlides: 1, maxSlides: 4, slideWidth: 146, slideMargin: 10, infiniteLoop: true, pager: false });
     $('.onsale-bxslider').bxSlider( { minSlides: 1, maxSlides: 6, slideWidth: 146, slideMargin: 10, infiniteLoop: true, pager: false });
@@ -154,7 +156,13 @@ $(document).ready(function () {
                     }, 700, function() {
                         $(this).remove();
                         cart_total.html(response.data.total);
-                        $('#cart-content').append($('<div class="cart-just-added"></div>').html(f.find('span.added2cart').text()));
+
+                        var $addedText = $('<div class="cart-just-added"></div>').html(f.find('span.added2cart').text());
+                        $('#cart-content').append($addedText);
+                        setTimeout( function() {
+                            $addedText.remove();
+                        }, 2000);
+
                         if ($('#cart').hasClass('fixed'))
                             $('.cart-to-checkout').show();
                     });
@@ -401,5 +409,109 @@ $(document).ready(function () {
     $(document).ready( function() {
         bindEvents();
     });
+
+})(jQuery);
+
+// Shop :: Promo CountDown
+var CountDown = ( function($) {
+
+    CountDown = function(options) {
+        var that = this;
+
+        // DOM
+        that.$wrapper = options["$wrapper"];
+
+        // VARS
+        that.start = options["start"];
+        that.end = options["end"];
+        that.format = "%days%:%hours%:%minutes%:%seconds%";
+
+        // DYNAMIC VARS
+        that.period = that.getPeriod();
+        that.time_period = null;
+        that.timer = 0;
+
+        // INIT
+        that.run();
+    };
+
+    CountDown.prototype.getPeriod = function() {
+        var that = this,
+            start_date = new Date( that.start ),
+            end_date = new Date( that.end );
+
+        return (end_date > start_date) ? (end_date - start_date) : 0;
+    };
+
+    CountDown.prototype.getData = function() {
+        var that = this,
+            period = that.period;
+
+        var second = 1000,
+            minute = second * 60,
+            hour = minute * 60,
+            day = hour * 24,
+            residue;
+
+        var days = Math.floor(period/day);
+        residue = ( period - days * day );
+
+        var hours = Math.floor(residue/hour);
+        residue = ( residue - hours * hour );
+
+        var minutes = Math.floor(residue/minute);
+        residue = ( residue - minutes * minute );
+
+        var seconds = Math.floor(residue/second);
+
+        return {
+            days: days,
+            hours: hours,
+            minutes: minutes,
+            seconds: seconds
+        }
+    };
+
+    CountDown.prototype.getTime = function() {
+        var that = this,
+            data = that.getData(),
+            result = that.format;
+
+        return result
+            .replace("%days%", (data.days < 10) ? "0" + data.days : data.days)
+            .replace("%hours%", (data.hours < 10) ? "0" + data.hours : data.hours)
+            .replace("%minutes%", (data.minutes < 10) ? "0" + data.minutes : data.minutes)
+            .replace("%seconds%", (data.seconds < 10) ? "0" + data.seconds : data.seconds);
+    };
+
+    CountDown.prototype.run = function() {
+        var that = this,
+            timer = 1000;
+
+        if (that.period > 0) {
+            var time = that.getTime();
+
+            that.$wrapper.html(time);
+
+            that.period -= timer;
+
+            if (that.period > 0) {
+                that.timer = setTimeout( function () {
+                    that.run();
+                }, timer);
+            }
+
+        } else {
+            that.destroy();
+        }
+    };
+
+    CountDown.prototype.destroy = function() {
+        var that = this;
+
+        that.$wrapper.remove();
+    };
+
+    return CountDown;
 
 })(jQuery);

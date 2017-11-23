@@ -142,8 +142,9 @@ class shopCart
      */
     public function setQuantity($item_id, $quantity)
     {
-        $this->model->updateByField(array('code' => $this->code, 'id' => $item_id), array('quantity' => $quantity));
-        $this->model->updateByField(array('code' => $this->code, 'parent_id' => $item_id), array('quantity' => $quantity));
+        $data = array('quantity' => $quantity);
+        $this->model->updateByField(array('code' => $this->code, 'id' => $item_id), $data);
+        $this->model->updateByField(array('code' => $this->code, 'parent_id' => $item_id), $data);
         $this->setSessionData('total', null);
     }
 
@@ -230,7 +231,7 @@ class shopCart
 
         $cart_items_model = new shopCartItemsModel();
         $items = $cart_items_model->getByField('parent_id', $item['id'], true);
-        $price = shop_currency($item['price'] * $item['quantity'], $item['currency'], null, false);
+        $price = shop_currency($item['price'], $item['currency'], null, false) * $item['quantity'];
         if (!$items) {
             return $price;
         }
@@ -264,6 +265,7 @@ class shopCart
 
         $rounding_enabled = shopRounding::isEnabled();
         $frontend_currency = wa('shop')->getConfig()->getCurrency(false);
+        $round_services = wa()->getSetting('round_services');
 
         foreach ($items as $s) {
             if (!isset($prices[$s['service_variant_id']])) {
@@ -276,7 +278,7 @@ class shopCart
             }
 
             $service_price = shop_currency($v['price'], $v['currency'], $frontend_currency, false);
-            if ($rounding_enabled && $v['currency'] != $frontend_currency) {
+            if ($rounding_enabled && (($v['currency'] != $frontend_currency) || ($round_services))) {
                 $service_price = shopRounding::roundCurrency($service_price, $frontend_currency);
             }
 

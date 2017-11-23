@@ -33,12 +33,20 @@
             <div class="align-center">
 
                 {if $_video_url}
-                    <div id="video-container" class="video-container" itemprop="video" itemscope itemtype="http://schema.org/VideoObject">
+                    <div id="video-container" class="video-container" itemscope itemtype="http://schema.org/VideoObject">
                         <div class="video-wrapper" itemprop="embedHTML">
                             <iframe src="{$_video_url}" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
                         </div>
                         <meta itemprop="width" content="{$_video.width}">
                         <meta itemprop="height" content="{$_video.height}">
+                        <meta itemprop="name" content="{$product.name|default:""|escape}">
+                        <meta itemprop="description" content="{$product.description|default:""|escape}">
+                        <meta itemprop="uploadDate" content="{$product.create_datetime|default:""|escape}">
+                        {if !empty($_video.images[0])}
+                            {$_thumb = $_video.images[0]}
+                            {$_absolute_thumb_uri = "{$wa->url(true)}{$_thumb|substr:1}"}
+                            <meta itemprop="thumbnailUrl" content="{$_absolute_thumb_uri|escape}" />
+                        {/if}
                     </div>
                 {/if}
 
@@ -141,7 +149,15 @@
                         <td class="name">
                             {$features[$f_code].name|escape}
                         </td>
-                        <td class="value" itemprop="{$f_code|escape}">
+
+                        {$_true_params = ["weight", "brand", "model", "width", "height", "depth", "color", "manufacturer"]}
+                        {$_is_good_param = ($f_code|in_array:$_true_params)}
+                        {$_itemprop = ""}
+                        {if $_is_good_param}
+                            {$_itemprop = $f_code}
+                        {/if}
+
+                        <td class="value" itemprop="{$_itemprop|escape}">
                             {if is_array($f_value)}
                                 {if $features[$f_code].type == 'color'}
                                     {implode('<br /> ', $f_value)}

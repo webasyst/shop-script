@@ -1,5 +1,12 @@
+<style>
+    td.ui-datepicker-holiday span {
+        background-color: #FCC !important;
+    }
+    td a.ui-state-active {
+        background-color: white !important;
+    }
+</style>
 {$settings_url='#/yandexmarket/'}
-
 <h1 class="js-bread-crumbs">{$campaign_id|string_format:'Настройки кампании №%s (Заказ на Маркете)'|escape}</h1>
 
 {if empty($cpa_available)}
@@ -11,15 +18,13 @@
 {elseif empty($api_available)}
 
     {include file="../../includes/api.error.html"
-        message='Для приема заказов через API заполните секции «OAuth-приложение» и «Заказ на Маркете» в
-<a href="?action=plugins#/yandexmarket/main/">основных настройках плагина</a>.'
+        message='Для приема заказов через API заполните секции «OAuth-приложение» и «Заказ на Маркете» в <a href="?action=plugins#/yandexmarket/main/">основных настройках плагина</a>.'
         hint='Обработка заказов возможна вручную в партнерском интерфейсе «Яндекс.Маркета» или автоматически через <a href="?action=plugins#/yandexmarket/api/">API</a>.'}
 
 {elseif !empty($error)}
 
     {include file="../../includes/api.error.html"
-        message='Для отображения настроек кампании настройте <a href="?action=plugins#/yandexmarket/api/">авторизацию партнерского API</a>
-и проверьте настройки кампании в личном кабинете «Яндекс.Маркета».'}
+        message='Для отображения настроек кампании настройте <a href="?action=plugins#/yandexmarket/api/">авторизацию партнерского API</a> и проверьте настройки кампании в личном кабинете «Яндекс.Маркета».'}
 
 {else}
 
@@ -140,14 +145,65 @@
                                 Я подключил прием предоплаты к своему магазину на «Яндекс.Маркете».</label>
                             <br/>
                             <span class="hint">{*<i class="icon16 yes-bw"></i>*}
-                                Доступность предоплаты настраивается в настройках личного кабинета на сайте «Яндекс.Маркета».</span>
+                                Доступность предоплаты включается в настройках личного кабинета «Яндекс.Маркета». Для этого магазин должен работать по модели CPA.</span>
+                            <br />
+                            <span class="hint">
+                                Для заказов, предоплаченных на «Яндекс.Маркете», этот сервис сам выдает чеки покупателям и отправляет данные по ним в ФНС. Магазину не нужно дублировать отправку чеков ни в налоговую инспекцию, ни покупателю.</span>
                             <br/>
-                            <span class="hint">Проведение платежей обеспечивают «Яндекс.Деньги». Типы предоплаты (банковской картой, Яндекс.Деньгами) предлагаются на странице
-                                оформления заказа, только если магазин подключен к приему предоплаты.</span>
+                            <span class="hint">
+                                Типы предоплаты (банковской картой, «Яндекс.Деньгами») предлагаются на странице оформления заказа, только если магазин подключен к приему предоплаты. </span>
                             <br/>
-                            <span class="hint">Как подключить прием предоплаты по заказам с «Маркета», описано в
+                            <span class="hint">Как подключить прием предоплаты для заказов с «Маркета», описано в
                                 <a href="https://yandex.ru/support/partnermarket/purchase/prepaid-orders.xml" target="_blank">документации<i class="icon16 new-window"></i></a>.
                                 </span>
+                            
+                            <div class="field">
+                                <div class="name">Система налогообложения магазина</div>
+                                <div class="value no-shift">
+                                    <label>
+                                    <select name="campaign[tax_system]">
+                                        <option value=""{if empty($campaign.tax_system)} selected="selected"{/if}>Не передавать</option>
+                                        <option value="OSN"{if ifset($campaign.tax_system)=='OSN'} selected="selected"{/if}>Общая СН</option>
+                                        <option value="USN"{if ifset($campaign.tax_system)=='USN'} selected="selected"{/if}>Упрощенная СН (доходы)</option>
+                                        <option value="USN_MINUS_COST"{if ifset($campaign.tax_system)=='USN_MINUS_COST'} selected="selected"{/if}>Упрощенная СН (доходы минус расходы)</option>
+                                        <option value="ENVD"{if ifset($campaign.tax_system)=='ENVD'} selected="selected"{/if}>Единый налог на вмененный доход</option>
+                                        <option value="ECHN"{if ifset($campaign.tax_system)=='ECHN'} selected="selected"{/if}>Единый сельскохозяйственный налог</option>
+                                        <option value="PSN"{if ifset($campaign.tax_system)=='PSN'} selected="selected"{/if}>Патентная СН</option>
+                                    </select>
+                                    </label>
+                                    <br/>
+                                    <span class="hint">Если выбрано «Не передавать», то «Яндекс.Маркет» будет использовать тип системы налогообложения из настроек магазина в личном кабинете.</span>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <div class="name">Ставка НДС для товаров</div>
+                                <div class="value no-shift">
+                                    <label>
+                                        <select name="campaign[offer_tax]">
+                                            <option value="NO_VAT"{if ifset($campaign.offer_tax)=='NO_VAT'} selected="selected"{/if}>НДС не облагается</option>
+                                            <option value=""{if empty($campaign.offer_tax)} selected="selected"{/if}>Передавать ставки НДС по каждой позиции</option>
+                                        </select>
+                                    </label>
+                                    <br/>
+                                    <span class="hint">Если ваша организация работает по ОСН, выберите вариант «Передавать ставки НДС по каждой позиции».<br />
+Ставка НДС может быть равна 0%, 10% или 18%. В настройках налогов Shop-Script выберите, чтобы НДС был включен в цену товара.</span>
+                                </div>
+                            </div>
+        
+                            <div class="field">
+                                <div class="name">Ставка НДС для доставки</div>
+                                <div class="value no-shift">
+                                    <label>
+                                        <select name="campaign[shipping_tax]">
+                                            <option value="NO_VAT"{if ifset($campaign.shipping_tax)=='NO_VAT'} selected="selected"{/if}>НДС не облагается</option>
+                                            <option value="VAT_0"{if ifset($campaign.shipping_tax)=='VAT_0'} selected="selected"{/if}>НДС 0%</option>
+                                            <option value="VAT_10"{if ifset($campaign.shipping_tax)=='VAT_10'} selected="selected"{/if}>НДС 10%</option>
+                                            <option value="VAT_18"{if ifset($campaign.shipping_tax)=='VAT_18'} selected="selected"{/if}>НДС 18%</option>
+                                        </select>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -194,7 +250,6 @@
                             <span class="errormsg"><i class="icon16 exclamation"></i>Выберите хотя бы один способ оплаты для способов доставки в секции «Условия доставки и оплаты».</span>
                         </div>
                     </div>
-
                 </div>
 
 
@@ -212,8 +267,10 @@
                             Показывать покупателю при оформлении заказа на Маркете пункты самовывоза из справочника точек продаж «Яндекс.Маркета»
 <span class="hint">(типы «пункт выдачи заказов» и «торговый зал, совмещенный с пунктом выдачи заказов»)</span></label>
                             <br/>
-                            <span class="hint"><i class="icon10 exclamation"></i>Точки продаж настраиваются в кабинете на сайте «Яндекс.Маркета».
+                            <span class="hint"><i class="icon10 exclamation"></i>Точки продаж настраиваются в кабинете на сайте «Яндекс.Маркета» и дополнительно в настройках списка точек продаж в плагине.
+                                {*
                                 <a href="{$settings_url}outlets/{$campaign_id}/" target="_blank">Текущий список точек продаж</a><i class="icon16 new-window"></i>.
+                                *}
                                 <br/>Покупатель на Маркете увидит пункты самовывоза при оформлении заказа, только если они включены и прошли модерацию в кабинете
                                     «Яндекс.Маркета».</span>
                         </div>
@@ -232,9 +289,25 @@
                         </div>
                     </div>
 
+                    {if !empty($campaign_settings.localRegion.delivery.schedule)}
+
+                    <div class="field">
+                        {$_schedule = $campaign_settings.localRegion.delivery.schedule}
+                        <div class="name">График работы</div>
+                        <div class="value"><div class="js-holidays" data-holidays="{$_schedule.totalHolidays|json_encode|escape}" data-from="{$_schedule.period.fromDate|escape}" data-to="{$_schedule.period.toDate|escape}"></div> </div>
+                        <div class="value hint">
+                            <i class="icon16 info"></i>Показаны данные для периода с {$_schedule.period.fromDate|wa_datetime:'humandate'} по {$_schedule.period.toDate|wa_datetime:'humandate'} из настроек графика работы в кабинете «Яндекс.Маркета».
+                        </div>
+                        <div class="value hint">
+                            <i class="icon16 exclamation"></i>Список выходных и рабочих дней редактируется в настройках кампании в личном кабинете «Яндекс.Маркета».
+                            Данные на этой странице обновляются раз в сутки.<br>
+                            После изменения графика работы в кабинете «Яндекс.Маркета» проверьте правильность отображения графика на этой странице. Если данные не обновились, очистите кеш в «<a href="{$wa_backend_url}installer/?module=settings">Инсталлере</a>».
+                        </div>
+                    </div>
+                    {/if}
                     <div class="field">
                         <div class="name">
-                            Время приема заказа
+                            Дни и время приема и доставки заказов
                         </div>
                         <div class="value no-shift">
                             <label><input type="radio" name="campaign[order_before_mode]"
@@ -253,20 +326,28 @@
 
                         {$_week_days = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']}
                         {foreach $_week_days as $_day => $_name}
-                            <div class="value js-delivery-time-options">
+                            <div class="value js-delivery-time-options{if !empty($_schedule.weeklyHolidays) && in_array($_day+1,$_schedule.weeklyHolidays)} grey{/if}">
                                 <input type="text" placeholder="17" class="numerical short" size="2"
                                    name="campaign[order_before_per_day][{$_day}][before]"
                                    value="{$campaign.order_before_per_day[$_day]|default:$campaign.order_before|default:24|escape}"
                                 >&nbsp;<label>
                                     <input type="checkbox" name="campaign[order_before_per_day][{$_day}][workday]" value="1"
+
                                         {if !empty($campaign.order_before_per_day[$_day])} checked="checked"{/if}>&nbsp;{$_name|escape}
                                 </label>
                             </div>
                         {/foreach}
                         <div class="value">
-                            <span class="hint">Время оформления заказа (только часы), до наступления которого действуют указанные сроки и условия доставки и для точек продаж
-справочника «Яндекс.Маркета», и для всех видов доставки Shop-Script.
-                                <br/><i class="icon10 exclamation"></i>Настройки должны соответствовать настройкам в кабинете «Яндекс.Маркета», чтобы не возникло ошибок по качеству.</span>
+                            <span class="hint">
+                                Дни и время приема и доставки заказов. Серым цветом в списке дней недели отмечены еженедельные нерабочие дни.<br>
+                                Указанные сроки и условия доставки действуют до наступления указанного времени только в выбранные дни. Это правило относится и к точкам продаж
+                                справочника «Яндекс.Маркета», и ко всем видам доставки Shop-Script.<br>
+                                
+                                Время и день приема заказа игнорируются, если этот день в кабинете «Яндекс.Маркета» отмечен как <em>нерабочий</em>.
+                                Такой день можно не отключать на этой странице — ошибок по качеству не возникнет.<br>
+                                
+                                <i class="icon10 exclamation"></i>Другие настройки должны соответствовать настройкам в кабинете «Яндекс.Маркета», чтобы не возникло ошибок по качеству.
+                            </span>
                         </div>
                     </div>
 
@@ -299,7 +380,7 @@
                             </label>
                             <br/>
                             <span class="hint">Если этот параметр включен, то заказы через «Маркет» вне домашнего регионы приниматься не будут.
-                                Домашний регион настраивается в личном кабинете в «Яндекс.Маркете».</span>
+                                Домашний регион настраивается в личном кабинете «Яндекс.Маркета».</span>
                         </div>
                     </div>
 
@@ -405,6 +486,15 @@
                     </div>
                 </div>
                 {$wa->csrf()}
+{*
+                <div class="field-group">
+                    <div class="field">
+                        <div class="value">
+                            <pre>{$campaign_data|default:'-'|var_export:true|escape}</pre>
+                        </div>
+                    </div>
+                </div>
+*}
         </form>
     </div>
 {/if}
@@ -443,7 +533,7 @@
         var checkPayments = function ($method, event) {
             var valid = false;
             var type = $method.find(':input[name$="\\[type\\]"]').val();
-            if (payment.yandex && (type != 'POST')) {
+            if (payment.yandex && (type !== 'POST')) {
                 valid = true;
             } else {
                 var $cash = $method.find(':input[type="checkbox"][name$="\\[cash\\]"]');
@@ -452,20 +542,20 @@
 
 
                 valid = (
-                        (payment.cash && (!$cash.length || $cash.attr('checked')))
-                        ||
-                        (payment.card && (!$card.length || $card.attr('checked')))
-                        ||
-                        (payment.yandex && (!$yandex.length || (type != 'POST') || !$yandex.attr('checked')))
+                    (payment.cash && (!$cash.length || $cash.attr('checked')))
+                    ||
+                    (payment.card && (!$card.length || $card.attr('checked')))
+                    ||
+                    (payment.yandex && (!$yandex.length || (type !== 'POST') || !$yandex.attr('checked')))
                 );
             }
             toggle($method.find('.js-validate-payment'), event, !valid);
         };
 
 
-        $form.find('input[name$="\\[before\\]"], input[name$="\\[order_before\\]"]').bind('change, keyup',function(){
-            var value = this.value.replace(/\D+/,'');
-            this.value = (value=='')?value:Math.max(1,Math.min(24,parseInt(value)));
+        $form.find('input[name$="\\[before\\]"], input[name$="\\[order_before\\]"]').bind('change, keyup', function () {
+            var value = this.value.replace(/\D+/, '');
+            this.value = (value === '') ? value : Math.max(1, Math.min(24, parseInt(value)));
         });
 
         $form.find('input[name$="\\[estimate_over_sell\\]"], input[name$="\\[estimate\\]"], input[name$="\\[estimate_ext\\]"]').bind('change, keyup', function () {
@@ -505,17 +595,50 @@
         /**
          * delivery mode control
          */
-        $form.find(':input[name="campaign\\[order_before_mode\\]"]').change(function (event) {
+        $form.find(':input[name$="\\[order_before_mode\\]"]').change(function (event) {
             /**
              * @this HTMLInputElement
              */
-            var checked = this.checked;
-            if (this.value == 'generic') {
-                checked = !checked;
+            var show_generic = false;
+            var show_options = false;
+            if (this.checked) {
+                switch (this.value) {
+                    case 'generic':
+                        show_generic = true;
+                        break;
+                    case'per-day':
+                        show_options = true;
+                        break;
+                }
             }
-            toggle($form.find('div.js-delivery-time-generic-options'), event, !checked);
-            toggle($form.find('div.js-delivery-time-options'), event, checked);
+
+            var $scope = $(this).parents('div.field:first');
+            toggle($scope.find('div.js-delivery-time-generic-options'), event, show_generic);
+            toggle($scope.find('div.js-delivery-time-options'), event, show_options);
         }).change();
+
+
+        var $holidays = $form.find('div.js-holidays');
+
+        var holidays = $holidays.data('holidays');
+
+        $holidays.datepicker();
+        $holidays.datepicker("option", {
+            "dateFormat": 'dd-mm-yy',
+            'minDate': $holidays.data('from'),
+            'maxDate': $holidays.data('to'),
+            'numberOfMonths':2,
+                beforeShowDay: function (date) {
+                    if (holidays && holidays.length) {
+                        var string_date = $.datepicker.formatDate('dd-mm-yy', date);
+                        var holiday = holidays.indexOf(string_date) !== -1;
+                        return [!holiday, holiday ? 'ui-datepicker-holiday' : null];
+                    } else {
+                        return [true];
+                    }
+                }
+            });
+            $('.ui-datepicker').css('zIndex', 999999);
 
         /**
          * delivery method control
@@ -529,7 +652,7 @@
 
         $form.find(':input[name="campaign\\[payment\\]\\[YANDEX\\]"]:first').change(function (event) {
             payment['yandex'] = this.checked;
-
+            var $this = $(this);
             checkPayments($(this).parents('div.field-group:first'), event);
             $form.find('div.js-shipping-method').each(function () {
                 /**
@@ -540,6 +663,8 @@
                 $scope.find(':input[name$=\\[type\\]]').trigger('change');
                 checkPayments($scope, event);
             });
+            toggle($this.parents('div.value:first').find('div.field'), event, this.checked);
+
         }).change();
 
         $form.find(':input[name="campaign\\[payment\\]\\[CASH_ON_DELIVERY\\]"]:first').change(function (event) {
@@ -555,8 +680,8 @@
             /**
              * @this HTMLInputElement
              */
-            payment['card'] = (this.value != '');
-            toggle($form.find('div.js-payment-card'), event, (this.value != ''));
+            payment['card'] = (this.value !== '');
+            toggle($form.find('div.js-payment-card'), event, (this.value !== ''));
             checkPayments($(this).parents('div.field-group:first'), event);
             $form.find('div.js-shipping-method').each(function () {
                 checkPayments($(this), event);
@@ -582,14 +707,14 @@
              * @this HTMLInputElement
              */
             var $scope = $(this).parents('div.js-shipping-method');
-            toggle($scope.find('div.js-payment-yandex'), event, payment.yandex && (this.value == 'POST'));
+            toggle($scope.find('div.js-payment-yandex'), event, payment.yandex && (this.value === 'POST'));
             checkPayments($scope, event);
         }).change();
 
         /**
          * delivery time control
          */
-        $form.find(':input[name^="campaign\\[order_before_per_day\\]"][name$="\\[workday\\]"]').change(function (event) {
+        $form.find(':input[name*="\\[order_before_per_day\\]"][name$="\\[workday\\]"]').change(function (event) {
             /**
              * @this HTMLInputElement
              */
@@ -651,7 +776,7 @@
                 iframe: true,
                 dataType: 'json',
                 success: function (data, textStatus, jqXHR) {
-                    if (data && (data.status == 'ok')) {
+                    if (data && (data.status === 'ok')) {
                         var message = '[s`Saved`]';
                         if (data.data && data.data.message) {
                             message = data.data.message;

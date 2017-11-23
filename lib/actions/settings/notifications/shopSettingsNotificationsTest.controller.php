@@ -40,16 +40,18 @@ class shopSettingsNotificationsTestController extends waJsonController
         if (!$customer) {
             $customer = $cm->getEmptyRow();
         }
-        
+
         $workflow = new shopWorkflow();
 
         // send notifications
-        shopNotifications::sendOne($id, array(
-            'order' => $o,
-            'customer' => $contact,
-            'status' => $workflow->getStateById($o['state_id'])->getName(),
-        ), $to);
-        
+        try {
+            shopNotifications::sendOne($id, array(
+                'order'    => $o,
+                'customer' => $contact,
+                'status'   => $workflow->getStateById($o['state_id'])->getName(),
+            ), $to);
+        } catch (Exception $ex) {
+            $this->errors = $ex->getMessage();
+        }
     }
 }
-

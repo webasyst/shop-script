@@ -24,6 +24,24 @@ class shopSettingsImagesRegenerateController extends waLongActionController
         return false;
     }
 
+    /**
+     * @var shopProductModel
+     */
+    private $product_model;
+    /**
+     * @var shopProductImagesModel
+     */
+    private $images_model;
+
+    protected function restore()
+    {
+        parent::restore();
+        $this->images_model = new shopProductImagesModel();
+        $this->product_model = new shopProductModel();
+
+        //register_shutdown_function();
+    }
+
     protected function init()
     {
         $image_model = new shopProductImagesModel();
@@ -34,6 +52,12 @@ class shopSettingsImagesRegenerateController extends waLongActionController
         $this->data['product_id'] = null;
         $this->data['product_count'] = 0;
         $this->data['timestamp'] = time();
+
+        $shop_config = wa('shop')->getConfig();
+        /**
+         * @var shopConfig $shop_config
+         */
+        $this->data['sizes'] = $shop_config->getImageSizes();
     }
 
     protected function isDone()
@@ -65,19 +89,17 @@ class shopSettingsImagesRegenerateController extends waLongActionController
 
     protected function step()
     {
-        $image_model = new shopProductImagesModel();
-        $product_model = new shopProductModel();
         $create_thumbnails = waRequest::post('create_thumbnails');
         $restore_originals = waRequest::post('restore_originals');
         $chunk_size = 50;
         if ($create_thumbnails) {
             $chunk_size = 10;
         }
-        $sizes = wa('shop')->getConfig()->getImageSizes();
+        $sizes = $this->data['sizes'];
 
         $use_filename = wa('shop')->getConfig()->getOption('image_filename');
 
-        $images = $image_model->getAvailableImages($this->data['offset'], $chunk_size);
+        $images = $this->images_model->getAvailableImages($this->data['offset'], $chunk_size);
         foreach ($images as $i) {
             if ($use_filename && !strlen($i['filename']) && strlen($i['original_filename'])) {
                 $filename = $this->getFilename($i['original_filename']);
@@ -87,10 +109,10 @@ class shopSettingsImagesRegenerateController extends waLongActionController
                     $i['filename'] = $filename;
                     $new_path = shopImage::getPath($i);
                     if (is_readable($old_path) && @waFiles::move($old_path, $new_path)) {
-                        $image_model->updateById($i['id'], array('filename' => $filename));
+                        $this->images_model->updateById($i['id'], array('filename' => $filename));
                         if (!$i['sort']) {
-                            $product_model->updateById($i['product_id'], array(
-                                'image_filename' => $filename
+                            $this->product_model->updateById($i['product_id'], array(
+                                'image_filename' => $filename,
                             ));
                         }
                     } else {
@@ -104,16 +126,17 @@ class shopSettingsImagesRegenerateController extends waLongActionController
                 $i['filename'] = '';
                 $new_path = shopImage::getPath($i);
                 if (waFiles::move($old_path, $new_path)) {
-                    $image_model->updateById($i['id'], array('filename' => ''));
+                    $this->images_model->updateById($i['id'], array('filename' => ''));
                     if (!$i['sort']) {
-                        $product_model->updateById($i['product_id'], array(
-                            'image_filename' => ''
+                        $this->images_model->updateById($i['product_id'], array(
+                            'image_filename' => '',
                         ));
                     }
                 } else {
                     $i['filename'] = $old_filename;
                 }
             }
+
             if ($this->data['product_id'] != $i['product_id']) {
                 sleep(0.2);
                 $this->data['product_id'] = $i['product_id'];
@@ -128,43 +151,7 @@ class shopSettingsImagesRegenerateController extends waLongActionController
 
                 // Regenerate original-sized image from backup, if asked to
                 if ($restore_originals) {
-                    $original_path = shopImage::getOriginalPath($i);
-                    if (!is_readable($original_path)) {
-                        // Uncomment this to apply plugins to product images
-                        // even if there are no original version of this image.
-                        //$original_path = shopImage::getPath($i);
-                    }
-                    if (is_readable($original_path)) {
-                        try {
-                            $p = shopImage::getPath($i);
-                            $op = shopImage::getOriginalPath($i);
-                            $image = waImage::factory($original_path);
-                            $image_changed = false;
-                            $event = wa()->event('image_upload', $image);
-                            if ($event) {
-                                foreach ($event as $plugin_id => $result) {
-                                    $image_changed = $image_changed || $result;
-                                }
-                            }
-
-                            if ($image_changed) {
-                                if ($original_path != $op) {
-                                    waFiles::copy($original_path, $op);
-                                }
-                                $image->save($p);
-                            } else {
-                                if ($original_path != $p) {
-                                    waFiles::copy($original_path, $p);
-                                }
-                                if (is_writable($op)) {
-                                    waFiles::delete($op);
-                                }
-                            }
-                        } catch (Exception $e) {
-                            $this->error('Unable to regenerate original for image '.$i['id'].': '.$e->getMessage());
-                        }
-                        unset($image);
-                    }
+                    $this->restoreOriginals($i);
                 }
 
                 // Create thumbnails, if asked to
@@ -172,7 +159,7 @@ class shopSettingsImagesRegenerateController extends waLongActionController
                     shopImage::generateThumbs($i, $sizes);
                 }
 
-                $this->data['image_count'] += 1;    // image count - count of successful progessed images
+                $this->data['image_count'] += 1;    // image count - count of successful processed images
 
             } catch (Exception $e) {
                 $this->error($e->getMessage());
@@ -223,6 +210,47 @@ class shopSettingsImagesRegenerateController extends waLongActionController
         $report .= '&nbsp;<a class="close" href="javascript:void(0);">'._w('close').'</a></div>';
 
         return $report;
+    }
+
+    protected function restoreOriginals($i)
+    {
+        $original_path = shopImage::getOriginalPath($i);
+        if (!is_readable($original_path)) {
+            // Uncomment this to apply plugins to product images
+            // even if there are no original version of this image.
+            //$original_path = shopImage::getPath($i);
+        }
+        if (is_readable($original_path)) {
+            try {
+                $p = shopImage::getPath($i);
+                $op = shopImage::getOriginalPath($i);
+                $image = waImage::factory($original_path);
+                $image_changed = false;
+                $event = wa()->event('image_upload', $image);
+                if ($event) {
+                    foreach ($event as $plugin_id => $result) {
+                        $image_changed = $image_changed || $result;
+                    }
+                }
+
+                if ($image_changed) {
+                    if ($original_path != $op) {
+                        waFiles::copy($original_path, $op);
+                    }
+                    $image->save($p);
+                } else {
+                    if ($original_path != $p) {
+                        waFiles::copy($original_path, $p);
+                    }
+                    if (is_writable($op)) {
+                        waFiles::delete($op);
+                    }
+                }
+            } catch (Exception $e) {
+                $this->error('Unable to regenerate original for image '.$i['id'].': '.$e->getMessage());
+            }
+            unset($image);
+        }
     }
 
     private function error($message)

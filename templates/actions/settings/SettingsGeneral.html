@@ -73,7 +73,7 @@
                         {foreach $_d_routes as $_r_id => $_r}
                             <div class="value no-shift s-settings-storefront-list">
                                 <a href="?action=storefronts#/design/theme={ifset($_r.theme, 'default')}&domain={urlencode($_d)}&route={$_r_id}&action=settings">
-                                    {$_d}/{$_r.url}
+                                    {$domains[$_d]|default:$_d|escape}/{$_r.url}
                                     <i class="icon10 settings"></i>
                                 </a>
                             </div>
@@ -130,11 +130,44 @@
                             </p>
                         </label>
                     </div>
-                    <div id="setting-require-captcha" class="value no-shift">
-                        <label>
-                            <input type="checkbox" name="require_captcha" {if $require_captcha == '1'}checked="checked"{/if} value="1">
-                            [`Protect product review form with CAPTCHA`]
-                        </label>
+                    <div id="setting-require-captcha">
+                        <div class="value no-shift">
+                            <label>
+                                <input type="checkbox" name="require_captcha" {if $require_captcha == '1'}checked="checked"{/if} value="1">
+                                [`Protect product review form with CAPTCHA`]
+                            </label>
+                        </div>
+
+                        <div id="service-agreement-settings-wrapper">
+                            <div class="value no-shift">
+                                <span class="hint">[`Personal data processing`]</span>
+                            </div>
+                            <div class="value">
+                                <label>
+                                    <input type="radio" name="review_service_agreement" value=""{if empty($review_service_agreement)} checked{/if}>
+                                    [`Do not require consent to personal data protection policy`]
+                                </label>
+                            </div>
+                            <div class="value">
+                                {$link_tag = sprintf('<a href="%s" target="_blank">', _w('---INSERT A LINK HERE!---'))}
+                                <label data-default-text="{sprintf_wp('By submitting this form I agree to %spersonal data protection policy%s', $link_tag, '</a>')|escape}">
+                                    <input type="radio" name="review_service_agreement" value="notice"{if ifset($review_service_agreement) == 'notice'} checked{/if}>
+                                    [`Show only notice and link to policy`]
+                                </label>
+                            </div>
+                            <div class="value">
+                                <label data-default-text="{sprintf_wp('I agree to %spersonal data protection policy%s', $link_tag, '</a>')|escape}">
+                                    <input type="radio" name="review_service_agreement" value="checkbox"{if ifset($review_service_agreement) == 'checkbox'} checked{/if}>
+                                    [`Show mandatory checkbox, notice, and link`]
+                                </label>
+                            </div>
+                            <div class="hidden value text-editor">
+                                <input type="checkbox" style="vertical-align:top;margin:0px 2px 90px 2px;float:left;" checked disabled>
+                                <textarea name="review_service_agreement_hint">{ifset($review_service_agreement_hint)|escape}</textarea>
+                                <br>
+                                <span class="hint"><a href="javascript:void(0)" class="inline-link generalte-example-link"><b><i>[`Restore original text`]</i></b></a></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -335,5 +368,44 @@
             }, 'json'
         );
     });
+
+    //
+    // Service agreement settings wrapper
+    //
+    (function() {
+        var $wrapper = $('#service-agreement-settings-wrapper');
+        var $checkbox = $wrapper.find(':checkbox');
+        var $textarea = $wrapper.find('textarea');
+        var previous_default_text = null;
+
+        $wrapper.on('change', ':radio', function() {
+            if (!$textarea.val() || previous_default_text == $textarea.val()) {
+                setDefaultText();
+            }
+
+            switch(this.value) {
+                case 'notice':
+                    $checkbox.hide().closest('.value').show();
+                    break;
+                case 'checkbox':
+                    $checkbox.show().closest('.value').show();
+                    break;
+                default:
+                    $checkbox.closest('.value').hide();
+                    break;
+            }
+        }).find(':radio:checked').change();
+
+        $wrapper.on('mousedown', '.generalte-example-link', function(e) {
+            setDefaultText();
+            $textarea.focus();
+            return false;
+        });
+
+        function setDefaultText() {
+            previous_default_text = $wrapper.find(':radio:checked').closest('label').data('default-text') || '';
+            $textarea.val(previous_default_text);
+        }
+    }());
 
 </script>

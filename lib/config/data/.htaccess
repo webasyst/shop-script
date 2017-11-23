@@ -3,6 +3,6 @@
     RewriteEngine On
 
     RewriteCond %{REQUEST_FILENAME} !-f
-	RewriteRule ^(.*)$ thumb.php [L,QSA]
+    RewriteRule ^(.*)$ thumb.php [L,QSA]
 </ifModule>
 

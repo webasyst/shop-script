@@ -42,7 +42,7 @@ class shopOrderListAction extends waViewAction
     public function getOrders($offset, $limit)
     {
         if ($this->orders === null) {
-            $this->orders = $this->collection->getOrders("*,products,contact,params", $offset, $limit);
+            $this->orders = $this->collection->getOrders("*,products,contact,params,courier", $offset, $limit);
             self::extendContacts($this->orders);
             shopHelper::workupOrders($this->orders);
         }
@@ -261,7 +261,7 @@ class shopOrderListAction extends waViewAction
             $sort_order = (string) ifset($sort[1]);
         }
 
-        if (!in_array($sort_field, array('create_datetime', 'updated', 'paid_date'))) {
+        if (!in_array($sort_field, array('create_datetime', 'updated', 'paid_date', 'shipping_datetime', 'state_id'))) {
             $sort_field = 'create_datetime';
             $sort_order = 'desc';
         }

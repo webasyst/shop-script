@@ -136,6 +136,9 @@ class shopProductListAction extends waViewAction
                 $p['summary']
             );
             $p['edit_rights'] = (boolean)wa()->getUser()->getRights('shop', 'type.'.$p['type_id']);
+            if (empty($p['edit_rights'])) {
+                $p['purchase_price'] = null;
+            }
         }
         unset($p);
 
@@ -178,6 +181,9 @@ class shopProductListAction extends waViewAction
             foreach ($products as &$product) {
                 $product['skus'] = array_values(ifset($product['skus'], array()));
                 foreach ($product['skus'] as &$sku) {
+                    if (empty($p['edit_rights'])) {
+                        $sku['purchase_price'] = null;
+                    }
                     if ($sku['stock'] === null) {
                         $sku_stock_icon = shopHelper::getStockCountIcon($sku['count']);
                         $sku['count_icon_html'] = $sku_stock_icon;
@@ -237,6 +243,8 @@ class shopProductListAction extends waViewAction
                 $default_view = $config->getOption('products_default_view');
             }
             $view = waRequest::get('view', $default_view, waRequest::TYPE_STRING_TRIM);
+            $view = preg_replace('@\W@', '', $view);
+
             $include_path = $config->getAppPath().'/templates/actions/products/product_list_'.$view.'.html';
             if (!file_exists($include_path)) {
                 $view = $default_view;

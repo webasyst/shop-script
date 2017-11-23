@@ -106,17 +106,30 @@ abstract class shopPrintformPlugin extends shopPlugin implements shopPrintformIn
      *
      * @param waOrder $order
      * @param mixed[] $params
+     * @todo allow setup tax & discount calculation via $params
      * @return array
      */
     private function extendItems(&$order, $params)
     {
-        $items = $order->items;
         $product_model = new shopProductModel();
-        $discount = $order->discount;
+
+        $items = $order->items;
         foreach ($items as & $item) {
             $data = $product_model->getById($item['product_id']);
             $item['tax_id'] = ifset($data['tax_id']);
             $item['currency'] = $order->currency;
+            unset($item);
+        }
+
+        $taxes_params = array(
+            'billing'  => $order->billing_address,
+            'shipping' => $order->shipping_address,
+        );
+
+        shopTaxes::apply($items, $taxes_params, $order->currency);
+
+        $discount = $order->discount;
+        foreach ($items as & $item) {
             if (!empty($item['total_discount'])) {
                 $discount -= $item['total_discount'];
                 $item['total'] -= $item['total_discount'];
@@ -125,13 +138,7 @@ abstract class shopPrintformPlugin extends shopPlugin implements shopPrintformIn
         }
 
         unset($item);
-        $taxes_params = array(
-            'billing'  => $order->billing_address,
-            'shipping' => $order->shipping_address,
-        );
-        shopTaxes::apply($items, $taxes_params, $order->currency);
 
-        //TODO allow setup tax & discount calculation
         if ($discount) {
             #calculate discount as part of price
             if ($order->total + $discount - $order->shipping > 0) {
@@ -162,7 +169,7 @@ abstract class shopPrintformPlugin extends shopPlugin implements shopPrintformIn
 
     /**
      * @deprecated
-     * @param waOrder|int|data $order
+     * @param waOrder|int|array $order
      * @return string HTML form
      * @throws waException
      */
@@ -186,7 +193,7 @@ abstract class shopPrintformPlugin extends shopPlugin implements shopPrintformIn
     }
 
     /**
-     * @deprecated 
+     * @deprecated
      * @param waOrder $order
      * @param waView $view
      */
@@ -285,7 +292,7 @@ abstract class shopPrintformPlugin extends shopPlugin implements shopPrintformIn
 
         $data = array(
             'settings' => $this->getSettings(),
-            'order'    => $order
+            'order'    => $order,
         );
         $data = $this->preparePrintform($data, $view);
         $view->assign($data);
@@ -304,5 +311,4 @@ abstract class shopPrintformPlugin extends shopPlugin implements shopPrintformIn
     {
         return $data;
     }
-
 }

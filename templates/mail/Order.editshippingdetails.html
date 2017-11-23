@@ -1,0 +1,156 @@
+{strip}
+
+{$_background_color = "#eeeeee"}
+{$_products_bg = "#ffffff"}
+{$_bonus_background = "#ffffcc"}
+{$_button_background = "#fcd630"}
+{$_main_border_color = "#cccccc"}
+{$_border_color = "#dddddd"}
+
+<table cellspacing="0" border="0" cellpadding="0" width="100%" bgcolor="{$_background_color}" style="
+    font-family:Helvetica,Arial,sans-serif;
+    letter-spacing:normal;
+    text-indent:0;
+    text-transform:none;
+    word-spacing:0;
+    background-color:rgb(232,232,232);
+    border-collapse:collapse
+">
+    <tr>
+        <td style="padding: 20px;">
+            <table width="600" border="0" align="center" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="
+                width: 600px !important;
+                background-color:#fff;
+                border:1px solid {$_main_border_color};
+                border-radius: 4px;
+                margin:auto;
+                overflow: hidden;
+                ">
+
+                <!-- HEADER -->
+                <tr>
+                    <td width="50" style="width:50px !important; border: solid {$_border_color}; border-width: 0 0 1px 0;"></td>
+                    <td height="70" align="center" valign="middle" style="border: solid {$_border_color}; border-width: 0 0 1px 0;">
+                        <table width="500" border="0" align="center" cellpadding="0" cellspacing="0" style="width: 100% !important;">
+                            <tr>
+                                <td>
+                                    <font style="font-weight: bold; font-size: 20px; margin: 0 12px 0 0;"><b>{$order.id}</b></font>
+                                    <font style="color: #888">{$order.create_datetime|wa_date:'humandate'}</font>
+                                </td>
+                                <td style="text-align: right;">
+                                    <font style="{if !empty($order.style)}{$order.style}{/if}">{$status}</font>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td width="50" style="width:50px !important; border: solid {$_border_color}; border-width: 0 0 1px 0;"></td>
+                </tr>
+
+                <!-- STATUS -->
+                <tr>
+                    <td></td>
+                    <td>
+                        <table cellspacing="0" border="0" cellpadding="0" width="100%" style="border-collapse:collapse">
+                            <tr>
+                                <td>
+                                    <p style="
+                                    color:rgb(48,48,48);
+                                    font-style:normal;
+                                    font-variant:normal;
+                                    font-weight:normal;
+                                    font-size:14px;
+                                    line-height:16px;
+                                    font-family:Helvetica,Arial,sans-serif;
+                                    margin: 20px 0 0;
+                                    text-align:center;
+                                    ">%17%</p>
+                                    <p align="center" style="margin: 20px 0;">
+                                        <a href="{$order_url}" style="
+                                            text-decoration:none;
+                                            font-style:normal;
+                                            font-variant:normal;
+                                            font-weight:normal;font-size:17px;line-height:40px;font-family:Helvetica,Arial,sans-serif;color:rgb(48,48,48);display:block;
+                                            width:225px;
+                                            background: {$_button_background};
+                                            border-radius: 4px;
+                                            " target="_blank">[`Order status`]</a>
+                                    </p>
+                                    {if !empty($order.params.auth_pin)}
+                                        <p style="
+                                        color:rgb(48,48,48);
+                                        font-style:normal;
+                                        font-variant:normal;
+                                        font-weight:normal;
+                                        font-size:14px;
+                                        line-height:16px;
+                                        font-family:Helvetica,Arial,sans-serif;
+                                        margin: 20px 0;
+                                        text-align:center;
+                                        text-transform: uppercase;
+                                        ">
+                                            %16%: <b>{$order.params.auth_pin}</b>
+                                        </p>
+                                    {/if}
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td></td>
+                </tr>
+
+                <!-- TEXT -->
+                <tr>
+                    <td bgcolor="{$_bonus_background}"></td>
+                    <td bgcolor="{$_bonus_background}" style="padding: 12px 0 12px 0;">
+                        <p>%1%</p>
+                        <p>{sprintf(_w("Administrator has changed the shipping details of your order %s as follows:<br><strong>%s</strong>"), $order.id, $action_data.text|nl2br)}</p>
+                    </td>
+                    <td bgcolor="{$_bonus_background}"></td>
+                </tr>
+
+                <!-- TEXT -->
+                <tr>
+                    <td></td>
+                    <td style="padding: 24px 0 36px 0;">
+                        <h3 style="margin: 0;">%contact_info%</h3>
+                        {if strlen($wa->shop->settings("email"))}
+                            <p style="margin: 10px 0 0;">
+                                [`Email`]: <a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a>
+                            </p>
+                        {/if}
+                        {if strlen($wa->shop->settings("phone"))}
+                            <p style="margin: 10px 0 0;">
+                                [`Phone`]: {$wa->shop->settings("phone")}
+                            </p>
+                        {/if}
+                    </td>
+                    <td></td>
+                </tr>
+            </table>
+
+            <!-- BOTTOM SITE INFORMATION -->
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse">
+                <tr>
+                    <td valign="middle" align="center" height="45">
+                        <p style="
+                        font-style:normal;
+                        font-variant:normal;
+                        font-weight:normal;
+                        font-size:13px;
+                        line-height:16px;
+                        font-family:Arial,sans-serif,Helvetica;
+                        color:rgb(147,154,164);
+                        margin: 20px 0 0;
+                        ">
+                            &copy;&nbsp;{date("Y")}&nbsp;{$wa->shop->settings("name")}<br>
+                            <a href="http://{$order.params.storefront}" target="_blank">{$order.params.storefront}</a>
+                        </p>
+                    </td>
+                </tr>
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+{/strip}

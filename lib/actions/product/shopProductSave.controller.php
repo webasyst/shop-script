@@ -177,13 +177,17 @@ class shopProductSaveController extends waJsonController
 //                }
 
                 $forecast = $product->getNextForecast();
-                if ($forecast['date'] !== null) {
+                if ($forecast['date'] !== null && $forecast['days'] < shopProduct::MAX_FORECAST_DAYS ) {
                     $this->response['raw']['runout_str'] = sprintf(
                         _w('Based on your average monthly sales volume for %s during last three months (%d units per month), you will run out of this product in <strong>%d days</strong> (on %s).'),
                         htmlspecialchars($product->name), $forecast['sold_rounded'], $forecast['days'], wa_date("humandate", $forecast['date'])
                     );
+                } else {
+                    $this->response['raw']['runout_str'] = sprintf(
+                        _w('Based on your average monthly sales volume for %s during last three months (%d units per month), you will run out of this product in more than 10 years (on %s).'),
+                        htmlspecialchars($product->name), $forecast['sold_rounded'], wa_date("humandate", $forecast['date'])
+                    );
                 }
-
                 $this->response['storefront_map'] = $product_model->getStorefrontMap($product->id);
 
             }

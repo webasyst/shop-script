@@ -1,84 +1,106 @@
-{include file="list-sorting.html" inline}
+{strip}
 
-<!-- CATALOG LIST -->
-<div class="shop-list-wrapper">
-{foreach $products as $p}
-    {$available = $wa->shop->settings('ignore_stock_count') || $p.count === null || $p.count > 0}
+<section id="s-products-wrapper">
 
-    <!-- CATALOG ITEM -->
-    <div class="product-item-wrapper" itemscope itemtype ="http://schema.org/Product">
+    {include file="list-sorting.html" inline}
 
-        <!-- ITEM IMAGE -->
-        <figure class="image-block">
-            <a href="{$p.frontend_url}" title="{$p.name}">
-                {$wa->shop->productImgHtml($p, '200@2x', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
-            </a>
-            {$badge_html = $wa->shop->badgeHtml($p.badge)}
-            {if $badge_html}
-                <div class="badge-wrapper">
-                    <div class="">{$badge_html}</div>
-                </div>
-            {/if}
-        </figure>
+    <!-- CATALOG LIST -->
+    <div class="shop-list-wrapper s-products-list">
+        {foreach $products as $p}
+            {$available = $wa->shop->settings('ignore_stock_count') || $p.count === null || $p.count > 0}
 
-        <!-- ITEM TEXT -->
-        <div class="text-block">
-            <h3 class="product-header">
-                <a href="{$p.frontend_url}" title="{$p.name}">
-                    <span itemprop="name">{$p.name}</span>
-                    {if $p.rating > 0}
-                        <span class="rating">{$wa->shop->ratingHtml($p.rating)}</span>
-                    {/if}
-                </a>
-            </h3>
-            {if !empty($p.summary)}<meta itemprop="description" content="{strip_tags($p.summary)}">{/if}
+            <!-- CATALOG ITEM -->
+            <div class="product-item-wrapper s-product-wrapper" itemscope itemtype ="http://schema.org/Product">
 
-            <div itemprop="offers" class="offers" itemscope itemtype="http://schema.org/Offer">
-                <meta itemprop="price" content="{$p.price}">
-                <meta itemprop="priceCurrency" content="{$wa->shop->primaryCurrency()}">
+                <!-- ITEM IMAGE -->
+                <figure class="image-block">
+                    <a href="{$p.frontend_url}" title="{$p.name}">
+                        {$wa->shop->productImgHtml($p, '200@2x', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
+                    </a>
+                </figure>
 
-                {if $available}
-                    <form class="purchase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if} method="post" action="{$wa->getUrl('/frontendCart/add')}">
-                        <link itemprop="availability" href="http://schema.org/InStock" />
-                        <input type="hidden" name="product_id" value="{$p.id}">
+                <!-- ITEM TEXT -->
+                <div class="text-block">
+                    <h3 class="product-header">
+                        <a href="{$p.frontend_url}" title="{$p.name}">
+                            <span itemprop="name">{$p.name}</span>
+                            {if $p.rating > 0}
+                                <span class="rating">{$wa->shop->ratingHtml($p.rating)}</span>
+                            {/if}
+                        </a>
+                    </h3>
 
-                        <div class="controls-wrapper">
-                            <div class="price-wrapper">
-                                {if $p.compare_price > 0}
-                                    <div class="old-price">{shop_currency_html($p.compare_price)}</div>
-                                {/if}
-                                <div class="price">{shop_currency_html($p.price)}</div>
+                    {if !empty($p.summary)}<meta itemprop="description" content="{strip_tags($p.summary)}">{/if}
+
+                    {$badge_html = $wa->shop->badgeHtml($p.badge)}
+                    {if $badge_html}<div class="badge-wrapper">{$badge_html}</div>{/if}
+
+                    <div itemprop="offers" class="offers" itemscope itemtype="http://schema.org/Offer">
+                        <meta itemprop="price" content="{shop_currency($p.price, null, null, 0)}">
+                        <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
+
+                        {if $available}
+                            <form class="purchase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if} method="post" action="{$wa->getUrl('/frontendCart/add')}">
+                                <link itemprop="availability" href="http://schema.org/InStock" />
+                                <input type="hidden" name="product_id" value="{$p.id}">
+
+                                <div class="controls-wrapper">
+                                    <div class="price-wrapper">
+                                        {if $p.compare_price > 0}
+                                            <div class="old-price">{shop_currency_html($p.compare_price)}</div>
+                                        {/if}
+                                        <div class="price">{shop_currency_html($p.price)}</div>
+                                    </div>
+                                </div>
+                            </form>
+                        {else}
+                            <link itemprop="availability" href="http://schema.org/OutOfStock" />
+                            <div class="controls-wrapper">
+                                <div class="out-of-stock">
+                                    <strong>
+                                        {if $wa->shop->settings('ignore_stock_count')}
+                                            [`Pre-order only`]
+                                        {else}
+                                            [`Out of stock`]
+                                        {/if}
+                                    </strong>
+                                </div>
                             </div>
-                        </div>
-                    </form>
-                {else}
-                    <link itemprop="availability" href="http://schema.org/OutOfStock" />
-                    <div class="controls-wrapper">
-                        <div class="out-of-stock">
-                            <strong>
-                                {if $wa->shop->settings('ignore_stock_count')}
-                                    [`Pre-order only`]
-                                {else}
-                                    [`Out of stock`]
-                                {/if}
-                            </strong>
-                        </div>
+                        {/if}
                     </div>
-                {/if}
+                </div>
+
+                <!-- ITEM LINK -->
+                <div class="link-block">
+                    <a href="{$p.frontend_url}" title="{$p.name}"></a>
+                </div>
             </div>
-        </div>
-
-        <!-- ITEM LINK -->
-        <div class="link-block">
-            <a href="{$p.frontend_url}" title="{$p.name}"></a>
-        </div>
+        {/foreach}
     </div>
-{/foreach}
-</div>
 
-{if isset($pages_count) && $pages_count > 1}
-    <!-- Lazy Load -->
-    <div class="lazyloading-paging"  data-times="2" data-link-text="[`Load more`]" data-loading-str="[`Loading...`]">
-        {wa_pagination total=$pages_count attrs=['class' => ""]}
-    </div>
-{/if}
+    {if isset($pages_count) && $pages_count > 1}
+        <div class="s-paging-wrapper {if $theme_settings.pagination == "lazyloading"}is-lazy-loading{/if}" data-loading-text="[`Loading...`]">
+            {wa_pagination total=$pages_count attrs=["class" => "s-paging-list"]}
+        </div>
+    {/if}
+
+    <script>
+        ( function($) {
+            var $products = $("#s-products-wrapper").removeAttr("id");
+            var initLazyLoading = {if isset($pages_count) && $pages_count > 1 && $theme_settings.pagination == "lazyloading"}true{else}false{/if};
+            if (initLazyLoading) {
+                new LazyLoading({
+                    $wrapper: $products,
+                    names: {
+                        list: ".s-products-list",
+                        items: ".s-product-wrapper",
+                        paging: ".s-paging-wrapper"
+                    }
+                });
+            }
+        })(jQuery);
+    </script>
+
+</section>
+
+{/strip}

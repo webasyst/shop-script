@@ -12,6 +12,8 @@
  * ... extends base Site app's default.css
  */
 
+@import "./css/home.slider.css";
+
 .currency-toggle { right: 0; position: absolute; }
 .bonus { background: #ceb; padding: 2px 4px 1px; }
 .plugin { margin-bottom: 20px; } /* shipping and payment plugins ouput */
@@ -331,6 +333,9 @@ table.rating-distribution td .bar .filling { background: #f7c854; height: 13px; 
 input.error, textarea.error { border: 2px solid red; }
 .errormsg { color: red; margin-left: 170px; display: block; }
 
+.review-form .service-agreement-wrapper { width:100%; margin-bottom:14px; }
+.review-form .service-agreement-wrapper .errormsg { margin-left: 0px; }
+
 /* Product badges
 ----------------- */
 
@@ -470,6 +475,7 @@ input.error, textarea.error { border: 2px solid red; }
 .checkout .wa-form .wa-field .wa-name { padding-top: 0.3em; }
 .checkout .wa-form .wa-field.wa-field-email .wa-value input { min-width: 300px; }
 .checkout .wa-form .wa-field.wa-field-birthday .wa-value select { margin-right: 5px;  }
+.checkout .wa-form .wa-field.wa-field-address p { margin: 0; }
 .checkout .wa-form .wa-field.wa-field-address .wa-field-address-zip input { min-width: 100px; width: 20%; }
 
 
@@ -529,6 +535,7 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
 ============== */
 
 @media screen and (max-width: 760px) {
+    .currency-toggle { margin: 0 0 10px; right: auto; position: static; }
 
     .content.with-sidebar { padding: 0; margin: 0 !important; }
     .promos ul li { width: 50%; }
@@ -547,8 +554,7 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
     .add2cart input[type="submit"] { font-size: 1.2em; }
 
     #compare-leash,
-    .compare-add,
-    .currency-toggle { display: none; }
+    .compare-add { display: none; }
 
     .filters { float: none; width: auto; margin: 0 0 40px; }
     .filters .filters-toggle-wrapper { display: block; text-align: center; }

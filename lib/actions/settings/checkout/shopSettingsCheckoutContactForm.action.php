@@ -162,5 +162,9 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
         $this->view->assign('fields', $fields);
         $this->view->assign('address', $address);
         $this->view->assign('shipbill_address', $shipbill_address);
+        $this->view->assign('service_agreement', array(
+            'setting' => ifset($config['service_agreement'], ''),
+            'text' => ifset($config['service_agreement_hint'], ''),
+        ));
     }
 }

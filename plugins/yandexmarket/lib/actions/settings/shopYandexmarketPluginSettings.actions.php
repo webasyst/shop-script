@@ -69,11 +69,6 @@ class shopYandexmarketPluginSettingsActions extends waViewActions
 
     public function campaignAction()
     {
-        /**
-         * @var shopConfig $config ;
-         */
-        $config = wa('shop')->getConfig();
-
         $campaign_id = waRequest::request('campaign_id', null, waRequest::TYPE_INT);
         $cpa_available = $this->plugin->checkCpa();
         $this->view->assign('cpa_available', $cpa_available);
@@ -92,56 +87,36 @@ class shopYandexmarketPluginSettingsActions extends waViewActions
 
             $this->view->assign('app_settings', waSystem::getSetting(null));
             $shipping_methods = array();
-            $primary_currency = $config->getCurrency();
+
 
             try {
                 if ($api_available && ($region = $this->plugin->getCampaignRegion($campaign_id))) {
                     $address = shopYandexmarketPluginOrder::parseAddress($region, null, true);
                     $this->view->assign('address', $address);
 
-                    $items = array(
-                        array(
-                            'weight'   => 1.0,//base unit - kg
-                            'price'    => 1,
-                            'quantity' => 1,
-                        ),
-                    );
-
-                    $primary_currency = $this->plugin->getSettings('primary_currency');
-
-                    switch ($primary_currency) {
-                        case 'auto':
-                            $primary_currency = $config->getCurrency();
-                            break;
-                        case 'front':
-                            if (waRequest::param('currency')) {
-                                $primary_currency = waRequest::param('currency');
-                            } else {
-                                $primary_currency = $config->getCurrency();
-                            }
-                            break;
-                    }
-
-                    $shipping_params = array(
-                        'no_external' => true,
-                        'currency'    => $primary_currency,
-                    );
-                    if (empty($campaign['local_delivery_only']) || true) {
-                        $address = null;
-                    } else {
-                        $address = $address['data'];
-                    }
-                    $shipping_methods = shopHelper::getShippingMethods($address, $items, $shipping_params);
-                    $shipping_methods = array_filter($shipping_methods, create_function('$m', 'return empty($m["external"]);'));
-
-
+                    $shipping_methods = $this->getShippingMethods($address);
                 }
             } catch (waException $ex) {
                 $this->view->assign('address_error', $ex->getMessage());
             }
 
-            $settings = isset($campaign['shipping_methods']['dummy']) ? $campaign['shipping_methods']['dummy'] : array();
+            try {
+                $campaign_options = compact('campaign_id');
+                $campaign_options['feeds'] = false;
+                $campaign_options['settings'] = true;
+                if ($api_available && ($campaign_data = $this->plugin->getCampaigns($campaign_options))) {
+                    $this->view->assign('campaign_data', $campaign_data);
 
+                    $this->view->assign('campaign_settings', $campaign_data[$campaign_id]['settings']);
+
+
+                }
+            } catch (waException $ex) {
+                $this->view->assign('campaign_data_error', $ex->getMessage());
+            }
+
+            $settings = isset($campaign['shipping_methods']['dummy']) ? $campaign['shipping_methods']['dummy'] : array();
+            $primary_currency = $this->getPrimaryCurrency();
             $dummy = array(
                 'rate'     => ifset($settings['cost']),
                 'name'     => ifset($settings['name'], 'Курьер'),
@@ -177,17 +152,92 @@ class shopYandexmarketPluginSettingsActions extends waViewActions
         }
     }
 
+    private function getPrimaryCurrency()
+    {
+        static $primary_currency;
+        if ($primary_currency === null) {
+            /**
+             * @var shopConfig $config ;
+             */
+            $config = wa('shop')->getConfig();
+            $primary_currency = $config->getCurrency();
+
+            $primary_currency = $this->plugin->getSettings('primary_currency');
+
+            switch ($primary_currency) {
+                case 'auto':
+                    $primary_currency = $config->getCurrency();
+                    break;
+                case 'front':
+                    if (waRequest::param('currency')) {
+                        $primary_currency = waRequest::param('currency');
+                    } else {
+                        $primary_currency = $config->getCurrency();
+                    }
+                    break;
+            }
+        }
+        return $primary_currency;
+
+    }
+
+    private function getShippingMethods($address)
+    {
+        $items = array(
+            array(
+                'weight'   => 1.0,//base unit - kg
+                'price'    => 1,
+                'quantity' => 1,
+            ),
+        );
+
+        $shipping_params = array(
+            'no_external' => true,
+            'currency'    => $this->getPrimaryCurrency(),
+        );
+        if (empty($campaign['local_delivery_only']) || true) {
+            $address = null;
+        } else {
+            $address = $address['data'];
+        }
+        $shipping_methods = shopHelper::getShippingMethods($address, $items, $shipping_params);
+        $shipping_methods = array_filter($shipping_methods, create_function('$m', 'return empty($m["external"]);'));
+        return $shipping_methods;
+    }
+
     public function outletsAction()
     {
-        $campaign_id = waRequest::get('campaign_id');
+        $campaign_id = max(0, waRequest::get('campaign_id', 0, waRequest::TYPE_INT));
+        $campaign = null;
+        if ($campaign_id) {
+            $model = new shopYandexmarketCampaignsModel();
+            $campaign = $model->get($campaign_id);
 
-        try {
-            $outlets = $this->plugin->getOutlets($campaign_id);
-        } catch (waException $ex) {
-            $error = $ex->getMessage();
-            $error_code = $ex->getCode();
+            $cron_template = 'php %s/cli.php shop yandexmarketPluginCache %d';
+            $cron_command = sprintf($cron_template, wa()->getConfig()->getRootPath(), $campaign_id);
+
+            $ttl = round(shopYandexmarketPlugin::getTTL() / 2);
+            $api_available = $this->plugin->checkApi();
+
+            try {
+                $outlets = $this->plugin->getOutlets($campaign_id);
+            } catch (waException $ex) {
+                $error = $ex->getMessage();
+                $error_code = $ex->getCode();
+            }
+
+            try {
+                if ($api_available && ($region = $this->plugin->getCampaignRegion($campaign_id))) {
+                    $address = shopYandexmarketPluginOrder::parseAddress($region, null, true);
+                    $this->view->assign('address', $address);
+                    $shipping_methods = $this->getShippingMethods($address);
+                }
+            } catch (waException $ex) {
+                $this->view->assign('address_error', $ex->getMessage());
+            }
         }
-        $this->view->assign(compact('campaign_id', 'outlets', 'error', 'error_code'));
+
+        $this->view->assign(compact('campaign_id', 'campaign', 'outlets', 'shipping_methods', 'cron_command', 'ttl', 'error', 'error_code'));
     }
 
     protected function getTemplate()

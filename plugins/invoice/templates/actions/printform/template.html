@@ -127,7 +127,7 @@
         {foreach $order.items as $item}
         <tr>
             <td class="i-column-1">{$item@iteration|escape}</td>
-            <td class="i-column-2">{$item.name|escape}</td>
+            <td class="i-column-2">{$item.name}</td>
             <td class="i-column-3">{$item.quantity|escape}</td>
             <td class="i-column-4 i-right">{$item.price|wa_currency:$order.currency|escape}</td>
             <td class="i-column-5 i-right i-column-value">{($item.price*$item.quantity)|wa_currency:$order.currency|escape}</td>
@@ -150,7 +150,7 @@
         </tr>
         <tr>
             <td class="i-column-4">[`TAX RATE`]</td>
-            <td class="i-column-5 i-right">{if !empty($order.tax)}{($order.tax/$order.subtotal)|string_format:'%0.3f%%'}{else}—{/if}</td>
+            <td class="i-column-5 i-right">{if !empty($order.tax)}{(100.0*$order.tax/$order.subtotal)|string_format:'%0.3f%%'}{else}—{/if}</td>
         </tr>
         <tr>
             <td class="i-column-4">[`TAX`]</td>

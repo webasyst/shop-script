@@ -12,8 +12,7 @@ class shopWorkflowCommentAction extends shopWorkflowAction
 
     public function execute($params = null)
     {
-        $log_model = new waLogModel();
-        $log_model->add('order_comment', $params);
+        $this->waLog('order_comment', $params);
         return array(
             'text' => nl2br(htmlspecialchars(waRequest::post('text'), ENT_QUOTES, 'utf-8')),
         );

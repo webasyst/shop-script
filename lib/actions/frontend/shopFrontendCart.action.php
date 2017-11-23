@@ -38,8 +38,8 @@ class shopFrontendCartAction extends shopFrontendAction
         $total = $cart->total(false);
         $order = array(
             'currency' => wa()->getConfig()->getCurrency(false),
-            'total' => $total,
-            'items' => $items
+            'total'    => $total,
+            'items'    => $items
         );
         $discount_description = '';
         $order['discount'] = $discount = shopDiscounts::calculate($order, false, $discount_description);
@@ -71,10 +71,12 @@ class shopFrontendCartAction extends shopFrontendAction
                     if ($row['count'] > 0) {
                         $errors[$row['id']] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $row['count'], $row['name']);
                     } else {
-                        $errors[$row['id']] = sprintf(_w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience. Please remove this product from your shopping cart to proceed.'), $row['name']);
+                        $errors[$row['id']] = sprintf(_w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience. Please remove this product from your shopping cart to proceed.'),
+                            $row['name']);
                     }
                 } else {
-                    $errors[$row['id']] = sprintf(_w('Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed.'), $row['name']);
+                    $errors[$row['id']] = sprintf(_w('Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed.'),
+                        $row['name']);
                 }
             }
             foreach ($items as $row) {
@@ -238,13 +240,11 @@ class shopFrontendCartAction extends shopFrontendAction
                     }
 
                     if ($s['currency'] == '%') {
-                        foreach ($s['variants'] as $v_id => $v) {
-                            $s['variants'][$v_id]['price'] = $v['price'] *  $item['price'] / 100;
-                        }
-                        $s['currency'] = $item['currency'];
+                        shopProductServicesModel::workupItemServices($s, $item);
                     }
 
                     if (count($s['variants']) == 1) {
+                        reset($s['variants']);
                         $v_id = key($s['variants']);
                         $v = $s['variants'][$v_id];
                         $s['variant_id'] = $v_id;
@@ -296,7 +296,7 @@ class shopFrontendCartAction extends shopFrontendAction
             $this->view->assign('coupon_free_shipping', true);
         }
         if (shopAffiliate::isEnabled()) {
-            $affiliate_bonus = $affiliate_discount = 0;
+            $affiliate_bonus = $affiliate_discount = $potential_affiliate_discount = 0;
             if ($this->getUser()->isAuth()) {
                 $customer_model = new shopCustomerModel();
                 $customer = $customer_model->getById($this->getUser()->getId());
@@ -306,13 +306,26 @@ class shopFrontendCartAction extends shopFrontendAction
 
             $use = !empty($data['use_affiliate']);
             $this->view->assign('use_affiliate', $use);
-            $usage_percent = (float) wa()->getSetting('affiliate_usage_percent', 0, 'shop');
+            $usage_percent = (float)wa()->getSetting('affiliate_usage_percent', 0, 'shop');
             $this->view->assign('affiliate_percent', $usage_percent);
             $affiliate_discount = self::getAffiliateDiscount($affiliate_bonus, $order);
+            $potential_affiliate_discount = self::getAffiliateDiscount($affiliate_bonus, $order);
+            $this->view->assign('potential_affiliate_discount', $potential_affiliate_discount);
+
             if ($use) {
                 $discount -= $affiliate_discount;
                 $this->view->assign('used_affiliate_bonus', $order['params']['affiliate_bonus']);
             }
+
+            /**
+             * If the new order currency differs from the default currency, then convert the bonus discount to the default currency.
+             * This is done because in the cart.html template the currency is converted into the order currency
+             */
+            if ($order['currency'] != wa('shop')->getConfig()->getCurrency(true)) {
+                $currencies = wa('shop')->getConfig()->getCurrencies($order['currency']);
+                $affiliate_discount = $affiliate_discount * $currencies[$order['currency']]['rate'];
+            }
+
             $this->view->assign('affiliate_discount', $affiliate_discount);
 
             $add_affiliate_bonus = shopAffiliate::calculateBonus($order);
@@ -330,8 +343,8 @@ class shopFrontendCartAction extends shopFrontendAction
 
         $checkout_flow = new shopCheckoutFlowModel();
         $checkout_flow->add(array(
-            'code' => $code,
-            'step' => 0,
+            'code'        => $code,
+            'step'        => 0,
             'description' => null /* TODO: Error message here if exists */
         ));
 
@@ -341,7 +354,7 @@ class shopFrontendCartAction extends shopFrontendAction
     {
         $data = wa()->getStorage()->get('shop/checkout');
         $use = !empty($data['use_affiliate']);
-        $usage_percent = (float) wa()->getSetting('affiliate_usage_percent', 0, 'shop');
+        $usage_percent = (float)wa()->getSetting('affiliate_usage_percent', 0, 'shop');
         if (!$usage_percent) {
             $usage_percent = 100;
         }

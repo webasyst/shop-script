@@ -35,10 +35,20 @@ class shopSettingsFollowupsTestController extends waJsonController
         $o['params'] = $opm->get($order_id);
 
         try {
-            $contact = $o['contact_id'] ? new shopCustomer($o['contact_id']) : wa()->getUser();
+            $contact = new shopCustomer($o['contact_id']);
             $contact->getName();
         } catch (Exception $e) {
+            // Contact not found
+        }
+        if (empty($contact)) {
             $contact = new shopCustomer(wa()->getUser()->getId());
+        }
+
+        $contact_data = $contact->getCustomerData();
+        foreach (ifempty($contact_data, array()) as $field_id => $value) {
+            if ($field_id !== 'contact_id') {
+                $contact[$field_id] = $value;
+            }
         }
 
         if ($f['transport'] === 'email') {

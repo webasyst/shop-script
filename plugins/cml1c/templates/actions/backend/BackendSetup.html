@@ -1,6 +1,6 @@
 <div class="block double-padded" style="padding-bottom: 10px;">
-    <h1>1С: Управление торговлей</h1>
-    <p>Обмен данными с «1С: Управление торговлей» через файлы формата <a href="http://v8.1c.ru/edi/edi_stnd/90/92.htm">CommerceML</a>. Документация по настройке интеграции: <a href="https://www.webasyst.ru/help/25/shop-script-5-cml1c/" target="_blank">https://www.webasyst.ru/help/25/shop-script-5-cml1c/</a><i class="icon16 new-window"></i></p>
+    <h1>1С (CommerceML)</h1>
+    <p>Обмен данными с системами товарного учета через файлы формата <a target="_blank" href="http://v8.1c.ru/edi/edi_stnd/90/92.htm">CommerceML<i class="icon16 new-window"></i></a> Документация по настройке интеграции с «1С»: <a target="_blank" href="https://www.webasyst.ru/help/25/shop-script-5-cml1c/">https://www.webasyst.ru/help/25/shop-script-5-cml1c/<i class="icon16 new-window"></i></a> Документация по настройке интеграции с «МойСклад»: <a target="_blank" href="https://www.shop-script.ru/help/15043/commerceml-moisklad/">https://www.shop-script.ru/help/15043/commerceml-moisklad/<i class="icon16 new-window"></i></a></p>
 </div>
 <div id="s-cml1c-form">
     <ul class="tabs" style="padding-left: 10px;">
@@ -73,6 +73,14 @@
                             Поля «Имя пользователя» и «Пароль» оставьте пустыми или укажите любые значения, так как правильные данные уже закодированы в адресе скрипта синхронизации.</p>
                         <p class="small">Чтобы изменить адрес скрипта синхронизации, выключите и снова включите автоматический обмен.</p>
                         <p class="hint">При автоматическом обмене данными Shop-Script передает в «1С» только информацию о заказах и принимает из «1С» только информацию о товарах (добавляет новые товары, обновляет цены, остатки и характеристики).</p>
+                    </div>
+                    <div class="name"><label for="cml1c-url-moysklad">Скрипт экспорта товаров в «МойСклад»</label></div>
+                    <div class="value">
+                        <i class="icon16 lock-bw"></i> <input id="cml1c-url-moysklad" type="text" value="{$url|escape}moysklad/" class="bold" style="width: 500px;" readonly="readonly">
+                        <p class="hint">1. Сохраните этот адрес в поле «Адрес сайта» в аккаунте «МойСклад» для настройки синхронизации данных через CommerceML и запустите импорт заказов.<br>
+                            2. После завершения импорта замените содержимое поля «Адрес сайта» в настройках синхронизации CommerceML в аккаунте «МойСклад» на адрес из поля «Скрипт синхронизации».<br>
+                            <br>
+                            Адрес скрипта экспорта товаров в «МойСклад» также следует использовать для получения CommerceML-файлов из отчета экспорта в аккаунте «МойСклад» после первого «холостого» импорта товаров.</p>
                     </div>
                 </div>
             </div>

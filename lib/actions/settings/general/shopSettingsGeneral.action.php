@@ -41,7 +41,7 @@ class shopSettingsGeneralAction extends waViewAction
             }
             waUtils::varExportToFile($save, $path);
 
-            if ($captcha = waRequest::post('captcha')) {
+            if ( ( $captcha = waRequest::post('captcha', null, 'string_trim')) && preg_match('~^(wa|shop)\w*Captcha$~', $captcha)) {
                 $config_path = $this->getConfig()->getConfigPath('config.php');
                 if (file_exists($config_path)) {
                     $config = include($config_path);
@@ -108,7 +108,21 @@ class shopSettingsGeneralAction extends waViewAction
 
         $this->view->assign('saved', waRequest::post());
 
-        $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));
+        $routes =  wa()->getRouting()->getByApp('shop');
+
+        $domains = array_keys($routes);
+        $domains = array_combine($domains, $domains);
+        if (class_exists('waIdna')) {
+            $idna = new waIdna();
+            foreach ($domains as &$domain) {
+                $domain = $idna->decode($domain);
+            }
+            unset($domain);
+        }
+
+        $this->view->assign('routes', $routes);
+
+        $this->view->assign('domains', $domains);
 
         $this->view->assign('installer', $this->getUser()->getRights('installer', 'backend'));
 
@@ -146,7 +160,9 @@ class shopSettingsGeneralAction extends waViewAction
             'gravatar_default'      => waRequest::post('gravatar_default', '', waRequest::TYPE_STRING_TRIM),
             'require_captcha'       => waRequest::post('require_captcha', 0, waRequest::TYPE_INT),
             'require_authorization' => waRequest::post('require_authorization', 0, waRequest::TYPE_INT),
-            'lazy_loading'          => waRequest::post('lazy_loading', 0, waRequest::TYPE_INT)
+            'lazy_loading'          => waRequest::post('lazy_loading', 0, waRequest::TYPE_INT),
+            'review_service_agreement'      => waRequest::post('review_service_agreement', '', waRequest::TYPE_STRING),
+            'review_service_agreement_hint' => waRequest::post('review_service_agreement_hint', '', waRequest::TYPE_STRING),
         );
         if (waRequest::post('map')) {
             $data['map'] = waRequest::post('map', '', waRequest::TYPE_STRING_TRIM);

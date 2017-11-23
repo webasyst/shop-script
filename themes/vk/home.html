@@ -33,7 +33,7 @@
                             {/if}
                             {$wa->shop->productImgHtml($p, '350', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
                     </div>
-    
+
                 </a>
             </li>
             {/foreach}
@@ -42,8 +42,8 @@
             <p class="hint align-center"><br><br><em>{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','promo')}</em></p>
         {/if}
     </div>
-    
-    {if $promocards = $wa->shop->promos()}
+
+    {if $promocards = $wa->shop->promos('link', '900')}
         <!-- PROMOS -->
         <section class="promos">
             <ul>
@@ -59,19 +59,19 @@
             </ul>
         </section>
     {/if}
-    
+
     <!-- plugin hook: 'frontend_homepage' -->
     {* @event frontend_homepage.%plugin_id% *}
     {foreach $frontend_homepage as $_}{$_}{/foreach}
-    
+
     <div class="content align-center">
-    
+
         {if $bestsellers}
             {include file="list-thumbs.html" products=$bestsellers}
         {else}
             <p class="hint align-center"><em>{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','bestsellers')}</em></p>
         {/if}
-        
+
     </div>
-    
+
 {/if}

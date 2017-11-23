@@ -216,6 +216,9 @@
         </tr>
     {/foreach}
     {if $order.shipping > 0}
+        {if !empty($order.params.shipping_tax_included) && !empty($order.params.shipping_tax)}
+            {$total_tax=$total_tax+$order.params.shipping_tax}
+        {/if}
         <tr>
             {$total_amount=$total_amount+$order.shipping}
             <td class="b_left b_top leftAlign">доставка {$order.shipping_name|escape}</td>
@@ -225,8 +228,8 @@
             <td class="b_left b_top rightAlign nowrap">{$order.shipping|wa_format_amount:$order.currency:'%2'}</td>
             <td class="b_left b_top rightAlign nowrap">{$order.shipping|wa_format_amount:$order.currency:'%2'}</td>
             <td class="b_left b_top rightAlign">0,00</td>
-            <td class="b_left b_top rightAlign">0%</td>
-            <td class="b_left b_top rightAlign">0,00</td>
+            <td class="b_left b_top rightAlign">{$order.params.shipping_tax_percent|default:0|string_format:"%0.2f"}%</td>
+            <td class="b_left b_top rightAlign">{$order.params.shipping_tax|default:0|wa_format_amount:$order.currency:'%2'}</td>
             <td class="b_left b_top rightAlign nowrap">{$order.shipping|wa_format_amount:$order.currency:'%2'}</td>
             <td class="b_left b_top">&nbsp;</td>
             <td class="b_left b_top">&nbsp;</td>

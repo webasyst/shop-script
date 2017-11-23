@@ -1,0 +1,218 @@
+{$_is_promocards = false}
+{$_is_products = false}
+{$_is_products_wide = false}
+{$_slider_classes = []}
+{if $theme_settings.homepage_bxslider_mode == "promos"}
+    {$_is_promocards = true}
+    {$_slider_classes[] = "is-promocards"}
+{/if}
+{if $theme_settings.homepage_bxslider_mode == "products"}
+    {$_is_products = true}
+    {$_slider_classes[] = "is-products"}
+{/if}
+{if $theme_settings.homepage_bxslider_mode == "products_wide"}
+    {$_is_products_wide = true}
+    {$_slider_classes[] = "is-products-wide"}
+{/if}
+
+<section class="s-slider-section {$_slider_classes|join:" "}">
+
+    {* PROMOCARDS *}
+    {if $_is_promocards}
+        <ul class="s-slider-block" id="js-home-slider">
+            {foreach $promocards as $_slide}
+                <li class="s-slide-wrapper" style="
+                    {if $_slide.color}color: {$_slide.color};{/if}
+                    {if $_slide.image}background-image: url({$_slide.image});{/if}
+                ">
+                    <div class="s-slide-block">
+                        <h3 class="s-header">{$_slide.title|escape|truncate:90}</h3>
+
+                        {if !empty($_slide.body)}
+                            <p class="s-description" itemprop="description">{$_slide.body|escape}</p>
+                        {/if}
+
+                        {if !empty($_slide.countdown_datetime)}
+                            <div class="s-counter">
+                                <span class="js-promo-countdown" data-start="{date('Y-m-d H:i:s')}" data-end="{$_slide.countdown_datetime}"></span>
+                            </div>
+                        {/if}
+
+                    </div>
+                    <a class="s-slide-link" href="{$_slide.link}"></a>
+                </li>
+            {/foreach}
+        </ul>
+
+    {* PRODUCTS *}
+    {elseif !empty($promoproducts)}
+
+        {if !empty($_is_products)}
+            <ul class="s-slider-block" id="js-home-slider">
+                {foreach $promoproducts as $product}
+                    {$_product_image_src = $wa->shop->productImgUrl($product, "0x320@2x")}
+                    {$_name = $product.name|escape}
+                    {if $product.summary}
+                        {$_name = "`$product.name` — {strip_tags($product.summary)|escape}"}
+                    {/if}
+
+                    <li class="s-slide-wrapper" itemscope itemtype="http://schema.org/Product">
+                        <div class="s-slide-block" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                            <h3 class="s-header" itemprop="name">{$product.name|escape}</h3>
+
+                            <div class="s-layout fixed is-adaptive">
+                                <div class="s-column">
+                                    {if $product.summary}
+                                        <p class="s-description" itemprop="description">
+                                            {strip_tags($product.summary)|truncate:255}
+                                        </p>
+                                    {/if}
+
+                                    {if !empty($product.price)}
+                                        <div class="s-price-wrapper">
+                                            {if $product.compare_price > 0}
+                                                <span class="s-compare-price compare-at-price nowrap">{shop_currency_html($product.compare_price)}</span>
+                                            {/if}
+                                            <span class="s-price price nowrap">{shop_currency_html($product.price)}</span>
+                                            <meta itemprop="price" content="{shop_currency($product.price, null, null, 0)}">
+                                            <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
+                                        </div>
+                                    {/if}
+
+                                    {if !empty($product.summary)}
+                                        <meta itemprop="description" content="{strip_tags($product.summary)}">
+                                    {/if}
+                                </div>
+                                <div class="s-column">
+
+                                    <div class="s-image-wrapper">
+                                        <img src="{$_product_image_src}" alt="">
+
+                                        {$badge_html = $wa->shop->badgeHtml($product.badge)}
+                                        {if !empty($badge_html)}
+                                            <div class="s-badge-wrapper">{$badge_html}</div>
+                                        {/if}
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <a class="s-slide-link" href="{$product.frontend_url}" title="{$_name}"></a>
+                    </li>
+                {/foreach}
+            </ul>
+
+        {* PRODUCTS WIDE *}
+        {elseif !empty($_is_products_wide)}
+
+            {$_slider_photos = $wa->shop->images( array_keys($promoproducts), "0x320@2x")}
+            {foreach $_slider_photos as $product_id => $_photos}
+                {$_slider_photos[$product_id] = end($_photos)}
+            {/foreach}
+
+            <ul class="s-slider-block" id="js-home-slider">
+                {foreach $promoproducts as $product}
+
+                    {$_product_image_src = $_slider_photos[$product.id]['url_'|cat:"0x320@2x"]}
+                    {*{$_product_image_src = $wa->shop->productImgUrl($product, "0x320@2x")}*}
+                    {$_name = $product.name|escape}
+                    {if $product.summary}
+                        {$_name = "`$product.name` — {strip_tags($product.summary)|escape}"}
+                    {/if}
+
+                    <li class="s-slide-wrapper" itemscope itemtype="http://schema.org/Product" style="background-image: url({$_product_image_src});">
+                        <div class="s-slide-block" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                            <h3 class="s-header" itemprop="name">{$product.name|escape}</h3>
+
+                            <div style="position: relative">
+                                {if $product.summary}
+                                    <p class="s-description" itemprop="description">
+                                        {strip_tags($product.summary)|truncate:255}
+                                    </p>
+                                {/if}
+
+                                {if !empty($product.price)}
+                                    <div class="s-price-wrapper">
+                                        {if $product.compare_price > 0}
+                                            <span class="s-compare-price compare-at-price nowrap">{shop_currency_html($product.compare_price)}</span>
+                                        {/if}
+                                        <span class="s-price price nowrap">{shop_currency_html($product.price)}</span>
+                                        <meta itemprop="price" content="{shop_currency($product.price, null, null, 0)}">
+                                        <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
+                                    </div>
+                                {/if}
+
+                                {if !empty($product.summary)}
+                                    <meta itemprop="description" content="{strip_tags($product.summary)}">
+                                {/if}
+
+                                {$badge_html = $wa->shop->badgeHtml($product.badge)}
+                                {if !empty($badge_html)}
+                                    <div class="s-badge-wrapper">{$badge_html}</div>
+                                {/if}
+                            </div>
+                        </div>
+
+                        <a class="s-slide-link" href="{$product.frontend_url}" title="{$_name}"></a>
+                    </li>
+                {/foreach}
+            </ul>
+        {/if}
+
+    {else}
+
+        <p class="hint align-center"><br><em>{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]', $theme_settings.homepagepromoproductset_promo|escape|default:'()' )}</em><br><br></p>
+    {/if}
+
+    <script>
+        ( function($) {
+            // DOM
+            var $slider = $("#js-home-slider");
+            if (!$slider.length) { return false; }
+
+            // VARS
+            var href = "{$wa_active_theme_url}plugins/bxslider/jquery.bxslider.js?v{$wa_theme_version}";
+
+            // INIT
+            initCountDown($slider);
+
+            (!$.fn.bxSlider) ? $.getScript(href, initSlider) : initSlider();
+
+            // FUNCTIONS
+
+            function initSlider() {
+                var slide_count = $slider.find("li").length;
+
+                $slider.bxSlider({
+                    auto : slide_count > 1,
+                    touchEnabled: true,
+                    pause : 5000,
+                    autoHover : true,
+                    pager: slide_count > 1
+                });
+            }
+
+            function initCountDown($wrapper) {
+                var $countdowns = $wrapper.find(".js-promo-countdown");
+                if ($countdowns.length) {
+                    $countdowns.each( function() {
+                        var $wrapper = $(this),
+                            options = {
+                                $wrapper: $wrapper,
+                                start: $wrapper.data('start').replace(/-/g, '/'),
+                                end: $wrapper.data('end').replace(/-/g, '/')
+                            };
+
+                        if (typeof CountDown === "function") {
+                            new CountDown(options);
+                        } else {
+                            $wrapper.remove();
+                        }
+                    });
+                }
+            }
+
+        })(jQuery);
+    </script>
+</section>

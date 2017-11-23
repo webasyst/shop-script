@@ -245,8 +245,6 @@ class shopPayment extends waAppPayment
      * @param waPayment|string|string[] $payment_plugin
      * @return waOrder
      * @throws waException
-     *
-     * @todo: $payment_plugin param
      */
     public static function getOrderData($order, $payment_plugin = null)
     {
@@ -274,11 +272,16 @@ class shopPayment extends waAppPayment
             $order_params_model = new shopOrderParamsModel();
             $order['params'] = $order_params_model->get($order['id']);
         }
-        $convert = false;
+
+        $options = array();
+        if ($payment_plugin && is_object($payment_plugin) && method_exists($payment_plugin, 'getProperties')) {
+            $options['discount'] = $payment_plugin->getProperties('discount');
+        }
+
         if ($payment_plugin && is_object($payment_plugin) && (method_exists($payment_plugin, 'allowedCurrency'))) {
             $allowed_currencies = $payment_plugin->allowedCurrency();
-            $total = $order['total'];
-            $currency_id = $order['currency'];
+            $options['total'] = $order['total'];
+            $options['currency'] = $order['currency'];
             if ($allowed_currencies !== true) {
                 $allowed_currencies = (array)$allowed_currencies;
 
@@ -298,14 +301,13 @@ class shopPayment extends waAppPayment
                         }
                         throw new waException(sprintf($message, implode(', ', $allowed_currencies)));
                     }
-
-                    $convert = true;
-                    $total = shop_currency($total, $order['currency'], $currency_id = reset($matched_currency), false);
+                    $options['currency'] = reset($matched_currency);
+                    $options['total'] = shop_currency($options['total'], $order['currency'], $options['currency'], false);
                 }
             }
         } elseif (is_array($payment_plugin) || is_string($payment_plugin)) {
-            $total = $order['total'];
-            $currency_id = $order['currency'];
+            $options['total'] = $order['total'];
+            $options['currency'] = $order['currency'];
 
             $allowed_currencies = (array)$payment_plugin;
             if (!in_array($order['currency'], $allowed_currencies)) {
@@ -319,85 +321,15 @@ class shopPayment extends waAppPayment
                     $message = _w('Data cannot be processed because required currency %s is not defined in your store settings.');
                     throw new waException(sprintf($message, implode(', ', $allowed_currencies)));
                 }
-                $convert = true;
-                $total = shop_currency($total, $order['currency'], $currency_id = reset($matched_currency), false);
+                $options['currency'] = reset($matched_currency);
+                $options['total'] = shop_currency($options['total'], $order['currency'], $options['currency'], false);
             }
         } else {
-            $currency_id = $order['currency'];
-            $total = $order['total'];
-        }
-        $items = array();
-        if (!empty($order['items'])) {
-            foreach ($order['items'] as $item) {
-
-                ifempty($item['price'], 0.0);
-                if ($convert) {
-                    $item['price'] = shop_currency($item['price'], $order['currency'], $currency_id, false);
-                }
-                $items[] = array(
-                    'id'             => ifset($item['id']),
-                    'name'           => ifset($item['name']),
-                    'sku'            => ifset($item['sku_code']),
-                    'description'    => '',
-                    'price'          => $item['price'],
-                    'quantity'       => ifset($item['quantity'], 0),
-                    'total'          => $item['price'] * $item['quantity'],
-                    'type'           => ifset($item['type'], 'product'),
-                    'product_id'     => ifset($item['product_id']),
-                    'total_discount' => ifset($item['total_discount']),
-                );
-                if (isset($item['weight'])) {
-                    $items[count($items) - 1]['weight'] = $item['weight'];
-                }
-            }
+            $options['currency'] = $order['currency'];
+            $options['total'] = $order['total'];
         }
 
-        $empty_address = array(
-            'firstname' => '',
-            'lastname'  => '',
-            'country'   => '',
-            'region'    => '',
-            'city'      => '',
-            'street'    => '',
-            'zip'       => '',
-        );
-
-        $shipping_address = array_merge($empty_address, shopHelper::getOrderAddress($order['params'], 'shipping'));
-        $billing_address = array_merge($empty_address, shopHelper::getOrderAddress($order['params'], 'billing'));
-        if (!count(array_filter($billing_address, 'strlen'))) {
-            $billing_address = $shipping_address;
-        }
-
-        ifset($order['shipping'], 0.0);
-        ifset($order['discount'], 0.0);
-        ifset($order['tax'], 0.0);
-        if ($convert) {
-            $order['tax'] = shop_currency($order['tax'], $order['currency'], $currency_id, false);
-            $order['shipping'] = shop_currency($order['shipping'], $order['currency'], $currency_id, false);
-            $order['discount'] = shop_currency($order['discount'], $order['currency'], $currency_id, false);
-        }
-        $order_data = array(
-            'id_str'           => ifempty($order['id_str'], $order['id']),
-            'id'               => $order['id'],
-            'contact_id'       => $order['contact_id'],
-            'datetime'         => ifempty($order['create_datetime']),
-            'description'      => sprintf(_w('Payment for order %s'), ifempty($order['id_str'], $order['id'])),
-            'update_datetime'  => ifempty($order['update_datetime']),
-            'paid_datetime'    => empty($order['paid_date']) ? null : ($order['paid_date'].' 00:00:00'),
-            'total'            => ifempty($total, $order['total']),
-            'currency'         => ifempty($currency_id, $order['currency']),
-            'discount'         => $order['discount'],
-            'tax'              => $order['tax'],
-            'payment_name'     => ifset($order['params']['payment_name'], ''),
-            'billing_address'  => $billing_address,
-            'shipping'         => $order['shipping'],
-            'shipping_name'    => ifset($order['params']['shipping_name'], ''),
-            'shipping_address' => $shipping_address,
-            'items'            => $items,
-            'comment'          => ifempty($order['comment'], ''),
-            'params'           => $order['params'],
-        );
-        return waOrder::factory($order_data);
+        return shopHelper::getWaOrder($order, $options);
     }
 
     public function getDataPath($order_id, $path = null)
@@ -425,6 +357,9 @@ class shopPayment extends waAppPayment
                     $info = self::pluginModel()->getByField($suggest);
                     $this->merchant_id = (int)$info['id'];
                 } elseif ($count && is_callable($merchant_key)) {
+                    /**
+                     * @var callable $merchant_key
+                     */
                     $matched = self::pluginModel()->getByField($suggest, true);
                     $info = null;
                     foreach ($matched as $_info) {
@@ -472,7 +407,6 @@ class shopPayment extends waAppPayment
 
     public function refund()
     {
-
         $result = null;
         if (false) {
             if (empty($params['payment_id'])) {
@@ -514,7 +448,6 @@ class shopPayment extends waAppPayment
 
     public function paymentForm()
     {
-        //TODO
         $success_back_url = wa()->getRouteUrl('shop/checkout/success', true);
         return compact('success_back_url');
     }
@@ -669,6 +602,7 @@ class shopPayment extends waAppPayment
 
             if (empty($transaction_data['customer_id']) && !empty($order['contact_id'])) {
                 $result['customer_id'] = $order['contact_id'];
+                $transaction_data['customer_id'] = $order['contact_id'];
             }
             if (empty($result['error'])) {
                 $callback->run($transaction_data);

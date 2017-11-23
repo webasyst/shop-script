@@ -30,6 +30,7 @@ class shopWorkflowCallbackAction extends shopWorkflowAction
             if (isset($params['id'])) {
                 $result['params']['payment_transaction_id'] = $params['id'];
             }
+            $result['callback_transaction_data'] = $params;
         }
 
         return $result;

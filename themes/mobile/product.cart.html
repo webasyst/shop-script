@@ -7,12 +7,12 @@
     {if $product.summary}
         <p>{$product.summary|truncate:512}</p>
     {/if}
-    
+
     {if $product.sku_type}
         <!-- SELECTABLE FEATURES selling mode -->
         {$default_sku_features = $product.sku_features}
         {$product_available = $product.status}
-        
+
         {if $theme_settings.selectable_features_control == 'inline'}
             <div class="options">
                 {foreach $features_selectable as $f}
@@ -31,7 +31,7 @@
                     </div>
 
                 {/foreach}
-            </div>        
+            </div>
         {else}
             <div class="options">
                 {foreach $features_selectable as $f}
@@ -44,14 +44,14 @@
                 {/foreach}
             </div>
         {/if}
-        
+
         <!-- list all SKUs for Schema.org markup -->
         {foreach $product.skus as $sku}
             <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
                 {$sku_available =  $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
                 {if $sku.name}<meta itemprop="name" content="{$sku.name|escape}">{/if}
-                <meta itemprop="price" content="{$sku.price}">
-                <meta itemprop="priceCurrency" content="{$product.currency}">
+                <meta itemprop="price" content="{shop_currency($sku.price, $product.currency)}">
+                <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
                 {if (!($sku.count === null) && $sku.count <= 0)}
                     <link itemprop="availability" href="http://schema.org/OutOfStock" />
                 {else}
@@ -59,7 +59,7 @@
                 {/if}
             </div>
         {/foreach}
-        
+
     {else}
 
         <!-- FLAT SKU LIST selling mode -->
@@ -72,8 +72,8 @@
                         <label{if !$sku.available} class="disabled"{/if}>
                         <input name="sku_id" type="radio" value="{$sku.id}"{if !$sku.available} disabled="true"{/if}{if !$sku_available}data-disabled="1"{/if}{if $sku.id == $product.sku_id} checked="checked"{/if} data-compare-price="{shop_currency($sku.compare_price, $product.currency, null, 0)}" data-price="{shop_currency($sku.price, $product.currency, null, 0)}"{if $sku.image_id} data-image-id="{$sku.image_id}"{/if}> <span itemprop="name">{$sku.name|escape}</span>
                         {if $sku.sku}<span class="hint">{$sku.sku|escape}</span>{/if}
-                        <meta itemprop="price" content="{$sku.price}">
-                        <meta itemprop="priceCurrency" content="{$product.currency}">
+                        <meta itemprop="price" content="{shop_currency($sku.price, $product.currency)}">
+                        <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
                         <span class="price tiny nowrap">{shop_currency_html($sku.price, $product.currency)}</span>
                         {if (!($sku.count === null) && $sku.count <= 0)}
                             <link itemprop="availability" href="http://schema.org/OutOfStock" />
@@ -87,14 +87,14 @@
             </div>
 
         {else}
-    
+
             {* in case there is only one SKU, don't display the selector *}
             <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
                 {$sku = $product.skus[$product.sku_id]}
                 {if $sku.sku}<span class="hint">{$sku.sku|escape}</span>{/if}
                 {if $sku.name}<meta itemprop="name" content="{$sku.name|escape}">{/if}
-                <meta itemprop="price" content="{$sku.price}">
-                <meta itemprop="priceCurrency" content="{$product.currency}">
+                <meta itemprop="price" content="{shop_currency($sku.price, $product.currency)}">
+                <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
                 {if !$sku.available}
                 <link itemprop="availability" href="http://schema.org/Discontinued" />
                 <p><em class="bold error">[`This product is not available for purchase`]</em></p>
@@ -107,7 +107,7 @@
                 <input name="sku_id" type="hidden" value="{$product.sku_id}">
                 {$product_available = $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
             </div>
-    
+
         {/if}
 
     {/if}
@@ -179,19 +179,28 @@
 
             <div class="add-form-wrapper">
 
-                <div class="quantity-wrapper">
-                    <div class="volume-buttons">
-                        <a class="general-button gray-button minus-link decrease-volume" href="javascript:void(0);">&minus;</a>
-                    </div>
-                    <input id="product-quantity-field" type="text" name="quantity" value="1" data-max-quantity="{$product.count}">
-                    <div class="volume-buttons">
-                        <a class="general-button gray-button plus-link increase-volume" href="javascript:void(0);">+</a>
-                    </div>
-                </div>
+                <div class="s-layout">
+                    <div class="s-column middle">
 
-                <div class="price-wrapper">
-                    {if $product.compare_price > 0}<span class="compare-at-price nowrap" data-compare-price="{shop_currency_html($product.compare_price, null, null, 0)}" > {shop_currency_html($product.compare_price)} </span>{/if}
-                    <span data-price="{shop_currency($product.price, null, null, 0)}" class="price nowrap">{shop_currency_html($product.price)}</span>
+                        <div class="quantity-wrapper">
+                            <div class="volume-buttons">
+                                <a class="general-button gray-button minus-link decrease-volume" href="javascript:void(0);">&minus;</a>
+                            </div>
+                            <input id="product-quantity-field" type="text" name="quantity" value="1" data-max-quantity="{$product.count}">
+                            <div class="volume-buttons">
+                                <a class="general-button gray-button plus-link increase-volume" href="javascript:void(0);">+</a>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="s-column middle right">
+
+                        <div class="price-wrapper">
+                            <div class="compare-at-price nowrap" data-compare-price="{shop_currency_html($product.compare_price, null, null, 0)}" style="{if !($product.compare_price > 0)}display: none;{/if}">{shop_currency_html($product.compare_price)}</div>
+                            <div data-price="{shop_currency($product.price, null, null, 0)}" class="price nowrap">{shop_currency_html($product.price)}</div>
+                        </div>
+
+                    </div>
                 </div>
 
                 <div class="submit-wrapper">
@@ -209,19 +218,22 @@
             <input type="hidden" name="product_id" value="{$product.id}">
         </div>
     </div>
-</form>
 
-<script type="text/javascript" src="{$wa_theme_url}product.js?v{$wa_theme_version}"></script>
-<script type="text/javascript">
-    $(function () {
-        new Product('#cart-form{if $wa->get('cart')}-dialog{/if}', {
-            currency: {json_encode($currency_info)}
-            {if count($product.skus) > 1 or $product.sku_type}
-            ,services: {json_encode($sku_services)}
-            {/if}
-            {if $product.sku_type}
-            ,features: {json_encode($sku_features_selectable)}
-            {/if}
-        });
-    });
-</script>
+    <script>
+        ( function($) {
+            var is_loaded = ( typeof Product == "function"),
+                js_href = "{$wa_theme_url}product.js?v{$wa_theme_version}";
+
+            (is_loaded) ? initProduct() : $.getScript(js_href, initProduct);
+
+            function initProduct() {
+                new Product({
+                    $form: $("#cart-form{if $wa->get('cart')}-dialog{/if}"),
+                    currency: {json_encode($currency_info)},
+                    services: {if count($product.skus) > 1 or $product.sku_type}{json_encode($sku_services)}{else}false{/if},
+                    features: {if $product.sku_type}{json_encode($sku_features_selectable)}{else}false{/if}
+                });
+            }
+        })(jQuery);
+    </script>
+</form>
