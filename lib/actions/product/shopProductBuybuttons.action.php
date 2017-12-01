@@ -54,6 +54,7 @@ class shopProductBuybuttonsAction extends waViewAction
                 $storefronts[] = array(
                     'static_url' => $static_url,
                     'root_url' => $root_url,
+                    'root_url_decoded' => waIdna::dec($root_url),
                     'product_url' => $product_url,
                     'controller_url' => $controller_url
                 );

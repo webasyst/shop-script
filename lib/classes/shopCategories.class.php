@@ -228,6 +228,13 @@ class shopCategories
             }
             unset($r);
             $categories[$category_id]['routes'] = $routes;
+
+            //convert punycode
+            if (is_array($routes)) {
+                foreach ($routes as $route) {
+                    $categories[$category_id]['routes_decoded'][] = waIdna::dec($route);
+                }
+            }
         }
 
         // form intermediate utility data structure

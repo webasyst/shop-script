@@ -21,7 +21,7 @@
                     {foreach $domain_routes as $route}
                         {$url = $domain|cat:"/":$route.url}
                         <label>
-                            <input {if in_array($url, $settings.routes)}checked{/if} {if !$settings.routes}disabled{/if} type="checkbox" name="routes[]" value="{$url}"> {$url}
+                            <input {if in_array($url, $settings.routes)}checked{/if} {if !$settings.routes}disabled{/if} type="checkbox" name="routes[]" value="{$url}"> {waIdna::dec($url)}
                         </label><br>
                     {/foreach}
                 {/foreach}

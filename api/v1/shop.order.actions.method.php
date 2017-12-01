@@ -2,6 +2,11 @@
 
 class shopOrderActionsMethod extends shopApiMethod
 {
+    /**
+     *  If color undefined, returns this color
+     */
+    const BASIC_COLOR = '#aaa';
+
     protected $method = 'GET';
     protected $courier_allowed = true;
 
@@ -43,6 +48,23 @@ class shopOrderActionsMethod extends shopApiMethod
         $result = array();
         foreach ($actions as $id => $a) {
             $type = 'button';
+
+            $b_class = $a->getOption('button_class');
+            $b_color = $a->getOption('border_color');
+            if (!empty($b_class)) {
+                $color = self::getHexColorCode($b_class);
+            } elseif (!empty($b_color)) {
+                $color = '#'.$b_color;
+            } else {
+                $color = self::BASIC_COLOR;
+            }
+
+            if ($id === "delete") {
+                $color = "#853133";
+            } elseif ($id === "process") {
+                $color = "#2e65c7";
+            }
+
             if ($a->getOption('top') || $a->getOption('position') == 'top') {
                 $type = 'link_top';
             } elseif ($a->getOption('position') == 'bottom') {
@@ -57,8 +79,31 @@ class shopOrderActionsMethod extends shopApiMethod
                 'is_custom'     => !$a->original,
                 'name'          => $a->getName(),
                 'data_required' => $id == 'edit' || !!$a->getHTML($order_id),
+                'color'         => $color,
             );
         }
         return $result;
+    }
+
+    /**
+     * Returns hex color code
+     * @param $b_class
+     * @return string
+     */
+    protected static function getHexColorCode($b_class)
+    {
+        $colors = array(
+            'green'  => '#6c3',
+            'yellow' => '#fdda3b',
+            'blue'   => '#09f',
+            'purple' => '#96a',
+            'red'    => '#f60',
+        );
+
+        if (isset($colors[$b_class])) {
+            return $colors[$b_class];
+        } else {
+            return self::BASIC_COLOR;
+        }
     }
 }

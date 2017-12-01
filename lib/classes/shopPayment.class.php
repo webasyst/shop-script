@@ -362,13 +362,15 @@ class shopPayment extends waAppPayment
                      */
                     $matched = self::pluginModel()->getByField($suggest, true);
                     $info = null;
+                    $max_match = 0;
                     foreach ($matched as $_info) {
                         $settings = $this->model()->get($_info['id']);
-                        if ($settings && call_user_func($merchant_key, $settings)) {
-                            if ($info) {
-                                throw new waException('Empty merchant id', 404);
+                        if ($settings) {
+                            $match = (int)call_user_func($merchant_key, $settings);
+                            if ($match > $max_match) {
+                                $info = $_info;
+                                $max_match = $match;
                             }
-                            $info = $_info;
                         }
                     }
                     if (!$info) {

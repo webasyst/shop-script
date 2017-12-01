@@ -83,6 +83,21 @@ class shopTransferActions extends waJsonActions
             }
         }
 
+        $spsm = new shopProductStocksModel();
+        $stocks_info = $spsm->getByField(array('stock_id' => $from, 'sku_id'=> $ids), true);
+
+        //Replace count
+        foreach ($stocks_info as $info) {
+            if (isset($items[$info['sku_id']]) && $info['count'] < $items[$info['sku_id']]['count']) {
+                $items[$info['sku_id']]['count'] = $info['count'];
+            }
+        }
+
+        //If count infinity
+        if(!$stocks_info) {
+            $from = null;
+        }
+
         $transfer_id = $this->getTransferModel()->send(
             array(
                 'string_id' => $string_id,
@@ -91,6 +106,7 @@ class shopTransferActions extends waJsonActions
             ),
             $items
         );
+
         return $transfer_id;
     }
 

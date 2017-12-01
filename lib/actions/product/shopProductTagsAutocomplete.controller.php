@@ -6,12 +6,19 @@ class shopProductTagsAutocompleteController extends waController
     {
         $limit = 10;
         $term = waRequest::get('term', '', waRequest::TYPE_STRING_TRIM);
+        $type = waRequest::get('type',null, waRequest::TYPE_STRING);
 
         $tag_model = new shopTagModel();
         $term = $tag_model->escape($term, 'like');
 
+        if ($type == 'search') {
+           $where =  "name LIKE '$term%' AND count > 0";
+        } else {
+            $where = "name LIKE '$term%'";
+        }
+
         $tags = array();
-        foreach ($tag_model->select('name')->where("name LIKE '$term%'")->limit($limit)->fetchAll() as $tag) {
+        foreach ($tag_model->select('name')->where($where)->limit($limit)->fetchAll() as $tag) {
             $tags[] = array(
                 'value' => $tag['name'],
                 'label' => htmlspecialchars($tag['name'])

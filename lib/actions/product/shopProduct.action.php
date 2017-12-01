@@ -151,6 +151,7 @@ class shopProductAction extends waViewAction
         foreach ($frontend_urls as &$frontend_url) {
             $pos = strrpos($frontend_url['url'], $stuff);
             $frontend_url['base'] = $pos !== false ? rtrim(substr($frontend_url['url'], 0, $pos), '/').'/' : $frontend_url['url'];
+            $frontend_url['url'] = waIdna::dec($frontend_url['url']);
         }
         unset($frontend_url);
 

@@ -64,6 +64,13 @@ class shopProductsAssignTagsController extends waJsonController
             }
         }
 
-        $this->response['cloud'] = $tag_model->getCloud('id');
+        if ($tag_model->countAll() > 100) {
+            $tags = 'search';
+        } elseif ($tag_model->countAll() > 1) {
+            $tags = $tag_model->getCloud('id');
+        } else {
+            $tags = null;
+        }
+        $this->response['cloud'] = $tags;
     }
 }

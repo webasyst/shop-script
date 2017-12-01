@@ -128,7 +128,11 @@ HTML;
         // Round to currency precision
         $discount = shop_currency($discount, $currency, $currency, false);
         // Round the discount if set up to do so
-        if ($discount && wa()->getEnv() == 'frontend' && waSystem::getSetting('round_discounts', '', 'shop') && $discount < ifset($order['total'], 0)) {
+        if ($discount
+            && (wa()->getEnv() == 'frontend')
+            && waSystem::getSetting('round_discounts', '', 'shop')
+            && ($discount < ifset($order['total'], 0))
+        ) {
             $rounded_discount = shopRounding::roundCurrency($discount, $currency, true);
             if ($rounded_discount != $discount) {
                 $discount = $rounded_discount;
@@ -247,7 +251,7 @@ HTML;
         }
         $cm = new shopCustomerModel();
         $customer = $cm->getById($contact->getId());
-        if ($customer && $customer['total_spent'] > 0) {
+        if ($customer && ($customer['total_spent'] > 0)) {
             $dbsm = new shopDiscountBySumModel();
             $percent = (float)$dbsm->getDiscount('customer_total', $customer['total_spent']);
 
@@ -487,6 +491,21 @@ HTML;
 
         if ($item['discount']) {
             $item['discount'] = min(max(0, $item['discount']), shop_currency($item['price'], $item['currency'], $currency, false) * $item['quantity']);
+            // round discount per one item
+            if ($item['quantity'] > 1) {
+                $round_discount =  $item['quantity'] * shop_currency($item['discount'] / $item['quantity'], $currency, $currency, false);
+                if (($round_discount != $item['discount']) && waSystemConfig::isDebug()) {
+                    $log = array(
+                        'name'     => $item['name'],
+                        'discount' => $item['discount'],
+                        'currency' => $currency,
+                        'price'    => $item['price'],
+                    );
+                    waLog::log(var_export($log, true), 'shop/discounts_per_item.rounding.log');
+                }
+                $item['discount'] = $round_discount;
+            }
+
             $order['items'][$item_id]['total_discount'] = $item['discount'];
             $total_items_discount += $item['discount'];
 

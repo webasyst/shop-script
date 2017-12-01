@@ -28,7 +28,7 @@ class shopProductPageEditAction extends waViewAction
         ), '/');
 
         $this->view->assign(array(
-            'url' => $url,
+            'url' => waIdna::dec($url),
             'preview_hash' => $this->getPreviewHash(),
             'page' => $page,
             'lang' => substr(wa()->getLocale(), 0, 2),

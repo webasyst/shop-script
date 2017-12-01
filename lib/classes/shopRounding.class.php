@@ -101,6 +101,9 @@ class shopRounding
             'compare_price'
         );
         foreach ($products as &$p) {
+            if (empty($p['currency'])) {
+                continue;
+            }
             if (!isset($p['unconverted_currency'])) {
                 $p['unconverted_currency'] = $p['currency'];
                 if (!empty($curs[$frontend_currency]['rounding'])) {

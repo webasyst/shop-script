@@ -48,6 +48,7 @@
             $.product_sidebar.init();
             $.categories_tree.init();
             this.initCollapsible();
+            this.tagsHandler();
         },
 
         data: {
@@ -377,6 +378,18 @@
                     $.products.afterServicesAction();
                 }
             });
+        },
+
+        tagsHandler:function () {
+                $('#s-products-all-tags').autocomplete({
+                    source: '?module=product&action=tagsAutocomplete&type=search',
+                    minLength: 1,
+                    delay: 300,
+                    select: function(event, ui) {
+                        $.wa.setHash('#/products/tag=' + ui.item.value);
+                        return false;
+                    }
+                });
         },
 
         initCollapsible: function () {

@@ -98,6 +98,7 @@ $(function() {
     // Initialize the jQuery File Upload widget:
     fileupload.fileupload({
         acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
+        sequentialUploads: true,
         onDone: function(data) {
             var counter = $('#s-product-edit-menu .images .hint');
             var cnt = parseInt(counter.text(), 10) || 0;

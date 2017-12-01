@@ -177,6 +177,15 @@ class shopFrontendProductAction extends shopFrontendAction
         wa('shop')->event('frontend_products', $event_params);
         $product['skus'] = $skus;
 
+        $public_stocks = waRequest::param('public_stocks') ;
+
+        if (!empty($public_stocks)) {
+            $count = $this->countOfSelectedStocks($public_stocks, $product->skus);
+            if ($count === 0) {
+                $product->status = 0;
+            }
+        }
+
         $this->view->assign('product', $product);
 
         if ($product->sku_type == shopProductModel::SKU_TYPE_SELECTABLE) {
@@ -332,6 +341,28 @@ class shopFrontendProductAction extends shopFrontendAction
             $q = waRequest::server('QUERY_STRING');
             $this->redirect('/'.$canonical_url.($q ? '?'.$q : ''), 301);
         }
+    }
+
+    /**
+     * @param $public_stocks
+     * @param $skus
+     * @return int|null
+     */
+    protected function countOfSelectedStocks($public_stocks, $skus)
+    {
+        $count = null;
+        foreach ($skus as $sku) {
+            foreach ($sku['stock'] as $key => $count_stock) {
+                if (in_array($key, $public_stocks)) {
+                    if ($count_stock === null) {
+                        return null;
+                    }
+                    $count += $count_stock;
+                }
+            }
+        }
+
+        return $count;
     }
 
     protected function getServiceVars($product)

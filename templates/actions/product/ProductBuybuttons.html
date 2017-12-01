@@ -10,7 +10,7 @@
                     <div class="value no-shift">
                         <select name="storefront" class="s-embed-param">
                             {foreach $storefronts as $storefront}
-                                <option value="{$storefront.controller_url}" data-url="{$storefront.product_url}" data-static-url="{$storefront.static_url}">{$storefront.root_url}</option>
+                                <option value="{$storefront.controller_url}" data-url="{$storefront.product_url}" data-static-url="{$storefront.static_url}">{$storefront.root_url_decoded}</option>
                             {/foreach}
                         </select>
                     </div>

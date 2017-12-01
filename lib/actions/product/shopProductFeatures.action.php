@@ -77,7 +77,13 @@ class shopProductFeaturesAction extends waViewAction
             }
 
             # fill selectable features' values
-            $features = $model->getValues($selectable_features) + $features;
+            $selectable_features = $model->getValues($selectable_features);
+            foreach ($features as $code => &$feature) {
+                if (isset($selectable_features[$code])) {
+                    $feature = $selectable_features[$code];
+                }
+                unset($feature);
+            }
 
             $this->view->assign('features', $features);
         }

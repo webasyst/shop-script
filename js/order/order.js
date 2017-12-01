@@ -343,7 +343,7 @@
                     dynamic_block_top = Math.floor( $block.offset().top ),
                     direction = ( scroll_value > scroll_top ) ? 1 : -1,
                     delta = scroll_top - block_top,
-                    min_width = 760;
+                    min_width = 0;
 
                 block_width = $block.width();
 
@@ -360,7 +360,7 @@
                 } else {
 
                     // wait while loading new content and increase height
-                    if ( wrapper_height <= block_height ) {
+                    if (!is_fixed_to_bottom && wrapper_height <= block_height ) {
                         return false;
                     }
 

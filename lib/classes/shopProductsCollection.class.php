@@ -325,9 +325,9 @@ class shopProductsCollection
 
                         $this->where[] = <<<SQL
 EXISTS (
-  SELECT 
-    1 
-  FROM shop_product_features {$t} 
+  SELECT
+    1
+  FROM shop_product_features {$t}
   WHERE
     p.id = {$t}.product_id
     AND
@@ -1006,6 +1006,10 @@ SQL;
             $fields = array_map('trim', $fields);
         }
 
+        if (false !== strpos(join('', $fields), 'price')) {
+            $fields[] = 'currency'; // required for proper rounding and convertion
+        }
+
         $virtual_fields = array('images', 'images2x', 'image', 'sku', 'skus', 'frontend_url', 'image_count', 'sales_30days', 'image_crop_small', 'stock_worth', 'stock_counts');
         // Add required fields to select and delete fields for getting data after query
         foreach ($fields as $i => $f) {
@@ -1442,7 +1446,6 @@ SQL;
                     $p[$field] = (float)$p[$field];
                 }
             }
-
             if (isset($p['total_sales'])) {
                 $p['total_sales_html'] = '';
                 if (!empty($p['total_sales'])) {
@@ -1805,6 +1808,39 @@ SQL;
         }
 
         if ($this->is_frontend) {
+
+            // When storefront is only limited to certain stock, recalculate product counts
+            $public_stocks = waRequest::param('public_stocks');
+            if (!empty($public_stocks)) {
+
+                // List of all stocks
+                $stock_model = new shopStockModel();
+                $stocks = $stock_model->getAll('id');
+
+                // For each product make a list of stock counts
+                // product_id => sku_id => stock_id => count
+                $stock_counts = array();
+                $spsm = new shopProductStocksModel();
+                $rows = $spsm->getByField(array(
+                    'product_id' => array_keys($products),
+                ), true);
+                foreach($rows as $row) {
+                    $stock_counts[$row['product_id']][$row['sku_id']][$row['stock_id']] = $row['count'];
+                }
+
+                // When there is no record in shopProductStocksModel for a sku_id+stock_id combination,
+                // but there is at least one record for this product_id it means infinite supply
+                // of this sku_id on this stock.
+                // We take these infinite counts into account by adding NULLs to $stock_counts.
+                $empty_stocks = array_fill_keys(array_keys($stocks), null);
+                foreach($stock_counts as &$p) {
+                    foreach($p as &$s) {
+                        $s += $empty_stocks;
+                    }
+                }
+                unset($p, $s);
+            }
+
             foreach ($products as $p_id => $p) {
                 if (isset($p['price'])) {
                     $products[$p_id]['original_price'] = $p['price'];
@@ -1812,12 +1848,43 @@ SQL;
                 if (isset($p['compare_price'])) {
                     $products[$p_id]['original_compare_price'] = $p['compare_price'];
                 }
+
+                // For each product calculate counts with respect to $public_stocks visible in current storefront.
+                if (!empty($public_stocks)) {
+                    //$products[$p_id]['count_by_stock'] = ifempty($stock_counts[$p_id]); // debugging helper
+                    $products[$p_id]['count'] = $this->countOfSelectedStocks($public_stocks, ifempty($stock_counts[$p_id]));
+                }
             }
+
             $event_params = array(
                 'products' => &$products
             );
             wa('shop')->event('frontend_products', $event_params);
         }
+    }
+
+    /**
+     * Count product supply taking into account stocks visible in current storefront.
+     * @param $public_stocks
+     * @param $product_stock_counts
+     * @return int|null
+     */
+    protected function countOfSelectedStocks($public_stocks, $product_stock_counts)
+    {
+        $count = null;
+        if ($product_stock_counts) {
+            foreach ($product_stock_counts as $sku_id => $stocks) {
+                foreach($stocks as $stock_id => $c) {
+                    if (in_array($stock_id, $public_stocks)) {
+                        if ($c === null) {
+                            return null;
+                        }
+                        $count += $c;
+                    }
+                }
+            }
+        }
+        return $count;
     }
 
     /**

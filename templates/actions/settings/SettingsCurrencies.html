@@ -41,7 +41,7 @@
                                         <div class="rounding" style="display: none">
                                             <select name="rounding[{$currency.code}]">
                                                 {foreach $rounding_options as $o_value => $o_label}
-                                                    <option value="{$o_value|escape}"{if ifempty($currency.rounding) == $o_value} selected{/if}>{$o_label|escape}</option>
+                                                    <option value="{$o_value|escape}"{if empty($o_value) && !empty($currency.precision)} disabled{elseif ifempty($currency.rounding) == $o_value} selected{/if}>{$o_label|escape}</option>
                                                 {/foreach}
                                             </select>
                                             <input type="hidden" name="round_up_only[{$currency.code}]" value="">
@@ -78,7 +78,13 @@
                                     <div class="rounding">
                                         <select name="rounding[{%#o.code%}]">
                                             {/literal}{foreach $rounding_options as $o_value => $o_label}
-                                                <option value="{$o_value|escape}"{if !$o_value} selected{/if}>{$o_label|escape}</option>
+                                                <option value="{$o_value|escape}"
+                                                        {if empty($o_value)}{literal}
+                                                            {% if(o.precision){ %} disabled {% } %}
+                                                        {/literal}{else}{literal}
+                                                            {% if(o.precision='{/literal}{$o_value}{literal}'){ %} selected {% } %}
+                                                        {/literal}{/if}
+                                                >{$o_label|escape}</option>
                                             {/foreach}{literal}
                                         </select>
 
@@ -107,6 +113,8 @@
                             </tr>
                             {/if}
                         </table>
+                        <p class="hint">[`Maximum available rounding precision is to nearest 0.01.`]<br>
+                        [`“Not round” option is not available by default, unless enabled in user configuration.`]</p>
                     </div>
                 </div>
               </div>

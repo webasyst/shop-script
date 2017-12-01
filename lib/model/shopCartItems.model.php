@@ -242,6 +242,8 @@ SQL;
         $sql = "SELECT * FROM ".$this->table." WHERE code = s:0 ORDER BY parent_id";
         $items = $this->query($sql, $code)->fetchAll('id');
 
+        $obsolete = array();
+
         if ($full_info) {
             $rounding_enabled = shopRounding::isEnabled();
             $round_services = wa()->getSetting('round_services');
@@ -280,7 +282,7 @@ SQL;
 
             $event_params = array(
                 'products' => &$products,
-                'skus' => &$skus
+                'skus'     => &$skus,
             );
             wa('shop')->event('frontend_products', $event_params);
 
@@ -315,7 +317,10 @@ SQL;
 
             $image_model = null;
             foreach ($items as $item_key => &$item) {
-                if ($item['type'] == 'product' && isset($products[$item['product_id']])) {
+                if (($item['type'] == 'product')
+                    && isset($products[$item['product_id']])
+                    && isset($skus[$item['sku_id']])
+                ) {
                     $item['product'] = $products[$item['product_id']];
                     if (!isset($skus[$item['sku_id']])) {
                         unset($items[$item_key]);
@@ -349,7 +354,11 @@ SQL;
                     if (!empty($item['product']['unconverted_currency']) && $item['product']['currency'] != $item['product']['unconverted_currency']) {
                         $item['purchase_price'] = shop_currency($item['purchase_price'], $item['product']['unconverted_currency'], $item['product']['currency'], false);
                     }
-                } elseif ($item['type'] == 'service' && isset($services[$item['service_id']])) {
+                } elseif (($item['type'] == 'service')
+                    && isset($services[$item['service_id']])
+                    && isset($items[$item['parent_id']])
+                    && isset($products[$items[$item['parent_id']]['product_id']])
+                ) {
                     $item['name'] = $item['service_name'] = $services[$item['service_id']]['name'];
                     $item['currency'] = $services[$item['service_id']]['currency'];
                     $item['service'] = $services[$item['service_id']];
@@ -373,6 +382,10 @@ SQL;
                         $item['price'] = shop_currency($item['price'] * $p['price'] / 100, $p['currency'], $p['currency'], false);
                         $item['currency'] = $p['currency'];
                     }
+                } else {
+                    $obsolete[] = $item_key;
+                    unset($items[$item_key]);
+                    continue;
                 }
 
                 if ($round_services && ($item['type'] == 'service')) {
@@ -380,6 +393,16 @@ SQL;
                 }
             }
             unset($item);
+        }
+
+        // delete outdated cart items
+        if ($obsolete) {
+            $this->deleteByField(
+                array(
+                    'code' => $code,
+                    'id'   => $obsolete,
+                )
+            );
         }
 
         // sort

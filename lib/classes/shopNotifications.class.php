@@ -434,6 +434,10 @@ SQL;
         $order_id = $data['order']['id'];
         $data['order']['id'] = shopHelper::encodeOrderId($order_id);
 
+        if (!empty($data['order']['params']['storefront'])) {
+            $idna = new waIdna();
+            $data['order']['params']['storefront_decoded'] = $idna->decode($data['order']['params']['storefront']);
+        }
 
         $view = wa()->getView();
         $view->assign($data);
@@ -525,6 +529,11 @@ SQL;
         }
         $order_id = $data['order']['id'];
         $data['order']['id'] = shopHelper::encodeOrderId($order_id);
+
+        if (!empty($data['order']['params']['storefront'])) {
+            $idna = new waIdna();
+            $data['order']['params']['storefront_decode'] = $idna->decode($data['order']['params']['storefront']);
+        }
 
         $view = wa()->getView();
         $view->assign($data);

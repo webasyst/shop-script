@@ -314,7 +314,7 @@
                 {foreach $storefront_rule_groups as $row}
                     <tr class="s-stock-rule disabled">
                         <td class="min-width"></td>
-                        <td>[`Storefront`] {$row.storefront|escape}</td>
+                        <td>[`Storefront`] {waIdna::dec($row.storefront)|escape}</td>
                         <td class="min-width"><i class="icon16 move"></i></td>
                         <td>{$row.stock_name|escape}</td>
                         <td class="min-width"></td>

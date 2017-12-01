@@ -1526,7 +1526,9 @@
                             // assignTags
                             var data = self.serializeArray().concat(products.serialized);
                             $.shop.jsonPost(url, data, function (r) {
-                                if (r.data.cloud) {
+                                if (r.data.cloud = 'search') {
+                                    d.trigger('close');
+                                } else if(r.data.cloud) {
                                     $('#s-tag-cloud').trigger('update', [r.data.cloud]);
                                 }
                                 d.trigger('close');

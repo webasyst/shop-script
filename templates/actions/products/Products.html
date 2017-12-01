@@ -189,7 +189,7 @@
                                 {else}
                                     [`custom`]
                                 {/if}
-                                {$with_icon = false}
+                                {$with_icon = false}/
                             {/if}
                         </i></b></a>
                         {if $with_icon}
@@ -260,7 +260,7 @@
             {if !empty($info.frontend_urls)}
                 [`Public link`]:
                 {foreach $info.frontend_urls as $frontend_url}
-                    <a id="s-category-frontend-link" href="{$frontend_url}" target="_blank">{$frontend_url}</a><br>
+                    <a id="s-category-frontend-link" href="{$frontend_url}" target="_blank">{waIdna::dec($frontend_url)}</a><br>
                 {/foreach}
             {elseif $info.hash == 'set'}
                 <span class="s-embed">

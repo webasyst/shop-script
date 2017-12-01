@@ -56,11 +56,16 @@ class shopProductSkuSettingsAction extends waViewAction
                     $features[$f['code']] = $f;
                 }
             }
-
         }
 
         // attach values
-        $features = $features_model->getValues($selectable_features) + $features;
+        $selectable_features = $features_model->getValues($selectable_features);
+        foreach ($features as $code => &$feature) {
+            if (isset($selectable_features[$code])) {
+                $feature = $selectable_features[$code];
+            }
+            unset($feature);
+        }
 
         return $features;
     }

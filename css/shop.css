@@ -151,6 +151,7 @@ ul.menu-v.stack.drop-target.drag-active { padding: 0; border-left: 0; border-rig
 .s-plus-minus { display: inline-block !important; font-family: monospace; font-size: 0.9em; line-height: 1.2em; margin-bottom: -0.3em; text-align: right; vertical-align: -0.4em; }
 
 ul.tags { list-style-type: none; margin: 0; padding: 0; }
+ul.tags a { display: inline-block; }
 
 .s-ibutton-checkbox ul.menu-h li { padding: 1px 0 10px; vertical-align: middle;}
 

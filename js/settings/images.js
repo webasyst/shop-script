@@ -29,11 +29,14 @@ if (typeof($) != 'undefined') {
                     var parent = self.parents('.s-size-set:first');
                     var prev = parent.find('input:radio:checked');
 
+                    //Do not handle the same input
+                if (target.val() != prev.val()) {
                     prev.nextAll().filter('span.star').show().end().filter('input').hide().attr('disabled', true);
                     prev.attr('checked', false);
 
                     target.nextAll().filter('span.star').hide().end().filter('input').show().attr('disabled', false);
                     target.attr('checked', true);
+                }
 
                     return false;
                 }

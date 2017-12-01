@@ -16,11 +16,11 @@
                 {if $frontend_url@first}
                     {strip}
                         <span class="s-frontend-base-url" style="display:none;">
-                            {$frontend_url.base}
+                            {waIdna::dec($frontend_url.base)}
                         </span>
                         <a href="{$frontend_url.url}" class="s-frontend-base-url" target="_blank">
-                            {$frontend_url.base}
-                            <span id="s-settings-frontend-url">{$settings.url}</span>
+                            {waIdna::dec($frontend_url.base)}
+                            <span id="s-settings-frontend-url">{waIdna::dec($settings.url)}</span>
                             <span class="slash"></span>
                         </a>
                     {/strip}
@@ -28,7 +28,7 @@
                     <a href="javascript:void(0);" class="small gray inline-link" id="s-settings-frontend-url-edit-link"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
                     <em class="errormsg"></em>
                 {else}
-                    <a href="{$frontend_url.url}" target="_blank">{$frontend_url.url}</a>
+                    <a href="{$frontend_url.url}" target="_blank">{waIdna::dec($frontend_url.url)}</a>
                 {/if}
             </div>
         {/foreach}

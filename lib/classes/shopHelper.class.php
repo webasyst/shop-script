@@ -983,6 +983,7 @@ SQL;
     public static function getStorefronts($verbose = false)
     {
         $storefronts = array();
+        $idna = new waIdna();
         foreach (wa()->getRouting()->getByApp('shop') as $domain => $domain_routes) {
             foreach ($domain_routes as $route) {
                 $url = rtrim($domain.'/'.$route['url'], '/*');
@@ -991,9 +992,10 @@ SQL;
                 }
                 if ($verbose) {
                     $storefronts[] = array(
-                        'domain' => $domain,
-                        'route'  => $route,
-                        'url'    => $url,
+                        'domain'      => $domain,
+                        'route'       => $route,
+                        'url'         => $url,
+                        'url_decoded' => $idna->decode($url),
                     );
                 } else {
                     $storefronts[] = $url;
@@ -1249,6 +1251,7 @@ SQL;
                 'name'           => ifset($item['name']),
                 'sku'            => ifset($item['sku_code']),
                 'tax_rate'       => ifset($item['tax_percent']),
+                'tax_included'   => ifset($item['tax_included'], 1),
                 'description'    => '',
                 'price'          => (float)$item['price'],
                 'quantity'       => (int)ifset($item['quantity'], 0),
@@ -1343,7 +1346,7 @@ SQL;
 
             foreach ($order['items'] as $item_id => &$item) {
                 if (isset($item['total_discount'])) {
-                    $items_total_discount += $item['total_discount'];
+                    $items_total_discount += self::workupValue($item['total_discount'], 'price', $order['currency'], $order['currency']);
                 }
                 $map[$item_id] = $item['price'];
                 $items_total += $item['price'] * $item['quantity'];
@@ -1353,10 +1356,20 @@ SQL;
             asort($map, SORT_NUMERIC);
 
             #correct items prices & discount
+            $order['discount'] = self::workupValue($order['discount'], 'price', $order['currency'], $order['currency']);
+            $items_total_discount = self::workupValue($items_total_discount, 'price', $order['currency'], $order['currency']);
             if ($order['discount'] != $items_total_discount) {
                 $discount = $order['discount'];// - $items_total_discount;
                 $discount_rate = min(1.0, ($discount / $items_total));
                 $n = count($order['items']);
+
+                $_delta = $order['discount'] - $items_total_discount;
+                if (waSystemConfig::isDebug()) {
+                    $order_discount = $order['discount'];
+                    $id = ifset($order['id'], '-');
+                    $_debug = compact('id', 'items_total_discount', 'order_discount', '_delta');
+                    waLog::log(var_export($_debug, true), 'shop/round_discount.error.log');
+                }
 
                 foreach ($map as $item_id => $_price) {
                     $item = &$order['items'][$item_id];
@@ -1411,41 +1424,45 @@ SQL;
 
         $order_data = array(
             #common data
-            'id_str'           => ifempty($order['id_str'], $order['id']),
-            'id'               => $order['id'],
+            'id_str'                => ifempty($order['id_str'], $order['id']),
+            'id'                    => $order['id'],
 
             #dates
-            'datetime'         => ifempty($order['create_datetime']),
-            'update_datetime'  => ifempty($order['update_datetime']),
-            'paid_datetime'    => empty($order['paid_date']) ? null : ($order['paid_date'].' 00:00:00'),
+            'datetime'              => ifempty($order['create_datetime']),
+            'update_datetime'       => ifempty($order['update_datetime']),
+            'paid_datetime'         => empty($order['paid_date']) ? null : ($order['paid_date'].' 00:00:00'),
 
             #contact data
-            'contact_id'       => $order['contact_id'],
+            'contact_id'            => $order['contact_id'],
 
             #finance data
-            'currency'         => $options['currency'],
-            'total'            => self::workupValue($order['total'], 'price', $options['currency'], $order['currency']),
-            'discount'         => self::workupValue($order['discount'], 'price', $options['currency'], $order['currency']),
-            'tax'              => self::workupValue($order['tax'], 'price', $options['currency'], $order['currency']),
-            'shipping'         => self::workupValue($order['shipping'], 'price', $options['currency'], $order['currency']),
+            'currency'              => $options['currency'],
+            'total'                 => self::workupValue($order['total'], 'price', $options['currency'], $order['currency']),
+            'discount'              => self::workupValue($order['discount'], 'price', $options['currency'], $order['currency']),
+            'tax'                   => self::workupValue($order['tax'], 'price', $options['currency'], $order['currency']),
+            'shipping'              => self::workupValue($order['shipping'], 'price', $options['currency'], $order['currency']),
 
             #billing data
-            'payment_name'     => ifset($order['params']['payment_name'], ''),
-            'billing_address'  => $billing_address,
+            'payment_name'          => ifset($order['params']['payment_name'], ''),
+            'billing_address'       => $billing_address,
 
             #shipping data
-            'shipping_name'    => ifset($order['params']['shipping_name'], ''),
-            'shipping_address' => $shipping_address,
+            'shipping_name'         => ifset($order['params']['shipping_name'], ''),
+            'shipping_address'      => $shipping_address,
+
+            #shipping tax data
+            'shipping_tax_rate'     => ifset($order['params']['shipping_tax_percent']),
+            'shipping_tax_included' => ifset($order['params']['shipping_tax_included'], true),
 
             #content data
-            'items'            => self::workupOrderItems($order['items'], $item_options + $options),
+            'items'                 => self::workupOrderItems($order['items'], $item_options + $options),
 
             #describe it
-            'comment'          => ifempty($order['comment'], ''),
-            'description'      => sprintf(_w('Payment for order %s'), ifempty($order['id_str'], $order['id'])),
+            'comment'               => ifempty($order['comment'], ''),
+            'description'           => sprintf(_w('Payment for order %s'), ifempty($order['id_str'], $order['id'])),
 
             #extra data
-            'params'           => ifempty($order['params'], array()),
+            'params'                => ifempty($order['params'], array()),
         );
 
         if (!empty($options['weight'])) {

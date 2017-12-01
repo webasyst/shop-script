@@ -290,7 +290,7 @@ class shopProductSaveController extends waJsonController
                     $frontend_url = $routing->getUrl('/frontend/product', $url_params, true);
                     $pos = strrpos($frontend_url, $product->url);
                     $frontend_urls[] = array(
-                        'url'  => $frontend_url,
+                        'url'  => waIdna::dec($frontend_url),
                         'base' => $pos !== false ? rtrim(substr($frontend_url, 0, $pos), '/').'/' : $frontend_url
                     );
                 }

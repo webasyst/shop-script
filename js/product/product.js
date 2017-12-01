@@ -51,6 +51,7 @@ editClick:(function ($) {
          */
         init: function (options, tab) {
             this.setOptions(options, tab);
+            this.deleteDivider();
         },
 
         setOptions: function (options, tab) {
@@ -72,6 +73,13 @@ editClick:(function ($) {
             }
         },
 
+        deleteDivider: function() {
+            $('.js-delete-divider').click(function () {
+                $(this).parent().find('input').val('');
+                $(this).parent().hide();
+                $('#s-product-save-button').removeClass('green').addClass('yellow');
+            })
+        },
         /**
          * @param {String} path
          * @return {{id:number,mode:string,tab:string,tail:string,raw:string,params:{}}}

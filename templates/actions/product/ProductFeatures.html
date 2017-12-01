@@ -103,7 +103,6 @@
                 {else}
                     <div class="value">
                 {*$feature.selectable*}
-
                     {if (strpos($feature.type,'2d') === 0) || (strpos($feature.type,'3d') === 0)}
                         {$type = substr($feature.type,3)}
                         {if strpos($type,'dimension') === 0}
@@ -214,6 +213,11 @@
                     {/if}
                     </div>
                 {/if}
+            {if $feature.type eq 'divider' && empty($feature.internal)}
+                <a class="inline-link js-delete-divider" style="float:right;" href="javascript:void(0);">
+                <i class="icon10 delete"></i>
+                <b><i>удалить</i></b>
+            </a>{/if}
         </div>
     {/if}
     {foreachelse}

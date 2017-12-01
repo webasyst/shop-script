@@ -101,7 +101,7 @@
                         '%; opacity: ' + tag.opacity +
                         '"  data-id="' + tag.id +
                         '"  class="s-product-list">' + tag.name +
-                        '</a>';
+                        '</a> ';
                 }
                 html += '</li></ul>';
                 $('#s-tag-cloud').html(html).parents('.block:first').show();

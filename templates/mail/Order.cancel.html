@@ -116,7 +116,7 @@ border-collapse:collapse
                 margin: 20px 0 0;
                 ">
                             &copy;&nbsp;{date("Y")}&nbsp;{$wa->shop->settings("name")}<br>
-                            <a href="http://{$order.params.storefront}" target="_blank">{$order.params.storefront}</a>
+                            <a href="http://{$order.params.storefront_decoded}" target="_blank">{$order.params.storefront_decoded}</a>
                         </p>
                     </td>
                 </tr>

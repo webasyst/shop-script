@@ -55,6 +55,7 @@ class shopPromosActions extends waViewActions
         $counts = $promo_routes_model->getStorefrontCounts();
         foreach ($storefronts as &$s) {
             $s['count'] = ifset($counts[$s['storefront']], 0);
+            $s['name'] = waIdna::dec($s['name']);
             unset($counts[$s['storefront']]);
         }
         foreach ($counts as $d => $count) {

@@ -26,6 +26,7 @@
                             </div>
                             <div class="value no-shift">
                                 <ul class="thumbs li150px s-list-type-selector">
+                                    {if ifset($parent.type, 0) != 1}
                                     <li style="margin-bottom: 0;">
                                         <label>
                                             <input id="s-type-static" type="radio" name="type" value="0" checked="checked">
@@ -35,9 +36,10 @@
                                             <span class="hint">{$static_type_text}</span>
                                         </label>
                                     </li>
+                                    {/if}
                                     <li style="margin-bottom: 0;">
                                         <label>
-                                            <input id="s-type-dynamic" type="radio" name="type" value="1">
+                                            <input id="s-type-dynamic" type="radio" name="type" value="1" {if ifset($parent.type, 0) == 1}checked="checked"{/if}>
                                             <strong>[`Filter`]</strong>
                                             <i class="icon16 funnel"></i>
                                             <br><br>
@@ -48,7 +50,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="field-group" id="s-dynamic-field-group" style="display:none;">
+                    <div class="field-group" id="s-dynamic-field-group" {if ifset($parent.type, 0) != 1}style="display:none;"{/if}>
                         {$smarty.capture.dynamic_settings}
                     </div>
                     {$smarty.capture.description}

@@ -256,7 +256,7 @@
             <select id="order-storefront" name="storefront">
                 <option value="">[`Manual order`]</option>
                 {foreach $storefronts as $storefront}
-                    <option value="{$storefront}"{if $storefront == $order_storefront} selected{/if}>{$storefront}</option>
+                    <option value="{$storefront['url']}"{if $storefront['url'] == $order_storefront} selected{/if}>{$storefront['url_decoded']}</option>
                 {/foreach}
             </select>
         </div>

@@ -24,7 +24,13 @@ class shopProductsSaveListSettingsController extends waJsonController
             return;
         }
 
+        $scm = new shopCategoryModel();
         $data = $this->getData($hash[0]);
+        $parent = $scm->getById($data['parent_id']);
+        if($parent && $parent['type'] == shopCategoryModel::TYPE_DYNAMIC && $data['type'] == shopCategoryModel::TYPE_STATIC) {
+            throw new waException('You can not create a static category in a dynamic category.');
+        }
+
         $id = $this->saveSettings($hash, $data);
 
         if ($id) {

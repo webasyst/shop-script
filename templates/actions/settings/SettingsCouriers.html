@@ -74,7 +74,7 @@
                     {foreach $courier.storefronts as $url => $enabled}
                         <div class="value hide-when-all-storefronts" style="padding-left:1em;"><label>
                             <input type="checkbox" name="storefronts[]" value="{$url|escape}"{if $enabled || $courier.all_storefronts} checked{/if}>
-                            {$url|escape}
+                            {waIdna::dec($url)|escape}
                         </label></div>
                     {/foreach}
                     <div class="value"><span class="hint">[`This courier assignment will be available for orders placed on selected storefronts only.`]</span></div>

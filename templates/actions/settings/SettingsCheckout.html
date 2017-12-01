@@ -235,7 +235,7 @@
             {$is_allowed = $web_push->isAllowed()}
             <form id="s-checkout-web-push-form" method="post" action="?module=settingsCheckoutSave&action=webpush">
                 <div class="field">
-                    <div class="name">{$domain}</div>
+                    <div class="name">{waIdna::dec($domain)}</div>
 
                     <div class="value s-ibutton-checkbox no-shift">
 

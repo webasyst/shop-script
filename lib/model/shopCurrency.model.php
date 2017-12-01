@@ -174,7 +174,7 @@ class shopCurrencyModel extends waModel
             'code'       => $code,
             'convert_to' => $convert_to,
         );
-        wa()->event('currency_delete', $params);
+        wa('shop')->event('currency_delete', $params);
         $this->deleteCache();
         return $this->deleteById($code);
     }
@@ -250,6 +250,21 @@ class shopCurrencyModel extends waModel
             wa('shop')->getConfig()->setCurrency($new_code);
             $this->primary_currency = $new_code;
             $this->deleteCache();
+
+            /**
+             * @event currency_primary
+             * @param string [string]mixed $params
+             * @param string [string]string $params['code'] New primary currency code
+             * @param string [string]string $params['old_code'] Currency code used to be primary
+             * @param string [string]string $params['old_rate'] New primary currency rate relative to the old one
+             * @return void
+             */
+            $params = array(
+                'old_code'   => $old_code,
+                'code'       => $new_code,
+                'old_rate'   => $rate,
+            );
+            wa('shop')->event('currency_primary', $params);
         }
         return true;
     }
@@ -365,6 +380,22 @@ class shopCurrencyModel extends waModel
             $this->recalcProductPrimaryPrices($code);
             $this->recalcServicePrimaryPrices($code);
             $this->deleteCache();
+
+            /**
+             * @event currency_change
+             * @param string [string]mixed $params
+             * @param string [string]string $params['code'] Currency code changed
+             * @param string [string]string $params['old_rate'] Old currency rate relative to primary currency
+             * @param string [string]string $params['new_rate'] New currency rate relative to primary currency
+             * @return void
+             */
+            $params = array(
+                'code'       => $code,
+                'old_rate'   => $old_rate,
+                'new_rate'   => $rate,
+            );
+            wa('shop')->event('currency_change', $params);
+
             return $result;
         }
         return true;

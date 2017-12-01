@@ -184,21 +184,13 @@ $(function() {
 
     var fileupload = $('#fileupload');
     fileupload.fileupload({
-        maxFileSize: 5000000,
+        maxFileSize: {waRequest::getUploadMaxFilesize()},
         acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
         process: [
             {
                 action: 'load',
                 fileTypes: /^image\/(gif|jpeg|png)$/,
-                maxFileSize: 20000000 // 20MB
-            },
-            {
-                action: 'resize',
-                maxWidth: 1440,
-                maxHeight: 900
-            },
-            {
-                action: 'save'
+                maxFileSize: {waRequest::getUploadMaxFilesize()}
             }
         ]
     });    

@@ -16,8 +16,14 @@ class shopFrontendProductController extends waViewController
                     if ($product && $product['category_id'] != $c['id']) {
                         $c = $category_model->getById($product['category_id']);
                         if ($c) {
-                            $this->redirect(wa()->getRouteUrl('shop/frontend/product',
-                                array('category_url' => $c['full_url'], 'product_url' => $product['url'])));
+                            $url = wa()->getRouteUrl(
+                                'shop/frontend/product',
+                                array(
+                                    'category_url' => $c['full_url'],
+                                    'product_url'  => $product['url'],
+                                )
+                            );
+                            $this->redirect($url, 301);
                         } else {
                             $product = null;
                         }

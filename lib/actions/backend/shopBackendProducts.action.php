@@ -1,6 +1,11 @@
 <?php
 class shopBackendProductsAction extends waViewAction
 {
+    /**
+     * Tag limit for cloud output
+     */
+    const MAX_TAGS = 100;
+
     public function execute()
     {
         $this->setLayout(new shopBackendLayout());
@@ -10,7 +15,18 @@ class shopBackendProductsAction extends waViewAction
         $this->view->assign('categories', new shopCategories());
 
         $tag_model = new shopTagModel();
-        $this->view->assign('cloud', $tag_model->getCloud());
+        $tags_count = $tag_model->countAll();
+
+        if ($tags_count < self::MAX_TAGS) {
+            $tags = $tag_model->getCloud();
+        } elseif ($tags_count > 1) {
+            $tags = 'search';  //view autocomplite field
+        } else{
+            $tags = null;
+        }
+
+        $this->view->assign('max_tags', self::MAX_TAGS);
+        $this->view->assign('cloud', $tags);
 
         $set_model = new shopSetModel();
         $this->view->assign('sets', $set_model->getAll());

@@ -3,6 +3,7 @@
 class shopProductSearchMethod extends shopApiMethod
 {
     protected $method = 'GET';
+    protected $courier_allowed = true;
 
     public function execute()
     {
@@ -21,10 +22,22 @@ class shopProductSearchMethod extends shopApiMethod
             throw new waAPIException('invalid_param', 'Param limit must be less or equal 1000');
         }
 
+
         $collection = new shopProductsCollection($hash);
         if ($filters) {
             $collection->filters($filters);
         }
+
+        // Check courier access rights
+        if ($this->courier) {
+            $alias = $collection->addJoin('shop_order_items', ":table.product_id=p.id AND :table.type='product'");
+            $collection->addJoin('shop_order_params',
+                ":table.order_id={$alias}.order_id AND :table.name='courier_id'",
+                ":table.value='{$this->courier['id']}'"
+            );
+            $collection->groupBy('p.id');
+        }
+
         $products = $collection->getProducts(self::getCollectionFields(), $offset, $limit, $escape);
 
         $this->response['count'] = $collection->count();

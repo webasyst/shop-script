@@ -115,7 +115,7 @@ class shopProductMassUpdate
                 $product_stock_counts += array_fill_keys(array_keys($product_skus), array());
             }
         }
-        $empty_stock = array_fill_keys(array_keys($stocks), 0);
+        $empty_stock = array_fill_keys(array_keys($stocks), null);
         foreach(array_keys($product_stock_counts) as $sku_id) {
             $product_stock_counts[$sku_id] += $empty_stock;
         }

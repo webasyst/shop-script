@@ -158,7 +158,7 @@ class shopOrderEditAction extends waViewAction
             'customer_validation_disabled' => wa()->getSetting('disable_backend_customer_form_validation'),
             'shipping_methods'             => $shipping_methods,
             'ignore_stock_count'           => wa()->getSetting('ignore_stock_count'),
-            'storefronts'                  => shopHelper::getStorefronts(),
+            'storefronts'                  => shopHelper::getStorefronts(true),
             'new_order_for_client'         => $client_contact_id,
             'discount'                     => $discount,
         ));
