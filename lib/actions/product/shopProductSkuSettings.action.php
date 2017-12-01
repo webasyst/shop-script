@@ -52,9 +52,8 @@ class shopProductSkuSettingsAction extends waViewAction
             if ($f['multiple'] || $f['code'] == 'weight') {
                 if (!empty($f['selectable'])) {
                     $selectable_features[$f['code']] = $f;
-                } else {
-                    $features[$f['code']] = $f;
                 }
+                $features[$f['code']] = $f;
             }
         }
 
