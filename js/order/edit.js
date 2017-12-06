@@ -59,6 +59,7 @@ $.order_edit = {
 
         this.float_delimeter = options.float_delimeter;
 
+        this.container.trigger('order_edit_init');
         this.initView();
     },
 
@@ -399,6 +400,7 @@ $.order_edit = {
             this.form.unbind('sumbit').bind('submit', orderSaveSubmit);
         }
 
+        this.container.trigger('order_edit_init_view');
         this.initDiscountControl();
     },
 
@@ -549,6 +551,8 @@ $.order_edit = {
                 $tooltip_icon.stop().hide();
             }
         }
+        
+        this.container.trigger('order_edit_init_discount_control');
     },
 
     getOrderItems: function(container, init) {
