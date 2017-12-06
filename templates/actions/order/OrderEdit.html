@@ -451,10 +451,6 @@
 {$wa->csrf()}
 </form>
 
-<!-- plugin hook: 'backend_order_edit' -->
-{* @event backend_order_edit.%plugin_id% *}
-{if !empty($backend_order_edit)}{foreach $backend_order_edit as $plugin_id => $plugin_html}{$plugin_html}{/foreach}{/if}
-
 <script type="text/javascript" src="{$wa_app_static_url}js/order/edit.js?v{$wa->version()}"></script>
 <script type="text/javascript">
     var count_new = {if !empty($count_new)}{$count_new}{else}0{/if};
@@ -492,3 +488,7 @@
         $.fn.retina && $('#order-items img').retina();
     {/if}
 </script>
+
+<!-- plugin hook: 'backend_order_edit' -->
+{* @event backend_order_edit.%plugin_id% *}
+{if !empty($backend_order_edit)}{foreach $backend_order_edit as $plugin_id => $plugin_html}{$plugin_html}{/foreach}{/if}
