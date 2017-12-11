@@ -35,7 +35,7 @@ class shopFollowupCli extends waCliController
                 $f['last_cron_time'] = $time['datetime'];
             }
             $f['last_cron_timestamp'] = strtotime($f['last_cron_time']);
-			$from = min($f['last_cron_timestamp'], $time['now'] - $f['delay'] - $time['offset']);
+			$from = min($f['last_cron_timestamp'], $time['now'] - $time['offset']) - $f['delay'];
 			$to = $time['now'] - $f['delay'] - $time['delay'];
             $search_params = array(
                 'from'     => date('Y-m-d H:i:s', $from),
