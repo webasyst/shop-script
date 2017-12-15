@@ -66,6 +66,11 @@ class shopSettingsFollowupsAction extends waViewAction
 
                 if ($id && $id !== 'new') {
                     unset($followup['last_cron_time']);
+                    $f = $fm->getById($id);
+                    if ($f['status'] == 0 && $followup['status'] == 1) {
+                        $followup['last_cron_time'] = date('Y-m-d H:i:s');
+                    }
+
                     $fm->updateById($id, $followup);
                     $just_created = false;
                 } else {

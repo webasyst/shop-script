@@ -25,8 +25,6 @@ class shopFollowupCli extends waCliController
         $where = implode(' AND ', $where);
         $time = array(
             'now'    => time(),
-            'offset' => 60*60,
-            'delay'  => 30*60, // delay should be smaller than offset
         );
         $time['datetime'] = date('Y-m-d H:i:s', $time['now']);
 
@@ -36,8 +34,8 @@ class shopFollowupCli extends waCliController
             }
             $f['last_cron_timestamp'] = strtotime($f['last_cron_time']);
             $search_params = array(
-                'from'     => date('Y-m-d H:i:s', $f['last_cron_timestamp'] - $time['offset']),
-                'to'       => date('Y-m-d H:i:s', $time['now'] - $f['delay'] - $time['delay']),
+                'from'     => date('Y-m-d H:i:s', $f['last_cron_timestamp'] - $f['delay']),
+                'to'       => date('Y-m-d H:i:s', $time['now'] - $f['delay']),
                 'state_id' => $f['state_id'],
             );
 
@@ -151,6 +149,7 @@ class shopFollowupCli extends waCliController
                 $event_params['send_count_sms'] = $sent_count_sms;
                 wa()->event('followup_send', $event_params);
             }
+
             $fm->updateById($f['id'], array(
                 'last_cron_time' => $time['datetime'],
             ));

@@ -216,7 +216,8 @@ class shopWebPushNotifications
                 'create_datetime' => date('Y-m-d H:i:s'),
                 'contact_id' => $contact_id,
                 'client_id' => $client_id,
-                'type' => 'web'
+                'type' => 'web',
+                'shop_url' => ''
             ),
             1
         );

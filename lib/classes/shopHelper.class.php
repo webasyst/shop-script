@@ -355,9 +355,10 @@ class shopHelper
      * @param string $email Email address
      * @param int $size Size in pixels, defaults to 50
      * @param string $default Default image set to use. Available image sets: 'custom', '404', 'mm', 'identicon', 'monsterid', 'wavatar'.
+     * @param bool $full_protocol by default returns protocol-agnostic URL starting with // ; pass true to prepend with http://
      * @return string
      */
-    public static function getGravatar($email, $size = 50, $default = 'mm')
+    public static function getGravatar($email, $size = 50, $default = 'mm', $full_protocol = false)
     {
         if ($default == 'custom') {
             // Note that we cannot use @2x versions here since Gravatar
@@ -365,7 +366,11 @@ class shopHelper
             $default = wa()->getRootUrl(true).'wa-content/img/userpic'.$size.'.jpg';
             $default = urlencode($default);
         }
-        return '//www.gravatar.com/avatar/'.md5(strtolower(trim($email)))."?size=$size&default=$default";
+        $url = '//www.gravatar.com/avatar/'.md5(strtolower(trim($email)))."?size=$size&default=$default";
+        if ($full_protocol) {
+            $url = 'http'.(waRequest::isHttps() ? 's' : '').':'.$url;
+        }
+        return $url;
     }
 
     /**

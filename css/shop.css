@@ -1137,7 +1137,7 @@ li#s-web-push-notifications-message a { display: inline !important; text-decorat
 .s-cheatsheet .s-sub-field { font-size: 0.8em; }
 .s-cheatsheet .s-sub-field .name { padding-left: 15px; }
 
-.s-add-shipping-method ul { width: 300px !important; margin-left: -80px !important; }
+.s-add-shipping-method ul { width: 300px !important; margin-left: -80px !important; max-height: 700px; overflow: auto; }
 
 #send-test-dialog .successmsg { display: inline-block; }
 

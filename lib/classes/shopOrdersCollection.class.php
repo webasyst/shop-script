@@ -629,11 +629,22 @@ class shopOrdersCollection
                 'photo_url_2x' => true,
             ));
             $contacts = $contacts_collection->getContacts($contact_fields, 0, 100500);
+            $use_gravatar = wa('shop')->getConfig()->getGeneralSettings('use_gravatar');
+            $gravatar_default = wa('shop')->getConfig()->getGeneralSettings('gravatar_default');
+
             foreach ($contacts as &$c) {
                 $c['name'] = waContactNameField::formatName($c);
-                unset($c['firstname'], $c['middlename'], $c['lastname']);
+                if (!isset($postprocess_fields['contact_full'])) {
+                    unset($c['firstname'], $c['middlename'], $c['lastname']);
+                }
                 if ($escape) {
                     $c['name'] = htmlspecialchars($c['name'], ENT_COMPAT, 'utf-8');
+                }
+
+                $email = ifset($c, 'email', 0, null);
+                if ($use_gravatar && $email) {
+                    $c['photo_url_40'] = shopHelper::getGravatar($email, 40, $gravatar_default, true);
+                    $c['photo_url_96'] = shopHelper::getGravatar($email, 96, $gravatar_default, true);
                 }
             }
             unset($c);

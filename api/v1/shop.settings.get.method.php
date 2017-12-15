@@ -3,22 +3,75 @@
 class shopSettingsGetMethod extends shopApiMethod
 {
     protected $courier_allowed = true;
+
+    /**
+     * @var shopConfig $this ->config
+     */
+    protected $config;
+
     public function execute()
     {
-        $config = wa('shop')->getConfig();
-        /**
-         * @var shopConfig $config
-         */
+        $this->config = wa('shop')->getConfig();
+
         $this->response = array(
             'version'          => wa('shop')->getVersion(),
             'debug_mode'       => waSystemConfig::isDebug(),
-            'default_currency' => $config->getCurrency(true),
-            'settings'         => $config->getGeneralSettings(),
-            'currencies'       => $config->getCurrencies(),
+            'default_currency' => $this->config->getCurrency(true),
+            'settings'         => $this->config->getGeneralSettings(),
+            'currencies'       => $this->config->getCurrencies(),
             'address_fields'   => self::getAddressSubfieldsOrder(),
             'order_states'     => self::getOrderStates(),
             'server_time'      => date('Y-m-d H:i:s'),
+            'user_info'        => $this->getUserInfo(),
         );
+    }
+
+    protected function getUserInfo()
+    {
+        $info = array(
+            'id'    => null,
+            'name'  => null,
+            'photo' => waContact::getPhotoUrl(0, null, 50, 50, 'person'),
+        );
+        if ($this->courier) {
+            if (!empty($this->courier['contact_id'])) {
+                try {
+                    $user = new waContact($this->courier['contact_id']);
+                    $info['name'] = $user->getName();
+                    $info['photo'] = $this->getPhotoUrl($info['id']);
+                    $info['id'] = $this->courier['contact_id'];
+                } catch (waException $e) {
+                    // contact does not exist
+                }
+            }
+            if (empty($info['id'])) {
+                $info['name'] = $this->courier['name'];
+            }
+        } else {
+            $info['id'] = wa()->getUser()->getId();
+            $info['name'] = wa()->getUser()->getName();
+            $info['photo'] = $this->getPhotoUrl($info['id']);
+        }
+
+        return $info;
+    }
+
+    /**
+     * @param $id
+     * @return string
+     */
+    public function getPhotoUrl($id)
+    {
+        $use_gravatar = $this->config->getGeneralSettings('use_gravatar');
+        $gravatar_default = $this->config->getGeneralSettings('gravatar_default');
+
+        $contact = new waContact($id);
+        if (!$contact->get('photo') && $use_gravatar) {
+            $url = shopHelper::getGravatar($contact->get('email', 'default'), 50, $gravatar_default, true);
+        } else {
+            $url = $contact->getPhoto(50);
+        }
+        return $url;
     }
 
     protected static function getAddressSubfieldsOrder()
@@ -32,7 +85,7 @@ class shopSettingsGetMethod extends shopApiMethod
             return array();
         }
         $result = array();
-        foreach($subfields as $sf) {
+        foreach ($subfields as $sf) {
             if (!$sf instanceof waContactHiddenField) {
                 $result[] = $sf->getId();
             }

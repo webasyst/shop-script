@@ -16,5 +16,6 @@ class shopProductImagesGetInfoMethod extends shopApiMethod
         $this->response = $image;
         $size = waRequest::get('size', wa('shop')->getConfig()->getImageSize('thumb'));
         $this->response['url_thumb'] = shopImage::getUrl($image, $size, true);
+        $this->response['url_big'] = shopImage::getUrl($image, null, true);
     }
 }

@@ -9,9 +9,14 @@ class shopProductSkusAddMethod extends shopProductSkusUpdateMethod
         $product_id = $this->get('product_id', true);
         $this->checkProductRights($product_id);
         $data = waRequest::post();
+
         if (!$data) {
             throw new waAPIException('invalid_param', 'Required data is missing', 400);
         }
+        if (empty($data['name'])) {
+            $data['name'] = '';
+        }
+
         $data['product_id'] = $product_id;
 
         $skus_model = new shopProductSkusModel();
