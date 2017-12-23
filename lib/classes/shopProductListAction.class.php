@@ -314,6 +314,12 @@ class shopProductListAction extends waViewAction
                     'sortable'           => true,
                     'default_sort_order' => 'desc',
                 ),
+                array(
+                    'id'                 => 'create_datetime',
+                    'name'               => _w('Date added'),
+                    'sortable'           => true,
+                    'default_sort_order' => 'desc',
+                ),
             );
 
             // !!! plugin columns?..
