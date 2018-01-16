@@ -20,7 +20,7 @@ waSystem::getInstance(null, $config);
  */
 $app_config = wa('shop')->getConfig();
 $request_file = $app_config->getRequestUrl(true, true);
-$request_file = preg_replace("@^thumb.php(/products)?/?@", '', $request_file);
+$request_file = preg_replace("@^thumb\.php(/products)?/?@", '', $request_file);
 $protected_path = wa()->getDataPath('products/', false, 'shop');
 $public_path = wa()->getDataPath('products/', true, 'shop');
 
