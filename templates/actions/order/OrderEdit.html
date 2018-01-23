@@ -327,7 +327,7 @@
                                     <option {if $_shipping_id === $m_id}selected{/if}
                                             data-test="2"
                                             {if !empty($m.custom_data)}{foreach $m.custom_data as $_custom_field => $_custom_value}
-                                            data-{$_custom_field|escape}={$_custom_value|json_encode:$_json_encode_options|escape}
+                                            data-{$_custom_field|escape}="{if is_array($_custom_value)}{$_custom_value|json_encode:$_json_encode_options|escape}{else}{$_custom_value|escape}{/if}"
                                             {/foreach}{/if}
                                             data-rate="{$m.rate}" value="{$m_id}"{if !empty($m.external)} data-external="1"{/if}>{$m.name|truncate:80|escape}</option>
                                 {/foreach}
