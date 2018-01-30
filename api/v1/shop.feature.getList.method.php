@@ -21,7 +21,11 @@ class shopFeatureGetListMethod extends shopApiMethod
         if ($selectable) {
             $selectable = $feature_model->getValues($selectable);
             foreach ($selectable as $f_id => $f) {
-                $f['values'] = array_values($f['values']);
+                $values = array();
+                foreach ($f['values'] as $value) {
+                    $values[] = (string) $value;
+                }
+                $f['values'] = $values;
                 $f['values']['_element'] = 'value';
                 $features[$f_id] = $f;
             }
