@@ -41,7 +41,11 @@ class shopProductGetInfoMethod extends shopApiMethod
         $this->response['features'] = array();
         foreach ($p->features as $f => $v) {
             if (is_array($v)) {
-                $this->response['features'][$f] = array_values($v);
+                $values = array();
+                foreach ($v as $value) {
+                    $values[] = (string) $value;
+                }
+                $this->response['features'][$f] = $values;
             } else {
                 $this->response['features'][$f] = (string)$v;
             }
