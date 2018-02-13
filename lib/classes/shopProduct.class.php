@@ -354,6 +354,11 @@ class shopProduct implements ArrayAccess
             $this->__set($name, $value);
         }
         if ($this->is_dirty) {
+
+            if (!$this->preSave($errors)) {
+                return false;
+            }
+
             $product = array();
             $id_changed = !empty($this->is_dirty['id']);
             foreach ($this->is_dirty as $field => $v) {
@@ -446,8 +451,43 @@ class shopProduct implements ArrayAccess
          * @param array [string]shopProduct $params['instance'] current shopProduct entry instance (avoid recursion)
          * @return void
          */
-        wa()->event('product_save', $params);
+        wa('shop')->event('product_save', $params);
         return $result;
+    }
+
+    /**
+     * Check for errors before saving.
+     * @param $errors
+     * @return bool
+     */
+    protected function preSave(&$errors)
+    {
+        $text_error = null;
+        $validate = true;
+        $params = array(
+            'data'     => $this->getData(),
+            'dirty'    => &$this->is_dirty,
+            'new_data' => &$this->data,
+            'instance' => &$this,
+        );
+        $pre_save = wa('shop')->event('product_presave', $params);
+
+        if ($pre_save && is_array($pre_save)) {
+            foreach ($pre_save as $plugin) {
+                if (ifset($plugin, 'result', null) === false) {
+                    $validate = false;
+                    if (ifset($plugin, 'error', null)) {
+                        $text_error[] = $plugin['error'];
+                    }
+                }
+            }
+        }
+
+        if ($text_error) {
+            $errors = implode(' ', $text_error);
+        }
+
+        return $validate;
     }
 
     protected function saveData(&$errors = array())
@@ -934,10 +974,13 @@ class shopProduct implements ArrayAccess
 
     /**
      * @param array $options
+     * @param $errors
      * @return shopProduct
+     * @throws Exception
      * @throws waException
+     * @throws waRightsException
      */
-    public function duplicate($options = array())
+    public function duplicate($options = array(), &$errors = array())
     {
         if ($this->is_frontend) {
             throw new waException('Unable duplicate shopProduct: data is converted for frontend');
@@ -1047,7 +1090,10 @@ class shopProduct implements ArrayAccess
         $data['url'] = shopHelper::genUniqueUrl($this->url, $this->model, $counter);
         $data['name'] = $this->name.sprintf(' %d', $counter ? $counter : 1);
 
-        $duplicate->save($data);
+        if (!$duplicate->save($data, true, $errors)) {
+            return false;
+        }
+
         $product_id = $duplicate->getId();
 
         $sku_map = array_combine(array_keys($this->skus), array_keys($duplicate->skus));
@@ -1186,7 +1232,7 @@ class shopProduct implements ArrayAccess
         /**
          * @wa-event product_duplicate
          */
-        wa()->event('product_duplicate', $params);
+        wa('shop')->event('product_duplicate', $params);
         return $duplicate;
     }
 

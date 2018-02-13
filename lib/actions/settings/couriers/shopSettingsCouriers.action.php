@@ -37,6 +37,8 @@ class shopSettingsCouriersAction extends waViewAction
             $data = array_intersect_key($data, $courier) + array(
                 'all_storefronts' => 1,
                 'enabled' => 0,
+                'rights_order_edit' => 0,
+                'rights_customer_edit' => 0,
             ) + $courier;
             unset(
                 $data['id'],
@@ -48,6 +50,12 @@ class shopSettingsCouriersAction extends waViewAction
                 $data['api_last_use']
             );
             $data['enabled'] = $data['enabled'] ? 1 : 0;
+            $data['rights_order_edit'] = $data['rights_order_edit'] ? 1 : 0;
+            $data['rights_customer_edit'] = $data['rights_customer_edit'] ? 1 : 0;
+            if ($data['enabled'] == 0){
+                $data['rights_order_edit'] = 0;
+                $data['rights_customer_edit'] = 0;
+            }
             $data['all_storefronts'] = $data['all_storefronts'] ? 1 : 0;
             $data['contact_id'] = intval($data['contact_id']);
             if (!$data['contact_id']) {

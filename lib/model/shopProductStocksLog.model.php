@@ -1,6 +1,7 @@
 <?php
 
-class shopProductStocksLogModel extends waModel {
+class shopProductStocksLogModel extends waModel
+{
 
     protected $table = 'shop_product_stocks_log';
 
@@ -22,7 +23,7 @@ class shopProductStocksLogModel extends waModel {
         $this->deleteByField('product_id', $product_ids);
     }
 
-    static public function getIcon($type)
+    public static function getIcon($type)
     {
         switch ($type) {
             case self::TYPE_PRODUCT:
@@ -145,12 +146,12 @@ class shopProductStocksLogModel extends waModel {
                 } else {
                     $v['description'] = sprintf(_w('In stock value updated to %d'), $v['after_count']);
                 }
-            } else if ($v['type'] == self::TYPE_ORDER) {
+            } elseif ($v['type'] == self::TYPE_ORDER) {
                 $v['description'] = sprintf(
                     _w($v['description']),
                     '<a href="?action=orders#/order/'.$v['order_id'].'/">'.shopHelper::encodeOrderId($v['order_id']).'</a>'
                 );
-            } else if ($v['type'] == self::TYPE_TRANSFER) {
+            } elseif ($v['type'] == self::TYPE_TRANSFER) {
                 $transfer_string_id = ifset($transfer_id_string_id_map[$v['transfer_id']], $v['transfer_id']);
                 $v['description'] = sprintf(
                     _w($v['description']),
@@ -256,12 +257,10 @@ class shopProductStocksLogModel extends waModel {
             $data['after_count'] = null;
         }
 
-        if (
-            ($data['before_count'] === null && $data['after_count'] !== null) ||
-            ($data['after_count'] === null && $data['before_count'] !== null) ||
-            ($data['before_count'] != $data['after_count'])
-        )
-        {
+        if (($data['before_count'] === null && $data['after_count'] !== null)
+            || ($data['after_count'] === null && $data['before_count'] !== null)
+            || ($data['before_count'] != $data['after_count'])
+        ) {
             if ($data['after_count'] === null || ($data['after_count'] == 0 && $data['before_count'] === null)) {
                 $data['diff_count'] = null;
             } else {
@@ -275,7 +274,8 @@ class shopProductStocksLogModel extends waModel {
         }
     }
 
-    public function insert($data, $type = 0) {
+    public function insert($data, $type = 0)
+    {
         $data['datetime'] = date('Y-m-d H:i:s');
         $data['description'] = self::$description;
         $data['type'] = self::$transaction_type;
@@ -288,5 +288,4 @@ class shopProductStocksLogModel extends waModel {
         }
         return parent::insert($data, $type);
     }
-
 }

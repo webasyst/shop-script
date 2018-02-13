@@ -264,6 +264,12 @@ class shopProductListAction extends waViewAction
 
             $cols = array(
                 array(
+                    'id'                 => 'create_datetime',
+                    'name'               => _w('Date added'),
+                    'sortable'           => true,
+                    'default_sort_order' => 'desc',
+                ),
+                array(
                     'id'       => 'sku',
                     'name'     => _w('SKU code'),
                     'sortable' => false,

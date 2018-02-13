@@ -14,7 +14,7 @@ class shopProductsDuplicateController extends waJsonController
             // add just selected products
             foreach ($product_ids as $id) {
                 $p = new shopProduct($id);
-                $new_p = $p->duplicate();
+                $new_p = $p->duplicate(array(), $this->errors);
                 if ($new_p) {
                     $new_ids[] = $new_p->getId();
                 }
@@ -33,7 +33,7 @@ class shopProductsDuplicateController extends waJsonController
                 $product_ids = array_keys($collection->getProducts('id,name,url', $offset, $limit));
                 foreach ($product_ids as $id) {
                     $p = new shopProduct($id);
-                    $new_p = $p->duplicate();
+                    $new_p = $p->duplicate(array(), $this->errors);
                     if ($new_p) {
                         $new_ids[] = $new_p->getId();
                     }

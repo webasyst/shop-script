@@ -39,7 +39,7 @@
             </th>
 
             {foreach $enabled_columns as $c}{if $c.id != 'image_crop_small' && $c.id != 'sku'}
-                <th data-additional-column="{$c.id}" title="{$c.name|escape}">
+                <th data-additional-column="{$c.id}" title="{$c.name|escape}" style="text-align: center"> {*#87.5258*}
                     <div>
                         {if $c.sortable}
                             <span class="sort">

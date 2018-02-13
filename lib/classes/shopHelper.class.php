@@ -132,6 +132,9 @@ class shopHelper
     {
         $plugin_model = new shopPluginModel();
         $options = array();
+        if (!empty($params[shopPluginModel::TYPE_SHIPPING])) {
+            $options = (array)$params[shopPluginModel::TYPE_SHIPPING];
+        }
         if (!empty($params[shopPluginModel::TYPE_PAYMENT])) {
             $options[shopPluginModel::TYPE_PAYMENT] = $params[shopPluginModel::TYPE_PAYMENT];
         }
@@ -364,6 +367,9 @@ class shopHelper
             // Note that we cannot use @2x versions here since Gravatar
             // removes the @ symbol (even escaped) from the URL before redirect.
             $default = wa()->getRootUrl(true).'wa-content/img/userpic'.$size.'.jpg';
+            if (!file_exists($default)) {
+                $default = wa()->getRootUrl(true).'wa-content/img/userpic50.jpg';
+            }
             $default = urlencode($default);
         }
         $url = '//www.gravatar.com/avatar/'.md5(strtolower(trim($email)))."?size=$size&default=$default";
@@ -752,11 +758,10 @@ class shopHelper
         } else {
             if (wa()->getEnv() == 'backend') {
                 // Tweaks for backend order editor.
-                // We want shipping address to show even if disabled in settings.
-                // !!! Why is that?.. No idea. Legacy code.
-                if (!isset($fields_config['address.shipping'])) {
-                    $fields_config['address.shipping'] = $address_config;
-                }
+                // We want shipping address to show even if disabled in settings,
+                // and show all address subfields regardless of frontend checkout settings.
+                $fields_config['address.shipping'] = $address_config;
+
                 // When an existing contact has address specified, we want to show all the data fields
                 if ($contact) {
                     foreach (array('address.shipping', 'address.billing') as $addr_field_id) {
@@ -799,7 +804,9 @@ class shopHelper
                 )
             );
         }
-        $contact && $form->setValue($contact);
+        if ($contact) {
+            $form->setValue($contact);
+        }
         return $form;
     }
 

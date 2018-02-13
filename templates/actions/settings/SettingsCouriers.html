@@ -97,13 +97,37 @@
                 </div>
             </div>
             {if $courier.api_last_use || $courier.id != 'new'}
-                <div class="field hide-when-disabled">
-                    <div class="name">[`Last seen`]</div>
-                    {if $courier.api_last_use}
-                        <div class="value no-shift">{$courier.api_last_use|wa_date:humandatetime}</div>
-                    {else}
-                        <div class="value no-shift">[`Never`]</div>
-                    {/if}
+                <div class="hide-when-disabled">
+                    <div class="field">
+                        <div class="name">[`Edit orders`]</div>
+                        <div class="value">
+                            <input type="checkbox" name="courier[rights_order_edit]" value='1'{if $courier.rights_order_edit} checked{/if}>
+                            <br>
+                            <span class="hint">[`If enabled, a courier can edit order items, discount amount, and shipping cost via the mobile app.`]
+                                <br>
+                                [`Payment and shipping methods selected by a customer and values of default shipping address fields “Country”, “ZIP”, “State”, “City” cannot be changed via mobile app.`]
+                                <br>
+                                <em>[`A courier can change order status, shipping address in an order, except for fields “Country”, “ZIP”, “State”, and “City”, and other shipping parameters regardless of this setting’s value.`]</em></span>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">[`Edit customers`]</div>
+                        <div class="value">
+                            <input type="checkbox" name="courier[rights_customer_edit]" value='1' {if $courier.rights_customer_edit} checked{/if}>
+                            <br>
+                            <span class="hint">[`Courier can edit customers’ contact details in mobile app.`]</span>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">[`Last seen`]</div>
+                        <div class="value no-shift">
+                            {if $courier.api_last_use}
+                                {$courier.api_last_use|wa_date:humandatetime}
+                            {else}
+                                [`Never`]
+                            {/if}
+                        </div>
+                    </div>
                 </div>
             {/if}
             {if $courier.id != 'new'}

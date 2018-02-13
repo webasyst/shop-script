@@ -61,7 +61,7 @@
         {if !empty($service.item)}
             {if !empty($service.fake)}
                 <label>
-                    <input type="checkbox" checked="checked" class="js-fake-service-selected">
+                    <input type="checkbox" checked="checked" class="js-fake-service-selected" value="{$service_id}">
                     <input type="text" name="name[edit][{$service.item.id}]" value="{$service.item.name}" class="small">
                     <input type="hidden" name="service[edit][{$index}][item][{$service.item.id}]" value="{$service_id}">
                     {if $service.item.service_variant_id !== null}

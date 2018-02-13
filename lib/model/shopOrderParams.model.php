@@ -1,12 +1,13 @@
 <?php
 
-class shopOrderParamsModel extends waModel
+class shopOrderParamsModel extends waModel implements shopOrderStorageInterface
 {
     protected $table = 'shop_order_params';
 
     /**
      * Get custom params of order
      * @param array|int $ids order ID
+     * @param bool $full
      * @return array params in key=>value format
      */
     public function get($ids, $full = false)
@@ -60,12 +61,13 @@ class shopOrderParamsModel extends waModel
      * Get value of one custom param on order
      * @param int $order_id
      * @param string $name
+     * @return string
      */
     public function getOne($order_id, $name)
     {
         $item = $this->getByField(array(
             'order_id' => $order_id,
-            'name' => $name
+            'name'     => $name,
         ));
         return $item ? $item['value'] : null;
     }
@@ -75,6 +77,7 @@ class shopOrderParamsModel extends waModel
      * @param int $order_id
      * @param string $name
      * @param string $value
+     * @return bool
      */
     public function setOne($order_id, $name, $value)
     {
@@ -97,7 +100,7 @@ class shopOrderParamsModel extends waModel
             // remove if params is null
             if (is_null($params)) {
                 return $this->deleteByField(array(
-                    'order_id' => $id
+                    'order_id' => $id,
                 ));
             }
 
@@ -117,7 +120,7 @@ class shopOrderParamsModel extends waModel
                             // delete this param
                             $this->deleteByField(array(
                                 'order_id' => $id,
-                                'name' => $name
+                                'name'     => $name,
                             ));
                         } else {
                             // update old param
@@ -130,8 +133,8 @@ class shopOrderParamsModel extends waModel
                         if ($value !== null) { //skip null values
                             $add_params[] = array(
                                 'order_id' => $order_id,
-                                'name' => $name,
-                                'value' => $value
+                                'name'     => $name,
+                                'value'    => $value,
                             );
                         }
                     }
@@ -140,11 +143,11 @@ class shopOrderParamsModel extends waModel
 
             if ($delete_old) {
                 // delete
-                foreach ($old_params as $prms) {
-                    foreach ($prms as $name => $value) {
+                foreach ($old_params as $old_param) {
+                    foreach ($old_param as $name => $value) {
                         $this->deleteByField(array(
                             'order_id' => $id,
-                            'name' => $name
+                            'name'     => $name,
                         ));
                     }
                 }
@@ -162,14 +165,13 @@ class shopOrderParamsModel extends waModel
 
     public function getAllUtmCampaign()
     {
-        return $this->query(
-                "SELECT DISTINCT value FROM `{$this->table}` WHERE name = 'utm_campaign'")
-                ->fetchAll(null, true);
+        $sql = "SELECT DISTINCT value FROM `{$this->table}` WHERE name = 'utm_campaign'";
+        return $this->query($sql)->fetchAll(null, true);
     }
 
     public function isReduced($order_id)
     {
-        return (bool) $this->getOne($order_id, 'reduced');
+        return (bool)$this->getOne($order_id, 'reduced');
     }
 
     public function setReduced($order_id)
@@ -184,12 +186,12 @@ class shopOrderParamsModel extends waModel
 
     public function getReduceTimes($order_id)
     {
-        return (int) $this->getOne($order_id, 'reduce_times');
+        return (int)$this->getOne($order_id, 'reduce_times');
     }
 
     public function getReturnTimes($order_id)
     {
-        return (int) $this->getOne($order_id, 'return_times');
+        return (int)$this->getOne($order_id, 'return_times');
     }
 
     public function incReduceTimes($order_id)
@@ -202,4 +204,20 @@ class shopOrderParamsModel extends waModel
         $this->setOne($order_id, 'return_times', $this->getReturnTimes($order_id) + 1);
     }
 
+    public function getData(shopOrder $order)
+    {
+        $params = $this->get($order->id);
+        self::workupParams($params);
+
+        return $params;
+    }
+
+    public static function workupParams(&$params)
+    {
+        if (!empty($params['storefront'])) {
+            $idna = new waIdna();
+            $params['storefront_decoded'] = $idna->decode($params['storefront']);
+        }
+        return $params;
+    }
 }

@@ -16,6 +16,196 @@ class shopOrderEditAction extends waViewAction
 
     public function execute()
     {
+        $new = false && waRequest::cookie('shopOrderClass', false);
+        if ($new) {
+            $this->executeNew();
+        } else {
+            $this->executeOld();
+        }
+    }
+
+
+    public function executeNew()
+    {
+        $order_id = waRequest::get('id', null, waRequest::TYPE_INT);
+        $client_contact_id = waRequest::get('customer_id', null, waRequest::TYPE_INT);
+
+
+        $order = array();
+
+        if ($order_id) {
+            $data = $order_id;
+            $order = $this->getOrder($order_id);
+            $client_contact_id = null;
+        } else {
+            $data = array(
+                'contact_id' => $client_contact_id,
+            );
+        }
+
+        $_order_options = array(
+            'items_extend' => true,
+        );
+        $_order = new shopOrder($data, $_order_options);
+
+
+        $has_contacts_rights = true;
+
+        /**
+         * Backend order edit page
+         * @event backend_order_edit
+         * @param array $order
+         * @return array[string][string] $return[%plugin_id%] html output
+         */
+        $this->view->assign('backend_order_edit', wa()->event('backend_order_edit', $order));
+
+        $shipping_address = $_order->shipping_address_array;
+        $_shipping_methods = $this->getShipMethods($shipping_address, $order);
+
+        $shipping_methods = $_order->shipping_methods;
+
+
+        //TODO after testing remove debug code (compare arrays)
+        $delta = array(
+            'new' => array(),
+            'old' => array(),
+        );
+        wa_array_diff_r($_shipping_methods, $shipping_methods, $delta['old']);
+        wa_array_diff_r($shipping_methods, $_shipping_methods, $delta['new']);
+        if ($delta = array_filter($delta)) {
+            //var_export($delta);
+            //exit;
+            waLog::log(var_export($delta, true), 'shop/shopOrderItems.diff.log');
+        }
+
+        $discount = array(
+            'description'    => '',
+            'items_discount' => array(),
+            'value'          => 0,
+        );
+
+        if (!empty($order['id'])) {
+            if (empty($c)) {
+                $c = new waContact();
+            }
+            $data = array(
+                'id'       => $order['id'],
+                'currency' => $order['currency'],
+                'items'    => $this->itemsForDiscount($order['currency'], $order['items']),
+                'contact'  => $c,
+                'total'    => $order['subtotal'],
+            );
+            unset($data['shipping']);
+
+            $discount['value'] = shopDiscounts::calculate($data, false, $discount['description']);
+
+            if (isset($data['shipping']) && ($data['shipping'] == 0)) {
+                foreach ($shipping_methods as &$m) {
+                    if (!is_string($m['rate'])) {
+                        $m['rate'] = 0;
+                    }
+                    unset($m);
+                }
+            }
+
+            $template = array(
+                'product' => _w('Total discount for this order item: %s.'),
+                'service' => _w('Total discount for this service: %s.'),
+            );
+            foreach ($data['items'] as $id => $item) {
+                $item['total_discount'] = round(ifset($item['total_discount'], 0), 4);
+                if (!empty($item['total_discount'])) {
+                    switch ($item['type']) {
+                        case 'service':
+                            $selector = sprintf('%d_%d', $item['_parent_index'], $item['service_id']);
+                            break;
+                        default:
+                            $selector = $item['_index'];
+                            break;
+                    }
+                    $discount['items_discount'][] = array(
+                        'value'    => $item['total_discount'],
+                        'html'     => sprintf($template[$item['type']], shop_currency_html(-$item['total_discount'], $data['currency'], $data['currency'])),
+                        'selector' => $selector,
+                    );
+                }
+            }
+        }
+
+
+        //TODO after testing remove debug code (compare arrays)
+        $delta = array(
+            'new' => array(),
+            'old' => array(),
+        );
+        $_items = array_values($_order->products);
+        wa_array_diff_r($order['items'], $_items, $delta['old']);
+        wa_array_diff_r($_items, $order['items'], $delta['new']);
+        if ($delta = array_filter($delta)) {
+            waLog::log(var_export($delta, true), 'shop/shopOrderItems.diff.log');
+        }
+
+        $_discounts = array(
+            'value'          => $_order->discount,
+            'items_discount' => array(),
+            'description'    => $_order->discount_description,
+        );
+        foreach ($_order->items as $id => $item) {
+            $item['total_discount'] = round(ifset($item['total_discount'], 0), 4);
+            if (!empty($item['total_discount'])) {
+                switch ($item['type']) {
+                    case 'service':
+                        $selector = sprintf('%d_%d', $item['_parent_index'], $item['service_id']);
+                        break;
+                    default:
+                        $selector = $item['_index'];
+                        break;
+                }
+                $discount['items_discount'][] = array(
+                    'value'    => $item['total_discount'],
+                    'html'     => $item['discount_description'],
+                    'selector' => $selector,
+                );
+            }
+        }
+        //TODO after testing remove debug code (compare arrays)
+        $delta = array(
+            'new' => array(),
+            'old' => array(),
+        );
+        wa_array_diff_r($discount, $_discounts, $delta['old']);
+        wa_array_diff_r($_discounts, $discount, $delta['new']);
+        if ($delta = array_filter($delta)) {
+            /* header('Content-Type: text/plain;');
+             var_export($delta);
+             exit;*/
+            waLog::log(var_export($delta, true), 'shop/shopOrderDiscount.diff.log');
+        }
+
+        $tax_model = new shopTaxModel();
+
+        $stock_model = new shopStockModel();
+        $this->view->assign(array(
+            'form'                         => $_order->customerForm(),
+            'order_storefront'             => $this->getOrderStorefront($order),
+            'order'                        => $_order,
+            'stocks'                       => $stock_model->getAll('id'),
+            'currency'                     => $_order->currency,
+            'count_new'                    => $this->order_model->getStateCounters('new'),
+            'taxes_count'                  => $tax_model->countAll(),
+            'shipping_address'             => $_order->shipping_address,
+            'has_contacts_rights'          => $has_contacts_rights,
+            'customer_validation_disabled' => wa()->getSetting('disable_backend_customer_form_validation'),
+            'shipping_methods'             => $shipping_methods,
+            'ignore_stock_count'           => wa()->getSetting('ignore_stock_count'),
+            'storefronts'                  => shopHelper::getStorefronts(true),
+            'new_order_for_client'         => $client_contact_id,
+            'discount'                     => $discount,
+        ));
+    }
+
+    public function executeOld()
+    {
         $order_id = waRequest::get('id', null, waRequest::TYPE_INT);
         $client_contact_id = waRequest::get('customer_id', null, waRequest::TYPE_INT);
 

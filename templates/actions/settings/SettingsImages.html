@@ -132,7 +132,8 @@
                                 [`Keep original filenames`]
                             </label>
                             <br>
-                            <span class="hint">[`When enabled, each thumbnail (which is generated on demand or during the original upload) filename will be derived from the name of the original file you upload.`]</span>
+                            <span class="hint">[`When enabled, thumbnails’ file names are derived from the name of an original image file you upload.`]<br>
+                            [`When disabled, thumbnails’ file names are generated only with the use of numbers denoting thumbnail dimensions.`]</span>
                             <p id="s-image-filename-hint" class="small"{if empty($settings.image_filename)} style="display: none"{/if}><br><em style="background-color: #ffa;">{sprintf('[`If you enable this setting for the first time, it is <strong>strongly recommended</strong> to 1) Re-generate all product image thumbnails (use the link below) right after this setting has been changed, and 2) Update your store theme product.html template with the <a href="%s" target="_blank">new product thumbnail display code</a>.`]', '[`http://www.shop-script.com/help/4750/shopscript610-design-theme-changes/`]')}</em></p>
                         </div>
                     </div>

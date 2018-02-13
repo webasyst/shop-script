@@ -9,6 +9,97 @@ class shopOrderTotalController extends waJsonController
 {
     public function execute()
     {
+        $new = false && waRequest::cookie('shopOrderClass', false);
+        if ($new) {
+            $this->executeNew();
+        } else {
+            $this->executeOld();
+        }
+    }
+
+    public function executeNew()
+    {
+        $map = array(
+            'id' => 'order_id',
+        );
+
+        $options = array(
+            'items_format' => 'tree',
+        );
+
+        $data = waRequest::post();
+        foreach ($map as $field => $source) {
+            if (isset($data[$source])) {
+                $data[$field] = $data[$source];
+                unset($data[$source]);
+            }
+        }
+        $data['discount'] = true;
+        $order = new shopOrder($data, $options);
+
+        $this->response['shipping_methods'] = $order->shipping_methods;
+        $this->response['shipping_method_ids'] = array_keys($this->response['shipping_methods']);
+
+        $this->response['discount'] = $order->discount;
+        $this->response['discount_description'] = $order->discount_description;
+        $this->response['items_discount'] = array();
+        foreach ($order->items as $id => $item) {
+
+            if (!empty($item['total_discount'])) {
+                switch ($item['type']) {
+                    case 'service':
+                        $selector = sprintf('%d_%d', $item['_parent_index'], $item['service_id']);
+                        break;
+                    default:
+                        $selector = $item['_index'];
+                        break;
+                }
+                $this->response['items_discount'][] = array(
+                    'value'    => $item['total_discount'],
+                    'html'     => $item['discount_description'],
+                    'selector' => $selector,
+                );
+            }
+        }
+    }
+
+    /**
+     * @deprecated TODO cleanup
+     */
+    private function compareData()
+    {
+        $params = array(
+            'order_id'    => waRequest::post('order_id'),
+            'currency'    => waRequest::post('currency'),
+            'items'       => waRequest::post('items'),
+            'subtotal'    => waRequest::post('subtotal'),
+            'discount'    => waRequest::post('discount'),
+            'customer'    => waRequest::post('customer'),
+            'shipping_id' => waRequest::request('shipping_id', 0, 'int'),
+        );
+
+        $sot = new shopOrderTotal($params); // !!! this does not work
+
+        $old_response = $sot->calculate();
+
+        $delta = array(
+            'new' => array(),
+            'old' => array(),
+        );
+        wa_array_diff_r($old_response, $this->response, $delta['old']);
+        wa_array_diff_r($this->response, $old_response, $delta['new']);
+        if ($delta = array_filter($delta)) {
+            waLog::log(var_export($delta, true), 'shop/shopOrder.diff.log');
+        }
+    }
+
+
+    //
+    //
+    //
+
+    public function executeOld()
+    {
         $order_id = waRequest::post('order_id');
         if ($order_id) {
             $order_model = new shopOrderModel();

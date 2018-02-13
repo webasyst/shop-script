@@ -253,7 +253,7 @@
 
             // when 'shift' held on prevent default browser selecting
             $(document).keydown(function (e) {
-                if (e.keyCode == 16) {
+                if (e.keyCode == 16 && !$(e.target).closest('.redactor-box').length) {
                     document.body.onselectstart = function () {
                         return false;
                     };
@@ -1894,6 +1894,10 @@
                     } else {
                         options.finish(response.data || {}, new_ids);
                     }
+                }
+            }, function (r) {
+                if (r.errors) {
+                    alert(r.errors);
                 }
             });
         },

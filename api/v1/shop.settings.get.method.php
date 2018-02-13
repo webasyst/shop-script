@@ -14,16 +14,37 @@ class shopSettingsGetMethod extends shopApiMethod
         $this->config = wa('shop')->getConfig();
 
         $this->response = array(
-            'version'          => wa('shop')->getVersion(),
-            'debug_mode'       => waSystemConfig::isDebug(),
-            'default_currency' => $this->config->getCurrency(true),
-            'settings'         => $this->config->getGeneralSettings(),
-            'currencies'       => $this->config->getCurrencies(),
-            'address_fields'   => self::getAddressSubfieldsOrder(),
-            'order_states'     => self::getOrderStates(),
-            'server_time'      => date('Y-m-d H:i:s'),
-            'user_info'        => $this->getUserInfo(),
+            'version'               => wa('shop')->getVersion(),
+            'debug_mode'            => waSystemConfig::isDebug(),
+            'default_currency'      => $this->config->getCurrency(true),
+            'settings'              => $this->config->getGeneralSettings(),
+            'currencies'            => $this->config->getCurrencies(),
+            'address_fields'        => self::getAddressSubfieldsOrder(),
+            'order_states'          => self::getOrderStates(),
+            'server_time'           => date('Y-m-d H:i:s'),
+            'user_info'             => $this->getUserInfo(),
+            'storefronts'           => shopHelper::getStorefronts(true),
+            'ignore_stock_count'    => (int)wa('shop')->getSetting('ignore_stock_count'),
+            'stock_counting_action' => $this->getCountingAction(),
+
         );
+    }
+
+    /**
+     * Return stock update Settings
+     * @return string
+     */
+    protected function getCountingAction()
+    {
+        if (wa('shop')->getSetting('disable_stock_count')) {
+            $stock_counting_action = 'none';
+        } elseif (wa('shop')->getSetting('update_stock_count_on_create_order')) {
+            $stock_counting_action = 'create';
+        } else {
+            $stock_counting_action = 'processing';
+        }
+
+        return $stock_counting_action;
     }
 
     protected function getUserInfo()

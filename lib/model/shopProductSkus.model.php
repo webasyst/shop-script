@@ -263,7 +263,7 @@ SQL;
 
     protected static function castStock($count)
     {
-        if ($count === '' || !preg_match('@^\-?\d*(\.(\d+)?)?$@', $count)) {
+        if ($count === null || $count === '' || !preg_match('@^\-?\d*(\.(\d+)?)?$@', $count)) {
             $count = null;
         } else {
             $count = floatval($count);
@@ -287,14 +287,16 @@ SQL;
             $data['product_id'] = $sku['product_id'];
         }
 
-        $product_model = new shopProductModel();
-        $product = $product_model->getById($data['product_id']);
-        $primary_currency = wa('shop')->getConfig()->getCurrency();
+        if (isset($data['price'])) {
+            $product_model = new shopProductModel();
+            $product = $product_model->getById($data['product_id']);
+            $primary_currency = wa('shop')->getConfig()->getCurrency();
 
-        if ($product['currency'] == $primary_currency) {
-            $data['primary_price'] = $data['price'];
-        } else {
-            $data['primary_price'] = $this->convertPrice($data['price'], $product['currency']);
+            if ($product['currency'] == $primary_currency) {
+                $data['primary_price'] = $data['price'];
+            } else {
+                $data['primary_price'] = $this->convertPrice($data['price'], $product['currency']);
+            }
         }
 
         $this->updateSku($id, $data);

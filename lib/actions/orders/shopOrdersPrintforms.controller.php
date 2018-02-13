@@ -68,7 +68,7 @@ class shopOrdersPrintformsController extends waJsonController
         $order_ids = waRequest::request('order_id', null, waRequest::TYPE_ARRAY_INT);
         if ($order_ids !== null) {
             if ($order_ids) {
-                return 'id/'.implode(',',$order_ids);
+                return 'id/'.implode(',', $order_ids);
             } else {
                 return null;
             }

@@ -4,6 +4,7 @@ abstract class shopApiMethod extends waAPIMethod
 {
     protected $courier_allowed = false;
     protected $courier = null;
+    protected $errors;
 
     public function __construct()
     {
@@ -32,5 +33,22 @@ abstract class shopApiMethod extends waAPIMethod
             }
         }
         return parent::getResponse($internal);
+    }
+
+    /**
+     * An additional option for creating an answer
+     * @param array $data
+     * @return array
+     */
+    public function createResponse($data = array())
+    {
+        $response = array('status' => 'ok');
+        if ($this->errors) {
+            $response['status'] = 'fail';
+            $response['errors'] = $this->errors;
+        } else {
+            $response['data'] = $data;
+        }
+        return $response;
     }
 }

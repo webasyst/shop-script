@@ -13,8 +13,7 @@ class shopOrdersPerformActionController extends waJsonController
         $offset = (int) waRequest::get('offset');
         
         $workflow = new shopWorkflow();
-        $order_model = new shopOrderModel();
-        
+
         // collect orders under which has performed actions
         $updated_orders_ids = array();
         
@@ -27,6 +26,7 @@ class shopOrdersPerformActionController extends waJsonController
         $total_count = $collection->count();
         $orders = $collection->getOrders('*', $offset, $chunk_size);
         foreach ($orders as $order) {
+            /** @var waWorkflowAction[] $actions */
             $actions = $workflow->getStateById($order['state_id'])->getActions();
             if (isset($actions[$action_id])) {
                 $actions[$action_id]->run($order['id']);
@@ -39,8 +39,8 @@ class shopOrdersPerformActionController extends waJsonController
         }
 
         $this->response = array(
-            'offset' => $offset + count($orders),
-            'total_count' => $total_count                    
+            'offset'      => $offset + count($orders),
+            'total_count' => $total_count,
         );
 
         // sidebar counters
@@ -50,7 +50,7 @@ class shopOrdersPerformActionController extends waJsonController
             $pending_count =
                 (!empty($state_counters['new'])        ? $state_counters['new'] : 0) +
                 (!empty($state_counters['processing']) ? $state_counters['processing'] : 0) +
-                (!empty($state_counters['paid'])       ? $state_counters['paid'] : 0);            
+                (!empty($state_counters['paid'])       ? $state_counters['paid'] : 0);
             $this->response['state_counters'] = $state_counters;
             $this->response['pending_count'] = $pending_count;
         }
@@ -69,7 +69,7 @@ class shopOrdersPerformActionController extends waJsonController
         $order_ids = waRequest::post('order_id', null, waRequest::TYPE_ARRAY_INT);
         if ($order_ids !== null) {
             if ($order_ids) {
-                return 'id/'.implode(',',$order_ids);
+                return 'id/'.implode(',', $order_ids);
             } else {
                 return null;
             }

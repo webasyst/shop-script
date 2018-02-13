@@ -54,7 +54,8 @@ class shopCurrencyModel extends waModel
         } else {
             $data = array();
             if ($cache = wa('shop')->getCache()) {
-                $data = $cache->get('currencies');
+                $locale = wa()->getLocale();
+                $data = $cache->get('currencies_'.$locale);
             }
             if (!$data) {
                 $data = array();
@@ -73,7 +74,7 @@ class shopCurrencyModel extends waModel
                     }
                 }
                 if (!empty($cache)) {
-                    $cache->set('currencies', $data, 86400);
+                    $cache->set('currencies_'.$locale, $data, 86400);
                 }
             }
             $runtime_cache->set($data);
@@ -346,7 +347,12 @@ class shopCurrencyModel extends waModel
     public function deleteCache()
     {
         $cache = wa('shop')->getCache();
-        $cache && $cache->delete('currencies');
+        if ($cache) {
+            $cache->deleteGroup('sets');
+            foreach(waLocale::getAll() as $locale) {
+                $cache->delete('currencies_'.$locale);
+            }
+        }
         $cache = new waRuntimeCache('shop_currencies');
         $cache->delete();
     }

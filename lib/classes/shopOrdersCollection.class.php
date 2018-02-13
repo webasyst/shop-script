@@ -642,7 +642,7 @@ class shopOrdersCollection
                 }
 
                 $email = ifset($c, 'email', 0, null);
-                if ($use_gravatar && $email) {
+                if ($use_gravatar && $email && !$c['photo']) {
                     $c['photo_url_40'] = shopHelper::getGravatar($email, 40, $gravatar_default, true);
                     $c['photo_url_96'] = shopHelper::getGravatar($email, 96, $gravatar_default, true);
                 }

@@ -143,7 +143,7 @@ class shopImportexportHelper
     public static function getCollectionHash($hash = null)
     {
         if ($hash === null) {
-            $hash = waRequest::post('hash', waRequest::TYPE_STRING_TRIM, '');
+            $hash = waRequest::post('hash', '', waRequest::TYPE_STRING_TRIM);
         }
         $raw = explode('/', $hash);
 

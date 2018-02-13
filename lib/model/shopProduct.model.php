@@ -49,7 +49,7 @@ class shopProductModel extends waModel
                 shopProduct::getPath($product_id, null, false),
                 shopProduct::getPath($product_id, null, true),
             );
-            foreach($paths as $path) {
+            foreach ($paths as $path) {
                 try {
                     waFiles::delete($path);                 // xx/yy/product_id/
                     if (@rmdir(dirname($path))) {           // xx/yy/    (if empty)
@@ -313,7 +313,9 @@ class shopProductModel extends waModel
         $product_ids_str = implode(',', $product_ids);
 
         $images = $product_images_model->getByField('id', $image_ids, 'product_id');
-        $size = wa('shop')->getConfig()->getImageSize('crop_small');
+        /** @var shopConfig $config */
+        $config = wa('shop')->getConfig();
+        $size = $config->getImageSize('crop_small');
 
         // get for skus number of stocks in which it presents
         $sql = "
@@ -341,7 +343,7 @@ class shopProductModel extends waModel
 
         $stocks_count = count($stock_ids);
 
-        // temporary aggragating info about stocks
+        // temporary collect info about stocks
         $sku_stocks = array();
         if ($stocks_count) {
             $sku_stocks = array_fill(0, $stocks_count, array());
@@ -653,7 +655,7 @@ class shopProductModel extends waModel
         return $this->select('currency')->where('id='.(int)$product_id)->fetchField('currency');
     }
 
-    public function getTop($limit, $order = 'sales', $start_date = null, $end_date = null, $options=array())
+    public function getTop($limit, $order = 'sales', $start_date = null, $end_date = null, $options = array())
     {
         $paid_date_sql = shopOrderModel::getDateSql('o.paid_date', $start_date, $end_date);
 
@@ -742,27 +744,29 @@ class shopProductModel extends waModel
         $full_types = $own_types = array();
         foreach ($types as $type_id => $t) {
             // user can delete own products only
-            if (wa()->getUser()->getRights('shop', 'type.' . $type_id) == 1) {
+            if (wa()->getUser()->getRights('shop', 'type.'.$type_id) == 1) {
                 $own_types[] = $type_id;
-            } elseif (wa()->getUser()->getRights('shop', 'type.' . $type_id) > 1) {
+            } elseif (wa()->getUser()->getRights('shop', 'type.'.$type_id) > 1) {
                 $full_types[] = $type_id;
             }
         }
 
         $where = array();
         if ($full_types) {
-            $where[] = '(type_id IN (' . implode(',', $full_types) . '))';
+            $where[] = '(type_id IN ('.implode(',', $full_types).'))';
         }
         if ($own_types) {
-            $where[] = '(type_id IN (' . implode(',', $own_types) . ') AND contact_id = ' . (int)wa()->getUser()->getId() . ')';
+            $where[] = '(type_id IN ('.implode(',', $own_types).') AND contact_id = '.(int)wa()->getUser()->getId().')';
         }
         $where = implode(' OR ', $where);
 
-        $product_ids = array_keys($this->query("
+        $product_ids = array_map('intval', $product_ids);
+        $sql = "
             SELECT id FROM `{$this->table}`
             WHERE id IN(".implode(',', $product_ids).")
-                AND (".$where.")"
-        )->fetchAll('id'));
+                AND (".$where.")";
+
+        $product_ids = array_keys($this->query($sql)->fetchAll('id'));
 
         return $product_ids;
     }
@@ -811,7 +815,9 @@ class shopProductModel extends waModel
         $skus = $product_skus_model->getDataByProductId($id, true);
 
         $currency_model = new shopCurrencyModel();
-        $currency = wa('shop')->getConfig()->getCurrency();
+        /** @var shopConfig $config */
+        $config = wa('shop')->getConfig();
+        $currency = $config->getCurrency();
 
         $price = array();
         $update_product_data = array();
@@ -867,18 +873,9 @@ class shopProductModel extends waModel
         $update_product_data['sku_count'] = count($skus);
         $update_product_data['min_price'] = $currency_model->convert(min($price), $product['currency'], $currency);
         $update_product_data['max_price'] = $currency_model->convert(max($price), $product['currency'], $currency);
-        $update_product_data['price'] = $currency_model->convert(
-                                                       $skus[$product['sku_id']]['price'],
-                                                           $product['currency'],
-                                                           $currency
-        );
+        $update_product_data['price'] = $currency_model->convert($skus[$product['sku_id']]['price'], $product['currency'], $currency);
         if (isset($skus[$product['sku_id']]['compare_price'])) {
-            $update_product_data['compare_price'] =
-                $currency_model->convert(
-                               $skus[$product['sku_id']]['compare_price'],
-                                   $product['currency'],
-                                   $currency
-                );
+            $update_product_data['compare_price'] = $currency_model->convert($skus[$product['sku_id']]['compare_price'], $product['currency'], $currency);
         }
 
         $update_product_data['count'] = $product_count;

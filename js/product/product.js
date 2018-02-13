@@ -2274,7 +2274,6 @@ editClick:(function ($) {
                 $description.waEditor('sync');
             }
         },
-
         editTabDescriptionsAction: function () {
             var $description = $('#s-product-description-content');
 
@@ -2282,22 +2281,26 @@ editClick:(function ($) {
                 var $container = $description.parents('div.s-product-form');
                 $description.waEditor({
                     lang: wa_lang,
+                    modification_wysiwyg_msg: $description.data('modification-wysiwyg-msg'),
                     toolbarFixedTopOffset: $('#mainmenu').length ? $('#mainmenu').height() : 0,
-                    uploadFields: $description.data('uploadFields'),
-                    changeCallback: function () {
-                        if ($description.length) {
-                            $description.waEditor('sync');
-                            $.product.helper.onChange($container);
-                        }
-                    },
-                    keydownCallback: function (e) {
-                        //Ctrl+S
-                        if ((e.which == '115' || e.which == '83' ) && (e.ctrlKey || e.metaKey)) {
-                            e.preventDefault();
-                            $('#s-product-save-button').click();
-                            return false;
-                        } else {
-                            $.product.helper.onChange($container);
+                    imageUploadFields: $description.data('uploadFields'),
+                    saveButton: $('#s-product-save-button'),
+                    callbacks: {
+                        change: function () {
+                            if ($description.length) {
+                                $description.waEditor('sync');
+                                $.product.helper.onChange($container);
+                            }
+                        },
+                        keydown: function (e) {
+                            //Ctrl+S
+                            if ((e.which == '115' || e.which == '83' ) && (e.ctrlKey || e.metaKey)) {
+                                e.preventDefault();
+                                $('#s-product-save-button').click();
+                                return false;
+                            } else {
+                                $.product.helper.onChange($container);
+                            }
                         }
                     }
                 });
