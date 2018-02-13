@@ -28,6 +28,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                         if ($contact_id) {
                             $contact_data = $contact->load();
                             $contact = new waContact($contact_id);
+                            $is_password = $contact['password']; // if the user has previously created an order, but did not create an account
                             foreach ($contact_data as $k => $v) {
                                 if ($k == 'email') {
                                     $f = waContactFields::get($k);
@@ -41,6 +42,11 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                                         unset($v['status']);
                                     }
                                 }
+                                //if user registers
+                                if ($k == 'password' && !$is_password && $v) {
+                                    $contact->setPassword($v, true);
+                                    continue;
+                                }
                                 $contact->set($k, $v);
                             }
                         }
@@ -50,7 +56,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                         $contact->save();
                     }
                     // if user has been created
-                    if ($contact['password'] && empty($contact_id)) {
+                    if ($contact['password'] && (empty($contact_id) || empty($is_password))) {
 
                         $this->waLog('signup', wa()->getEnv(), $contact->getId(), $contact->getId());
 

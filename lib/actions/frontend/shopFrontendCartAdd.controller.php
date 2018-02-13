@@ -190,12 +190,17 @@ class shopFrontendCartAddController extends waJsonController
                 $item[$key] = $row[$key];
             }
             $p = $row['product'];
-            $item['image_url'] = shopImage::getUrl(array(
-                'product_id' => $row['product_id'],
-                'filename' => $p['image_filename'],
-                'id' => $p['image_id'],
-                'ext' => $p['ext']
-            ), "96x96");
+            $item['product_name'] = $p['name'];
+            if (ifset($p, 'image_id', null)) {
+                $item['image_url'] = shopImage::getUrl(array(
+                    'product_id' => $row['product_id'],
+                    'filename' => $p['image_filename'],
+                    'id' => $p['image_id'],
+                    'ext' => $p['ext']
+                ), "96x96");
+            } else {
+                $item['image_url'] = null;
+            }
             $item['frontend_url'] = wa()->getRouteUrl('shop/frontend/product', array(
                 'product_url' => $p['url'], 'category_url' => ifset($p['category_url'], '')));
             $item['price'] = $this->currencyFormat($row['price'], $row['currency']);

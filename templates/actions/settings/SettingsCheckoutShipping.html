@@ -5,16 +5,26 @@
     <div class="value">
         <p>[`During the “Shipping” checkout step, when customer selects a preferred shipping option but shipping address was not yet entered, instantly prompt customer to provide:`]</p>
     </div>
+
     <div class="value no-shift">
         <label>
-            <input name="config[prompt_type]" type="radio" value="0"{if empty($config.prompt_type)} checked{/if}>
-            [`All address fields required by the selected shipping option`]
+            <input name="config[prompt_type]" type="radio" value="0"{if ifset($config,'prompt_type', null) == 0} checked{/if}>
+            [`All address fields required by selected shipping option`]
         </label>
-        <p class="hint">[`Prompt for all address fields according to the selected shipping option implementation. If you use this option and have “Shipping” prior to “Contact info” in the checkout step order, it is advisable to hide (disable) shipping address form on the “Contact Info” checkout step to avoid asking for address twice.`]</p>
+        <p class="hint">[`Prompt for all address fields according to the selected shipping option implementation. If you use this option and have “Shipping” prior to “Contact info” in the checkout step order, it is advisable to hide (disable) shipping address form on the “Contact Info” checkout step to avoid asking for address twice.`]
+        <br><br>
+        [`If a customer has completed some address fields on “Contact info” checkout step, those fields may be not available for editing on “Shipping” step depending on shipping modules’ settings.`]</p>
     </div>
     <div class="value no-shift">
         <label>
-            <input name="config[prompt_type]" type="radio" value="1"{if !empty($config.prompt_type)} checked{/if}>
+            <input name="config[prompt_type]" type="radio" value="2"{if ifset($config,'prompt_type', null) == 2} checked{/if}>
+            [`All address fields required by selected shipping option including hidden completed fields`]
+        </label>
+        <p class="hint">[`Make completed address fields, hidden with previous option “All address fields required by selected shipping option”, available for editing on “Shipping” step.`]</p>
+    </div>
+    <div class="value no-shift">
+        <label>
+            <input name="config[prompt_type]" type="radio" value="1"{if ifset($config,'prompt_type', null) == 1} checked{/if}>
             [`Only fields required for shipping rate estimation`]
         </label>
         <p class="hint">[`Prompt for fields required for shipping rate and delivery date estimation only (shipping option implementation declares the list of such fields). This is a suitable setup option if you have “Shipping” prior to “Contact info” in the checkout step order setup.`]</p>

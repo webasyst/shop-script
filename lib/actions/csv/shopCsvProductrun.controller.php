@@ -70,7 +70,7 @@ class shopCsvProductrunController extends waLongActionController
                 'skip'     => 0,
                 'rights'   => 0,
                 'currency' => 0
-            ) : array('new' => 0, 'update' => 0, 'skip' => 0, 'error' => 0, 'rights' => 0, 'currency' => 0)) : 0;
+            ) : array('new' => 0, 'update' => 0, 'skip' => 0, 'error' => 0, 'rights' => 0, 'currency' => 0, 'validate' => 0)) : 0;
             $this->data['processed_count'] = array_fill_keys($stages, $value);
 
             $this->data['map'] = array();
@@ -691,6 +691,29 @@ class shopCsvProductrunController extends waLongActionController
                     ),
                     'icon'               => 'no',
                 ),
+                'validate'  => array(
+                    self::STAGE_CATEGORY => array /*_w*/
+                    (
+                                                  '%d category imported with errors',
+                                                  '%d categories imported with errors',
+                    ),
+                    self::STAGE_IMAGE    => array /*_w*/
+                    (
+                                                  '%d image imported with errors',
+                                                  '%d images imported with errors',
+                    ),
+                    self::STAGE_SKU      => array /*_w*/
+                    (
+                                                  '%d product imported with errors',
+                                                  '%d products imported with errors',
+                    ),
+                    self::STAGE_PRODUCT  => array /*_w*/
+                    (
+                                                  '%d SKU not imported due to tariff restriction',
+                                                  '%d SKUs not imported due to tariff restriction',
+                    ),
+                    'icon'               => 'no-bw',
+                ),
                 0           => array(
                     self::STAGE_CATEGORY => array /*_w*/
                     (
@@ -720,7 +743,7 @@ class shopCsvProductrunController extends waLongActionController
         if (ifempty($count[$stage])) {
             foreach ((array)$count[$stage] as $type => $count) {
                 if ($count) {
-                    $args = $strings[$type][$stage];
+                    $args = ifset($strings, $type, $stage, null);
                     $args[] = $count;
                     $string = htmlentities(call_user_func_array('_w', $args), ENT_QUOTES, 'utf-8');
                     $info[] = sprintf($wrapper, $strings[$type]['icon'], $string);
@@ -1210,7 +1233,9 @@ class shopCsvProductrunController extends waLongActionController
             $target = $product->getId() ? 'update' : 'new';
             if (!$this->emulate($product->__hash)) {
                 shopProductStocksLogModel::setContext(shopProductStocksLogModel::TYPE_IMPORT);
-                $product->save($data);
+                if (!$product->save($data)) {
+                    $target = 'validate';
+                }
                 shopProductStocksLogModel::clearContext();
 
                 $this->data['map'][self::STAGE_PRODUCT] = $product->getId();
@@ -1410,8 +1435,9 @@ class shopCsvProductrunController extends waLongActionController
                             }
                         }
 
-
-                        $product->save($truncated_data);
+                        if (!$product->save($truncated_data)) {
+                            $target_sku = 'validate';
+                        };
 
                         $this->data['map'][self::STAGE_PRODUCT] = $product->getId();
                     } else {
@@ -1420,7 +1446,10 @@ class shopCsvProductrunController extends waLongActionController
                 }
             } else {
                 if (!$this->emulate($product->__hash, $key)) {
-                    $product->save($data);
+                    if (!$product->save($data)) {
+                        $target = 'validate';
+                    };
+
                     $this->data['map'][self::STAGE_PRODUCT] = $product->getId();
                     if (!empty($data['images'])) {
                         $this->data['map'][self::STAGE_IMAGE] = $data['images'];

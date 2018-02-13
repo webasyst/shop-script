@@ -325,15 +325,18 @@ HTML;
     protected static function byCoupons(&$order, $contact, $apply)
     {
         $cm = new shopCouponModel();
-        $checkout_data = wa('shop')->getStorage()->read('shop/checkout');
         if (!empty($order['id'])) {
             // Recalculating existing order: take coupon code from order params
-            $order_params_model = new shopOrderParamsModel();
-            $order['params'] = ifset($order['params'], array()) + $order_params_model->get($order['id']);
+
+            if (!isset($order['params']) || !isset($order['params']['coupon_id'])) {
+                $order_params_model = new shopOrderParamsModel();
+                $order['params'] = ifset($order['params'], array()) + $order_params_model->get($order['id']);
+            }
+
             if (empty($order['params']['coupon_id'])) {
                 return 0;
             }
-            $coupon_id = $order['params']['coupon_id'];
+            $coupon_id = intval($order['params']['coupon_id']);
 
             $coupon = $cm->getById($coupon_id);
             $coupon_code = ifset($coupon['code'], 'coupon_id='.$coupon_id);
@@ -347,8 +350,11 @@ HTML;
                 'discount'    => $discount,
                 'description' => $description,
             );
-        } elseif (empty($checkout_data['coupon_code'])) {
-            return null;
+        } else {
+            $checkout_data = wa('shop')->getStorage()->read('shop/checkout');
+            if (empty($checkout_data['coupon_code'])) {
+                return null;
+            }
         }
 
         $coupon = $cm->getByField('code', $checkout_data['coupon_code']);
@@ -496,10 +502,11 @@ HTML;
                 $round_discount =  $item['quantity'] * shop_currency($item['discount'] / $item['quantity'], $currency, $currency, false);
                 if (($round_discount != $item['discount']) && waSystemConfig::isDebug()) {
                     $log = array(
-                        'name'     => $item['name'],
-                        'discount' => $item['discount'],
-                        'currency' => $currency,
-                        'price'    => $item['price'],
+                        'name'           => $item['name'],
+                        'discount'       => $item['discount'],
+                        'currency'       => $currency,
+                        'price'          => $item['price'],
+                        'round_discount' => $round_discount,
                     );
                     waLog::log(var_export($log, true), 'shop/discounts_per_item.rounding.log');
                 }
@@ -517,7 +524,7 @@ HTML;
                     break;
 
             }
-            $items_description .= $item['name'];
+            $items_description .= htmlentities($item['name'], ENT_NOQUOTES, 'utf-8');
             if (self::getDiscountCombineType() == 'sum') {
                 $items_description .= '<ul>'.$item['discount_description'].'</ul>';
                 if ($count > 1) {
@@ -560,7 +567,7 @@ HTML;
             if (!empty($discount['discount'])) {
                 $discount['discount'] = waCurrency::round($discount['discount'], $currency);
                 if (!isset($discount['description'])) {
-                    $name = $plugin_id ? self::getPluginName($plugin_id) : '';
+                    $name = htmlentities($plugin_id ? self::getPluginName($plugin_id) : '', ENT_NOQUOTES, 'utf-8');
                     $description = $name.(strlen($name) ? ': ' : '').shop_currency_html($discount['discount'], $currency, $currency);
                     $discount += compact('description');
                 } else {

@@ -84,9 +84,6 @@
                     function(r) {
                         $.product.refresh('succes', $_('Save'));
                         var page = r.data;
-                        if (!page.status) {
-                            page.name += ' <span class="s-page-draft">' + $_('draft') + '</span>';
-                        }
                         var html = $('<li id="page-' + page.id + '" class="dr selected">' +
                                 '<a class="wa-page-link" href="' + $.product_pages.getUrl(page.id) + '">' +
                                 '<i class="icon16 notebook"></i>' + page.name + ' <span class="hint">/' + page.url_escaped +'</span>' + '</a></li>');
@@ -101,18 +98,31 @@
                             $.product_pages.tab_counter.text(parseInt($.product_pages.tab_counter.text(), 10) + 1 || 0);
                             location.hash = '#/product/' + $.product_pages.product_id + '/edit/pages/' + page.id + '/';
                             $('#page-'+page.id).after('<li class="drag-newposition ui-droppable"></li>');
-                        } else {
-                            var container = $.product_pages.container;
-                            container.find(".s-page-editor h2").html(page.name);
-                            container.find(".s-page-urls a").each(function(index) {
-                                var self = $(this);
-                                var url = r.data.frontend_url+'/'+r.data.url+'/';
-                                self.attr('href', url + '?preview='+r.data.preview_hash);
-                                if (index == 0) {
-                                    self.text(url);
-                                }
-                            });
                         }
+
+                        var container = $.product_pages.container,
+                            $page_name = container.find(".s-page-editor h2"),
+                            url = r.data.frontend_url+'/'+r.data.url+'/';
+
+                        if ($('#s-page-v').is(':checked')) {
+                            var page_title = page.name,
+                                page_attr_url = url;
+                        } else {
+                            var page_title = page.name += ' <span class="s-page-draft">' + $_('draft') + '</span>',
+                                page_attr_url = url + '?preview='+r.data.preview_hash;
+                        }
+
+                        $page_name.html(page_title);
+
+                        container.find(".s-page-urls a").each(function(index) {
+                            var self = $(this);
+
+                            self.attr('href', page_attr_url);
+                            if (index == 0) {
+                                self.text(url);
+                            }
+                        });
+
                         $('#s-product-save-button').removeClass('yellow green').addClass('green');
                         $('#s-product-edit-menu li.pages .s-product-edit-tab-status').html('');
                     }

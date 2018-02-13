@@ -388,8 +388,8 @@ class shopCheckoutShipping extends shopCheckout
             }
         }
 
-        if ($address_form) {
-            if (!empty($config['shipping']['prompt_type'])) {
+        if ($address_form || ifset($config,'shipping','prompt_type', null) == 2) {
+            if (ifset($config,'shipping','prompt_type', null) == 1) {
                 #show only cost type fields
                 if (!empty($address['fields'])) {
                     foreach ($address['fields'] as $k => $v) {

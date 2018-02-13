@@ -2,7 +2,6 @@
 
 class shopOrdersLoadListController extends shopOrderListAction
 {
-    private $errors = array();
     private $offset;
 
     public function execute()
@@ -16,11 +15,11 @@ class shopOrdersLoadListController extends shopOrderListAction
 
         $offset = $this->getOffset();
         if ($offset === false) {
-            $this->setError(_w("Unkown offset"));
+            $this->setError(_w("Unknown offset"));
         }
         $count = $this->getCount();
         if ($count === false) {
-            $this->setError(_w("Unkown count"));
+            $this->setError(_w("Unknown count"));
         }
 
         $total_count = $this->getTotalCount();
@@ -32,16 +31,16 @@ class shopOrdersLoadListController extends shopOrderListAction
         $this->assign(
             // basic info
             array(
-                'orders' => array_values($orders),
-                'total_count' => $total_count,
+                'orders'         => array_values($orders),
+                'total_count'    => $total_count,
                 'current_offset' => $offset,
-                'count' => $count,
-                'loaded' => $offset + $count,
-                'progress' => array(
-                    'loaded' => _w('%d order','%d orders', $offset + $count),
-                    'of' => sprintf(_w('of %d'), $total_count),
-                    'chunk' => _w('%d order','%d orders', max(0, min($total_count - ($offset + $count), $count))),
-                )
+                'count'          => $count,
+                'loaded'         => $offset + $count,
+                'progress'       => array(
+                    'loaded' => _w('%d order', '%d orders', $offset + $count),
+                    'of'     => sprintf(_w('of %d'), $total_count),
+                    'chunk'  => _w('%d order', '%d orders', max(0, min($total_count - ($offset + $count), $count))),
+                ),
             )
             +
             (
@@ -79,7 +78,7 @@ class shopOrdersLoadListController extends shopOrderListAction
     /**
      * Get offset in list by ID
      * @param number $id
-     * @return boolean|number If false than error occured else int offset
+     * @return boolean|number If false than error occurred else int offset
      */
     private function getOrderOffset($id)
     {
@@ -105,11 +104,13 @@ class shopOrdersLoadListController extends shopOrderListAction
 
     public function assign($data)
     {
-        echo json_encode(array('status' => 'ok', 'data' => $data)); exit;
+        echo json_encode(array('status' => 'ok', 'data' => $data));
+        exit;
     }
 
     public function setError($msg)
     {
-        echo json_encode(array('status' => 'fail', 'errors' => array($msg))); exit;
+        echo json_encode(array('status' => 'fail', 'errors' => array($msg)));
+        exit;
     }
 }

@@ -181,7 +181,7 @@ class shopFrontendProductAction extends shopFrontendAction
 
         if (!empty($public_stocks)) {
             $count = $this->countOfSelectedStocks($public_stocks, $product->skus);
-            if ($count === 0) {
+            if ($count === 0 && !$this->getConfig()->getGeneralSettings('ignore_stock_count')) {
                 $product->status = 0;
             }
         }

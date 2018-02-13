@@ -1811,7 +1811,14 @@ SQL;
 
             // When storefront is only limited to certain stock, recalculate product counts
             $public_stocks = waRequest::param('public_stocks');
+
+            if (!is_array($public_stocks)) {
+                $public_stocks = $this->getVisibleStocks();
+            }
+
             if (!empty($public_stocks)) {
+
+                $public_stocks = $this->checkIsVirtualStock($public_stocks);
 
                 // List of all stocks
                 $stock_model = new shopStockModel();
@@ -1824,7 +1831,7 @@ SQL;
                 $rows = $spsm->getByField(array(
                     'product_id' => array_keys($products),
                 ), true);
-                foreach($rows as $row) {
+                foreach ($rows as $row) {
                     $stock_counts[$row['product_id']][$row['sku_id']][$row['stock_id']] = $row['count'];
                 }
 
@@ -1833,8 +1840,8 @@ SQL;
                 // of this sku_id on this stock.
                 // We take these infinite counts into account by adding NULLs to $stock_counts.
                 $empty_stocks = array_fill_keys(array_keys($stocks), null);
-                foreach($stock_counts as &$p) {
-                    foreach($p as &$s) {
+                foreach ($stock_counts as &$p) {
+                    foreach ($p as &$s) {
                         $s += $empty_stocks;
                     }
                 }
@@ -1864,6 +1871,72 @@ SQL;
     }
 
     /**
+     * Gets all the stocks visible to the storefront.
+     * If all stocks are visible, then the recalculation is not needed
+     * @return array|null
+     */
+    protected function getVisibleStocks()
+    {
+        $all_stocks = shopHelper::getStocks();
+        $visible_stocks = array();
+        $is_all_visible = true;
+
+        if ($all_stocks) {
+            foreach ($all_stocks as $id => $stock) {
+                if ($stock['public'] == 0) {
+                    $is_all_visible = false;
+                    continue;
+                }
+
+                //if it virtual stock
+                if (!wa_is_int($id) && is_array($stock['substocks'])) {
+                    $visible_stocks = array_merge($visible_stocks, $stock['substocks']);
+                    continue;
+                }
+                $visible_stocks[] = (string)$id; //(string) - For the same formatting (To not surprise why int :)
+            }
+
+        }
+
+        if ($is_all_visible) {
+            return null;
+        }
+
+        return array_unique($visible_stocks);
+    }
+
+    /**
+     * If there is a virtual warehouse in the array, you can get its physical stocks.
+     * @param $public_stocks
+     * @return array
+     */
+    protected function checkIsVirtualStock($public_stocks)
+    {
+        $v_stock = null;
+        foreach ($public_stocks as $key => $stock) {
+            if (wa_is_int($stock)) {
+                continue;
+            }
+
+            //get id virtual stock
+            $v_stock[] = substr($stock, 1);
+            unset($public_stocks[$key]);
+        }
+
+        if ($v_stock) {
+            $svsm = new shopVirtualstockStocksModel();
+            $stocks = $svsm
+                ->select('DISTINCT stock_id')
+                ->where('virtualstock_id IN (i:v_stock)', compact('v_stock'))
+                ->fetchAll('stock_id');
+
+            $v_stock = array_keys($stocks);
+            $public_stocks = array_unique(array_merge($public_stocks, $v_stock));
+        }
+        return $public_stocks;
+    }
+
+    /**
      * Count product supply taking into account stocks visible in current storefront.
      * @param $public_stocks
      * @param $product_stock_counts
@@ -1874,7 +1947,7 @@ SQL;
         $count = null;
         if ($product_stock_counts) {
             foreach ($product_stock_counts as $sku_id => $stocks) {
-                foreach($stocks as $stock_id => $c) {
+                foreach ($stocks as $stock_id => $c) {
                     if (in_array($stock_id, $public_stocks)) {
                         if ($c === null) {
                             return null;

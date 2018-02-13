@@ -2,11 +2,70 @@
 
 class shopOrderSaveController extends waJsonController
 {
+    public function execute()
+    {
+        $new = false && waRequest::cookie('shopOrderClass', false);
+        if ($new) {
+            $this->executeNew();
+        } else {
+            $this->executeOld();
+        }
+    }
+
+    public function executeNew()
+    {
+        $data = array(
+            'id'                   => waRequest::get('id', null, waRequest::TYPE_INT),
+            'customer_id'          => waRequest::post('customer_id', null, waRequest::TYPE_INT),
+            'discount_description' => waRequest::request('discount_description', '', 'string'),
+            'params'               => array(
+                'shipping_id' => waRequest::post('shipping_id', null),
+                'payment_id'  => waRequest::post('payment_id', null),
+                'payment'     => waRequest::post('payment_'.waRequest::post('payment_id'), null),
+                'storefront'  => waRequest::post('storefront', null, waRequest::TYPE_STRING_TRIM),
+            ),
+            'comment'              => waRequest::post('comment', null, waRequest::TYPE_STRING_TRIM),
+            'shipping'             => waRequest::post('shipping', 0),
+            'discount'             => waRequest::post('discount', 0),
+
+            'currency' => waRequest::post('currency'),
+            'customer' => waRequest::post('customer'),
+
+            'items' => array(
+                'item'     => waRequest::post('item', array()),
+                'product'  => waRequest::post('product', array()),
+                'service'  => waRequest::post('service', array()),
+                'variant'  => waRequest::post('variant', array()),
+                'name'     => waRequest::post('name', array()),
+                'price'    => waRequest::post('price', array()),
+                'quantity' => waRequest::post('quantity', array()),
+                'sku'      => waRequest::post('sku', array()),
+                'stock'    => waRequest::post('stock', array()),
+            ),
+        );
+
+        $options = array(
+            'items_format' => 'flat',
+        );
+        $order = new shopOrder($data, $options);
+        try {
+            $saved_order = $order->save();
+            $this->response['order'] = $saved_order->getData();
+        } catch (waException $ex) {
+            $this->errors = $order->errors();
+        }
+
+    }
+
+    //
+    //
+    //
+
     private $models = array();
     private $shipping_address;
     private $billing_address;
 
-    public function execute()
+    public function executeOld()
     {
         // Existing order id
         $id = waRequest::get('id', null, waRequest::TYPE_INT);

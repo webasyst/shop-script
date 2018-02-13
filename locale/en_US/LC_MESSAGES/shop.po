@@ -2469,7 +2469,7 @@ msgid "None of your customers posted a review of this product yet."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductServices.html:16
-msgid "Use <a href=\"%s\">Services</a> screen to add new custom services."
+msgid "Add new services in “<a href=\"%s\">Services</a>” section."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductServices.html:23
@@ -5164,7 +5164,7 @@ msgstr ""
 #: /wa-apps/shop/themes/nifty/checkout.shipping.html:65
 #: /wa-apps/shop/themes/sidebar/checkout.shipping.html:65
 #: /wa-apps/shop/themes/vk/checkout.shipping.html:65
-msgid "Oops! We are sorry, but <strong>we can not ship this order to your selected destination</strong>. Checkout can not be completed."
+msgid "Oops! We are sorry, but <strong>we cannot ship this order to your selected destination</strong>. Checkout cannot be completed."
 msgstr ""
 
 #: /wa-apps/shop/themes/clear/checkout.success.html:6
@@ -10443,7 +10443,7 @@ msgid "Keep original filenames"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:135
-msgid "When enabled, each thumbnail (which is generated on demand or during the original upload) filename will be derived from the name of the original file you upload."
+msgid "When enabled, thumbnails’ file names are derived from the name of an original image file you upload."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:136

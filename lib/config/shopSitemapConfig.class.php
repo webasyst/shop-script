@@ -50,14 +50,8 @@ class shopSitemapConfig extends waSitemapConfig
                         $c['edit_datetime'] ? $c['edit_datetime'] : $c['create_datetime'], self::CHANGE_WEEKLY, 0.6);
                 }
 
-                $main_url = $this->getUrl('');
                 // pages
-                $sql = "SELECT full_url, url, create_datetime, update_datetime FROM ".$page_model->getTableName().'
-                        WHERE status = 1 AND domain = s:domain AND route = s:route';
-                $pages = $page_model->query($sql, array('domain' => $domain, 'route' => $route['url']))->fetchAll();
-                foreach ($pages as $p) {
-                    $this->addUrl($main_url.$p['full_url'], $p['update_datetime'] ? $p['update_datetime'] : $p['create_datetime'], self::CHANGE_MONTHLY, 0.6);
-                }
+                $this->addPages($page_model,$route);
 
                 /**
                  * @event sitemap
@@ -77,7 +71,7 @@ class shopSitemapConfig extends waSitemapConfig
                 }
 
                 // main page
-                $this->addUrl($main_url, time(), self::CHANGE_DAILY, 1);
+                $this->addUrl($this->getUrl(''), time(), self::CHANGE_DAILY, 1);
             }
 
             // count products for pagination

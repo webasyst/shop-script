@@ -521,7 +521,7 @@
                         [`Order created`]: <strong>{$order.create_datetime|wa_datetime:"humandatetime"}</strong><br>
                         {if !empty($order.params.referer)}[`Referrer`]: <strong><a href="{$order.params.referer}" target="_blank" style="color: #03c;">{$order.params.referer|truncate:42|escape}</a></strong><br>{/if}
                         {if !empty($order.params.utm_campaign)}[`UTM campaign`]: <strong>{$order.params.utm_campaign|escape}</strong><br>{/if}
-                        {if !empty($sales_channel)}[`Sales channel`]: <strong title="{ifset($order.params.sales_channel, '?')}">{$sales_channel|escape}</strong><br>{/if}
+                        {if !empty($sales_channel)}[`Sales channel`]: <strong title="{$order.params.sales_channel|default:'?'|escape}">{$sales_channel|escape}</strong><br>{/if}
                         {if !empty($order.params.storefront)}[`Storefront`]: <strong>{$order.params.storefront_decoded|default:$order.params.storefront}</strong><br>{/if}
                         {if !empty($order.params.keyword)}[`Keyword`]: <strong>{$order.params.keyword|escape}</strong><br>{/if}
                         {if !empty($order.params.ip)}[`IP`]: <strong>{$order.params.ip}</strong><br>{/if}

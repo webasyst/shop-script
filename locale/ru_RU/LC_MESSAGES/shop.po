@@ -293,19 +293,19 @@ msgid "Recommended setup"
 msgstr "Рекомендуемая настройка"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:10
-msgid "For online stores shipping to multiple countries and regions: <em>1. Contact info &rarr; 2. Shipping &rarr; 3. Payment &rarr; 4. Confirmation.</em>"
-msgstr "Для интернет-магазинов, отправляющих заказы в несколько стран и регионов: <em>1. Контактные данные &rarr; 2. Доставка &rarr; 3. Оплата &rarr; 4. Подтверждение.</em>"
+msgid "For online stores shipping to multiple countries and regions: <em>1.&nbsp;Contact info &rarr; 2.&nbsp;Shipping &rarr; 3.&nbsp;Payment &rarr; 4.&nbsp;Confirmation.</em>"
+msgstr "Для интернет-магазинов, отправляющих заказы в несколько стран и регионов: <em>1.&nbsp;Контактные данные &rarr; 2.&nbsp;Доставка &rarr; 3.&nbsp;Оплата &rarr; 4.&nbsp;Подтверждение.</em>"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:12
-msgid "For one-city-centric stores offering mostly courier shipping: <em>1.Shipping &rarr; 2. Contact info &rarr; 3. Payment &rarr; 4. Confirmation</em>"
-msgstr "Для магазинов, обычно доставляющих заказы курьером в пределах одного города: <em>1.Доставка &rarr; 2. Контактные данные &rarr; 3. Оплата &rarr; 4. Подтверждение</em>"
+msgid "For one-city-centric stores offering mostly courier shipping: <em>1.&nbsp;Shipping &rarr; 2.&nbsp;Contact info &rarr; 3.&nbsp;Payment &rarr; 4.&nbsp;Confirmation</em>"
+msgstr "Для магазинов, обычно доставляющих заказы курьером в пределах одного города: <em>1.&nbsp;Доставка &rarr; 2.&nbsp;Контактные данные &rarr; 3.&nbsp;Оплата &rarr; 4.&nbsp;Подтверждение</em>"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:14
-msgid "For electronic-delivery-only stores: <em>1. Contact info &rarr; 2. Payment &rarr; 3. Confirmation</em>"
-msgstr "Для магазинов, доставляющих электронные товары только через интернет: <em>1. Контактные данные &rarr; 2. Оплата &rarr; 3. Подтверждение</em>"
+msgid "For electronic-delivery-only stores: <em>1.&nbsp;Contact info &rarr; 2.&nbsp;Payment &rarr; 3.&nbsp;Confirmation</em>"
+msgstr "Для магазинов, доставляющих электронные товары только через интернет: <em>1.&nbsp;Контактные данные &rarr; 2.&nbsp;Оплата &rarr; 3.&nbsp;Подтверждение</em>"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:16
-msgid "Be sure to keep the checkout process simple."
+msgid "Keep the checkout setup as simple as possible."
 msgstr "Старайтесь максимально упростить процесс оформления заказа."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:20
@@ -1504,8 +1504,8 @@ msgid "reply"
 msgstr "ответить"
 
 #: /wa-apps/shop/templates/actions/product/ProductServices.html:16
-msgid "Use <a href=\"%s\">Services</a> screen to add new custom services."
-msgstr "Для добавления новых услуг воспользуйтесь разделом <a href=\"%s\">Услуги</a>."
+msgid "Add new services in “<a href=\"%s\">Services</a>” section."
+msgstr "Добавляйте новые услуги в разделе «<a href=\"%s\">Услуги</a>»."
 
 #: /wa-apps/shop/templates/actions/product/ProductServices.html:23
 msgid "for"
@@ -1637,7 +1637,7 @@ msgstr "Нормальный размер"
 
 #: /wa-apps/shop/templates/actions/product/ProductImage.html:89
 msgid "Next →"
-msgstr "Next →"
+msgstr "След →"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:374
 msgid "edit"
@@ -1660,7 +1660,7 @@ msgid "Storefront link"
 msgstr "Ссылка на витрину"
 
 msgid "This product is not visible in the storefront because product type “%s” which this product belongs to is not allowed for publishing in any of your storefronts."
-msgstr "Этот товар не показывается ни на одной из витрин, поскольку тип «%s», к которому принадлежит этот товар, не разрешён к публикации ни на одной витрине."
+msgstr "Этот товар не показывается ни на одной из витрин, поскольку тип «%s», к которому принадлежит этот товар, не разрешен к публикации ни на одной витрине."
 
 #: /wa-apps/shop/templates/actions/product/Product.html:61
 msgid "Last 30 days"
@@ -1694,7 +1694,7 @@ msgstr "Есть, но мало"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:187
 msgid "Approximate date when you run out of stock for this SKU is %s based on average selling rate (≈%f items per month)"
-msgstr "Расчетная дата исчерпания остатков для этого артикула — %s (вычислена на основании средней покупаемости  ≈%f шт. в месяц)"
+msgstr "Расчетная дата исчерпания остатков для этого артикула — %s (вычислена на основании средней частоты продаж ≈%f шт. в месяц)"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:317
 msgid "Customer reviews"
@@ -2178,7 +2178,7 @@ msgstr "Добро пожаловать в Shop-Script!"
 
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:4
 msgid "Using the quick-start form below you can easily prepare an initial setup of your online store depending on your region and what you are going to sell online. This won't add your stuff to your store automatically, but will prepare configuration lists such as currencies and taxes rates, so you don't add such data manually."
-msgstr "С помощью формы быстрого старта вы можете легко подготовить начальную конфигурацию для вашего интернет-магазина в зависимости от вашего региона и типа товаров, которые вы собиратесь продавать. Ваши товары не будут автоматически добавлены в интернет-магазин, однако будут сохранены некоторые полезные настройки (например, валюты и налоги), чтобы вам не пришлось делать этого вручную."
+msgstr "С помощью формы быстрого старта вы можете легко подготовить начальную конфигурацию для вашего интернет-магазина в зависимости от вашего региона и типа товаров, которые вы собираетесь продавать. Ваши товары не будут автоматически добавлены в интернет-магазин, однако будут сохранены некоторые полезные настройки (например, валюты и налоги), чтобы вам не пришлось делать этого вручную."
 
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:25
 msgid "Other"
@@ -3092,7 +3092,7 @@ msgstr "Введите текст отзыва"
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:196
 msgid "Review length should not exceed 4096 symbols"
-msgstr "Текст отзыва не должен быть длинее 4096 символов"
+msgstr "Текст отзыва не должен быть длиннее 4096 символов"
 
 #: /wa-apps/shop/lib/model/shopFeatureValues.model.php:103
 msgid "Not unique value"
@@ -5266,8 +5266,8 @@ msgid "Customer’s IP address for the moment of order creation"
 msgstr "IP-адрес покупателя на момент формирования заказа"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:186
-msgid "Customer’s User Agent string for the moment of order creation"
-msgstr "User Agent браузера покупателя на момент формирования заказа"
+msgid "Customer’s User-Agent value at the moment of order creation"
+msgstr "Значение User-Agent браузера покупателя на момент формирования заказа"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:194
 msgid "A string indicating approximate timeframe of the order delivery (if defined)"
@@ -5477,6 +5477,9 @@ msgstr "Все обязательные поля адреса"
 msgid "Prompt for all address fields according to the selected shipping option implementation. If you use this option and have “Shipping” prior to “Contact info” in the checkout step order, it is advisable to hide (disable) shipping address form on the “Contact Info” checkout step to avoid asking for address twice."
 msgstr "Запрашивать все поля адреса доставки, необходимые для работы выбранного модуля доставки. Если вы выбрали этот вариант и поместили шаг «Доставка» перед шагом «Контактная информация» в настройках оформления заказа, рекомендуется скрыть (отключить) поля адреса доставки в шаге «Контактная информация», чтобы не требовать их заполнения повторно."
 
+msgid "If a customer has completed some address fields on “Contact info” checkout step, those fields may be not available for editing on “Shipping” step depending on shipping modules’ settings."
+msgstr "Если покупатель заполнил некоторые поля адреса на шаге «Контактная информация», эти поля могут быть недоступны для редактирования на шаге «Доставка» в зависимости от настроек модулей доставки."
+
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:344
 msgid "Only fields required for shipping rate estimation"
 msgstr "Только поля, необходимые для расчета стоимости доставки"
@@ -5633,7 +5636,7 @@ msgid "Oops! We are sorry, but <strong>we can not offer any payment option for y
 msgstr "Извините, заказ не может быть оформлен — мы <strong>не можем предложить ни одного способа оплаты для вашего заказа</strong>."
 
 #: /wa-apps/shop/themes/default/checkout.shipping.html:54
-msgid "Oops! We are sorry, but <strong>we can not ship this order to your selected destination</strong>. Checkout can not be completed."
+msgid "Oops! We are sorry, but <strong>we cannot ship this order to your selected destination</strong>. Checkout cannot be completed."
 msgstr "Извините, заказ не может быть оформлен — <strong>мы не можем доставить заказанные товары по указанному адресу</strong>."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormEditor.html:38
@@ -6516,8 +6519,14 @@ msgstr[1] "Поисковый индекс успешно обновлен дл�
 msgstr[2] "Поисковый индекс успешно обновлен для %d товаров."
 
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:473
-msgid "All address fields required by the selected shipping option"
+msgid "All address fields required by selected shipping option"
 msgstr "Все поля адреса, обязательные для выбранного способа доставки"
+
+msgid "All address fields required by selected shipping option including hidden completed fields"
+msgstr "Все поля адреса, обязательные для выбранного способа доставки, включая скрытые заполненные поля"
+
+msgid "Make completed address fields, hidden with previous option “All address fields required by selected shipping option”, available for editing on “Shipping” step."
+msgstr "Сделать доступными для редактирования на шаге «Доставка» заполненные поля адреса, которые скрыты при использовании варианта «Все поля адреса, обязательные для выбранного способа доставки»."
 
 #: /wa-apps/shop/lib/config/site.php:113
 msgid "Force drop out-of-stock products to the bottom of all lists"
@@ -9176,8 +9185,11 @@ msgid "Keep original filenames"
 msgstr "Использовать исходные имена файлов"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:135
-msgid "When enabled, each thumbnail (which is generated on demand or during the original upload) filename will be derived from the name of the original file you upload."
-msgstr "Название файла каждого эскиза (эскизы уменьшенного размера создаются автоматически после загрузки изображения) будет совпадать с названием оригинального файла."
+msgid "When enabled, thumbnails’ file names are derived from the name of an original image file you upload."
+msgstr "Включите, чтобы формировать имена файлов эскизов из имени оригинального файла, который вы загружаете."
+
+msgid "When disabled, thumbnails’ file names are generated only with the use of numbers denoting thumbnail dimensions."
+msgstr "Выключите, чтобы имена файлов эскизов формировались только с использованием чисел, обозначающих размеры эскиза."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:136
 msgid "If you enable this setting for the first time, it is <strong>strongly recommended</strong> to 1) Re-generate all product image thumbnails (use the link below) right after this setting has been changed, and 2) Update your store theme product.html template with the <a href=\"%s\" target=\"_blank\">new product thumbnail display code</a>."
@@ -10702,3 +10714,47 @@ msgstr "Покупатель"
 
 msgid "Reviews author"
 msgstr "Автор отзыва"
+
+# wa-apps/shop/api/v1/shop.order.saveItem.method.php
+msgid "Required quantity is greater than is available in stock."
+msgstr "Указанное количество товара больше, чем есть на складе."
+
+# wa-apps/shop/api/v1/shop.order.saveItem.method.php
+msgid "You cannot delete the only available product from an order."
+msgstr "Нельзя удалить из заказа единственный товар."
+
+msgid "Nearest delivery date and time formatted as <em>yyyy-mm-dd hh:mm:ss</em>; e.g., <em>2001-12-31 12:30:59</em>."
+msgstr "Ближайшие возможные дата и время доставки в формате <em>yyyy-mm-dd hh:mm:ss</em>, например: <em>2001-12-31 12:30:59</em>."
+
+msgid "Deadline for delivery formatted as <em>yyyy-mm-dd hh:mm:ss</em>; e.g., <em>2001-12-31 13:30:59</em>."
+msgstr "Последний возможный срок доставки в формате <em>yyyy-mm-dd hh:mm:ss</em>, например: <em>2001-12-31 13:30:59</em>."
+
+msgid "Desired delivery date selected by customer, formatted as <em>yyyy-mm-dd</em>; e.g., <em>2001-12-31</em>."
+msgstr "Желаемая дата доставки, выбранная покупателем, в формате <em>yyyy-mm-dd</em>, например: <em>2001-12-31</em>."
+
+msgid "Desired delivery date selected by customer, formatted as <em>dd.mm.yyyy</em>; e.g., <em>31.12.2001</em>."
+msgstr "Желаемая дата доставки, выбранная покупателем, в формате <em>dd.mm.yyyy</em>, например: <em>31.12.2001</em>."
+
+msgid "Desired delivery interval selected by customer, formatted as <em>xx:xx-xx:xx</em>; e.g., <em>10:00-12:00</em>."
+msgstr "Желаемый интервал времени доставки, выбранный покупателем, в формате <em>xx:xx-xx:xx</em>, например: <em>10:00-12:00</em>."
+
+msgid "Edit orders"
+msgstr "Редактирование заказов"
+
+msgid "If enabled, a courier can edit order items, discount amount, and shipping cost via the mobile app."
+msgstr "Включите, чтобы курьер мог редактировать в мобильном приложении состав заказа, сумму скидки и стоимость доставки."
+
+msgid "A courier can change order status, shipping address in an order, except for fields “Country”, “ZIP”, “State”, and “City”, and other shipping parameters regardless of this setting’s value."
+msgstr "Курьер может изменять статус заказа, адрес доставки, кроме полей «Страна», «Индекс», «Регион» и «Город», и другие параметры доставки независимо от значения этой настройки."
+
+msgid "Edit customers"
+msgstr "Редактирование покупателей"
+
+msgid "Courier can edit customers’ contact details in mobile app."
+msgstr "Курьер может редактировать контактные данные покупателей в мобильном приложении."
+
+msgid "Payment and shipping methods selected by a customer and values of default shipping address fields “Country”, “ZIP”, “State”, “City” cannot be changed via mobile app."
+msgstr "Способы оплаты и доставки, выбранные покупателем, и значения стандартных полей адреса доставки «Страна», «Индекс», «Регион», «Город» нельзя изменить через мобильное приложение."
+
+msgid "Discount rounded to %s"
+msgstr "Скидка округлена до %s"

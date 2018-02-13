@@ -55,7 +55,7 @@ class shopOrdersGetProductController extends waJsonController
 
     public function workup(&$product, $sku_stocks)
     {
-        foreach(array('price', 'min_price', 'max_price') as $key) {
+        foreach (array('price', 'min_price', 'max_price') as $key) {
             $product[$key] = round($product[$key], 2);
         }
         if (!empty($product['services']) && is_array($product['services'])) {
@@ -65,12 +65,17 @@ class shopOrdersGetProductController extends waJsonController
         if (!$product['image_id']) {
             $product['url_crop_small'] = null;
         } else {
-            $product['url_crop_small'] = shopImage::getUrl(array(
-                    'id' => $product['image_id'],
-                    'filename' => $product['image_filename'],
+            /** @var shopConfig $config */
+            $config = $this->getConfig();
+
+            $product['url_crop_small'] = shopImage::getUrl(
+                array(
+                    'id'         => $product['image_id'],
+                    'filename'   => $product['image_filename'],
                     'product_id' => $product['id'],
-                    'ext' => $product['ext']
-                ), $this->getConfig()->getImageSize('crop_small')
+                    'ext'        => $product['ext'],
+                ),
+                $config->getImageSize('crop_small')
             );
         }
         // aggregated stocks count icon for product
@@ -87,17 +92,17 @@ class shopOrdersGetProductController extends waJsonController
         if (!empty($sku['services']) && is_array($sku['services'])) {
             $this->workupServices($sku['services']);
         }
-        // detaled stocks count icon for sku
+        // detailed stocks count icon for sku
         if (empty($sku_stocks[$sku['id']])) {
             $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], null, true);
         } else {
             $icons = array();
             $counts_htmls = array();
             foreach ($sku_stocks[$sku['id']] as $stock_id => $stock) {
-                $icon  = &$icons[$stock_id];
-                $icon  = shopHelper::getStockCountIcon($stock['count'], $stock_id)." ";
+                $icon = &$icons[$stock_id];
+                $icon = shopHelper::getStockCountIcon($stock['count'], $stock_id)." ";
                 $count_html = &$counts_htmls[$stock_id];
-                if($stock['count'] === null) {
+                if ($stock['count'] === null) {
                     $count_html = '∞';
                 } else {
                     $count_html = _w('%d left', '%d left', $stock['count']);
@@ -131,10 +136,10 @@ class shopOrdersGetProductController extends waJsonController
 
     private function workupServices(&$services)
     {
-        foreach($services as &$s) {
+        foreach ($services as &$s) {
             $s['price'] = round($s['price'], 2);
             if (!empty($s['variants']) && is_array($s['variants'])) {
-                foreach($s['variants'] as &$v) {
+                foreach ($s['variants'] as &$v) {
                     $v['price'] = round($v['price'], 2);
                 }
             }

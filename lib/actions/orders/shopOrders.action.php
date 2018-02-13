@@ -4,6 +4,7 @@ class shopOrdersAction extends shopOrderListAction
 {
     public function execute()
     {
+        /** @var shopConfig $config */
         $config = $this->getConfig();
 
         $default_view = $config->getOption('orders_default_view');
@@ -18,8 +19,8 @@ class shopOrdersAction extends shopOrderListAction
         foreach ($workflow->getAvailableActions() as $action_id => $action) {
             if (!isset($forbidden[$action_id]) && empty($action['internal'])) {
                 $actions[$action_id] = array(
-                    'name' => ifset($action['name'], ''),
-                    'style' => ifset($action['options']['style'])
+                    'name'  => ifset($action['name'], ''),
+                    'style' => ifset($action['options']['style']),
                 );
             }
         }
@@ -30,8 +31,8 @@ class shopOrdersAction extends shopOrderListAction
         
         $counters = array(
             'state_counters' => array(
-                'new' => $this->model->getStateCounters('new')
-            )
+                'new' => $this->model->getStateCounters('new'),
+            ),
         );
 
 
@@ -59,19 +60,19 @@ class shopOrdersAction extends shopOrderListAction
         }
 
         $this->assign(array(
-            'orders' => array_values($orders),
+            'orders'      => array_values($orders),
             'total_count' => $this->getTotalCount(),
-            'count' => count($orders),
-            'order' => $this->getOrder($orders),
-            'currency' => $this->getConfig()->getCurrency(),
+            'count'       => count($orders),
+            'order'       => $this->getOrder($orders),
+            'currency'    => $config->getCurrency(),
             'state_names' => $state_names,
-            'params' => $this->getFilterParams(),
-            'params_str' => $this->getFilterParams(true),
-            'view' => $view,
-            'timeout' => $config->getOption('orders_update_list'),
-            'actions' => $actions,
-            'counters' => $counters,
-            'sort' => $this->getSort()
+            'params'      => $this->getFilterParams(),
+            'params_str'  => $this->getFilterParams(true),
+            'view'        => $view,
+            'timeout'     => $config->getOption('orders_update_list'),
+            'actions'     => $actions,
+            'counters'    => $counters,
+            'sort'        => $this->getSort(),
         ));
     }
 
@@ -88,7 +89,7 @@ class shopOrdersAction extends shopOrderListAction
                 }
                 return $item;
             }
-        } else if (!empty($orders)) {
+        } elseif (!empty($orders)) {
             reset($orders);
             return current($orders);
         }

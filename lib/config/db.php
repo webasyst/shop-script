@@ -45,6 +45,8 @@ return array(
         'api_pin_expire' => array('datetime'),
         'api_last_use' => array('datetime'),
         'all_storefronts' => array('int', 1, 'null' => 0, 'default' => '1'),
+        'rights_order_edit' => array('int', 11, 'null' => 0, 'default' => '0'),
+        'rights_customer_edit' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
@@ -528,7 +530,7 @@ return array(
         'rating_count' => array('int', 11, 'null' => 0, 'default' => '0'),
         'total_sales' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         'category_id' => array('int', 11),
-        'badge' => array('varchar', 255),
+        'badge' => array('text'),
         'sku_type' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
         'base_price_selectable' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         'compare_price_selectable' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),

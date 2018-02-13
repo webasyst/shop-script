@@ -570,7 +570,7 @@ $.order_edit = {
             var order_item = {
                 "product_id": product_id,
                 "sku_id": sku_id,
-                "services":[]
+                "services": []
             }
 
             if (tr.find('.s-orders-services').length) {
@@ -578,10 +578,12 @@ $.order_edit = {
                     var li = $(this).closest('li');
                     var service_price = $.order_edit.parseFloat(li.find('input.s-orders-service-price').val());
                     var service_id = $(this).val();
+                    var service_variant_id = li.find(':input[name^="variant\["]').val();
 
                     services.push({
-                        id: service_id,
-                        price: service_price
+                        "id": service_id,
+                        "price": service_price,
+                        "variant_id": service_variant_id
                     });
 
                     order_item.services.push(service_id);

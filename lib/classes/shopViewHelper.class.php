@@ -240,7 +240,9 @@ SQL;
         }
         foreach ($type_values as $type => $value_ids) {
             $model = shopFeatureModel::getValuesModel($type);
-            $type_values[$type] = $model->getValues('id', $value_ids);
+            if ($model) {
+                $type_values[$type] = $model->getValues('id', $value_ids);
+            }
         }
 
         $tmp = array();

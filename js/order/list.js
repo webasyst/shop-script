@@ -578,7 +578,7 @@
 
             // when 'shift' held on prevent default browser selecting
             $(document).keydown(function(e) {
-                if (e.keyCode == 16) {
+                if (e.keyCode == 16 && !$(e.target).closest('.redactor-box').length) {
                     document.body.onselectstart = function() { return false; };
                 }
             }).keyup(function(e) {

@@ -5,7 +5,7 @@
  * are stored in shop_order.currency, not the default shop currency.
  * shop_order.rate contains the currency rate valid at the time of the order.
  */
-class shopOrderItemsModel extends waModel
+class shopOrderItemsModel extends waModel implements shopOrderStorageInterface
 {
     protected $table = 'shop_order_items';
 
@@ -92,21 +92,33 @@ SQL;
 
     public function getItems($order_id, $extend = false)
     {
-        if (!$extend) {
-            return $this->getRawItems($order_id);
-        }
 
+        $order = $order_id;
+        if (is_array($order)) {
+            $order_id = ifset($order['id']);
+        } elseif ($order instanceof shopOrder) {
+            $order_id = $order->id;
+        } elseif ($extend) {
+            $order = $this->getOrder($order);
+        }
+        $items = $this->getRawItems($order_id);
+        return $extend ? $this->extendItems($items, $order) : $items;
+    }
+
+    public function extendItems($items, $order_id)
+    {
         $order = $this->getOrder($order_id);
 
         $data = array();
         $type = null;
-        foreach ($this->getRawItems($order['id']) as $item) {
+        foreach ($items as $item) {
             if ($item['type'] == 'product') {
                 $sku_id = $item['sku_id'];
                 $product = &$data[];
-                $product = $this->getProductInfo($item['product_id'], $sku_id, $order['id']);
+                $product = $this->getProductInfo($item['product_id'], $sku_id, $order);
 
                 if (empty($product)) {
+                    # fake product
                     $product = array(
                         'id'       => $item['product_id'],
                         'fake'     => true,
@@ -117,17 +129,23 @@ SQL;
 
                 if (!isset($product['skus'][$sku_id])) {
                     unset($product['skus']);
+                    $product['skus'] = array();
+                    # fake sku
                     $product['skus'][$sku_id] = array(
-                        'id'   => $sku_id,
-                        'fake' => true
+                        'id'    => $sku_id,
+                        'fake'  => true,
+                        'price' => $item['price'],
                     );
                 } else {
                     $product['skus'][$sku_id]['price'] = $item['price'];
                 }
+
                 $product['item'] = $this->formatItem($item);
+
                 if (!empty($product['fake'])) {
                     $product['price'] = $product['item']['price'];
                 }
+
                 if (!empty($product['skus'][$sku_id]['fake'])) {
                     // parse string looks like this "ProductName (SkuName)"
                     if (preg_match('!\(([\s\S]+)\)$!', $product['item']['name'], $m)) {
@@ -142,6 +160,7 @@ SQL;
                     $product['skus'][$sku_id]['name'] = $name_of_fake_sku;
                 }
             }
+
             $service_id = $item['service_id'];
             $service_variant_id = $item['service_variant_id'];
 
@@ -161,6 +180,7 @@ SQL;
                     $product['services'][$service_id]['price'] = $product['services'][$service_id]['item']['price'];
                 }
             }
+
             if (empty($product['fake'])) {
                 $this->workupProduct($product, $order);
             }
@@ -170,12 +190,28 @@ SQL;
 
     private function getProductInfo($product_id, $sku_id = null, $order_id = null, $currency = null)
     {
-        $product = new shopProduct($product_id);
-        $data = $product->getData();
-        if (!$data) {
-            return array();
+        static $cache = array();
+        if (is_array($product_id)) {
+            $data = $product_id;
+            if ($sku_id === null) {
+                $sku_id = count($data['skus']) > 1 ? $data['sku_id'] : null;
+            }
+        } else {
+            if (!isset($cache[$product_id])) {
+                $cache[$product_id] = new shopProduct($product_id);
+            }
+            $product = $cache[$product_id];
+            $data = $product->getData();
+            if (!$data) {
+                return array();
+            }
+            $data['skus'] = $product->skus;
+            if ($sku_id === null) {
+                $sku_id = count($data['skus']) > 1 ? $product['sku_id'] : null;
+            }
         }
 
+        # get currency rate
         $rate = 1;
         $currency_model = $this->getModel('currency');
         if ($order_id) {
@@ -185,19 +221,15 @@ SQL;
             $rate = $currency_model->getRate($currency);
         }
 
+        # convert currency
         $data['price'] = (float)$currency_model->convertByRate($data['price'], 1, $rate);
         $data['max_price'] = (float)$currency_model->convertByRate($data['max_price'], 1, $rate);
         $data['min_price'] = (float)$currency_model->convertByRate($data['min_price'], 1, $rate);
-        $data['skus'] = $product->skus;
 
         foreach ($data['skus'] as &$sku) {
             $sku['price'] = (float)$currency_model->convertByRate($sku['primary_price'], 1, $rate);
         }
         unset($sku);
-
-        if ($sku_id === null) {
-            $sku_id = count($data['skus']) > 1 ? $product->sku_id : null;
-        }
 
         if ($sku_id && isset($data['skus'][$sku_id])) {
             $sku_price = $data['skus'][$sku_id]['price'];
@@ -205,15 +237,15 @@ SQL;
             $sku_price = $data['price'];
         }
 
-        $data['services'] = $this->getServices($product_id, $sku_id, $rate, $sku_price);
+        $data['services'] = $this->getServices($data, $sku_id, $rate, $sku_price);
         return $data;
     }
 
-    private function getServices($product_id, $sku_id, $rate, $sku_price)
+    private function getServices($product, $sku_id, $rate, $sku_price)
     {
         $currency_model = $this->getModel('currency');
 
-        $services = $this->getModel('service')->getAvailableServicesFullInfo($product_id, $sku_id);
+        $services = $this->getModel('service')->getAvailableServicesFullInfo($product, $sku_id);
         foreach ($services as &$service) {
             if ($service['currency'] == '%') {
                 $service['percent_price'] = $service['price'];
@@ -221,6 +253,7 @@ SQL;
             } else {
                 $service['price'] = (float)$currency_model->convertByRate($service['price'], 1, $rate);
             }
+
             foreach ($service['variants'] as &$variant) {
                 if ($service['currency'] == '%') {
                     $variant['percent_price'] = $variant['price'];
@@ -261,6 +294,7 @@ SQL;
             $product['price_str'] = wa_currency($product['min_price'], $currency).'...'.wa_currency($product['max_price'], $currency);
             $product['price_html'] = wa_currency_html($product['min_price'], $currency).'...'.wa_currency_html($product['max_price'], $currency);
         }
+
         if (!empty($product['skus']) && is_array($product['skus'])) {
             foreach ($product['skus'] as &$sku) {
                 if (isset($sku['price'])) {
@@ -270,6 +304,7 @@ SQL;
             }
             unset($sku);
         }
+
         if (!empty($product['services'])) {
             $this->workupServices($product['services'], $order_id, $currency);
         }
@@ -349,7 +384,7 @@ SQL;
 
     private function getOrder($order_id)
     {
-        if (is_array($order_id)) {
+        if (is_array($order_id) || ($order_id instanceof shopOrder)) {
             $this->order = $order_id;
         } else {
             if ($this->order === null || $this->order['id'] != $order_id) {
@@ -637,7 +672,7 @@ SQL;
                 if ($stock_id) {
                     $item = $product_stocks_model->getByField(array(
                         'sku_id'   => $sku_id,
-                        'stock_id' => $stock_id
+                        'stock_id' => $stock_id,
                     ));
 
                     if (!$item) {
@@ -647,7 +682,7 @@ SQL;
                         'sku_id'     => $sku_id,
                         'product_id' => $product_id,
                         'stock_id'   => $stock_id,
-                        'count'      => $item['count'] + $count
+                        'count'      => $item['count'] + $count,
                     ));
                 } else {
                     $before_count = $product_skus_model->select('count')->where('id=i:sku_id', array('sku_id' => $sku_id))->fetchField();
@@ -657,7 +692,7 @@ SQL;
                             'sku_id'       => $sku_id,
                             'before_count' => $before_count,
                             'after_count'  => $before_count + $count,
-                            'diff_count'   => $count
+                            'diff_count'   => $count,
                         );
                         $stocks_log_model->insert($log_data);
                     }
@@ -730,5 +765,34 @@ SQL;
             'stock_id' => $target_stock_id,
         );
         $this->updateByField('stock_id', $stock_id, $data);
+    }
+
+    public function getData(shopOrder $order)
+    {
+        $options = $order->options('items');
+        $extend = false && ifset($options['extend']);
+        $data = $this->getItems($order, $extend);
+
+        $order['items_total_discount'] = 0;
+        foreach ($data as &$product) {
+            if (!empty($product['item']['total_discount'])) {
+                $product['item']['total_discount'] = floatval($product['item']['total_discount']);
+                $order['items_total_discount'] = $order['items_total_discount'] + $product['item']['total_discount'];
+            }
+            if (!empty($product['services'])) {
+                foreach ($product['services'] as &$service) {
+
+                    if (!empty($service['item']['name'])) {
+                        $service['item']['total_discount'] = floatval($service['item']['total_discount']);
+                        $order['items_total_discount'] = $order['items_total_discount'] + $service['item']['total_discount'];
+                    }
+
+                    unset($service);
+                }
+            }
+            unset($product);
+        }
+
+        return $data;
     }
 }

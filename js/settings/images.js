@@ -157,24 +157,9 @@ if (typeof($) != 'undefined') {
                     onSubmit: function (d) {
                         d.find('.dialog-buttons').hide();
 
-                        //setup error handler for ajax
-                        $.wa.errorHandler = function (xhr) {
-                            if ((xhr.status === 403) || (xhr.status === 404)) {
-                                var text = $(xhr.responseText);
-                                var $message = $('<div class="block double-padded"></div>');
-                                if (text.find('.dialog-content').length) {
-                                    $message.append(text.find('.dialog-content *'));
-                                } else {
-                                    $message.append(text.find(':not(style)'));
-                                }
-                                form.find('errormsg').html($message);
-                                return false;
-                            } else if ((xhr.status === 502) || (xhr.status === 504)) {
-                                //It's Nginx just ignore it
-                                return false;
-                            }
-                            return true;
-                        };
+                        //Off global handler, so that image processing is not interrupted
+                        $.ajaxSetup({'global': false});
+
 
                         var create_thumbnails_input = dialog.find('input[name=create_thumbnails]');
                         var restore_originals_input = dialog.find('input[name=restore_originals]');
@@ -243,7 +228,7 @@ if (typeof($) != 'undefined') {
                                         }
                                     },
                                     'json').error(function () {
-                                    step(3000);
+                                        step(3000);
                                 });
                             }, delay);
                             pull.push(timer_id);

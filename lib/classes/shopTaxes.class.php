@@ -44,24 +44,28 @@ class shopTaxes
                     $i['product']['tax_id'] :
                     (isset($i['tax_id']) ? $i['tax_id'] : 0);
             }
-            if (!empty($i['product']['tax_id'])) {
-                $tax_ids[] = $i['tax_id'] = $i['product']['tax_id'];
-            } elseif (isset($i['service']['tax_id'])) {
-                // inherit from product
+            if (isset($i['service']['tax_id'])) {
                 if ($i['service']['tax_id'] === '0') {
-                    if ($parent_tax_id) {
+                    // inherit from product
+                    if (isset($i['product']['tax_id'])) {
+                        $tax_ids[] = $i['tax_id'] = $i['product']['tax_id'];
+                    } elseif ($parent_tax_id) {
                         $tax_ids[] = $i['tax_id'] = $parent_tax_id;
                     }
                 } else {
                     $tax_ids[] = $i['tax_id'] = $i['service']['tax_id'];
                 }
+            } elseif (!empty($i['product']['tax_id'])) {
+                $tax_ids[] = $i['tax_id'] = $i['product']['tax_id'];
             } elseif (!empty($i['tax_id'])) {
                 $tax_ids[] = $i['tax_id'];
             }
 
             $i['tax'] = 0;
-            $i['tax_percent'] = null;
-            $i['tax_included'] = 0;
+            $i += array(
+                'tax_percent'  => null,
+                'tax_included' => 0,
+            );
         }
         unset($i);
 
@@ -75,8 +79,11 @@ class shopTaxes
         // Compute tax values for each item, and total tax
         foreach ($items as &$i) {
             $tax_id = ifempty($i['tax_id']);
-            $i['tax_percent'] = ifset($result[$tax_id]['rate'], null);
-            $i['tax_included'] = ifset($result[$tax_id]['included']);
+            if (isset($result[$tax_id])) {
+                $i['tax_percent'] = ifset($result[$tax_id]['rate'], null);
+                $i['tax_included'] = ifset($result[$tax_id]['included']);
+            }
+
 
             if ($i['type'] != 'shipping') {
                 if (!empty($i['total_discount'])) {

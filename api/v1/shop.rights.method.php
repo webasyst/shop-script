@@ -18,6 +18,8 @@ class shopRightsMethod extends waAPIRightsMethod
         if ($this->courier) {
             $this->response = array_fill_keys(array_keys($this->response), 0);
             $this->response['orders'] = 1;
+            $this->response['order_edit'] = (int) $this->courier['rights_order_edit'];
+            $this->response['customer_edit'] = (int) $this->courier['rights_customer_edit'];
         }
     }
 }

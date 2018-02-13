@@ -1,6 +1,6 @@
 <?php
 /**
- * Note: shop_product_services.primary_price is stored in shop primary currency, 
+ * Note: shop_product_services.primary_price is stored in shop primary currency,
  * and shop_product_services.price is in shop_service.currency.
  */
 class shopProductServicesModel extends waModel
@@ -25,6 +25,7 @@ class shopProductServicesModel extends waModel
 
     /**
      * @param array $products
+     * @param int $service_id
      */
     public function deleteByProducts(array $products, $service_id = null)
     {
@@ -89,7 +90,7 @@ class shopProductServicesModel extends waModel
      *    array (
      *     75 => // id of variant
      *     array (
-     *       'price' => 500, // stirng|float|null
+     *       'price' => 500, // string|float|null
      *       'status' => '1',
      *       'skus' =>
      *       array (
@@ -203,7 +204,7 @@ class shopProductServicesModel extends waModel
 
     private function convertPrimaryPrices($product_id, $service_id)
     {
-        // convert inner pirce (primary_price) of itself
+        // convert inner price (primary_price) of itself
         $sql = "UPDATE `{$this->table}` ps
             JOIN `shop_service` s ON s.id = ps.service_id
             JOIN `shop_currency` c ON c.code = s.currency
@@ -212,7 +213,8 @@ class shopProductServicesModel extends waModel
         $this->exec($sql, $product_id, $service_id);
     }
 
-    private function getProduct($product_id) {
+    private function getProduct($product_id)
+    {
         if (!$this->product || $this->product['id'] != $product_id) {
             $this->product = $this->getProductModel()->getById($product_id);
         }
@@ -248,13 +250,25 @@ class shopProductServicesModel extends waModel
         return $sql;
     }
 
-    public function getAvailableServicesFullInfo($product_id, $sku_id)
+    /**
+     * @param int|array $product product id o array with product data
+     * @param $sku_id
+     * @return array
+     */
+    public function getAvailableServicesFullInfo($product, $sku_id)
     {
-        $sku_id = (int)$sku_id;
-        $product_id = (int)$product_id;
-        $product = $this->getProduct($product_id);
         if (!$product) {
             return array();
+        }
+        $sku_id = (int)$sku_id;
+        if (is_numeric($product)) {
+            $product_id = (int)$product;
+            $product = $this->getProduct($product_id);
+            if (!$product) {
+                return array();
+            }
+        } else {
+            $product_id = (int)$product['id'];
         }
 
         $services = $this->getServices($product);
@@ -311,10 +325,10 @@ class shopProductServicesModel extends waModel
                     'primary_price' => (float) ($item['primary_price'] ? $item['primary_price'] : $item['base_primary_price']),
                     'status' => $item['status']
                 );
-            } else if (isset($services[$service_id]['variants'][$item['id']])) {
+            } elseif (isset($services[$service_id]['variants'][$item['id']])) {
                 if ($item['status'] !== null && $item['status'] == 0) {
                     unset($services[$service_id]['variants'][$item['id']]);
-                } else if ($item['price'] !== null) {
+                } elseif ($item['price'] !== null) {
                     $services[$service_id]['variants'][$item['id']]['price'] = (float) (
                         $item['price'] ? $item['price'] : $item['base_price']
                     );
@@ -463,15 +477,14 @@ class shopProductServicesModel extends waModel
     {
         if (is_numeric($product)) {
             $product = $this->getProduct($product);
-            if (!$product) {
-                return array();
-            }
+        }
+        if (!$product) {
+            return array();
         }
         $service_id = (int)$service_id;
-        $product_id = $product['id'];
-        $type_id = $product['type_id'];
-        $sql = "
-            SELECT
+        $product_id = (int)$product['id'];
+        $type_id = (int)$product['type_id'];
+        $sql = "SELECT
                 s.id,
                 s.name,
                 s.variant_id,
@@ -488,7 +501,7 @@ class shopProductServicesModel extends waModel
             WHERE ps.sku_id IS NULL ".($service_id ? " AND s.id = $service_id" : "")."
             GROUP BY s.id
             ORDER BY s.sort
-        ";
+            ";
         $services = $this->query($sql)->fetchAll('id');
         if (!$services) {
             return array();
@@ -544,7 +557,7 @@ class shopProductServicesModel extends waModel
         }
 
         // left join used
-        $sql = "
+        $sql = <<<SQL
             SELECT
                 sv.id,
                 sv.service_id,
@@ -562,7 +575,8 @@ class shopProductServicesModel extends waModel
             FROM `shop_service_variants` sv
             LEFT JOIN `{$this->table}` ps ON sv.id = ps.service_variant_id AND ps.product_id = i:0
             WHERE sv.service_id IN (i:1)
-            ORDER BY sv.service_id, sv.sort, ps.sku_id";
+            ORDER BY sv.service_id, sv.sort, ps.sku_id
+SQL;
 
         $data = array();
         $sku_id = 0;
@@ -598,26 +612,34 @@ class shopProductServicesModel extends waModel
     {
         $service_id = (int)$service_id;
         $status = (int)$status;
-
-        return $this->query("
-            SELECT p.* FROM `{$this->table}` ps
-            JOIN `shop_product` p ON p.id = ps.product_id
-            WHERE ps.service_id = $service_id AND ps.sku_id IS NULL
-                AND ps.status = $status
+        $sql = <<<SQL
+            SELECT p.*
+            FROM `{$this->table}` ps
+                JOIN `shop_product` p
+                    ON p.id = ps.product_id
+            WHERE ps.service_id = {$service_id}
+                AND ps.sku_id IS NULL
+                AND ps.status = {$status}
             GROUP BY ps.product_id
             ORDER BY ps.product_id
-        ")->fetchAll();
+SQL;
+        return $this->query($sql)->fetchAll();
     }
 
     public function getSkus($product_id, $service_id)
     {
         $service_id = (int)$service_id;
         $product_id = (int)$product_id;
-        return $this->query("
-            SELECT ps.* FROM `{$this->table}` ps
-            WHERE ps.service_id = $service_id AND ps.product_id = $product_id AND ps.sku_id IS NOT NULL AND ps.service_variant_id IS NULL
+        $sql = <<<SQL
+            SELECT ps.*
+            FROM `{$this->table}` ps
+            WHERE ps.service_id = {$service_id}
+                AND ps.product_id = {$product_id}
+                AND ps.sku_id IS NOT NULL
+                AND ps.service_variant_id IS NULL
             ORDER BY ps.product_id
-        ")->fetchAll('sku_id');
+SQL;
+        return $this->query($sql)->fetchAll('sku_id');
     }
 
     public static function workupItemServices(&$service, $item)
@@ -649,7 +671,7 @@ class shopProductServicesModel extends waModel
     }
 
     /**
-     * @retrun getServiceModel
+     * @return shopServiceModel
      */
     private function getServiceModel()
     {

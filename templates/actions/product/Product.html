@@ -952,7 +952,9 @@
                                 <li><a class="html" href="#">HTML</a></li>
                             </ul>
                             <div>
-                                <textarea id="s-product-description-content" name="product[description]">{$product.description|escape}</textarea>
+                                <textarea id="s-product-description-content" name="product[description]"
+                                    data-modification-wysiwyg-msg="[s`WYSIWYG editor may change your HTML code. It is necessary for correct text formatting. Smarty code may be broken and outdated HTML tags may be replaced with modern ones. Are you sure to switch to WYSIWYG editor?`]"
+                                >{$product.description|escape}</textarea>
                             </div>
                         </div>
                     </div>

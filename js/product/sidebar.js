@@ -340,11 +340,13 @@
             field.find('i').hide();
             field.find('.s-editor-core-wrapper').show();
             var height = (d.find('.dialog-window').height() * 0.8) || 350;
-            $('#s-category-description-content').waEditor({
+            var $textarea = $('#s-category-description-content');
+            $textarea.waEditor({
                 lang: wa_lang,
                 toolbarFixed: false,
                 maxHeight: height,
                 minHeight: height,
+                modification_wysiwyg_msg: $textarea.data('modification-wysiwyg-msg'),
                 uploadFields: d.data('uploadFields')
             });
         }

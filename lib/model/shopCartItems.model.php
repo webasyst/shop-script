@@ -215,12 +215,12 @@ class shopCartItemsModel extends waModel
     public function getSingleItem($code, $product_id, $sku_id)
     {
         $sql = <<<SQL
-SELECT c1.* 
+SELECT c1.*
 FROM {$this->table} c1
-LEFT JOIN {$this->table} c2 
+LEFT JOIN {$this->table} c2
 ON c1.id = c2.parent_id
-WHERE 
-  c1.code = s:0 
+WHERE
+  c1.code = s:0
   AND
   c1.type = 'product'
   AND
@@ -500,19 +500,20 @@ SQL;
                     $sql = "SELECT stock_id FROM shop_virtualstock_stocks WHERE virtualstock_id=?";
                     $stock_ids = array_keys($this->query($sql, $virtualsku_id)->fetchAll('stock_id'));
                     if ($stock_ids) {
-                        $count_field = 't.count';
-                        $count_join = "LEFT JOIN (
-                                           SELECT ci2.sku_id, SUM(ps.count) AS count
-                                           FROM shop_product_stocks AS ps
-                                               JOIN (
-                                                   SELECT DISTINCT sku_id
-                                                   FROM {$this->table}
-                                                   WHERE type = 'product'
-                                                       AND code = s:code
-                                               ) AS ci2 ON ci2.sku_id=ps.sku_id
-                                           WHERE ps.stock_id IN (".join(',', $stock_ids).")
-                                           GROUP BY ci2.sku_id
-                                       ) AS t ON t.sku_id=ci.sku_id";
+                        $sql = "SELECT DISTINCT sku_id FROM {$this->table} WHERE type = 'product' AND code = ?";
+                        $sku_ids = array_keys($this->query($sql, array($code))->fetchAll('sku_id'));
+
+                        if ($sku_ids) {
+                            $count_field = 't.count';
+                            $count_join = "LEFT JOIN (
+                                               SELECT ps.sku_id, SUM(ps.count) AS count
+                                               FROM shop_product_stocks AS ps
+                                               WHERE ps.stock_id IN (".join(',', $stock_ids).")
+                                                   AND ps.sku_id IN (".join(',', $sku_ids).")
+                                               GROUP BY ps.sku_id
+                                               HAVING (COUNT(ps.stock_id)) >= ".count($stock_ids)."
+                                           ) AS t ON t.sku_id=ci.sku_id";
+                        }
                     }
                 }
             } elseif (wa_is_int($check_count)) {

@@ -13,14 +13,14 @@
             {/foreach}
         </ul>
         <div class="block not-padded right-padded align-center bordered-top top-padded">
-            <p class="hint">{sprintf('[`Use <a href="%s">Services</a> screen to add new custom services.`]','#services/')}</p>
+            <p class="hint">{sprintf('[`Add new services in “<a href="%s">Services</a>” section.`]', '#services/')}</p>
         </div>
     </div>
 
     <div class="content left200px blank shadowed">
         <div class="block double-padded">
             <h2 class="s-service-name toggle-gray{if empty($service.status)} gray{/if}">
-                {$service.name} <span class="hint">[`for`] {$product.name|escape}</span>
+                {$service.name|escape} <span class="hint">[`for`] {$product.name|escape}</span>
             </h2>
             <form action="?module=product&action=servicesSave&product_id={$product.id}&service_id={$service.id}" method="post">
             <table class="zebra toggle-gray{if empty($service.status)} gray{/if}">
