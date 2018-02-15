@@ -23,20 +23,20 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
     private static $node_map = array(
         //Импорт каталога (import.xml)
-        "КоммерческаяИнформация/Классификатор/Группы"         => self::STAGE_CATEGORY,
-        "КоммерческаяИнформация/Классификатор/Свойства"       => self::STAGE_FEATURE,
-        "КоммерческаяИнформация/Классификатор/ТипыЦен"        => self::STAGE_PRICE,
-        "КоммерческаяИнформация/Классификатор/Склады"         => self::STAGE_STOCK,
-        "КоммерческаяИнформация/Каталог/Товары"               => self::STAGE_PRODUCT,
+        "КоммерческаяИнформация/Классификатор/Группы"                   => self::STAGE_CATEGORY,
+        "КоммерческаяИнформация/Классификатор/Свойства"                 => self::STAGE_FEATURE,
+        "КоммерческаяИнформация/Классификатор/ТипыЦен"                  => self::STAGE_PRICE,
+        "КоммерческаяИнформация/Классификатор/Склады"                   => self::STAGE_STOCK,
+        "КоммерческаяИнформация/Каталог/Товары"                         => self::STAGE_PRODUCT,
         //Импорт предложений (offers.xml)
-        "КоммерческаяИнформация/ПакетПредложений/ТипыЦен"     => self::STAGE_PRICE,
-        "КоммерческаяИнформация/ПакетПредложений/Склады"      => self::STAGE_STOCK,
-        "КоммерческаяИнформация/ПакетПредложений/Предложения" => self::STAGE_OFFER,
+        "КоммерческаяИнформация/ПакетПредложений/ТипыЦен"               => self::STAGE_PRICE,
+        "КоммерческаяИнформация/ПакетПредложений/Склады"                => self::STAGE_STOCK,
+        "КоммерческаяИнформация/ПакетПредложений/Предложения"           => self::STAGE_OFFER,
         // экспериментальная опция
-        "КоммерческаяИнформация/ИзмененияПакетаПредложений/Предложения"=> self::STAGE_OFFER,
-        "КоммерческаяИнформация/ПакетПредложений/Свойства"    => self::STAGE_FEATURE,
+        "КоммерческаяИнформация/ИзмененияПакетаПредложений/Предложения" => self::STAGE_OFFER,
+        "КоммерческаяИнформация/ПакетПредложений/Свойства"              => self::STAGE_FEATURE,
         //Импорт заказов - поддержка не планируется
-        "КоммерческаяИнформация/Документ-"                    => self::STAGE_ORDER,
+        "КоммерческаяИнформация/Документ-"                              => self::STAGE_ORDER,
     );
 
     private static $feature_xpath_map = array(
@@ -61,14 +61,14 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
     private static $feature_namespace_map = array(
         'value'   => array(
-            'name'        => 'Реквизиты товаров - блок <ЗначениеРеквизита>',
+            'name'        => 'Реквизиты товаров — блок <ЗначениеРеквизита>',
             'description' => 'Реквизиты сопоставляются для синхронизации по наименованию реквизита (элемент <Наименование> блока <ЗначениеРеквизита> в файле CommerceML).
 Характеристики артикулов (модификаций) будут импортированы, только если они заданы в Shop-Script как характеристики типа checkbox.',
             'field'       => 'code',
             'default'     => 'skip',
         ),
         'feature' => array(
-            'name'        => 'Характеристики товаров - блок <ХарактеристикиТовара>',
+            'name'        => 'Характеристики товаров — блок <ХарактеристикиТовара>',
             'description' => 'Характеристики сопоставляются для синхронизации по наименованию характеристики (элемент <Наименование> блока <ХарактеристикаТовара> в файле CommerceML).
 Характеристики артикулов (модификаций) будут импортированы, только если они заданы в Shop-Script как характеристики типа checkbox.',
             'field'       => 'code',
@@ -244,9 +244,8 @@ class shopCml1cPluginBackendRunController extends waLongActionController
     private function getCollection()
     {
         if (!$this->collection) {
-            waRequest::setParam(array(
-                'module' => waRequest::param('module', 'backend'),
-            ));
+            $module = waRequest::param('module', 'backend');
+            waRequest::setParam(compact('module'));
             $hash = '';
             $options = array(
                 'frontend' => false,
@@ -273,13 +272,13 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
         $code_ = array_diff($code, array_keys($feature_relation));
         if ($code_) {
-            $multiple_features = $model->getByField(
-                array(
-                    'code'     => $code_,
-                    'multiple' => 1,
-                ),
-                'code'
+
+            $search = array(
+                'code'     => $code_,
+                'multiple' => 1,
             );
+
+            $multiple_features = $model->getByField($search, 'code');
             foreach ($code_ as $c) {
                 $feature_relation[$c] = !empty($multiple_features[$c]['multiple']);
             }
@@ -1227,6 +1226,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             'title_wrapper'   => '%s',
             'disabled'        => 'disabled',
             'readonly'        => 'readonly',
+            'translate'       => false,
         );
         $this->data['overview'] = true;
 
@@ -1969,7 +1969,7 @@ HTML;
                 };
             }
 
-            $title = 'Типы цен товаров - блок <Цены>';
+            $title = 'Типы цен товаров — блок <Цены>';
             $title = htmlentities($title, ENT_QUOTES, waHtmlControl::$default_charset);
             $html .= <<<HTML
 <thead>
@@ -2124,6 +2124,7 @@ HTML;
                         'options'         => array(),
                         'control_wrapper' => '<tr><td>%1$s<span class="hint">%3$s</span></td><td>&rarr;</td><td>%2$s</td></tr>',
                         'title_wrapper'   => '%s',
+                        'translate'       => false,
                     );
 
                     $params['control_separator'] = '</td></tr>
@@ -2887,7 +2888,11 @@ HTML;
             $w->startElement('Контрагент');
             $guid = null;
             $c = null;
-            if ($c_id = ifset($order['contact']['id'])) {
+            $c_id = ifset($order['contact']['id']);
+            if (!$c_id) {
+                $c_id = ifset($order['contact_id']);
+            }
+            if ($c_id) {
                 $c = new waContact($c_id);
                 $cml1c_field = $this->plugin()->getConfigParam('contact_guid');
                 if ($cml1c_field) {
@@ -3148,26 +3153,27 @@ HTML;
             }
 
             $contact_fields = $this->data['export_custom_properties'];
+            $empty = array(null, false, '', array());
             foreach ($contact_fields as $id => $info) {
                 if (!empty($info['enabled'])) {
                     $value = null;
                     if (strpos($id, 'address:') === 0) {
                         $id = str_replace('address:', 'shipping_address.', $id);
                         if (!empty($params[$id])) {
-                            $value = $params[$id];
+                            $value = trim($params[$id]);
                         }
                     } elseif (!empty($params[$id])) {
-                        $value = $params[$id];
+                        $value = trim($params[$id]);
                     } else {
                         if (!empty($c)) {
-                            $contact_field = $c->get($id);
-                            if (!in_array($contact_field, array('', null, false), true)) {
+                            $contact_field = strip_tags($c->get($id, 'html'));
+                            if (!in_array($contact_field, $empty, true)) {
                                 $value = $contact_field;
                             }
                         }
                     }
 
-                    if ($value !== null) {
+                    if (!in_array($value, $empty, true)) {
                         $tag = ifset($info['tag'], $id);
                         if (!empty($tag)) {
                             $data[$tag] = $value;
@@ -3732,16 +3738,18 @@ SQL;
     {
         $this->writer->startElement('ЗначенияРеквизитов');
         foreach ($data as $name => $value) {
-            $value = trim($value);
-            if ($value !== '') {
-                $this->writeProperty($name, $value);
-            }
+            $this->writeProperty($name, $value);
         }
         $this->writer->endElement(/*ЗначенияРеквизитов*/);
     }
 
     private function writeProperty($name, $value)
     {
+        if (is_array($value)) {
+            $value = array_filter(array_map('trim', $value));
+            $value = implode(', ', $value);
+        }
+        $value = trim($value);
         if ($value !== '') {
             $this->writer->startElement('ЗначениеРеквизита');
             $this->writer->writeElement('Наименование', $name); //max 255
@@ -3875,17 +3883,25 @@ SQL;
                 }
             }
         } elseif ($element instanceof SimpleXMLElement) {
-            $value = @$element->{$field};
-            /**
-             * @var SimpleXMLElement $value
-             */
-            if ($value->getName() == $field) {
-                $value = self::castValue($value, $type);
-            } else {
+            $values = array();
+            foreach ($element->children() as $child) {
+                /**
+                 * @var SimpleXMLElement $child
+                 */
+                if ($child->getName() == $field) {
+                    $values[] = self::castValue($child, $type);
+                }
+            }
+
+            if (empty($values)) {
                 $value = null;
+            } elseif (count($values) == 1) {
+                $value = reset($values);
+            } else {
+                $value = $values;
             }
         }
-        return self::castValue($value, $type);
+        return $value;
     }
 
     /**
@@ -4762,7 +4778,7 @@ SQL;
                     'id_1c'     => end($uuid),
                     'sku'       => self::field($element, 'Артикул'),
                     'name'      => self::field($element, 'Наименование'),
-                    'available' => 1,
+                    'available' => true,
                     'stock'     => array(),
                 );
 
@@ -5570,10 +5586,17 @@ SQL;
 
         $sku_features = array();
         if ($features) {
-            //XXX Debug it!
             foreach ($this->getFeatureRelation(array_keys($features)) as $code) {
-                $sku_features[$code] = $features[$code];
-                unset($features[$code]);
+                if (is_array($features[$code])) {
+                    if (count($features[$code]) == 1) {
+                        $sku_features[$code] = $features[$code];
+                        unset($features[$code]);
+                    }
+                } else {
+                    $sku_features[$code] = $features[$code];
+                    unset($features[$code]);
+                }
+
             }
         }
 
@@ -5589,7 +5612,7 @@ SQL;
             $skus[-1] = array(
                 'sku'       => self::field($element, 'Артикул'),
                 'name'      => $name,
-                'available' => 1,
+                'available' => true,
                 'id_1c'     => end($uuid),
             );
         }
@@ -5658,6 +5681,12 @@ SQL;
                     $product->status = 0;
                 } else {
                     $skus[-1]['available'] = false;
+                }
+            } elseif (true) {
+                if ($subject == self::STAGE_PRODUCT) {
+                    $product->status = 1;
+                } else {
+                    $skus[-1]['available'] = true;
                 }
             }
 
@@ -5866,29 +5895,36 @@ SQL;
         if ($update_fields === null) {
             $update_fields = (array)$this->pluginSettings('update_product_fields');
         }
+
+        $sku_fields = array(
+            'sku_name' => 'name',
+            'sku'      => 'sku',
+            'features' => 'features',
+        );
         //XXX update base price
         foreach ($skus as $id => & $sku) {
             if (($id > 0) && !count($sku['stock']) && ($sku['count'] !== null)) {
                 $sku['stock'][0] = $sku['count'];
             }
             if (($id > 0) && isset($skus[-1]) && ($sku['id_1c'] == $skus[-1]['id_1c'])) {
-                if (in_array($skus[-1]['available'], array(false, true), true)) {
-                    $skus[-1]['available'] = intval($skus[-1]['available']);
-                } else {
-                    unset($skus[-1]['available']);
-                }
-                if (empty($update_fields['sku_name'])) {
-                    unset($skus[-1]['name']);
-                }
-                if (empty($update_fields['sku'])) {
-                    unset($skus[-1]['sku']);
-                }
-                if (isset($skus[-1]['features']) && empty($update_fields['features'])) {
-                    unset($skus[-1]['features']);
-                }
-                $sku = array_merge($sku, $skus[-1]);
-                $sku['virtual'] = 0;
+
+                $_sku = $skus[-1];
                 unset($skus[-1]);
+
+                if (in_array($_sku['available'], array(false, true), true)) {
+                    $_sku['available'] = intval($_sku['available']);
+                } else {
+                    unset($_sku['available']);
+                }
+
+                foreach ($sku_fields as $setting => $field) {
+                    if (empty($update_fields[$setting])) {
+                        unset($_sku[$field]);
+                    }
+                }
+
+                $sku = array_merge($sku, $_sku);
+                $sku['virtual'] = 0;
             }
             unset($sku);
         }
@@ -5913,10 +5949,28 @@ SQL;
      */
     protected function extract($filename, $target = null)
     {
+        $encodings = array(
+            'CP866',
+        );
+
+        if (false) {
+            $extra_encodings = array(
+                'CP932',
+                'CP936',
+                'CP950',
+                'CP1251',
+                'Windows-1251',
+                'CP1252',
+                'KOI8-R',
+                'KOI8-U',
+            );
+            $encodings = array_merge($encodings, $extra_encodings);
+        }
         if (empty($target)) {
             $target = $this->plugin()->path($filename);
         }
         $result = false;
+
         if (empty($this->data['zipfile'])) {
             if (file_exists($target)) {
                 $result = $target;
@@ -5930,7 +5984,24 @@ SQL;
                 && is_resource($zip)
             ) {
                 while ($zip_entry = zip_read($zip)) {
-                    if ($filename == iconv('CP866', 'UTF-8', zip_entry_name($zip_entry))) {
+                    $entry_name = zip_entry_name($zip_entry);
+                    if (substr($entry_name, -1, 1) === '/') {
+                        continue;
+                    }
+                    $matched = false;
+                    if ($entry_name == $filename) {
+                        $matched = true;
+                    } else {
+                        foreach ($encodings as $encoding) {
+                            $entry_name_decoded = iconv($encoding, 'utf-8//IGNORE', $entry_name);
+                            if ($entry_name_decoded && ($filename == $entry_name_decoded)) {
+                                $matched = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($matched) {
                         $exists = file_exists($target);
                         if ($exists) {
                             if (zip_entry_filesize($zip_entry) != filesize($target)) {
@@ -5986,6 +6057,11 @@ SQL;
         }
 
         return $result;
+    }
+
+    private function extractFile()
+    {
+
     }
 
     private function write()
@@ -6175,7 +6251,7 @@ SQL;
         if (($field !== null) && is_array($contact) && isset($contact[$field]) && (trim($contact[$field]) !== '')) {
             $value = trim($contact[$field]);
         } elseif ($c) {
-            $value = $c->get($field);
+            $value = $c->get($field, 'value');
         }
         return $value;
     }
@@ -6386,13 +6462,21 @@ SQL;
 
     private function formatGuid($id, $extra_id = null)
     {
+        static $strategy = null;
+        if ($strategy === null) {
+            $strategy = $this->pluginSettings('guid_format');
+            if (empty($strategy)) {
+                $strategy = 'full';
+            }
+        }
         if (strpos($id, '#')) {
             list($id, $extra_id) = explode('#', $id, 2);
         }
         if (empty($extra_id)) {
             $extra_id = $id;
         }
-        if (true || ($id != $extra_id)) {
+
+        if (($strategy === 'full') || ($id != $extra_id)) {
             $uuid = $id.'#'.$extra_id;
         } else {
             $uuid = $id;

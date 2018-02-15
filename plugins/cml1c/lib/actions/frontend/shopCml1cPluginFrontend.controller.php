@@ -180,6 +180,7 @@ class shopCml1cPluginFrontendController extends waController
             $sizes = array(
                 ini_get('upload_max_filesize'),
                 ini_get('memory_limit'),
+                '100M',
             );
 
             foreach ($sizes as &$size) {
@@ -205,25 +206,31 @@ class shopCml1cPluginFrontendController extends waController
 
     private function uploadFile()
     {
-        if (isset($GLOBALS['HTTP_RAW_POST_DATA'])) {
+        if ($sp = fopen('php://input', 'rb')) {
+            $filename = $this->plugin()->path(waRequest::get('filename', 'upload'));
+            if ($fp = fopen($filename, "ab")) {
+                $result = stream_copy_to_stream($sp, $fp);
+            } else {
+                throw new waException("Error while open target file");
+            }
+        } elseif (isset($GLOBALS['HTTP_RAW_POST_DATA'])) {
             if (!empty($GLOBALS['HTTP_RAW_POST_DATA'])) {
                 $filename = $this->plugin()->path(waRequest::get('filename', 'upload'));
-                waFiles::write($filename, $GLOBALS['HTTP_RAW_POST_DATA']);
+                $result = waFiles::write($filename, $GLOBALS['HTTP_RAW_POST_DATA']);
             } else {
                 throw new waException("Error while read POST file");
             }
         } else {
-            if ($sp = fopen('php://input', 'rb')) {
-                $filename = $this->plugin()->path(waRequest::get('filename', 'upload'));
-                if ($fp = fopen($filename, "ab")) {
-                    $result = stream_copy_to_stream($sp, $fp);
-                    //TODO: check upload file size
-                } else {
-                    throw new waException("Error while open file");
-                }
+            throw new waException("Error while read POST file");
+        }
 
-            } else {
-                throw new waException("Error while read POST file");
+        if ($result === false) {
+            throw new waException("Error while save target file");
+        } else {
+            $expected_size = waRequest::server('content_length', 0, waRequest::TYPE_INT);
+            if ($expected_size > $result) {
+                $message = "Error while save target file (expected %d bytes, but get %d)";
+                throw new waException(sprintf($message, $expected_size, $result));
             }
         }
 

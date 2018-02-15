@@ -51,6 +51,8 @@ class shopCml1cPlugin extends shopPlugin
     public function path($file = '1c.xml')
     {
         $file = preg_replace('@^[\\/]+@', '', $file);
+        $file = waLocale::transliterate($file);
+
         switch (wa()->getEnv()) {
             case 'frontend':
                 $path = wa()->getDataPath('plugins/'.$this->id.'/'.$file, false, 'shop', true);
