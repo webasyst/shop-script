@@ -130,16 +130,21 @@
                     $.post('?plugin=cml1c&action=save', {
                         enabled: enabled ? '1' : '0'
                     }, function (data) {
-                        if (data && (data.status == 'ok')) {
+                        if (data && (data.status === 'ok')) {
                             if (enabled) {
                                 $value.find('span.s-cml1c-disable').addClass('gray');
                                 $field.show(200);
                                 if (data.data.url) {
                                     $field.find(":input:first").val(data.data.url);
-                                    $field.find(":input:last").val(data.data.url+'moysklad/');
+                                    $field.find(":input:last").val(data.data.url + 'moysklad/');
 
                                     $field.find('.cml1c-url').show();
                                     $field.find('.js-cml1c-settlement').hide();
+                                    if (data.data.url.match(/^https:\/\//)) {
+                                        $field.find('.js-cml1c-url-ssl').show();
+                                    } else {
+                                        $field.find('.js-cml1c-url-ssl').hide();
+                                    }
                                 } else {
                                     $field.find(":input:first").val('');
                                     $field.find(":input:last").val('');
@@ -163,7 +168,7 @@
             },
 
             tabAction: function (tab) {
-                if (true || this.options.tab != tab) {
+                if (true || this.options.tab !== tab) {
                     this.options.tab = tab;
                     var $form = $('#s-cml1c-form');
                     $form.find('ul.tabs li.selected').removeClass('selected');
@@ -352,7 +357,7 @@
                                         $.shop.trace('$item', $item);
                                         for (var i = 0; i < response.files.length; i++) {
                                             $item.attr('title', response.files[i]['size']);
-                                            $item.find(':input').val(response.files[i]['name']).attr('checked', i == 0 ? true : null);
+                                            $item.find(':input').val(response.files[i]['name']).attr('checked', i === 0 ? true : null);
                                             $item.find('span').text(response.files[i]['name']);
 
                                             $item.clone().appendTo($container);
@@ -454,7 +459,7 @@
                             self.ajax_pull[response.processId] = [];
                             self.ajax_pull[response.processId].push(setTimeout(function () {
                                 $.wa.errorHandler = function (xhr) {
-                                    return !((xhr.status > 400) || (xhr.status == 0));
+                                    return !((xhr.status > 400) || (xhr.status === 0));
                                 };
                                 self.progressHandler(url, response.processId, response);
                             }, 1000));
@@ -524,7 +529,7 @@
                                 if (response) {
                                     if (response.report) {
                                         var $report = self.form.find('.plugin-cml1c-report .value:first');
-                                        if (!response.report_id || ($report.data('report-id') != response.report_id)) {
+                                        if (!response.report_id || ($report.data('report-id') !== response.report_id)) {
                                             if (response.report_id) {
                                                 $report.data('report-id', response.report_id);
                                             }
@@ -548,7 +553,7 @@
 
                     } else {
                         var $description;
-                        if (response && (typeof(response.progress) != 'undefined')) {
+                        if (response && (typeof(response.progress) !== 'undefined')) {
                             var $bar = self.form.find('.progressbar .progressbar-inner');
                             var progress = parseFloat(('' + response.progress).replace(/,/, '.'));
                             $bar.animate({
@@ -566,7 +571,7 @@
                             $description.text(message);
                             $description.attr('title', title);
                         }
-                        if (response && (typeof(response.warning) != 'undefined')) {
+                        if (response && (typeof(response.warning) !== 'undefined')) {
                             $description = self.form.find('.progressbar-description');
                             $description.append('<i class="icon16 exclamation"></i><p>' + response.warning + '</p>');
                         }
@@ -618,7 +623,7 @@
                     $param.hide();
                     $params.unbind('change.migrate').bind('change.migrate', function () {
                         $.shop.trace('initMapControlRow', [this.value]);
-                        if (this.value == 'p:%s') {
+                        if (this.value === 'p:%s') {
                             $param.val('');
                             $param.show();
                             $param_cancel.show();
@@ -652,7 +657,7 @@
                     $features.unbind('change.migrate').bind('change.migrate', function () {
                         var type = 'none';
                         $.shop.trace('initMapControlRow', [this.value]);
-                        if (this.value == 'f:%s') {
+                        if (this.value === 'f:%s') {
                             $features.hide();
                             if (!autocomplete) {
                                 $.shop.trace('autocomplete', $td.find(':input.js-autocomplete-cml1c:first'));

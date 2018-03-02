@@ -37,7 +37,7 @@ class shopCml1cPlugin extends shopPlugin
         return ($param === null) ? $config : (isset($config[$param]) ? $config[$param] : null);
     }
 
-    public function getCallbackUrl($absolute = true)
+    public function getCallbackUrl($absolute = true, $disable_ssl = false)
     {
         $routing = wa()->getRouting();
 
@@ -45,7 +45,14 @@ class shopCml1cPlugin extends shopPlugin
             'plugin' => $this->id,
             'hash'   => $this->uuid(),
         );
-        return preg_replace('@^https://@', 'http://', $routing->getUrl('shop/frontend/', $route_params, $absolute));
+
+        $url = $routing->getUrl('shop/frontend/', $route_params, $absolute);
+
+        if ($disable_ssl) {
+            $url = preg_replace('@^https://@', 'http://', $url);
+        }
+
+        return $url;
     }
 
     public function path($file = '1c.xml')

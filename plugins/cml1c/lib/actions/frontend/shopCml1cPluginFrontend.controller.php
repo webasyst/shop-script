@@ -200,7 +200,10 @@ class shopCml1cPluginFrontendController extends waController
 
             $size = max(1024 * 1024, min($sizes));
 
-            $this->response(sprintf("zip=%s", function_exists('zip_open') ? "yes" : "no"), sprintf("file_limit=%d", 0.8 * $size));
+            $this->response(
+                sprintf("zip=%s", function_exists('zip_open') ? "yes" : "no"),
+                sprintf("file_limit=%d", 0.8 * $size)
+            );
         }
     }
 
@@ -394,7 +397,7 @@ class shopCml1cPluginFrontendController extends waController
             $restore->invoke($controller);
             $is_done = $done->invoke($controller);
             while (!$is_done) {
-                $continue = $step->invoke($controller);
+                $step->invoke($controller);
                 $is_done = $done->invoke($controller);
             };
 
