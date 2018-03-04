@@ -89,79 +89,84 @@ class shopProductsCollection
         $this->hash = explode('/', $this->hash, 2);
     }
 
+    /**
+     * Prepare query.
+     * @param bool $add
+     * @param bool $auto_title
+     * @return void
+     */
     protected function prepare($add = false, $auto_title = true)
     {
-        if (!$this->prepared || $add) {
-            $type = $this->hash[0];
-            if ($this->is_frontend) {
-                $this->frontendConditions();
+        if ($this->prepared || !$add) {
+            return;
+        }
+        
+        $type = $this->hash[0];
+        if ($this->is_frontend) {
+            $this->frontendConditions();
+        }
+        
+        if ($sort = waRequest::get('sort')) {
+            if ($sort == 'stock') {
+                $sort = 'count';
             }
-            if ($sort = waRequest::get('sort')) {
-                if ($sort == 'stock') {
-                    $sort = 'count';
-                }
-                if (waRequest::get('order') == 'desc') {
-                    $order = 'DESC';
-                } else {
-                    $order = 'ASC';
-                }
-                $model = $this->getModel();
-                if ($sort == 'stock_worth') {
-                    $this->fields[] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
-                    $this->order_by = 'stock_worth '.$order;
-                } else {
-                    $order_by = array();
-                    foreach ((array)$sort as $_id => $_sort) {
-                        $_sort = trim((string)$_sort);
-                        if ($model->fieldExists($_sort)) {
-                            $order_by[$_id] = 'p.'.$_sort;
-                            $order_by[$_id] .= ' '.$order;
-                            if ($_sort == 'count') {
-                                $this->fields[] = 'IF(p.count IS NULL, 1, 0) count_null';
-                                $order_by[$_id] = 'count_null '.$order.', '.$order_by[$_id];
-                            }
+            if (waRequest::get('order') == 'desc') {
+                $order = 'DESC';
+            } else {
+                $order = 'ASC';
+            }
+            $model = $this->getModel();
+            if ($sort == 'stock_worth') {
+                $this->fields[] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
+                $this->order_by = 'stock_worth '.$order;
+            } else {
+                $order_by = array();
+                foreach ((array)$sort as $_id => $_sort) {
+                    $_sort = trim((string)$_sort);
+                    if ($model->fieldExists($_sort)) {
+                        $order_by[$_id] = 'p.'.$_sort;
+                        $order_by[$_id] .= ' '.$order;
+                        if ($_sort == 'count') {
+                            $this->fields[] = 'IF(p.count IS NULL, 1, 0) count_null';
+                            $order_by[$_id] = 'count_null '.$order.', '.$order_by[$_id];
                         }
                     }
-                    if ($order_by) {
-                        $this->order_by = implode(', ', $order_by);
-                    }
                 }
-                //#
+                if ($order_by) {
+                    $this->order_by = implode(', ', $order_by);
+                }
             }
-            if ($type) {
-                $method = strtolower($type).'Prepare';
-                if (method_exists($this, $method)) {
-                    $this->$method(isset($this->hash[1]) ? $this->hash[1] : '', $auto_title);
-                } else {
-                    $params = array(
-                        'collection' => $this,
-                        'auto_title' => $auto_title,
-                        'add'        => $add,
-                    );
-                    /**
-                     * @event products_collection
-                     * @param array [string]mixed $params
-                     * @param array [string]shopProductsCollection $params['collection']
-                     * @param array [string]boolean $params['auto_title']
-                     * @param array [string]boolean $params['add']
-                     * @return bool null if ignored, true when something changed in the collection
-                     */
-                    $processed = wa()->event('products_collection', $params);
-                    if (!$processed) {
-                        throw new waException('Unknown collection hash type: '.htmlspecialchars($type));
-                    }
-                }
-            } else {
-                if ($auto_title) {
-                    $this->addTitle(_w('All products'));
-                }
+        }
+        
+        if ($type) {
+            $method = strtolower($type).'Prepare';
+            $prepared = method_exists($this, $method);
+            if ($prepared) {
+                $this->$method(isset($this->hash[1]) ? $this->hash[1] : '', $auto_title);
             }
 
-            if ($this->prepared) {
-                return;
+            $params = array(
+                'collection' => $this,
+                'auto_title' => $auto_title,
+                'add'        => $add,
+            );
+            /**
+             * @event products_collection
+             * @param array [string]mixed $params
+             * @param array [string]shopProductsCollection $params['collection']
+             * @param array [string]boolean $params['auto_title']
+             * @param array [string]boolean $params['add']
+             * @return bool false if ignored, true when something changed in the collection
+             */
+            $processed = wa('shop')->event('products_collection', $params);
+            if (!$prepared && !$processed) {
+                throw new waException('Unknown collection hash type: '.htmlspecialchars($type));
             }
-            $this->prepared = true;
+        } elseif ($auto_title) {
+            $this->addTitle(_w('All products'));
         }
+
+        $this->prepared = true;
     }
 
     protected function frontendConditions()
