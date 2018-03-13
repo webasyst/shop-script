@@ -2992,7 +2992,6 @@ HTML;
                     $w->endElement(/*РасчетныеСчета*/);
                 }
             }
-
             #Адрес
             $this->writeAddress($shipping_address, 'Адрес', 'Адрес доставки');
 
@@ -3180,6 +3179,37 @@ HTML;
                         }
                     }
                 }
+            }
+
+            /*Время доставки*/
+            $value = null;
+            list($date, $time_start, $time_end) = shopHelper::getOrderShippingInterval($params);
+            if ($date) {
+                $date = wa_date('date', $date, waDateTime::getDefaultTimezone());
+
+                $time = array(
+                    $time_start,
+                    $time_end,
+                );
+
+                $value = trim(sprintf('%s %s', $date, implode(' - ', array_unique($time))));
+            } else {
+                list($date, $delivery_time) = shopHelper::getOrderCustomerDeliveryTime($params);
+                if ($date) {
+                    $date = wa_date('date', $date, waDateTime::getDefaultTimezone());
+
+                    $time = array(
+                        sprintf('%02d:%02d', $delivery_time['from_hours'], $delivery_time['from_minutes']),
+                        sprintf('%02d:%02d', $delivery_time['to_hours'], $delivery_time['to_minutes']),
+                    );
+
+                    $value = trim(sprintf('%s %s', $date, implode(' - ', array_unique($time))));
+                } elseif (!empty($params['shipping_params_desired_delivery.date_str'])) {
+                    $value = $params['shipping_params_desired_delivery.date_str'];
+                }
+            }
+            if ($value) {
+                $data['Дата доставки'] = $value;
             }
 
             /*ЗначенияРеквизитов*/
@@ -4820,7 +4850,7 @@ SQL;
                             'type'     => array($type),
                             'currency' => $this->findCurrency($map_['currency']),
                             'name'     => array($price_name),
-                            'tax_id'   => $map_['tax_id'],
+                            'tax_id'   => ifset($map_['tax_id']),
                         );
                     }
                 }
@@ -5685,10 +5715,18 @@ SQL;
             }
         }
 
+        $deleted = false;
+
+        if (mb_strtolower(self::attribute($element, 'Статус')) === 'удален') {
+            $deleted = true;
+        } elseif (mb_strtolower(self::field($element, 'Статус')) === 'удален') {
+            $deleted = true;
+        }
+
 
         //TODO f: ignore|extend|override
         $skus = $product->skus;
-        if (!count($skus) || count($sku_features)) {
+        if (!count($skus) || count($sku_features) || ($subject == self::STAGE_PRODUCT)) {
             if (count($sku_features)) {
                 $name = $update_fields['name'].' ('.implode(', ', $sku_features).')';
             } else {
@@ -5697,7 +5735,7 @@ SQL;
             $skus[-1] = array(
                 'sku'       => self::field($element, 'Артикул'),
                 'name'      => $name,
-                'available' => true,
+                'available' => ($subject == self::STAGE_PRODUCT) ? ($deleted ? false : true) : 1,
                 'id_1c'     => end($uuid),
             );
         }
@@ -5707,14 +5745,6 @@ SQL;
             # update name/summary/description only for new items
 
             $product->status = ($this->pluginSettings('product_hide')) ? 0 : 1;
-
-            $deleted = false;
-
-            if (mb_strtolower(self::attribute($element, 'Статус')) === 'удален') {
-                $deleted = true;
-            } elseif (mb_strtolower(self::field($element, 'Статус')) === 'удален') {
-                $deleted = true;
-            }
 
             if ($deleted) {
                 if ($subject == self::STAGE_PRODUCT) {
@@ -5733,7 +5763,6 @@ SQL;
                     $product->{$field} = $value;
                 }
             }
-
 
             if ($sku_features) {
                 $skus[-1]['features'] = $sku_features;
@@ -5756,12 +5785,6 @@ SQL;
             }
 
         } else {
-            $deleted = false;
-            if (mb_strtolower(self::attribute($element, 'Статус')) === 'удален') {
-                $deleted = true;
-            } elseif (mb_strtolower(self::field($element, 'Статус')) === 'удален') {
-                $deleted = true;
-            }
             if ($deleted) {
                 if ($subject == self::STAGE_PRODUCT) {
                     $product->status = 0;
@@ -5778,17 +5801,7 @@ SQL;
 
             foreach ($update_fields as $field => $value) {
                 if (!in_array($value, array('', null)) && !empty($this->data['update_product_fields'][$field])) {
-                    switch ($field) {
-                        case 'sku?': //TODO  #/task/62.4802/
-                            if (count($uuid) > 1) {
-                                //    $skus[-1]['sku'] = $value;
-                            }
-                            break;
-                        default:
-                            $product->{$field} = $value;
-                            break;
-                    }
-
+                    $product->{$field} = $value;
                 }
             }
 
@@ -6018,7 +6031,11 @@ SQL;
                         unset($_sku[$field]);
                     }
                 }
-
+                foreach ($_sku as $name => $value) {
+                    if (empty($value) && in_array($name, array('name',))) {
+                        unset($_sku[$name]);
+                    }
+                }
                 $sku = array_merge($sku, $_sku);
                 $sku['virtual'] = 0;
             }
@@ -6026,6 +6043,7 @@ SQL;
         }
 
         if (isset($skus[-1])) {
+            $skus[-1]['available'] = !!$skus[-1]['available'];
             if (!isset($skus[-1]['stock'])) {
                 $skus[-1]['stock'] = array();
             }
