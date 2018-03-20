@@ -23,10 +23,10 @@ class shopCml1cPluginBackendUploadController extends shopUploadController
             switch ($ext) {
                 case 'zip':
                     if (!function_exists('zip_open')) {
-                        throw new waException("Для чтения zip файлов требуется включения поддержки zip архивов со стороны PHP");
+                        throw new waException("Для чтения ZIP-файлов требуется поддержка формата ZIP в PHP.");
                     }
                     if (!function_exists('iconv')) {
-                        throw new waException("Для чтения zip файлов требуется включения поддержки PHP расширения iconv");
+                        throw new waException("Для чтения ZIP-файлов требуется PHP-расширение iconv.");
                     }
                     if (($zip = zip_open($name)) && is_resource($zip)) {
                         while ($entry = zip_read($zip)) {
@@ -42,7 +42,7 @@ class shopCml1cPluginBackendUploadController extends shopUploadController
                         }
                         zip_close($zip);
                         if (empty($files)) {
-                            throw new waException("В zip архиве не найдено ни одного XML файла");
+                            throw new waException("В ZIP-архиве не найдено ни одного XML-файла.");
                         }
                     } else {
                         throw new waException("Ошибка чтения zip файла");

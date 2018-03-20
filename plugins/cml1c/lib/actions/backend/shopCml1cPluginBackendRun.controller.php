@@ -3182,34 +3182,36 @@ HTML;
             }
 
             /*Время доставки*/
-            $value = null;
-            list($date, $time_start, $time_end) = shopHelper::getOrderShippingInterval($params);
-            if ($date) {
-                $date = wa_date('date', $date, waDateTime::getDefaultTimezone());
-
-                $time = array(
-                    $time_start,
-                    $time_end,
-                );
-
-                $value = trim(sprintf('%s %s', $date, implode(' - ', array_unique($time))));
-            } else {
-                list($date, $delivery_time) = shopHelper::getOrderCustomerDeliveryTime($params);
+            if (method_exists('shopHelper', 'getOrderShippingInterval')) {
+                $value = null;
+                list($date, $time_start, $time_end) = shopHelper::getOrderShippingInterval($params);
                 if ($date) {
                     $date = wa_date('date', $date, waDateTime::getDefaultTimezone());
 
                     $time = array(
-                        sprintf('%02d:%02d', $delivery_time['from_hours'], $delivery_time['from_minutes']),
-                        sprintf('%02d:%02d', $delivery_time['to_hours'], $delivery_time['to_minutes']),
+                        $time_start,
+                        $time_end,
                     );
 
                     $value = trim(sprintf('%s %s', $date, implode(' - ', array_unique($time))));
-                } elseif (!empty($params['shipping_params_desired_delivery.date_str'])) {
-                    $value = $params['shipping_params_desired_delivery.date_str'];
+                } elseif (method_exists('shopHelper', 'getOrderCustomerDeliveryTime')) {
+                    list($date, $delivery_time) = shopHelper::getOrderCustomerDeliveryTime($params);
+                    if ($date) {
+                        $date = wa_date('date', $date, waDateTime::getDefaultTimezone());
+
+                        $time = array(
+                            sprintf('%02d:%02d', $delivery_time['from_hours'], $delivery_time['from_minutes']),
+                            sprintf('%02d:%02d', $delivery_time['to_hours'], $delivery_time['to_minutes']),
+                        );
+
+                        $value = trim(sprintf('%s %s', $date, implode(' - ', array_unique($time))));
+                    } elseif (!empty($params['shipping_params_desired_delivery.date_str'])) {
+                        $value = $params['shipping_params_desired_delivery.date_str'];
+                    }
                 }
-            }
-            if ($value) {
-                $data['Дата доставки'] = $value;
+                if ($value) {
+                    $data['Дата доставки'] = $value;
+                }
             }
 
             /*ЗначенияРеквизитов*/
