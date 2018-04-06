@@ -9,6 +9,7 @@ class shopWebPushNotifications
     protected $user_agent;
     protected $root_url;
     protected $supported_browser = '';
+    public $sdk_path;
 
     /**
      * One signal Google project number
@@ -43,6 +44,7 @@ class shopWebPushNotifications
         $this->user_agent = wa()->getRequest()->getUserAgent();
         $this->root_url = wa()->getRootUrl();
         $this->push_clients_model = new shopPushClientModel();
+        $this->sdk_path = wa('shop')->getConfig()->getAppPath('js/onesignal');
 
         $settings = $this->getDomainsSettings();
         $this->settings = $settings[$this->domain];
@@ -57,7 +59,7 @@ class shopWebPushNotifications
     {
         $this->settings = $settings;
 
-        $root_path = wa()->getConfig()->getRootPath();
+        $file_path = wa('shop')->getConfig()->getAppPath('js/onesignal');
 
         $domain_settings = $this->getDomainsSettings();
 
@@ -73,6 +75,10 @@ class shopWebPushNotifications
 
         if ($this->canSendServerRequest()) {
 
+            if (!file_exists($file_path)) {
+                waFiles::create($file_path);
+            }
+
             $manifest = array_merge(array(
                 'name' => '',
                 'short_name' => '',
@@ -85,14 +91,14 @@ class shopWebPushNotifications
                 $manifest['gcm_sender_id'] = $this->gcm_sender_id;
             }
 
-            file_put_contents($root_path . '/manifest.json', json_encode($manifest));
-            file_put_contents($root_path . '/OneSignalSDKUpdaterWorker.js', "importScripts('https://cdn.onesignal.com/sdks/OneSignalSDK.js');");
-            file_put_contents($root_path . '/OneSignalSDKWorker.js', "importScripts('https://cdn.onesignal.com/sdks/OneSignalSDK.js');");
+            file_put_contents($file_path . '/manifest.json', json_encode($manifest));
+            file_put_contents($file_path . '/OneSignalSDKUpdaterWorker.js', "importScripts('https://cdn.onesignal.com/sdks/OneSignalSDK.js');");
+            file_put_contents($file_path . '/OneSignalSDKWorker.js', "importScripts('https://cdn.onesignal.com/sdks/OneSignalSDK.js');");
 
         } else {
-            waFiles::delete($root_path . '/manifest.json');
-            waFiles::delete($root_path . '/OneSignalSDKUpdaterWorker.js');
-            waFiles::delete($root_path . '/OneSignalSDKWorker.js');
+            waFiles::delete($file_path . '/manifest.json');
+            waFiles::delete($file_path . '/OneSignalSDKUpdaterWorker.js');
+            waFiles::delete($file_path . '/OneSignalSDKWorker.js');
         }
 
         $settings = $this->getDomainsSettings();
@@ -315,26 +321,28 @@ class shopWebPushNotifications
         }
 
         // check allowance
-        $web_push_domains[$this->domain]['allowed'] = false;
-        if (($this->root_url === '/' || strlen($this->root_url) <= 0) && $this->is_https) {
+        $web_push_domains[$this->domain]['allowed'] = true;
+        $allow_http = wa('shop')->getConfig()->getOption('allow_onesignal_http');
+        if (($this->root_url === '/' || strlen($this->root_url) <= 0) && ($this->is_https || $allow_http)) {
+
             $web_push_domains[$this->domain]['allowed'] = true;
         }
 
         // check browser support
         $user_agent = strtolower($this->user_agent);
         $browser_supported = false;
-        if (preg_match('~chrome/([\d]{1,3})\.~', $user_agent, $m) && strpos($user_agent, 'edge/') === false&& strpos($user_agent, 'opr/') === false) {
+        if (preg_match('~chrome/([\d]{1,3})\.~i', $user_agent, $m) && stristr($user_agent, 'edge/') === false && stristr($user_agent, 'opr/') === false) {
             if ($m[1] >= 42) {
                 $browser_supported = true;
                 $this->supported_browser = 'chrome';
             }
-        } else if (preg_match('~firefox/([\d]{1,3})\.~', $user_agent, $m)) {
+        } else if (preg_match('~firefox/([\d]{1,3})\.~i', $user_agent, $m)) {
             if ($m[1] >= 44) {
                 $browser_supported = true;
                 $this->supported_browser = 'firefox';
             }
-        } else if (strpos($user_agent, 'mac os x') !== false && strpos($user_agent, 'safari/') !== false && preg_match('~version/([\d]{1,3})\.([\d]{1,3})~', $user_agent, $m)) {
-            if ($m[1] >= 7 && $m[2] >= 1) {
+        } else if (stristr($user_agent, 'mac os x') !== false && stristr($user_agent, 'safari/') !== false && preg_match('~version/([\d]{1,3})\.([\d]{1,3})~i', $user_agent, $m)) {
+            if ($m[1] >= 7) {
                 $browser_supported = true;
                 $this->supported_browser = 'safari';
             }
@@ -343,12 +351,12 @@ class shopWebPushNotifications
 
         // check activity by checking manifest
         $web_push_domains[$this->domain]['active'] = false;
-        $root_path = wa()->getConfig()->getRootPath();
-        if (file_exists($root_path . '/OneSignalSDKUpdaterWorker.js') && file_exists($root_path . '/OneSignalSDKWorker.js')) {
+        $file_path = wa('shop')->getConfig()->getAppPath('js/onesignal');
+        if (file_exists($file_path . '/OneSignalSDKUpdaterWorker.js') && file_exists($file_path . '/OneSignalSDKWorker.js')) {
             $web_push_domains[$this->domain]['active'] = true;
         }
-        if (!$web_push_domains[$this->domain]['active'] && file_exists($root_path . '/manifest.json')) {
-            waFiles::delete($root_path . '/manifest.json');
+        if (!$web_push_domains[$this->domain]['active'] && file_exists($file_path . '/manifest.json')) {
+            waFiles::delete($file_path . '/manifest.json');
         }
 
         return $web_push_domains;

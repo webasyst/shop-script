@@ -55,7 +55,26 @@ class shopFrontendAction extends waViewAction
         }
         $offset = ($page - 1) * $limit;
 
-        $products = $collection->getProducts('*', $offset, $limit);
+        $products = $collection->getProducts('*,skus_filtered', $offset, $limit);
+
+        //Search for the lowest price
+        foreach ($products as &$product) {
+            if (isset($product['skus'])) {
+                $prices = array();
+                foreach ($product['skus'] as $id => $sku) {
+                    $prices[$id] = $sku['price'];
+                }
+                if (waRequest::get('order') == 'desc') {
+                    $price = max($prices);
+                } else {
+                    $price = min($prices);
+                }
+                $product['price'] = $price;
+                $product['frontend_url'] .= '?sku='.array_search($price, $prices);
+            }
+        }
+        unset($product);
+
         $count = $collection->count();
 
         $pages_count = ceil((float)$count / $limit);

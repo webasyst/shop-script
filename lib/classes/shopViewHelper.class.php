@@ -73,7 +73,7 @@ class shopViewHelper extends waAppViewHelper
         $cache_key = null;
         if (!$offset && !$limit && !$options && ($cache = $this->wa()->getCache())) {
             $route = $this->getRoute();
-            $cache_key = 'set_'.$set_id.'_'.str_replace('/', '_', waRouting::clearUrl($route['domain'].'/'.$route['url']));
+            $cache_key = 'set_'.$set_id.'_'.str_replace('/', '_', waRouting::clearUrl($route['domain'].'/'.$route['url'])).'_'.$this->currency();
             $products = $cache->get($cache_key, 'sets');
             if ($products !== null) {
                 return $products;

@@ -1,4 +1,5 @@
 <script type="text/javascript" src="{$wa_app_static_url}js/product/services.js?v={$wa->version()}"></script>
+
 <div class="sidebar left250px s-inner-sidebar">
     <ul class="menu-v with-icons stack" id="s-services-list">
         {foreach $services as $item}
@@ -42,9 +43,10 @@
                 <div class="value">
                     <table class="zebra s-services-variants">
                         {$multi_variants = false}
-                        {if count($variants) > 1}
+                        {if count($variants) > 1 || (count($variants) == 1 && !empty($variants[0]['name']))}
                             {$multi_variants = true}
                         {/if}
+
                         {foreach $variants as $variant}
                             <tr class="s-services-variant">
                                 <td class="min-width s-services-ext-cell" {if !$multi_variants}style="display:none;"{/if}><i class="icon16 sort"></i></td>

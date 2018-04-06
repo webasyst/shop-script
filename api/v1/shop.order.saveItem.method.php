@@ -16,7 +16,17 @@ class shopOrderSaveItemMethod extends shopApiMethod
         if ($this->validate($post)) {
             $soim = new shopOrderItemsModel();
             $item = $soim->getById($post['item_id']);
+
             if (isset($item['order_id'])) {
+
+                // Check courier access rights
+                if ($this->courier) {
+                    $order_params_model = new shopOrderParamsModel();
+                    $courier_id = $order_params_model->getOne($item['order_id'], 'courier_id');
+                    if (empty($courier_id) || ($courier_id != $this->courier['id'])) {
+                        throw new waAPIException('access_denied', 'Access denied to limited courier token.', 403);
+                    }
+                }
 
                 $data['id'] = $item['order_id'];
                 //formatting for shopOrder
@@ -39,7 +49,7 @@ class shopOrderSaveItemMethod extends shopApiMethod
                         ),
                     );
                 }
-                $data['discount'] = true;
+                $data['discount'] = 'calculate';
                 $data += array('shipping' => null);
                 $so = new shopOrder($data, array(
                     'items_format' => 'tree',

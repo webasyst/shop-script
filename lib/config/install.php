@@ -1,6 +1,13 @@
 <?php
-$target_path = wa()->getDataPath('products/', true, 'shop');
-$source_path = wa()->getAppPath('lib/config/data/', 'shop');
+
+/** @var shopConfig $this */
+/** @var string $app_id */
+if (empty($app_id)) {
+    $app_id = 'shop';
+}
+
+$target_path = wa()->getDataPath('products/', true, $app_id);
+$source_path = wa()->getAppPath('lib/config/data/', $app_id);
 
 // generate product thumb via php on demand
 $target = $target_path.'thumb.php';
@@ -23,8 +30,7 @@ if (!file_exists($target)) {
 }
 
 // generate promos thumb via php on demand
-
-$target_path = wa()->getDataPath('promos/', true, 'shop');
+$target_path = wa()->getDataPath('promos/', true, $app_id);
 
 $target = $target_path.'thumb.php';
 if (!file_exists($target)) {
@@ -49,17 +55,57 @@ if (!file_exists($target)) {
 // currency
 $currency_model = new shopCurrencyModel();
 $model = new waAppSettingsModel();
-$model->set('shop', 'welcome', 1);
+$model->set($app_id, 'welcome', 1);
 if ($currency_model->countAll() == 0) {
-    $currency_model->insert(array(
-        'code' => 'USD',
-        'rate' => 1.000,
-        'sort' => 1,
-    ), 2);
+
+
+    $locale = waLocale::getInfo(wa()->getUser()->getLocale());
+    $country_iso3 = isset($locale['iso3']) ? $locale['iso3'] : 'usa';
+
+    if (isset($this) && ($this instanceof waAppConfig)) {
+        $config = $this;
+    } else {
+        $config = wa()->getConfig();
+    }
+    $path = $config->getConfigPath('data/welcome/', false, $app_id);
+    $path .= "country_{$country_iso3}.php";
+
+    if (file_exists($path)) {
+        $country_data = include($path);
+
+        # Main country setting
+        $model = new waAppSettingsModel();
+        $model->set($app_id, 'country', $country_iso3);
+    } else {
+        $country_data = array();
+    }
+
+    if (empty($country_data) || empty($country_data['currency'])) {
+        $country_data = array(
+            'currency' => array(
+                'USD' => 1.0,
+            ),
+        );
+    }
+
+    #currency
+    $sort = 0;
+    foreach ($country_data['currency'] as $code => $rate) {
+
+        // Ignore if currency already exists
+        if (!$currency_model->getById($code)) {
+            $currency_model->insert(compact('code', 'rate', 'sort'), 2);
+        }
+
+        if ($sort == 0) {
+            $currency_model->deleteCache();
+            $model->set($app_id, 'currency', $code);
+        }
+        ++$sort;
+    }
     $currency_model->deleteCache();
 
-    $model->set('shop', 'currency', 'USD');
-    $model->set('shop', 'use_product_currency', 'true');
+    $model->set($app_id, 'use_product_currency', 'true');
 }
 
 // notifications

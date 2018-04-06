@@ -7,9 +7,10 @@ class shopCategoryRoutesModel extends waModel
     /**
      * Returns category routes
      * @param int|array $category_id
+     * @param bool $show_private
      * @return array
      */
-    public function getRoutes($category_id, $show_private=true)
+    public function getRoutes($category_id, $show_private = true)
     {
         static $is_route_private = null;
         if ($is_route_private === null) {
@@ -23,7 +24,7 @@ class shopCategoryRoutesModel extends waModel
 
         if (!$category_id) {
             return array();
-        } else if (is_array($category_id)) {
+        } elseif (is_array($category_id)) {
             $return_as_array = true;
         } else {
             $return_as_array = false;
@@ -71,4 +72,3 @@ class shopCategoryRoutesModel extends waModel
         }
     }
 }
-

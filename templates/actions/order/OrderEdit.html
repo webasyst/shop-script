@@ -1,13 +1,3 @@
-<style>
-#tooltip {
-    position: absolute;
-    z-index: 3000;
-    border: 1px solid orange;
-    background-color: #ffe;
-    padding: 5px;
-}
-#tooltip h3, #tooltip div { margin: 0; }
-</style>{* !!! *}
 <form id="order-edit-form" method="post" action="?module=order&action=save{if !empty($order.id)}&id={$order.id}{/if}">
 <div class="sidebar left400px s-order-customer-details">
     <div class="block top-padded">
@@ -32,7 +22,7 @@
                         <div class="field-group">
                             <div class="field">
                                 <div class="name">[`Name`]</div>
-                                <div class="value"><span>{$order.contact.name}</span></div>
+                                <div class="value"><span>{$order.contact.name|escape}</span></div>
                             </div>
                             <div class="field">
                                 <div class="name">[`Phone`]</div>
@@ -62,7 +52,7 @@
             {if !empty($service.fake)}
                 <label>
                     <input type="checkbox" checked="checked" class="js-fake-service-selected" value="{$service_id}">
-                    <input type="text" name="name[edit][{$service.item.id}]" value="{$service.item.name}" class="small">
+                    <input type="text" name="name[edit][{$service.item.id}]" value="{$service.item.name|escape}" class="small">
                     <input type="hidden" name="service[edit][{$index}][item][{$service.item.id}]" value="{$service_id}">
                     {if $service.item.service_variant_id !== null}
                         <input type="hidden" name="variant[edit][{$index}][{$service_id}]" value="{$service.item.service_variant_id}">
@@ -71,7 +61,7 @@
             {else}
                 <label>
                     <input type="checkbox" name="service[edit][{$index}][item][{$service.item.id}]" value="{$service_id}" checked="checked">
-                    {$service.name}
+                    {$service.name|escape}
                 </label>
                 {if !$multi_variants}
                     <input type="hidden" name="variant[edit][{$index}][{$service_id}]" value="{$service.variant_id}">
@@ -83,7 +73,7 @@
                                                    data-price="{$variant.price}"
                                                    {if $service.currency == '%'}data-percent-price="{$variant.percent_price}"{/if}
                                                    {if $service.item.service_variant_id == $variant_id}selected="selected"{/if}>
-                                {$variant.name} ({$variant.price_str})
+                                {$variant.name|escape} ({$variant.price_str})
                             </option>
                         {/foreach}
                     </select>
@@ -97,7 +87,7 @@
         {else}
             <label>
                 <input type="checkbox" name="service[edit][{$index}][new][{$service_id}]" value="{$service_id}">
-                {$service.name}
+                {$service.name|escape}
             </label>
             {if !$multi_variants}
                 <strong>{$service.variants[$service.variant_id].price_html}</strong>
@@ -109,7 +99,7 @@
                                              data-price="{$variant.price}"
                                              {if $service.currency == '%'}data-percent-price="{$variant.percent_price}"{/if}
                                              {if $service.variant_id == $variant_id}selected="selected"{/if}>
-                            {$variant.name} ({$variant.price_str})
+                            {$variant.name|escape} ({$variant.price_str})
                         </option>
                     {/foreach}
                 </select>
@@ -157,7 +147,7 @@
         <td>
 
             <strong class="large">
-                {if empty($product.fake)}{$product.name}{else}{$product.item.name}{/if}
+                {if empty($product.fake)}{$product.name|escape}{else}{$product.item.name|escape}{/if}
             </strong>
             <span class="gray">
                 {if empty($product.fake)}{$product.price_html}{/if}
@@ -181,8 +171,8 @@
                             <li><label>
                                 <input type="radio" name="sku[edit][{$product.item.id}]" value="{$sku_id}"
                                     {if $product.item.sku_id == $sku_id}checked="checked"{/if}>
-                                {$sku.name}
-                                {if $sku.sku}<span class="gray">{$sku.sku}</span>{/if}
+                                {$sku.name|escape}
+                                {if $sku.sku}<span class="gray">{$sku.sku|escape}</span>{/if}
                                 <strong>{$sku.price_html}</strong>
                                 <span class="s-orders-stock-icon-aggregate">
                                     {$sku.icon}
@@ -207,12 +197,12 @@
                         {/if}
                     </div>
                     {if !empty($product.fake)}
-                        <p><input type="text" name="name[edit][{$product.item.id}]" value="{$product.item.name}" class="small"></p>
+                        <p><input type="text" name="name[edit][{$product.item.id}]" value="{$product.item.name|escape}" class="small"></p>
                     {elseif !empty($sku.fake)}
                         <p class="small red">
                             <i class="icon10 exclamation"></i> <span>{sprintf(_w('SKU %s no longer exists for this product'), $sku['name'])}</span>
                         </p>
-                        <input type="hidden" name="name[edit][{$product.item.id}]" value="{$product.item.name}" class="small">
+                        <input type="hidden" name="name[edit][{$product.item.id}]" value="{$product.item.name|escape}" class="small">
                     {/if}
 
                     <input type="hidden" name="sku[edit][{$product.item.id}]"   value="{$product.item.sku_id}">
@@ -252,6 +242,9 @@
 <div class="content left400px bordered-left">
     <div class="block double-padded">
 
+        <div class="float-right" style="margin-left: 10px;">
+            <input id="customer-source" type="text" placeholder="[`Customer source`]" name="customer_source" value="{ifset($order, 'params', 'referer_host', '')|escape}">
+        </div>
         <div class="block not-padded float-right" style="margin-left: 10px;">
             <select id="order-storefront" name="storefront">
                 <option value="">[`Manual order`]</option>
@@ -300,7 +293,7 @@
                         [`Subtotal`]
                     </td>
                     <td class="align-right nowrap">
-                        <span id="subtotal"></span>
+                        <span id="subtotal">{$order.subtotal|default:null}</span>
                         <span class="currency">{$currency}</span>
                     </td>
                     <td></td>
@@ -382,7 +375,7 @@
                         [`Discount`]
                     </td>
                     <td class="align-right nowrap">
-                        &minus; <input type="text" class="numerical short" id="discount" name="discount" {if !empty($order.id)}value="{(float)$order.discount}"{/if}{if !empty($order.items_total_discount)} style="display:none;" {/if}>
+                        &minus; <input type="text" class="numerical short" id="discount" name="discount" {if !empty($order.id)}value="{$order.discount}"{/if}{if !empty($order.items_total_discount)} style="display:none;" {/if}>
                         {if !empty($order.items_total_discount)}<span class="js-order-discount">{$order.discount|wa_currency:$currency:'%'}</span>
 
                         {/if}
@@ -407,7 +400,6 @@
                            data-description="{$discount.description|escape}"
                            data-value="{if !empty($discount.value)}{$discount.value}{elseif !empty($order.id)}{$order.discount}{else}0{/if}"
                            data-items_discount="{$discount.items_discount|json_encode|escape}"
-                           {if !empty($discount.value)}data-ajax="1"{/if}
                         ><i class="icon16 update"></i></a>
                     </td>
                 </tr>
@@ -417,7 +409,7 @@
                     <td class="min-width"></td>
                     <td class="align-right large" colspan="2">[`Total`]</td>
                     <td class="align-right large bold nowrap">
-                        <span id="total"></span>
+                        <span id="total">{$order.total|default:''}</span>
                         <span class="currency">{$currency}</span>
                     </td>
                     <td></td>
@@ -474,6 +466,7 @@
         autocomplete_url: '?action=autocomplete&type=contact',
         currency: '{$currency}',
         stocks: {json_encode(array_values($stocks))},
+        customer_sources: {$customer_sources|default:[]|json_encode},
         ignore_stock_count: {if $ignore_stock_count}true{else}false{/if},
         title: title,
         float_delimeter: {if strpos((string)3.14, ",") !== false}","{else}"."{/if},
@@ -491,4 +484,5 @@
     {if $wa->shop->config('enable_2x')}
         $.fn.retina && $('#order-items img').retina();
     {/if}
+
 </script>

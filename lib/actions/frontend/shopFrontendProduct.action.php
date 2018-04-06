@@ -2,9 +2,7 @@
 
 class shopFrontendProductAction extends shopFrontendAction
 {
-    /**
-     * @var shopProductReviewsModel
-     */
+    /** @var shopProductReviewsModel */
     protected $reviews_model;
 
     public function __construct($params = null)
@@ -15,54 +13,8 @@ class shopFrontendProductAction extends shopFrontendAction
 
     public function getBreadcrumbs(shopProduct $product, $product_link = false)
     {
-        $category = null;
-        $breadcrumbs = array();
-        $root_category_id = null;
-        $product_categories = $product['categories'];
-        if ($product['category_id'] && isset($product_categories[$product['category_id']])) {
-            $category = $product_categories[$product['category_id']];
-        } else {
-            $product['category_id'] = null;
-        }
-        if (!$category && $product_categories) {
-            $category = reset($product_categories);
-        }
-        if ($category) {
-            $root_category_id = $category['id'];
-            $category_model = new shopCategoryModel();
-            $path = $category_model->getPath($category['id']);
-            if ($path) {
-                $path = array_reverse($path);
-                foreach ($path as $row) {
-                    $breadcrumbs[] = array(
-                        'url'  => wa()->getRouteUrl('/frontend/category', array(
-                            'category_url' => waRequest::param('url_type') == 1 ? $row['url'] : $row['full_url']
-                        )),
-                        'name' => $row['name']
-                    );
-                }
-                $temp = reset($path);
-                $root_category_id = $temp['id'];
-            }
-            $breadcrumbs[] = array(
-                'url' => wa()->getRouteUrl('/frontend/category', array(
-                    'category_url' => waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url']
-                )),
-                'name' => $category['name']
-            );
-        }
-        if ($product_link) {
-            $url_params = array(
-                'product_url' => $product['url'],
-            );
-            if ($category) {
-                $url_params['category_url'] = waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url'];
-            }
-            $breadcrumbs[] = array(
-                'url'  => wa()->getRouteUrl('/frontend/product', $url_params),
-                'name' => $product['name']
-            );
-        }
+        $breadcrumbs = $product->getBreadcrumbs($product_link);
+        $root_category_id = $breadcrumbs ? key($breadcrumbs) : null;
         if ($breadcrumbs) {
             $this->view->assign('breadcrumbs', $breadcrumbs);
         }
@@ -82,9 +34,14 @@ class shopFrontendProductAction extends shopFrontendAction
             }
         }
 
-        // Public virtual stock counts for each SKU
         $skus = $product->skus;
+
         foreach ($skus as $sku_id => $sku) {
+            // Compare price should be greater than price
+            if ($sku['compare_price'] && ($sku['price'] >= $sku['compare_price'])) {
+                $skus[$sku_id]['compare_price'] = 0.0;
+            }
+            // Public virtual stock counts for each SKU
             if (!empty($skus[$sku_id]['stock'])) {
                 $skus[$sku_id]['stock'] = shopHelper::fillVirtulStock($skus[$sku_id]['stock']);
             }
@@ -115,15 +72,15 @@ class shopFrontendProductAction extends shopFrontendAction
         if (!$product->skus) {
             $product->skus = array(
                 null => array(
-                    'name'      => '',
-                    'sku'       => '',
-                    'id'        => null,
-                    'available' => false,
-                    'count'     => 0,
-                    'price'     => null,
+                    'name'          => '',
+                    'sku'           => '',
+                    'id'            => null,
+                    'available'     => false,
+                    'count'         => 0,
+                    'price'         => null,
                     'compare_price' => null,
-                    'stock'     => array()
-                )
+                    'stock'         => array(),
+                ),
             );
         }
 
@@ -136,31 +93,6 @@ class shopFrontendProductAction extends shopFrontendAction
             $product->compare_price = 0;
         }
 
-        // check categories, only keeping those enabled for current storefront
-        if ($product['categories']) {
-            $categories = $product['categories'];
-            $route = wa()->getRouting()->getDomain(null, true).'/'.wa()->getRouting()->getRoute('url');
-            $category_routes_model = new shopCategoryRoutesModel();
-            $routes = $category_routes_model->getRoutes(array_keys($categories));
-            foreach ($categories as $c) {
-                if (isset($routes[$c['id']]) && !in_array($route, $routes[$c['id']])) {
-                    unset($categories[$c['id']]);
-                }
-            }
-            $product['categories'] = $categories;
-        }
-
-        // Ensure main category is enabled for current storefront
-        $product['category_url'] = null;
-        if ($product['category_id']) {
-            if (empty($product['categories'][$product['category_id']])) {
-                $product['category_id'] = null;
-            } else {
-                $category = $product['categories'][$product['category_id']];
-                $product['category_url'] = waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url'];
-            }
-        }
-
         $skus = $product->skus;
         foreach ($skus as $s_id => $s) {
             $skus[$s_id]['original_price'] = $s['price'];
@@ -170,14 +102,14 @@ class shopFrontendProductAction extends shopFrontendAction
         $product['original_compare_price'] = $product['compare_price'];
         $event_params = array(
             'products' => array(
-                $product->id => &$product
+                $product->id => &$product,
             ),
-            'skus' => &$skus
+            'skus'     => &$skus,
         );
         wa('shop')->event('frontend_products', $event_params);
         $product['skus'] = $skus;
 
-        $public_stocks = waRequest::param('public_stocks') ;
+        $public_stocks = waRequest::param('public_stocks');
 
         if (!empty($public_stocks)) {
             $count = $this->countOfSelectedStocks($public_stocks, $product->skus);
@@ -212,7 +144,7 @@ class shopFrontendProductAction extends shopFrontendAction
                     'price'     => (float)shop_currency($sku['price'], $product['currency'], null, false),
                     'available' => $product->status && $sku['available'] &&
                         ($this->getConfig()->getGeneralSettings('ignore_stock_count') || $sku['count'] === null || $sku['count'] > 0),
-                    'image_id'  => (int)$sku['image_id']
+                    'image_id'  => (int)$sku['image_id'],
                 );
                 if ($sku['compare_price']) {
                     $sku_selectable[$sku_f]['compare_price'] = (float)shop_currency($sku['compare_price'], $product['currency'], null, false);
@@ -250,8 +182,8 @@ class shopFrontendProductAction extends shopFrontendAction
         }
 
         $product = new shopProduct($product, true);
-        $this->prepareProduct($product);
         $this->ensureCanonicalUrl($product);
+        $this->prepareProduct($product);
 
         if (!$is_cart) {
             $this->getBreadcrumbs($product);
@@ -322,21 +254,17 @@ class shopFrontendProductAction extends shopFrontendAction
         $this->setThemeTemplate($is_cart ? 'product.cart.html' : 'product.html');
     }
 
+    /** @param shopProduct $product */
     protected function ensureCanonicalUrl($product)
     {
-        $url_params = array(
-            'product_url' => $product['url'],
-            'category_url' => $product['category_url'],
-        );
-        if (!$product['category_id']) {
-            unset($url_params['category_url']);
-        }
-
         $root_url = ltrim(wa()->getRootUrl(false, true), '/');
-        $canonical_url = ltrim(wa()->getRouteUrl('/frontend/product', $url_params), '/');
+
+        $canonical_url = $product->getProductUrl(true, true, false);
         $canonical_url = ltrim(substr($canonical_url, strlen($root_url)), '/');
+
         $actual_url = explode('?', wa()->getConfig()->getRequestUrl(), 2);
         $actual_url = ltrim(urldecode($actual_url[0]), '/');
+
         if ($canonical_url != $actual_url) {
             $q = waRequest::server('QUERY_STRING');
             $this->redirect('/'.$canonical_url.($q ? '?'.$q : ''), 301);
@@ -401,7 +329,6 @@ class shopFrontendProductAction extends shopFrontendAction
         $rows = $product_services_model->getByField('product_id', $product['id'], true);
         shopRounding::roundServiceVariants($rows, $services);
         $skus_services = array(); // sku_id => [service_id => price]
-        $frontend_currency = wa('shop')->getConfig()->getCurrency(false);
         foreach ($product['skus'] as $sku) {
             $skus_services[$sku['id']] = array();
         }
@@ -439,15 +366,24 @@ class shopFrontendProductAction extends shopFrontendAction
                     if ($sku_services[$service_id]) {
                         foreach ($service['variants'] as $v) {
                             if (!isset($sku_services[$service_id][$v['id']]) || $sku_services[$service_id][$v['id']] === null) {
-                                $sku_services[$service_id][$v['id']] = array($v['name'], $this->getPrice($v['price'], $service['currency'], $sku_price, $product['currency']));
+                                $sku_services[$service_id][$v['id']] = array(
+                                    $v['name'],
+                                    $this->getPrice($v['price'], $service['currency'], $sku_price, $product['currency']),
+                                );
                             } elseif ($sku_services[$service_id][$v['id']]) {
-                                $sku_services[$service_id][$v['id']] = array($v['name'], $this->getPrice($sku_services[$service_id][$v['id']], $service['currency'], $sku_price, $product['currency']));
+                                $sku_services[$service_id][$v['id']] = array(
+                                    $v['name'],
+                                    $this->getPrice($sku_services[$service_id][$v['id']], $service['currency'], $sku_price, $product['currency']),
+                                );
                             }
                         }
                     }
                 } else {
                     foreach ($service['variants'] as $v) {
-                        $sku_services[$service_id][$v['id']] = array($v['name'], $this->getPrice($v['price'], $service['currency'], $sku_price, $product['currency']));
+                        $sku_services[$service_id][$v['id']] = array(
+                            $v['name'],
+                            $this->getPrice($v['price'], $service['currency'], $sku_price, $product['currency']),
+                        );
                     }
                 }
             }
@@ -486,7 +422,6 @@ class shopFrontendProductAction extends shopFrontendAction
                 );
                 shopProductServicesModel::workupItemServices($s, $item);
             }
-
 
 
             if (count($s['variants']) == 1) {
@@ -584,27 +519,29 @@ class shopFrontendProductAction extends shopFrontendAction
         $res['meta_keywords'] = ifempty($res['meta_keywords'], shopProduct::getDefaultMetaKeywords($product));
         $res['meta_description'] = ifempty($res['meta_description'], shopProduct::getDefaultMetaDescription($product));
 
-        $shop = $this->view->getHelper();
-        /**
-         * @var shopViewHelper $shop
-         */
+        /** @var waViewHelper $shop */
+        $helper = $this->view->getHelper();
+        /** @var shopViewHelper $shop */
+        $shop = $helper->shop;
 
-        $image_url = $shop->shop->imgUrl(array(
-            'id' => $product['image_id'],
+        $image_url = $shop->imgUrl(array(
+            'id'         => $product['image_id'],
             'product_id' => $product['id'],
-            'filename' => $product['image_filename'],
-            'ext' => $product['ext'],
+            'filename'   => $product['image_filename'],
+            'ext'        => $product['ext'],
         ), null, true);
 
+        /** @var shopConfig $config */
+        $config = wa('shop')->getConfig();
 
         $res['og'] = array(
-            'og:type' => 'og:product',
-            'og:title' => $res['meta_title'],
-            'og:description' => $res['meta_description'],
-            'og:image' => $image_url,
-            'og:url' => wa()->getConfig()->getHostUrl().wa()->getConfig()->getRequestUrl(false, true),
-            'product:price:amount' => shop_currency($product['price'], null, null, false),
-            'product:price:currency' => wa('shop')->getConfig()->getCurrency(false),
+            'og:type'                => 'og:product',
+            'og:title'               => $res['meta_title'],
+            'og:description'         => $res['meta_description'],
+            'og:image'               => $image_url,
+            'og:url'                 => $config->getHostUrl().$config->getRequestUrl(false, true),
+            'product:price:amount'   => shop_currency($product['price'], null, null, false),
+            'product:price:currency' => $config->getCurrency(false),
         );
         foreach ($product['og'] as $k => $v) {
             $res['og']['og:'.$k] = $v;

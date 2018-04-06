@@ -162,11 +162,11 @@ class shopFrontendCategoryAction extends shopFrontendAction
                         } else {
                             if ($v instanceof shopRangeValue) {
                                 $begin = $this->getFeatureValue($v->begin);
-                                if ($min === null || $begin < $min) {
+                                if (is_numeric($begin) && ($min === null || (float)$begin < (float)$min)) {
                                     $min = $begin;
                                 }
                                 $end = $this->getFeatureValue($v->end);
-                                if ($max === null || $end > $max) {
+                                if (is_numeric($end) && ($max === null || (float)$end > (float)$max)) {
                                     $max = $end;
                                     if ($v->end instanceof shopDimensionValue) {
                                         $unit = $v->end->unit;

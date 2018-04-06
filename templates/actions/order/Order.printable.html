@@ -219,7 +219,7 @@
                                 </td>
                                 <td>
                                     {if $item.type == 'service'}<span class="gray s-overhanging-plus">+</span> {/if}
-                                    <a href="?action=products#/{if $item.type=='product'}product/{$item.product_id}{else}services/{$item.service_id}{/if}/">{$item.name}</a>
+                                    <a href="?action=products#/{if $item.type=='product'}product/{$item.product_id}{else}services/{$item.service_id}{/if}/">{$item.name|escape}</a>
                                     {if !empty($item.sku_code)}
                                         <br><span class="hint">{$item.sku_code|escape}</span>
                                     {/if}

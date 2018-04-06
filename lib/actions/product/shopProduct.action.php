@@ -119,6 +119,11 @@ class shopProductAction extends waViewAction
         if (intval($product->id)) {
             $routing = wa()->getRouting();
             $domain_routes = $routing->getByApp($this->getAppId());
+            $product_categories = $product->categories;
+            if ($product_categories) {
+                $category_routes_model = new shopCategoryRoutesModel();
+                $category_routes = $category_routes_model->getRoutes(array_keys($product_categories));
+            }
             foreach ($domain_routes as $domain => $routes) {
                 foreach ($routes as $r) {
                     if (!empty($r['private'])) {
@@ -126,17 +131,28 @@ class shopProductAction extends waViewAction
                     }
                     if (empty($r['type_id']) || (in_array($product->type_id, (array)$r['type_id']))) {
                         $routing->setRoute($r, $domain);
-                        $params = array('product_url' => $product->url);
-                        if ($product->category_id && isset($categories[$product->category_id])) {
-                            if (!empty($r['url_type']) && $r['url_type'] == 1) {
-                                $params['category_url'] = $categories[$product->category_id]['url'];
-                            } else {
-                                $params['category_url'] = $categories[$product->category_id]['full_url'];
+                        $params = array(
+                            'product_url' => $product->url,
+                        );
+
+                        if (!empty($r['url_type']) && ($r['url_type'] == 2)) {
+                            $category_exists = $product->category_id && isset($categories[$product->category_id]);
+
+                            if ($category_exists) {
+                                if (empty($category_routes[$product->category_id])) {
+                                    $category_available = true;
+                                } else {
+                                    $category_available = in_array($domain.'/'.$r['url'], $category_routes[$product->category_id]);
+                                }
+
+                                if ($category_available) {
+                                    $params['category_url'] = $categories[$product->category_id]['full_url'];
+                                }
                             }
                         }
                         $frontend_url = $routing->getUrl('/frontend/product', $params, true);
                         $frontend_urls[] = array(
-                            'url' => $frontend_url
+                            'url' => $frontend_url,
                         );
                     }
                 }
@@ -244,7 +260,6 @@ class shopProductAction extends waViewAction
         $this->view->assign('category_name', $product->category_id && isset($product->categories[$product->category_id]) ? strip_tags($product->categories[$product->category_id]['name']) : null);
 
         $this->view->assign('orders_default_view', $config->getOption('orders_default_view'));
-
     }
 
     protected function assignReportsData(shopProduct $product)

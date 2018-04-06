@@ -17,7 +17,7 @@ class shopWorkflowMessageAction extends shopWorkflowAction
 
         if (!empty($order['contact'])) {
             $c = $order['contact'];
-            if (ifset($c['email']) || ifset($c['phone'])) {
+            if (ifset($c, 'email', null) || ifset($c, 'phone', null)) {
                 return true;
             }
         }

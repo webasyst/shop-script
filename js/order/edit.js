@@ -58,8 +58,10 @@ $.order_edit = {
         }
 
         this.float_delimeter = options.float_delimeter;
-
         this.initView();
+        this.initShippingControl();
+        this.initDiscountControl();
+        this.initCustomerSourceControl(options.customer_sources);
     },
 
     initView: function () {
@@ -102,7 +104,9 @@ $.order_edit = {
             return false;
         });
 
-        this.updateTotal(0);
+        //Set container.data('order-content')
+        this.getOrderItems(this.container, true);
+
         $('.s-order-item').each(function () {
             var item = $(this);
             updateStockIcon(item);
@@ -115,6 +119,7 @@ $.order_edit = {
 
         var price_edit = options.price_edit || false;
 
+        //Added new product in order
         var add_order_input = $("#orders-add-autocomplete");
         add_order_input.autocomplete({
             source: '?action=autocomplete&with_counts=1',
@@ -151,7 +156,6 @@ $.order_edit = {
                     //item.find('.s-orders-services .s-orders-service-variant').trigger('change');
 
                     $('#s-order-comment-edit').show();
-
                     $.order_edit.updateTotal();
 
                     updateStockIcon(item);
@@ -163,6 +167,7 @@ $.order_edit = {
             }
         });
 
+        //Select product SKU
         this.container.off('change', '.s-orders-skus input[type=radio]').on('change', '.s-orders-skus input[type=radio]',
             function () {
                 var self = $(this);
@@ -214,7 +219,7 @@ $.order_edit = {
                     );
 
                     updateStockIcon(tr);
-                    $.order_edit.updateTotal(tr);
+                    $.order_edit.updateTotal();
 
                 });
             }
@@ -277,61 +282,17 @@ $.order_edit = {
                     item.attr('data-price', p);
                 }
             });
-            $.order_edit.updateTotal.apply(this);
+            $.order_edit.updateTotal();
         });
         this.container.off('change', '.s-orders-services .s-orders-service-variant').on('change', '.s-orders-services .s-orders-service-variant',
             $.order_edit.updateTotal
         );
 
-        $(".s-order-customer-details").on('change', 'input[type=text],select', function () {
-            if ($(this).attr('name').indexOf('address')) {
+        //Update total if customer address edit
+        $(".s-order-customer-details").on('change', 'input,select,checkbox,textarea', function () {
+            if ($(this).attr('name').indexOf('address') > 0) {
                 $.order_edit.updateTotal();
             }
-        });
-
-        $("#shipping-custom").on('change', ':input', function (e) {
-            /**
-             * handle only related changes
-             */
-            $.shop.trace('#shipping-custom change', [e, this]);
-            if (e.originalEvent && $(this).data('affects-rate')) {
-                $.order_edit.updateTotal(true);
-            }
-        });
-
-        $("#shipping_methods").change(function (e) {
-            var $this = $(this);
-            var o = $this.children(':selected');
-            var rate = o.data('rate') || 0;
-            $("#shipping-rate").val($.order_edit.formatFloat(rate));
-            var delivery_info = [];
-            if (o.data('error')) delivery_info.push('<span class="error">' + o.data('error') + '</span>');
-            if (o.data('est_delivery')) delivery_info.push('<span class="hint est_delivery">' + o.data('est_delivery') + '</span>');
-            var sid = $this.val().replace(/\..+$/, '');
-            var prev_sid = $this.data('_shipping_id');
-            $("#shipping-custom > div").hide();
-            if ($('#shipping-custom-' + sid).length) {
-                $('#shipping-custom-' + sid).show();
-            }
-            if (o.data('comment')) delivery_info.push('<span class="hint">' + o.data('comment') + '</span>');
-            if (delivery_info) {
-                if (o.data('error')) {
-                    $("#shipping-rate").addClass('error');
-                } else {
-                    $("#shipping-rate").removeClass('error');
-                }
-                $("#shipping-info").html(delivery_info.join('<br>')).show();
-            } else {
-                $("#shipping-rate").removeClass('error');
-                $("#shipping-info").empty().hide();
-            }
-            $.order_edit.updateTotal(false);
-            $.shop.trace('check shipping_methods id', [prev_sid, sid]);
-            if (o.data('external') && !e.triggered_by_updateTotal && (prev_sid != sid)) {
-                $.order_edit.updateTotal();
-            }
-
-
         });
 
         $("#payment_methods").change(function () {
@@ -342,9 +303,6 @@ $.order_edit = {
             }
         });
 
-        $("#discount,#shipping-rate").change(function () {
-            $.order_edit.updateTotal(false);
-        });
 
         this.container.off('keydown', '.s-orders-quantity').on('keydown', '.s-orders-quantity', function () {
             var self = $(this);
@@ -388,9 +346,9 @@ $.order_edit = {
                         $('.s-order-items-edit td.save i.loading').css('display', 'none');
                     };
                     if ($.order_edit.id) {
-                        orderSaveSubmit.xhr = $.order_edit.editSubmit(onAlwaysSubmit);
+                        orderSaveSubmit.xhr = $.order_edit.saveSubmit(onAlwaysSubmit, 'edit');
                     } else {
-                        orderSaveSubmit.xhr = $.order_edit.addSubmit(onAlwaysSubmit);
+                        orderSaveSubmit.xhr = $.order_edit.saveSubmit(onAlwaysSubmit, 'add');
                     }
                 }
                 return false;
@@ -399,7 +357,69 @@ $.order_edit = {
             this.form.unbind('sumbit').bind('submit', orderSaveSubmit);
         }
 
-        this.initDiscountControl();
+        //Formatting values from a database
+        $("#subtotal").text(this.roundFloat($("#subtotal").text()));
+        $("#total").text(this.roundFloat($("#total").text()));
+        $('#discount').val(this.roundFloat($('#discount').val()));
+    },
+
+    initShippingControl: function() {
+        var $shipping_rate = $('#shipping-rate'),
+            previous_shipping_method = $("#shipping_methods").val();
+
+        $("#shipping-custom").on('change', ':input', function (e) {
+            /**
+             * handle only related changes
+             */
+            $.shop.trace('#shipping-custom change', [e, this]);
+            if (e.originalEvent && $(this).data('affects-rate')) {
+                $.order_edit.updateTotal();
+            }
+        });
+
+        $("#shipping_methods").change(function () {
+            var $this = $(this);
+            var option = $this.children(':selected');
+            var rate = option.data('rate') || 0;
+
+            // Update cost if it is not entered by hand
+            if (!$shipping_rate.data('shipping') || option.val() != previous_shipping_method) {
+                $shipping_rate.val($.order_edit.formatFloat(rate));
+                $shipping_rate.data('shipping', false);
+                previous_shipping_method = option.val();
+            }
+
+            var delivery_info = [];
+            if (option.data('error')) delivery_info.push('<span class="error">' + option.data('error') + '</span>');
+            if (option.data('est_delivery')) delivery_info.push('<span class="hint est_delivery">' + option.data('est_delivery') + '</span>');
+            var sid = $this.val().replace(/\..+$/, '');
+            var prev_sid = $this.data('_shipping_id');
+            $("#shipping-custom > div").hide();
+            if ($('#shipping-custom-' + sid).length) {
+                $('#shipping-custom-' + sid).show();
+            }
+            if (option.data('comment')) delivery_info.push('<span class="hint">' + option.data('comment') + '</span>');
+            if (delivery_info) {
+                if (option.data('error')) {
+                    $shipping_rate.addClass('error');
+                } else {
+                    $("#shipping-rate").removeClass('error');
+                }
+                $("#shipping-info").html(delivery_info.join('<br>')).show();
+            } else {
+                $shipping_rate.removeClass('error');
+                $("#shipping-info").empty().hide();
+            }
+
+            $.shop.trace('check shipping_methods id', [prev_sid, sid]);
+            $.order_edit.updateTotal();
+        });
+
+        //Prevent shipping cost updates
+        $('#shipping-rate').keyup(function () {
+            $('#shipping-rate').data('shipping', $(this).val());
+            $.order_edit.updateTotal();
+        })
     },
 
     initDiscountControl: function () {
@@ -444,9 +464,6 @@ $.order_edit = {
                 return;
             }
 
-            $update_discount_button.data('ajax', true);
-
-
             // Remember recalculated discount value and description
             $update_discount_button
                 .data('value', data.discount)
@@ -454,7 +471,7 @@ $.order_edit = {
                 .data('items_discount', data.items_discount)
             ;
 
-            if ($update_discount_button.data('just-recalculated')) {
+            if ($update_discount_button.data('discount') === 'calculate') {
                 // When value in discount input matches previous recalculation,
                 // but new recalculated discount is different,
                 // update visible fields immidiately
@@ -472,14 +489,14 @@ $.order_edit = {
             $edit_discount_button.hide();
 
             $('.js-item-total-discount').hide();
-        }
+        };
 
         $edit_discount_button.click(function () {
             hide_manual_edit();
 
             $discount_description_input.val('');
             return false;
-        })
+        });
 
         // When user clicks the update button, put discount value and description to fields
         // and hide the button itself
@@ -502,7 +519,8 @@ $.order_edit = {
                     }
                 }
             }
-            $update_discount_button.hide().data('just-recalculated', true);
+            $update_discount_button.hide().data('discount', 'calculate');
+            $.order_edit.updateTotal();
             updateTooltipVisibility();
             var duration = 25;
             var delta = 50;
@@ -536,9 +554,12 @@ $.order_edit = {
             $discount_description_input.val('');
             $('#order-items .js-item-total-discount').hide();
             $discount_input.attr('title', null);
-            if ($update_discount_button.data('ajax')) {
-                $update_discount_button.show().data('just-recalculated', false);
-            }
+
+            //Set discount value
+            $update_discount_button.show().data('discount', $(this).val());
+
+            $.order_edit.updateTotal();
+
             updateTooltipVisibility();
         });
 
@@ -551,17 +572,39 @@ $.order_edit = {
         }
     },
 
-    getOrderItems: function(container, init) {
+    initCustomerSourceControl: function (customer_sources) {
+        var $input = $('#customer-source');
+        $input.autocomplete({
+            delay: 0,
+            minLength: 0,
+            appendTo: '#order-edit-form',
+            source: function(request, response) {
+                var result = customer_sources.filter(function(v) {
+                    return v && v.indexOf && v.indexOf(request.term) >= 0;
+                }).slice(0, 10);
+                if (result.length == 1 && result[0] == request.term) {
+                    response([]);
+                } else {
+                    response(result);
+                }
+            }
+        }).on('focus', function() {
+            $input.autocomplete('search');
+        });
+    },
+
+    getOrderItems: function(container) {
         var items = [];
 
         var order_content = [];
 
         container.find('.s-order-item').each(function () {
-            var tr = $(this);
-            var product_id = tr.find('input[name^="product"]').val();
-            var services = [];
-            var price = $.order_edit.parseFloat(tr.find('.s-orders-product-price input').val());
-            var quantity = $.order_edit.parseFloat(tr.find('input.s-orders-quantity').val());
+            var tr = $(this),
+                product_id = tr.find('input[name^="product"]').val(),
+                services = [],
+                price = $.order_edit.parseFloat(tr.find('.s-orders-product-price input').val()),
+                quantity = $.order_edit.parseFloat(tr.find('input.s-orders-quantity').val()),
+                stock_id = tr.find('select.s-orders-sku-stock-select').val();
 
             // get SKU id
             var sku_input = tr.find('input[name^=sku]:not(:radio)').add(tr.find('input[name^=sku]:checked')).first();
@@ -571,7 +614,7 @@ $.order_edit = {
                 "product_id": product_id,
                 "sku_id": sku_id,
                 "services": []
-            }
+            };
 
             if (tr.find('.s-orders-services').length) {
                 tr.find('.s-orders-services input:checkbox:checked').each(function () {
@@ -597,34 +640,22 @@ $.order_edit = {
                 quantity: quantity,
                 price: price,
                 sku_id: sku_id,
-                services: services
+                services: services,
+                stock_id: stock_id
             });
 
             order_content.push(order_item);
         });
         order_content = this.reduceOrderContent(order_content);
-        if (init) {
-            container.data('order-content', order_content);
-        } else {
-            if (container.data('order-content') !== order_content) {
-                var $discount_input = $('#discount');
-                $discount_input.trigger('keyup');
-            }
+
+        container.data('order-content', order_content);
+
+        if (container.data('order-content') !== order_content) {
+            var $discount_input = $('#discount');
+            $discount_input.trigger('keyup');
         }
+
         return items;
-    },
-    
-    getOrderItemsSubtotal: function(items){
-        var subtotal = 0;
-        for (var i = 0; i < items.length; i++) {
-            var item = items[i];
-            subtotal += item.price * item.quantity;
-            for (var s_i = 0; s_i < item.services.length; s_i++) {
-                var service = item.services[s_i];
-                subtotal += service.price * item.quantity;
-            }
-        }
-        return subtotal;
     },
 
     reduceOrderContent: function (order_content) {
@@ -643,15 +674,37 @@ $.order_edit = {
         }).join(';');
     },
 
-    updateTotal: function (ajax) {
-        var ajax = ajax === undefined ? true : ajax;
-        var container = $.order_edit.container;
+    updateTotal: (function () {
+        var timeout = null;
+        return updateTotal;
+
+        function updateTotal() {
+            if (timeout) {
+                clearTimeout(timeout);
+                timeout = setTimeout(realUpdateTotal, 250);
+            } else {
+                timeout = setTimeout(realUpdateTotal, 500);
+            }
+        }
+
+        function realUpdateTotal() {
+            timeout = null;
+            $.order_edit.realUpdateTotal();
+        }
+    })(),
+
+    realUpdateTotal: function () {
+        var container = $.order_edit.container,
+            $subtotal = $("#subtotal"),
+            $total = $("#total");
         if (!container.find('.s-order-item').length) {
-            $("#subtotal").text(0);
-            $("#total").text(0);
+            $subtotal.text(0);
+            $total.text(0);
             return;
         }
-        var $discount_input = $('#discount');
+
+        //clear errors.
+        $.order_edit.showValidateErrors();
 
         // Data for orderTotal controller
         var data = {};
@@ -660,179 +713,217 @@ $.order_edit = {
             data[customer[i].name] = customer[i].value;
         }
 
-        data.items = $.order_edit.getOrderItems(container, ajax === 0);
+        data.items = $.order_edit.getOrderItems(container);
 
-        var subtotal = $.order_edit.getOrderItemsSubtotal(data.items);
+        //see discount property in shopOrder
+        var update_discount = $('#update-discount').data('discount');
+        if (update_discount !== undefined) {
+            if (update_discount !== 'calculate') {
+                update_discount = $.order_edit.parseFloat(update_discount);
+            }
+            data.discount = update_discount;
+        }
 
-        data.subtotal = subtotal;
-        var discount = $.order_edit.parseFloat($discount_input.val() || 0);
-        data.discount = discount;
         if ($.order_edit.id) {
             data.order_id = $.order_edit.id;
         } else {
             data['currency'] = $('#order-edit-form input[name=currency]').val();
         }
-        var shipping_id = ($('#shipping_methods').val() || '').split('.')[0];
-        data['shipping_id'] = shipping_id;
-        data['customer[id]'] = $('#s-customer-id').val();
 
-        var updateTotalHandler = function (response) {
-            if (response.status === 'ok') {
-                var el = $("#shipping_methods");
-                var el_selected = el.val();
-                el.empty();
+        var shipping_id = $('#shipping_methods').val();
 
-                var shipping_method_ids = response.data.shipping_method_ids;
-                var shipping_methods = response.data.shipping_methods;
-
-                // exact match
-                var found = shipping_method_ids.indexOf(el_selected) !== -1;
-                var custom_html_container = $('#shipping-custom');
-
-                custom_html_container.find('>div.fields.form').hide();
-
-                for (var i = 0; i < shipping_method_ids.length; i += 1) {
-                    var ship_id = shipping_method_ids[i];
-
-                    var ship = shipping_methods[ship_id];
-
-                    /**
-                     *
-                     * @type {*|JQuery|jQuery|HTMLElement}
-                     */
-                    var o = $('<option></option>');
-                    o.html(ship.name).attr('value', ship_id).data('rate', ship.rate);
-                    o.data('error', ship.error || undefined);
-                    o.data('est_delivery', ship.est_delivery || undefined);
-                    o.data('comment', ship.comment || undefined);
-                    o.data('external', ship.external || false);
-                    if (ship.custom_data) {
-                        for (var custom_field in ship.custom_data) {
-                            if (ship.custom_data.hasOwnProperty(custom_field)) {
-                                o.data(custom_field, ship.custom_data[custom_field]);
-                            }
-                        }
-                    }
-
-                    el.append(o);
-
-                    if (ship.custom_html) {
-                        var plugin_id = ship_id.replace(/\W.+$/, '');
-
-                        var custom_html = custom_html_container.find('#shipping-custom-' + plugin_id);
-                        if (!custom_html.length) {
-                            custom_html = custom_html_container.append('<div id="shipping-custom-' + plugin_id + '" style="display: none;" class="fields form"></div>');
-                            custom_html = custom_html_container.find('#shipping-custom-' + plugin_id);
-                        }
-                        custom_html.html(ship.custom_html);
-                        custom_html.hide();
-                    }
-
-                    // unexact match, but close
-                    if (!found) {
-                        var ship_id_parts = ('' + ship_id).split('.');
-                        var el_selected_parts = el_selected.split('.');
-                        if (ship_id_parts[0] !== undefined && el_selected_parts[0] !== undefined &&
-                            ship_id_parts[0] == el_selected_parts[0]) {
-                            found = true;
-                            el_selected = ship_id;
-                        }
-                    }
-                }
-
-                if (found) {
-                    el.val(el_selected);
-                    el.data('_shipping_id', el_selected.split('.')[0]);
-                    $.shop.trace('set shipping_methods id', [el_selected.split('.')[0], el_selected]);
-                    el_selected += '';
-
-                    if (!shipping_methods[el_selected].external || data['shipping_id'] == el_selected.split('.')[0]) {
-                        el.trigger($.Event('change', {
-                            triggered_by_updateTotal: 1
-                        }));
-                    }
-                }
-
-                $('#order-edit-form').trigger('order_total_updated', response.data);
-            }
+        //If shipping methods not selected, use first method. See 92.5368 task.
+        if (!shipping_id) {
+            shipping_id = $('#shipping_methods option').eq(1).val()
         }
 
-        if (ajax) {
-            shipping_id = parseInt(shipping_id);
+        //Send the cost of delivery of entered by hands
+        if ($('#shipping-rate').data('shipping')) {
+            data.shipping = $('#shipping-rate').data('shipping');
+        }
+
+        data['params'] = {shipping_id: shipping_id};
+        data['customer[id]'] = $('#s-customer-id').val();
+
+        if (shipping_id) {
+            shipping_id = parseInt(shipping_id.split('.')[0]);
             if (shipping_id > 0) {
+                //Retrieve shipping parameters
                 $('#shipping-custom').find('>#shipping-custom-' + shipping_id + ' :input').each(function () {
                     data[this.name] = this.value;
                 });
             }
-            // Fetch shipping options and rates, and other info from orderTotal controller
-            $.ajax({
-                "type": 'POST',
-                "url": '?module=order&action=total',
-                "data": data,
+        }
+        // Fetch shipping options and rates, and other info from orderTotal controller
+        $.ajax({
+            "type": 'POST',
+            "url": '?module=order&action=total',
+            "data": data,
+            "success": function (response) {
+                if (response.status === 'ok') {
+                    var el = $("#shipping_methods"),
+                        el_selected = el.val(),
+                        el_selected_id = el_selected.replace(/\W.+$/, ''),
+                        $shipping_rate = $('#shipping-rate');
 
-                "success": updateTotalHandler,
-                "dataType": 'json'
+                    //clear shipping data.
+                    el.empty();
+                    $('#shipping-custom').empty();
+
+                    var shipping_method_ids = response.data.shipping_method_ids;
+                    var shipping_methods = response.data.shipping_methods;
+
+                    // exact match
+                    var found = shipping_method_ids.indexOf(el_selected) !== -1;
+                    var custom_html_container = $('#shipping-custom');
+
+                    custom_html_container.find('>div.fields.form').hide();
+
+                    for (var i = 0; i < shipping_method_ids.length; i += 1) {
+                        var ship_id = shipping_method_ids[i];
+
+                        var ship = shipping_methods[ship_id];
+
+                        //Update shipping rate. If shipping rate not entered by hand
+                        if (!$shipping_rate.data('shipping') && ship_id == el_selected) {
+                            $shipping_rate.val(($.order_edit.roundFloat(ship.rate)));
+                        }
+
+                        /**
+                         *
+                         * @type {*|JQuery|jQuery|HTMLElement}
+                         */
+                        var o = $('<option></option>');
+                        o.html(ship.name).attr('value', ship_id).data('rate', ship.rate);
+                        o.data('error', ship.error || undefined);
+                        o.data('est_delivery', ship.est_delivery || undefined);
+                        o.data('comment', ship.comment || undefined);
+                        o.data('external', ship.external || false);
+                        if (ship.custom_data) {
+                            for (var custom_field in ship.custom_data) {
+                                if (ship.custom_data.hasOwnProperty(custom_field)) {
+                                    o.data(custom_field, ship.custom_data[custom_field]);
+                                }
+                            }
+                        }
+
+                        el.append(o);
+
+                        //If shipping not selected, select first
+                        if (!el_selected && i === 0) {
+                            $("#shipping-rate").val($.order_edit.formatFloat(ship.rate));
+                        }
+
+                        if (ship.custom_html) {
+                            var plugin_id = ship_id.replace(/\W.+$/, '');
+
+                            var custom_html = custom_html_container.find('#shipping-custom-' + plugin_id);
+                            if (!custom_html.length) {
+                                custom_html = custom_html_container.append('<div id="shipping-custom-' + plugin_id + '" style="display: none;" class="fields form"></div>');
+                                custom_html = custom_html_container.find('#shipping-custom-' + plugin_id);
+                            }
+                            custom_html.html(ship.custom_html);
+                                   if (el_selected_id == plugin_id) {
+                                       custom_html.show();
+                                    } else {
+                                        custom_html.hide();
+                                    }
+                        }
+
+                        // unexact match, but close
+                        if (!found) {
+                            var ship_id_parts = ('' + ship_id).split('.');
+                            var el_selected_parts = el_selected.split('.');
+                            if (ship_id_parts[0] !== undefined && el_selected_parts[0] !== undefined &&
+                                ship_id_parts[0] == el_selected_parts[0]) {
+                                found = true;
+                                el_selected = ship_id;
+                            }
+                        }
+                    }
+
+                    if (found) {
+                        el.val(el_selected);
+                        el.data('_shipping_id', el_selected_id);
+                        $.shop.trace('set shipping_methods id', [el_selected_id, el_selected]);
+                    }
+
+                    $('#order-edit-form').trigger('order_total_updated', response.data);
+
+                    //Update order value after calculate.
+                    $subtotal.text($.order_edit.roundFloat(response.data.subtotal));
+                    $total.text($.order_edit.roundFloat(response.data.total));
+
+                    //If user deleted discount value, don't need set zero discount value
+                    if (update_discount != '') {
+                        $('#discount').val($.order_edit.roundFloat(response.data.discount));
+                    }
+
+                    $.order_edit.showValidateErrors(response.data.errors);
+                }
+            },
+            "dataType": 'json'
+        });
+    },
+
+    /**
+     * If type == edit, show main orders page.
+     * If type == add, show new order for main page.
+     * @param always
+     * @param type {add|edit}
+     * @returns {*|void}
+     */
+    saveSubmit: function (always, type) {
+        var form = this.form,
+            data = form.serializeArray();
+
+        //Recalculate discount in server
+        if ($('#update-discount').data('discount') === 'calculate') {
+            $(data).each(function () {
+                if (this.name == 'discount') {
+                    this.value = 'calculate';
+                }
             });
         }
 
-        $("#subtotal").text($.order_edit.formatFloat(Math.round(subtotal * 100) / 100));
-        var shipping = $.order_edit.parseFloat($("#shipping-rate").val().replace(',', '.')) || 0;
-        var undiscounted_total = subtotal + shipping;
-
-        // correct discout by constraint: total must be >= 0
-        if (discount < 0) {
-            discount = 0;
-            $discount_input.val('');
-        } else {
-            if (undiscounted_total - discount < 0) {
-                discount = undiscounted_total;
-            }
-            $discount_input.val($.order_edit.formatFloat(Math.round(discount * 100) / 100));
-        }
-
-        var total = undiscounted_total - discount;
-        $("#total").text($.order_edit.formatFloat(Math.round(total * 100) / 100));
-    },
-
-    editSubmit: function (always) {
-        var form = this.form;
-
-        $.shop.trace('editSubmit',form.serialize());
-        return $.shop.jsonPost(
-            form.attr('action'),
-            form.serialize(),
-            function (r) {
-                $.order_edit.container.find('.back').click();
-            },
-            function (r) {
-                $.shop.trace('editSubmit', r);
-                if (r && r.errors && !$.isEmptyObject(r.errors)) {
-                    $.order_edit.showValidateErrors(r.errors);
-                }
-            },
-            always
-        );
-    },
-
-    addSubmit: function (always) {
-        var form = this.form;
-        $.shop.trace('addSubmit', $(form));
-        return $.shop.jsonPost(
-            form.attr('action'),
-            form.serialize(),
-            function (r) {
+        if (type == 'add') {
+            success = function (r) {
                 if ($.order_edit.slide(false, true)) {
                     location.href = '#/orders/state_id=new&view=split&id=' + r.data.order.id + '/';
                 }
-            },
+            };
+        } else {
+            success = function (r) {
+                $.order_edit.container.find('.back').click();
+            };
+        }
+
+        $.shop.trace(type, form.serialize());
+
+        return $.shop.jsonPost(
+            form.attr('action'),
+            data,
+            success,
             function (r) {
-                $.shop.trace('addSubmit', r);
+                $.shop.trace(type, r);
                 if (r && r.errors && !$.isEmptyObject(r.errors)) {
                     $.order_edit.showValidateErrors(r.errors);
                 }
             },
             always
         );
+    },
+
+    /**
+     * @param val
+     * @returns {*}
+     */
+    roundFloat : function(val) {
+        if (!val) {
+            return 0;
+        } else {
+            return this.formatFloat(Math.round(val * 100) / 100)
+        }
     },
 
     formatFloat: function (f) {
@@ -996,6 +1087,11 @@ $.order_edit = {
                 common_errors.push(validate_errors.order.common);
             }
 
+            if (validate_errors.order.discount) {
+                $('#discount').addClass('error');
+                common_errors.push(validate_errors.order.discount);
+            }
+
             if (common_errors.length) {
                 $('.s-order-errors').html(common_errors.join("<br>"));
             }
@@ -1125,12 +1221,12 @@ $.order_edit = {
                         $.order_edit.customer_inputs = $.order_edit.customer_fields.find(':input');
                         $('#s-customer-id').val(item.value);
                         activate();
-
                         // autocomplete make focus for its input. That brakes out plan!
                         // setTimout-hack for fix it
                         setTimeout(function () {
                             focusFirstEmptyInput();
                         }, 200);
+                        $.order_edit.updateTotal();
                     });
                 } else {
                     var selector = '[name=' + $.order_edit.inputName(

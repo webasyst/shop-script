@@ -39,8 +39,8 @@
                 <label for="s-shipping-plugin-logo">[`Logo URL`]</label>
             </div>
             <div class="value">
-                <input name="shipping[logo]" type="text" class="long" value="{$plugin.logo|default:$plugin.img|escape}" id="s-shipping-plugin-logo">
-                <img src="{$plugin.logo|default:$plugin.img}" class="s-payment-shipping-logo float-right">
+                <input name="shipping[logo]" type="text" class="long" value="{if empty($plugin.id)}{$plugin.img}{else}{$plugin.logo}{/if}" id="s-shipping-plugin-logo">
+                <img src="{if empty($plugin.id)}{$plugin.img}{else}{$plugin.logo}{/if}" class="s-payment-shipping-logo float-right">
                 <p class="hint">{sprintf('[`A collection of shipping option icons is available for free: <a href="%1$s" target="_blank">%1$s</a> <i class="icon10 new-window"></i>`]','[`http://www.shop-script.com/help/729/payment-shipping-icons/`]')}</p>
             </div>
         </div>

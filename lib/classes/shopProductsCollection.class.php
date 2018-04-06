@@ -106,7 +106,22 @@ class shopProductsCollection
                     $order = 'ASC';
                 }
                 $model = $this->getModel();
-                if ($sort == 'stock_worth') {
+
+                // Ordering by price is tricky!
+                // We must not order by price of a SKU that is excluded after filtering.
+                // When skus table is joined, we can't just order by shop_product.price.
+                // We use actual SKU price for ordering instead.
+                if (waRequest::get('sort') == 'price' && isset($this->join_index['ps'])) {
+                    // User wants to see the lowest of all SKU prices
+                    // in all cases except when ordering by price, greatest first.
+                    if (waRequest::get('order') == 'desc') {
+                        $this->fields[] = 'MAX(ps1.price) AS sku_price';
+                        $this->order_by = 'sku_price DESC';
+                    } else {
+                        $this->fields[] = 'MIN(ps1.price) AS sku_price';
+                        $this->order_by = 'sku_price ASC';
+                    }
+                } else if ($sort == 'stock_worth') {
                     $this->fields[] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
                     $this->order_by = 'stock_worth '.$order;
                 } else {
@@ -254,12 +269,14 @@ class shopProductsCollection
         $price_filter = array();
 
         if (isset($data['price_min']) && $data['price_min'] !== '') {
-            $this->where[] = 'p.max_price >= '.$this->toFloat(shop_currency($data['price_min'], true, $config->getCurrency(true), false));
-            $price_filter['price_min'] = ' >= '.$this->toFloat(shop_currency($data['price_min'], true, $config->getCurrency(true), false));
+            $price_min = str_replace(',','.',$data['price_min']);
+            $this->where[] = 'p.max_price >= '.$this->toFloat(shop_currency($price_min, true, $config->getCurrency(true), false));
+            $price_filter['price_min'] = ' >= '.$this->toFloat(shop_currency($price_min, true, $config->getCurrency(true), false));
         }
         if (isset($data['price_max']) && $data['price_max'] !== '') {
-            $this->where[] = 'p.min_price <= '.$this->toFloat(shop_currency($data['price_max'], true, $config->getCurrency(true), false));
-            $price_filter['price_max'] = ' <='.$this->toFloat(shop_currency($data['price_max'], true, $config->getCurrency(true), false));
+            $price_max = str_replace(',','.',$data['price_max']);
+            $this->where[] = 'p.min_price <= '.$this->toFloat(shop_currency($price_max, true, $config->getCurrency(true), false));
+            $price_filter['price_max'] = ' <='.$this->toFloat(shop_currency($price_max, true, $config->getCurrency(true), false));
         }
         unset(
             $data['in_stock_only'],
@@ -293,13 +310,13 @@ class shopProductsCollection
                         $unit = ifset($values['unit']);
                         $min = $max = null;
                         if (isset($values['min']) && $values['min'] !== '') {
-                            $min = $values['min'];
+                            $min = str_replace(',', '.', $values['min']);
                             if ($unit) {
                                 $min = shopDimension::getInstance()->convert($min, $features[$feature_code]['type'], null, $unit);
                             }
                         }
                         if (isset($values['max']) && $values['max'] !== '') {
-                            $max = $values['max'];
+                            $max = str_replace(',', '.', $values['max']);
                             if ($unit) {
                                 $max = shopDimension::getInstance()->convert($max, $features[$feature_code]['type'], null, $unit);
                             }
@@ -844,7 +861,7 @@ SQL;
                             if (count($word_ids) > 1) {
                                 $this->fields[] = "SUM(si.weight) AS weight";
                                 $this->fields[] = "COUNT(*) AS weight_count";
-                                $this->order_by = 'weight DESC';
+                                $this->order_by = 'weight_count DESC, weight DESC';
                                 $this->group_by = 'p.id';
                             } else {
                                 $this->fields[] = "si.weight";
@@ -874,24 +891,11 @@ SQL;
                             $this->addJoin('shop_product_skus', null, "(p.name LIKE '%".$q."%' OR :table.name LIKE '%".$q."%' OR :table.sku LIKE '%".$q."%')");
                             $this->group_by = 'p.id';
                             return;
-                        } elseif ($word_ids) {
-                            $result = $this->getProducts('*', 0, 1);
-                            $p = array_shift($result);
-                            $w = str_replace(',', '.', 0.3 * $p['weight']);
-                            if (count($word_ids) > 1) {
-                                $this->having[] = 'SUM(si.weight) >= '.$w;
-                                if ($p['weight_count'] == count($word_ids)) {
-                                    $this->having[] = 'COUNT(*) >= '.count($word_ids);
-                                }
-                            } else {
-                                $this->where[] = 'weight >= '.$w;
-                            }
-                            $this->count = null;
+                        }
 
-                            // Restore original order-by if were specified
-                            if (waRequest::request('sort', 'weight', 'string') != 'weight') {
-                                $this->order_by = $auto_order_by;
-                            }
+                        // Restore original order-by if were specified.
+                        if (waRequest::request('sort', 'weight', 'string') != 'weight') {
+                            $this->order_by = $auto_order_by;
                         }
                     }
                     $title[] = $parts[0].$parts[1].$parts[2];
@@ -994,6 +998,25 @@ SQL;
      */
     protected function getFields($fields)
     {
+        if ($this->is_frontend) {
+            $fields .= ',frontend_url';
+        }
+        $split_fields = array_map('trim', explode(',', $fields));
+        if (in_array('frontend_url', $split_fields) && !in_array('*', $split_fields)) {
+            if ($dependent_fields = array_diff(array('url', 'category_id',), $split_fields)) {
+                $fields .= ','.implode(',', $dependent_fields);
+            }
+        }
+
+        if (waRequest::param('drop_out_of_stock') == 1) {
+            $this->fields[] = '(p.count > 0 || p.count IS NULL) AS in_stock';
+        }
+
+        // 'skus_filtered' require additional data if joined with product_skus table
+        if (in_array('skus_filtered', $split_fields) && isset($this->join_index['ps'])) {
+            $this->fields[] = "GROUP_CONCAT(DISTINCT ps1.id) AS sku_ids";
+        }
+
         $model = $this->getModel();
         if ($fields == '*') {
             return 'p.*'.($this->fields ? ",".implode(",", $this->fields) : '');
@@ -1010,7 +1033,11 @@ SQL;
             $fields[] = 'currency'; // required for proper rounding and convertion
         }
 
-        $virtual_fields = array('images', 'images2x', 'image', 'sku', 'skus', 'frontend_url', 'image_count', 'sales_30days', 'image_crop_small', 'stock_worth', 'stock_counts');
+        $virtual_fields = array(
+            'images', 'images2x', 'image', 'image_crop_small', 'image_count',
+            'frontend_url', 'sales_30days', 'stock_worth', 'stock_counts',
+            'sku', 'skus_filtered', 'skus',
+        );
         // Add required fields to select and delete fields for getting data after query
         foreach ($fields as $i => $f) {
             if ($f == '*') {
@@ -1044,7 +1071,9 @@ SQL;
             }
         }
 
-        return implode(",", $fields);
+        $fields = implode(",", $fields);
+
+        return $fields;
     }
 
     /**
@@ -1056,10 +1085,9 @@ SQL;
     {
         if ($this->order_by) {
             if (waRequest::param('drop_out_of_stock') == 1) {
-                $this->fields[] = '(p.count > 0 || p.count IS NULL) AS in_stock';
-                return " ORDER BY in_stock DESC,".$this->order_by;
+                return "\nORDER BY in_stock DESC,".$this->order_by;
             } else {
-                return " ORDER BY ".$this->order_by;
+                return "\nORDER BY ".$this->order_by;
             }
         } else {
             return "";
@@ -1074,7 +1102,7 @@ SQL;
     protected function _getGroupBy()
     {
         if ($this->group_by) {
-            return " GROUP BY ".$this->group_by;
+            return "\nGROUP BY ".$this->group_by;
         } else {
             return "";
         }
@@ -1179,14 +1207,14 @@ SQL;
                 } else {
                     $on = "p.id = ".($alias ? $alias : $join['table']).".product_id";
                 }
-                $sql .= (isset($join['type']) ? " ".$join['type'] : '')." JOIN ".$join['table']." ".$alias." ON ".$on;
+                $sql .= "\n\t".(isset($join['type']) ? $join['type'].' ' : '')."JOIN ".$join['table']." ".$alias."\n\t\tON ".$on;
             }
         }
 
         $where = $this->where;
 
         if ($where) {
-            $sql .= " WHERE ".implode(" AND ", $where);
+            $sql .= "\nWHERE ".implode("\n\tAND ", $where);
         }
         return $sql;
     }
@@ -1253,17 +1281,10 @@ SQL;
                 $limit = 50;
             }
         }
-        if ($this->is_frontend && $fields == '*') {
-            $fields .= ',frontend_url';
-        }
-        $split_fields = array_map('trim', explode(',', $fields));
-        if (in_array('frontend_url', $split_fields) && !in_array('*', $split_fields)) {
-            if ($dependent_fields = array_diff(array('url', 'category_id',), $split_fields)) {
-                $fields .= ','.implode(',', $dependent_fields);
-            }
-        }
 
-        $sql = $this->getSQL();
+        // This builds body of the query and also
+        // prepare()s $this instance if not prepared yet.
+        $from_and_where = $this->getSQL();
 
         // for dynamic set
         if ($this->hash[0] == 'set' && !empty($this->info['id']) && $this->info['type'] == shopSetModel::TYPE_DYNAMIC) {
@@ -1273,14 +1294,16 @@ SQL;
             }
         }
 
-        $order = $this->_getOrderBy();
-        $sql = "SELECT ".($this->joins && !$this->group_by ? 'DISTINCT ' : '').$this->getFields($fields)." ".$sql;
+        $distinct = $this->joins && !$this->group_by ? 'DISTINCT ' : '';
+
+        $sql = "SELECT " . $distinct . $this->getFields($fields) . "\n";
+        $sql .= $from_and_where;
         $sql .= $this->_getGroupBy();
         if ($this->having) {
-            $sql .= " HAVING ".implode(' AND ', $this->having);
+            $sql .= "\nHAVING ".implode(' AND ', $this->having);
         }
-        $sql .= $order;
-        $sql .= " LIMIT ".($offset ? $offset.',' : '').(int)$limit;
+        $sql .= $this->_getOrderBy();
+        $sql .= "\nLIMIT ".($offset ? $offset.',' : '').(int)$limit;
 
         $data = $this->getModel()->query($sql)->fetchAll('id');
         if (!$data) {
@@ -1592,9 +1615,26 @@ SQL;
                         }
                     }
                 }
-                if (isset($fields['skus'])) {
+                if (isset($fields['skus']) || isset($fields['skus_filtered'])) {
+
+                    // sku_ids in products data (if present) are skus that passed filtering
+                    // see $this->getFields(). If there are no such field, it means there's no filtering,
+                    // and we fetch all SKUs below (same as $fields['skus'])
+                    $sku_ids = array();
+                    if (isset($fields['skus_filtered'])) {
+                        foreach ($products as $product) {
+                            if (!empty($product['sku_ids'])) {
+                                $sku_ids = array_merge($sku_ids, explode(',', $product['sku_ids']));
+                            }
+                        }
+                    }
+
                     $skus_model = new shopProductSkusModel();
-                    $skus = $skus_model->getByField('product_id', array_keys($products), 'id');
+                    if ($sku_ids) {
+                        $skus = $skus_model->getByField('id', $sku_ids, 'id');
+                    } else {
+                        $skus = $skus_model->getByField('product_id', array_keys($products), 'id');
+                    }
 
                     foreach ($skus as &$sku) {
                         if (isset($sku['price'])) {
@@ -1809,11 +1849,14 @@ SQL;
 
         if ($this->is_frontend) {
 
-            // When storefront is only limited to certain stock, recalculate product counts
-            $public_stocks = waRequest::param('public_stocks');
-
-            if (!is_array($public_stocks)) {
-                $public_stocks = $this->getVisibleStocks();
+            if (wa('shop')->getSetting('limit_main_stock')) {
+                $public_stocks = array( waRequest::param('stock_id'));
+            } else {
+                // When storefront is only limited to certain stock, recalculate product counts
+                $public_stocks = waRequest::param('public_stocks');
+                if (!is_array($public_stocks)) {
+                    $public_stocks = $this->getVisibleStocks();
+                }
             }
 
             if (!empty($public_stocks)) {
@@ -1847,7 +1890,6 @@ SQL;
                 }
                 unset($p, $s);
             }
-
             foreach ($products as $p_id => $p) {
                 if (isset($p['price'])) {
                     $products[$p_id]['original_price'] = $p['price'];

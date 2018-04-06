@@ -19,7 +19,7 @@
  * @property-read double $rate              Order currency rate relative to default shop currency, as used to be when order were created
  * @property-read double $tax               Total order tax in order currency.
  * @property double $shipping               Total order shipping cost in order currency.
- * @property double $discount               Total order discount in order currency. Set it into `null` or empty to hold previous calculated discount or set into `true` to recalculate.
+ * @property double $discount               Total order discount in order currency. Set it into `null` or empty to hold previous calculated discount or set into 'calculate' to recalculate.
  * @property string $discount_description   Human-readable text description of how discounts were calculated. Intended for store admin, not customer.
  * @property-read string $paid_date         Date when order was paid, or NULL if it wasn't.
  * @property-read string $paid_year         Part of paid_date used for stats.
@@ -31,14 +31,17 @@
  * @property-read datetime $shipping_datetime Estimated shipping datetime as may be set by store admin using "Edit shipping details" order action.
  *
  * @property array[] $items                 Order items
+ * @property-read array[] $items_extended   Different format for items
  * @property string[] $params               Custom order data from shop_order_params
  * @property-read array[] $log              Order history
+ * @property-read array[] $last_action_datetime
  * @property-read double $subtotal          Subtotal is price*quantity for all items. This does not include discounts and certain taxes, and does not include shipping.
  *
  * @property-read array[] $products
  *
  * # meta fields related to customer
  * @property-read waContact $contact        Customer contact
+ * @property-read array $contact_essentials Customer data in array: id, name, email, phone, registered, photo_50x50.
  * @property-read array $shop_customer      Customer data from shop_customer table
  * @property-read waContact $wa_contact     Same as $this->contact, i.e. customer data
  * @property-read int $customer_id          Same as $this->contact_id, i.e. customer id
@@ -57,6 +60,7 @@
  * # Workflow related fields
  * @property-read shopWorkflowState $state  Current order state
  * @property-read shopWorkflowAction[] $actions array action_id => action class
+ * @property-read array $workflow_action_elements
  *
  * # meta fields related to shipping
  * @property string[] $shipping_address       Customer shipping address as saved in order params. [address_subfield_id => string]
@@ -66,11 +70,13 @@
  * @property-read array $courier                    Courier data from shop_api_courier table
  * @property-read string $map                       HTML contains data to display map
  * @property-read array[] $shipping_methods
+ * @property-read string $shipping_id
  *
  * # meta fields related to payment
  *
  * @property-read waPayment $payment_plugin     Payment plugin instance if selected
  * @property string[] $billing_address          Customer billing address as saved in order params. [address_subfield_id => string]
+ * @property-read string $billing_address_text  Customer billing address as human-readable text
  *
  * @property-read string $source                Order source used for stats
  *
@@ -94,7 +100,7 @@ class shopOrder implements ArrayAccess
     );
     protected $data = array();
     protected $original_data = array();
-    protected $errors = array();
+    protected $errors = null;
 
     protected $is_changed = array();
 
@@ -129,6 +135,7 @@ class shopOrder implements ArrayAccess
     );
 
     protected static $readonly_fields = array(
+        'id',
         'create_datetime',
         'update_datetime',
         'state_id',
@@ -139,6 +146,43 @@ class shopOrder implements ArrayAccess
         'paid_month',
         'paid_date',
         'is_first',
+        'total',
+        'tax',
+        'unsettled',
+        'comment',
+        'shipping_datetime',
+        'log',
+        'last_action_datetime',
+        'subtotal',
+        'products',
+        'contact',
+        'contact_essentials',
+        'shop_customer',
+        'wa_contact',
+        'customer_id',
+        'id_str',
+        'total_str',
+        'create_datetime_str',
+        'icon',
+        'style',
+        'items_extended',
+        'shipping_name',
+        'payment_name',
+        'state',
+        'actions',
+        'workflow_action_elements',
+        'shipping_plugin',
+        'shipping_address_text',
+        'tracking',
+        'courier',
+        'map',
+        'shipping_methods',
+        'shipping_id',
+        'payment_plugin',
+        'billing_address_text',
+        'source',
+        'printforms',
+        'coupon',
     );
 
     protected static $once_edit_fields = array(
@@ -160,6 +204,7 @@ class shopOrder implements ArrayAccess
      */
     protected static $dependencies = array(
         'items'                => array(
+            'items_extended' => true,
             'tax'      => true,
             'subtotal' => true,
             'total'    => true,
@@ -232,11 +277,13 @@ class shopOrder implements ArrayAccess
 
         if (is_array($data)) {
 
+            $id = ifset($data, 'id', null);
             foreach (self::$readonly_fields as $field) {
                 if (isset($data[$field])) {
                     unset($data[$field]);
                 }
             }
+            $data['id'] = $id;
 
             if (!empty($data['id'])) {
                 $this->original_data = $this->model->getById($data['id']);
@@ -252,7 +299,9 @@ class shopOrder implements ArrayAccess
                 }
 
                 foreach (self::$readonly_fields as $field) {
-                    $data[$field] = $this->original_data[$field];
+                    if (isset($this->original_data[$field])) {
+                        $data[$field] = $this->original_data[$field];
+                    }
                 }
 
                 $data += array(
@@ -280,7 +329,6 @@ class shopOrder implements ArrayAccess
                     $data[$field] = $this->castPrice($data[$field], $data['currency']);
                 }
             }
-
             foreach ($data as $name => $value) {
                 $this->setData($name, $value);
             }
@@ -293,7 +341,6 @@ class shopOrder implements ArrayAccess
 
             if (!empty($order['params'])) {
                 shopOrderParamsModel::workupParams($order['params']);
-                $order['shipping_id'] = ifset($order['params']['shipping_id'], '').'.'.ifset($order['params']['shipping_rate_id'], '');
             }
 
 
@@ -373,7 +420,9 @@ class shopOrder implements ArrayAccess
             $result = $this->data[$name];
         } else {
 
-            if (method_exists($this, $method = self::camelMethod("get%s", $name))) {
+            if (method_exists($this, $method = self::camelMethod("read%s", $name))) {
+                return $this->$method();
+            } elseif (method_exists($this, $method = self::camelMethod("get%s", $name))) {
                 $this->data[$name] = $this->$method();
                 $result = $this->data[$name];
             } elseif (($storage = $this->getStorage($name))) {
@@ -409,9 +458,9 @@ class shopOrder implements ArrayAccess
             $is_changed = null;
 
             if (method_exists($this, $parse_method)) {
-                $compare_method = self::camelMethod('compare%s', $name);
                 $this->data[$name] = $this->{$parse_method}($value);
 
+                $compare_method = self::camelMethod('compare%s', $name);
                 if (method_exists($this, $compare_method)) {
                     $is_changed = $this->{$compare_method}($value);
                 } else {
@@ -466,7 +515,11 @@ class shopOrder implements ArrayAccess
      */
     public function offsetExists($offset)
     {
-        return isset($this->data[$offset]) || $this->model->fieldExists($offset) || $this->getStorage($offset);
+        return isset($this->data[$offset])
+            || $this->model->fieldExists($offset)
+            || $this->getStorage($offset)
+            || method_exists($this, $method = self::camelMethod("get%s", $offset))
+            || method_exists($this, $method = self::camelMethod("read%s", $offset));
     }
 
     /**
@@ -512,6 +565,7 @@ class shopOrder implements ArrayAccess
         $this->icon;
         $this->discount;
         $this->shipping;
+        $this->state;
 
         return $this->data;
     }
@@ -621,8 +675,23 @@ class shopOrder implements ArrayAccess
     {
         $this->items;
         $this->params;
-        $order = $this->data;
+        $order = $this->data + $this->original_data;
         return shopPrintforms::getOrderPrintforms($order);
+    }
+
+    protected function readLastActionDatetime()
+    {
+        foreach($this->log as $l) {
+            if ($this['state_id'] == $l['after_state_id']) {
+                return $l['datetime'];
+            }
+        }
+    }
+
+    protected function getItemsExtended()
+    {
+        $order_items_model = new shopOrderItemsModel();
+        return $order_items_model->getItems($this->dataArray(), true);
     }
 
     private function escape($data, $field)
@@ -703,7 +772,7 @@ class shopOrder implements ArrayAccess
         if (isset($params['shipping_name'])) {
             $name = $params['shipping_name'];
         } elseif (!empty($params['shipping_id'])) {
-            if ($info = self::pluginInfo($params['shipping_id'], shopPluginModel::TYPE_SHIPPING)) {
+            if ($info = $this->pluginInfo($params['shipping_id'], shopPluginModel::TYPE_SHIPPING)) {
                 $name = $info['name'];
                 $this->data['params']['shipping_name'] = $name;
             }
@@ -749,15 +818,15 @@ class shopOrder implements ArrayAccess
     ###############################
 
     /** @return waWorkflowState */
-    protected function getState()
+    protected function readState()
     {
-        return $this->workflow->getStateById($this->data['state_id']);
+        return $this->workflow->getStateById($this['state_id']);
     }
 
     /**
      * @return shopWorkflowAction[]
      */
-    protected function getActions()
+    protected function readActions()
     {
         return $this->state->getActions($this);
     }
@@ -794,12 +863,67 @@ class shopOrder implements ArrayAccess
         $order_log_model->add($log);
     }
 
+    public function readWorkflowActionElements()
+    {
+        $bottom_buttons = $top_buttons = $actions_html = $buttons = array();
+
+        $source = 'backend';
+        if (isset($this['params']['storefront'])) {
+            if (substr($this['params']['storefront'], -1) === '/') {
+                $source = $this['params']['storefront'].'*';
+            } else {
+                $source = $this['params']['storefront'].'/*';
+            }
+        }
+        $notification_model = new shopNotificationModel();
+        $transports = $notification_model->getActionTransportsBySource($source);
+
+        foreach ($this->actions as $action) {
+            /**
+             * @var shopWorkflowAction $action
+             */
+            if ($action->getOption('top') || $action->getOption('position') == 'top') {
+                $top_buttons[] = $action->getButton();
+            } elseif ($action->getOption('position') == 'bottom') {
+                $bottom_buttons[] = $action->getButton();
+            } elseif ($action->getOption('head')) {
+                $html = $action->getHTML($this['id']);
+                if ($html) {
+                    $actions_html[] = $html;
+                } else {
+                    $buttons[] = $action->getButton();
+                }
+            } else {
+                $icons = array();
+                if (!empty($transports[$action->getId()]['email'])) {
+                    $icons[] = 'ss notification-bw';
+                }
+                if (!empty($transports[$action->getId()]['sms'])) {
+                    $icons[] = 'ss phone-bw';
+                }
+                if ($icons) {
+                    $action->setOption('icon', $icons);
+                }
+                $buttons[] = $action->getButton();
+            }
+        }
+
+        return compact('bottom_buttons', 'top_buttons', 'actions_html', 'buttons');
+    }
+
     ###############################
     # Save & Validate section
     ###############################
 
+    /**
+     * Validate internal data before save if not validated already.
+     * @return array of errors
+     */
     public function errors()
     {
+        if ($this->errors === null) {
+            $this->validate();
+        }
         return $this->errors;
     }
 
@@ -811,6 +935,9 @@ class shopOrder implements ArrayAccess
     {
         $this->options['mode'] = 'write';
         $this->validate();
+        if ($this->errors) {
+            throw new waException('Order validation error');
+        }
 
         $this->prepareParams();
 
@@ -840,8 +967,14 @@ class shopOrder implements ArrayAccess
         return $order;
     }
 
+    /**
+     * Force validation of internal data before save.
+     * @return array of errors
+     */
     public function validate()
     {
+        $this->errors = array();
+
         // not zero numeric - edit existing contact
         // zero numeric     - add contact
         $customer_id = $this->contact->getId();
@@ -853,7 +986,7 @@ class shopOrder implements ArrayAccess
         if ($customer_id !== null) {
             $contact = new waContact($customer_id);
             $form = shopHelper::getCustomerForm($customer_id);
-            $customer_validation_disabled = wa()->getSetting('disable_backend_customer_form_validation');
+            $customer_validation_disabled = wa()->getSetting('disable_backend_customer_form_validation', '', 'shop');
             if (!$customer_validation_disabled) {
                 if (!$form->isValid($contact)) {
                     $this->errors['customer']['html'] = $form->html();
@@ -861,40 +994,47 @@ class shopOrder implements ArrayAccess
             }
         }
 
-        if (empty($this->data['items'])) {
-            $this->errors['order']['common'] = _w('Please add at least one product to save this order');
-        }
-        foreach ($this->data['items'] as $item) {
-            $fields = array();
-            switch ($item['type']) {
-                case 'service':
-                    if (empty($item['service_id'])) {
-                        $fields[] = 'service_id';
+        if (isset($this->data['items'])) {
+            if (empty($this->data['items'])) {
+                $this->errors['order']['common'] = _w('Please add at least one product to save this order');
+            } else {
+                foreach ($this->data['items'] as $item) {
+                    $fields = array();
+                    switch ($item['type']) {
+                        case 'service':
+                            if (empty($item['service_id'])) {
+                                $fields[] = 'service_id';
+                            }
+                            if (empty($item['service_variant_id'])) {
+                                $fields[] = 'service_variant_id';
+                            }
+                            if (empty($item['product_id'])) {
+                                $fields[] = 'product_id';
+                            }
+                            if (empty($item['sku_id'])) {
+                                $fields[] = 'sku_id';
+                            }
+                            break;
+                        case 'product':
+                            if (empty($item['product_id'])) {
+                                $fields[] = 'product_id';
+                            }
+                            if (empty($item['sku_id'])) {
+                                $fields[] = 'sku_id';
+                            }
+                            break;
                     }
-                    if (empty($item['service_variant_id'])) {
-                        $fields[] = 'service_variant_id';
+                    if ($fields) {
+                        $key = ifset($item['_index'], ifset($item['id']));
+                        $this->errors['order']['items'][$key] = sprintf('Missed required item fields: `%s`', implode($fields, '`, `'));
                     }
-                    if (empty($item['product_id'])) {
-                        $fields[] = 'product_id';
-                    }
-                    if (empty($item['sku_id'])) {
-                        $fields[] = 'sku_id';
-                    }
-                    break;
-                case 'product':
-                    if (empty($item['product_id'])) {
-                        $fields[] = 'product_id';
-                    }
-                    if (empty($item['sku_id'])) {
-                        $fields[] = 'sku_id';
-                    }
-                    break;
-            }
-            if ($fields) {
-                $key = ifset($item['_index'], ifset($item['id']));
-                $this->errors['order']['items'][$key] = sprintf('Missed required item fields: `%s`', implode($fields, '`, `'));
-            }
 
+                }
+            }
+        }
+
+        if (($this->subtotal + $this->shipping) < $this->discount) {
+            $this->errors['order']['discount'] = _w('!!! Скидка больше стоимости заказа');
         }
 
         if (!$this->errors) {
@@ -906,9 +1046,7 @@ class shopOrder implements ArrayAccess
             }
         }
 
-        if ($this->errors) {
-            throw new waException('Order validation error');
-        }
+        return $this->errors;
     }
 
     private function getStockUsage($items, &$sku_ids)
@@ -950,12 +1088,10 @@ class shopOrder implements ArrayAccess
 
         $skus = $this->product_skus_model->getByField('id', $sku_ids, 'id');
         $counts = array();
-        foreach ($sku_stocks as $sku_id => &$stock) {
 
-            if (empty($stock)) {
-                if (isset($skus[$sku_id][0]['count'])) {
-                    $counts[$sku_id][0] = $skus[$sku_id]['count'];
-                }
+        foreach ($sku_stocks as $sku_id => &$stock) {
+            if (!is_array($stock)) {
+                    $counts[$sku_id][0] = $stock;
             } else {
                 foreach ($stock as $stock_id => $st) {
                     $counts[$sku_id][$stock_id] = $st['count'];
@@ -1042,7 +1178,7 @@ class shopOrder implements ArrayAccess
                     $sku_id = ifset($item['sku_id']);
                     $stock_id = ifset($item['stock_id']);
 
-                    if (empty($stock_id) && !empty($sku_stocks[$sku_id])) {
+                    if (empty($stock_id) && is_array($sku_stocks[$sku_id]) && !empty($sku_stocks[$sku_id])) {
                         # Stock not selected
                         $errors[$index]['stock_id'] = _w('Select stock');// *not selected
                     } elseif ($stock_id !== null) {
@@ -1069,15 +1205,31 @@ class shopOrder implements ArrayAccess
 
     private function stocks($skus = null)
     {
+        $product_stocks_model = new shopProductStocksModel();
+        $this->product_skus_model = new shopProductSkusModel();
+
         if ($skus === null) {
             $ids = $this->collectItems();
             $skus = $ids['sku'];
         }
-        $product_stocks_model = new shopProductStocksModel();
-        return $product_stocks_model->getBySkuId($skus);
+
+        $stocks_count = array_fill_keys($skus, 0);
+        $products_count = $this->product_skus_model->getByField('id', $skus, 'id');
+        $skus_counts = $product_stocks_model->getBySkuId($skus);
+
+        //If the product has no stocks, put a value from shopProduct
+        foreach ($products_count as $sku_id => $info) {
+            if (isset($skus_counts[$sku_id])){
+                $stocks_count[$sku_id] = $skus_counts[$sku_id];
+            } else {
+                $stocks_count[$sku_id] = $info['count'];
+            }
+        }
+
+        return $stocks_count;
     }
 
-    ###############################
+    ###############################$this->product_skus_model = new shopProductSkusModel();
     # Contact section
     ###############################
 
@@ -1086,6 +1238,12 @@ class shopOrder implements ArrayAccess
     {
         $contact_id = $this->contact_id;
         return new waContact($contact_id ? $contact_id : null);
+    }
+
+    protected function getContactEssentials()
+    {
+        $order_model = new shopOrderModel();
+        return $order_model->getOrderContactData($this->data + $this->original_data);
     }
 
     protected function getShopCustomer()
@@ -1135,7 +1293,11 @@ class shopOrder implements ArrayAccess
 
     protected function parseShippingAddress($address)
     {
-        foreach ($address['shipping_address'] as $k => $v) {
+        if (isset($address[0])) {
+            $address = $address[0];
+        }
+
+        foreach ($address as $k => $v) {
             $this->data['params']['shipping_address.'.$k] = $v;
         }
         return false;
@@ -1143,7 +1305,11 @@ class shopOrder implements ArrayAccess
 
     protected function parseBillingAddress($address)
     {
-        foreach ($address['billing_address'] as $k => $v) {
+        if (isset($address[0])) {
+            $address = $address[0];
+        }
+
+        foreach ($address as $k => $v) {
             $this->data['params']['billing_address.'.$k] = $v;
         }
         return false;
@@ -1188,11 +1354,16 @@ class shopOrder implements ArrayAccess
         return $contact;
     }
 
-    protected function parseCustomer($data)
+    protected function parseCustomer($data, &$form = null)
     {
         // Used hardcoded value `customer` but actual value can be differ `$form->opt('namespace')`
         // @see shopHelper::getCustomerForm
-        $form = $this->customerForm();
+        if (!$form) {
+            $form = $this->customerForm();
+            if (!$form) {
+                return array();
+            }
+        }
         if (($form->post === null) && $data) {
             $post = array();
             $fields = $form->fields();
@@ -1208,31 +1379,24 @@ class shopOrder implements ArrayAccess
         if ($form->post === null || !is_array($form->post)) {
             return null;
         }
+
         return $form->post;
     }
 
     private function saveCustomer()
     {
-        if (!empty($this->contact) && ($form = $this->customerForm()) && !empty($this->data['customer'])) {
-
+        if ( $this->contact && ( $form = $this->customerForm()) && !empty($this->data['customer'])) {
+            $this->parseCustomer($this->data['customer'], $form);
             foreach ((array)$form->post() as $fld_id => $fld_data) {
                 //turn off checkbox
                 if (!$fld_data && !($form->fields($fld_id) instanceof waContactCheckboxField)) {
                     continue;
                 }
                 if ($fld_id == 'address.shipping') {
-                    $this->shipping_address = $fld_data;
-                    $this->saveContactAddress($this->contact, $this->data['params'], 'shipping');
-                    if (isset($this->shipping_address[0])) {
-                        $this->shipping_address = $this->shipping_address[0];
-                    }
+                    $this->saveContactAddress($this->contact, $this->data['params'], 'shipping', $fld_data);
                     continue;
                 } elseif ($fld_id == 'address.billing') {
-                    $this->billing_address = $fld_data;
-                    $this->saveContactAddress($this->contact, $this->data['params'], 'billing');
-                    if (isset($this->billing_address[0])) {
-                        $this->billing_address = $this->billing_address[0];
-                    }
+                    $this->saveContactAddress($this->contact, $this->data['params'], 'billing', $fld_data);
                     continue;
                 }
                 if (is_array($fld_data) && !empty($fld_data[0])) {
@@ -1245,6 +1409,10 @@ class shopOrder implements ArrayAccess
                 }
             }
 
+            $customer_validation_disabled = false;
+            if (ifset($this->options, 'environment', wa()->getEnv()) == 'backend') {
+                    $customer_validation_disabled = wa()->getSetting('disable_backend_customer_form_validation', '', 'shop');
+            }
             if (!empty($customer_validation_disabled)) {
                 $this->contact->save();
             } else {
@@ -1269,44 +1437,69 @@ class shopOrder implements ArrayAccess
         }
     }
 
-    /**
-     * @param waContact $contact
-     * @param $params
-     * @param $ext
-     */
-    protected function saveContactAddress(waContact $contact, $params, $ext)
+    protected function saveContactAddress(waContact $contact, $params, $ext, $new_address)
     {
-        $address = shopHelper::getOrderAddress($params, $ext);
-        if ($contact['address.'.$ext]) {
-            $flag = false;
-            $address_info = $contact['address.'.$ext];
-            $i = key($address_info);
-            foreach ($address_info as $i => $a) {
-                $flag = true;
-                foreach ($address as $k => $v) {
-                    $old_v = isset($a['data'][$k]) ? $a['data'][$k] : '';
-                    if ($v !== $old_v) {
-                        $flag = false;
-                        break;
-                    }
-                }
-                if ($flag) {
+        // Save address to order.
+        // Save address to customer in case old address in order still matches customer's address.
+
+        // Order address editor ignores all addresses except the first one.
+        // This is paranoid check. There should be only one address, and no $new_address[0] key
+        if (isset($new_address[0])) {
+            return $this->saveContactAddress($contact, $params, $ext, $new_address[0]);
+        }
+
+        if ($ext == 'shipping') {
+            $this->shipping_address = $new_address;
+        } else if ($ext == 'billing') {
+            $this->billing_address = $new_address;
+        } else {
+            throw new waException('Unknown address type '.$ext); // this can not happen
+        }
+
+        // In case old address in order matches one of old customer's addresses,
+        // we should update customer's address that matches.
+        // Otherwise we add address as the new one (first in list)
+        $old_order_address = shopHelper::getOrderAddress($params, $ext);
+        $customer_addresses = $contact['address'];
+        $old_customer_addresses_ext = array_filter($customer_addresses, wa_lambda('$a', 'return $a["ext"] == '.var_export($ext, 1).';'));
+        $match_index = $this->findAddressInList($old_order_address, $old_customer_addresses_ext);
+        if ($match_index !== null) {
+            $customer_addresses[$match_index] = array(
+                'data' => $new_address,
+                'ext' => $ext,
+            );
+        } else {
+            array_unshift($customer_addresses, array(
+                'data' => $new_address,
+                'ext' => $ext,
+            ));
+        }
+        $contact['address'] = $customer_addresses;
+    }
+
+    protected function findAddressInList($address, $list)
+    {
+        if (isset($address['data']) && (isset($address['ext']) || isset($address['value']))) {
+            $address = $address['data'];
+        }
+
+        foreach($list as $index => $old_addr) {
+            if (isset($old_addr['data']) && (isset($old_addr['ext']) || isset($old_addr['value']))) {
+                $old_addr = $old_addr['data'];
+            }
+            $match = true;
+            foreach($old_addr as $k => $v) {
+                if ($v !== $address[$k]) {
+                    $match = false;
                     break;
                 }
             }
-            if (!$flag) {
-                $tmp = $contact['address.'.$ext];
-                $tmp[$i] = ($ext == 'shipping') ? $this->shipping_address : $this->billing_address;
-                $contact['address.'.$ext] = $tmp;
-            }
-        } else {
-            $tmp = ($ext == 'shipping') ? $this->shipping_address : $this->billing_address;
-            if ($tmp) {
-                $contact['address.'.$ext] = $tmp;
+            if ($match) {
+                return $index;
             }
         }
+        return null;
     }
-
 
     ###############################
     # Params section
@@ -1421,47 +1614,49 @@ class shopOrder implements ArrayAccess
         $plugin_params = array();
         $plugin_params['shipping_params'] = isset($params['shipping_params']) ? $params['shipping_params'] : array();
 
-        $shipping_id = $params['shipping_id'];
-        $rate_id = $params['shipping_rate_id'];
+        $shipping_id = ifset($params, 'shipping_id', null);
+        $rate_id = ifset($params, 'shipping_rate_id', null);
         $shipping_address = $this->shipping_address;
-
         $plugin = $this->shipping_plugin;
-        $weight_unit = $plugin->allowedWeightUnit();
-        $this->extendItemsWeight($this->data['items'], $weight_unit);
+        if ($plugin) {
+            $weight_unit = $plugin->allowedWeightUnit();
+            $this->extendItemsWeight($this->data['items'], $weight_unit);
 
-        $empty_address = $plugin->allowedAddress() === false;
-        if (!$empty_address && $shipping_address) {
-            foreach ($shipping_address as $k => $v) {
-                $params['shipping_address.'.$k] = $v;
+            $empty_address = $plugin->allowedAddress() === false;
+            if (!$empty_address && $shipping_address) {
+                foreach ($shipping_address as $k => $v) {
+                    $params['shipping_address.'.$k] = $v;
+                }
             }
-        }
 
-        if ($this->billing_address) {
-            foreach ($this->billing_address as $k => $v) {
-                $params['billing_address.'.$k] = $v;
+            if ($this->billing_address) {
+                foreach ($this->billing_address as $k => $v) {
+                    $params['billing_address.'.$k] = $v;
+                }
             }
-        }
 
-        //XXX optimize code
-        $rates = $plugin->getRates($this->data['items'], $shipping_address, $plugin_params);
+            //XXX optimize code
+            $rates = $plugin->getRates($this->data['items'], $shipping_address, $plugin_params);
 
-        $params['shipping_plugin'] = $plugin->getId();
-        $plugin_info = $this->pluginInfo($shipping_id, shopPluginModel::TYPE_SHIPPING);
-        $params['shipping_name'] = $plugin_info['name'];
-        $params['shipping_tax_id'] = ifset($plugin_info['options']['tax_id']);
-
-        if ($rates && is_array($rates)) {
-            if (!$rate_id) {
-                $rate = reset($rates);
-                $params['shipping_rate_id'] = key($rates);
-            } elseif (!empty($rates[$rate_id])) {
-                $rate = $rates[$rate_id];
+            $params['shipping_plugin'] = $plugin->getId();
+            if ( ( $plugin_info = $this->pluginInfo($shipping_id, shopPluginModel::TYPE_SHIPPING))) {
+                $params['shipping_name'] = $plugin_info['name'];
+                $params['shipping_tax_id'] = ifset($plugin_info['options']['tax_id']);
             }
-            if (!empty($rate['est_delivery'])) {
-                $params['shipping_est_delivery'] = $rate['est_delivery'];
-            }
-            if (!empty($rate['name'])) {
-                $params['shipping_name'] .= ' ('.$rate['name'].')';
+
+            if ($rates && is_array($rates)) {
+                if (!$rate_id) {
+                    $rate = reset($rates);
+                    $params['shipping_rate_id'] = key($rates);
+                } elseif (!empty($rates[$rate_id])) {
+                    $rate = $rates[$rate_id];
+                }
+                if (!empty($rate['est_delivery'])) {
+                    $params['shipping_est_delivery'] = $rate['est_delivery'];
+                }
+                if (!empty($rate['name'])) {
+                    $params['shipping_name'] .= ' ('.$rate['name'].')';
+                }
             }
         }
 
@@ -1473,15 +1668,14 @@ class shopOrder implements ArrayAccess
         }
 
         //change shipping plugin
-        if ($this->id
-            && !empty($original_params['shipping_id'])
-            && ($original_params['shipping_id'] != $params['shipping_id'])
-        ) {
-            $action = new shopWorkflowAction(null, $this->workflow);
-            $action->setPackageState(waShipping::STATE_CANCELED, $this->id, array('log' => true));
-            $this->resetShippingParams($params);
+        if ($this->id) {
+            $original_shipping_id = ifempty($this->original_data, 'params', 'shipping_id', null);
+            if ($original_shipping_id && $original_shipping_id != $params['shipping_id']) {
+                $action = new shopWorkflowAction(null, $this->workflow);
+                $action->setPackageState(waShipping::STATE_CANCELED, $this->id, array('log' => true));
+                $this->resetShippingParams($params);
+            }
         }
-
 
         // payment
         if (!empty($params['payment_id'])) {
@@ -1667,7 +1861,7 @@ class shopOrder implements ArrayAccess
             // Hold previous calculated discount
             $value = $this->original_data['discount'];
             $this->data['discount_description'] = '%HOLD%';
-        } elseif ($value === true) {
+        } elseif ($value === 'calculate') {
             $value = null;
             // Recalculate discount
         } else {
@@ -1682,7 +1876,7 @@ class shopOrder implements ArrayAccess
         if ($value === null) {
             $is_changed = 'hold';
             unset($this->data['discount']);
-        } elseif ($value === true) {
+        } elseif ($value === 'calculate') {
             $is_changed = true;
         } else {
             $is_changed = 'manual';
@@ -2629,8 +2823,9 @@ class shopOrder implements ArrayAccess
         }
 
         if (empty($service['fake'])) {
-            $item['name'] = $service['name'];
-            if (strlen($variant['name'])) {
+            //if service deleted and not found variant name, set name which enter user
+            if (strlen(ifset($variant, 'name', null))) {
+                $item['name'] = $service['name'];
                 $item['name'] .= sprintf(' (%s)', $variant['name']);
             }
         }
@@ -2689,8 +2884,8 @@ class shopOrder implements ArrayAccess
             $quantity = $quantities[$item_id];
             $items[] = array(
                 'id'                 => (int)$item_id,
-                'name'               => ifset($names[$index], null),
-                'product_id'         => (int)ifset($products[$item_id]),
+                'name'               => ifset($names, $item_id, null),
+                'product_id'         => (int)ifset($products, $item_id, null),
                 'sku_id'             => (int)$skus[$item_id],
                 'type'               => 'product',
                 'service_id'         => null,
@@ -2801,7 +2996,7 @@ class shopOrder implements ArrayAccess
      * @param string $weight_unit `kg`,`g`, `oz` and etc
      * @return array
      */
-    private function shippingItems($weight_unit = null)
+    protected function shippingItems($weight_unit = null)
     {
         $currency = $this->currency;
 
@@ -2834,158 +3029,6 @@ class shopOrder implements ArrayAccess
         return $shipping_items;
     }
 
-
-    ###############################
-    # Products section
-    ###############################
-
-    /**
-     * @return array
-     */
-    protected function getProducts()
-    {
-        $products = array();
-
-        $float_fields = array(
-            'price',
-            'min_price',
-            'max_price',
-            'primary_price',
-            'purchase_price',
-            'total_discount',
-            'compare_price',
-        );
-
-        $this->extendItems();
-        $sku_stocks = $this->stocks();
-
-        foreach ($this->items as $item) {
-            $product = ifset($item['product'], array());
-            $service = ifset($item['service'], array());
-            unset($item['product'], $item['service']);
-            switch ($item['type']) {
-                case 'product':
-                    $products[$item['id']] = $product;
-                    $products[$item['id']]['item'] = $item;
-                    break;
-                case 'service':
-                    $service['item'] = $item;
-                    $products[$item['parent_id']]['services'][$item['service_id']] = $service;
-                    break;
-            }
-        }
-
-
-        #escape & format
-        $currency = $this->currency;
-        foreach ($products as &$product) {
-
-            $this->workupProducts($product, $sku_stocks);
-            $product['quantity'] = $product['item']['quantity'];
-
-            $product['name'] = htmlentities($product['name'], ENT_QUOTES, 'utf-8');
-            $product['item']['name'] = htmlentities($product['item']['name'], ENT_QUOTES, 'utf-8');
-
-            foreach ($float_fields as $field) {
-                if (isset($product[$field])) {
-                    $product[$field] = floatval($product[$field]);
-                }
-                if (isset($product['item'][$field])) {
-                    $product['item'][$field] = floatval($product['item'][$field]);
-                }
-            }
-            if (!empty($product['skus'])) {
-                foreach ($product['skus'] as &$sku) {
-                    $sku['name'] = htmlentities($sku['name'], ENT_QUOTES, 'utf-8');
-                    foreach ($float_fields as $field) {
-                        if (isset($sku[$field])) {
-                            $sku[$field] = floatval($sku[$field]);
-                        }
-                    }
-                    if (isset($sku['price'])) {
-                        $sku['price_str'] = wa_currency($sku['price'], $currency);
-                        $sku['price_html'] = wa_currency_html($sku['price'], $currency);
-                    }
-                    if ($sku['count'] !== null) {
-                        $sku['count'] = intval($sku['count']);
-                    }
-                    unset($sku);
-                }
-            }
-
-            if ($product['min_price'] == $product['max_price']) {
-                $product['price_str'] = wa_currency($product['min_price'], $currency);
-                $product['price_html'] = wa_currency_html($product['min_price'], $currency);
-            } else {
-                $product['price_str'] = sprintf(
-                    '%s...%s',
-                    wa_currency($product['min_price'], $currency),
-                    wa_currency($product['max_price'], $currency)
-                );
-                $product['price_html'] = sprintf(
-                    '%s...%s',
-                    wa_currency_html($product['min_price'], $currency),
-                    wa_currency_html($product['max_price'], $currency)
-                );
-            }
-        }
-
-        return $products;
-    }
-
-    /**
-     * @see shopOrderEditAction
-     * @param $product
-     * @param $sku_stocks
-     */
-    private function workupProducts(&$product, $sku_stocks)
-    {
-        $size = $this->getCropSize();
-        if (empty($product['image_id'])) {
-            $product['url_crop_small'] = null;
-        } else {
-            $image = array(
-                'id'         => $product['image_id'],
-                'filename'   => $product['image_filename'],
-                'product_id' => $product['id'],
-                'ext'        => $product['ext'],
-            );
-            $product['url_crop_small'] = shopImage::getUrl($image, $size);
-        }
-
-        // aggregated stocks count icon for product
-        if (empty($product['fake'])) {
-            $product['icon'] = shopHelper::getStockCountIcon($product['count'], null, true);
-        }
-
-        foreach ($product['skus'] as &$sku) {
-            if (empty($sku['fake'])) {
-                // detailed stocks count icon for sku
-                if (empty($sku_stocks[$sku['id']])) {
-                    $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], null, true);
-                } else {
-                    $icons = array();
-                    $counts_htmls = array();
-                    $sku['stock'] = array();
-                    foreach ($sku_stocks[$sku['id']] as $stock_id => $stock) {
-                        $sku['stock'][$stock_id] = $stock['count'];
-                        $icons[$stock_id] = shopHelper::getStockCountIcon($stock['count'], $stock_id, true);
-                        if ($stock['count'] === null) {
-                            $counts_htmls[$stock_id] = sprintf(str_replace('%d', '%s', _w('%d left')), '∞');
-                        } else {
-                            $counts_htmls[$stock_id] = _w('%d left', '%d left', $stock['count']);
-                        }
-                    }
-                    $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], null, true);
-                    $sku['icons'] = $icons;
-                    $sku['count_htmls'] = $counts_htmls;
-                }
-            }
-        }
-        unset($sku);
-    }
-
-
     ###############################
     # Shipping section
     ###############################
@@ -3002,6 +3045,11 @@ class shopOrder implements ArrayAccess
                 $shipping_address = $address['data'];
             }
         }
+
+        if (!array_filter($shipping_address)) {
+            return array();
+        }
+
         return $shipping_address;
     }
 
@@ -3015,7 +3063,63 @@ class shopOrder implements ArrayAccess
 
     protected function getShippingAddressText()
     {
-        return shopHelper::getShippingAddressText($this->params);
+        return $this->getAddressFormatted('shipping', 'for_map');
+    }
+
+    protected function getShippingAddressHtml()
+    {
+        return $this->getAddressFormatted('shipping', 'SeveralLines');
+    }
+
+    protected function getBillingAddressText()
+    {
+        return $this->getAddressFormatted('billing', 'for_map');
+    }
+
+    protected function getBillingAddressHtml()
+    {
+        return $this->getAddressFormatted('billing', 'SeveralLines');
+    }
+
+    protected function getAddressFormatted($addr_type, $formatter_type)
+    {
+        $settings = wa('shop')->getConfig()->getCheckoutSettings();
+        $form_fields = ifset($settings['contactinfo']['fields'], array());
+        if (!isset($form_fields['address.'.$addr_type])) {
+            return null;
+        }
+
+        $address = shopHelper::getOrderAddress($this->params, $addr_type);
+
+        if ($formatter_type == 'for_map') {
+            $address_f = array();
+            foreach (array('country', 'region', 'zip', 'city', 'street') as $k) {
+                if (empty($address[$k])) {
+                    continue;
+                } elseif ($k == 'country') {
+                    $address_f[$k] = waCountryModel::getInstance()->name(ifempty($address['country']));
+                } elseif ($k == 'region') {
+                    $address_f['region'] = '';
+                    if (!empty($address['country']) && !empty($address['region'])) {
+                        $model = new waRegionModel();
+                        if ($region = $model->get($address['country'], $address['region'])) {
+                            $address_f['region'] = $region['name'];
+                        }
+                    }
+                } else {
+                    $address_f[$k] = $address[$k];
+                }
+            }
+            return implode(', ', $address_f);
+        } else if ($formatter_type == 'SeveralLines') {
+            $formatter = new waContactAddressSeveralLinesFormatter();
+            $address = $formatter->format(array('data' => $address));
+            return $address['value'];
+        } else {
+            $formatter = new waContactAddressOneLineFormatter();
+            $address = $formatter->format(array('data' => $address));
+            return $address['value'];
+        }
     }
 
     protected function getMap($adapter = null)
@@ -3055,7 +3159,7 @@ class shopOrder implements ArrayAccess
         if (isset($params['shipping_name'])) {
             $name = $params['shipping_name'];
         } elseif (!empty($params['shipping_id'])) {
-            if ($info = self::pluginInfo($params['shipping_id'], shopPluginModel::TYPE_SHIPPING)) {
+            if ($info = $this->pluginInfo($params['shipping_id'], shopPluginModel::TYPE_SHIPPING)) {
                 $name = $info['name'];
                 $this->data['params']['shipping_name'] = $name;
             }
@@ -3064,7 +3168,7 @@ class shopOrder implements ArrayAccess
         return $name;
     }
 
-    protected function getTracking($env = null)
+    public function getTracking($env = null)
     {
         $tracking = '';
         $params = $this->params;
@@ -3144,31 +3248,47 @@ HTML;
         return $is_changed;
     }
 
+    protected function readShippingId()
+    {
+        $params = $this->params;
+        if (empty($params['shipping_id'])) {
+            return null;
+        }
+        if (isset($params['shipping_rate_id'])) {
+            return sprintf('%d.%s', $params['shipping_id'], $params['shipping_rate_id']);
+        } else {
+            return $params['shipping_id'];
+        }
+    }
+
     /** @return float|null */
     protected function getShipping()
     {
         $shipping = null;
         $params = $this->params;
         if (!empty($params['shipping_id'])) {
+            $id = $this->readShippingId();
             $rates = $this->getShippingMethods(true);
-            if (isset($params['shipping_rate_id'])) {
-                $id = sprintf('%d.%s', $params['shipping_id'], $params['shipping_rate_id']);
-            } else {
-                $id = $params['shipping_id'];
-            }
-            if (isset($rates[$id])) {
-                if (is_array($rates[$id])) {
-                    $shipping = $rates[$id]['rate'];
-                }
+            if (isset($rates[$id]) && is_array($rates[$id])) {
+                $shipping = $rates[$id]['rate'];
             }
         }
+
+        // Recalculate total after shipping cost is recalculated for any reason
         unset($this->data['total']);
+
         return $shipping;
     }
 
-    protected function getShippingMethods($selected_only = false)
+    public function getShippingMethods($selected_only = false, $allow_external_for = array())
     {
-        $shipping_address = $this->contact->getFirst('address.shipping');
+        $customer_data = $this['customer'];
+        if ($customer_data) {
+            $contact = new waContact($customer_data);
+        } else {
+            $contact = $this->contact;
+        }
+        $shipping_address = $contact->getFirst('address.shipping');
         if ($shipping_address) {
             $shipping_address = $shipping_address['data'];
         }
@@ -3177,13 +3297,14 @@ HTML;
             'currency'           => $this->currency,
             'total_price'        => $this->subtotal,
             'no_external'        => true,
-            'allow_external_for' => array(),
+            'allow_external_for' => (array)$allow_external_for,
             'custom_html'        => true,
             'shipping_params'    => array(),
         );
 
-        if (isset($this->data['shipping_id'])) {
-            $method_params['allow_external_for'][] = $this->data['shipping_id'];
+        $shipping_id = $this['shipping_id'];
+        if (isset($shipping_id)) {
+            $method_params['allow_external_for'][] = $shipping_id;
         }
 
         if ($this->params && !empty($this->params['shipping_id']) && $selected_only) {
@@ -3232,9 +3353,9 @@ HTML;
     protected function getCourier()
     {
         $courier = null;
-        if (!empty($params['courier_id'])) {
+        if (!empty($this->params['courier_id'])) {
             $courier_model = new shopApiCourierModel();
-            $courier = $courier_model->getById($params['courier_id']);
+            $courier = $courier_model->getById($this->params['courier_id']);
         }
         return $courier;
     }

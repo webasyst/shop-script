@@ -59,26 +59,26 @@
                     <!-- customer info -->
                     <div class="profile image50px">
                         <div class="image">
-                            {if $order.contact.id|default:'0'}
-                                <a href="?action=customers#/id/{$order.contact.id|default:'0'}">
-                                    <img src="{$order.contact.photo_50x50}" class="userpic" />
+                            {if $customer_essentials.id|default:'0'}
+                                <a href="?action=customers#/id/{$customer_essentials.id|default:'0'}">
+                                    <img src="{$customer_essentials.photo_50x50}" class="userpic" />
                                 </a>
                             {else}
-                                <img src="{$order.contact.photo_50x50}" class="userpic" />
+                                <img src="{$customer_essentials.photo_50x50}" class="userpic" />
                             {/if}
                         </div>
                         <div class="details">
                             {$customers_rights = $wa->userRights('customers')}
                             <h3>
-                                {if $customers_rights && $order.contact.id|default:'0'}
-                                    <a href="?action=customers#/id/{$order.contact.id|default:'0'}" {if !$order.contact.name} class="gray"{/if}>
-                                        {$order.contact.name|default:'[`(no name)`]'}
+                                {if $customers_rights && $customer_essentials.id|default:'0'}
+                                    <a href="?action=customers#/id/{$customer_essentials.id|default:'0'}" {if !$customer_essentials.name|escape} class="gray"{/if}>
+                                        {$customer_essentials.name|default:'[`(no name)`]'|escape}
                                     </a>
                                 {else}
-                                    {$order.contact.name|default:'[`(no name)`]'}
-                                    {if !$order.contact.id|default:'0'} <span class="hint">[`deleted`]</span>{/if}
+                                    {$customer_essentials.name|default:'[`(no name)`]'}
+                                    {if !$customer_essentials.id|default:'0'|escape} <span class="hint">[`deleted`]</span>{/if}
                                 {/if}
-                                {if $order.contact.registered|default:false}
+                                {if $customer_essentials.registered|default:false}
                                     <i class="icon10 lock" title="[`Registered customer`]"></i>
                                 {/if}
                                 {if $customer.number_of_orders == 1}
@@ -117,7 +117,7 @@
                         <h3><span class="gray">[`Shipping`]{if !empty($params.shipping_name)} —{/if}</span> <strong>{ifset($params.shipping_name)}</strong></h3>
                         {if $shipping_address}
                             <p class="s-order-address">
-                                {$shipping_address}
+                                {$shipping_address_text}
                             </p>
                             {if !empty($custom_fields)}
                                 <p class="s-order-shipping-custom-fields">
@@ -226,9 +226,9 @@
                                         {if $item.type == 'service'}<span class="gray s-overhanging-plus">+</span> {/if}
 
                                         {if !empty($item.deleted)}
-                                            {$item.name} <span class="gray">{if $item.type == 'product'}[`deleted product`]{else}[`deleted service`]{/if}</span>
+                                            {$item.name|escape} <span class="gray">{if $item.type == 'product'}[`deleted product`]{else}[`deleted service`]{/if}</span>
                                         {else}
-                                            <a href="?action=products#/{if $item.type=='product'}product/{$item.product_id}{else}services/{$item.service_id}{/if}/">{$item.name}</a>
+                                            <a href="?action=products#/{if $item.type=='product'}product/{$item.product_id}{else}services/{$item.service_id}{/if}/">{$item.name|escape}</a>
                                         {/if}
 
                                         {if !empty($item.sku_code) && empty($item.deleted)}

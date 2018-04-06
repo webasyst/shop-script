@@ -63,7 +63,7 @@
                     {foreach $routes as $domain => $domain_routes}
                         {foreach $domain_routes as $route}
                             {$url = $domain|cat:"/":$route.url}
-                            <option value="{$url}">{$url}</option>
+                            <option value="{$url}">{waIdna::dec($url)}</option>
                         {/foreach}
                     {/foreach}
                 </select>
