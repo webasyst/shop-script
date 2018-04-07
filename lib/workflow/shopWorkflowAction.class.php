@@ -50,7 +50,7 @@ class shopWorkflowAction extends waWorkflowAction
         }
     }
 
-    public function isAvailable($order)
+    public function isAvailable(shopOrder $order = null)
     {
         return true;
     }

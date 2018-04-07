@@ -9,7 +9,7 @@ class shopWorkflowMessageAction extends shopWorkflowAction
         return $options;
     }
 
-    public function isAvailable($order)
+    public function isAvailable(shopOrder $order = null)
     {
         if ($order === null) {
             return true;

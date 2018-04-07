@@ -147,7 +147,7 @@ class shopWorkflowSettleAction extends shopWorkflowAction
         return $data;
     }
 
-    public function isAvailable($order)
+    public function isAvailable(shopOrder $order = null)
     {
         $this->order_item = $order;
         //TODO check
