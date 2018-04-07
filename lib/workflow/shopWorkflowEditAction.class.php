@@ -14,7 +14,7 @@ class shopWorkflowEditAction extends shopWorkflowAction
         return (double)$value;
     }
 
-    public function isAvailable($order)
+    public function isAvailable(shopOrder $order = null)
     {
         if (is_array($order)) {
             $this->order_item = $order;
