@@ -160,7 +160,7 @@ class shopWorkflowEditAction extends shopWorkflowAction
             }
         }
 
-        // update
+        // SAVE ORDER ITEMS
         $this->order_model->update($data, $data['id']);
 
         $this->waLog('order_edit', $data['id']);

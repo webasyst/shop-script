@@ -6,18 +6,19 @@ class shopOrderSaveController extends waJsonController
     {
         $data = array(
             'id'                   => waRequest::get('id', null, waRequest::TYPE_INT),
-            'contact_id'          => waRequest::post('customer_id', null, waRequest::TYPE_INT),
-            'discount_description' => waRequest::request('discount_description', '', 'string'),
+            'contact_id'           => waRequest::post('customer_id', null, waRequest::TYPE_INT),
+            'discount_description' => waRequest::request('discount_description', null, 'string'),
+            'payment_params'       => waRequest::post('payment_'.waRequest::post('payment_id'), null),
+            'shipping_params'      => $this->getShippingParams(),
             'params'               => array(
                 'shipping_id'  => waRequest::post('shipping_id', null),
                 'payment_id'   => waRequest::post('payment_id', null),
-                'payment'      => waRequest::post('payment_'.waRequest::post('payment_id'), null),
                 'storefront'   => waRequest::post('storefront', null, waRequest::TYPE_STRING_TRIM),
                 'referer_host' => waRequest::post('customer_source', null, waRequest::TYPE_STRING_TRIM),
             ),
             'comment'              => waRequest::post('comment', null, waRequest::TYPE_STRING_TRIM),
             'shipping'             => waRequest::post('shipping', 0),
-            'discount'             => waRequest::post('discount', 0),
+            'discount'             => waRequest::post('discount', null),
 
             'currency' => waRequest::post('currency'),
             'customer' => waRequest::post('customer'),
@@ -46,5 +47,12 @@ class shopOrderSaveController extends waJsonController
             $this->errors = $order->errors();
         }
 
+    }
+
+    private function getShippingParams()
+    {
+        $shipping_id = waRequest::post('shipping_id', '', 'string');
+        $_ = explode('.', $shipping_id, 2);
+        return waRequest::post('shipping_'.$_[0], null);
     }
 }

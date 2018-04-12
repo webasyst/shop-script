@@ -788,27 +788,6 @@ SQL;
     {
         $options = $order->options('items');
         $data = $this->getItems($order, !empty($options['extend']));
-
-        $order['items_total_discount'] = 0;
-        foreach ($data as &$product) {
-            if (!empty($product['item']['total_discount'])) {
-                $product['item']['total_discount'] = floatval($product['item']['total_discount']);
-                $order['items_total_discount'] = $order['items_total_discount'] + $product['item']['total_discount'];
-            }
-            if (!empty($product['services'])) {
-                foreach ($product['services'] as &$service) {
-
-                    if (!empty($service['item']['name'])) {
-                        $service['item']['total_discount'] = floatval($service['item']['total_discount']);
-                        $order['items_total_discount'] = $order['items_total_discount'] + $service['item']['total_discount'];
-                    }
-
-                    unset($service);
-                }
-            }
-            unset($product);
-        }
-
         return $data;
     }
 }

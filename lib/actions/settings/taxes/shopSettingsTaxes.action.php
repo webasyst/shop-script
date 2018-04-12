@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tax settings form, and save, and delete contoller.
+ * Tax settings form, and save, and delete controller.
  */
 class shopSettingsTaxesAction extends waViewAction
 {
@@ -23,7 +23,7 @@ class shopSettingsTaxesAction extends waViewAction
         }
         if (!empty($taxes[$tax_id])) {
             $tax = $taxes[$tax_id];
-        } else if ($tax_id == 'new') {
+        } elseif ($tax_id == 'new') {
             $tax = $tm->getEmptyRow();
             $tax_id = null;
         } else {
@@ -58,7 +58,7 @@ class shopSettingsTaxesAction extends waViewAction
         $tax_countries = array();
 
         // Collect data for all countries that have tax rates set
-        foreach($this->trm->getByTax($tax['id']) as $r) {
+        foreach ($this->trm->getByTax($tax['id']) as $r) {
 
             // Init country
             if (!isset($tax_countries[$r['country_iso3']])) {
@@ -98,11 +98,11 @@ class shopSettingsTaxesAction extends waViewAction
 
         // Init regions
         $rm = new waRegionModel();
-        foreach($rm->getByCountry(array_keys($tax_countries)) as $r) {
+        foreach ($rm->getByCountry(array_keys($tax_countries)) as $r) {
             $c =& $tax_countries[$r['country_iso3']];
             if (!$c['regions_data']) {
                 $r['css_class'] = 'hidden';
-            } else if ($c['global_rate'] === null) {
+            } elseif ($c['global_rate'] === null) {
                 $r['css_class'] = 'regions_simple';
             } else {
                 $r['css_class'] = 'regions_advanced';
@@ -127,10 +127,10 @@ class shopSettingsTaxesAction extends waViewAction
         unset($c);
 
         // Cleanup
-        foreach($tax_countries as &$c) {
+        foreach ($tax_countries as &$c) {
             if (!$c['regions_data']) {
                 $c['css_class'] = 'one_rate';
-            } else if ($c['global_rate'] === null) {
+            } elseif ($c['global_rate'] === null) {
                 $c['css_class'] = 'regions_simple';
             } else {
                 $c['css_class'] = 'regions_advanced';
@@ -162,7 +162,7 @@ class shopSettingsTaxesAction extends waViewAction
         if (!$result) {
             $result = array();
         }
-        foreach($result as &$row) {
+        foreach ($result as &$row) {
             $row['zip_expr'] = str_replace('%', '*', $row['zip_expr']);
             $row['tax_value'] = (float) str_replace(',', '.', $row['tax_value']);
         }
@@ -186,8 +186,23 @@ class shopSettingsTaxesAction extends waViewAction
         if (waRequest::post('delete')) {
             if ($old_tax['id']) {
                 $tm->deleteById($old_tax['id']);
-                $this->trm->deleteByField('tax_id', $old_tax['id']);
-                $this->tzcm->deleteByField('tax_id', $old_tax['id']);
+
+                $search = array(
+                    'tax_id'=>$old_tax['id'],
+                );
+
+                $this->trm->deleteByField($search);
+                $this->tzcm->deleteByField($search);
+
+                $reset = array(
+                    'tax_id' => 0,
+                );
+
+                $product_model = new shopProductModel();
+                $service_model = new shopServiceModel();
+
+                $product_model->updateByField($search, $reset);
+                $service_model->updateByField($search, $reset);
             }
             echo json_encode(array('status' => 'ok', 'data' => 'ok'));
             exit;
@@ -213,7 +228,7 @@ class shopSettingsTaxesAction extends waViewAction
                 $tax_country_regions = array();
             }
 
-            foreach($tax_countries as $country_iso3 => $country_global_rate) {
+            foreach ($tax_countries as $country_iso3 => $country_global_rate) {
                 $tax_data['countries'][$country_iso3] = array(
                     'global_rate' => $country_global_rate,
                 );
@@ -228,7 +243,7 @@ class shopSettingsTaxesAction extends waViewAction
         $zip_codes = waRequest::post('tax_zip_codes');
         $zip_rates = waRequest::post('tax_zip_rates');
         if (is_array($zip_codes) && is_array($zip_rates)) {
-            foreach($zip_codes as $i => $code) {
+            foreach ($zip_codes as $i => $code) {
                 if ($code) {
                     $tax_data['zip_codes'][$code] = ifset($zip_rates[$i], 0);
                 }
@@ -238,4 +253,3 @@ class shopSettingsTaxesAction extends waViewAction
         return shopTaxes::save($tax_data);
     }
 }
-

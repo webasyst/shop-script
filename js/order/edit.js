@@ -290,7 +290,7 @@ $.order_edit = {
 
         //Update total if customer address edit
         $(".s-order-customer-details").on('change', 'input,select,checkbox,textarea', function () {
-            if ($(this).attr('name').indexOf('address') > 0) {
+            if ($(this).attr('name') && $(this).attr('name').indexOf('address') > 0) {
                 $.order_edit.updateTotal();
             }
         });
@@ -434,12 +434,10 @@ $.order_edit = {
         $tooltip_icon.tooltip({
             showURL: false,
             bodyHandler: function () {
-                var pattern = new RegExp('^%HOLD%\s*', 'u');
-                var message = $discount_description_input.val() ||
-                    $discount_description_input.data('updated-manually-msg');
-                return message.replace(pattern, '');
+                return $discount_description_input.val() || $discount_description_input.data('updated-manually-msg');
             }
         });
+
         $update_discount_button.tooltip({
             showURL: false,
             bodyHandler: function () {
@@ -460,6 +458,9 @@ $.order_edit = {
             $discount_input.parent().find('span.js-order-discount:first').hide();
             $edit_discount_button.hide();
 
+            //Set Advanced information about discount
+            $update_discount_button.data('description', data.discount_description);
+
             if (!data.discount) {
                 return;
             }
@@ -471,11 +472,32 @@ $.order_edit = {
                 .data('items_discount', data.items_discount)
             ;
 
+            //Update old discount
+            if ($update_discount_button.data('discount') == 'calculate') {
+                $discount_description_input.val($update_discount_button.data('description'));
+
+                //Set or update discount html in all order position
+                var items_discount = $update_discount_button.data('items_discount') || [];
+                for (var index = 0; index < items_discount.length; index++) {
+                    if (items_discount[index]) {
+                        var selector = '#order-items span.js-item-total-discount';
+                        selector += '[data-discount-id="' + items_discount[index]['selector'] + '"]';
+                        var $discount = $(selector);
+                        if ($discount.length) {
+                            $discount.html(items_discount[index]['html']).show();
+                        }
+                    }
+                }
+
+                updateTooltip();
+            }
+
+
             if ($update_discount_button.data('discount') === 'calculate') {
                 // When value in discount input matches previous recalculation,
                 // but new recalculated discount is different,
                 // update visible fields immidiately
-                if (data.discount + '' != $discount_input.val()) {
+                if ($.order_edit.parseFloat(data.discount) + '' != $.order_edit.parseFloat($discount_input.val())) {
                     $update_discount_button.click();
                 }
             } else {
@@ -483,6 +505,7 @@ $.order_edit = {
                 $update_discount_button.show();
             }
         });
+
         var hide_manual_edit = function(){
             $discount_input.show();
             $discount_input.parent().find('span.js-order-discount:first').hide();
@@ -507,44 +530,10 @@ $.order_edit = {
             $discount_description_input.val($update_discount_button.data('description'));
 
             $discount_input.attr('title',$discount_description_input.data('edit-manually-msg'));
-            var items_discount = $update_discount_button.data('items_discount') || [];
-            for (var index = 0; index < items_discount.length; index++) {
-                if (items_discount[index]) {
-                    var selector = '#order-items span.js-item-total-discount';
-                    selector += '[data-discount-id="' + items_discount[index]['selector'] + '"]';
 
-                    var $discount = $(selector);
-                    if ($discount.length) {
-                        $discount.html(items_discount[index]['html']).show();
-                    }
-                }
-            }
             $update_discount_button.hide().data('discount', 'calculate');
             $.order_edit.updateTotal();
-            updateTooltipVisibility();
-            var duration = 25;
-            var delta = 50;
-            if ($tooltip_icon.is(':visible')) {
-                $tooltip_icon.fadeOut(duration += delta, function () {
-                    $tooltip_icon.fadeIn(duration += delta, function () {
-                        $tooltip_icon.fadeOut(duration += delta, function () {
-                            $tooltip_icon.fadeIn(duration += delta, function () {
-                                $tooltip_icon.fadeOut(duration += delta, function () {
-                                    $tooltip_icon.fadeIn(duration += delta, function () {
-                                        $tooltip_icon.fadeOut(duration += delta, function () {
-                                            $tooltip_icon.fadeIn(duration += delta, function () {
-                                                // many animation
-                                                // @ such blinks
-                                                // wow
-                                            });
-                                        });
-                                    });
-                                });
-                            });
-                        });
-                    });
-                });
-            }
+            updateTooltip();
             return false;
         });
 
@@ -560,14 +549,61 @@ $.order_edit = {
 
             $.order_edit.updateTotal();
 
-            updateTooltipVisibility();
+            updateTooltip();
         });
 
-        function updateTooltipVisibility() {
+
+        /**
+         * Show/hide and animation discount calculate button
+         */
+        function updateTooltip() {
             if ($discount_input.val() > 0) {
                 $tooltip_icon.stop().show();
             } else {
                 $tooltip_icon.stop().hide();
+            }
+
+            //Animation
+            var duration = 25;
+            var delta = 50;
+            if ($tooltip_icon.is(':visible')) {
+                $tooltip_icon.fadeOut(duration += delta, function () {
+                    $tooltip_icon.fadeIn(duration += delta, function () {
+                        $tooltip_icon.fadeOut(duration += delta, function () {
+                            $tooltip_icon.fadeIn(duration += delta, function () {
+                                $tooltip_icon.fadeOut(duration += delta, function () {
+                                    $tooltip_icon.fadeIn(duration += delta, function () {
+                                        $tooltip_icon.fadeOut(duration += delta, function () {
+                                            $tooltip_icon.fadeIn(duration += delta, function () {
+                                                /*
+                                                ─────────▄──────────────▄
+                                                ────────▌▒█───────────▄▀▒▌
+                                                ────────▌▒▒▀▄───────▄▀▒▒▒▐
+                                                ───────▐▄▀▒▒▀▀▀▀▄▄▄▀▒▒▒▒▒▐
+                                                ─────▄▄▀▒▒▒▒▒▒▒▒▒▒▒█▒▒▄█▒▐
+                                                ───▄▀▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▀██▀▒▌
+                                                ──▐▒▒▒▄▄▄▒▒▒▒▒▒▒▒▒▒▒▒▒▀▄▒▒▌
+                                                ──▌▒▒▐▄█▀▒▒▒▒▄▀█▄▒▒▒▒▒▒▒█▒▐
+                                                ─▐▒▒▒▒▒▒▒▒▒▒▒▌██▀▒▒▒▒▒▒▒▒▀▄▌
+                                                ─▌▒▀▄██▄▒▒▒▒▒▒▒▒▒▒▒░░░░▒▒▒▒▌
+                                                ─▌▀▐▄█▄█▌▄▒▀▒▒▒▒▒▒░░░░░░▒▒▒▐
+                                                ▐▒▀▐▀▐▀▒▒▄▄▒▄▒▒▒▒▒░░░░░░▒▒▒▒▌
+                                                ▐▒▒▒▀▀▄▄▒▒▒▄▒▒▒▒▒▒░░░░░░▒▒▒▐
+                                                ─▌▒▒▒▒▒▒▀▀▀▒▒▒▒▒▒▒▒░░░░▒▒▒▒▌
+                                                ─▐▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▐
+                                                ──▀▄▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▄▒▒▒▒▌
+                                                ────▀▄▒▒▒▒▒▒▒▒▒▒▄▄▄▀▒▒▒▒▄▀
+                                                ───▐▀▒▀▄▄▄▄▄▄▀▀▀▒▒▒▒▒▄▄▀
+                                                ──▐▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▀▀
+                                                 */
+                                            });
+                                        });
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
             }
         }
     },
@@ -674,6 +710,9 @@ $.order_edit = {
         }).join(';');
     },
 
+    /**
+     * Collects frequent calls updateTotal
+     */
     updateTotal: (function () {
         var timeout = null;
         return updateTotal;
@@ -743,7 +782,7 @@ $.order_edit = {
         }
 
         data['params'] = {shipping_id: shipping_id};
-        data['customer[id]'] = $('#s-customer-id').val();
+        data['customer[id]'] = data['contact_id'] = $('#s-customer-id').val();
 
         if (shipping_id) {
             shipping_id = parseInt(shipping_id.split('.')[0]);
@@ -761,91 +800,98 @@ $.order_edit = {
             "data": data,
             "success": function (response) {
                 if (response.status === 'ok') {
-                    var el = $("#shipping_methods"),
-                        el_selected = el.val(),
-                        el_selected_id = el_selected.replace(/\W.+$/, ''),
-                        $shipping_rate = $('#shipping-rate');
+                    if (response.data.shipping_method_ids.length > 0) {
+                        var el = $("#shipping_methods"),
+                            el_selected = el.val(),
+                            el_selected_id = el_selected.replace(/\W.+$/, ''),
+                            $shipping_rate = $('#shipping-rate');
 
-                    //clear shipping data.
-                    el.empty();
-                    $('#shipping-custom').empty();
+                        //clear shipping data.
+                        el.empty();
+                        $('#shipping-custom').empty();
 
-                    var shipping_method_ids = response.data.shipping_method_ids;
-                    var shipping_methods = response.data.shipping_methods;
+                        var shipping_method_ids = response.data.shipping_method_ids;
+                        var shipping_methods = response.data.shipping_methods;
 
-                    // exact match
-                    var found = shipping_method_ids.indexOf(el_selected) !== -1;
-                    var custom_html_container = $('#shipping-custom');
+                        // exact match
+                        var found = shipping_method_ids.indexOf(el_selected) !== -1;
+                        var custom_html_container = $('#shipping-custom');
 
-                    custom_html_container.find('>div.fields.form').hide();
+                        custom_html_container.find('>div.fields.form').hide();
 
-                    for (var i = 0; i < shipping_method_ids.length; i += 1) {
-                        var ship_id = shipping_method_ids[i];
+                        for (var i = 0; i < shipping_method_ids.length; i += 1) {
+                            var ship_id = shipping_method_ids[i];
 
-                        var ship = shipping_methods[ship_id];
+                            var ship = shipping_methods[ship_id];
 
-                        //Update shipping rate. If shipping rate not entered by hand
-                        if (!$shipping_rate.data('shipping') && ship_id == el_selected) {
-                            $shipping_rate.val(($.order_edit.roundFloat(ship.rate)));
-                        }
+                            //Update shipping rate. If shipping rate not entered by hand
+                            if (!$shipping_rate.data('shipping') && ship_id == el_selected) {
+                                $shipping_rate.val(($.order_edit.roundFloat(ship.rate)));
+                            }
 
-                        /**
-                         *
-                         * @type {*|JQuery|jQuery|HTMLElement}
-                         */
-                        var o = $('<option></option>');
-                        o.html(ship.name).attr('value', ship_id).data('rate', ship.rate);
-                        o.data('error', ship.error || undefined);
-                        o.data('est_delivery', ship.est_delivery || undefined);
-                        o.data('comment', ship.comment || undefined);
-                        o.data('external', ship.external || false);
-                        if (ship.custom_data) {
-                            for (var custom_field in ship.custom_data) {
-                                if (ship.custom_data.hasOwnProperty(custom_field)) {
-                                    o.data(custom_field, ship.custom_data[custom_field]);
+                            /**
+                             *
+                             * @type {*|JQuery|jQuery|HTMLElement}
+                             */
+                            var o = $('<option></option>');
+                            o.html(ship.name).attr('value', ship_id).data('rate', ship.rate);
+                            o.data('error', ship.error || undefined);
+                            o.data('est_delivery', ship.est_delivery || undefined);
+                            o.data('comment', ship.comment || undefined);
+                            o.data('external', ship.external || false);
+                            if (ship.custom_data) {
+                                for (var custom_field in ship.custom_data) {
+                                    if (ship.custom_data.hasOwnProperty(custom_field)) {
+                                        o.data(custom_field, ship.custom_data[custom_field]);
+                                    }
+                                }
+                            }
+
+                            el.append(o);
+
+                            //If shipping not selected, select first
+                            if (!el_selected && i === 0) {
+                                $("#shipping-rate").val($.order_edit.formatFloat(ship.rate));
+                            }
+
+                            if (ship.custom_html) {
+                                var plugin_id = ship_id.replace(/\W.+$/, '');
+
+                                var custom_html = custom_html_container.find('#shipping-custom-' + plugin_id);
+                                if (!custom_html.length) {
+                                    custom_html = custom_html_container.append('<div id="shipping-custom-' + plugin_id + '" style="display: none;" class="fields form"></div>');
+                                    custom_html = custom_html_container.find('#shipping-custom-' + plugin_id);
+                                }
+                                custom_html.html(ship.custom_html);
+                                if (el_selected_id == plugin_id) {
+                                    custom_html.show();
+                                } else {
+                                    custom_html.hide();
+                                }
+                            }
+
+                            // unexact match, but close
+                            if (!found) {
+                                var ship_id_parts = ('' + ship_id).split('.');
+                                var el_selected_parts = el_selected.split('.');
+                                if (ship_id_parts[0] !== undefined && el_selected_parts[0] !== undefined &&
+                                    ship_id_parts[0] == el_selected_parts[0]) {
+                                    found = true;
+                                    el_selected = ship_id;
                                 }
                             }
                         }
 
-                        el.append(o);
-
-                        //If shipping not selected, select first
-                        if (!el_selected && i === 0) {
-                            $("#shipping-rate").val($.order_edit.formatFloat(ship.rate));
-                        }
-
-                        if (ship.custom_html) {
-                            var plugin_id = ship_id.replace(/\W.+$/, '');
-
-                            var custom_html = custom_html_container.find('#shipping-custom-' + plugin_id);
-                            if (!custom_html.length) {
-                                custom_html = custom_html_container.append('<div id="shipping-custom-' + plugin_id + '" style="display: none;" class="fields form"></div>');
-                                custom_html = custom_html_container.find('#shipping-custom-' + plugin_id);
-                            }
-                            custom_html.html(ship.custom_html);
-                                   if (el_selected_id == plugin_id) {
-                                       custom_html.show();
-                                    } else {
-                                        custom_html.hide();
-                                    }
-                        }
-
-                        // unexact match, but close
-                        if (!found) {
-                            var ship_id_parts = ('' + ship_id).split('.');
-                            var el_selected_parts = el_selected.split('.');
-                            if (ship_id_parts[0] !== undefined && el_selected_parts[0] !== undefined &&
-                                ship_id_parts[0] == el_selected_parts[0]) {
-                                found = true;
-                                el_selected = ship_id;
-                            }
+                        if (found) {
+                            el.val(el_selected);
+                            el.data('_shipping_id', el_selected_id);
+                            $.shop.trace('set shipping_methods id', [el_selected_id, el_selected]);
                         }
                     }
 
-                    if (found) {
-                        el.val(el_selected);
-                        el.data('_shipping_id', el_selected_id);
-                        $.shop.trace('set shipping_methods id', [el_selected_id, el_selected]);
+                    //If user deleted discount value, don't need set zero discount value
+                    if (update_discount != '') {
+                        $('#discount').val($.order_edit.roundFloat(response.data.discount));
                     }
 
                     $('#order-edit-form').trigger('order_total_updated', response.data);
@@ -853,11 +899,6 @@ $.order_edit = {
                     //Update order value after calculate.
                     $subtotal.text($.order_edit.roundFloat(response.data.subtotal));
                     $total.text($.order_edit.roundFloat(response.data.total));
-
-                    //If user deleted discount value, don't need set zero discount value
-                    if (update_discount != '') {
-                        $('#discount').val($.order_edit.roundFloat(response.data.discount));
-                    }
 
                     $.order_edit.showValidateErrors(response.data.errors);
                 }
@@ -884,6 +925,18 @@ $.order_edit = {
                     this.value = 'calculate';
                 }
             });
+        } else if ($('#update-discount').data('discount') === undefined) {
+
+            //If discount not changed, not need send discount value, but need send discount_description.
+            data = data.filter(function(el) { return el.name !== 'discount'; });
+
+            //If discount previously did not install, need send discount_description.
+            if ($('#discount').val() > 0) {
+                //Discount Description contains info about old discounts
+                data.discount_description =  $('#edit-discount').val();
+            } else {
+                data = data.filter(function(el) { return el.name !== 'discount_description'; });
+            }
         }
 
         if (type == 'add') {

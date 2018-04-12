@@ -407,7 +407,7 @@ class shopHelper
         $states = $workflow->getAllStates();
         foreach ($orders as & $order) {
             $order['id_str'] = self::encodeOrderId($order['id']);
-            $order['total_str'] = wa_currency_html(ifset($order['total'], 0), ifset($order['currency']));
+            $order['total_str'] = wa_currency_html(ifset($order, 'total', 0), ifset($order, 'currency', null));
             if (!empty($order['create_datetime'])) {
                 $order['create_datetime_str'] = wa_date('humandatetime', $order['create_datetime']);
             }

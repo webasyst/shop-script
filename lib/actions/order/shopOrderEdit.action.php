@@ -40,7 +40,15 @@ class shopOrderEditAction extends waViewAction
         $shipping_address = $order->shipping_address;
         $shipping_methods = $this->getShipMethods($shipping_address, $order_data);
 
-        $discount = $this->getDiscountData($order, ifset($order_data, 'items', null));
+        
+        //Calculate total items discount
+        $items_total_discount = null;
+        $item_discount = $order->items_discount;
+        if (!empty($item_discount)) {
+            foreach ($item_discount as $item) {
+                $items_total_discount += (int) $item['value'];
+            }
+        }
 
         $order_data_array = array();
         if ($order_data) {
@@ -48,6 +56,7 @@ class shopOrderEditAction extends waViewAction
             $order_data_array['contact'] = $order->contact_essentials;
             $order_data_array['shipping_id'] = $order['shipping_id'];
             $order_data_array['items'] = $order_data['items'];
+            $order_data_array['items_total_discount'] = $items_total_discount;
         }
 
         $tax_model = new shopTaxModel();
@@ -72,70 +81,10 @@ class shopOrderEditAction extends waViewAction
             'storefronts'                  => shopHelper::getStorefronts(true),
             'new_order_for_client'         => $new_order_customer_contact_id,
             'customer_sources'             => $customer_sources,
-            'discount'                     => $discount,
+            'discount'                     => $order->discount,
+            'discount_description'         => $order->discount_description,
+            'items_discount'               => $item_discount,
         ));
-    }
-
-    protected function getDiscountData($order, $order_items)
-    {
-        $discount = array(
-            'description'    => '',
-            'items_discount' => array(),
-            'value'          => 0,
-        );
-
-        if (empty($order['id'])) {
-            return $discount;
-        }
-
-        $order_id = $order['id'];
-
-        if (empty($c)) {
-            $c = new waContact();
-        }
-        $data = array(
-            'id'       => $order_id,
-            'currency' => $order['currency'],
-            'items'    => $this->itemsForDiscount($order['currency'], $order_items),
-            'contact'  => $c,
-            'total'    => $order['subtotal'],
-        );
-
-        $discount['value'] = shopDiscounts::calculate($data, false, $discount['description']);
-
-        if (isset($data['shipping']) && ($data['shipping'] == 0)) {
-            foreach ($shipping_methods as &$m) {
-                if (!is_string($m['rate'])) {
-                    $m['rate'] = 0;
-                }
-            }
-            unset($m);
-        }
-
-        $template = array(
-            'product' => _w('Total discount for this order item: %s.'),
-            'service' => _w('Total discount for this service: %s.'),
-        );
-        foreach ($data['items'] as $id => $item) {
-            $item['total_discount'] = round(ifset($item['total_discount'], 0), 4);
-            if (!empty($item['total_discount'])) {
-                switch ($item['type']) {
-                    case 'service':
-                        $selector = sprintf('%d_%d', $item['_parent_index'], $item['service_id']);
-                        break;
-                    default:
-                        $selector = $item['_index'];
-                        break;
-                }
-                $discount['items_discount'][] = array(
-                    'value'    => $item['total_discount'],
-                    'html'     => sprintf($template[$item['type']], shop_currency_html(-$item['total_discount'], $data['currency'], $data['currency'])),
-                    'selector' => $selector,
-                );
-            }
-        }
-
-        return $discount;
     }
 
     private function getOrderData($order)

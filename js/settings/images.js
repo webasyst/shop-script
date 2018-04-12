@@ -23,24 +23,8 @@ if (typeof($) != 'undefined') {
                 submit_message.hide();
             };
 
-            form.off('click', '.s-size-set label').on('click', '.s-size-set label', function () {
-                    var self = $(this);
-                    var target = self.find('input:radio:first');
-                    var parent = self.parents('.s-size-set:first');
-                    var prev = parent.find('input:radio:checked');
-
-                    //Do not handle the same input
-                if (target.val() != prev.val()) {
-                    prev.nextAll().filter('span.star').show().end().filter('input').hide().attr('disabled', true);
-                    prev.attr('checked', false);
-
-                    target.nextAll().filter('span.star').hide().end().filter('input').show().attr('disabled', false);
-                    target.attr('checked', true);
-                }
-
-                    return false;
-                }
-            );
+            form.off('change', '.s-size-set input.js-radio', onImageSizeClick)
+                .on('change', '.s-size-set input.js-radio', onImageSizeClick);
 
             $('#s-image-filename').on('change', function () {
                 $('#s-image-filename-hint').toggle();
@@ -199,7 +183,11 @@ if (typeof($) != 'undefined') {
                         var step = function (delay) {
                             delay = delay || 2000;
                             var timer_id = setTimeout(function () {
-                                $.post(url, {processId: processId, create_thumbnails: create_thumbnails, restore_originals: restore_originals},
+                                $.post(url, {
+                                        processId: processId,
+                                        create_thumbnails: create_thumbnails,
+                                        restore_originals: restore_originals
+                                    },
                                     function (r) {
                                         if (!r) {
                                             step(3000);
@@ -228,7 +216,7 @@ if (typeof($) != 'undefined') {
                                         }
                                     },
                                     'json').error(function () {
-                                        step(3000);
+                                    step(3000);
                                 });
                             }, delay);
                             pull.push(timer_id);
@@ -266,6 +254,25 @@ if (typeof($) != 'undefined') {
                 return false;
             });
 
+            function onImageSizeClick(event) {
+                var $radio = $(this),
+                    $wrapper = $radio.closest(".s-size-set");
+
+                $wrapper.find(".js-size-option").each( function() {
+                    var $wrapper = $(this),
+                        $_radio = $wrapper.find(".js-radio"),
+                        is_active = ($radio[0] === $_radio[0]);
+
+                    if (is_active) {
+                        $wrapper.find('span.star').hide();
+                        $wrapper.find('input.js-input').show().attr('disabled', false);
+
+                    } else {
+                        $wrapper.find('span.star').show();
+                        $wrapper.find('input.js-input').hide().attr('disabled', true);
+                    }
+                });
+            }
         }
     });
 } else {

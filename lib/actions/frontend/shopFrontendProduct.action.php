@@ -85,7 +85,9 @@ class shopFrontendProductAction extends shopFrontendAction
         }
 
         if ($this->getConfig()->getOption('can_use_smarty') && $product->description) {
-            $product->description = wa()->getView()->fetch('string:'.$product->description);
+            $view = wa()->getView();
+            $view->assign('product', $product);
+            $product->description = $view->fetch('string:'.$product->description);
         }
 
 

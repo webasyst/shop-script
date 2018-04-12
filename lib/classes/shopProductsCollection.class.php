@@ -115,14 +115,14 @@ class shopProductsCollection
                     // User wants to see the lowest of all SKU prices
                     // in all cases except when ordering by price, greatest first.
                     if (waRequest::get('order') == 'desc') {
-                        $this->fields[] = 'MAX(ps1.price) AS sku_price';
+                        $this->fields['order_by'] = 'MAX(ps1.price) AS sku_price';
                         $this->order_by = 'sku_price DESC';
                     } else {
-                        $this->fields[] = 'MIN(ps1.price) AS sku_price';
+                        $this->fields['order_by'] = 'MIN(ps1.price) AS sku_price';
                         $this->order_by = 'sku_price ASC';
                     }
                 } else if ($sort == 'stock_worth') {
-                    $this->fields[] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
+                    $this->fields['order_by'] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
                     $this->order_by = 'stock_worth '.$order;
                 } else {
                     $order_by = array();
@@ -132,7 +132,7 @@ class shopProductsCollection
                             $order_by[$_id] = 'p.'.$_sort;
                             $order_by[$_id] .= ' '.$order;
                             if ($_sort == 'count') {
-                                $this->fields[] = 'IF(p.count IS NULL, 1, 0) count_null';
+                                $this->fields['order_by'] = 'IF(p.count IS NULL, 1, 0) count_null';
                                 $order_by[$_id] = 'count_null '.$order.', '.$order_by[$_id];
                             }
                         }
@@ -222,7 +222,7 @@ class shopProductsCollection
         } else {
             $this->join_index[$alias]++;
         }
-        $this->fields[] = $alias.'.orders_count';
+        $this->fields['order_by'] = $alias.'.orders_count';
         $this->order_by = $alias.'.orders_count DESC';
     }
 
@@ -435,10 +435,10 @@ SQL;
                     $tmp[1] = 'DESC';
                 }
                 if ($tmp[0] == 'count') {
-                    $this->fields[] = 'IF(p.count IS NULL, 1, 0) count_null';
+                    $this->fields['order_by'] = 'IF(p.count IS NULL, 1, 0) count_null';
                     $this->order_by = 'count_null '.$tmp[1].', p.count '.$tmp[1];
                 } elseif ($tmp[0] == 'stock_worth') {
-                    $this->fields[] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
+                    $this->fields['order_by'] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
                     $this->order_by = 'stock_worth '.$tmp[1];
                 } else {
                     $this->order_by = 'p.'.$this->info['sort_products'];
@@ -769,7 +769,7 @@ SQL;
         }
 
         if ($sum) {
-            $this->fields[] = '('.implode(' + ', $sum).') AS upselling_deviation';
+            $this->fields['order_by'] = '('.implode(' + ', $sum).') AS upselling_deviation';
             $this->order_by = 'upselling_deviation';
         }
     }
@@ -777,7 +777,7 @@ SQL;
     protected function bestsellersPrepare($query, $auto_title = true)
     {
         $this->group_by = 'p.id';
-        $this->fields[] = 'oi.price*o.rate*oi.quantity AS sales';
+        $this->fields['sales'] = 'oi.price*o.rate*oi.quantity AS sales';
         $this->joins[] = array(
             'table' => 'shop_order_items',
             'alias' => 'oi',
@@ -848,7 +848,7 @@ SQL;
                         // as part of searching logic.
                         // Remember order-by in case we want to restore it later.
                         $auto_order_by = $this->order_by;
-                        $auto_fields = $this->fields; // save fie
+                        $auto_fields = $this->fields; // save fields
 
                         $search = new shopIndexSearch();
                         $word_ids = $search->getWordIds($parts[2], true);
@@ -859,12 +859,12 @@ SQL;
                             );
                             $this->where[] = 'si.word_id IN ('.implode(",", $word_ids).')';
                             if (count($word_ids) > 1) {
-                                $this->fields[] = "SUM(si.weight) AS weight";
-                                $this->fields[] = "COUNT(*) AS weight_count";
+                                $this->fields['order_by'] = "SUM(si.weight) AS weight";
+                                $this->fields['order_by2'] = "COUNT(*) AS weight_count";
                                 $this->order_by = 'weight_count DESC, weight DESC';
                                 $this->group_by = 'p.id';
                             } else {
-                                $this->fields[] = "si.weight";
+                                $this->fields['order_by'] = "si.weight";
                                 $this->order_by = 'si.weight DESC';
                             }
                         } elseif ($parts[2]) {
@@ -1009,12 +1009,12 @@ SQL;
         }
 
         if (waRequest::param('drop_out_of_stock') == 1) {
-            $this->fields[] = '(p.count > 0 || p.count IS NULL) AS in_stock';
+            $this->fields['drop_out_of_stock'] = '(p.count > 0 || p.count IS NULL) AS in_stock';
         }
 
         // 'skus_filtered' require additional data if joined with product_skus table
         if (in_array('skus_filtered', $split_fields) && isset($this->join_index['ps'])) {
-            $this->fields[] = "GROUP_CONCAT(DISTINCT ps1.id) AS sku_ids";
+            $this->fields['skus_filtered'] = "GROUP_CONCAT(DISTINCT ps1.id) AS sku_ids";
         }
 
         $model = $this->getModel();
@@ -1066,7 +1066,7 @@ SQL;
             $fields[] = ($table ? $table."." : '').$field;
         }
         if ($this->fields) {
-            foreach ($this->fields as $f) {
+            foreach (array_unique($this->fields) as $f) {
                 $fields[] = $f;
             }
         }
@@ -1140,10 +1140,10 @@ SQL;
                 if ($model->fieldExists($field)) {
                     $this->getSQL();
                     if ($field == 'count') {
-                        $this->fields[] = 'IF(p.count IS NULL, 1, 0) count_null';
+                        $this->fields['order_by'] = 'IF(p.count IS NULL, 1, 0) count_null';
                         return $this->order_by = 'count_null '.$order.', p.count '.$order;
                     } elseif ($field == 'stock_worth') {
-                        $this->fields[] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
+                        $this->fields['order_by'] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
                         $this->order_by = 'stock_worth '.$order;
                     } else {
                         return $this->order_by = 'p.'.$field." ".$order;

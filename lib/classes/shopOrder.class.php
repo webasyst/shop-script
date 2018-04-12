@@ -20,7 +20,7 @@
  * @property-read double $tax               Total order tax in order currency.
  * @property double $shipping               Total order shipping cost in order currency.
  * @property double $discount               Total order discount in order currency. Set it into `null` or empty to hold previous calculated discount or set into 'calculate' to recalculate.
- * @property string $discount_description   Human-readable text description of how discounts were calculated. Intended for store admin, not customer.
+ * @property string $discount_description   Human-readable text description of how discounts were calculated. Intended for store admin, not customer. If you call without calculating a discount, then you will calculate the discount yourself and return the value without affecting the rest of the order.
  * @property-read string $paid_date         Date when order was paid, or NULL if it wasn't.
  * @property-read string $paid_year         Part of paid_date used for stats.
  * @property-read string $paid_quarter      Part of paid_date used for stats.
@@ -36,6 +36,7 @@
  * @property-read array[] $log              Order history
  * @property-read array[] $last_action_datetime
  * @property-read double $subtotal          Subtotal is price*quantity for all items. This does not include discounts and certain taxes, and does not include shipping.
+ * @property array[] $items_discount        Calculates the discount for each item and generates html. Can return the discount to items without calculating the total discount
  *
  * @property-read array[] $products
  *
@@ -1315,13 +1316,15 @@ class shopOrder implements ArrayAccess
         return false;
     }
 
-    protected function parsePayment($data)
+    protected function parsePaymentParams($data)
     {
         $parsed = array();
         if ($data) {
             foreach ($data as $k => $v) {
-                $parsed['payment_params_'.$k] = $v;
-                $this->data['params']['payment_params_'.$k] = $v;
+                if ($k && $k{0} !== '_') {
+                    $parsed['payment_params_'.$k] = $v;
+                    $this->data['params']['payment_params_'.$k] = $v;
+                }
             }
         }
         return $parsed;
@@ -1604,6 +1607,13 @@ class shopOrder implements ArrayAccess
 
         unset($original_params);
 
+        if (isset($this->data['shipping_params'])) {
+            $params = $this->data['shipping_params'] + $params;
+        }
+        if (isset($this->data['payment_params'])) {
+            $params = $this->data['payment_params'] + $params;
+        }
+
         return $params;
     }
 
@@ -1769,6 +1779,105 @@ class shopOrder implements ArrayAccess
         return $coupon;
     }
 
+    /**
+     * To recalculate an order items discount with a created order or a transfer order
+     * @param array $order
+     * @param bool $apply
+     * @param bool $recalculate If need to recalculate discount in shopDiscounts
+     * @return array
+     */
+    protected function getItemsDiscount(&$order = array(), $apply = false, $recalculate = false)
+    {
+        //If the value was set, then return it
+        if (isset($this->data['items_discount']) && !$recalculate) {
+            return $this->data['items_discount'];
+        }
+
+        if (!$order) {
+            $order = array(
+                'id'       => $this->id,
+                'currency' => $this->currency,
+                'contact'  => $this->contact,
+                'params'   => $this->params,
+                'items'    => $this->items,
+                'total'    => $this->subtotal,
+            );
+
+        }
+
+        //If need recalculate items discount. It can not be combined with the upper state. To be able to calculate with the transferred order
+        if (!$order || $recalculate) {
+            shopDiscounts::calculate($order, $apply);
+        }
+
+        $this->data['items_discount'] = array();
+
+        $template = array(
+            'product' => _w('Total discount for this order item: %s.'),
+            'service' => _w('Total discount for this service: %s.'),
+        );
+
+        foreach ($order['items'] as $id => $item) {
+            $item['total_discount'] = round(ifset($item['total_discount'], 0), 4);
+            $this->data['items'][$id]['total_discount'] = $item['total_discount'];
+
+            if (!empty($item['total_discount'])) {
+                $html_value = shop_currency_html(-$item['total_discount'], $this->currency, $this->currency);
+                $this->data['items'][$id]['discount_description'] = sprintf($template[$item['type']], $html_value);
+            }
+        }
+
+        //Formatting data for use
+        foreach ($this->items as $id => $item) {
+            if (!empty($item['total_discount'])) {
+                switch ($item['type']) {
+                    case 'service':
+                        $selector = sprintf('%d_%d', ifset($item,'_index',0), $item['service_id']);
+                        break;
+                    default:
+                        $selector = ifset($item,'_index', 0);
+                        break;
+                }
+                $this->data['items_discount'][] = array(
+                    'value'    => $item['total_discount'],
+                    'html'     => $item['discount_description'],
+                    'selector' => $selector,
+                );
+            }
+        }
+
+        return $this->data['items_discount'];
+    }
+
+    /**
+     * Use
+     * If it was installed elsewhere, it will return the set value. Otherwise Recalculate.
+     * @param array $order
+     * @param bool $apply
+     * @return mixed
+     */
+    protected function getDiscountDescription($order = array(), $apply = false)
+    {
+        if (isset($this->data['discount_description'])) {
+            return $this->data['discount_description'];
+        }
+
+        if (!$order) {
+            $order = array(
+                'id'       => $this->id,
+                'currency' => $this->currency,
+                'contact'  => $this->contact,
+                'params'   => $this->params,
+                'items'    => $this->items,
+                'total'    => $this->subtotal,
+            );
+        }
+
+        shopDiscounts::calculate($order, $apply, $this->data['discount_description']);
+
+        return $this->data['discount_description'];
+    }
+
     protected function getDiscount()
     {
         if (!isset($this->is_changed['discount']) || ($this->is_changed['discount'] === 'hold')) {
@@ -1808,10 +1917,9 @@ class shopOrder implements ArrayAccess
 
         $discount = shopDiscounts::calculate($order, $apply, $discount_description);
 
-        unset($this->data['total']);
-        unset($this->data['subtotal']);
+        //Calculate items discount
+        $this->getItemsDiscount($order);
 
-        // Make sure sum of item discounts does not exceed total discount
         if ($discount) {
             $tmp_discount = 0;
             foreach ($order['items'] as $item) {
@@ -1827,22 +1935,8 @@ class shopOrder implements ArrayAccess
             }
         }
 
-
-        $template = array(
-            'product' => _w('Total discount for this order item: %s.'),
-            'service' => _w('Total discount for this service: %s.'),
-        );
-
-        foreach ($order['items'] as $id => $item) {
-            $item['total_discount'] = round(ifset($item['total_discount'], 0), 4);
-            $this->data['items'][$id]['total_discount'] = $item['total_discount'];
-
-            if (!empty($item['total_discount'])) {
-                $html_value = shop_currency_html(-$item['total_discount'], $this->currency, $this->currency);
-                $this->data['items'][$id]['discount_description'] = sprintf($template[$item['type']], $html_value);
-            }
-        }
-
+        unset($this->data['total']);
+        unset($this->data['subtotal']);
 
         $this->data['discount_description'] = $discount_description;
 
@@ -1860,12 +1954,17 @@ class shopOrder implements ArrayAccess
         if ($value === null) {
             // Hold previous calculated discount
             $value = $this->original_data['discount'];
-            $this->data['discount_description'] = '%HOLD%';
+
+            //If previous discount == 0, not need write to order log info about discounts
+            if ($this->original_data['discount'] == 0) {
+                $this->data['discount_description'] = null;
+            }
         } elseif ($value === 'calculate') {
             $value = null;
             // Recalculate discount
         } else {
             // Setup manually
+            $this->data['discount_description'] = null;
             $value = $this->castPrice($value, $this->currency);
         }
         return $value;
@@ -1886,7 +1985,6 @@ class shopOrder implements ArrayAccess
 
     private function holdDiscount()
     {
-        $this->data['discount_description'] = '%HOLD%';
         if (isset($this->data['items'])) {
             foreach ($this->data['items'] as &$item) {
                 $item['total_discount'] = 0;
@@ -1927,12 +2025,8 @@ class shopOrder implements ArrayAccess
                     $template,
                     shop_currency($order['discount'], $order['currency'], $order['currency'])
                 );
-            } elseif (strpos($discount_description, '%HOLD%') === 0) {
-                $discount_description = str_replace(
-                    '%HOLD%',
-                    _w('Previously calculated discount was preserved'),
-                    $discount_description
-                );
+            } else if ($this->is_changed['discount'] === 'hold'){
+                $discount_description = _w('Previously calculated discount was preserved').$discount_description;
             }
             $order->log($discount_description);
         }
@@ -2822,10 +2916,10 @@ class shopOrder implements ArrayAccess
             }
         }
 
-        if (empty($service['fake'])) {
-            //if service deleted and not found variant name, set name which enter user
+        //Check service variant name. If not found, set main service name
+        if (empty($service['fake']) && empty($item['name'])) {
+            $item['name'] = $service['name'];
             if (strlen(ifset($variant, 'name', null))) {
-                $item['name'] = $service['name'];
                 $item['name'] .= sprintf(' (%s)', $variant['name']);
             }
         }
@@ -2893,6 +2987,7 @@ class shopOrder implements ArrayAccess
                 'price'              => (float)$prices[$item_id],
                 'quantity'           => (int)$quantities[$item_id],
                 'stock_id'           => !empty($stocks[$item_id]) ? intval($stocks[$item_id]) : null,
+                'parent_id'          => null,
                 '_index'             => sprintf('%d', $index),
             );
 
@@ -2911,7 +3006,8 @@ class shopOrder implements ArrayAccess
                             'price'              => (float)$prices[$group][$index][$k],
                             'quantity'           => (int)$quantity,
                             'service_variant_id' => null,
-
+                            'stock_id'           => null,
+                            'parent_id'          => null,
                             '_parent_index' => sprintf('%d', $index),
                         );
 
@@ -2964,6 +3060,7 @@ class shopOrder implements ArrayAccess
                     'quantity'           => $quantity,
                     'service_variant_id' => null,
                     'stock_id'           => !empty($stocks[$index]['product']) ? $stocks[$index]['product'] : null,
+                    'parent_id'           => null,
                 );
                 if (!empty($services[$index])) {
                     foreach ($services[$index] as $service_id) {
@@ -2979,6 +3076,7 @@ class shopOrder implements ArrayAccess
                             'quantity'           => $quantity,
                             'service_variant_id' => null,
                             'stock_id'           => null,
+                            'parent_id'           => null,
                         );
                         if (!empty($variants[$index][$service_id])) {
                             $item['service_variant_id'] = intval($variants[$index][$service_id]);
@@ -3234,6 +3332,20 @@ HTML;
         return $value;
     }
 
+    protected function parseShippingParams($data)
+    {
+        $parsed = array();
+        if ($data) {
+            foreach ($data as $k => $v) {
+                if ($k && $k{0} !== '_') {
+                    $parsed['shipping_params_'.$k] = $v;
+                    $this->data['params']['shipping_params_'.$k] = $v;
+                }
+            }
+        }
+        return $parsed;
+    }
+
     protected function compareShipping($value)
     {
         if ($value === true) {
@@ -3295,7 +3407,7 @@ HTML;
 
         $method_params = array(
             'currency'           => $this->currency,
-            'total_price'        => $this->subtotal,
+            'total_price'        => $this->subtotal - $this->discount, //Subtraction of a discount is necessary for the correct calculation of deliveries. This is how the frontend works;
             'no_external'        => true,
             'allow_external_for' => (array)$allow_external_for,
             'custom_html'        => true,

@@ -76,8 +76,11 @@ class shopBackendWelcomeAction extends waViewAction
 
                 #taxes
                 if (!empty($country_data['taxes'])) {
+                    $tax_model = new shopTaxModel();
                     foreach ($country_data['taxes'] as $tax_data) {
-                        shopTaxes::save($tax_data);
+                        if (!$tax_model->getByName($tax_data['name'])) {
+                            shopTaxes::save($tax_data);
+                        }
                     }
                 }
 

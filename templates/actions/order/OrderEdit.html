@@ -385,21 +385,20 @@
                         {/if}
                     </td>
                     <td>
-                        {capture name=hold_discount}{if !empty($order.items_total_discount)}%HOLD%
-<strong>[`Total discount breakdown`]</strong><br/>
+                        {capture name=hold_discount}
+                            <br/><strong>[`Total discount breakdown`]</strong><br/>
 - [`applicable to individual items:`] {shop_currency_html((float)$order.items_total_discount,$currency,$currency)|escape:ENT_QUOTES}<br/>
 - [`applicable to entire order:`] {shop_currency_html((float)$order.discount-(float)$order.items_total_discount,$currency,$currency)}
-                        {/if}
                         {/capture}
 
-                        <input type="hidden" name="discount_description" value="{if !empty($order.items_total_discount)}{$smarty.capture.hold_discount|escape}{/if}" id="discount-description"
+                        <input type="hidden" name="discount_description" value="{if !empty($order.items_total_discount) || !empty($order.discount)}{$smarty.capture.hold_discount|escape}{/if}" id="discount-description"
                                data-updated-manually-msg="[`Discount specified manually`]"
                                data-edit-manually-msg="[`Manually edit automatically calculated discount`]"
                         >
                         <a href="#" style="_display: none" id="update-discount"
-                           data-description="{$discount.description|escape}"
-                           data-value="{if !empty($discount.value)}{$discount.value}{elseif !empty($order.id)}{$order.discount}{else}0{/if}"
-                           data-items_discount="{$discount.items_discount|json_encode|escape}"
+                           data-description="{$discount_description|escape}"
+                           data-value="{if !empty($discount)}{$discount}{elseif !empty($order.id)}{$order.discount}{else}0{/if}"
+                           data-items_discount="{$items_discount|json_encode|escape}"
                         ><i class="icon16 update"></i></a>
                     </td>
                 </tr>

@@ -3,6 +3,18 @@
 /**
  * Class shopOrderTotalController
  *
+ * How work Discount_description:
+ *
+ * New order.
+ * 1) If you enter a discount hands, then the input value is passed. In the logs of the order, the text is saved, that the discount was entered by hands when creating.
+ * 2) If you clicked to recalculate the discount, then it is transferred to 'calculate'. In the order logs the text 'discount for the ordered goods is saved:' And the information on the items is written down.
+ * 3) If the discount is not touched, then we do not transfer anything and we do not display anything on the order logs.
+
+ * Old order.
+ * 1) If you enter a discount hands, then the input value is passed. In the logs of the order, the text is saved, that the discount was entered by the hands when editing.
+ * 2) If you clicked to recalculate the discount, then it is transferred to 'calculate'. In the order logs the text 'discount for the ordered goods is saved:' And the information on the items is written down.
+ * 3) If the discount is not touched, and before the discount was not there, then nothing is transferred and in the logs of the order is not deduced.
+ * 4) If the discount was not touched and before the discount was, we do not transfer the discount, but we pass the discount_description. In the logs we display unallocated information on the old discounts
  * @method shopConfig getConfig()
  */
 class shopOrderTotalController extends waJsonController
@@ -19,29 +31,10 @@ class shopOrderTotalController extends waJsonController
         $this->response['shipping_method_ids'] = array_keys($this->response['shipping_methods']);
         $this->response['discount'] = $order->discount;
         $this->response['discount_description'] = $order->discount_description;
-        $this->response['items_discount'] = array();
         $this->response['total'] = $order->total;
         $this->response['subtotal'] = $order->subtotal;
         $this->response['errors'] = $order->errors();
-
-        foreach ($order->items as $id => $item) {
-
-            if (!empty($item['total_discount'])) {
-                switch ($item['type']) {
-                    case 'service':
-                        $selector = sprintf('%d_%d', $item['_parent_index'], $item['service_id']);
-                        break;
-                    default:
-                        $selector = $item['_index'];
-                        break;
-                }
-                $this->response['items_discount'][] = array(
-                    'value'    => $item['total_discount'],
-                    'html'     => $item['discount_description'],
-                    'selector' => $selector,
-                );
-            }
-        }
+        $this->response['items_discount'] = $order->items_discount;
     }
 
     public function getShopOrder()

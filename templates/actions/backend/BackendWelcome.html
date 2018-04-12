@@ -79,22 +79,18 @@
             </div>
         </div>
       </div>
+
       {if !empty($backend_welcome)}
-      {foreach $backend_welcome as $plugin => $data}
-          {if !empty($data['controls'])||!empty($data['name'])}
-              <div class="field-group">
-                  {*<h2 class="gray">*}
+          {foreach $backend_welcome as $plugin => $data}
+              {if !empty($data['controls'])||!empty($data['name'])}
+                  <div class="field-group">
                       <label>
                           <input type="{if $data@total>1}radio{else}hidden{/if}" name="plugin" value="{$plugin|escape}"/>
-                          {*$data.name|default:$plugin|escape *}
                       </label>
-                  {*</h2>*}
-                  {*<p>{$data.description}</p>*}
-                  {$data['controls']}
-              </div>
-          {/if}
-      </div>
-      {/foreach}
+                      {$data['controls']}
+                  </div>
+              {/if}
+          {/foreach}
       {/if}
 
       <div class="field-group">

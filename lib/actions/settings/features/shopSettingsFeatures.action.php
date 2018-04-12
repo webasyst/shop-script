@@ -14,15 +14,18 @@ class shopSettingsFeaturesAction extends waViewAction
         $type_features_model = new shopTypeFeaturesModel();
         $feature_model = new shopFeatureModel();
 
-        $types = $type_model->getAll($type_model->getTableId(), true);
-        $type_features_model->countFeatures($types);
-
         $show_all_features = $feature_model->countAll() < $this->getConfig()->getOption('features_per_page');
+
+        $types = array(
+            0 => array('id' => 0, 'name' => _w('All product types'), 'icon' => ''),
+        );
+        $types += $type_model->getAll($type_model->getTableId(), true);
+        $type_features_model->countFeatures($types);
 
         if ($show_all_features) {
             if ($features = $feature_model->getFeatures(true, null, 'id', $values_per_feature)) {
                 $show_all_features = count($features);
-                $type_features_model->fillTypes($features, $types);
+                $type_features_model->fillTypes($features);
                 shopFeatureModel::appendTypeNames($features);
             }
         } else {

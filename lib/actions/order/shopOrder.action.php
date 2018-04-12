@@ -104,6 +104,8 @@ class shopOrderAction extends waViewAction
             'courier'                    => $_order->courier,
         ));
 
+        $event_data = $order_data_array;
+        $event_data['shop_order'] = $_order;
         if (waRequest::get('printable')) {
             /**
              * UI hook for extending printable order page version in backend.
@@ -111,7 +113,7 @@ class shopOrderAction extends waViewAction
              * @param array $order Order params.
              * @return array[string][string]string $return[%plugin_id%]['info_section'] HTML output.
              */
-            $this->view->assign('backend_order_print', wa()->event('backend_order_print', $_order, array(
+            $this->view->assign('backend_order_print', wa()->event('backend_order_print', $event_data, array(
                 'info_section',
             )));
 
@@ -130,7 +132,7 @@ class shopOrderAction extends waViewAction
              * @return array[string][string]string $return[%plugin_id%]['aux_info'] html output
              *
              */
-            $this->view->assign('backend_order', wa()->event('backend_order', $_order, array(
+            $this->view->assign('backend_order', wa()->event('backend_order', $event_data, array(
                 'title_suffix',
                 'action_button',
                 'action_link',
