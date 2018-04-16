@@ -35,6 +35,7 @@ class shopOrderTotalController extends waJsonController
         $this->response['subtotal'] = $order->subtotal;
         $this->response['errors'] = $order->errors();
         $this->response['items_discount'] = $order->items_discount;
+        $this->response['shipping'] = $order->shipping;
     }
 
     public function getShopOrder()

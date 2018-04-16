@@ -557,7 +557,7 @@ $.order_edit = {
          * Show/hide and animation discount calculate button
          */
         function updateTooltip() {
-            if ($discount_input.val() > 0) {
+            if ($.order_edit.parseFloat($discount_input.val()) > 0) {
                 $tooltip_icon.stop().show();
             } else {
                 $tooltip_icon.stop().hide();
@@ -567,43 +567,15 @@ $.order_edit = {
             var duration = 25;
             var delta = 50;
             if ($tooltip_icon.is(':visible')) {
-                $tooltip_icon.fadeOut(duration += delta, function () {
-                    $tooltip_icon.fadeIn(duration += delta, function () {
-                        $tooltip_icon.fadeOut(duration += delta, function () {
-                            $tooltip_icon.fadeIn(duration += delta, function () {
-                                $tooltip_icon.fadeOut(duration += delta, function () {
-                                    $tooltip_icon.fadeIn(duration += delta, function () {
-                                        $tooltip_icon.fadeOut(duration += delta, function () {
-                                            $tooltip_icon.fadeIn(duration += delta, function () {
-                                                /*
-                                                ─────────▄──────────────▄
-                                                ────────▌▒█───────────▄▀▒▌
-                                                ────────▌▒▒▀▄───────▄▀▒▒▒▐
-                                                ───────▐▄▀▒▒▀▀▀▀▄▄▄▀▒▒▒▒▒▐
-                                                ─────▄▄▀▒▒▒▒▒▒▒▒▒▒▒█▒▒▄█▒▐
-                                                ───▄▀▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▀██▀▒▌
-                                                ──▐▒▒▒▄▄▄▒▒▒▒▒▒▒▒▒▒▒▒▒▀▄▒▒▌
-                                                ──▌▒▒▐▄█▀▒▒▒▒▄▀█▄▒▒▒▒▒▒▒█▒▐
-                                                ─▐▒▒▒▒▒▒▒▒▒▒▒▌██▀▒▒▒▒▒▒▒▒▀▄▌
-                                                ─▌▒▀▄██▄▒▒▒▒▒▒▒▒▒▒▒░░░░▒▒▒▒▌
-                                                ─▌▀▐▄█▄█▌▄▒▀▒▒▒▒▒▒░░░░░░▒▒▒▐
-                                                ▐▒▀▐▀▐▀▒▒▄▄▒▄▒▒▒▒▒░░░░░░▒▒▒▒▌
-                                                ▐▒▒▒▀▀▄▄▒▒▒▄▒▒▒▒▒▒░░░░░░▒▒▒▐
-                                                ─▌▒▒▒▒▒▒▀▀▀▒▒▒▒▒▒▒▒░░░░▒▒▒▒▌
-                                                ─▐▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▐
-                                                ──▀▄▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▄▒▒▒▒▌
-                                                ────▀▄▒▒▒▒▒▒▒▒▒▒▄▄▄▀▒▒▒▒▄▀
-                                                ───▐▀▒▀▄▄▄▄▄▄▀▀▀▒▒▒▒▒▄▄▀
-                                                ──▐▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▀▀
-                                                 */
-                                            });
-                                        });
-                                    });
-                                });
-                            });
-                        });
-                    });
-                });
+                $tooltip_icon.finish()
+                    .fadeOut(duration += delta)
+                    .fadeIn(duration += delta)
+                    .fadeOut(duration += delta)
+                    .fadeIn(duration += delta)
+                    .fadeOut(duration += delta)
+                    .fadeIn(duration += delta)
+                    .fadeOut(duration += delta)
+                    .fadeIn(duration += delta); // sorry doge
             }
         }
     },
@@ -824,11 +796,6 @@ $.order_edit = {
 
                             var ship = shipping_methods[ship_id];
 
-                            //Update shipping rate. If shipping rate not entered by hand
-                            if (!$shipping_rate.data('shipping') && ship_id == el_selected) {
-                                $shipping_rate.val(($.order_edit.roundFloat(ship.rate)));
-                            }
-
                             /**
                              *
                              * @type {*|JQuery|jQuery|HTMLElement}
@@ -892,6 +859,11 @@ $.order_edit = {
                     //If user deleted discount value, don't need set zero discount value
                     if (update_discount != '') {
                         $('#discount').val($.order_edit.roundFloat(response.data.discount));
+                    }
+
+                    //Update shipping rate. If shipping rate not entered by hand
+                    if (!$shipping_rate.data('shipping') ) {
+                        $shipping_rate.val(($.order_edit.roundFloat(response.data.shipping)));
                     }
 
                     $('#order-edit-form').trigger('order_total_updated', response.data);
