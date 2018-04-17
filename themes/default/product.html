@@ -172,14 +172,14 @@
         {/if}
 
         <!-- categories -->
-        {if count($product.categories) > 1}
+        {*{if count($product.categories) > 1}*}
             <p><em>
                 [`Categories`]:
                 {foreach $product.categories as $c}{if $c.status}
                     <a href="{$wa->getUrl('/frontend/category', ['category_url' => $c.full_url])}">{$c.name|escape}</a>
                 {/if}{/foreach}
             </em></p>
-        {/if}
+        {*{/if}*}
 
         <!-- tags -->
         {if $product.tags}

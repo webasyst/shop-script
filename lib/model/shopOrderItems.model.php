@@ -105,6 +105,12 @@ SQL;
         return $extend ? $this->extendItems($items, $order) : $items;
     }
 
+    /**
+     * @todo it extends items. why variable name is "product'? Need refactor
+     * @param $items
+     * @param $order_id
+     * @return array
+     */
     public function extendItems($items, $order_id)
     {
         $order = $this->getOrder($order_id);
@@ -183,6 +189,17 @@ SQL;
 
             if (empty($product['fake'])) {
                 $this->workupProduct($product, $order);
+            }
+
+            //set sku image in items
+            if (isset($sku_id) && isset($product['skus'][$sku_id]['image_id'])) {
+                $shop_product_images = new shopProductImagesModel();
+                $image = $shop_product_images->getById($product['skus'][$sku_id]['image_id']);
+                $product = array_merge($product, array(
+                    'image_filename' => $image['filename'],
+                    'ext' =>$image['ext'],
+                    'image_id' => $image['id'],
+                ));
             }
         }
         return $data;
@@ -770,29 +787,7 @@ SQL;
     public function getData(shopOrder $order)
     {
         $options = $order->options('items');
-        $extend = false && ifset($options['extend']);
-        $data = $this->getItems($order, $extend);
-
-        $order['items_total_discount'] = 0;
-        foreach ($data as &$product) {
-            if (!empty($product['item']['total_discount'])) {
-                $product['item']['total_discount'] = floatval($product['item']['total_discount']);
-                $order['items_total_discount'] = $order['items_total_discount'] + $product['item']['total_discount'];
-            }
-            if (!empty($product['services'])) {
-                foreach ($product['services'] as &$service) {
-
-                    if (!empty($service['item']['name'])) {
-                        $service['item']['total_discount'] = floatval($service['item']['total_discount']);
-                        $order['items_total_discount'] = $order['items_total_discount'] + $service['item']['total_discount'];
-                    }
-
-                    unset($service);
-                }
-            }
-            unset($product);
-        }
-
+        $data = $this->getItems($order, !empty($options['extend']));
         return $data;
     }
 }

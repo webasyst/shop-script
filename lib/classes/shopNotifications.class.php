@@ -320,13 +320,15 @@ SQL;
         if (!empty($data['order']['params']['courier_id'])) {
             $courier_model = new shopApiCourierModel();
             $data['courier'] = $courier_model->getById($data['order']['params']['courier_id']);
-            foreach ($data['courier'] as $field => $value) {
-                if (strpos($field, 'api_') === 0) {
-                    unset($data['courier'][$field]);
+            if (!empty($data['courier'])) {
+                foreach ($data['courier'] as $field => $value) {
+                    if (strpos($field, 'api_') === 0) {
+                        unset($data['courier'][$field]);
+                    }
                 }
-            }
-            if (!empty($data['courier']['contact_id'])) {
-                $data['courier']['contact'] = new waContact($data['courier']['contact_id']);
+                if (!empty($data['courier']['contact_id'])) {
+                    $data['courier']['contact'] = new waContact($data['courier']['contact_id']);
+                }
             }
         }
 

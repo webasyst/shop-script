@@ -231,7 +231,7 @@ td.s-empty-order-note { border-top: 1px solid #ddd; border-bottom: 1px solid #dd
 
 ul.s-orders li { width: 282px; padding: 10px !important; }
 ul.s-orders li a { color: #555; line-height: 1em; }
-ul.s-orders li a p { line-height: 1em; margin: 3px 0 0; }
+ul.s-orders li a p { line-height: 1em; margin: 3px 0 0; overflow: hidden }
 ul.s-orders li a span.highlighted { background: #ff9; }
 ul.s-orders li.selected { box-shadow: 0 0 8px -4px #444444; position: relative; z-index: 82; background: #ffc; }
 ul.s-orders li.selected a span.highlighted { background: #ff3; }
@@ -266,6 +266,12 @@ ul.menu-v.s-orders-sort.dropdown i.s-sort-order { margin: 2px; padding: 0; displ
 
 .s-order-comment { margin: 20px -20px; background: #f7f7d7; font-size: 1.3em; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) inset; border-top: 1px solid rgba(0,0,0,0.15); border-bottom: 1px solid rgba(0,0,0,0.1); white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word; }
 .s-order-comment-edit textarea { display: block; width: 100%; min-height: 100px; margin: 5px 0 15px; font-size: 1.2em; }
+
+#tooltip { position: absolute; z-index: 3000; border: 1px solid orange; background-color: #ffe; padding: 5px; }
+#tooltip h3, #tooltip div { margin: 0; }
+#customer-source { height: 16px; padding: 2px; border-width: 1px; }
+#order-storefront { height: 22px; padding: 0; border-width: 1px; }
+#order-edit-form .ui-autocomplete li { white-space: nowrap; }
 
 .s-order-address, .s-order-customer-delivery-date, .s-order-shipping-custom-fields { padding-left: 20px; }
 .s-order-address img.overhanging { margin-left: -20px; }

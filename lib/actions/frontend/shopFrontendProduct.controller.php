@@ -8,24 +8,23 @@ class shopFrontendProductController extends waViewController
 
             $product_model = new shopProductModel();
 
-            if (waRequest::param('category_url')) {
+            $category_url = waRequest::param('category_url');
+
+            if ($category_url) {
                 $category_model = new shopCategoryModel();
-                $c = $category_model->getByField('full_url', waRequest::param('category_url'));
+                $c = $category_model->getByField('full_url', $category_url);
                 if ($c) {
                     $product = $product_model->getByUrl(waRequest::param('product_url'), $c['id']);
                     if ($product && $product['category_id'] != $c['id']) {
-                        $c = $category_model->getById($product['category_id']);
-                        if ($c) {
-                            $url = wa()->getRouteUrl(
-                                'shop/frontend/product',
-                                array(
-                                    'category_url' => $c['full_url'],
-                                    'product_url'  => $product['url'],
-                                )
-                            );
+
+                        $product = new shopProduct($product, true);
+                        $routing = wa()->getRouting();
+
+                        $storefront = preg_replace('@^https?://@', '', $routing->getUrl('shop/frontend', true));
+
+                        $url = $product->getProductUrl($storefront, true);
+                        if ($url) {
                             $this->redirect($url, 301);
-                        } else {
-                            $product = null;
                         }
                     }
                 } else {

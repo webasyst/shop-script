@@ -1280,5 +1280,15 @@ class shopSalesModel extends waModel
             return $fld." IS NOT NULL";
         }
     }
+
+    public function getAllSalesChannels()
+    {
+        $sql = "SELECT op.value AS channel, MAX(op.order_id) AS time
+                FROM shop_order_params AS op
+                WHERE op.name='referer_host'
+                GROUP BY channel
+                ORDER BY time DESC";
+        return array_values(array_filter(array_keys($this->query($sql)->fetchAll('channel', true))));
+    }
 }
 

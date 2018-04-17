@@ -28,7 +28,19 @@ class shopFollowupCli extends waCliController
         );
         $time['datetime'] = date('Y-m-d H:i:s', $time['now']);
 
-        foreach ($fm->getAllEnabled() as $f) {
+        $enabled_followups = $fm->getAllEnabled();
+        if ($enabled_followups) {
+            /**
+             * @event start_followup_cli
+             * @param array [string]array $params['followups']
+             * @return void
+             */
+            wa('shop')->event('start_followup_cli', ref(array(
+                'followups' => $enabled_followups,
+            )));
+        }
+
+        foreach ($enabled_followups as $f) {
             if (empty($f['last_cron_time'])) {
                 $f['last_cron_time'] = $time['datetime'];
             }

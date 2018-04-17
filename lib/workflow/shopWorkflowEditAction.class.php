@@ -160,7 +160,7 @@ class shopWorkflowEditAction extends shopWorkflowAction
             }
         }
 
-        // update
+        // SAVE ORDER ITEMS
         $this->order_model->update($data, $data['id']);
 
         $this->waLog('order_edit', $data['id']);
@@ -169,6 +169,17 @@ class shopWorkflowEditAction extends shopWorkflowAction
 
         if (!empty($data['params'])) {
             $this->order_params_model->set($data['id'], $data['params'], false);
+
+            // Update shop customer source if this is the first order and source changed
+            if (isset($data['params']['referer_host'])) {
+                $scm = new shopCustomerModel();
+                $shop_customer = $scm->getById($order['contact_id']);
+                if (ifset($shop_customer, 'number_of_orders', null) == 1 && $shop_customer['source'] != $data['params']['referer_host']) {
+                    $scm->updateById($order['contact_id'], array(
+                        'source' => $data['params']['referer_host'],
+                    ));
+                }
+            }
         }
         return true;
     }

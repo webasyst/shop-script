@@ -76,8 +76,11 @@ class shopBackendWelcomeAction extends waViewAction
 
                 #taxes
                 if (!empty($country_data['taxes'])) {
+                    $tax_model = new shopTaxModel();
                     foreach ($country_data['taxes'] as $tax_data) {
-                        shopTaxes::save($tax_data);
+                        if (!$tax_model->getByName($tax_data['name'])) {
+                            shopTaxes::save($tax_data);
+                        }
                     }
                 }
 
@@ -264,7 +267,6 @@ class shopBackendWelcomeAction extends waViewAction
 
         $backend_welcome = wa()->event('backend_welcome');
 
-
         $params = array(
             'title_wrapper'       => '%s',
             'description_wrapper' => '<br><span class="hint">%s</span>',
@@ -276,6 +278,7 @@ class shopBackendWelcomeAction extends waViewAction
 ',
             'control_separator'   => '</div><div class="value">',
         );
+
         foreach ($backend_welcome as $plugin => &$data) {
             if (isset($data['controls'])) {
                 if (is_array($data['controls'])) {
@@ -284,12 +287,6 @@ class shopBackendWelcomeAction extends waViewAction
                         if (is_array($row)) {
                             $row = array_merge($row, $params);
                             waHtmlControl::addNamespace($row, $plugin);
-                            if (isset($options[$name])) {
-                                $row['options'] = $options[$name];
-                            }
-                            if (isset($params['value']) && isset($params['value'][$name])) {
-                                $row['value'] = $params['value'][$name];
-                            }
                             if (!empty($row['control_type'])) {
                                 $controls[$name] = waHtmlControl::getControl($row['control_type'], $name, $row);
                             }

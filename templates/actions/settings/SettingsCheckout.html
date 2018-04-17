@@ -345,7 +345,7 @@
     // Logic for backend validation iButton
     $('#s-toggle-backend-validation-status').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change(function() {
         var self = $(this);
-        self.closest('.value').siblings('.value.description').toggle(200);
+        self.closest('.value').siblings('.value.description').toggle();
         if (this.checked) {
             $('#s-toggle-backend-validation-disabled-label').addClass('gray');
             $('#s-toggle-backend-validation-enabled-label').removeClass('gray');

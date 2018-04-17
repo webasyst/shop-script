@@ -128,24 +128,6 @@ class shopSettingsGeneralAction extends waViewAction
 
         $this->view->assign('lazy_loading', isset($lazy_loading) ? $lazy_loading : $this->getConfig()->getOption('lazy_loading'));
 
-        if (!isset($factories)) {
-            $factories = $this->getConfig()->getOption('factories');
-        }
-        if ($factories) {
-            if (!empty($factories['captcha'])) {
-                if (is_array($factories['captcha'])) {
-                    $captcha = $factories['captcha'][0];
-                    $captcha_options = $factories['captcha'][1];
-                } else {
-                    $captcha = $factories['captcha'];
-                    $captcha_options = array();
-                }
-                $this->view->assign(array(
-                    'captcha'         => $captcha,
-                    'captcha_options' => $captcha_options
-                ));
-            }
-        }
     }
 
     public function getData()

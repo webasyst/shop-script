@@ -3084,7 +3084,7 @@ msgstr "Введен неправильный URL сайта"
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:188
 msgid "Invalid captcha code"
-msgstr "Введен неправильный защитный код"
+msgstr "Капча введена неверно"
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:193
 msgid "Review text can not be left blank"
@@ -4056,6 +4056,15 @@ msgstr "Возвращает массив подкатегорий указан�
 msgid "Returns array of cross-sell products.<em>$product_id</em> can be either a number (ID of the specified base product) or an array of products IDs"
 msgstr "Возвращает массив товаров, рекомендуемых функцией перекрестных продаж. <em>$product_id</em> может содержать либо число (ID указанного основного товара), либо массив ID товаров."
 
+msgid "Returns array of available currencies."
+msgstr "Возвращает массив доступных валют."
+
+msgid "Returns HTML for a product image thumbnail with specified size and attributes. <em>$image</em> array must contain <em>'id'</em>, <em>'product_id'</em>, and <em>'ext'</em> elements."
+msgstr "Возвращает HTML-код эскиза изображения товара с указанными размером и атрибутами. Массив <em>$image</em> должен содержать элементы <em>'id'</em>, <em>'product_id'</em> и <em>'ext'</em>."
+
+msgid "Returns relative or absolute URL of a product image thumbnail with specified size. <em>$image</em> array must contain <em>'id'</em>, <em>'product_id'</em>, and <em>'ext'</em> elements."
+msgstr "Возвращает относительный или абсолютный URL эскиза изображения товара с указанными размером. Массив <em>$image</em> должен содержать элементы <em>'id'</em>, <em>'product_id'</em> и <em>'ext'</em>."
+
 #: /wa-apps/shop/lib/config/site.php:129
 msgid "Returns current currency’s properties object."
 msgstr "Возвращает объект со свойствами текущей валюты."
@@ -4083,6 +4092,15 @@ msgstr "Возвращает массив товаров из указанног
 #: /wa-apps/shop/lib/config/site.php:135
 msgid "Displays 1—5 stars rating. $size indicates icon size and can be either 10 or 16"
 msgstr "Отображает рейтинг товара: от 1 до 5 звезд. В качестве значения $size укажите размер в пикселях: 10 или 16."
+
+msgid "Returns formatted order ID by provided numerical ID"
+msgstr "Возвращает отформатированный номер заказа для указанного числового значения"
+
+msgid "Returns array of enabled payment methods"
+msgstr "Возвращает массив доступных способов оплаты"
+
+msgid "Returns array of enabled shipping methods"
+msgstr "Возвращает массив доступных способов доставки"
 
 #: /wa-apps/shop/lib/config/site.php:136
 msgid "Returns store’s general setting option by <em>option_id</em>, e.g. \"name\", \"email\", \"country\""
@@ -5560,6 +5578,9 @@ msgstr "Массив услуг, доступных для данного тов
 msgid "Returns category object by <em>$category_id</em>"
 msgstr "Возвращает объект категории по указанному <em>$category_id</em>"
 
+msgid "Returns category URL for specified <em>$category</em> array"
+msgstr "Возвращает URL для указанного массива <em>$category</em> со свойствами категории"
+
 #: /wa-apps/shop/lib/config/site.php:171
 msgid "Array of custom category parameters"
 msgstr "Массив дополнительных параметров категории"
@@ -6593,7 +6614,7 @@ msgstr "Заказ %s доставлен"
 #: /wa-apps/shop/themes/sidebar/checkout.contactinfo.html:14
 #: /wa-apps/shop/themes/vk/checkout.contactinfo.html:63
 msgid "Registered customers apply for affiliate bonuses and discounts on future orders."
-msgstr "Зарегистрированные покупатели получают накопительные бонусные баллы и скидки на будущие заказы"
+msgstr "Зарегистрированные покупатели получают накопительные бонусные баллы и скидки на будущие заказы."
 
 #: /wa-apps/shop/themes/clear/checkout.html:165
 #: /wa-apps/shop/themes/custom/checkout.html:161
@@ -8365,7 +8386,7 @@ msgstr "Дополнительные категории"
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.export.html:111
 msgid "Duplicate product row under each category it belongs to"
-msgstr "Дублировать запись о товаре для каждой категории, которой он принадлежит"
+msgstr "Дублировать запись о товаре для каждой категории, к которой он принадлежит"
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.import.html:137
 msgid "Product descriptions"
@@ -8951,6 +8972,9 @@ msgstr "Возвращает массив значений характерис�
 msgid "Returns array of latest product reviews"
 msgstr "Возвращает массив последних отзывов о товарах"
 
+msgid "Returns array of tags, by default limited to 50 items"
+msgstr "Возвращает массив тегов, по умолчанию ограниченный 50 элементами"
+
 #: /wa-apps/shop/lib/config/site.php:208
 msgid "Returns array of stocks"
 msgstr "Возвращает массив складов"
@@ -9048,6 +9072,12 @@ msgstr "Сразу создать эскизы изображений предо
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:211
 msgid "Enable this in case you are sure about the list of your custom thumbnail sizes, or if custom-sized on-fly thumbnail generation is disabled; otherwise it is safe to have this option turned off."
 msgstr "Включите, если создание эскизов «на лету» запрещено или если вы уверены в том, что список предопределенных размеров заполнен согласно требованиям темы дизайна вашего интернет-магазина; если вы не уверены, рекомендуется оставить эту настройку выключенной."
+
+msgid "Enable to get thumbnails of all available sizes created at once. It is recommended if automatic image thumbnail generation is disabled in image settings."
+msgstr "Включите, чтобы сразу создать эскизы всех настроенных размеров. Рекомендуется, если создание эскизов произвольных размеров по требованию выключено в настройках изображений."
+
+msgid "If you leave this option disabled, thumbnails will be automatically created later, at the first request of an image on the website, if automatic image thumbnail generation is enabled."
+msgstr "Если оставить этот флажок выключенным, то эскизы будут автоматически созданы позднее — при первом запросе изображения на витрине магазина, если включено создание эскизов произвольных размеров по требованию."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:217
 msgid "Restore product fullsize images from originally uploaded versions (backups)"
@@ -9402,6 +9432,9 @@ msgstr ""
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:164
 msgid "Get Google reCAPTCHA site key and secret for your site on <a href=\"https://www.google.com/recaptcha\" target=\"_blank\">https://www.google.com/recaptcha</a>"
 msgstr "Получите ключи Google reCAPTCHA для вашего сайта по адресу <a href=\"https://www.google.com/recaptcha\" target=\"_blank\">https://www.google.com/recaptcha</a>"
+
+msgid "Select Webasyst default captcha or Google reCAPTCHA"
+msgstr "Выбрать стандартную капчу Webasyst или Google reCAPTCHA"
 
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutContactinfo.class.php:114
 msgid "Spammy order alert"
@@ -10758,3 +10791,18 @@ msgstr "Способы оплаты и доставки, выбранные по
 
 msgid "Discount rounded to %s"
 msgstr "Скидка округлена до %s"
+
+msgid "Shipping method with id=%s not found."
+msgstr "Способ доставки с id=%s не найден."
+
+msgid "Upload image"
+msgstr "Загрузить изображение"
+
+msgid "<b>WYSIWYG editor may change your HTML code.</b><br><br>It is necessary for correct text formatting. Smarty code may be broken and outdated HTML tags may be replaced with modern ones.<br><br>Are you sure to switch to WYSIWYG editor?"
+msgstr "<b>Редактор WYSIWYG может изменить ваш HTML-код.</b><br><br>Это необходимо для правильного форматирования текста. Код Smarty может быть взломан, и устаревшие HTML-теги могут быть заменены на современные.<br><br>Вы действительно хотите переключиться на WYSIWYG-редактор?"
+
+msgid "Switch"
+msgstr "Переключиться"
+
+msgid "Customer source"
+msgstr "Источник покупателя"

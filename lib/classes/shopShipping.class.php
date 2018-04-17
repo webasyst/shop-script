@@ -46,7 +46,7 @@ class shopShipping extends waAppShipping
             $info = $model->getById($plugin_id);
 
             if (!$info) {
-                throw new waException("Shipping plugin {$plugin_id} not found", 404);
+                throw new waException(sprintf(_w('Shipping method with id=%s not found.'), $plugin_id), 404);
             }
 
             if ($info['type'] != shopPluginModel::TYPE_SHIPPING) {
@@ -69,7 +69,7 @@ class shopShipping extends waAppShipping
             $info = $model->getById($plugin_id);
 
             if (!$info) {
-                throw new waException("Shipping plugin {$plugin_id} not found", 404);
+                throw new waException(sprintf(_w('Shipping method with id=%s not found.'), $plugin_id), 404);
             }
         } else {
             $info = array(

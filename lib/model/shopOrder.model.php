@@ -313,36 +313,7 @@ SQL;
 
         $order_params_model = new shopOrderParamsModel();
         $order['params'] = $order_params_model->get($id);
-
-        if ($order['contact_id']) {
-            $contact = new waContact($order['contact_id']);
-            try {
-                $contact->getName();
-            } catch (Exception $e) {
-                $contact = new waContact();
-                $contact['name'] = 'Contact does not exist: id='.$order['contact_id'];
-            }
-            $order['contact'] = array(
-                'id'         => $order['contact_id'],
-                'name'       => $contact->getName(),
-                'email'      => $contact->get('email', 'default'),
-                'phone'      => $contact->get('phone', 'default'),
-                'registered' => !empty($contact['password'])
-            );
-            $config = wa('shop')->getConfig();
-            /**
-             * @var shopConfig $config
-             */
-            $use_gravatar = $config->getGeneralSettings('use_gravatar');
-            $gravatar_default = $config->getGeneralSettings('gravatar_default');
-            if (!$contact->get('photo') && $use_gravatar) {
-                $order['contact']['photo_50x50'] = shopHelper::getGravatar($order['contact']['email'], 50, $gravatar_default);
-            } else {
-                $order['contact']['photo_50x50'] = $contact->getPhoto(50);
-            }
-        } else {
-            $order['contact'] = $this->extractContactInfo($order['params']);
-        }
+        $order['contact'] = $this->getOrderContactData($order);
 
         if (!empty($order['params']['coupon_id'])) {
             $coupon_model = new shopCouponModel();
@@ -407,6 +378,40 @@ SQL;
             $order['contact']['name'] = htmlspecialchars($order['contact']['name']);
         }
         return $order;
+    }
+
+    public function getOrderContactData($order)
+    {
+        if ($order['contact_id']) {
+            $contact = new waContact($order['contact_id']);
+            try {
+                $contact->getName();
+            } catch (Exception $e) {
+                $contact = new waContact();
+                $contact['name'] = 'Contact does not exist: id='.$order['contact_id'];
+            }
+            $order['contact'] = array(
+                'id'         => $order['contact_id'],
+                'name'       => $contact->getName(),
+                'email'      => $contact->get('email', 'default'),
+                'phone'      => $contact->get('phone', 'default'),
+                'registered' => !empty($contact['password'])
+            );
+            $config = wa('shop')->getConfig();
+            /**
+             * @var shopConfig $config
+             */
+            $use_gravatar = $config->getGeneralSettings('use_gravatar');
+            $gravatar_default = $config->getGeneralSettings('gravatar_default');
+            if (!$contact->get('photo') && $use_gravatar) {
+                $order['contact']['photo_50x50'] = shopHelper::getGravatar($order['contact']['email'], 50, $gravatar_default);
+            } else {
+                $order['contact']['photo_50x50'] = $contact->getPhoto(50);
+            }
+            return $order['contact'];
+        } else {
+            return $this->extractContactInfo($order['params']);
+        }
     }
 
     public function insert($data, $type = 0)

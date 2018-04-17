@@ -176,28 +176,7 @@
                     <div class="name">[`Captcha`]</div>
                     <div class="value no-shift">
                         <label>
-                            <input type="radio" name="captcha" {if empty($captcha)}checked{/if} value="waCaptcha"> [`Webasyst Captcha`]
-                        </label>
-                    </div>
-                    <div class="value no-shift">
-                        <label>
-                            <input type="radio" name="captcha" {if ifset($captcha) == 'waReCaptcha'}checked{/if} value="waReCaptcha"> [`Google reCAPTCHA`]
-                            <p class="hint">[`Selected captcha type will be used throughout your storefront wherever applicable.`]</p>
-                            <div{if ifset($captcha) != 'waReCaptcha'} style="display: none"{/if}>
-                                <div class="field">
-                                    <div class="name">[`Site Key`]</div>
-                                    <div class="value">
-                                        <input type="text" name="captcha_options[sitekey]" value="{ifset($captcha_options.sitekey)}">
-                                    </div>
-                                </div>
-                                <div class="field">
-                                    <div class="name">[`Secret`]</div>
-                                    <div class="value">
-                                        <input type="text" name="captcha_options[secret]" value="{ifset($captcha_options.secret)}">
-                                        <p class="hint">[`Get Google reCAPTCHA site key and secret for your site on <a href="https://www.google.com/recaptcha" target="_blank">https://www.google.com/recaptcha</a>`]</p>
-                                    </div>
-                                </div>
-                            </div>
+                            <span class="s-auth-captcha-text"><a href="{$wa_backend_url}installer/?module=settings">[`Select Webasyst default captcha or Google reCAPTCHA`]</a></span>
                         </label>
                     </div>
                 </div>

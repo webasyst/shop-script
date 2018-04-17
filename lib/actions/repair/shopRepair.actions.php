@@ -25,8 +25,25 @@ class shopRepairActions extends waActions
         $callback = create_function('$n', 'return preg_match("@^(\w+)Action$@",$n,$m)?($m[1]!="default"?$m[1]:false):false;');
         $actions = array_filter($methods, $callback);
         $actions = array_map($callback, $actions);
+        $descriptions = array();
+        if (class_exists('ReflectionClass')) {
+            $reflection = new ReflectionClass(__CLASS__);
+            foreach ($actions as $action) {
+                $method = $reflection->getMethod(sprintf('%sAction', $action));
+                $comment = $method->getDocComment();
+                if ($comment) {
+                    $descriptions[$action] = preg_replace('_(^[ \t]*/?\*+\s*|\s*\*+/$)_m', '', $comment);
+                }
+
+            }
+        }
         print "Available repair actions:\n\t";
-        print implode("\n\t", $actions);
+        foreach ($actions as $action) {
+            print "\n\t".$action;
+            if (!empty($descriptions[$action])) {
+                print "\t".$descriptions[$action];
+            }
+        }
     }
 
     public function productStocksAction()
@@ -240,7 +257,7 @@ WHERE pf.sku_id IS NULL');
         echo 'OK';
     }
 
-
+    /** Restore sort order at database tables */
     public function sortAction()
     {
         $this->getResponse()->addHeader('Content-type', 'text/plain');
@@ -445,6 +462,70 @@ SQL;
                 print "OK\tDirectory not exists\n\n";
             }
             flush();
+        }
+    }
+
+    /** Restore magic for generating thumbs on demand */
+    public function thumbAction()
+    {
+        $app_id = 'shop';
+        $target_path = wa()->getDataPath('products/', true, $app_id);
+        $source_path = wa()->getAppPath('lib/config/data/', $app_id);
+
+// generate product thumb via php on demand
+        $target = $target_path.'thumb.php';
+        if (!file_exists($target)) {
+            $php_file = '<?php
+$file = dirname(__FILE__)."/../../../../"."/wa-apps/shop/lib/config/data/thumb.php";
+
+if (file_exists($file)) {
+    include($file);
+} else {
+    header("HTTP/1.0 404 Not Found");
+}
+';
+            waFiles::write($target, $php_file);
+            print "Restore thumb.php for product images\n";
+        } else {
+            print "File thumb.php for product images already exists\n";
+        }
+
+        $target = $target_path.'.htaccess';
+        if (!file_exists($target)) {
+            waFiles::copy($source_path.'.htaccess', $target);
+            print "Restore .htaccess for product images\n";
+
+        } else {
+            print "File .htaccess for product images already exists\n";
+        }
+
+// generate promos thumb via php on demand
+        $target_path = wa()->getDataPath('promos/', true, $app_id);
+
+        $target = $target_path.'thumb.php';
+        if (!file_exists($target)) {
+            $file = '<?php
+$file = dirname(__FILE__)."/../../../../"."wa-apps/shop/lib/config/data/promos.thumb.php";
+
+if (file_exists($file)) {
+    include($file);
+} else {
+    header("HTTP/1.0 404 Not Found");
+}
+';
+            waFiles::write($target, $file);
+            print "Restore thumb.php for promos\n";
+        } else {
+            print "File thumb.php for promos already exists\n";
+        }
+
+
+        $target = $target_path.'.htaccess';
+        if (!file_exists($target)) {
+            waFiles::copy($source_path.'.htaccess', $target);
+            print "Restore .htaccess for promos\n";
+        } else {
+            print "File .htaccess for promos already exists\n";
         }
     }
 

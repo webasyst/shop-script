@@ -48,7 +48,6 @@
  *
  * @property int $type_id
  * @property array $type
- * @property int $category_id
  * @property array $features
  * @example
  * // read product feature
@@ -57,6 +56,9 @@
  * @property array $skus
  * @property-read int $sku_count
  * @property array $categories
+ * @property int $category_id
+ * @property-read array $canonical_category available primary category at current storefront (see ->getCanonicalCategory)
+ * @property-read string $category_url url
  * @property array $sets
  * @property array $tags
  * @property array $params
@@ -85,12 +87,17 @@ class shopProduct implements ArrayAccess
      * Creates a new product object or a product object corresponding to existing product.
      *
      * @param int|array $data Product id or product data array
+     * @param boolean $is_frontend
      */
     public function __construct($data = array(), $is_frontend = false)
     {
         $this->is_frontend = $is_frontend;
         $this->model = new shopProductModel();
-        if (is_array($data)) {
+        if ($data instanceof shopProduct) {
+            $this->data = $data->data;
+            $this->is_frontend = func_num_args() > 1 ? $is_frontend : $data->is_frontend;
+            $this->is_dirty = $data->is_dirty;
+        } elseif (is_array($data)) {
             $this->data = $data;
         } elseif ($data) {
             $this->data = $this->model->getById($data);
@@ -141,17 +148,27 @@ class shopProduct implements ArrayAccess
 
     /**
      * If $storefront is unknown, the link to the first settlement is returned
-     * @param null $storefront
+     * @param string $storefront
+     * @param bool $set_canonical
      * @return null|string
      */
-    public function getProductUrl($storefront = null)
+    public function getProductUrl($storefront = null, $set_canonical = false, $absolute = true)
     {
         $storefront_domain = null;
         $storefront_route_url = null;
+        $storefront_route = null;
 
-        if (isset($storefront) && $storefront != 'backend') {
+        $routing = wa()->getRouting();
+
+        $route = null;
+
+        if ($storefront === true) {
+            $storefront = preg_replace('@^https?://@', '', $routing->getUrl('shop/frontend', true));
+        }
+
+        if (isset($storefront) && $storefront !== 'backend') {
             $storefront = rtrim($storefront, '/');
-            foreach (wa()->getRouting()->getByApp('shop') as $domain => $routes) {
+            foreach ($routing->getByApp('shop') as $domain => $routes) {
                 foreach ($routes as $r) {
                     if (!isset($r['url'])) {
                         continue;
@@ -160,6 +177,7 @@ class shopProduct implements ArrayAccess
                     if ($st == $storefront) {
                         $storefront_route_url = $r['url'];
                         $storefront_domain = $domain;
+                        $storefront_route = $r;
                         break 2;
                     }
                 }
@@ -170,9 +188,140 @@ class shopProduct implements ArrayAccess
             return '';
         }
 
-        return wa()->getRouteUrl('shop/frontend/product', array(
+        $url_params = array(
             'product_url' => $this->url,
-        ), true, $storefront_domain, $storefront_route_url);
+        );
+
+        if ($set_canonical) {
+            if ($category_url = $this->getCategoryUrl($storefront_route)) {
+                $url_params['category_url'] = $category_url;
+            }
+        }
+
+        return $routing->getUrl('shop/frontend/product', $url_params, $absolute, $storefront_domain, $storefront_route_url);
+    }
+
+    /**
+     * Important: this method also filter array of product's categories
+     * @param array $route
+     * @return array Primary category data if it available at $route
+     */
+    public function getCanonicalCategory($route = null)
+    {
+        $category = null;
+
+        if ($this->categories) {
+            $categories = $this->categories;
+            if ($route === null) {
+                $route = wa()->getRouting()->getRoute();
+                $route['full_url'] = wa()->getRouting()->getDomain(null, true).'/'.$route['url'];
+            } elseif (!is_array($route)) {
+                $route = array(
+                    'url'      => $route,
+                    'full_url' => $route,
+                );
+            }
+
+            // check categories, only keeping those enabled for current storefront
+            $category_routes_model = new shopCategoryRoutesModel();
+            $routes = $category_routes_model->getRoutes(array_keys($categories));
+            foreach ($categories as $c) {
+                if (isset($routes[$c['id']]) && !in_array($route['full_url'], $routes[$c['id']])) {
+                    unset($categories[$c['id']]);
+                }
+            }
+
+            $this->categories = $categories;
+
+            if ($this->category_id && isset($categories[$this->category_id])) {
+                $category = $categories[$this->category_id];
+            } elseif ($categories) {
+                //maybe set first category?
+                //$category = reset($categories);
+                $this->category_id = null;
+            } else {
+                $this->category_id = null;
+            }
+        }
+
+        if ($category) {
+            $this['category_url'] = (ifset($route['url_type']) == 1) ? $category['url'] : $category['full_url'];
+        } else {
+            $this['category_url'] = null;
+        }
+
+        return $category;
+    }
+
+    public function getCategoryUrl($route = null)
+    {
+        $category = $this->canonical_category;
+        $category_url = '';
+        if ($category) {
+            if ($route) {
+                $url_type = ifset($route['url_type']);
+            } else {
+                $url_type = wa()->getRouting()->getDomain(null, true).'/'.wa()->getRouting()->getRoute('url_type');
+            }
+            $category_url = ($url_type == 1) ? $category['url'] : $category['full_url'];
+        }
+        return $category_url;
+    }
+
+    /**
+     * @param bool $product_link
+     * @param array $route
+     * @return array
+     */
+    public function getBreadcrumbs($product_link = false, $route = null)
+    {
+        $breadcrumbs = array();
+
+        if (empty($route)) {
+            $route = wa('shop')->getRouting()->getRoute();
+        }
+
+        $short_url_type = ifset($route['url_type']) == 1;
+        $category = $this->canonical_category;
+
+        $routing = wa()->getRouting();
+
+        if ($category) {
+            $category_model = new shopCategoryModel();
+
+            $path = $category_model->getPath($category['id']);
+            if ($path) {
+                $path = array_reverse($path);
+            } else {
+                $path = array();
+            }
+
+            $path[] = $category;
+            foreach ($path as $row) {
+                $url_params = array(
+                    'category_url' => $short_url_type ? $row['url'] : $row['full_url'],
+                );
+                $breadcrumbs[$row['id']] = array(
+                    'url'  => $routing->getUrl('/frontend/category', $url_params),
+                    'name' => $row['name'],
+                );
+            }
+        }
+
+        if ($product_link) {
+            $url_params = array(
+                'product_url' => $this->url,
+            );
+            if ($category) {
+                $url_params['category_url'] = $short_url_type ? $category['url'] : $category['full_url'];
+            }
+            $breadcrumbs[0] = array(
+                'url'  => $routing->getUrl('/frontend/product', $url_params),
+                'name' => $this->name,
+            );
+        }
+
+        return $breadcrumbs;
     }
 
     /**
@@ -1185,12 +1334,21 @@ class shopProduct implements ArrayAccess
         $product_features_model = new shopProductFeaturesModel();
         $skus_features = $product_features_model->getSkuFeatures($this->id);
         $skus_features_data = array();
+        $delete_features_id = array();
+
         foreach ($skus_features as $sku_id => $features) {
             $sku_id = $sku_map[$sku_id];
             foreach ($features as $feature_id => $feature_value_id) {
                 $skus_features_data[] = compact('product_id', 'sku_id', 'feature_id', 'feature_value_id');
+                $delete_features_id[] = $feature_id;
             }
         }
+
+        // Delete the empty values. Values are stored in the $duplicate->save
+        if ($delete_features_id) {
+            $product_features_model->deleteByField(array('product_id' => $product_id, 'feature_id' => $delete_features_id));
+        }
+
         if ($skus_features_data) {
             $product_features_model->multipleInsert($skus_features_data);
         }
