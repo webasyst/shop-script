@@ -169,19 +169,24 @@
     {$_facebook_page_id = str_replace('www.facebook.com/','',str_replace('https://','',str_replace('http://','',$theme_settings.facebook)))}
     {if  !empty($_facebook_page_id)}
         <div class="likebox">
-
             <div id="fb-root"></div>
-            <script>(function(d, s, id) {
-              var js, fjs = d.getElementsByTagName(s)[0];
-              if (d.getElementById(id)) return;
-              js = d.createElement(s); js.id = id;
-              js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&appId=167596066655267&version=v2.0";
-              fjs.parentNode.insertBefore(js, fjs);
-            }(document, 'script', 'facebook-jssdk'));</script>
-
-            <div class="fb-like-box" data-href="https://www.facebook.com/{$_facebook_page_id}" data-colorscheme="light" data-show-faces="true" data-header="true" data-stream="false" data-show-border="true"></div>
-
-        </div>
+            <script>
+                setTimeout(function () {
+                    (function (d, s, id) {
+                        var js, fjs = d.getElementsByTagName(s)[0];
+                        if (d.getElementById(id)) return;
+                        js = d.createElement(s);
+                        js.id = id;
+                        js.src = 'https://connect.facebook.net/ru_RU/sdk.js#xfbml=1&version=v2.12&appId=157158478329004&autoLogAppEvents=1';
+                        fjs.parentNode.insertBefore(js, fjs);
+                    }(document, 'script', 'facebook-jssdk'));
+                }, 100)
+            </script>
+            <div class="fb-page" data-href="{$_facebook_page_id}" data-tabs="timeline" data-width="500" data-height="300" data-small-header="false"
+                 data-adapt-container-width="true" data-hide-cover="true" data-show-facepile="true">
+                <blockquote cite="https://www.facebook.com/Webasyst" class="fb-xfbml-parse-ignore"><a href="https://www.facebook.com/Webasyst">Webasyst</a></blockquote>
+            </div>
+</div>
     {/if}
     {*
         <div class="likebox">
