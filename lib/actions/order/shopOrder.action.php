@@ -67,6 +67,14 @@ class shopOrderAction extends waViewAction
         $order_data_array['state'] = $_order['state'];
         $order_data_array['items'] = $order_items;
 
+        // Only show billing address if enabled in checkout settings
+        $billing_address_html = null;
+        $settings = wa('shop')->getConfig()->getCheckoutSettings();
+        $form_fields = ifset($settings['contactinfo']['fields'], array());
+        if (isset($form_fields['address.billing'])) {
+            $billing_address_html = $_order->billing_address_html;
+        }
+
         $this->view->assign(array(
             'tracking'                   => $_order->getTracking('backend'),
             'map'                        => $_order->map,
@@ -91,7 +99,7 @@ class shopOrderAction extends waViewAction
             'count_new'                  => $order_model->getStateCounters('new'),
             'timeout'                    => $config->getOption('orders_update_list'),
             'printable_docs'             => $_order->printforms,
-            'billing_address'            => $_order->billing_address_html,
+            'billing_address'            => $billing_address_html,
             'shipping_address'           => $_order->shipping_address_html,
             'shipping_id'                => ifset($params['shipping_id'], '').'.'.ifset($params['shipping_rate_id'], ''),
             'shipping_date'              => $shipping_date,

@@ -155,7 +155,6 @@ class shopOrder implements ArrayAccess
         'total',
         'tax',
         'unsettled',
-        'comment',
         'shipping_datetime',
         'log',
         'last_action_datetime',
@@ -3183,12 +3182,6 @@ class shopOrder implements ArrayAccess
 
     protected function getAddressFormatted($addr_type, $formatter_type)
     {
-        $settings = wa('shop')->getConfig()->getCheckoutSettings();
-        $form_fields = ifset($settings['contactinfo']['fields'], array());
-        if (!isset($form_fields['address.'.$addr_type])) {
-            return null;
-        }
-
         $address = shopHelper::getOrderAddress($this->params, $addr_type);
 
         if ($formatter_type == 'for_map') {

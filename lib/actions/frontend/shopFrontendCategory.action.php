@@ -488,7 +488,9 @@ class shopFrontendCategoryAction extends shopFrontendAction
 
                         if (($products[$product_id]['sku_id'] != $sku['id'])) {
                             $products[$product_id]['sku_id'] = $sku['id'];
-                            $products[$product_id]['frontend_url'] .= '?sku='.$sku['id'];
+                            if (false === strpos($products[$product_id]['frontend_url'], '?sku=')) {
+                                $products[$product_id]['frontend_url'] .= '?sku='.$sku['id'];
+                            }
                             $products[$product_id]['price'] = shop_currency($sku['price'], $currency, $default_currency, false);
                             $products[$product_id]['frontend_price'] = $sku['price'];
                             $products[$product_id]['unconverted_price'] = shop_currency($sku['unconverted_price'], $currency, $default_currency, false);
