@@ -59,7 +59,7 @@
             {/if}
             {if !empty($m.form)}
                 <div class="wa-form wa-address" {if $m.id != $shipping.id}style="display:none"{/if}>
-                    {$m.form->html()}
+                    {$m.form->html(null, true, true)}
                     {if !empty($checkout_steps.shipping.service_agreement_hint)}
                         <div class="wa-field service-agreement-wrapper">
                             <div class="wa-value">
@@ -76,7 +76,7 @@
         </li>
     {foreachelse}
         <li>
-            <em class="error">[`Oops! We are sorry, but <strong>we can not ship this order to your selected destination</strong>. Checkout can not be completed.`]</em>
+            <em class="error">[`Oops! We are sorry, but <strong>we cannot ship this order to your selected destination</strong>. Checkout cannot be completed.`]</em>
         </li>
     {/foreach}
 </ul>

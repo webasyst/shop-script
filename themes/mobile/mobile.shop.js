@@ -389,58 +389,77 @@ var toggleRefreshIcon = function($button, option ) {
     }
 };
 
-var showSortSelect = function() {
+var CategorySorting = ( function($) {
 
-    var storage = {
-        activeClass: "selected",
-        isShownClass: "is-shown",
-        getWrapper: function() {
-            return $(".sort-list-wrapper");
-        },
-        getSortList: function() {
-            return this.getWrapper().find(".sort-list")
-        },
-        getSortSelect: function() {
-            return this.getWrapper().find(".sort-select")
-        }
+    CategorySorting = function(options) {
+        var that = this;
+
+        // DOM
+        that.$wrapper = options["$wrapper"];
+        that.$sortList = that.$wrapper.find(".sort-list");
+        that.$sortSelect = that.$wrapper.find(".sort-select");
+        that.$filtersW = $("#js-category-filters");
+
+        // VARS
+
+        // DYNAMIC VARS
+        that.xhr = false;
+
+        // INIT
+        that.initClass();
     };
 
-    var initialize = function() {
-        var dataArray = getDataArray();
+    CategorySorting.prototype.initClass = function() {
+        var that = this,
+            dataArray = getDataArray();
 
         if (dataArray.length) {
-            renderSortSelect(dataArray);
+            var $select = that.render(dataArray);
+
+            $select.on("change", function() {
+                var href = $(this).val();
+                if (href) {
+                    that.onChange(href);
+                }
+            });
+        }
+
+        // Adding sort-fields to filter form
+        function onChange(href) {
+
+        }
+
+        function getDataArray() {
+            var $list = that.$sortList,
+                is_selected = false,
+                dataArray = [],
+                $link,
+                href,
+                name;
+
+            $list.find("li").each( function() {
+                is_selected = ( $(this).hasClass("selected") );
+                $link = $(this).find("a");
+                href = $link.attr("href");
+                name = $link.text();
+
+                dataArray.push({
+                    name: name,
+                    href: href,
+                    is_selected: is_selected
+                });
+            });
+
+            return dataArray;
         }
     };
 
-    var getDataArray = function() {
-        var $list =  storage.getSortList(),
-            is_selected = false,
-            dataArray = [],
-            $link,
-            href,
-            name;
+    CategorySorting.prototype.render = function(dataArray) {
+        var that = this;
 
-        $list.find("li").each( function() {
-            is_selected = ( $(this).hasClass(storage.activeClass) );
-            $link = $(this).find("a");
-            href = $link.attr("href");
-            name = $link.text();
-
-            dataArray.push({
-                name: name,
-                href: href,
-                is_selected: is_selected
-            });
-        });
-
-        return dataArray;
-    };
-
-    var renderSortSelect = function( dataArray ) {
         var $select = $("<select class=\"select\" />"),
-            $wrapper = storage.getSortSelect(),
-            $list = storage.getSortList(),
+            $wrapper = that.$sortSelect,
+            $list = that.$sortList,
             option = "";
 
         for (var item in dataArray) {
@@ -456,55 +475,66 @@ var showSortSelect = function() {
         // Render
         $wrapper
             .append($select)
-            .addClass(storage.isShownClass);
+            .addClass("is-shown");
 
         // Remove old list
         $list.remove();
+
+        return $select;
     };
 
-    var bindEvents = function() {
-        var $select = storage.getSortSelect().find("select");
+    CategorySorting.prototype.onChange = function(href) {
+        var that = this,
+            $filtersW = that.$filtersW;
 
-        $select.on("change", function() {
-            var href = $(this).val();
-            if (href) { onChange(href); }
-        });
-    };
+        if ($filtersW.length) {
+            var array = getArray(href),
+                $form = $filtersW.find("form");
 
-    // Adding sort-fields to filter form
-    var onChange = function( href ) {
-        var array = getArray( href),
-            $form = $(".filter-content-wrapper form");
-
-        if (!(array && array.length)) {
-            array = [
-                { name: "sort", value: "" },
-                { name: "order", value: "" }
-            ];
-        }
-
-        for (var i = 0; i < array.length; i++) {
-            var $hidden_input = $form.find("input[name=\"" + array[i].name + "\"] ");
-
-            if ($hidden_input.length) {
-                $hidden_input.val(array[i].value);
-
-            } else {
-                $hidden_input = $("<input type=\"hidden\" />");
-                $hidden_input.attr("name",array[i].name);
-                $hidden_input.val(array[i].value);
-                $form.append($hidden_input);
+            if (!array.length) {
+                array = [
+                    { name: "sort", value: "" },
+                    { name: "order", value: "" }
+                ];
             }
+
+            $.each(array, function(index, item) {
+                var $hidden_input = $form.find("input[name=\"" + item.name + "\"] ");
+
+                if ($hidden_input.length) {
+                    $hidden_input.val(item.value);
+
+                } else {
+                    $hidden_input = $("<input type=\"hidden\" />");
+                    $hidden_input.attr("name",item.name);
+                    $hidden_input.val(item.value);
+                    $form.append($hidden_input);
+                }
+            });
+
+            $form.trigger("submit");
+
+        } else {
+            var $category = $("#s-category-wrapper").addClass("is-loading");
+
+            if (that.xhr) { that.xhr.abort(); }
+
+            that.xhr = $.get(href, function(html) {
+                changeHistory(href);
+
+                // Insert new html
+                if ($category.length) {
+                    $category.replaceWith(html);
+                }
+            }).always( function() {
+                that.xhr = false;
+            });
         }
 
-        $form.trigger("submit");
-    };
-
-    // Parse href to Obj name->value
-    var getArray = function( href ) {
-        if (href.indexOf("&") + 1) {
-            var array = href.replace("?","").split("&"),
-                params = [];
+        // Parse href to Obj name->value
+        function getArray(href) {
+            var result = [],
+                array = href.replace("?","").split("&");
 
             // Sort Params
             for (var i = 0; i < array.length; i++) {
@@ -513,25 +543,28 @@ var showSortSelect = function() {
                     name = sub_array[0],
                     value = sub_array[1];
 
-                if (name == "sort" || name == "order" ) {
-                    params.push({
+                if (name === "sort" || name === "order" ) {
+                    result.push({
                         name: name,
                         value: value
                     });
                 }
             }
-            return params;
+
+            return result;
+        }
+
+        function changeHistory(href) {
+            var api_is_enabled = (history && history.pushState);
+            if (api_is_enabled) {
+                history.pushState({}, '', href);
+            }
         }
     };
 
-    $(document).ready( function() {
-        //
-        initialize();
-        //
-        bindEvents();
-    });
+    return CategorySorting;
 
-};
+})(jQuery);
 
 // Update Cart Counter at Site Header
 var updateHeaderCartCount = function( request ) {

@@ -15,7 +15,7 @@
 
     <!-- FILTERS -->
     {if !empty($filters)}
-        {if waRequest::isXMLHttpRequest() && waRequest::get('page', 1) == 1}
+        {if !waRequest::isXMLHttpRequest()}
             <link href="{$wa_static_url}wa-content/css/jquery-ui/base/jquery.ui.slider.css" rel="stylesheet" type="text/css">
             <script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.core.min.js?v{$wa->version(true)}"></script>
             <script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.widget.min.js?v{$wa->version(true)}"></script>
@@ -23,7 +23,7 @@
             <script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js?v{$wa->version(true)}"></script>
         {/if}
 
-        <div class="catalog-filter-wrapper" id="s-category-filters">
+        <div class="catalog-filter-wrapper" id="js-category-filters">
             <div class="show-link-wrapper">
                 <a class="show-filter-content-link" href="javascript:void(0);" data-show-text="[`Hide Filters`]" data-hide-text="[`Show Filters`]">[`Show Filters`]</a>
             </div>
@@ -92,7 +92,7 @@
             <script>
                 ( function($) {
                     new ProductsFilter({
-                        $wrapper: $("#s-category-filters")
+                        $wrapper: $("#js-category-filters")
                     });
                 })(jQuery);
             </script>

@@ -13,7 +13,7 @@
         {$active_sort = $wa->get('sort', 'create_datetime')}
     {/if}
 
-    <div class="sort-list-wrapper">
+    <div class="sort-list-wrapper" id="js-category-sorting">
         <div class="header-item">[`Sort by`]:</div>
         <ul class="sort-list">
             {if !empty($category) && !$category.sort_products}
@@ -28,6 +28,10 @@
     </div>
 
     <script>
-        if (typeof showSortSelect === "function") { showSortSelect(); }
+        ( function($) {
+            new CategorySorting({
+                $wrapper: $("#js-category-sorting")
+            });
+        })(jQuery);
     </script>
 {/if}

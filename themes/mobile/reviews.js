@@ -142,15 +142,14 @@
             if (provider_name == current_provider) {
                 $(".provider-fields").hide();
                 $(".provider-fields[data-provider='+provider_name+']").show();
-
             }
 
             showCaptcha();
 
             // Set input
-            $form.find('input[name=auth_provider]').val(provider);
+            $form.find('input[name=auth_provider]').val(provider_name);
 
-            window.open( $(this).attr('href'), "oauth");
+            window.open( $link.attr('href'), "oauth");
         }
     };
 
