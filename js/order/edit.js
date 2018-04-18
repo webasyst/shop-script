@@ -372,7 +372,7 @@ $.order_edit = {
              * handle only related changes
              */
             $.shop.trace('#shipping-custom change', [e, this]);
-            if (e.originalEvent && $(this).data('affects-rate')) {
+            if ($(this).data('affects-rate')) {
                 $.order_edit.updateTotal();
             }
         });
