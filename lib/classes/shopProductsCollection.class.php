@@ -1029,6 +1029,9 @@ SQL;
         // 'skus_filtered' require additional data if joined with product_skus table
         if (in_array('skus_filtered', $split_fields) && isset($this->join_index['ps'])) {
             $this->fields['skus_filtered'] = "GROUP_CONCAT(DISTINCT ps1.id) AS sku_ids";
+            if (empty($this->group_by)) {
+                $this->group_by = 'p.id';
+            }
         }
 
         $model = $this->getModel();
@@ -1963,11 +1966,22 @@ SQL;
                         $product['price'] = min($prices);
                     }
 
-                    // Show full url for product (product+sku)
-                    // if set up in settlement parameters
-                    if ($this->is_frontend && !empty($product['frontend_url']) && waRequest::param('url_sku_visible')) {
-                        if ($product['price'] != ifset($product, 'skus', $product['sku_id'], 'primary_price', 0)) {
-                            $product['frontend_url'] .= '?sku='.array_search($product['price'], $prices);
+                    // Replace price and compare_price of a product in case chosen price
+                    // does not match price of main SKU of the product
+                    if (empty($product['sku_id']) || $product['price'] != ifset($product, 'skus', $product['sku_id'], 'primary_price', 0)) {
+                        // Replace compare_price
+                        $sku_id = array_search($product['price'], $prices);
+                        if (!empty($product['currency'])) {
+                            $sku = ifset($product, 'skus', $sku_id, null);
+                            if ($sku && array_key_exists('compare_price', $sku)) {
+                                $product['compare_price'] = shop_currency($sku['compare_price'], $product['currency'], $default_currency, false);
+                            }
+                        }
+
+                        // Show full url for product (product+sku)
+                        // if set up in settlement parameters
+                        if ($this->is_frontend && !empty($product['frontend_url']) && waRequest::param('url_sku_visible')) {
+                            $product['frontend_url'] .= '?sku='.$sku_id;
                         }
                     }
                 }
