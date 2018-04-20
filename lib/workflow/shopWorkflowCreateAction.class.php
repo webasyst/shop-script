@@ -308,7 +308,6 @@ class shopWorkflowCreateAction extends shopWorkflowAction
 
     public static function getItemSubstockId($ordered_quantity, $sku_stock, $substocks)
     {
-        //wa_dump($ordered_quantity, $sku_stock, $substocks);
         $candidates = array();
         foreach ($substocks as $substock_id) {
             if (!isset($sku_stock[$substock_id]) || $sku_stock[$substock_id] >= $ordered_quantity) {

@@ -743,11 +743,6 @@ $.order_edit = {
 
         var shipping_id = $('#shipping_methods').val();
 
-        //If shipping methods not selected, use first method. See 92.5368 task.
-        if (!shipping_id) {
-            shipping_id = $('#shipping_methods option').eq(1).val()
-        }
-
         //Send the cost of delivery of entered by hands
         if ($('#shipping-rate').data('shipping')) {
             data.shipping = $('#shipping-rate').data('shipping');
@@ -780,6 +775,8 @@ $.order_edit = {
 
                         //clear shipping data.
                         el.empty();
+                        el.prepend('<option value=""></option>');
+
                         $('#shipping-custom').empty();
 
                         var shipping_method_ids = response.data.shipping_method_ids;
@@ -837,23 +834,29 @@ $.order_edit = {
                                 }
                             }
 
-                            // unexact match, but close
+                            //If the selected id is not in the server's response, then find the delivery that starts with the same id, select its value and recount
                             if (!found) {
                                 var ship_id_parts = ('' + ship_id).split('.');
                                 var el_selected_parts = el_selected.split('.');
-                                if (ship_id_parts[0] !== undefined && el_selected_parts[0] !== undefined &&
-                                    ship_id_parts[0] == el_selected_parts[0]) {
-                                    found = true;
-                                    el_selected = ship_id;
+
+                                //if user did not choose delivery, no need to change anything. Or user turn off delivery
+                                if (el_selected_parts[0] !== '') {
+                                    //Search delivery by ID. If found - select first delivery option, and recalculate delivery value.
+                                    if (ship_id_parts[0] !== undefined && el_selected_parts[0] !== undefined &&
+                                        ship_id_parts[0] == el_selected_parts[0]) {
+                                        el_selected = ship_id;
+                                        el.val(el_selected);
+                                        $.order_edit.realUpdateTotal();
+                                        return;
+                                    }
                                 }
                             }
                         }
 
-                        if (found) {
-                            el.val(el_selected);
-                            el.data('_shipping_id', el_selected_id);
-                            $.shop.trace('set shipping_methods id', [el_selected_id, el_selected]);
-                        }
+                        el.val(el_selected);
+                        el.data('_shipping_id', el_selected_id);
+                        $.shop.trace('set shipping_methods id', [el_selected_id, el_selected]);
+
                     }
 
                     //If user deleted discount value, don't need set zero discount value

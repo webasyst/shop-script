@@ -15,7 +15,7 @@
  * @property-read string $update_datetime   Last order update
  * @property-read string $state_id          Order workflow state id, see Settings - Order states.
  * @property-read double $total             Order total in order currency
- * @property-read string $currency          ISO3 code - all prices here and in order items use this currency
+ * @property string $currency               ISO3 code - all prices here and in order items use this currency. Note that currency of existing order can not be changed.
  * @property-read double $rate              Order currency rate relative to default shop currency, as used to be when order were created
  * @property-read double $tax               Total order tax in order currency.
  * @property double $shipping               Total order shipping cost in order currency.
@@ -27,7 +27,7 @@
  * @property-read string $paid_month        Part of paid_date used for stats.
  * @property-read bool $is_first            `true` if this order is the first paid order of a customer
  * @property-read bool $unsettled           `true` if this order is unsettled (Created via payment callback and the order was not matched with the existing one)
- * @property-read string $comment           Text left by a customer during checkout
+ * @property string $comment                Text left by a customer during checkout
  * @property-read datetime $shipping_datetime Estimated shipping datetime as may be set by store admin using "Edit shipping details" order action.
  *
  * @property array[] $items                 Order items
@@ -66,7 +66,8 @@
  * # meta fields related to shipping
  * @property string[] $shipping_address       Customer shipping address as saved in order params. [address_subfield_id => string]
  * @property-read waShipping $shipping_plugin       Shipping plugin instance if selected
- * @property-read string $shipping_address_text     Customer shipping address as human-readable text
+ * @property-read string $shipping_address_text     Customer shipping address as human-readable text in one line
+ * @property-read string $shipping_address_html     Customer shipping address as human-readable text with beautiful html-format
  * @property-read string $tracking                  HTML, contains tracking info or null if it not available
  * @property-read array $courier                    Courier data from shop_api_courier table
  * @property-read string $map                       HTML contains data to display map
@@ -145,7 +146,6 @@ class shopOrder implements ArrayAccess
         'create_datetime',
         'update_datetime',
         'state_id',
-        'currency',
         'rate',
         'paid_year',
         'paid_quarter',
@@ -303,7 +303,7 @@ class shopOrder implements ArrayAccess
                     }
                 }
 
-                foreach (self::$readonly_fields as $field) {
+                foreach ($this->readOnlyFields() as $field) {
                     if (isset($this->original_data[$field])) {
                         $data[$field] = $this->original_data[$field];
                     }
@@ -457,7 +457,7 @@ class shopOrder implements ArrayAccess
      */
     public function setData($name, $value)
     {
-        if (!in_array($name, self::$readonly_fields)) {
+        if (!in_array($name, $this->readOnlyFields())) {
             $parse_method = self::camelMethod('parse%s', $name);
 
             $is_changed = null;
@@ -627,7 +627,9 @@ class shopOrder implements ArrayAccess
     /** @return string ISO3 code */
     protected function getCurrency()
     {
-        if (!isset($this->data['currency'])) {
+        if (!empty($this->original_data['currency'])) {
+            return $this->original_data['currency'];
+        } else if (!isset($this->data['currency'])) {
             return $this->config->getCurrency();
         } else {
             return $this->data['currency'];
@@ -1268,6 +1270,7 @@ class shopOrder implements ArrayAccess
                 try {
                     $c = $this->contact;
                     if ($this->shipping_address) {
+                        $c = clone $this->contact;
                         $c['address.shipping'] = $this->shipping_address;
                     }
                     $form = shopHelper::getCustomerForm($c);
@@ -1280,6 +1283,7 @@ class shopOrder implements ArrayAccess
                 try {
                     $c = $this->contact;
                     if ($this->shipping_address) {
+                        $c = clone $this->contact;
                         $c['address.shipping'] = $this->shipping_address;
                     }
                     $form = shopHelper::getCustomerForm($c);
@@ -1400,10 +1404,10 @@ class shopOrder implements ArrayAccess
                     continue;
                 }
                 if ($fld_id == 'address.shipping') {
-                    $this->saveContactAddress($this->contact, $this->data['params'], 'shipping', $fld_data);
+                    $this->saveContactAddress($this->contact, 'shipping', $fld_data);
                     continue;
                 } elseif ($fld_id == 'address.billing') {
-                    $this->saveContactAddress($this->contact, $this->data['params'], 'billing', $fld_data);
+                    $this->saveContactAddress($this->contact, 'billing', $fld_data);
                     continue;
                 }
                 if (is_array($fld_data) && !empty($fld_data[0])) {
@@ -1444,7 +1448,7 @@ class shopOrder implements ArrayAccess
         }
     }
 
-    protected function saveContactAddress(waContact $contact, $params, $ext, $new_address)
+    protected function saveContactAddress(waContact $contact, $ext, $new_address)
     {
         // Save address to order.
         // Save address to customer in case old address in order still matches customer's address.
@@ -1452,12 +1456,12 @@ class shopOrder implements ArrayAccess
         // Order address editor ignores all addresses except the first one.
         // This is paranoid check. There should be only one address, and no $new_address[0] key
         if (isset($new_address[0])) {
-            return $this->saveContactAddress($contact, $params, $ext, $new_address[0]);
+            return $this->saveContactAddress($contact, $ext, $new_address[0]);
         }
 
         if ($ext == 'shipping') {
             $this->shipping_address = $new_address;
-        } else if ($ext == 'billing') {
+        } elseif ($ext == 'billing') {
             $this->billing_address = $new_address;
         } else {
             throw new waException('Unknown address type '.$ext); // this can not happen
@@ -1466,16 +1470,27 @@ class shopOrder implements ArrayAccess
         // In case old address in order matches one of old customer's addresses,
         // we should update customer's address that matches.
         // Otherwise we add address as the new one (first in list)
-        $old_order_address = shopHelper::getOrderAddress($params, $ext);
+
+        // This is address from original order data (before save, as in DB)
+        $old_order_address = shopHelper::getOrderAddress($this->original_data['params'], $ext);
+
+        // This is a list of all addresses saved in contact. [ i => array( data => array, ext => string ) ]
         $customer_addresses = $contact['address'];
+
+        // This is a list of all addresses with ext matching $ext
         $old_customer_addresses_ext = array_filter($customer_addresses, wa_lambda('$a', 'return $a["ext"] == '.var_export($ext, 1).';'));
+
+        // Look for $old_order_address in $old_customer_addresses_ext
         $match_index = $this->findAddressInList($old_order_address, $old_customer_addresses_ext);
+
         if ($match_index !== null) {
+            // In case we found address in contact, we replace it
             $customer_addresses[$match_index] = array(
                 'data' => $new_address,
                 'ext' => $ext,
             );
         } else {
+            // ...otherwise we add it as a new one
             array_unshift($customer_addresses, array(
                 'data' => $new_address,
                 'ext' => $ext,
@@ -2585,16 +2600,19 @@ class shopOrder implements ArrayAccess
             switch ($item['type']) {
                 case 'product':
                     $item = $product_item = $this->extendProductItem($item, $product);
+                    if (empty($item['id'])) {
+                        $item['purchase_price'] = shop_currency($item['purchase_price'], $product['currency'], $this->currency, false);
+                    }
                     break;
                 case 'service':
                     $item = $this->extendServiceItem($item, $product_item, $product);
                     $item['_parent_index'] = $product_item['_index'];
+                    $item['purchase_price']=0;
                     break;
             }
 
             # round to currency precision
             $item['price'] = shop_currency($item['price'], $this->currency, $this->currency, false);
-            $item['purchase_price'] = shop_currency($item['purchase_price'], $this->currency, $this->currency, false);
             $item['total_discount'] = 0;
 
             unset($item);
@@ -3541,10 +3559,10 @@ HTML;
     {
         switch ($format) {
             case 'float':
-                $value = max(0.0, floatval($value));
+                $value = max(0.0, floatval(str_replace(',', '.', $value)));
                 break;
             case 'float|null':
-                $value = ($value !== null) ? max(0.0, floatval($value)) : null;
+                $value = ($value !== null) ? max(0.0, floatval(str_replace(',', '.', $value))) : null;
                 break;
             case 'int':
                 $value = max(0, intval($value));
@@ -3567,5 +3585,15 @@ HTML;
         }
 
         return $model->getByField(compact('id', 'type'));
+    }
+
+    private function readOnlyFields()
+    {
+        $result = self::$readonly_fields;
+        $result[] = 'id';
+        if (!empty($this->original_data['id'])) {
+             $result[] = 'currency';
+        }
+        return $result;
     }
 }

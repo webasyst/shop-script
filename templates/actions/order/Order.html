@@ -117,7 +117,7 @@
                         <h3><span class="gray">[`Shipping`]{if !empty($params.shipping_name)} —{/if}</span> <strong>{ifset($params.shipping_name)}</strong></h3>
                         {if $shipping_address}
                             <p class="s-order-address">
-                                {$shipping_address_text}
+                                {$shipping_address_html}
                             </p>
                             {if !empty($custom_fields)}
                                 <p class="s-order-shipping-custom-fields">

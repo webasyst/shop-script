@@ -107,38 +107,44 @@ class shopProductsCollection
                 }
                 $model = $this->getModel();
 
+
                 // Ordering by price is tricky!
                 // We must not order by price of a SKU that is excluded after filtering.
                 // When skus table is joined, we can't just order by shop_product.price.
                 // We use actual SKU price for ordering instead.
-                if (waRequest::get('sort') == 'price' && isset($this->join_index['ps'])) {
+                if ($sort == 'price' && isset($this->join_index['ps'])) {
                     // User wants to see the lowest of all SKU prices
                     // in all cases except when ordering by price, greatest first.
-                    if (waRequest::get('order') == 'desc') {
+                    if ($order == 'DESC') {
                         $this->fields['order_by'] = 'MAX(ps1.price) AS sku_price';
                         $this->order_by = 'sku_price DESC';
                     } else {
                         $this->fields['order_by'] = 'MIN(ps1.price) AS sku_price';
                         $this->order_by = 'sku_price ASC';
                     }
-                } else if ($sort == 'stock_worth') {
+                } elseif ($sort == 'stock_worth') {
+
                     $this->fields['order_by'] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
                     $this->order_by = 'stock_worth '.$order;
                 } else {
                     $order_by = array();
+                    $fields = array();
                     foreach ((array)$sort as $_id => $_sort) {
                         $_sort = trim((string)$_sort);
                         if ($model->fieldExists($_sort)) {
                             $order_by[$_id] = 'p.'.$_sort;
                             $order_by[$_id] .= ' '.$order;
                             if ($_sort == 'count') {
-                                $this->fields['order_by'] = 'IF(p.count IS NULL, 1, 0) count_null';
+                                $fields[$_id] = 'IF(p.count IS NULL, 1, 0) count_null';
                                 $order_by[$_id] = 'count_null '.$order.', '.$order_by[$_id];
                             }
                         }
                     }
                     if ($order_by) {
                         $this->order_by = implode(', ', $order_by);
+                    }
+                    if ($fields) {
+                        $this->fields['order_by'] = implode(', ', $fields);
                     }
                 }
                 //#
@@ -222,6 +228,7 @@ class shopProductsCollection
         } else {
             $this->join_index[$alias]++;
         }
+
         $this->fields['order_by'] = $alias.'.orders_count';
         $this->order_by = $alias.'.orders_count DESC';
     }
@@ -435,9 +442,11 @@ SQL;
                     $tmp[1] = 'DESC';
                 }
                 if ($tmp[0] == 'count') {
+
                     $this->fields['order_by'] = 'IF(p.count IS NULL, 1, 0) count_null';
                     $this->order_by = 'count_null '.$tmp[1].', p.count '.$tmp[1];
                 } elseif ($tmp[0] == 'stock_worth') {
+
                     $this->fields['order_by'] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
                     $this->order_by = 'stock_worth '.$tmp[1];
                 } else {
@@ -858,14 +867,19 @@ SQL;
                                 'alias' => 'si'
                             );
                             $this->where[] = 'si.word_id IN ('.implode(",", $word_ids).')';
-                            if (count($word_ids) > 1) {
-                                $this->fields['order_by'] = "SUM(si.weight) AS weight";
-                                $this->fields['order_by2'] = "COUNT(*) AS weight_count";
-                                $this->order_by = 'weight_count DESC, weight DESC';
+
+                            if (empty($this->fields['order_by'])) {
+                                if (count($word_ids) > 1) {
+                                    $this->fields['order_by'] = "SUM(si.weight) AS weight";
+                                    $this->fields['order_by_2'] = "COUNT(*) AS weight_count";
+                                    $this->order_by = 'weight_count DESC, weight DESC';
+                                    $this->group_by = 'p.id';
+                                } else {
+                                    $this->fields['order_by'] = "si.weight";
+                                    $this->order_by = 'si.weight DESC';
+                                }
+                            } elseif (count($word_ids) > 1) {
                                 $this->group_by = 'p.id';
-                            } else {
-                                $this->fields['order_by'] = "si.weight";
-                                $this->order_by = 'si.weight DESC';
                             }
                         } elseif ($parts[2]) {
                             $this->where[] = '0';
@@ -1441,7 +1455,9 @@ SQL;
         $frontend_currency = null;
         if ($this->is_frontend) {
             $frontend_currency = $config->getCurrency(false);
-            !empty($this->options['round_prices']) && shopRounding::roundProducts($products);
+            if (!empty($this->options['round_prices'])) {
+                shopRounding::roundProducts($products);
+            }
         }
         $rounding = array(
             'price',
@@ -1634,6 +1650,10 @@ SQL;
                         $skus = $skus_model->getByField('id', $sku_ids, 'id');
                     } else {
                         $skus = $skus_model->getByField('product_id', array_keys($products), 'id');
+                    }
+
+                    if ($this->is_frontend && !empty($this->options['round_prices'])) {
+                        shopRounding::roundSkus($skus, $products);
                     }
 
                     foreach ($skus as &$sku) {
@@ -1904,11 +1924,61 @@ SQL;
                     $products[$p_id]['count'] = $this->countOfSelectedStocks($public_stocks, ifempty($stock_counts[$p_id]));
                 }
             }
+        }
 
-            $event_params = array(
-                'products' => &$products
-            );
-            wa('shop')->event('frontend_products', $event_params);
+        // Replace product price with SKU price. This may be used when
+        // some SKUs are filtered out by collection conditions.
+        if (!empty($this->options['overwrite_product_prices'])) {
+            foreach ($products as &$product) {
+                if (empty($product['skus'])) {
+                    continue;
+                }
+
+                // sku_id => sku price in primary currency
+                $prices = array();
+                // sku_id => sku price in primary currency (only for SKUs that are available for order)
+                $available_sku_prices = array();
+                foreach ($product['skus'] as $id => $sku) {
+                    $prices[$id] = $sku['primary_price'];
+                    if ($sku['available'] && ($sku['count'] === null || $sku['count'] > 0)) {
+                        $available_sku_prices[$id] = $sku['primary_price'];
+                    }
+                }
+
+                // Use price of available SKU if there are any
+                if ($available_sku_prices) {
+                    $prices = $available_sku_prices;
+                }
+
+                // Make product count reflect SKU count if customer can not buy more than there is in the stock
+                if (!$available_sku_prices && !wa('shop')->getSetting('ignore_stock_count')) {
+                    $product['count'] = 0;
+                }
+
+                // Replace product price with SKU price.
+                if ($prices) {
+                    if (waRequest::get('sort') == 'price' && waRequest::get('order') == 'desc') {
+                        $product['price'] = max($prices);
+                    } else {
+                        $product['price'] = min($prices);
+                    }
+
+                    // Show full url for product (product+sku)
+                    // if set up in settlement parameters
+                    if ($this->is_frontend && !empty($product['frontend_url']) && waRequest::param('url_sku_visible')) {
+                        if ($product['price'] != ifset($product, 'skus', $product['sku_id'], 'primary_price', 0)) {
+                            $product['frontend_url'] .= '?sku='.array_search($product['price'], $prices);
+                        }
+                    }
+                }
+            }
+            unset($product);
+        }
+
+        if ($this->is_frontend) {
+            wa('shop')->event('frontend_products', ref(array(
+                'products' => &$products,
+            )));
         }
     }
 

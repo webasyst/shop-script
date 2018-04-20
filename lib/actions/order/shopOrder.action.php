@@ -78,7 +78,7 @@ class shopOrderAction extends waViewAction
         $this->view->assign(array(
             'tracking'                   => $_order->getTracking('backend'),
             'map'                        => $_order->map,
-            'shipping_address_text'      => $_order->shipping_address_text,
+            'shipping_address_html'      => $_order->shipping_address_html,
             'customer'                   => $_order->shop_customer,
             'customer_contact'           => $_order->contact,
             'customer_essentials'        => $_order->contact_essentials,

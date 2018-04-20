@@ -43,10 +43,10 @@ class shopOrderEditAction extends waViewAction
         
         //Calculate total items discount
         $items_total_discount = null;
-        $item_discount = $order->items_discount;
+        $item_discount = $order->items;
         if (!empty($item_discount)) {
             foreach ($item_discount as $item) {
-                $items_total_discount += (int) $item['value'];
+                $items_total_discount += (int) $item['total_discount'];
             }
         }
 
