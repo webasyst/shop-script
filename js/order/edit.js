@@ -767,11 +767,11 @@ $.order_edit = {
             "data": data,
             "success": function (response) {
                 if (response.status === 'ok') {
+                    var $shipping_rate = $('#shipping-rate');
                     if (response.data.shipping_method_ids.length > 0) {
                         var el = $("#shipping_methods"),
                             el_selected = el.val(),
-                            el_selected_id = el_selected.replace(/\W.+$/, ''),
-                            $shipping_rate = $('#shipping-rate');
+                            el_selected_id = el_selected.replace(/\W.+$/, '');
 
                         //clear shipping data.
                         el.empty();
