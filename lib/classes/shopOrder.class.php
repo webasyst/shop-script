@@ -667,7 +667,7 @@ class shopOrder implements ArrayAccess
                 }
             } else {
                 $i['price'] = $this->formatValue($i['price'], 'float');
-                $i['quantity'] = $this->formatValue($i['price'], 'int');
+                $i['quantity'] = $this->formatValue($i['quantity'], 'int');
             }
             $subtotal += $i['price']*$i['quantity'];
         }
