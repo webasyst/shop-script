@@ -360,6 +360,7 @@ $.extend($.settings || {}, {
             };
 
             changeListener(function () {
+                $('#s-settings-order-states-submit').removeClass('green').addClass('yellow');
                 ($(this).is(':radio') ? updatePreviewRadio : updatePreview).call(this);
             });
 

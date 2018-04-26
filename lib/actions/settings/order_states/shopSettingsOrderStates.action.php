@@ -8,10 +8,12 @@ class shopSettingsOrderStatesAction extends waViewAction
     {
         $id = $this->getId();
 
+        //If create new State temporarily save the user's settings to send to the template.
         if (waRequest::post()) {
             if ($id === 'new_state') {
                 $_POST['name'] = uniqid('new_status_');
             }
+            //This shopSettingsOrderStateSave.controller. Save old config to $this->config.
             $this->savePreview();
             if ($id === 'new_state') {
                 $config = shopWorkflow::getConfig();
@@ -20,6 +22,7 @@ class shopSettingsOrderStatesAction extends waViewAction
             }
         }
 
+        //Get data with new state
         $workflow = new shopWorkflow();
         $states = $workflow->getAllStates();
         $actions = $workflow->getAvailableActions();
@@ -29,6 +32,7 @@ class shopSettingsOrderStatesAction extends waViewAction
 
         $buttons = $this->getButtons($actions, $info);
 
+        //Assign temporary data
         $this->view->assign(array(
             'edit_actions_map' => $this->getEditActionsMap(),
             'states'  => $states,
@@ -39,6 +43,8 @@ class shopSettingsOrderStatesAction extends waViewAction
             'buttons' => $buttons
         ));
 
+        //Restore workflow config from $this->config.
+        //Because if the user wants to save a new state, the request will go to the shopSettingsOrderStateSave.controller directly ¯\_(ツ)_/¯
         if (waRequest::post()) {
             $this->restoreConfig();
         }

@@ -58,7 +58,7 @@ class shopFrontendAction extends waViewAction
         $collection->setOptions(array(
             'overwrite_product_prices' => true,
         ));
-        $products = $collection->getProducts('*,skus_filtered', $offset, $limit);
+        $products = $collection->getProducts('*,skus_filtered,skus_image', $offset, $limit);
 
         $count = $collection->count();
 

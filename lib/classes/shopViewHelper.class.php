@@ -51,7 +51,7 @@ class shopViewHelper extends waAppViewHelper
             $offset = 0;
             $limit = 500;
         }
-        return $collection->getProducts('*', $offset, $limit, true);
+        return $collection->getProducts(ifset($options, 'fields', '*'), $offset, $limit, true);
     }
 
     public function productsCount($hash = '')
@@ -193,16 +193,16 @@ class shopViewHelper extends waAppViewHelper
         }
         if ($selectable_product_ids) {
             $sql = <<<SQL
-SELECT pf.* 
+SELECT pf.*
 FROM shop_product_features pf
-JOIN shop_product_features_selectable pfs 
-ON 
-  (pf.product_id = pfs.product_id) 
-  AND 
+JOIN shop_product_features_selectable pfs
+ON
+  (pf.product_id = pfs.product_id)
+  AND
   (pf.feature_id = pfs.feature_id)
-WHERE 
-  pf.sku_id IS NOT NULL 
-  AND 
+WHERE
+  pf.sku_id IS NOT NULL
+  AND
   pf.product_id IN (i:ids)
 SQL;
             $rows = array_merge($rows, $product_features_model->query($sql, array('ids' => $selectable_product_ids))->fetchAll());

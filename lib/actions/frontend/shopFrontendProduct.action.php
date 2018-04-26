@@ -29,6 +29,7 @@ class shopFrontendProductAction extends shopFrontendAction
                 $s = $product->skus[$product['sku_id']];
                 if ($s['image_id'] && isset($product->images[$s['image_id']])) {
                     $product['image_id'] = $s['image_id'];
+                    $product['image_filename'] = $product->images[$s['image_id']]['filename'];
                     $product['ext'] = $product->images[$s['image_id']]['ext'];
                 }
             }

@@ -8,6 +8,7 @@ class shopProductsCollection
     protected $options = array();
     protected $prepared = false;
     protected $filtered = false;
+    protected $filtered_by_features = array();
     protected $title;
 
     protected $fields = array();
@@ -110,18 +111,17 @@ class shopProductsCollection
 
                 // Ordering by price is tricky!
                 // We must not order by price of a SKU that is excluded after filtering.
-                // When skus table is joined, we can't just order by shop_product.price.
+                // When skus table is joined, we can't just order by shop_product.price
                 // We use actual SKU price for ordering instead.
                 if ($sort == 'price' && isset($this->join_index['ps'])) {
-                    // User wants to see the lowest of all SKU prices
-                    // in all cases except when ordering by price, greatest first.
-                    if ($order == 'DESC') {
-                        $this->fields['order_by'] = 'MAX(ps1.price) AS sku_price';
-                        $this->order_by = 'sku_price DESC';
-                    } else {
-                        $this->fields['order_by'] = 'MIN(ps1.price) AS sku_price';
-                        $this->order_by = 'sku_price ASC';
-                    }
+
+                    // We use main SKU price if it's not filtered out;
+                    // otherwise min of all remaining SKU prices.
+                    $sku_price = 'MIN(ps1.primary_price)';
+                    $main_sku_price = 'MAX(IF(ps1.id=p.id, ps1.primary_price, -1))';
+                    $main_sku_exists = '-1 < '.$main_sku_price;
+                    $this->order_by = "IF($main_sku_exists, $main_sku_price, $sku_price) $order";
+
                 } elseif ($sort == 'stock_worth') {
 
                     $this->fields['order_by'] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
@@ -273,8 +273,8 @@ class shopProductsCollection
             $this->where[] = 'p.count <= 0';
         }
 
+        // Filter SKUs by price
         $price_filter = array();
-
         if (isset($data['price_min']) && $data['price_min'] !== '') {
             $price_min = str_replace(',','.',$data['price_min']);
             $this->where[] = 'p.max_price >= '.$this->toFloat(shop_currency($price_min, true, $config->getCurrency(true), false));
@@ -285,6 +285,13 @@ class shopProductsCollection
             $this->where[] = 'p.min_price <= '.$this->toFloat(shop_currency($price_max, true, $config->getCurrency(true), false));
             $price_filter['price_max'] = ' <='.$this->toFloat(shop_currency($price_max, true, $config->getCurrency(true), false));
         }
+        if (!empty($price_filter)) {
+            $skus_alias = $this->addJoin('shop_product_skus', ':table.product_id = p.id', ':table.available > 0');
+            foreach ($price_filter as $price_filter_item) {
+                $this->addWhere("({$skus_alias}.primary_price {$price_filter_item})");
+            }
+        }
+
         unset(
             $data['in_stock_only'],
             $data['out_of_stock_only'],
@@ -296,12 +303,16 @@ class shopProductsCollection
         $features = $feature_model->getByField('code', array_keys($data), 'code');
 
         if ($features && $this->getModel('product')->existsSelectableProducts()) {
-            $skus_alias = $this->addJoin('shop_product_skus', ':table.product_id = p.id', ':table.available > 0');
-            if (waRequest::param('drop_out_of_stock') == 2) {
-                $this->addWhere('('.$skus_alias.'.count IS NULL OR '.$skus_alias.'.count > 0)');
+            if (empty($skus_alias)) {
+                $skus_alias = $this->addJoin('shop_product_skus', ':table.product_id = p.id', ':table.available > 0');
             }
         }
+        if (!empty($skus_alias) && waRequest::param('drop_out_of_stock') == 2) {
+            $this->addWhere('('.$skus_alias.'.count IS NULL OR '.$skus_alias.'.count > 0)');
+        }
+
         $alias_index = 1;
+        //$this->filtered_by_features = array(); // should not reset conditions added by search (that is, by dynamic category built-in filter)
         foreach ($data as $feature_code => $values) {
             if (!is_array($values)) {
                 if ($values === '') {
@@ -363,6 +374,7 @@ EXISTS (
 SQL;
 
                     } else {
+                        $this->filtered_by_features[$feature_id] = $values;
                         $on = 'p.id = :table.product_id AND :table.feature_id = '.$feature_id;
                         $where = ':table.feature_value_id IN ('.$imploded_values.')';
                         if (!empty($skus_alias)) {
@@ -372,12 +384,6 @@ SQL;
                         $this->addJoin('shop_product_features', $on, $where);
                     }
                     $this->group_by = 'p.id';
-                    if (!empty($skus_alias) && !empty($price_filter)) {
-                        // #53.4890
-                        foreach ($price_filter as $price_filter_item) {
-                            $this->addWhere("({$skus_alias}.primary_price {$price_filter_item})");
-                        }
-                    }
                 } else {
                     $this->where[] = '0';
                 }
@@ -958,6 +964,7 @@ SQL;
                             $value_id = $values_model->getValueId($f['id'], $parts[2]);
                         }
                         $this->addJoin('shop_product_features', null, ':table.feature_id = '.$f['id'].' AND :table.feature_value_id = '.(int)$value_id);
+                        $this->filtered_by_features[$f['id']] = array($value_id);
                         $this->group_by = 'p.id';
                     }
                 }
@@ -1053,7 +1060,7 @@ SQL;
         $virtual_fields = array(
             'images', 'images2x', 'image', 'image_crop_small', 'image_count',
             'frontend_url', 'sales_30days', 'stock_worth', 'stock_counts',
-            'sku', 'skus_filtered', 'skus',
+            'sku', 'skus_filtered', 'skus', 'skus_image',
         );
         // Add required fields to select and delete fields for getting data after query
         foreach ($fields as $i => $f) {
@@ -1648,6 +1655,7 @@ SQL;
                         }
                     }
 
+                    // Fetch SKUs
                     $skus_model = new shopProductSkusModel();
                     if ($sku_ids) {
                         $skus = $skus_model->getByField('id', $sku_ids, 'id');
@@ -1655,26 +1663,72 @@ SQL;
                         $skus = $skus_model->getByField('product_id', array_keys($products), 'id');
                     }
 
+                    // If list is filtered by features, we must not include SKUs
+                    // that don't match all the feature conditions we're filtering against.
+                    // SKU may match either because it has a needed feature
+                    // or because a product has the featre and therefore all its SKUs have it, too.
+                    if (isset($fields['skus_filtered']) && $skus && $this->filtered_by_features) {
+
+                        // Build a list of conditions like:
+                        // feature_id=? AND feature_value_id IN (?)
+                        $feature_conditions = array();
+                        foreach($this->filtered_by_features as $feature_id => $values) {
+                            if (!$feature_id || !$values) {
+                                $feature_conditions = null;
+                                break;
+                            }
+                            $values = array_filter($values, 'wa_is_int');
+                            $feature_conditions[] = "(feature_id = ".((int)$feature_id)." AND feature_value_id IN (".join(',', $values)."))";
+                        }
+                        $feature_conditions = join("\n\tOR ", $feature_conditions);
+
+                        if ($feature_conditions) {
+
+                            // Find out which SKUs and products match which filters
+                            $sql = "SELECT *
+                                    FROM shop_product_features
+                                    WHERE product_id IN (".join(',', array_keys($products)).")
+                                        AND ({$feature_conditions})";
+                            foreach($this->getModel()->query($sql) as $row) {
+                                if (!empty($row['sku_id'])) {
+                                    if (!empty($skus[$row['sku_id']])) {
+                                        // A single sku matches the filter by a single feature
+                                        $skus[$row['sku_id']]['matches_feature'][$row['feature_id']] = true;
+                                    }
+                                } else {
+                                    // The whole product matches filter by a feature
+                                    $products[$row['product_id']]['matches_feature'][$row['feature_id']] = true;
+                                }
+                            }
+
+                            // Remove SKUs that do not match all the conditions
+                            $match_count_needed = count($feature_conditions);
+                            foreach($skus as $sku_id => $sku) {
+                                $match_count = 0;
+                                if (isset($sku['matches_feature'])) {
+                                    $match_count += count($sku['matches_feature']);
+                                }
+                                $p = $products[$sku['product_id']];
+                                if (isset($p['matches_feature'])) {
+                                    $match_count += count($p['matches_feature']);
+                                }
+                                if ($match_count < $match_count_needed) {
+                                    unset($skus[$sku_id]);
+                                }
+                            }
+                        }
+                    }
+
+                    // Sort SKUs by `sort` field
+                    uasort($skus, array($this, 'sortSkus'));
+
+                    // Apply rounding to prices
                     if ($this->is_frontend && !empty($this->options['round_prices'])) {
                         shopRounding::roundSkus($skus, $products);
                     }
 
-                    foreach ($skus as &$sku) {
-                        if (isset($sku['price'])) {
-                            $sku['price_float'] = (float)$sku['price'];
-                        }
-                        if (isset($sku['purchase_price'])) {
-                            $sku['purchase_price_float'] = (float)$sku['purchase_price'];
-                        }
-                        if (isset($sku['compare_price'])) {
-                            $sku['compare_price_float'] = (float)$sku['compare_price'];
-                        }
-                        if (isset($sku['primary_price'])) {
-                            $sku['primary_price_float'] = (float)$sku['primary_price'];
-                        }
-                    }
-                    unset($sku);
-
+                    // Prepare products so that even products with no SKUs
+                    // have certain keys
                     foreach ($products as &$p) {
                         $p['skus'] = array();
                         if (isset($fields['stock_counts'])) {
@@ -1684,6 +1738,7 @@ SQL;
                     unset($p);
                     $empty_stocks = array();
 
+                    // Fetch SKU stock counts
                     if (isset($fields['stock_counts'])) {
                         $stock_model = new shopStockModel();
                         $stocks = $stock_model->getAll('id');
@@ -1702,10 +1757,41 @@ SQL;
                         unset($rows, $row);
                     }
 
+                    // Gather SKU image ids and fetch them from DB
+                    if (isset($fields['skus_image'])) {
+                        $images = $image_ids = array();
+                        foreach ($skus as $s) {
+                            if (!empty($s['image_id'])) {
+                                $image_ids[$s['image_id']] = $s['image_id'];
+                            }
+                        }
+                        if ($image_ids) {
+                            $image_model = new shopProductImagesModel();
+                            $images = $image_model->getById(array_values($image_ids));
+                        }
+                    }
+
+                    // Write everything to product
                     foreach ($skus as $s) {
                         if (empty($products[$s['product_id']])) {
                             continue;
                         }
+
+                        // Prepare SKU prices
+                        if (isset($s['price'])) {
+                            $s['price_float'] = (float)$s['price'];
+                        }
+                        if (isset($s['purchase_price'])) {
+                            $s['purchase_price_float'] = (float)$s['purchase_price'];
+                        }
+                        if (isset($s['compare_price'])) {
+                            $s['compare_price_float'] = (float)$s['compare_price'];
+                        }
+                        if (isset($s['primary_price'])) {
+                            $s['primary_price_float'] = (float)$s['primary_price'];
+                        }
+
+                        // Write stock counts to SKU
                         if (isset($fields['stock_counts'])) {
                             if (empty($products[$s['product_id']]['has_stock_counts'])) {
                                 $s['stock'] = null;
@@ -1713,6 +1799,19 @@ SQL;
                                 $s['stock'] = ifempty($s['stock'], array()) + $empty_stocks;
                             }
                         }
+
+                        // Write image to SKU
+                        if (isset($fields['skus_image'])) {
+                            if ($s['image_id'] && isset($images[$s['image_id']])) {
+                                $s['ext'] = $images[$s['image_id']]['ext'];
+                                $s['image_filename'] = $images[$s['image_id']]['filename'];
+                                $s['image_description'] = $images[$s['image_id']]['description'];
+                            } else {
+                                $s['ext'] = $s['image_filename'] = $s['image_description'] = $s['image_id'] = null;
+                            }
+                        }
+
+                        // Write SKU to product
                         $products[$s['product_id']]['skus'][$s['id']] = $s;
                     }
                 }
@@ -1873,7 +1972,7 @@ SQL;
         if ($this->is_frontend) {
 
             if (wa('shop')->getSetting('limit_main_stock')) {
-                $public_stocks = array( waRequest::param('stock_id'));
+                $public_stocks = array(waRequest::param('stock_id'));
             } else {
                 // When storefront is only limited to certain stock, recalculate product counts
                 $public_stocks = waRequest::param('public_stocks');
@@ -1905,14 +2004,41 @@ SQL;
                 // but there is at least one record for this product_id it means infinite supply
                 // of this sku_id on this stock.
                 // We take these infinite counts into account by adding NULLs to $stock_counts.
-                $empty_stocks = array_fill_keys(array_keys($stocks), null);
+                $infinite_stocks = array_fill_keys(array_keys($stocks), null);
+                $zero_stocks = array_fill_keys(array_keys($stocks), 0);
                 foreach ($stock_counts as &$p) {
+                    // Add stock_id => null (infinity) records to all existing skus
                     foreach ($p as &$s) {
-                        $s += $empty_stocks;
+                        $s += $infinite_stocks;
                     }
                 }
                 unset($p, $s);
+
+                $ignore_stock_count = wa('shop')->getSetting('ignore_stock_count');
+                foreach($products as $product_id => $product) {
+                    foreach(ifset($product, 'skus', array()) as $sku_id => $sku) {
+                        if (!is_array($sku)) {
+                            continue; // being paranoid
+                        }
+                        // Add [ stock_id => null ] (infinity) for SKUs that do not use by-stock accounting
+                        // but have a positive stock set in SKU itself
+                        if (empty($stock_counts[$product_id][$sku_id])) {
+                            if (array_key_exists('count', $sku)) {
+                                if ($sku['count'] === null || $sku['count'] > 0) {
+                                    $stock_counts[$product_id][$sku_id] = $infinite_stocks;
+                                } else {
+                                    $stock_counts[$product_id][$sku_id] = $zero_stocks;
+                                }
+                            }
+                        }
+                        // Ignore SKUs that are not available for order
+                        if (!$ignore_stock_count && !empty($stock_counts[$product_id][$sku_id]) && array_key_exists('available', $sku) && empty($sku['available'])) {
+                            $stock_counts[$product_id][$sku_id] = $zero_stocks;
+                        }
+                    }
+                }
             }
+
             foreach ($products as $p_id => $p) {
                 if (isset($p['price'])) {
                     $products[$p_id]['original_price'] = $p['price'];
@@ -1923,13 +2049,12 @@ SQL;
 
                 // For each product calculate counts with respect to $public_stocks visible in current storefront.
                 if (!empty($public_stocks)) {
-                    //$products[$p_id]['count_by_stock'] = ifempty($stock_counts[$p_id]); // debugging helper
-                    $products[$p_id]['count'] = $this->countOfSelectedStocks($public_stocks, ifempty($stock_counts[$p_id]));
+                    $products[$p_id]['count'] = $this->countOfSelectedStocks($public_stocks, ifempty($stock_counts, $p_id, null));
                 }
             }
         }
 
-        // Replace product price with SKU price. This may be used when
+        // Replace product prices with those from SKU. This may be used when
         // some SKUs are filtered out by collection conditions.
         if (!empty($this->options['overwrite_product_prices'])) {
             foreach ($products as &$product) {
@@ -1937,52 +2062,63 @@ SQL;
                     continue;
                 }
 
+                $sku = null;
+
+                // Use primary SKU if it exists in selection
+                // (it might not be there if filtered out)
+                if (!empty($product['sku_id'])) {
+                    $sku = ifset($product, 'skus', $product['sku_id'], null);
+                }
+
+                //
+                // In case main SKU is filtered out, we look whether any SKU
+                // is available for order. If some are, we select the cheapest from them.
+                // If no SKU are available, we select cheapest from all.
+                //
+
                 // sku_id => sku price in primary currency
                 $prices = array();
                 // sku_id => sku price in primary currency (only for SKUs that are available for order)
-                $available_sku_prices = array();
-                foreach ($product['skus'] as $id => $sku) {
-                    $prices[$id] = $sku['primary_price'];
-                    if ($sku['available'] && ($sku['count'] === null || $sku['count'] > 0)) {
-                        $available_sku_prices[$id] = $sku['primary_price'];
-                    }
+                foreach ($product['skus'] as $id => $s) {
+                    $prices[$id] = $s['primary_price'];
                 }
 
-                // Use price of available SKU if there are any
-                if ($available_sku_prices) {
-                    $prices = $available_sku_prices;
+                // When main SKU is filtered out, use the cheapest.
+                if ($prices && !$sku) {
+                    $sku_id = array_search(min($prices), $prices);
+                    $sku = ifset($product, 'skus', $sku_id, null);
                 }
 
-                // Make product count reflect SKU count if customer can not buy more than there is in the stock
-                if (!$available_sku_prices && !wa('shop')->getSetting('ignore_stock_count')) {
-                    $product['count'] = 0;
-                }
+                // Replace product prices with selected SKU price
+                if ($sku && (empty($product['sku_id']) || $sku['id'] != $product['sku_id'])) {
+                    // Replace sku_id
+                    $product['default_sku_id'] = $product['sku_id'];
+                    $product['sku_id'] = $sku['id'];
 
-                // Replace product price with SKU price.
-                if ($prices) {
-                    if (waRequest::get('sort') == 'price' && waRequest::get('order') == 'desc') {
-                        $product['price'] = max($prices);
-                    } else {
-                        $product['price'] = min($prices);
-                    }
+                    // Replace price
+                    $product['price'] = $sku['primary_price'];
 
-                    // Replace price and compare_price of a product in case chosen price
-                    // does not match price of main SKU of the product
-                    if (empty($product['sku_id']) || $product['price'] != ifset($product, 'skus', $product['sku_id'], 'primary_price', 0)) {
-                        // Replace compare_price
-                        $sku_id = array_search($product['price'], $prices);
-                        if (!empty($product['currency'])) {
-                            $sku = ifset($product, 'skus', $sku_id, null);
-                            if ($sku && array_key_exists('compare_price', $sku)) {
-                                $product['compare_price'] = shop_currency($sku['compare_price'], $product['currency'], $default_currency, false);
-                            }
+                    // Replace compare_price
+                    if (!empty($product['currency'])) {
+                        $sku = ifset($product, 'skus', $sku['id'], null);
+                        if ($sku && array_key_exists('compare_price', $sku)) {
+                            $product['compare_price'] = shop_currency($sku['compare_price'], $product['currency'], $default_currency, false);
                         }
+                    }
 
-                        // Show full url for product (product+sku)
-                        // if set up in settlement parameters
-                        if ($this->is_frontend && !empty($product['frontend_url']) && waRequest::param('url_sku_visible')) {
-                            $product['frontend_url'] .= '?sku='.$sku_id;
+                    // Replace image
+                    if (!empty($sku['image_id']) && !empty($product['image_id']) && $product['image_id'] != $sku['image_id']) {
+                        if (isset($sku['ext'])) {
+                            $product['image_id'] = $sku['image_id'];
+                            $product['ext'] = $sku['ext'];
+                            $product['image_filename'] = $sku['image_filename'];
                         }
+                    }
+
+                    // Show full url for product (product+sku)
+                    // if set up in settlement parameters
+                    if ($this->is_frontend && !empty($product['frontend_url'])) {
+                        $product['frontend_url'] .= '?sku='.$sku['id'];
                     }
                 }
             }
@@ -1994,6 +2130,14 @@ SQL;
                 'products' => &$products,
             )));
         }
+    }
+
+    protected function sortSkus($a, $b)
+    {
+        if ($a['sort'] == $b['sort']) {
+            return 0;
+        }
+        return ($a['sort'] < $b['sort']) ? -1 : 1;
     }
 
     /**

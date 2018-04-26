@@ -88,21 +88,6 @@ return array(
 
             )
         ),
-        'url_sku_visible'          => array(
-            'name'  => _w('Product URLs in categories'),
-            'type'  => 'radio_select',
-            'items' => array(
-                0 => array(
-                    'name'        => _w('Using main SKU'),
-                    'description' => _w('<br>URLs of products in category pages will always be formed with the main product SKU taken into account, including filtering or sorting results even if other SKUs match filtering or sorting conditions.'),
-                ),
-                1 => array(
-                    'name'        => _w('Using a matching SKU with minimal price'),
-                    'description' => _w('<br>URLs of products in category pages will be formed with an SKU with minimal price taken into account, including those in filtering or sorting results. Some product URLs may contain additional ?sku= parameter.'),
-                ),
-
-            )
-        ),
         'type_id'           => array(
             'name'  => _w('Published products'),
             'type'  => 'radio_checkbox',

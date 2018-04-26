@@ -192,7 +192,7 @@ SQL;
             }
 
             //set sku image in items
-            if (isset($sku_id) && isset($product['skus'][$sku_id]['image_id'])) {
+            if (isset($sku_id) && !empty($product['skus'][$sku_id]['image_id'])) {
                 $shop_product_images = new shopProductImagesModel();
                 $image = $shop_product_images->getById($product['skus'][$sku_id]['image_id']);
                 $product = array_merge($product, array(

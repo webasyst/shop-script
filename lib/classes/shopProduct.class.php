@@ -871,7 +871,7 @@ class shopProduct implements ArrayAccess
         if ($available_only) {
             $collection->addWhere('(p.count > 0 OR p.count IS NULL)');
         }
-        return $collection->getProducts('*', $limit);
+        return $collection->getProducts('*,skus_filtered', $limit);
     }
 
     /**
@@ -919,7 +919,7 @@ class shopProduct implements ArrayAccess
                     $collection->addWhere('p.id NOT IN ('.(implode(',', $ids)).')');
                 }
             }
-            $result = $collection->getProducts('*', $limit);
+            $result = $collection->getProducts('*,skus_filtered', $limit);
             if (isset($result[$this->getId()])) {
                 unset($result[$this->getId()]);
             }
