@@ -3590,7 +3590,7 @@ HTML;
             $model = new shopPluginModel();
         }
 
-        return $model->getPlugin($id, $type));
+        return $model->getPlugin($id, $type);
     }
 
     private function readOnlyFields()
