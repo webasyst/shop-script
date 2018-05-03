@@ -229,7 +229,7 @@ return array(
     ),
     'shop_feature' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
-        'parent_id' => array('int', 11),
+        'parent_id' => array('int', 11, 'null' => 0, 'default' => null),
         'code' => array('varchar', 64, 'null' => 0),
         'status' => array('enum', "'public','hidden','private'", 'null' => 0, 'default' => 'public'),
         'name' => array('varchar', 255),
