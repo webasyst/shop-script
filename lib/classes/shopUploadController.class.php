@@ -3,6 +3,7 @@
 abstract class shopUploadController extends waJsonController
 {
     protected $name = 'files';
+    
     public function execute()
     {
         $this->response['files'] = array();
@@ -11,7 +12,7 @@ abstract class shopUploadController extends waJsonController
         if (waRequest::server('HTTP_X_FILE_NAME')) {
             $name = waRequest::server('HTTP_X_FILE_NAME');
             $size = waRequest::server('HTTP_X_FILE_SIZE');
-            $file_path = wa()->getTempPath('shop/upload/').$name;
+            $file_path = wa()->getTempPath('shop/upload/'.$name);
             $append_file = is_file($file_path) && $size > filesize($file_path);
             clearstatcache();
             file_put_contents($file_path, fopen('php://input', 'r'), $append_file ? FILE_APPEND : 0);
@@ -55,8 +56,8 @@ abstract class shopUploadController extends waJsonController
 
     public function display()
     {
-        $this->getResponse()->addHeader('Content-type', 'application/json');
-        $this->getResponse()->sendHeaders();
+        $this->getResponse()->addHeader('content-type', 'application/json')
+                            ->sendHeaders();
         echo json_encode($this->response);
     }
 }
