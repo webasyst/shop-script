@@ -128,9 +128,8 @@ $.order_edit = {
             select: function (event, ui) {
 
                 $('.s-order-errors').empty();
-
-                var url = '?module=orders&action=getProduct&product_id=' + ui.item.id;
-                $.getJSON(url + ($.order_edit.id ? '&order_id=' + $.order_edit.id : '&currency=' + $.order_edit.options.currency), function (r) {
+                var url = '?module=orders&action=getProduct&product_id=' + ui.item.id + '&order_id=' + $.order_edit.id + '&currency=' + $.order_edit.options.currency;
+                $.getJSON(url, function (r) {
                     var table = $('#order-items');
                     var index = parseInt(table.find('.s-order-item:last').attr('data-index'), 10) + 1 || 0;
                     var product = r.data.product;
@@ -363,7 +362,7 @@ $.order_edit = {
         $('#discount').val(this.roundFloat($('#discount').val()));
     },
 
-    initShippingControl: function() {
+    initShippingControl: function () {
         var $shipping_rate = $('#shipping-rate'),
             previous_shipping_method = $("#shipping_methods").val();
 
@@ -377,10 +376,24 @@ $.order_edit = {
             }
         });
 
+        //First load set info.
+        setShippingInfo();
+
         $("#shipping_methods").change(function () {
-            var $this = $(this);
-            var option = $this.children(':selected');
-            var rate = option.data('rate') || 0;
+            setShippingInfo();
+            $.order_edit.updateTotal();
+        });
+
+        //Prevent shipping cost updates
+        $('#shipping-rate').keyup(function () {
+            $('#shipping-rate').data('shipping', $(this).val());
+            $.order_edit.updateTotal();
+        });
+
+        function setShippingInfo() {
+            var $methods = $("#shipping_methods"),
+                option = $methods.children(':selected'),
+                rate = option.data('rate') || 0;
 
             // Update cost if it is not entered by hand
             if (!$shipping_rate.data('shipping') || option.val() != previous_shipping_method) {
@@ -392,8 +405,8 @@ $.order_edit = {
             var delivery_info = [];
             if (option.data('error')) delivery_info.push('<span class="error">' + option.data('error') + '</span>');
             if (option.data('est_delivery')) delivery_info.push('<span class="hint est_delivery">' + option.data('est_delivery') + '</span>');
-            var sid = $this.val().replace(/\..+$/, '');
-            var prev_sid = $this.data('_shipping_id');
+            var sid = $methods.val().replace(/\..+$/, '');
+            var prev_sid = $methods.data('_shipping_id');
             $("#shipping-custom > div").hide();
             if ($('#shipping-custom-' + sid).length) {
                 $('#shipping-custom-' + sid).show();
@@ -412,14 +425,7 @@ $.order_edit = {
             }
 
             $.shop.trace('check shipping_methods id', [prev_sid, sid]);
-            $.order_edit.updateTotal();
-        });
-
-        //Prevent shipping cost updates
-        $('#shipping-rate').keyup(function () {
-            $('#shipping-rate').data('shipping', $(this).val());
-            $.order_edit.updateTotal();
-        })
+        }
     },
 
     initDiscountControl: function () {

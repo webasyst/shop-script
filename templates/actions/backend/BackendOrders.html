@@ -189,6 +189,12 @@
             <span class="gray">{%#product.price_html%}</span>
 
             {% if (sku_count == 1) { %}
+                {% if (product.compare_price && product.compare_price > 0) { %}
+                        <span class="hint compare-price">(<span style="text-decoration: line-through">{%=Number(Math.round((product.compare_price)*100)/100) %}</span> {%#currency%})</span>
+                {% } %}
+            {% } %}
+
+            {% if (sku_count == 1) { %}
             <span class="s-orders-stock-icon-aggregate">
                     {%#product.icon%}
                 </span>
@@ -221,6 +227,11 @@
                         {% } %}
 
                         <strong>{%#sku.price_html%}</strong>
+
+                        {% if (sku.compare_price && sku.compare_price > 0) { %}
+                            <span class="hint compare-price">(<span style="text-decoration: line-through">{%=Number(Math.round((sku.compare_price)*100)/100)%}</span> {%#currency%})</span>
+                        {% } %}
+
                         <span class="s-orders-stock-icon-aggregate">
                                         {%#sku.icon%}
                                     </span>

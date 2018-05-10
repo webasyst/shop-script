@@ -1584,6 +1584,9 @@ class shopCsvProductrunController extends waLongActionController
                             }
                         }
 
+                        $data['width'] = $image->width;
+                        $data['height'] = $image->height;
+
                         if (empty($data['id'])) {
                             $image_id = $data['id'] = $model->add($data);
                         } else {

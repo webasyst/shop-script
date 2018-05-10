@@ -154,21 +154,22 @@ class shopProductsCollection
                 if (method_exists($this, $method)) {
                     $this->$method(isset($this->hash[1]) ? $this->hash[1] : '', $auto_title);
                 } else {
-                    $params = array(
-                        'collection' => $this,
-                        'auto_title' => $auto_title,
-                        'add'        => $add,
-                    );
-                    /**
-                     * @event products_collection
-                     * @param array [string]mixed $params
-                     * @param array [string]shopProductsCollection $params['collection']
-                     * @param array [string]boolean $params['auto_title']
-                     * @param array [string]boolean $params['add']
-                     * @return bool null if ignored, true when something changed in the collection
-                     */
-                    $processed = wa()->event('products_collection', $params);
-                    if (!$processed) {
+                    if (empty($this->options['no_plugins']) && empty($this->options['no_plugins_products_collection'])) {
+                        /**
+                         * @event products_collection
+                         * @param array [string]mixed $params
+                         * @param array [string]shopProductsCollection $params['collection']
+                         * @param array [string]boolean $params['auto_title']
+                         * @param array [string]boolean $params['add']
+                         * @return bool null if ignored, true when something changed in the collection
+                         */
+                        $processed = wa('shop')->event('products_collection', ref(array(
+                            'collection' => $this,
+                            'auto_title' => $auto_title,
+                            'add'        => $add,
+                        )));
+                    }
+                    if (empty($processed)) {
                         throw new waException('Unknown collection hash type: '.htmlspecialchars($type));
                     }
                 }
@@ -2125,7 +2126,7 @@ SQL;
             unset($product);
         }
 
-        if ($this->is_frontend) {
+        if ($this->is_frontend && empty($this->options['no_plugins']) && empty($this->options['no_plugins_frontend_products'])) {
             wa('shop')->event('frontend_products', ref(array(
                 'products' => &$products,
             )));

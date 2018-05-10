@@ -1309,7 +1309,7 @@ class shopOrder implements ArrayAccess
         foreach ($address as $k => $v) {
             $this->data['params']['shipping_address.'.$k] = $v;
         }
-        return false;
+        return $address;
     }
 
     protected function parseBillingAddress($address)
@@ -1321,7 +1321,7 @@ class shopOrder implements ArrayAccess
         foreach ($address as $k => $v) {
             $this->data['params']['billing_address.'.$k] = $v;
         }
-        return false;
+        return $address;
     }
 
     protected function parsePaymentParams($data)
@@ -1391,12 +1391,23 @@ class shopOrder implements ArrayAccess
             return null;
         }
 
+        //Set address. It is necessary to save the correct delivery parameters in a new order. Or if counted in the old.
+        if (!empty($form->post['address.shipping'][0])) {
+            $this->shipping_address = $form->post['address.shipping'][0];
+        }
+
+        if (!empty($form->post['address.billing'][0])) {
+            $this->billing_address = $form->post['address.billing'][0];
+        }
+
         return $form->post;
     }
 
     private function saveCustomer()
     {
-        if ( $this->contact && ( $form = $this->customerForm()) && !empty($this->data['customer'])) {
+        $form = $this->customerForm();
+        if ($this->contact && $form && !empty($this->data['customer'])) {
+
             $this->parseCustomer($this->data['customer'], $form);
             foreach ((array)$form->post() as $fld_id => $fld_data) {
                 //turn off checkbox

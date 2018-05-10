@@ -24,7 +24,7 @@ class shopImage
     public $file;
 
     /**
-     * @var waImage
+     * @var waImageGd|waImageImagick
      */
     protected $image;
 
@@ -90,7 +90,7 @@ class shopImage
      *
      * @param $method
      * @param $arguments
-     * @return photosImage
+     * @return shopImage
      */
     public function __call($method, $arguments)
     {
@@ -149,45 +149,67 @@ class shopImage
      */
     public static function generateThumb($src_image_path, $size, $max_size = false)
     {
+        /** @var waImageImagick|waImageGd $image */
         $image = waImage::factory($src_image_path);
-        /**
-         * @var waImageImagick|waImageGd $image
-         */
-        $width = $height = null;
-        $size_info = self::parseSize($size);
-        $type = $size_info['type'];
-        $width = $size_info['width'];
-        $height = $size_info['height'];
 
-        switch ($type) {
-            case 'max':
-                if (is_numeric($max_size) && $width > $max_size) {
-                    return null;
-                }
-                $image->resize($width, $height);
+        $params = array(
+            'path'     => &$src_image_path,
+            'image'    => &$image,
+            'size'     => &$size,
+            'max_size' => &$max_size,
+        );
+        /**
+         * NOTICE: result depends on plugins order (can rearrange it at plugins screen)
+         * @event image_generate_thumb
+         */
+        $results = wa()->event('image_generate_thumb', $params);
+
+        $skip = false;
+
+        foreach ($results as $result) {
+            if ($result === false) {
+                $skip = true;
                 break;
-            case 'width':
-                if (is_numeric($max_size) && ($width > $max_size || $height > $max_size)) {
-                    return null;
-                }
-                $image->resize($width, $height);
-                break;
-            case 'height':
-                if (is_numeric($max_size) && ($width > $max_size || $height > $max_size)) {
-                    return null;
-                }
-                $image->resize($width, $height);
-                break;
-            case 'crop':
-            case 'rectangle':
-                if (is_numeric($max_size) && ($width > $max_size || $height > $max_size)) {
-                    return null;
-                }
-                $image->resize($width, $height, waImage::INVERSE)->crop($width, $height);
-                break;
-            default:
-                throw new waException("Unknown type");
-                break;
+            }
+        }
+
+
+        if (!$skip) {
+            $size_info = self::parseSize($size);
+            $type = $size_info['type'];
+            $width = $size_info['width'];
+            $height = $size_info['height'];
+
+            switch ($type) {
+                case 'max':
+                    if (is_numeric($max_size) && $width > $max_size) {
+                        return null;
+                    }
+                    $image->resize($width, $height);
+                    break;
+                case 'width':
+                    if (is_numeric($max_size) && ($width > $max_size || $height > $max_size)) {
+                        return null;
+                    }
+                    $image->resize($width, $height);
+                    break;
+                case 'height':
+                    if (is_numeric($max_size) && ($width > $max_size || $height > $max_size)) {
+                        return null;
+                    }
+                    $image->resize($width, $height);
+                    break;
+                case 'crop':
+                case 'rectangle':
+                    if (is_numeric($max_size) && ($width > $max_size || $height > $max_size)) {
+                        return null;
+                    }
+                    $image->resize($width, $height, waImage::INVERSE)->crop($width, $height);
+                    break;
+                default:
+                    throw new waException("Unknown type");
+                    break;
+            }
         }
 
         /**
@@ -266,7 +288,7 @@ class shopImage
      *
      * @param int|array $image Key-value image data object
      * @param string $size Optional size value string (e.g., '200x0', '96x96', etc.).
-     *     If specified, path to corresponding thumbnail file is returned instead of path to image sdirectory.
+     *     If specified, path to corresponding thumbnail file is returned instead of path to image directory.
      * @return string
      */
     public static function getThumbsPath($image, $size = null)
@@ -334,7 +356,11 @@ class shopImage
         if (!$image['width'] && !$image['height']) {
             return null;
         }
-        $size = !is_null($size) ? $size : wa('shop')->getConfig()->getImageSize('thumb');
+        if (is_null($size)) {
+            /** @var shopConfig $config */
+            $config = wa('shop')->getConfig();
+            $size = $config->getImageSize('thumb');
+        }
 
         $rate = $image['width'] / $image['height'];
         $revert_rate = $image['height'] / $image['width'];

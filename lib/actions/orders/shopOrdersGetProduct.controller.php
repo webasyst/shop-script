@@ -82,7 +82,14 @@ class shopOrdersGetProductController extends waJsonController
         $product['icon'] = shopHelper::getStockCountIcon($product['count'], null, true);
         foreach ($product['skus'] as &$sku) {
             $this->workupSku($sku, $sku_stocks);
+
+            if (isset($sku['compare_price'])) {
+                $sku['compare_price'] = shop_currency($sku['compare_price'], $product['currency'], waRequest::get('currency'), false);
+            }
         }
+
+        $product['compare_price'] = shop_currency($product['compare_price'], $product['currency'], waRequest::get('currency'), false);
+
         unset($sku);
     }
 

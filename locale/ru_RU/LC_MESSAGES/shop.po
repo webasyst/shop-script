@@ -10806,3 +10806,6 @@ msgstr "Переключиться"
 
 msgid "Customer source"
 msgstr "Источник покупателя"
+
+msgid "Feature search by name or code"
+msgstr "Поиск характеристики по названию или коду"
