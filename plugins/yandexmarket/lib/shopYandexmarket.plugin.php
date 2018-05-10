@@ -140,10 +140,25 @@ class shopYandexmarketPlugin extends shopPlugin
                                     $map[$type]['fields'][$field]['source'] = $post_data['source'];
                                 }
                                 if (!empty($post_data['options']) && !empty($map[$type]['fields'][$field]['available_options'])) {
-                                    $available_options = array_keys($map[$type]['fields'][$field]['available_options']);
-                                    $post_options = array_intersect($available_options, array_keys(array_filter($post_data['options'])));
-                                    $map[$type]['fields'][$field]['options'] = array_fill_keys($post_options, true);
-                                    $map[$type]['fields'][$field]['source'] .= '@'.implode('@', $post_options);
+                                    $available_options = $map[$type]['fields'][$field]['available_options'];
+                                    $post_options = array_intersect(array_keys($available_options), array_keys(array_filter($post_data['options'])));
+                                    $map[$type]['fields'][$field]['options'] = array();
+                                    $formatted_post_options = array();
+                                    foreach ($post_options as $post_option) {
+                                        if (is_array($available_options[$post_option])) {
+                                            $value = $post_data['options'][$post_option];
+                                            if (isset($available_options[$post_option]['options'][$value])) {
+                                                $map[$type]['fields'][$field]['options'][$post_option] = $value;
+                                                $formatted_post_options[] = sprintf('%s:%s', $post_option, $value);
+                                            }
+
+                                        } else {
+                                            $map[$type]['fields'][$field]['options'][$post_option] = true;
+                                            $formatted_post_options[] = $post_option;
+                                        }
+
+                                    }
+                                    $map[$type]['fields'][$field]['source'] .= '@'.implode('@', $formatted_post_options);
                                 } elseif (isset($map[$type]['fields'][$field]['options'])) {
                                     unset($map[$type]['fields'][$field]['options']);
                                 }
@@ -168,6 +183,25 @@ class shopYandexmarketPlugin extends shopPlugin
         }
 
         return $map;
+    }
+
+    public static function parseMapOptions(&$source)
+    {
+        $options = array();
+        if ($source && strpos($source, '@')) {
+            list($source, $option) = explode('@', $source, 2);
+            if (strlen($option)) {
+                $option = explode('@', $option);
+                foreach ($option as $option_data) {
+                    $value = true;
+                    if (strpos($option_data, ':')) {
+                        list($option_data, $value) = explode(':', $option_data, 2);
+                    }
+                    $options[$option_data] = $value;
+                }
+            }
+        }
+        return $options;
     }
 
     public function verifyMap()

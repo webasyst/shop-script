@@ -278,6 +278,8 @@ class shopYandexmarketPluginRunController extends waLongActionController
             $this->data['trace'] = !empty($profile_config['trace']);
             $this->data['profile_id'] = $profile_config['profile_id'];
 
+            $this->data['can_use_smarty'] = $this->getConfig()->getOption('can_use_smarty');
+
             $this->initRouting($profile_config);
 
             $this->initCount();
@@ -1030,6 +1032,10 @@ SQL;
         shopYandexmarketPlugin::path('shops.dtd');
         $this->loadDom($this->data['path']['offers']);
         $valid = @$this->dom->validate();
+        if ($valid) {
+            $schema = dirname(dirname(dirname(__FILE__))).'/config/shops.xsd';
+            $valid = @$this->dom->schemaValidate($schema);
+        }
         $strict = waSystemConfig::isDebug();
         if ((!$valid || $strict) && ($r = libxml_get_errors())) {
             $this->data['error'] = array();
@@ -1402,12 +1408,13 @@ SQL;
 
     private function getProductFields()
     {
-        static $fields = null;
-        if (!$fields) {
+        if (empty($this->data['fields'])) {
             $fields = array(
                 '*',
             );
-            foreach ($this->data['map'] as $map) {
+            $this->data['stock_map'] = array();
+            foreach ($this->data['map'] as $type => $map) {
+                $this->data['stock_map'][$type] = array();
                 foreach ($map['fields'] as $info) {
                     if (!empty($info['source']) && !ifempty($info['category'])) {
                         $value = null;
@@ -1418,19 +1425,42 @@ SQL;
                                 $field = preg_replace('@\..+$@', '', $param);
                                 $fields[] = $field;
                                 if ($field == 'stock_counts') {
-                                    $this->data['stock_id'] = intval(preg_replace('@^[^\.]+\.@', '', $param));
+                                    if (empty($this->data['stock_id'])) {
+                                        $this->data['stock_id'] = array();
+                                    }
+                                    $stock_id = intval(preg_replace('@^[^\.]+\.@', '', $param));
+                                    $this->data['stock_id'][$stock_id] = $stock_id;
+                                    $this->data['stock_map'][$type][$stock_id] = $stock_id;
+                                } elseif ($field == 'virtual_stock_counts') {
+                                    if (empty($this->data['stock_id'])) {
+                                        $this->data['stock_id'] = array();
+                                    }
+                                    $virtualstock_id = intval(preg_replace('@^[^\.]+\.@', '', $param));
+                                    if (class_exists('shopVirtualstockStocksModel')) {
+                                        $model = new shopVirtualstockStocksModel();
+                                        foreach ($model->getByField('virtualstock_id', $virtualstock_id) as $row) {
+                                            $stock_id = intval($row['stock_id']);
+                                            $this->data['stock_id'][$stock_id] = $stock_id;
+                                            $this->data['stock_map'][$type][$stock_id] = $stock_id;
+                                        }
+                                    }
                                 }
+
                                 break;
 
                         }
                     }
                 }
             }
+            $this->data['stock_map'] = array_filter($this->data['stock_map']);
             if (in_array('stock_counts', $fields)) {
                 unset($fields[array_search('stock_counts', $fields)]);
             }
+            $fields = implode(',', array_unique($fields));
+            $this->data['fields'] = $fields;
         }
-        return implode(',', array_unique($fields));
+
+        return $this->data['fields'];
     }
 
     /**
@@ -1457,19 +1487,32 @@ SQL;
                 $skus = $sku_model->getDataByProductId(array_keys($products));
                 foreach ($skus as $sku_id => $sku) {
                     if (isset($products[$sku['product_id']])) {
-                        if (!isset($products[$sku['product_id']]['skus'])) {
-                            $products[$sku['product_id']]['skus'] = array();
+                        $product = &$products[$sku['product_id']];
+                        $type = ifempty($this->data['types'][$product['type_id']], 'simple');
+
+                        if (!isset($product['skus'])) {
+                            $product['skus'] = array();
                         }
 
                         if (!empty($this->data['stock_id'])) {
-                            if (isset($sku['stock'][$this->data['stock_id']])) {
+
+                            if (!empty($this->data['stock_map'][$type])) {
+                                $stock_map = $this->data['stock_map'][$type];
                                 $sku['_count'] = $sku['count'];
-                                $sku['count'] = $sku['stock'][$this->data['stock_id']];
+                                $sku['count'] = false;
+                                foreach ($stock_map as $stock_id) {
+                                    if (isset($sku['stock'][$stock_id])) {
+                                        $sku['count'] += $sku['stock'][$stock_id];
+                                    } else {
+                                        $sku['count'] = null;
+                                        break;
+                                    }
+                                }
                             }
                         }
 
-                        $products[$sku['product_id']]['skus'][$sku_id] = $sku;
-                        if (count($products[$sku['product_id']]['skus']) > 1) {
+                        $product['skus'][$sku_id] = $sku;
+                        if (count($product['skus']) > 1) {
                             $group = false;
                             switch (ifset($this->data['export']['sku_group'])) {
                                 case 'all':
@@ -1487,7 +1530,7 @@ SQL;
                                             $categories = array_fill_keys(array_keys($categories), true);
                                         }
                                     }
-                                    if (isset($categories[$products[$sku['product_id']]['category_id']])) {
+                                    if (isset($categories[$product['category_id']])) {
                                         $group = $sku['product_id'];
                                     }
                                     break;
@@ -1501,9 +1544,10 @@ SQL;
                             }
 
                             if ($group) {
-                                $products[$sku['product_id']]['_group_id'] = $group;
+                                $product['_group_id'] = $group;
                             }
                         }
+                        unset($product);
                     }
                 }
 
@@ -1516,7 +1560,7 @@ SQL;
                     }
                     $sql_params = array(
                         'product_id' => array_keys($products),
-                        'stock_id'   => array(null, $this->data['stock_id']),
+                        'stock_id'   => array_merge(array(null), (array)$this->data['stock_id']),
                     );
 
                     foreach ($products as &$product) {
@@ -1527,9 +1571,20 @@ SQL;
                     $stocks = $stocks_model->getByField($sql_params, true);
                     foreach ($stocks as $stock) {
                         $product_id = $stock['product_id'];
-                        if ($products[$product_id]['_count'] !== null) {
-                            $products[$product_id]['_count'] = $stock['count'];
+                        $product = &$products[$product_id];
+
+                        if ($product['_count'] !== null) {
+                            $stock_id = intval($stock['stock_id']);
+                            $type = ifempty($this->data['types'][$product['type_id']], 'simple');
+                            if (!empty($this->data['stock_map'][$type][$stock_id])) {
+                                if (in_array($stock['count'], array(null, ''), true)) {
+                                    $product['_count'] = null;
+                                } else {
+                                    $product['_count'] += $stock['count'];
+                                }
+                            }
                         }
+                        unset($product);
                     }
 
                     foreach ($products as &$product) {
@@ -1687,15 +1742,17 @@ SQL;
         static $features_model;
         $value = null;
         list($source, $param) = explode(':', $info['source'], 2);
-        if (strpos($param, '@')) {
-            list($param, $option) = explode('@', $param, 2);
-            $info['options'] = array_fill_keys(explode('@', $option), true);
-        } elseif (isset($info['options'])) {
+
+        $info['options'] = shopYandexmarketPlugin::parseMapOptions($param);
+        if (empty($info['options'])) {
             unset($info['options']);
         }
         switch ($source) {
             case 'field':
                 if (strpos($param, 'stock_counts.') === 0) {
+                    //it's already remapped
+                    $value = $product['count'];
+                } elseif (strpos($param, 'virtual_stock_counts.') === 0) {
                     //it's already remapped
                     $value = $product['count'];
                 } else {
@@ -1712,6 +1769,18 @@ SQL;
                             }
 
                             break;
+                        case 'description':
+                            $value = isset($product[$param]) ? $product[$param] : null;
+                            if ($value && !empty($this->data['can_use_smarty'])) {
+                                try {
+                                    $view = wa()->getView();
+                                    $view->assign('product', $product);
+                                    $value = $view->fetch('string:'.$value);
+                                } catch (Exception $ex) {
+                                    $this->error('Error during fetch template: %s', $ex->getMessage());
+                                }
+                            }
+                            break;
                         default:
                             $value = isset($product[$param]) ? $product[$param] : null;
                             break;
@@ -1720,6 +1789,7 @@ SQL;
 
                 if (!empty($this->data['export']['sku'])) {
                     switch ($param) {
+                        case 'virtual_stock_counts':
                         case 'stock_counts':
                             $value = ifset($sku['count'], $value);
                             break;
@@ -1755,6 +1825,9 @@ SQL;
                             break;
                         default:
                             if (strpos($param, 'stock_counts.') === 0) {
+                                //it's already remapped
+                                $value = ifset($sku['count'], $value);
+                            } elseif (strpos($param, 'virtual_stock_counts.') === 0) {
                                 //it's already remapped
                                 $value = ifset($sku['count'], $value);
                             }
@@ -1804,7 +1877,13 @@ SQL;
                             'source' => 'field:count',
                         );
 
-                        if ($this->getValue($product, $sku, 'available', $source) === 'false') {
+                        $_value = $this->getValue($product, $sku, 'available', $source);
+
+                        if (is_array($_value) && isset($_value['value'])) {
+                            $_value = $_value['value'];
+                        }
+
+                        if (in_array($_value, array('false', 0, '0', null), true)) {
                             $value = 'Заказ товара по предоплате';
                         }
                         break;
@@ -1841,7 +1920,72 @@ SQL;
             case 'plugin':
                 break;
         }
+
+
         return $value;
+    }
+
+    private function applyFormat($value, $info)
+    {
+        if (!empty($info['options']['format'])) {
+            $value = trim($value);
+            if ($value !== '') {
+                $format = $info['options']['format'];
+                $search = array(
+                    '%value%',
+                );
+                $replace = array(
+                    trim($value),
+                );
+                if (strpos($format, '%name%') !== false) {
+                    $search[] = '%name%';
+                    $replace[] = $this->getFieldName($info);
+                }
+
+                $value = str_replace($search, $replace, $format);
+            }
+        }
+        return $value;
+    }
+
+    private function getFieldName($info)
+    {
+        static $fields = array();
+        static $features = array();
+
+        if (!$fields) {
+            $fields = array(
+                'name'        => _w('Product name'),
+                'description' => _w('Description'),
+                'summary'     => _w('Summary'),
+                'sku'         => _w('SKU code'),
+                'file_name'   => _w('Attachment'),
+                'count'       => _w('In stock'),
+                'type_id'     => _w('Product type'),
+                'tax_id'      => _w('Tax rates'),
+            );
+        }
+
+        list($source, $param) = explode(':', $info['source'], 2);
+        switch ($source) {
+            case 'feature':
+                $param = preg_replace('/[@:].*$/', '', $param);
+                if (!isset($features[$param])) {
+                    $model = new shopFeatureModel();
+                    if ($feature = $model->getByCode($param)) {
+                        $features[$param] = $feature['name'];
+                    } else {
+                        $features[$param] = $param;
+                    }
+                }
+                $name = $features[$param];
+                break;
+            default:
+                $name = ifset($fields[$source]);
+                break;
+
+        }
+        return $name;
     }
 
     /**
@@ -1863,7 +2007,7 @@ SQL;
             ) {
                 $value = $this->getValue($product, $sku, $field, $info);
                 if (!in_array($value, array(null, false, ''), true)) {
-                    $offer[$field_id] = $value;
+                    $offer[$field_id] = $this->applyFormat($value, $info);
                     $map[$field_id] = array(
                         'attribute' => !empty($info['attribute']),
                         'callback'  => !empty($info['callback']),
@@ -2065,6 +2209,7 @@ SQL;
                 }
                 break;
             case 'description':
+
                 $html = !empty($info['options']['html']);
                 $value = preg_replace('@(<br\s*/?>)+@', $html ? '<br/>' : "\n", $value);
                 $value = preg_replace("@[\r\n]+@", "\n", $value);
@@ -2708,7 +2853,10 @@ SQL;
                 }
                 unset($item);
             }
-            if (!in_array($field, array('email', 'picture', 'dataTour', 'additional', 'barcode', 'param', 'related_offer', 'local_delivery_cost', 'available'))) {
+
+            # XXX use map.php for configure this fields
+            # implode values for non multiple and non complex fields
+            if (!in_array($field, array('email', 'picture', 'dataTour', 'additional', 'barcode', 'param', 'related_offer', 'local_delivery_cost', 'available','age'))) {
                 $value = implode(', ', $value);
             }
         } elseif ($value !== null) {

@@ -78,10 +78,7 @@ class shopYandexmarketPluginBackendActions extends waViewActions
             foreach ($map as $type => &$type_map) {
                 foreach ($type_map['fields'] as $field => &$info) {
                     $source = ifempty($profile_map[$type][$field], 'skip:');
-                    if ($source && strpos($source, '@')) {
-                        list($source, $option) = explode('@', $source, 2);
-                        $info['options'] = array_fill_keys(explode('@', $option), true);
-                    }
+                    $info['options'] = shopYandexmarketPlugin::parseMapOptions($source);
                     $info['source'] = $source;
                     unset($profile_map[$type][$field]);
                     unset($info);
@@ -96,10 +93,7 @@ class shopYandexmarketPluginBackendActions extends waViewActions
                     $info_field = (strpos($field, 'param.') === 0) ? 'param.*' : $field;
                     if (isset($map[$type]['fields'][$info_field])) {
                         $info = $map[$type]['fields'][$info_field];
-                        if ($source && strpos($source, '@')) {
-                            list($source, $option) = explode('@', $source, 2);
-                            $info['options'] = array_fill_keys(explode('@', $option), true);
-                        }
+                        $info['options'] = shopYandexmarketPlugin::parseMapOptions($source);
                         $info['source'] = ifempty($source, 'skip:');
 
                         $map[$type]['fields'][$field] = $info;
@@ -144,6 +138,15 @@ class shopYandexmarketPluginBackendActions extends waViewActions
         $stock_model = new shopStockModel();
         foreach ($stock_model->getAll() as $stock) {
             $fields[sprintf('stock_counts.%d', $stock['id'])] = sprintf('%s @ %s', _w('In stock'), $stock['name']);
+        }
+
+        if (class_exists('shopVirtualstockModel')) {
+            $virtual_stock_model = new shopVirtualstockModel();
+            $virtual_stocks = $virtual_stock_model->getAll('id');
+
+            foreach ($virtual_stocks as $stock) {
+                $fields[sprintf('virtual_stock_counts.%d', $stock['id'])] = sprintf('%s @@ %s', _w('In stock'), $stock['name']);
+            }
         }
 
         $this->view->assign('fields', $fields);

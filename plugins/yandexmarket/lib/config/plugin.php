@@ -5,7 +5,7 @@ return array(
     'description'     => 'Экспорт каталога товаров в формате YML, прием заказов (CPA)',
     'img'             => 'img/yandexmarket.png',
     'vendor'          => 'webasyst',
-    'version'         => '2.2.4',
+    'version'         => '2.2.5',
     'importexport'    => 'profiles',
     'export_profile'  => true,
     'custom_settings' => true,
@@ -26,5 +26,7 @@ return array(
 
         'order_action_form.delete' => 'orderDeleteFormHandler',
         'order_action_form.*'      => 'orderDeleteFormHandler',
+
+        'currency_delete'          => 'currencyDeleteHandler',
     ),
 );

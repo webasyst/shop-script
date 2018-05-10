@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="yml_catalog">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="shop"/>
+            </xs:sequence>
+            <xs:attribute name="date" type="xs:string" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="shop">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="name"/>
+                    <xs:element ref="company"/>
+                    <xs:element ref="url"/>
+                    <xs:element ref="phone"/>
+                    <xs:element ref="platform"/>
+                    <xs:element ref="version"/>
+                    <xs:element ref="agency"/>
+                    <xs:element ref="email"/>
+                    <xs:element ref="currencies"/>
+                    <xs:element ref="categories"/>
+                    <xs:element ref="store"/>
+                    <xs:element ref="pickup"/>
+                    <xs:element ref="delivery"/>
+                    <xs:element ref="deliveryIncluded"/>
+                    <xs:element ref="local_delivery_cost"/>
+                    <xs:element ref="adult"/>
+                    <xs:element ref="cpa"/>
+                    <xs:element ref="fee"/>
+                    <xs:element ref="delivery-options"/>
+                </xs:choice>
+                <xs:element ref="offers"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="company" type="xs:string"/>
+    <xs:element name="phone" type="xs:string"/>
+    <xs:element name="currencies">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element maxOccurs="unbounded" ref="currency"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="currency">
+        <xs:complexType>
+            <xs:attribute name="id" use="required">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="RUR"/>
+                        <xs:enumeration value="RUB"/>
+                        <xs:enumeration value="USD"/>
+                        <xs:enumeration value="BYR"/>
+                        <xs:enumeration value="BYN"/>
+                        <xs:enumeration value="KZT"/>
+                        <xs:enumeration value="EUR"/>
+                        <xs:enumeration value="UAH"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute default="1" name="rate" type="xs:string"/>
+            <xs:attribute default="0" name="plus" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="categories">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element maxOccurs="unbounded" ref="category"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="category">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="id" type="xs:string" use="required"/>
+                    <xs:attribute name="parentId" type="xs:string"/>
+                    <xs:attribute name="tid" type="xs:string"/>
+                    <xs:attribute name="yid" type="xs:string"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="offers">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element maxOccurs="unbounded" ref="offer"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="offer">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="url"/>
+                <xs:element ref="buyurl"/>
+                <xs:element ref="price"/>
+                <xs:element ref="oldprice"/>
+                <xs:element ref="wprice"/>
+                <xs:element ref="currencyId"/>
+                <xs:element ref="vat"/>
+                <xs:element ref="xCategory"/>
+                <xs:element ref="categoryId"/>
+                <xs:element ref="market_category"/>
+                <xs:element ref="picture"/>
+                <xs:element ref="store"/>
+                <xs:element ref="pickup"/>
+                <xs:element ref="delivery"/>
+                <xs:element ref="deliveryIncluded"/>
+                <xs:element ref="local_delivery_cost"/>
+                <xs:element ref="orderingTime"/>
+                <xs:element ref="typePrefix"/>
+                <xs:element ref="vendor"/>
+                <xs:element ref="vendorCode"/>
+                <xs:element ref="provider"/>
+                <xs:element ref="tarifplan"/>
+                <xs:element ref="model"/>
+                <xs:element ref="author"/>
+                <xs:element ref="name"/>
+                <xs:element ref="publisher"/>
+                <xs:element ref="series"/>
+                <xs:element ref="year"/>
+                <xs:element ref="ISBN"/>
+                <xs:element ref="volume"/>
+                <xs:element ref="part"/>
+                <xs:element ref="language"/>
+                <xs:element ref="binding"/>
+                <xs:element ref="page_extent"/>
+                <xs:element ref="table_of_contents"/>
+                <xs:element ref="performed_by"/>
+                <xs:element ref="performance_type"/>
+                <xs:element ref="storage"/>
+                <xs:element ref="format"/>
+                <xs:element ref="recording_length"/>
+                <xs:element ref="artist"/>
+                <xs:element ref="title"/>
+                <xs:element ref="media"/>
+                <xs:element ref="starring"/>
+                <xs:element ref="director"/>
+                <xs:element ref="originalName"/>
+                <xs:element ref="country"/>
+                <xs:element ref="worldRegion"/>
+                <xs:element ref="region"/>
+                <xs:element ref="days"/>
+                <xs:element ref="dataTour"/>
+                <xs:element ref="hotel_stars"/>
+                <xs:element ref="room"/>
+                <xs:element ref="meal"/>
+                <xs:element ref="included"/>
+                <xs:element ref="transport"/>
+                <xs:element ref="price_min"/>
+                <xs:element ref="price_max"/>
+                <xs:element ref="options"/>
+                <xs:element ref="place"/>
+                <xs:element ref="hall"/>
+                <xs:element ref="hall_part"/>
+                <xs:element ref="date"/>
+                <xs:element ref="is_premiere"/>
+                <xs:element ref="is_kids"/>
+                <xs:element ref="aliases"/>
+                <xs:element ref="additional"/>
+                <xs:element ref="description"/>
+                <xs:element ref="sales_notes"/>
+                <xs:element ref="promo"/>
+                <xs:element ref="manufacturer_warranty"/>
+                <xs:element ref="seller_warranty"/>
+                <xs:element ref="country_of_origin"/>
+                <xs:element ref="downloadable"/>
+                <xs:element ref="adult"/>
+                <xs:element ref="age"/>
+                <xs:element ref="barcode"/>
+                <xs:element ref="cpa"/>
+                <xs:element ref="fee"/>
+                <xs:element ref="rec"/>
+                <xs:element ref="expiry"/>
+                <xs:element ref="weight"/>
+                <xs:element ref="dimensions"/>
+                <xs:element ref="param"/>
+                <xs:element ref="related_offer"/>
+                <xs:element ref="delivery-options"/>
+                <xs:element ref="pricelabs_param"/>
+                <xs:element ref="purchase_price"/>
+            </xs:choice>
+            <xs:attribute name="id" type="xs:string"/>
+            <xs:attribute name="group_id" type="xs:string"/>
+            <xs:attribute name="type">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="vendor.model"/>
+                        <xs:enumeration value="book"/>
+                        <xs:enumeration value="audiobook"/>
+                        <xs:enumeration value="artist.title"/>
+                        <xs:enumeration value="tour"/>
+                        <xs:enumeration value="ticket"/>
+                        <xs:enumeration value="event-ticket"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="available">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="true"/>
+                        <xs:enumeration value="false"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="bid" type="xs:string"/>
+            <xs:attribute name="cbid" type="xs:string"/>
+            <xs:attribute name="sbid" type="xs:string"/>
+            <xs:attribute name="fee" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="url" type="xs:string"/>
+    <xs:element name="store" type="xs:string"/>
+    <xs:element name="email" type="xs:string"/>
+    <xs:element name="platform" type="xs:string"/>
+    <xs:element name="version" type="xs:string"/>
+    <xs:element name="agency" type="xs:string"/>
+    <xs:element name="buyurl" type="xs:string"/>
+    <xs:element name="picture" type="xs:string"/>
+    <xs:element name="pickup" type="xs:string"/>
+    <xs:element name="delivery">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="days" type="xs:string"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="deliveryIncluded">
+        <xs:complexType/>
+    </xs:element>
+    <xs:element name="local_delivery_cost" type="xs:string"/>
+    <xs:element name="orderingTime">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element minOccurs="0" ref="onstock"/>
+                <xs:element ref="ordering"/>
+                <xs:element minOccurs="0" ref="deliveryTime"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="onstock">
+        <xs:complexType/>
+    </xs:element>
+    <xs:element name="ordering">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="hours" type="xs:string"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="deliveryTime">
+        <xs:complexType/>
+    </xs:element>
+    <xs:element name="price">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="from" type="xs:string"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="oldprice" type="xs:string"/>
+    <xs:element name="wprice" type="xs:string"/>
+    <xs:element name="currencyId" type="xs:string"/>
+    <xs:element name="vat">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="NO_VAT"/>
+                <xs:enumeration value="VAT_0"/>
+                <xs:enumeration value="VAT_10"/>
+                <xs:enumeration value="VAT_18"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+    <xs:element name="categoryId">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute default="Own" name="type">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="Yandex"/>
+                                <xs:enumeration value="Torg"/>
+                                <xs:enumeration value="Own"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:attribute>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="market_category">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="id" type="xs:string"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="typePrefix" type="xs:string"/>
+    <xs:element name="vendor" type="xs:string"/>
+    <xs:element name="vendorCode" type="xs:string"/>
+    <xs:element name="model" type="xs:string"/>
+    <xs:element name="author" type="xs:string"/>
+    <xs:element name="name" type="xs:string"/>
+    <xs:element name="publisher" type="xs:string"/>
+    <xs:element name="ISBN" type="xs:string"/>
+    <xs:element name="volume" type="xs:string"/>
+    <xs:element name="part" type="xs:string"/>
+    <xs:element name="language" type="xs:string"/>
+    <xs:element name="binding" type="xs:string"/>
+    <xs:element name="page_extent" type="xs:string"/>
+    <xs:element name="table_of_contents" type="xs:string"/>
+    <xs:element name="performed_by" type="xs:string"/>
+    <xs:element name="performance_type" type="xs:string"/>
+    <xs:element name="storage" type="xs:string"/>
+    <xs:element name="format" type="xs:string"/>
+    <xs:element name="recording_length" type="xs:string"/>
+    <xs:element name="series" type="xs:string"/>
+    <xs:element name="year" type="xs:string"/>
+    <xs:element name="artist" type="xs:string"/>
+    <xs:element name="title" type="xs:string"/>
+    <xs:element name="media" type="xs:string"/>
+    <xs:element name="starring" type="xs:string"/>
+    <xs:element name="director" type="xs:string"/>
+    <xs:element name="originalName" type="xs:string"/>
+    <xs:element name="country" type="xs:string"/>
+    <xs:element name="description" type="xs:string"/>
+    <xs:element name="sales_notes" type="xs:string"/>
+    <xs:element name="promo" type="xs:string"/>
+    <xs:element name="aliases" type="xs:string"/>
+    <xs:element name="provider" type="xs:string"/>
+    <xs:element name="tarifplan" type="xs:string"/>
+    <xs:element name="xCategory" type="xs:string"/>
+    <xs:element name="additional" type="xs:string"/>
+    <xs:element name="worldRegion" type="xs:string"/>
+    <xs:element name="region" type="xs:string"/>
+    <xs:element name="days" type="xs:string"/>
+    <xs:element name="dataTour" type="xs:string"/>
+    <xs:element name="hotel_stars" type="xs:string"/>
+    <xs:element name="room" type="xs:string"/>
+    <xs:element name="meal" type="xs:string"/>
+    <xs:element name="included" type="xs:string"/>
+    <xs:element name="transport" type="xs:string"/>
+    <xs:element name="price_min" type="xs:string"/>
+    <xs:element name="price_max" type="xs:string"/>
+    <xs:element name="options" type="xs:string"/>
+    <xs:element name="manufacturer_warranty" type="xs:string"/>
+    <xs:element name="seller_warranty" type="xs:string"/>
+    <xs:element name="country_of_origin" type="xs:string"/>
+    <xs:element name="downloadable" type="xs:string"/>
+    <xs:element name="adult" type="xs:string"/>
+    <xs:element name="age">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="unit" type="xs:string"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="barcode" type="xs:string"/>
+    <xs:element name="cpa" type="xs:string"/>
+    <xs:element name="fee" type="xs:string"/>
+    <xs:element name="rec" type="xs:string"/>
+    <xs:element name="expiry" type="xs:string"/>
+    <xs:element name="weight" type="xs:string"/>
+    <xs:element name="dimensions" type="xs:string"/>
+    <xs:element name="param">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="name" type="xs:string" use="required"/>
+                    <xs:attribute name="unit" type="xs:string"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="pricelabs_param">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="name" type="xs:string" use="required"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="related_offer" type="xs:string"/>
+    <xs:element name="delivery-options">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="option" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:attribute name="cost" type="xs:string" use="required"/>
+                        <xs:attribute name="days" type="xs:string"/>
+                        <xs:attribute name="order-before" type="xs:string"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="place" type="xs:string"/>
+    <xs:element name="hall">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="plan" type="xs:string"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="hall_part" type="xs:string"/>
+    <xs:element name="is_premiere" type="xs:string"/>
+    <xs:element name="is_kids" type="xs:string"/>
+    <xs:element name="date" type="xs:string"/>
+    <xs:element name="purchase_price" type="xs:string"/>
+</xs:schema>

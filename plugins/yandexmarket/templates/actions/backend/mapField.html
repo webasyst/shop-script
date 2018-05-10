@@ -139,7 +139,17 @@
     
             {if !empty($info.available_options)}
                 {foreach $info.available_options as $_option=>$_option_description}
+                    {if is_array($_option_description)}
+                        <br/><label class="hint">{$_option_description.description}<select name="map[{$type_id}][{$field}][options][{$_option|escape}]">
+                            <option value=""{if empty($info.options[$_option])} selected{/if}></option>
+                        {foreach $_option_description.options as $_option_value=>$_option_value_description}
+                        <option value="{$_option_value|escape}"{if ifset($info.options[$_option]) eq $_option_value} selected{/if}>{$_option_value_description|escape}</option>
+                        {/foreach}
+                        </select>
+                        </label>
+                    {else}
                     <br/><label class="hint"><input type="checkbox" name="map[{$type_id}][{$field}][options][{$_option|escape}]" value="1"{if !empty($info.options[$_option])} checked{/if}>&nbsp;{$_option_description}</label>
+                    {/if}
                 {/foreach}
             {/if}
         {/if}
