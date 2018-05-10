@@ -30,15 +30,19 @@
             {/if}
             <tr{if empty($campaign.settlements)} class="grey"{/if}>
                 <td>
-                    <a href="https://partner.market.yandex.ru/order.xml?id={$campaign.id|escape}" target="_blank" class="inline-link">{$campaign.id|escape}<i
-                                class="icon16 new-window"></i></a>
+                    <a href="https://partner.market.yandex.ru/order.xml?id={$campaign.id|escape}" target="_blank" class="inline-link">{$campaign.id|escape}<i class="icon16 new-window"></i></a>
                     <br/>
-                    {$campaign.domain|escape}
+                    <span class="js-campaign-name">{$campaign.domain|escape}</span>
                     {if !empty($campaign.settlements)}
                         {foreach $campaign.settlements as $settlement}
                             <br/>
                             <span class="hint">{$settlement|escape}</span>
                         {/foreach}
+                    {else}
+                        <br/>
+                        <span class="hint"><i class="icon10 exclamation"></i> Для кампании не выбрана витрина интернет-магазина.</span>
+                        <br/>
+                        <a href="#/yandexmarket/settle/{$campaign.id|escape}/" class="js-action inline-link underline"><i class="icon16 plus-bw"></i>выбрать витрину</a>
                     {/if}
                 </td>
                 <td>
@@ -52,7 +56,7 @@
                                 <br/>
                                 Текущий URL: {$feed.url|escape}
                             {else}
-                                <a href="?action=importexport#/yandexmarket:{$feed.profile_id}/" target="_blank" class="inline-link"
+                                <a href="?action=importexport#/yandexmarket:{$feed.profile_id}/" target="_blank" class="js-action inline-link"
                                    title="{$feed.id}"><i class="icon16 export"></i>{$feed.profile_info.name|escape}{if !empty($feed.path_mtime)}
                                 <br/><span class="hint">{$feed.path_mtime|wa_datetime:'humandatetime'}</span>
                                     {/if}<i class="icon16 new-window"></i></a>
@@ -144,3 +148,57 @@
     {/if}
 
 <div id="s-settings-plugin-yandexmarket-content" class="fields form"></div>
+
+
+<div id="s-settings-plugin-yandexmarket-settle-dialog" class="dialog width600px height450px">
+    <div class="dialog-background"></div>
+    <div class="dialog-window">
+        <form action="?plugin=yandexmarket&module=settings&action=campaignSave" method="post">
+            <input type="hidden" name="section" value="settlements">
+            <div class="dialog-content">
+                <div class="dialog-content-indent">
+                    <h1>Выбрать витрину для кампании</h1>
+                    <div class="fields form">
+                        <div class="field-group">
+                            <div class="field">
+                                <div class="name">ID кампании</div>
+                                <div class="value no-shift">
+                                    <input type="text" name="campaign_id" value="" readonly>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name">Название кампании</div>
+                                <div class="value no-shift js-campaign-name">
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name">Витрина интернет-магазина</div>
+                                <div class="value no-shift">
+                                        {foreach $settlements as $settlement}
+                                        <label>
+                                            <input type="radio" name="campaign[domain]" value="{$settlement.original_domain|default:$settlement.domain|escape}">&nbsp;{$settlement.settlement|escape}
+                                            {if !empty($settlement.alias)} <span class="hint">{$settlement.alias|escape}</span> {/if}
+                                        </label><br/>
+                                        {/foreach}
+                                </div>
+                                <div class="value no-shift">
+                                    <p class="small">
+                                        <i class="icon10 info"></i>
+                                        Выберите витрину, которая соответствует кампании «<span class="js-campaign-name"></span>».
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <em class="errormsg"></em>
+                    </div>
+                </div>
+            </div>
+            <div class="dialog-buttons">
+                <div class="dialog-buttons-gradient">
+                    <input class="button green" type="submit" value="[`Save`]"> <span>[`or`]</span> <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+                </div>
+            </div>
+            {$wa->csrf()}
+        </form>
+    </div>
+</div>

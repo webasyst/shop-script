@@ -52,19 +52,20 @@ class shopYandexmarketPluginSettingsActions extends waViewActions
     public function campaignsAction()
     {
         $options = array(
-            'balance' => false,
-            'orders'  => false,
-            'offers'  => false,
-            'outlets' => false,
+            'balance'  => false,
+            'orders'   => false,
+            'offers'   => false,
+            'outlets'  => false,
         );
         try {
             $cpa_available = $this->plugin->checkCpa();
             $campaigns = $this->plugin->getCampaigns($options);
+            $settlements = shopYandexmarketPlugin::getSettlements();
         } catch (waException $ex) {
             $error = $ex->getMessage();
             $error_code = $ex->getCode();
         }
-        $this->view->assign(compact('campaigns', 'cpa_available', 'error', 'error_code'));
+        $this->view->assign(compact('campaigns', 'cpa_available', 'error', 'error_code', 'settlements'));
     }
 
     public function campaignAction()

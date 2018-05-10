@@ -312,6 +312,31 @@ HTML;
     }
 
     /**
+     * currency_delete event handler
+     * @param $params
+     */
+    public function currencyDeleteHandler($params)
+    {
+        $primary_currency = $this->getSettings('primary_currency');
+        if (ifset($params['code']) == $primary_currency) {
+
+            $currency = ifempty($params['convert_to']);
+
+            $available_currencies = shopYandexmarketPlugin::settingsPrimaryCurrencies();
+
+            unset($available_currencies['auto']);
+            unset($available_currencies['front']);
+            if (!empty($available_currencies)) {
+                $available_currencies = array_keys($available_currencies);
+                if (!in_array($currency, $available_currencies)) {
+                    $currency = reset($available_currencies);
+                }
+                $this->setSettings('primary_currency', $currency);
+            }
+        }
+    }
+
+    /**
      * @param array $settings
      * @return string
      */
@@ -932,9 +957,14 @@ HTML;
 
         #add settlement info
         $campaign['settlements'] = self::getMatchedSettlements($campaign['domain']);
+        $campaigns_model = new shopYandexmarketCampaignsModel();
+        if ($domain = $campaigns_model->get($campaign['id'], 'domain')) {
+            $campaign['settlements'] += self::getMatchedSettlements($domain);
+        }
+        $campaign['settlements'] = array_unique($campaign['settlements']);
     }
 
-    private static function getSettlements()
+    public static function getSettlements()
     {
         static $settlements;
         if ($settlements === null) {
@@ -943,20 +973,36 @@ HTML;
             $domain_routes = wa()->getRouting()->getByApp('shop');
 
             foreach ($domain_routes as $domain => $routes) {
-                foreach ($routes as $route) {
-                    $domain = preg_replace('@^www\.@', '', $domain);
-                    $settlement = $domain.'/'.$route['url'];
-                    $settlements[] = compact('domain', 'settlement');
+                $original_domain = preg_replace('@^www\.@', '', $domain);
+                $domain = waIdna::dec($original_domain);
+                if ($original_domain == $domain) {
+                    unset($original_domain);
                 }
+                foreach ($routes as $route) {
+                    $settlement = $domain.'/'.$route['url'];
+                    if (!empty($original_domain)) {
+                        $original_settlement = $original_domain.'/'.$route['url'];
+                    }
+
+                    $settlements[] = compact('domain', 'original_domain', 'settlement', 'original_settlement');
+                }
+
             }
 
             $routes = wa()->getConfig()->getConfigFile('routing');
             foreach ($routes as $domain => $alias) {
                 if (!is_array($alias) && isset($domain_routes[$alias])) {
+                    $original_domain = preg_replace('@^www\.@', '', $domain);
+                    $domain = waIdna::dec($original_domain);
+                    if ($original_domain == $domain) {
+                        unset($original_domain);
+                    }
                     foreach ($domain_routes[$alias] as $route) {
-                        $domain = preg_replace('@^www\.@', '', $domain);
                         $settlement = $domain.'/'.$route['url'];
-                        $settlements[] = compact('alias', 'domain', 'settlement');
+                        if (!empty($original_domain)) {
+                            $original_settlement = $original_domain.'/'.$route['url'];
+                        }
+                        $settlements[] = compact('alias', 'domain', 'original_domain', 'settlement', 'original_settlement');
                     }
                 }
             }
@@ -965,32 +1011,54 @@ HTML;
         return $settlements;
     }
 
+    private static function cleanupSettlementDomain($domain)
+    {
+        return preg_replace('@^www\.@', '', preg_replace('@/.*$@', '', $domain));
+    }
+
+    private static function isMatchedDomain($domain, $campaign_domain)
+    {
+        $settlement_domain =self::cleanupSettlementDomain($domain);
+        $l = strlen($campaign_domain) + 1;
+        $settlement_parent_domain = substr($settlement_domain, -$l);
+        $matched = false;
+        if ($settlement_domain == $campaign_domain) {
+            $matched = true;
+        } elseif ('.'.$campaign_domain == $settlement_parent_domain) {
+            $matched = true;
+        }
+        return $matched;
+    }
+
     private static function getMatchedSettlements($expected_domain)
     {
+        $campaign_domains = array(
+            preg_replace('@^(www|ввв)\.@ui', '', $expected_domain),
+            preg_replace('@^(www|ввв)\.@ui', '', waIdna::dec($expected_domain)),
+
+        );
+        $campaign_domains = array_unique($campaign_domains);
         $settlements = self::getSettlements();
         $matched = array();
 
-        foreach ($settlements as $settlement) {
-            $settlement_domain = preg_replace('@^www\.@', '', preg_replace('@/.*$@', '', $settlement['domain']));
-            $campaign_domain = preg_replace('@^www\.@', '', $expected_domain);
-            $l = strlen($campaign_domain) + 1;
-            $settlement_parent_domain = substr($settlement_domain, -$l);
-            if (($settlement_domain == $campaign_domain)
-                || ('.'.$campaign_domain == $settlement_parent_domain)
-            ) {
-                $matched[] = $settlement['settlement'];
-            } elseif (!empty($settlement['alias'])) {
-                $settlement_domain = preg_replace('@^www\.@', '', preg_replace('@/.*$@', '', $settlement['alias']));
-                $campaign_domain = preg_replace('@^www\.@', '', $expected_domain);
-                $l = strlen($campaign_domain) + 1;
-                $settlement_parent_domain = substr($settlement_domain, -$l);
-                if (($settlement_domain == $campaign_domain)
-                    || ('.'.$campaign_domain == $settlement_parent_domain)
-                ) {
-                    $matched[] = $settlement['settlement'];
+        $fields = array(
+            'domain',
+            'original_domain',
+            'alias',
+            'original_alias',
+        );
+
+        foreach ($campaign_domains as $campaign_domain) {
+            foreach ($settlements as $settlement) {
+                foreach ($fields as $field) {
+                    if (!empty($settlement[$field]) && self::isMatchedDomain($settlement[$field], $campaign_domain)) {
+                        $matched[] = $settlement['settlement'];
+                        break;
+                    }
                 }
             }
         }
+
         return $matched;
     }
 

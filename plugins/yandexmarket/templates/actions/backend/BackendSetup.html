@@ -110,7 +110,7 @@
                     <div class="value no-shift">
                         <select name="domain" id="s-plugin-yandexmarket-domain">
                             {foreach $settlements as $route}
-                                <option value="{$route|escape}"{if $route eq $current_domain} selected="selected"{/if}>{$route|escape}</option>
+                                <option value="{$route|escape}"{if $route eq $current_domain} selected="selected"{/if}>{waIdna::dec($route)|escape}</option>
                             {/foreach}
                         </select>
                         <br/>

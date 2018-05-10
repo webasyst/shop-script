@@ -16,6 +16,12 @@ class shopYandexmarketPluginSettingsCampaignSaveController extends waJsonControl
                 );
                 break;
 
+            case 'settlements':
+                $campaign = array(
+                    'domain' => ifset($campaign['domain']),
+                );
+                break;
+
             default:
                 $shipping_methods = array();
                 foreach (ifset($campaign['shipping_methods'], array()) as $id => $shipping_params) {
