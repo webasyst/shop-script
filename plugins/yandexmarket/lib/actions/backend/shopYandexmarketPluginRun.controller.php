@@ -2479,13 +2479,16 @@ SQL;
                         }
                         break;
                     default:
-                        $value = (string)$value;
-                        if (empty($value) || ($value == 'false')) {
+                        if (empty($value) || ($value === 'false') || ($value === '0')) {
                             $value = 'false';
+                        } elseif (($value === 'true') || ($value === '1') || ($value === true)) {
+                            $value = 'true';
                         } elseif (preg_match('@^\d+$@', trim($value))) {
                             $value = $this->formatCustom(intval($value) * 3600 * 24, 'ISO8601');
                         } elseif (!preg_match($pattern, $value)) {
                             $value = 'true';
+                        } else {
+                            $value = (string)$value;
                         }
                         break;
                 }

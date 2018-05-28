@@ -163,6 +163,8 @@
                 <xs:element ref="additional"/>
                 <xs:element ref="description"/>
                 <xs:element ref="sales_notes"/>
+                <xs:element ref="min-quantity"/>
+                <xs:element ref="step-quantity"/>
                 <xs:element ref="promo"/>
                 <xs:element ref="manufacturer_warranty"/>
                 <xs:element ref="seller_warranty"/>
@@ -336,6 +338,8 @@
     <xs:element name="country" type="xs:string"/>
     <xs:element name="description" type="xs:string"/>
     <xs:element name="sales_notes" type="xs:string"/>
+    <xs:element name="min-quantity" type="xs:integer"/>
+    <xs:element name="step-quantity" type="xs:integer"/>
     <xs:element name="promo" type="xs:string"/>
     <xs:element name="aliases" type="xs:string"/>
     <xs:element name="provider" type="xs:string"/>
