@@ -216,10 +216,10 @@ class shopCml1cPluginFrontendController extends waController
             } else {
                 throw new waException("Error while open target file");
             }
-        } elseif (isset($GLOBALS['HTTP_RAW_POST_DATA'])) {
-            if (!empty($GLOBALS['HTTP_RAW_POST_DATA'])) {
+        } elseif (@isset($GLOBALS['HTTP_RAW_POST_DATA'])) {
+            if (!@empty($GLOBALS['HTTP_RAW_POST_DATA'])) {
                 $filename = $this->plugin()->path(waRequest::get('filename', 'upload'));
-                $result = waFiles::write($filename, $GLOBALS['HTTP_RAW_POST_DATA']);
+                $result = waFiles::write($filename, @$GLOBALS['HTTP_RAW_POST_DATA']);
             } else {
                 throw new waException("Error while read POST file");
             }
@@ -265,17 +265,18 @@ class shopCml1cPluginFrontendController extends waController
             $this->response('success', 'Имитация обмена. Фактического обмена данными не произошло', 'Imitation completed. There no data exchange');
         } else {
 
+            $key = 'processId'.$filename;
 
             #init required POST fields
-            $_POST['processId'] = $s->get('processId'.$filename);
+            $_POST['processId'] = $s->get($key);
             $_POST['direction'] = 'import';
             $_POST['filename'] = $filename;
-            $_POST['zipfile'] = $s->get('filename');
+            $_POST['zipfile'] = $zipfile = $s->get('filename');
 
             if (empty($_POST['processId'])) {
                 ob_start();
                 $this->runner()->run();
-                $s->set('processId'.$filename, $this->runner()->processId);
+                $s->set($key, $this->runner()->processId);
                 $out = ob_get_clean();
                 $this->response('progress', $out);
             } else {
@@ -288,7 +289,8 @@ class shopCml1cPluginFrontendController extends waController
                     ob_start();
                     $this->sleep();
                     $this->runner()->run();
-                    $this->runner()->exchangeReport();
+                    $details = compact('filename', 'zipfile');
+                    $this->runner()->exchangeReport(array_filter($details));
                     $out = ob_get_clean();
                 }
                 $this->response($out);

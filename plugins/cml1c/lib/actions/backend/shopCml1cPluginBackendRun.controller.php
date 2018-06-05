@@ -129,10 +129,20 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             parent::execute();
         } catch (waException $ex) {
             if (wa()->getEnv() == 'backend') {
+                $options = 0;
+                if (defined('JSON_UNESCAPED_UNICODE')) {
+                    $options |= JSON_UNESCAPED_UNICODE;
+                }
                 if ($ex->getCode() == '302') {
-                    echo json_encode(array('warning' => $ex->getMessage()));
+                    $data = array('warning' => $ex->getMessage());
                 } else {
-                    echo json_encode(array('error' => $ex->getMessage()));
+                    $data = array('error' => $ex->getMessage());
+
+                }
+                if ($options) {
+                    echo json_encode($data, $options);
+                } else {
+                    echo json_encode($data);
                 }
             }
         }
@@ -152,16 +162,26 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
     private function pluginSettings($name, $value = null)
     {
+        $log = null;
         if ($value !== null) {
             $settings = $this->plugin()->getSettings();
             $settings[$name] = $value;
             $this->plugin()->saveSettings($settings);
+
+            $log = array($name=>$value);
         } elseif (is_array($name)) {
             $settings = $name;
             $settings += $this->plugin()->getSettings();
             $this->plugin()->saveSettings($settings);
+
+            $log = $name;
         } else {
             return $this->plugin()->getSettings($name);
+        }
+
+        if ($log !== null) {
+            $message = sprintf('Settings was changed during [%s]: %s', $this->processId, var_export($log, true));
+            waLog::log($message, 'shop/plugins/cml1c/settings.log');
         }
         return $settings;
     }
@@ -232,7 +252,11 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             $this->data['memory_avg'] = memory_get_usage();
         } catch (waException $ex) {
             $this->error($ex->getMessage());
-            echo json_encode(array('error' => $ex->getMessage(),));
+            if (class_exists('shopCml1cPluginRunTest', false)) {
+                throw $ex;
+            } else {
+                echo json_encode(array('error' => $ex->getMessage(),));
+            }
             exit;
         }
     }
@@ -261,34 +285,74 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         return $this->getCollection()->getProducts('*', $offset, $limit, false);
     }
 
-    private function getFeatureRelation($code)
+    /**
+     * @param string[] $code
+     * @param shopProduct $product
+     * @return mixed
+     */
+    private function getFeatureRelation($code, $product = null)
     {
         static $feature_relation = array();
-        $model = $this->getModel('feature');
-        /**
-         * @var shopFeatureModel $model
-         */
+        if ($product) {
 
+            $related = array();
+            if ($code) {
+                /** @var shopProductFeaturesSelectableModel $model */
+                $model = $this->getModel('product_features_selectable');
 
-        $code_ = array_diff($code, array_keys($feature_relation));
-        if ($code_) {
+                if ($product->id && ($product->sku_type == shopProductModel::SKU_TYPE_SELECTABLE)) {
+                    $selected = $model->getProductFeatureIds($product->id);
+                    /** @var shopFeatureModel $model */
+                    $feature_model = $this->getModel('feature');
 
-            $search = array(
-                'code'     => $code_,
-                'multiple' => 1,
-            );
+                    $features = $feature_model->getById($selected);
+                    foreach ($features as $feature_code => $feature) {
+                        if (!in_array($feature_code, $code, true)) {
+                            unset($features[$feature_code]);
+                        }
+                    }
 
-            $multiple_features = $model->getByField($search, 'code');
-            foreach ($code_ as $c) {
-                $feature_relation[$c] = !empty($multiple_features[$c]['multiple']);
+                    if ($features && $product->type_id) {
+                        $types = array($product->type_id => true);
+                        $type_features_model = new shopTypeFeaturesModel();
+                        $type_features_model->fillTypes($features, $types);
+                        foreach ($features as &$feature) {
+                            unset($feature['types']);
+                            $feature['sort'] = ifset($feature['sort'][$product->type_id]);
+                            unset($feature);
+                        }
+                        uasort($features, create_function('$a,$b', 'return max(-1,min(1,$a["sort"]-$b["sort"]));'));
+                    }
+                    $related = array_keys($features);
+                }
             }
-        }
-        foreach ($code as $i => $c) {
-            if (empty($feature_relation[$c])) {
-                unset($code[$i]);
+            return $related;
+
+        } else {
+
+
+            $new_code = array_diff($code, array_keys($feature_relation));
+            if ($new_code) {
+                $search = array(
+                    'code'     => $new_code,
+                    'multiple' => 1,
+                );
+
+                /** @var shopFeatureModel $model */
+                $feature_model = $this->getModel('feature');
+
+                $multiple_features = $feature_model->getByField($search, 'code');
+                foreach ($new_code as $c) {
+                    $feature_relation[$c] = !empty($multiple_features[$c]['multiple']);
+                }
             }
+            foreach ($code as $i => $c) {
+                if (empty($feature_relation[$c])) {
+                    unset($code[$i]);
+                }
+            }
+            return $code;
         }
-        return $code;
     }
 
     /**
@@ -1250,7 +1314,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         return $html;
     }
 
-    public function exchangeReport()
+    public function exchangeReport($details = array())
     {
         $interval = '—';
         if (!empty($this->data['timestamp'])) {
@@ -1284,7 +1348,21 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         if ($this->processId) {
             $report .= sprintf(' ID процесса обмена: "%s"', $this->processId);
         }
-        waLog::log($report, 'shop/plugins/cml1c/report.log');
+        $extended_report = $report;
+        if (!empty($details)) {
+            $extended_report .= sprintf("\nДетали обмена данными:\n%s;\n", var_export($details, true));
+        }
+        if ($this->data['direction'] == 'import') {
+            if (!empty($this->data['processed_count'][self::STAGE_OFFER])) {
+                if (self::$price_map === null) {
+                    $this->initPriceMap();
+                }
+                $extended_report .= sprintf("\nПараметры импорта цен:\n%s;\n", var_export(self::$price_map, true));
+                $extended_report .= sprintf("\nПараметры импорта складов:\n%s;\n", var_export($this->data['stock_map'], true));
+            }
+        }
+
+        waLog::log($extended_report, 'shop/plugins/cml1c/report.log');
         return $report;
     }
 
@@ -2139,6 +2217,7 @@ HTML;
                 }
                 break;
         }
+
         return $report;
     }
 
@@ -4811,6 +4890,9 @@ SQL;
                 case 'feature':
                     $models[$type] = new shopFeatureModel();
                     break;
+                case 'product_features_selectable':
+                    $models[$type] = new shopProductFeaturesSelectableModel();
+                    break;
                 case 'order':
                     $models[$type] = new shopOrderModel();
                     break;
@@ -4980,6 +5062,23 @@ SQL;
                             $value = self::field($property, 'Значение');
                             $this->applyMapping($product, $update_fields, $features, $params, $name, $value, null, $xpath);
                             break;
+                    }
+                }
+
+                $xpath = '//ЗначенияСвойств/ЗначенияСвойства';
+                foreach ($this->xpath($element, $xpath) as $property) {
+                    //Ид по Ид получать код фичи из карты или наименование
+                    //Значение | ИдЗначения - undocumented feature?
+                    $id = self::field($property, 'Ид');
+
+                    $feature = ifset($this->data['map'][self::STAGE_FEATURE][$id]);
+                    if (empty($feature)) {
+                        $feature = $this->findFeature($id, null, $xpath);
+                    }
+
+                    if (!empty($feature['name'])) {
+                        $value = self::field($property, array('Значение', 'ИдЗначения'));
+                        $this->applyMapping($product, $update_fields, $features, $params, $feature['name'], $value, $feature, $xpath);
                     }
                 }
 
@@ -5679,6 +5778,9 @@ SQL;
                 //Значение | ИдЗначения - undocumented feature?
                 $id = self::field($property, 'Ид');
                 $feature = ifset($this->data['map'][self::STAGE_FEATURE][$id]);
+                if (empty($feature)) {
+                    $feature = $this->findFeature($id, null, $xpath);
+                }
                 $value = self::field($property, array('Значение', 'ИдЗначения'));
 
 
@@ -5703,7 +5805,8 @@ SQL;
 
         $sku_features = array();
         if ($features) {
-            foreach ($this->getFeatureRelation(array_keys($features)) as $code) {
+            $multiple_features = $this->getFeatureRelation(array_keys($features), $product);
+            foreach ($multiple_features as $code) {
                 if (is_array($features[$code])) {
                     if (count($features[$code]) == 1) {
                         $sku_features[$code] = $features[$code];
@@ -5808,17 +5911,30 @@ SQL;
             }
 
             if (!empty($this->data['update_product_fields']['features'])) {
-                if ($features) {
-                    $product->features = $features;
-                }
+
                 if ($sku_features) {
-                    if (count($uuid) > 1) {
+                    $apply_features = (count($uuid) > 1);
+                    if ($apply_features) {
                         $skus[-1]['features'] = $sku_features;
                     } else {
                         /* ignore empty SKU for exists products */
                         unset($skus[-1]);
+
+                        //attempt merge features with exists product features
+                        $product_features = $product->features;
+                        foreach ($sku_features as $code => $feature) {
+                            if (!isset($product_features[$code])) {
+                                $features[$code] = $feature;
+                            } elseif (false) {
+                                //XXX спорный момент
+                                $features[$code] = array_unique(array_merge((array)$feature, $product_features[$code]));
+                            }
+                        }
                         $sku_features = array();
                     }
+                }
+                if ($features) {
+                    $product->features = $features;
                 }
             } else {
                 $features = array();
