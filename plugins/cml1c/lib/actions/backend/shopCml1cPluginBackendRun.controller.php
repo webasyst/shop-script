@@ -375,6 +375,8 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             $this->data['order_state'] = array_keys(array_filter($order_state));
         }
 
+        $this->data['export_orders_mask'] = $this->pluginSettings('export_orders_mask');
+
         $this->data['stock_id'] = max(0, $this->pluginSettings('stock'));
 
         $export = waRequest::post('export');
@@ -2908,6 +2910,12 @@ HTML;
         while (($chunk-- > 0) && ($order = reset($orders))) {
 
             $order['id_str'] = shopHelper::encodeOrderId($order['id']);
+            if (!empty($this->data['export_orders_mask']) && (strpos($this->data['export_orders_mask'], '{$order.id}') !== false)) {
+                $order['id_guid'] = str_replace('{$order.id}', $order['id'], $this->data['export_orders_mask']);
+            } else {
+                $order['id_guid'] = $order['id'];
+            }
+
             $order['status_comment'] = ''; //TODO
 
             $params = &$order['params'];
@@ -2929,7 +2937,7 @@ HTML;
 
             $w->startElement('Документ');
             //Идентификатор документа уникальный в рамках файла обмена
-            $w->writeElement('Ид', $order['id']);
+            $w->writeElement('Ид', $order['id_guid']);
             //Номер документа
             $w->writeElement('Номер', $order['id_str']);
             //Дата документа
