@@ -127,21 +127,22 @@ class shopBackendAutocompleteController extends waController
             $product_ids = array_keys($product_ids);
             if ($product_ids) {
                 $data = $product_model->select($fields)
-                                      ->where('id IN ('.implode(',', $product_ids).')')
+                                      ->where('id IN (i:ids)', array('ids' => $product_ids))
                                       ->limit($limit - $count)
                                       ->fetchAll('id');
 
                 // not array_merge, because it makes first reset numeric keys and then make merge
                 $products = $products + $data;
+                $count = count($products);
             }
         }
 
         // try find with LIKE %query%
-        if (count($products) < $limit) {
+        if ($count < $limit) {
             $data = $product_model
                 ->select($fields)
                 ->where("name LIKE '%$q%'")
-                ->limit($limit)
+                ->limit($limit - $count)
                 ->fetchAll('id');
 
             // not array_merge, because it makes first reset numeric keys and then make merge
