@@ -599,7 +599,7 @@
                 }
             });
             if (log_msg) {
-                this.logError(log_msg);
+                this.error(log_msg);
             }
         },
 
