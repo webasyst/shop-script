@@ -26,7 +26,7 @@
     <footer class="js-form-footer-actions">
         <input class="js-submit-button" type="submit" value="[`Save`]">
         [`or`]
-        <a class="cancel inline-link js-cancel-button" href="javascript:void(0);"><b><i>[`cancel`]</i></b></a>
+        <a class="cancel inline-link js-cancel-button" href="#"><b><i>[`cancel`]</i></b></a>
     </footer>
 </form>
 
@@ -35,19 +35,29 @@
         var $form = $("#wf-action-form");
 
         // cancel link
-        $('#wf-action-form .js-cancel-button').click(function() {
-            $('#workflow-content').empty().hide();
+        $('.js-cancel-button', $form).click(function(event) {
+            event.preventDefault();
+            $('.workflow-content').empty().hide();
             $('.workflow-actions').show();
             return false;
         });
 
-        $("#wf-action-form").submit(function () {
-            var f = $(this);
-            f.find(':submit').attr('disabled', true);
-            $.post(f.attr('action'), f.serialize(), function () {
-                $form.trigger("formSend"); // this event is used in CRM app
-                if ("order" in $) { $.order.reload(); }
-            }, "json");
+        $form.submit(function (event) {
+            event.preventDefault();
+            $(':submit', $form).attr('disabled', true);
+            $.post(
+                $form.attr('action'), 
+                $form.serialize(), 
+                function () {
+                    $form.trigger("formSend"); // this event is used in CRM app
+                    if ("order" in $) {
+                        $.order.reload();
+                    } else {
+                        $(':submit', $form).removeAttr('disabled');
+                    }
+                }, 
+                "json"
+            );
             return false;
         });
     })(jQuery);
