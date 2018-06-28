@@ -490,9 +490,9 @@ SQL;
 
                 $this->order_by = $alias.'.sort ASC';
             } else {
-                // the sort field is in shop_products table, so we dont need to use JOIN + DISTINCT
+                // the sort field is in shop_products table, so we dont need to use JOIN
                 // this improvement gives us x20 faster query
-                $shop_category_products_builder->select('product_id');
+                $shop_category_products_builder->select('DISTINCT product_id');
                 $subquery = $shop_category_products_builder->getSQL();
 
                 $this->idIn($subquery);
