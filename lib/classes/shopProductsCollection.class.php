@@ -2372,9 +2372,12 @@ SQL;
 
 
     /**
-     * @param waModel $table model of table to join
-     * @param string $subquery query builder to join
-     * @param string|null
+     * @param waModel $table waModel instance that will return table name
+     * @param string $subquery Builded subquery
+     * @param string $on ON statement used to join two tables, where :table will be replaced with alias
+     * @param bool $distinct If subquery has DISTINCT statement, we will not use DISTINCT in main query.
+     *                      It is important to set this param accordingly to gain performance.
+     * @param $type string JOIN type, e.g. INNER, LEFT, RIGHT, CROSS.
      * @return self
      */
     public function addJoinSubquery(waModel $model, $subquery, $on, $distinct = false, $type = null)
@@ -2392,9 +2395,7 @@ SQL;
         $alias .= $this->join_index[$alias];
 
         $join = array(
-            // If join subquery has DISTINCT, but join type is LEFT/RIGHT JOIN
-            // we still need to do distinct in the main query
-            'distinct' => $distinct && $type === null || $type === "INNER",
+            'distinct' => $distinct,
             'alias' => $alias,
             'type' => $type,
             'on' => str_replace(':table', $alias, $on),
