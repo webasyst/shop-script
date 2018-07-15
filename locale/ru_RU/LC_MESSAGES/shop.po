@@ -759,7 +759,7 @@ msgstr "Удалить уведомление"
 
 #: /wa-apps/shop/themes/default/reviews.html:100
 msgid "Email"
-msgstr ""
+msgstr "Email"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotifications.html:128
 msgid "Event"
@@ -795,7 +795,7 @@ msgstr "Заказ создан"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotifications.html:145
 msgid "..."
-msgstr ""
+msgstr "..."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotifications.html:155
 msgid "Notification name"
@@ -807,7 +807,7 @@ msgstr "Транспорт"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotifications.html:171
 msgid "SMS"
-msgstr ""
+msgstr "SMS"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotifications.html:177
 msgid "HTTP Request"
@@ -1039,7 +1039,7 @@ msgstr "Квадратная обрезка"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:99
 msgid "px"
-msgstr ""
+msgstr "px"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:52
 msgid "Max"
@@ -1465,11 +1465,11 @@ msgstr "Заголовок"
 
 #: /wa-apps/shop/templates/actions/product/ProductPageEdit.html:62
 msgid "META Keywords"
-msgstr ""
+msgstr "META Keywords"
 
 #: /wa-apps/shop/templates/actions/product/ProductPageEdit.html:66
 msgid "META Description"
-msgstr ""
+msgstr "META Description"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:662
 msgid "WYSIWYG"
@@ -2222,7 +2222,7 @@ msgstr "пропустить автоматическую настройку"
 
 #: /wa-apps/shop/templates/actions/products/Products.html:19
 msgid "CSV"
-msgstr ""
+msgstr "CSV"
 
 #: /wa-apps/shop/templates/actions/backend/BackendImportexport.html:16
 msgid "Import/export your data in CSV file."
@@ -2529,7 +2529,7 @@ msgstr "Тег"
 
 #: /wa-apps/shop/js/settings/payment.js:128
 msgid " → %s"
-msgstr ""
+msgstr " → %s"
 
 #: /wa-apps/shop/js/jquery.fileupload-wa.js:118
 msgid "Empty result"
@@ -3319,7 +3319,7 @@ msgstr "Наклейка"
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:105
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #: /wa-apps/shop/templates/actions/product/ProductRelated.html:82
 msgid "Start typing product name or SKU"
@@ -3663,7 +3663,7 @@ msgstr "Текст (input)"
 
 #: /wa-apps/shop/lib/model/shopFeature.model.php:346
 msgid "HTML (textarea)"
-msgstr ""
+msgstr "HTML (textarea)"
 
 #: /wa-apps/shop/lib/model/shopFeature.model.php:363
 msgid "Custom number"
@@ -4136,7 +4136,7 @@ msgstr "Отправлять только для первого оплаченн
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:83
 msgid "HTML + Smarty"
-msgstr ""
+msgstr "HTML + Smarty"
 
 #: /wa-apps/shop/templates/actions/backend/BackendSettings.html:92
 msgid "Follow-ups"
@@ -4609,7 +4609,7 @@ msgstr "Пароль"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:50
 msgid "Gravatar"
-msgstr ""
+msgstr "Gravatar"
 
 #: /wa-apps/shop/themes/default/product.html:76
 msgid "This product is not available for purchase"
@@ -7876,7 +7876,7 @@ msgstr "Ценность покупателя"
 #: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:106
 #: /wa-apps/shop/templates/actions/reports/ReportsSales.html:47
 msgid "ROI"
-msgstr ""
+msgstr "ROI"
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:56
 msgid "Month %s"
@@ -7921,7 +7921,7 @@ msgstr "Расход на привлечение покупателя (CAC, Cust
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:41
 msgid "CAC"
-msgstr ""
+msgstr "CAC"
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:49
 msgid "Average Revenue Per User = Total sales / Number of customers"
@@ -7929,7 +7929,7 @@ msgstr "Средний доход с клиента (ARPU, Average Revenue Per U
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:49
 msgid "ARPU"
-msgstr ""
+msgstr "ARPU"
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:50
 msgid "Indicates how much does average customer brings you in sales."
@@ -7945,7 +7945,7 @@ msgstr "Средняя прибыль с клиента (AMPU, Average Margin Pe
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:58
 msgid "AMPU"
-msgstr ""
+msgstr "AMPU"
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:59
 msgid "Customer Lifetime Value indicates how much does average customer brings you in profit. LTV is the lifetime AMPU."
@@ -7953,7 +7953,7 @@ msgstr "Ценность покупателя (LTV, Customer Lifetime Value) п�
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:59
 msgid "LTV"
-msgstr ""
+msgstr "LTV"
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:132
 #: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:287
@@ -8223,7 +8223,7 @@ msgstr "Товары, отсутствующие на складе, могут �
 
 #: /wa-apps/shop/templates/layouts/Backend.html:176
 msgid "Compare custom ranges..."
-msgstr ""
+msgstr "Сравнить диапазоны..."
 
 #: /wa-apps/shop/templates/layouts/Backend.html:203
 msgid "Cohorts"
@@ -8340,7 +8340,7 @@ msgstr "Выбор нескольких возможных вариантов (c
 
 #: /wa-apps/shop/lib/model/shopFeatureValues.model.php:249
 msgid "Data too long"
-msgstr ""
+msgstr "Слишком длительные данные"
 
 #: /wa-apps/shop/lib/model/shopSales.model.php:374
 msgid "n/a"
@@ -9415,19 +9415,11 @@ msgstr "Капча Webasyst"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:151
 msgid "Google reCAPTCHA"
-msgstr ""
+msgstr "Google reCAPTCHA"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:152
 msgid "Selected captcha type will be used throughout your storefront wherever applicable."
 msgstr "Выбранный тип будет использован на витрине вашего интернет-магазина везде, где показывается капча."
-
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:155
-msgid "Site Key"
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:161
-msgid "Secret"
-msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:164
 msgid "Get Google reCAPTCHA site key and secret for your site on <a href=\"https://www.google.com/recaptcha\" target=\"_blank\">https://www.google.com/recaptcha</a>"
@@ -9785,7 +9777,7 @@ msgstr "Нет трансферов в статусе «В пути»."
 
 #: /wa-apps/shop/templates/actions/transfer/Transfer.html:18
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #: /wa-apps/shop/templates/actions/transfer/Transfer.html:92
 msgid "Create transfer"
@@ -9855,8 +9847,7 @@ msgstr "Все склады, видимые покупателям"
 
 #: /wa-apps/shop/lib/workflow/shopWorkflowEditAction.class.php:134
 msgid "Editing this order will mark this order as settled and will re-calculate it's current amount (%s) based on the order content your enter. Are you sure you want to settle this order and reset the order amount?"
-msgstr ""
-"Редактирование автоматически снимет статус подвешенного заказа и приведет к автоматическому пересчету общей суммы заказа (%s) согласно товарам, которые вы добавите в заказ.\n"
+msgstr "Редактирование автоматически снимет статус подвешенного заказа и приведет к автоматическому пересчету общей суммы заказа (%s) согласно товарам, которые вы добавите в заказ.\n"
 "Продолжить?"
 
 #: /wa-apps/shop/lib/workflow/templates/SettleAction.html:49
@@ -10220,22 +10211,22 @@ msgstr "Этот домен не поддерживает push-уведомле�
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:279
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:284
 msgid "Google project number"
-msgstr ""
+msgstr "Google project number"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:288
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:293
 msgid "Safari Web ID"
-msgstr ""
+msgstr "Safari Web ID"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:297
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:302
 msgid "OneSignal App ID"
-msgstr ""
+msgstr "OneSignal App ID"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:306
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:311
 msgid "REST API Key"
-msgstr ""
+msgstr "REST API Key"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:107
 msgid "Rounding"
@@ -10333,16 +10324,16 @@ msgstr "badge-google-play-ru.png"
 #: /wa-apps/shop/templates/actions/settings/SettingsPayment.html:66
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:70
 msgid "You can remove settings or install the <a href=\"%s\" class=\"inline\">plugin</a>."
-msgstr ""
+msgstr "Вы можете удалить настройки или установить <a href=\"%s\" class=\"inline\">плагин</a>."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPayment.html:68
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:72
 msgid "You can remove settings or install the plugin"
-msgstr ""
+msgstr "Вы можете удалить настройки или установить плагин"
 
 #: /wa-apps/shop/templates/layouts/Backend.html:328
 msgid "An error occurred"
-msgstr ""
+msgstr "Произошла ошибка"
 
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:42
 msgid "Primary SKU"
@@ -10350,15 +10341,15 @@ msgstr "Основной артикул"
 
 #: /wa-apps/shop/lib/actions/settings/stock/shopSettingsStockDelete.controller.php:27
 msgid "Unknown destination stock"
-msgstr ""
+msgstr "Назначен неизвестный склад"
 
 #: /wa-apps/shop/lib/actions/workflow/shopWorkflowPrepare.controller.php:30
 msgid "Syntax Error in template for action \"%s\" in line %s \"%s\". Reason: %s."
-msgstr ""
+msgstr "Синтаксическая ошибка в шаблоне для экшена \"%s\" в строке %s \"%s\". Причина: %s."
 
 #: /wa-apps/shop/lib/actions/workflow/shopWorkflowPrepare.controller.php:32
 msgid "You can edit template <a href=\"?action=settings#/orderStates/\">order states settings</a>"
-msgstr ""
+msgstr "Вы можете изменить шаблон <a href=\"?action=settings#/orderStates/\">настройки статусов заказа</a>"
 
 #: /wa-apps/shop/lib/config/my.order.php:53
 #: /wa-apps/shop/lib/config/site.php:375
@@ -10371,15 +10362,15 @@ msgstr "Текущий статус заказа"
 
 #: /wa-apps/shop/lib/workflow/templates/RefundAction.html:5
 msgid "Attention: money will be returned to customer via payment gate"
-msgstr ""
+msgstr "Внимание: деньги будут возвращены клиенту через платежную систему"
 
 #: /wa-apps/shop/lib/workflow/templates/RefundAction.html:8
 msgid "Refund reason"
-msgstr ""
+msgstr "Причина возврата"
 
 #: /wa-apps/shop/lib/workflow/templates/RefundAction.html:8
 msgid "Customer decline order"
-msgstr ""
+msgstr "Покупатель отклонил заказ"
 
 #: /wa-apps/shop/templates/actions/backend/BackendOrders.html:17
 msgid "Get instant updates on your mobile device"
