@@ -9847,8 +9847,7 @@ msgstr "Все склады, видимые покупателям"
 
 #: /wa-apps/shop/lib/workflow/shopWorkflowEditAction.class.php:134
 msgid "Editing this order will mark this order as settled and will re-calculate it's current amount (%s) based on the order content your enter. Are you sure you want to settle this order and reset the order amount?"
-msgstr "Редактирование автоматически снимет статус подвешенного заказа и приведет к автоматическому пересчету общей суммы заказа (%s) согласно товарам, которые вы добавите в заказ.\n"
-"Продолжить?"
+msgstr "Редактирование автоматически снимет статус подвешенного заказа и приведет к пересчету общей суммы заказа (%s) согласно товарам, которые вы добавите в заказ. Продолжить?"
 
 #: /wa-apps/shop/lib/workflow/templates/SettleAction.html:49
 msgid "This will replace selected order %id% details with the amount (%amount%) and status (%state%) of this unsettled order. Are you sure?"
