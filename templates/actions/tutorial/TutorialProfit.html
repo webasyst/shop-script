@@ -1,12 +1,32 @@
-<h1>Congratulations!</h1>
+<div class="s-profit-block">
+    <h1 style="margin:0px;">Profit</h1>
 
-<p>
-    Your online store has been configured and is ready for your first sale!
-</p>
-<p>
-    Check out some useful articles on ecommerce for beginners and get help on Shop-Script at <a href="http://www.shop-script.com/help/">www.shop-script.com/help/</a>
-</p>
+    <p class="s-congratulations-text">Поздравляем, теперь ваш интернет-магазин готов к приему первого покупателя!</p>
 
-<p>
-    <a href="javascript:void(0)" class="button green finish-tutorial">Ok, close this welcome tutorial</a>
-</p>
+    <h2>Если у вас есть вопросы</h2>
+
+    <ul>
+        <li><a href="https://www.shop-script.ru/help/" target="_blank">База знаний Shop-Script</a></li>
+        <li><a href="https://support.webasyst.ru/" target="_blank">Вопросы и ответы клиентов</a></li>
+        <li>Вопросы о тарифах и дополнительных услугах:</li>
+        <li class="s-profit-ls-none s-profit-tel"><strong>8 800 200-1993</strong> (бесплатно по Российской Федерации)</li>
+        <li class="s-profit-ls-none s-profit-tel"><strong>+7 (495) 663-73-25</strong> (для жителей Москвы и звонков из-за границы).</li>
+        <li><a href="https://support.webasyst.ru" target="_blank">Персональные запросы в службу поддержки.</a></li>
+    </ul>
+
+    <h2>Индивидуальная разработка<br/>или помощь в настройке</h2>
+
+    <ul>
+        <li><a href="https://experts.webasyst.ru/directory/" target="_blank">Найти специалиста</a></li>
+        <li><a href="https://experts.webasyst.ru/" target="_blank">Разместить заказ</a></li>
+    </ul>
+</div>
+<script>
+    (function ($) {
+        new TutorialSidebar({
+            $wrapper: $("#tutorial-actions"),
+            $active: {$active|json_encode},
+            $app_url: {$wa_app_url|json_encode}
+        });
+    })(jQuery);
+</script>

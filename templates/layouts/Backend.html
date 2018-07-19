@@ -87,7 +87,6 @@
 </head>
 <body>
 <div id="wa"{if isset($no_level2)} class="s-no-level2"{/if}>
-
     {$wa->header()}
 
     <div id="wa-app">
@@ -117,17 +116,22 @@
                     {foreach $backend_menu as $_}{ifset($_.aux_li)}{/foreach}
 
                     {if $tutorial_visible}
-                        <li class="no-tab s-tutorial-tab" id="mainmenu-tutorial-tab">
-                            <a href="{$wa_app_url}?module=tutorial" title="[`Welcome tutorial`]">
-                                <div class="s-tutorial-progressbar" id="s-tutorial-progressbar">
-                                    <div class="s-tutorial-progressbar-outer">
-                                        <div class="s-tutorial-progressbar-inner" style="width: {$tutorial_progress}%;"></div>
-                                        <span id="s-tutorial-progressbar-content">{$tutorial_progress}%</span>
+                        <li class="s-tutorial-qs-lnk">
+                            <div class="s-tutorial-quick-start">
+                                <a href="{$wa_app_url}?action=welcome" class="s-tutorial-url">
+                                    <div class="s-tutorial-progressbar" id="s-tutorial-progressbar">
+                                        <img src="{$wa_app_static_url}img/rocket-fly.png" class="s-rocket"/>
+                                        <span class="s-tutorial-step-title" style="display: inline-block;">[`Quick start`]</span>
+                                        <div class="s-tutorial-progressbar-outer">
+                                            <div class="s-tutorial-progressbar-inner"></div>
+                                            <span class="s-tutorial-steps" id="s-tutorial-progressbar-content"><span class="js-step-count">{$tutorial_progress.complete}</span> из {$tutorial_progress.total+1}</span>
+                                        </div>
                                     </div>
-                                </div>
-                            </a>
+                                </a>
+                            </div>
                         </li>
                     {/if}
+
                     {if $wa->userRights('orders')}
                         <li class="{if !$page || $page=='orders'}selected{else}no-tab{/if}" id="mainmenu-orders-tab">
                             <a href="{$wa_app_url}?action=orders#/orders/">

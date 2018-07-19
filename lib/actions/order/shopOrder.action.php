@@ -301,6 +301,15 @@ class shopOrderAction extends waViewAction
                     }
                 }
             }
+
+
+            $current_product_name = ifset($product_ids, $item['product_id'], 'name', null);
+
+            if (!empty($skus[$item['sku_id']]['name'])) {
+                $current_product_name .= ' ('.$skus[$item['sku_id']]['name'].')';
+            }
+
+            $item['current_product_name'] = $current_product_name;
         }
         unset($item);
 

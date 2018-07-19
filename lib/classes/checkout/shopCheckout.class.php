@@ -165,11 +165,6 @@ abstract class shopCheckout
         return $name ? ifset($settings[$name]) : $settings;
     }
 
-    public function verify(&$order)
-    {
-        return !!$order;
-    }
-
     public function __get($name)
     {
         static $instances = array();

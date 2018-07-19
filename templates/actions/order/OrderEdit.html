@@ -169,6 +169,15 @@
                 {/if}
             {/if}
 
+            {if empty($product.fake) && $product.item.type == 'product'
+            && $product.current_product_name|escape != $product.item.name|escape}
+                <div class="s-product-previous-name">
+                    <i class=" icon16 exclamation"></i>
+                    <span class="gray">
+                [`Old name`]: {$product.item.name|escape}
+            </span>
+                </div>
+            {/if}
             <p>
                 {if count($product.skus) > 1}
                     <ul class="menu-v compact small s-orders-skus">
@@ -350,7 +359,7 @@
                             </div>
                         </div>
                     </td>
-                    <td class="align-right nowrap">
+                    <td class="align-right valign-top nowrap">
                         <input type="text" name="shipping" class="numerical short" id="shipping-rate" {if !empty($order.id)}value="{(float)$order.shipping}"{/if}>
                         <span class="currency">{$currency}</span>
                     </td>
@@ -403,7 +412,7 @@
                         {/capture}
 
                         <input type="hidden" name="discount_description" value="{if !empty($order.items_total_discount) || !empty($order.discount)}{$smarty.capture.hold_discount|escape}{/if}" id="discount-description"
-                               data-updated-manually-msg="[`Discount specified manually`]"
+                               data-updated-manually-msg="[`Manually edited discount. Click to apply automatically calculated discount value.`]"
                                data-edit-manually-msg="[`Manually edit automatically calculated discount`]"
                         >
                         <a href="#" style="_display: none" id="update-discount"
@@ -441,8 +450,9 @@
                         {/if}
                     </td>
                     <td class="save align-right" colspan="2">
-                        <input type="submit" class="button green large" value="[`Save order`]">
                         <i class="icon16 loading"></i>
+                        <input type="submit" class="button green large" value="[`Save order`]">
+
                     </td>
                 </tr>
             </tfoot>

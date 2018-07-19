@@ -1,1 +1,12 @@
 {$html}
+<a href="javascript:history.back()" class="button yellow">&larr; Назад</a>
+<a href="javascript:void(0)" class="button green js-nextstep-link">Следующий шаг &rarr;</a>
+<script>
+    (function ($) {
+        new TutorialSidebar({
+            $wrapper: $("#tutorial-actions"),
+            $active: {$active|json_encode},
+            $actions: {$actions|json_encode}
+        });
+    })(jQuery);
+</script>

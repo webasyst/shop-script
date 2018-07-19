@@ -226,8 +226,7 @@
                         {if $followup.id}
                             <input type="button" id="send-test-button" class="button" value="[`Send test`]">
                         {/if}
-
-                        {include file="templates/actions/settings/SettingsFollowupsHelp.html" inline}
+                        {$wa->getCheatSheetButton(["app" => {$wa->app()}, 'key' => 'followups'])}
                     </div>
                 </div>
             </div>

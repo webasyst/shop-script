@@ -317,34 +317,41 @@
 {* PRODUCT PROFILE SECTION END *}
 
 {* PRODUCT EDIT SECTION MENU BEGIN *}
-    <ul class="menu-h" id="s-product-edit-menu">
+    <ul class="menu-h s-hint-include" id="s-product-edit-menu">
         <li class="main">
             <a href="#/product/{$product.id}/edit/">[`Basics`]
             <span class="s-product-edit-tab-status"></span></a>
+            {shopHinter::hint('product_main')}
         </li>
         <li class="descriptions">
             <a href="#/product/{$product.id}/edit/descriptions/">[`Description &amp; SEO`]
             <span class="s-product-edit-tab-status"></span></a>
+            {shopHinter::hint('product_descriptions')}
         </li>
         <li class="images">
             <a href="#/product/{$product.id}/edit/images/">[`Images &amp; Video`] <span class="hint">{$counters['images']}</span>
             <span class="s-product-edit-tab-status"></span></a>
+            {shopHinter::hint('product_images')}
         </li>
         <li class="features">
             <a href="#/product/{$product.id}/edit/features/">[`Features`]
             <span class="s-product-edit-tab-status"></span></a>
+            {shopHinter::hint('product_features')}
         </li>
         <li class="services">
             <a href="#/product/{$product.id}/edit/services/">[`Services`] <span class="hint">{$counters['services']}</span>
             <span class="s-product-edit-tab-status"></span></a>
+            {shopHinter::hint('product_services')}
         </li>
         <li class="related">
             <a href="#/product/{$product.id}/edit/related/">[`Related products`]
             <span class="s-product-edit-tab-status"></span></a>
+            {shopHinter::hint('product_related')}
         </li>
         <li class="pages">
             <a href="#/product/{$product.id}/edit/pages/">[`Subpages`] <span class="hint">{$counters['pages']}</span>
             <span class="s-product-edit-tab-status"></span></a>
+            {shopHinter::hint('product_pages')}
         </li>
 
         <!-- plugin hook: 'backend_product.edit_section_li' -->
@@ -363,7 +370,7 @@
         <div class="s-product-form main fields form" style="display: none;">
             <div class="field-group">
                 <div class="field">
-                    <div class="name">[`Product name`]</div>
+                    <div class="name">[`Product name`] {shopHinter::hint('product_name')}</div>
                     <div class="value"><input type="text" class="long bold s-product-name-input" value="{$product.name|escape}" name="product[name]"></div>
                 </div>
                 <div class="field">
@@ -429,7 +436,7 @@
             <div class="field-group">
                 {if $product_types}
                     <div class="field">
-                        <div class="name">[`Product type`]</div>
+                        <div class="name">[`Product type`] {shopHinter::hint('product_type')}</div>
                         <div class="value no-shift" data-type="{$product.type.id|escape}">
                             <span class="js-type-icon">{shopHelper::getIcon($product.type.icon)}</span>
                             <strong class="js-type-name">{$product.type.name|escape}</strong>&nbsp;
@@ -452,7 +459,7 @@
                 {/if}
                 {if !empty($taxes)}
                     <div class="field">
-                        <div class="name">[`Taxable`]</div>
+                        <div class="name">[`Taxable`] {shopHinter::hint('product_tax')}</div>
                         <div class="value no-shift">
                             <select name="product[tax_id]">
                             <option value="" {if empty($product.tax_id)} selected="selected"{/if}>[`No`]</option>
@@ -465,7 +472,7 @@
                 {/if}
                 <div class="field">
                     <input type="text" name="product[categories.deleted]" value="" style="display:none;">
-                    <div class="name">[`Categories`]</div>
+                    <div class="name">[`Categories`] {shopHinter::hint('product_categories')}</div>
 
                     {function categories_select category_id=0}
                         <select name="product[categories][]" class="s-product-categories">
@@ -531,7 +538,7 @@
 
                 {if !empty($sets)}
                     <div class="field s-product-sets">
-                        <div class="name">[`Sets`]</div>
+                        <div class="name">[`Sets`] {shopHinter::hint('product_sets')}</div>
 
                         {function sets_select set_id=null}
                             <select name="product[sets][]">
@@ -574,20 +581,20 @@
             <div class="field-group" id="s-sku-type-field-group" style="margin-bottom: 0;">
                 <div class="field">
                     <div class="name">
-                        [`Pricing & Availability`]
+                        [`Pricing & Availability`] {shopHinter::hint('product_skus')}
                     </div>
                     <div class="value no-shift s-sku-type-field-value">
                         <ul class="s-selling-mode">
                             <li{if empty($features) || $product.sku_type == shopProductModel::SKU_TYPE_FLAT} class="selected"{/if}>
                                 <label>
-                                    <a href="javascript:void(0);">[`Purchase options`]</a>
+                                    <a href="javascript:void(0);">[`Purchase options`]</a> {shopHinter::hint('product_skus_plain')}
                                     <input type="hidden" name="product[sku_type]" value="{shopProductModel::SKU_TYPE_FLAT}"
                                                             {if !empty($features) && $product.sku_type != shopProductModel::SKU_TYPE_FLAT}disabled="disabled"{/if} />
                                 </label>
                             </li>
                             <li class="{if !empty($features) && $product.sku_type == shopProductModel::SKU_TYPE_SELECTABLE}selected{/if} {if empty($features)}gray{/if}">
                                 <label>
-                                    <a href="javascript:void(0);"><span{if empty($features)} class="gray"{/if}>[`Selectable parameters`]</span></a>
+                                    <a href="javascript:void(0);"><span{if empty($features)} class="gray"{/if}>[`Selectable parameters`]</span></a> {shopHinter::hint('product_skus_features')}
                                     <input type="hidden" name="product[sku_type]" value="{shopProductModel::SKU_TYPE_SELECTABLE}"
                                                             {if empty($features) || $product.sku_type != shopProductModel::SKU_TYPE_SELECTABLE}disabled="disabled"{/if} />
                                 </label>
@@ -1113,28 +1120,6 @@
 
 
    (function(container) {
-        var makeTooltip = function(el) {
-            el.bind('mouseover', function(event) {
-                if (el.hasClass('gray')) {
-                    // Render Tooltip
-                    $('<div class="tooltip-bubble"></div>')
-                            .html('[`To activate this mode, this particular product must be assigned a product type which offers at least one <strong>selectable</strong> feature (the list of available product types and features is configured at <em>Settings &rarr; Product types &amp; features</em>).`]')
-                            .appendTo('body')
-                            .css({
-                                top: (event.pageY - 10) + 'px',
-                                left: (event.pageX + 20) + 'px'
-                            })
-                            .fadeIn('slow');
-                }
-            }).bind('mouseout', function() {
-                $('.tooltip-bubble').remove();
-            }).bind('mousemove', function(event) {
-                $(".tooltip-bubble").css({
-                    top: (event.pageY - 10) + 'px',
-                    left: (event.pageX + 20) + 'px'
-                });
-            });
-        };
         $('a', container).click(function() {
             if (!$(this).closest('li').hasClass('gray')) {
                 container.find('li.selected').removeClass('selected');
@@ -1166,7 +1151,6 @@
                 }
             }
         });
-        makeTooltip(container.find('[name="product[sku_type]"]').closest('li'));
    })($('.s-selling-mode'));
 
     $(function() {

@@ -1,4 +1,5 @@
-<script type="text/javascript" src="{$wa_app_static_url}js/tutorial.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/tutorial/tutorial.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/tutorial/tutorial_sidebar.js"></script>
 
 <div class="s-tutorial">
 
@@ -6,46 +7,7 @@
         <div class="block s-nolevel2-sidebar"></div>
     </div>
 
-    <div class="sidebar left300px">
-
-        <div class="block s-nolevel2-sidebar s-inner-sidebar">
-
-            <div class="block align-center">
-                <h2>[`Welcome!`]</h2>
-                <p class="hint">[`You are very close to get your online store ready for your first sale!`]</p>
-            </div>
-
-            <div class="block double-padded">
-                <ul class="menu-v s-tutorial-checklist tutorial-actions" id="tutorial-actions">
-
-                    {counter start=0 print=false}
-                    {foreach $actions as $a}{strip}
-                        <li{if $a.complete} class="complete"{/if}><a href="{$a.href}">
-                            {if $a.complete}
-                                <span class="count"><i class="icon10 yes"></i></span>
-                            {/if}
-                            {counter}. {$a.name|escape}
-                        </a></li>
-                    {/strip}{/foreach}
-
-                    <li><a href="#/profit/">
-                        {counter}. [`Profit!`]
-                    </a></li>
-                </ul>
-
-                <hr>
-                <p class="hint align-center">
-                    <a href="javascript:void(0)" class="finish-tutorial">[`Close welcome tutorial`]</a>
-                </p>
-
-                <!-- plugin hook: 'backend_tutorial.sidebar_block' -->
-                {* @event backend_tutorial.%plugin_id%.sidebar_block *}
-                {foreach ifempty($backend_tutorial, []) as $_}{ifset($_.sidebar_block)}{/foreach}
-
-            </div>
-        </div>
-
-    </div>
+    {include file="templates/actions/tutorial/include.TutorialSidebar.html" inline}
 
     <div class="content left300px blank s-nolevel2-box right15px">
         <div id="s-content">
@@ -55,7 +17,6 @@
     </div>
 
 </div>
-
 <script type="text/javascript">$(function() { "use strict";
     $.tutorial.init({
     });

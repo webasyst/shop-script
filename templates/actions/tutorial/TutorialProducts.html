@@ -1,17 +1,43 @@
-<h1>Add products to sell</h1>
+{if !empty($actions)}
+   {$stepArray = array_keys($actions)}
+   {foreach $stepArray as $key => $step}
+      {if $step === $active}
+         {$next_step_key = $key}
+      {/if}
+   {/foreach}
+   {if isset($stepArray[$next_step_key+1])}
+      {$next_step = $stepArray[$next_step_key+1]}
+   {/if}
+{/if}
+<div class="s-unboarding-wrapper">
+   <h1>Add products</h1>
+   <div class="s-tutorial-block">
+      <div class="s-title"><img src="{$wa_app_static_url}img/arrow/img_arrow.png" class="s-arrow" /><span class="s-title-text">Вручную по одному</span></div>
+      <p class="img-margin-left"><img src="{$wa_app_static_url}img/steps/eng/step02-01.png"></p>
+   </div>
+   <div class="clear-both"></div>
 
-<p>Click <strong>Products &rarr; <a href="?action=products#/product/new/edit"><i class="icon16 add" style="margin-top: 0.15em;"></i>New product</a></strong> to create your first product.</p>
+   <div class="s-tutorial-block">
+      <div class="s-title"><img src="{$wa_app_static_url}img/arrow/img_arrow.png" class="s-arrow" /><span class="s-title-text">Автоматически сразу много</span></div>
+      <p class="img-margin-left"><img src="{$wa_app_static_url}img/steps/eng/step02-02.png"></p>
+      <p>В разделе «Импорт/экспорт», в правой верхней области экрана, доступны разные способы массового добавления или обновления товаров.</p>
+      <ul>
+         <li>Массовая загрузка изображений: перетащите фотографии со своего компьютера прямо в Shop-Script и сразу создайте из них много товаров.</li>
+         <li>Импорт товаров из CSV-файла: сохраните файл-таблицу в формате CSV с помощью Microsoft Excel, OpenOffice или iWork и загрузите его в Shop-Script. Из файла всего за несколько минут в магазин будут добавлены все нужные товары.</li>
+         <li>Переход на Shop-Script: перенесите данные из других систем для создания интернет-магазинов в Shop-Script.</li>
+      </ul>
 
-<p><img src="http://www.shop-script.com/wa-data/public/site/shop-script-6-welcome/ss6-addproduct.gif" class="s-screencast"></p>
-
-<p><em>Once a product has been added, view it <a href="{$wa->getUrl('shop/frontend')}" target="_blank">in your storefront</a> and try placing a test order.</em></p>
-
-
-<h2>Import products in bulk</h2>
-<p>Shop-Script supports many ways of adding multiple products at once.</p>
-
-<ul>
-   <li><a href="{$wa_app_url}?action=importexport#/images:product/">Bulk image upload</a>: Drag &amp; drop a set of images from your computer directly into Shop-Script and create multiple products at once.</li>
-   <li><a href="{$wa_app_url}?action=importexport#/csv:product/">Import product from a CSV file</a>: Your CSV file (you can create it using Microsoft Excel, Open Office, iWork, or similar apps) will be processed line by line while adding new products and categories as fast as a only computer can do it.</li>
-   <li><a href="{$wa_app_url}?action=importexport#/migrate/">Migrate to Shop-Script</a>: Transfer data from third-party ecommerce platforms to Shop-Script.</li>
-</ul>
+   </div>
+   <br/>
+   <a href="javascript:history.back()" class="button yellow">&larr; Назад</a>
+   <a href="{if $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green">Следующий шаг &rarr;</a>
+</div>
+<script>
+    (function ($) {
+        new TutorialSidebar({
+            $wrapper: $("#tutorial-actions"),
+            $active: {$active|json_encode},
+            $actions: {$actions|json_encode}
+        });
+    })(jQuery);
+</script>

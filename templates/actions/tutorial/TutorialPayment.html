@@ -1,0 +1,29 @@
+{if !empty($actions)}
+    {$stepArray = array_keys($actions)}
+    {foreach $stepArray as $key => $step}
+        {if $step === $active}
+            {$next_step_key = $key}
+        {/if}
+    {/foreach}
+    {if isset($stepArray[$next_step_key+1])}
+        {$next_step = $stepArray[$next_step_key+1]}
+    {/if}
+{/if}
+<div class="s-unboarding-wrapper">
+    <h1>Payment</h1>
+
+    <p><img src="{$wa_app_static_url}img/steps/eng/step04-01.png"></p>
+    <br/>
+
+    <a href="javascript:history.back()" class="button yellow">&larr; Назад</a>
+    <a href="{if $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green">Следующий шаг &rarr;</a>
+</div>
+<script>
+    (function ($) {
+        new TutorialSidebar({
+            $wrapper: $("#tutorial-actions"),
+            $active: {$active|json_encode},
+            $actions: {$actions|json_encode}
+        });
+    })(jQuery);
+</script>

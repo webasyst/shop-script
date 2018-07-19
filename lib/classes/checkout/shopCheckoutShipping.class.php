@@ -388,8 +388,8 @@ class shopCheckoutShipping extends shopCheckout
             }
         }
 
-        if ($address_form || ifset($config,'shipping','prompt_type', null) == 2) {
-            if (ifset($config,'shipping','prompt_type', null) == 1) {
+        if ($address_form || ifset($config, 'shipping', 'prompt_type', null) == 2) {
+            if (ifset($config, 'shipping', 'prompt_type', null) == 1) {
                 #show only cost type fields
                 if (!empty($address['fields'])) {
                     foreach ($address['fields'] as $k => $v) {
@@ -578,7 +578,7 @@ class shopCheckoutShipping extends shopCheckout
         }
         if (isset($rates[$rate_id])) {
             $result = $rates[$rate_id];
-        } elseif ($rate_id) {
+        } elseif (!in_array($rate_id, array(null, false), true)) {
             return _w('Shipping option is not defined. Please return to the shipping option checkout step to continue.');
         } else {
             $result = array('rate' => 0);
@@ -589,7 +589,9 @@ class shopCheckoutShipping extends shopCheckout
             }
 
             // if $current_currency == $currency it's will be rounded to currency precision
-            $result['rate'] = shop_currency($result['rate'], $currency, $current_currency, false);
+            if ($result['rate']) {
+                $result['rate'] = shop_currency($result['rate'], $currency, $current_currency, false);
+            }
 
             // rounding
             if ($result['rate'] && wa()->getSetting('round_shipping')) {
@@ -631,28 +633,19 @@ class shopCheckoutShipping extends shopCheckout
         $shipping = $this->getSessionData('shipping');
         if (!$shipping || empty($shipping['id'])) {
             $errors[] = _w('Shipping option is not defined. Please return to the shipping option checkout step to continue.');
-        } elseif (empty($shipping['rate_id'])) {
+        } elseif (!isset($shipping['rate_id'])) {
             //XXX TODO check rate id
-            //  $errors[]=_w('Shipping option is not defined. Please return to the shipping option checkout step to continue.');
+            $errors[] = _w('Shipping option is not defined. Please return to the shipping option checkout step to continue.');
+        } else {
+            $rate = $this->getRate();
+            if (is_string($rate)) {
+                $errors[] = $rate;
+            } elseif (is_array($rate) && !isset($rate['rate'])) {
+                $errors[] = ifset($rate, 'comment', _w('Shipping option is not defined. Please return to the shipping option checkout step to continue.'));
+            }
         }
 
         return $errors;
-    }
-
-    public function verify(&$order)
-    {
-        $parent = parent::verify($order);
-        if ($parent) {
-            if (!isset($order['shipping'])) {
-                $rate = $this->getRate();
-                if ($rate) {
-                    $order['shipping'] = $rate['rate'];
-                } else {
-                    $order['shipping'] = 0;
-                }
-            }
-        }
-        return $parent;
     }
 
     private function getExtendedCheckoutSettings()
@@ -744,6 +737,7 @@ class shopCheckoutShipping extends shopCheckout
             $shipping = array(
                 'id'      => $shipping_id,
                 'rate_id' => $rate_id,
+                'rate'    => $rate ? $rate['rate'] : 0,
                 'name'    => $rate ? $rate['name'] : '',
                 'plugin'  => $rate ? $rate['plugin'] : '',
             );

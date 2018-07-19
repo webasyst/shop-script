@@ -765,7 +765,12 @@ class shopProduct implements ArrayAccess
      */
     public function offsetExists($offset)
     {
-        return isset($this->data[$offset]) || $this->model->fieldExists($offset) || $this->getStorage($offset);
+        if (isset($this->data[$offset]) || $this->model->fieldExists($offset) || $this->getStorage($offset)) {
+            return true;
+        }
+
+        $method = "get".preg_replace_callback('@(^|_)([a-z])@', array(__CLASS__, 'camelCase'), $offset);
+        return method_exists($this, $method);
     }
 
     /**

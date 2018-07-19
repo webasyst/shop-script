@@ -33,7 +33,7 @@ class shopFeatureValuesBooleanModel extends shopFeatureValuesModel
 
         if (is_string($value)) {
             $value = trim(mb_strtolower($value));
-        } else if (is_object($value) && $value instanceof shopBooleanValue) {
+        } elseif (is_object($value) && $value instanceof shopBooleanValue) {
             return array(
                 'value' => $value['value'],
             );
@@ -58,6 +58,18 @@ class shopFeatureValuesBooleanModel extends shopFeatureValuesModel
             $row['sort'] = intval($row['value']);
         }
         return new shopBooleanValue($row);
+    }
+
+    /**
+     * @param int $value_id
+     * @return mixed
+     */
+    public function getFeatureValue($value_id)
+    {
+        $row = array(
+            'value' => max(0, min(1, $value_id)),
+        );
+        return $this->getValue($row);
     }
 
     /**

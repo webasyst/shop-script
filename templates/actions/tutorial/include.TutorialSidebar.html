@@ -1,0 +1,56 @@
+<script type="text/javascript" src="{$wa_app_static_url}js/tutorial/tutorial_sidebar.js"></script>
+<div class="sidebar left300px">
+    <div class="block s-tutotial-steps s-inner-sidebar">
+        {if isset($tutorial_visible) && $smarty.server.REQUEST_URI == "`$wa_app_url`?action=welcome"}
+            <div class="s-tutorial-quick-start">
+                <a href="{$wa_app_url}?action=welcome">
+                    <div class="s-tutorial-progressbar" id="s-tutorial-progressbar">
+                        <img src="{$wa_app_static_url}img/rocket-fly.png" class="s-rocket"/>
+                        <span class="s-tutorial-step-title">[`Quick start`]</span>
+                        <div class="s-tutorial-progressbar-outer">
+                            <div class="s-tutorial-progressbar-inner"></div>
+                            <span id="s-tutorial-progressbar-content">{$tutorial_progress.complete} из {$tutorial_progress.total+1}</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {/if}
+        <div class="block">
+            <ul class="menu-v s-tutorial-checklist tutorial-actions" id="tutorial-actions">
+                {counter start=0 print=false}
+                    {foreach $actions as $step=>$a}{strip}
+                    <li class="js-actions-link {if $a.complete}complete {else}{if $step == 'welcome'} active-step{else} disabled{/if}{/if} js-step-link {if $step == 'welcome'}active-step{/if}" data-step="{$step}">
+                        <span class="s-activity-point"></span>
+                        <a href="{if $actions['welcome'].complete}{$a.href}{else}javascript:void(0){/if}">
+                            {$a.name|escape}
+                            <span class="count js-status"{if !$a.complete} style="display:none"{/if}><i class="icon10 yes"></i></span>
+                        </a></li>
+                    {/strip}{/foreach}
+                    <li class="js-step-link disabled" data-step="profit">
+                        <a href="javascript:void(0)">
+                            <span class="s-activity-point"></span>
+                            [`Profit!`]
+                        </a>
+                    </li>
+            </ul>
+
+            <hr>
+            <p class="align-center">
+                <a href="javascript:void(0)" class="button green js-finish-tutorial">[`Close quick start`]</a>
+            </p>
+
+            <!-- plugin hook: 'backend_tutorial.sidebar_block' -->
+            {* @event backend_tutorial.%plugin_id%.sidebar_block *}
+            {foreach ifempty($backend_tutorial, []) as $_}{ifset($_.sidebar_block)}{/foreach}
+
+        </div>
+    </div>
+</div>
+<script>
+    (function ($) {
+        new TutorialSidebar({
+            $wrapper: $("#tutorial-actions"),
+            $app_url: {$wa_app_url|json_encode}
+        });
+    })(jQuery);
+</script>

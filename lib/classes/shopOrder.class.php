@@ -99,6 +99,7 @@ class shopOrder implements ArrayAccess
         'fields'         => '*',
         'product_fields' => '*',
         'sku_fields'     => '*',
+        'ignore_count_validate' => false,
     );
     protected $data = array();
     protected $original_data = array();
@@ -1048,7 +1049,7 @@ class shopOrder implements ArrayAccess
             //check stocks
             $this->validateStockSelection();
 
-            if (!wa('shop')->getSetting('ignore_stock_count')) {
+            if (!wa('shop')->getSetting('ignore_stock_count') && !$this->options(null, 'ignore_count_validate')) {
                 $this->validateStockExceed();
             }
         }
@@ -1183,7 +1184,7 @@ class shopOrder implements ArrayAccess
             switch ($item['type']) {
                 case 'product':
                     $sku_id = ifset($item['sku_id']);
-                    $stock_id = ifset($item['stock_id']);
+                    $stock_id = ifempty($item['stock_id']);
 
                     if (empty($stock_id) && is_array($sku_stocks[$sku_id]) && !empty($sku_stocks[$sku_id])) {
                         # Stock not selected
@@ -1482,8 +1483,12 @@ class shopOrder implements ArrayAccess
         // we should update customer's address that matches.
         // Otherwise we add address as the new one (first in list)
 
-        // This is address from original order data (before save, as in DB)
-        $old_order_address = shopHelper::getOrderAddress($this->original_data['params'], $ext);
+        if ($this->id) {
+            // This is address from original order data (before save, as in DB)
+            $old_order_address = shopHelper::getOrderAddress($this->original_data['params'], $ext);
+        } else {
+            $old_order_address = $new_address;
+        }
 
         // This is a list of all addresses saved in contact. [ i => array( data => array, ext => string ) ]
         $customer_addresses = $contact['address'];
@@ -1516,12 +1521,12 @@ class shopOrder implements ArrayAccess
             $address = $address['data'];
         }
 
-        foreach($list as $index => $old_addr) {
+        foreach ($list as $index => $old_addr) {
             if (isset($old_addr['data']) && (isset($old_addr['ext']) || isset($old_addr['value']))) {
                 $old_addr = $old_addr['data'];
             }
             $match = true;
-            foreach($old_addr as $k => $v) {
+            foreach ($old_addr as $k => $v) {
                 if ($v !== $address[$k]) {
                     $match = false;
                     break;
@@ -3014,7 +3019,7 @@ class shopOrder implements ArrayAccess
                 'type'               => 'product',
                 'service_id'         => null,
                 'service_variant_id' => null,
-                'price'              => (float)$prices[$item_id],
+                'price'              => $this->formatValue($prices[$item_id], 'float'),
                 'quantity'           => (int)$quantities[$item_id],
                 'stock_id'           => !empty($stocks[$item_id]) ? intval($stocks[$item_id]) : null,
                 'parent_id'          => null,
@@ -3033,7 +3038,7 @@ class shopOrder implements ArrayAccess
                             'sku_id'             => (int)$skus[$item_id],
                             'type'               => 'service',
                             'service_id'         => (int)$service_id,
-                            'price'              => (float)$prices[$group][$index][$k],
+                            'price'              => $this->formatValue($prices[$group][$index][$k], 'float'),
                             'quantity'           => (int)$quantity,
                             'service_variant_id' => null,
                             'stock_id'           => null,
@@ -3085,7 +3090,7 @@ class shopOrder implements ArrayAccess
                     'sku_id'             => $sku_id,
                     'type'               => 'product',
                     'service_id'         => null,
-                    'price'              => $prices[$index]['product'],
+                    'price'              => $this->formatValue($prices[$index]['product'], 'float'),
                     'currency'           => '',
                     'quantity'           => $quantity,
                     'service_variant_id' => null,
@@ -3101,7 +3106,7 @@ class shopOrder implements ArrayAccess
                             'sku_id'             => $skus[$index],
                             'type'               => 'service',
                             'service_id'         => $service_id,
-                            'price'              => $prices[$index]['service'][$service_id],
+                            'price'              => $this->formatValue( $prices[$index]['service'][$service_id], 'float'),
                             'currency'           => '',
                             'quantity'           => $quantity,
                             'service_variant_id' => null,

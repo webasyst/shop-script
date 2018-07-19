@@ -126,7 +126,7 @@
                                     {/foreach}
                                 </p>
                             {/if}
-                            {if $customer_delivery_date || $customer_delivery_date_str}
+                            {if $customer_delivery_date || $customer_delivery_time || $customer_delivery_date_str}
                                 <p class="s-order-customer-delivery-date{if !empty($shipping_date)} grey{/if}">
                                     [`Preferred shipping time:`]
                                     {if $customer_delivery_date}
@@ -223,16 +223,25 @@
                                         {/if}
                                     </td>
                                     <td>
-                                        {if $item.type == 'service'}<span class="gray s-overhanging-plus">+</span> {/if}
+                                        {if $item.type == 'service'}<span class="gray s-overhanging-plus">+</span>{/if}
 
                                         {if !empty($item.deleted)}
-                                            {$item.name|escape} <span class="gray">{if $item.type == 'product'}[`deleted product`]{else}[`deleted service`]{/if}</span>
+                                            {$item.name|escape}
+                                            <span class="gray">{if $item.type == 'product'}[`deleted product`]{else}[`deleted service`]{/if}</span>
                                         {else}
                                             <a href="?action=products#/{if $item.type=='product'}product/{$item.product_id}{else}services/{$item.service_id}{/if}/">{$item.name|escape}</a>
                                         {/if}
-
+                                        {if empty($item.deleted) && $item.type == 'product' && $item.current_product_name|escape != $item.name|escape}
+                                            <div class="s-product-previous-name">
+                                                <i class=" icon16 exclamation"></i>
+                                                <span class="gray">
+                                                    [`Current name`]: {$item.current_product_name|escape}
+                                                </span>
+                                            </div>
+                                        {/if}
                                         {if !empty($item.sku_code) && empty($item.deleted)}
-                                            <br><span class="hint">{$item.sku_code|escape}</span>
+                                            <br>
+                                            <span class="hint">{$item.sku_code|escape}</span>
                                         {/if}
 
                                         {if !empty($item.stock)}
@@ -288,105 +297,6 @@
 
 
                     <div id="s-order-items-edit" class="s-order-editable" style="display:none;"></div>
-
-                    {*
-
-                        <form id="order-edit-form" method="post" action="?module=order&action=save&id={$order.id}" style="display:none;" class="s-order-editable">
-                            <div class="sidebar left400px">
-                                <div class="block s-order-edit-customer">
-                                    <div class="fields form width100px" id="s-order-customer-edit">
-                                        <div class="field-group">
-                                        </div>
-                                        <input type="hidden" value="0" name="customer_id" id="s-customer-id">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="content left400px bordered-left">
-                                <table id="s-order-items-edit" class="zebra s-order-items-edit">
-                                    <tbody></tbody>
-                                    <tbody>
-                                        <!-- subtotal -->
-                                        <tr class="white large">
-                                            <td class="min-width"></td>
-                                            <td class="align-right">
-                                                [`Subtotal`]
-                                            </td>
-                                            <td colspan="2" class="align-right">
-                                                <span id="subtotal"></span>
-                                                <span class="currency">{$currency}</span>
-                                            </td>
-                                        </tr>
-
-                                        <tr class="white">
-                                            <td colspan="4"></td>
-                                        </tr>
-
-                                        <!-- shipping, payment & tax -->
-                                        <tr class="white">
-                                            <td class="min-width"></td>
-                                            <td class="align-right">
-                                                [`Shipping`]
-                                                {$shipping_methods = shopHelper::getShippingMethods(array())}
-                                                <select id="shipping_methods" name="shipping_id">
-                                                    <option value=""></option>
-                                                    {foreach $shipping_methods as $m_id => $m}
-                                                    <option {if $shipping_id == $m_id}selected{/if} data-rate="{$m.rate}" value="{$m_id}">{$m.name}</option>
-                                                    {/foreach}
-                                                </select>
-                                            </td>
-                                            <td colspan="2" class="align-right"><input type="text" name="shipping" class="numerical short" id="shipping-rate" value="{(float)$order.shipping}"></td>
-                                        </tr>
-                                        <tr class="white">
-                                            <td class="min-width"></td>
-                                            <td class="align-right">
-                                                [`Payment`]
-                                                {$payment_methods = shopHelper::getPaymentMethods()}
-                                                <select name="payment_id">
-                                                    {foreach $payment_methods as $m}
-                                                    <option {if !empty($params.payment_id) && $params.payment_id == $m.id}selected{/if} value="{$m.id}">{$m.name}</option>
-                                                    {/foreach}
-                                                </select>
-                                            </td>
-                                            <td colspan="2"></td>
-                                        </tr>
-                                        <tr class="white">
-                                            <td class="min-width"></td>
-                                            <td class="align-right">[`Discount`]</td>
-                                            <td colspan="2" class="align-right"><input type="text" class="numerical short" id="discount" name="discount" value="{(float)$order.discount}"></td>
-                                        </tr>
-
-                                        <tr class="white">
-                                            <td colspan="4"></td>
-                                        </tr>
-
-                                        <!-- total -->
-                                        <tr class="white large">
-                                            <td class="min-width"></td>
-                                            <td class="align-right large">[`Total`]</td>
-                                            <td colspan="2" class="align-right large bold">
-                                                <span id="total"></span>
-                                                <span class="currency">{$currency}</span>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                    <tbody>
-                                        <tr class="white large">
-                                            <td colspan="4" class="align-right large">
-                                                <input type="submit" class="button green" value="[`Save changes`]">
-                                            </td>
-                                        </tr>
-                                        <tr class="gray highlighted template-deleted" style="display:none;">
-                                            <td colspan="2" class="bold strike insert-name-here"></td>
-                                            <td colspan="2"><em>[`Click “Save” button below to commit the delete.`]</em></td>
-                                            <td class="min-width"></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            {$wa->csrf()}
-                        </form>
-
-                    *}
 
                     <!-- order processing timeline -->
                     <div class="s-order-readable s-order-timeline">
