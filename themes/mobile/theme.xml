@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="mobile" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:mobile" version="1.1.7">
+<theme id="mobile" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:mobile" version="1.1.9">
     <name locale="en_US">Mobile</name>
     <name locale="ru_RU">Mobile</name>
     <files>
@@ -203,15 +203,15 @@
             <name locale="en_US">Slider</name>
             <options>
                 <option value="promos">
-                    <name locale="ru_RU">Промо-карточки</name>
+                    <name locale="ru_RU">Промокарточки</name>
                     <name locale="en_US">Promo cards</name>
-                    <description locale="ru_RU">В слайдере будут показаны промо-карточки, созданные в разделе Товары > Промо</description>
+                    <description locale="ru_RU">В слайдере будут показаны промокарточки, созданные в разделе Товары > Промо</description>
                     <description locale="en_US">Promo cards will be displayed on the main slider (use Products > Promos to create new promo cards)</description>
                 </option>
                 <option value="products">
                     <name locale="ru_RU">Товары</name>
                     <name locale="en_US">Products</name>
-                    <description locale="ru_RU">В слайдере будут показаны промо-товары из списка, идентификатор которого задан настройкой ниже. Новые списки товаров создаются в разделе Товары > Списки.</description>
+                    <description locale="ru_RU">В слайдере будут показаны промотовары из списка, идентификатор которого задан настройкой ниже. Новые списки товаров создаются в разделе Товары > Списки.</description>
                     <description locale="en_US">Slider will present products from a product set which ID is specified in the setting below. New product sets can be created in Products > Sets.</description>
                 </option>
                 <option value="hidden">
