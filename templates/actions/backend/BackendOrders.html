@@ -254,7 +254,7 @@
             </p>
 
             {% if (!$.isEmptyObject(product.services)) { %}
-            <p>{% include('template-order-services', {
+            <p>{% include('template-order-services-add', {
                 services: product.services,
                 service_ids: o.data.service_ids,
                 options: options
@@ -326,7 +326,7 @@
 
 {/literal}
 {/capture}
-{capture name="template-order-services"}
+{capture name="template-order-services-add"}
 {literal}
     <ul class="menu-v compact small s-orders-services">
     {% var options = o.options || {}; %}
@@ -364,6 +364,55 @@
     <input type="hidden" name="variant[add][{%#index%}][{%#service_id%}]" value="{%#service.variant_id%}">
     {% } %}
     <input type="text" name="price[add][{%#index%}][service][{%#service_id%}]" value="{%#''+service.price%}"
+           data-currency="{%#service.currency%}"
+           data-price="{%#service.price%}"
+           {% if (service.currency === $.order_edit.getPercentSymbol()) { %}data-percent-price="{%#service.percent_price%}"{% } %}
+           class="short s-orders-service-price" >{%#currency%}
+    <br/><span class="hint js-item-total-discount" data-discount-id="{%#index%}_{%#service_id%}"></span>
+    </li>
+    {% } %}
+    </ul>
+{/literal}
+{/capture}
+
+{capture name="template-order-services-edit"}
+{literal}
+    <ul class="menu-v compact small s-orders-services">
+    {% var options = o.options || {}; %}
+    {% var index = options.index || '0'; %}
+    {% var currency = options.currency; %}
+    {% var services = o.services; %}
+    {% var service_ids = o.service_ids; %}
+    {% for (var i = 0, n = service_ids.length; i < n; i += 1) { %}
+    {% var service_id = service_ids[i]; %}
+    {% var service = services[service_id]; %}
+    {% var multi_variants = $.shop.helper.size(service.variants) > 1; %}
+    <li>
+    <label>
+        <input type="checkbox" name="service[edit][{%#index%}][new][{%#service_id%}]" value="{%#service_id%}"
+               {% if (service.checked) { %}checked="checked"{% } %}>
+        {%=service.name%}
+        {% if (!multi_variants) { %}
+        <strong>{%#service.variants[service.variant_id].price_html%}</strong>
+        {% } %}
+    </label>
+    {% if (multi_variants) { %}
+    <select name="variant[edit][{%#index%}][{%#service_id%}]" class="s-orders-service-variant">
+    {% for (var variant_id in service.variants) { %}
+    {% var variant = service.variants[variant_id]; %}
+    <option value="{%#variant.id%}" data-price="{%#''+variant.price%}"
+    data-currency="{%#variant.currency%}"
+    data-price="{%#variant.price%}"
+    {% if (service.currency === $.order_edit.getPercentSymbol()) { %}data-percent-price="{%#variant.percent_price%}"{% } %}
+    {% if (variant.status == {/literal}{shopProductServicesModel::STATUS_DEFAULT}{literal}) { %}selected="selected"{% } %}>
+    {%=variant.name%} ({%#variant.price_str%})
+    </option>
+    {% } %}
+    </select>
+    {% } else { %}
+    <input type="hidden" name="variant[edit][{%#index%}][{%#service_id%}]" value="{%#service.variant_id%}">
+    {% } %}
+    <input type="text" name="price[edit][new][{%#index%}][{%#service_id%}]" value="{%#''+service.price%}"
            data-currency="{%#service.currency%}"
            data-price="{%#service.price%}"
            {% if (service.currency === $.order_edit.getPercentSymbol()) { %}data-percent-price="{%#service.percent_price%}"{% } %}

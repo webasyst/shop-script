@@ -1,3 +1,6 @@
+<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-wa/wa.core.js?{$wa->version(true)}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/backend/welcome.js?{$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/tutorial/tutorial.js"></script>
 {include file="templates/actions/tutorial/include.TutorialSidebar.html" inline}
 
 <div class="block double-padded welcome s-unboarding-wrapper">
@@ -5,18 +8,18 @@
         <div class="s-welcome-page">
             <div class="s-tutorial-disabled"{if $actions['welcome'].complete == 1} style="display: block;"{/if}></div>
             <div class="s-tutorial-hint"{if $actions['welcome'].complete == 1} style="display: block;"{/if}>
-                <p>[`The initial settings can be changed in the Shop setting.`]<br/><a href="{$wa_app_url}?action=settings" target="_blank">«[`Shop Settings`]»</a></p>
+                <p>{sprintf('[`Values selected here can be changed in the <a href="%s">settings</a> later.`]', '?action=settings')}</p>
             </div>
             <h1>[`Welcome to Shop-Script!`]</h1>
-            <p>[`This assistant will help you master the basic steps for launching your online store.`]</p>
+            <p>[`This screen will help you to quickly launch your new online store.`]</p>
             <div class="form fields">
                 <div class="s-tutorial-block">
-                    <div class="s-title"><img src="{$wa_app_static_url}img/arrow/img_arrow.png" class="s-arrow" /><span class="s-title">[`Select the main currency of the store`]</span></div>
-                    <div class="s-sub-title">[`Additional currencies can be added later in the «Settings - Currencies section»`]</div><br/>
-                    <select name="currency" class="s-currency" placeholder id="" {if $actions['welcome'].complete != 1}required{/if}>
+                    <div class="s-title"><img src="{$wa_app_static_url}img/arrow/img_arrow.png" class="s-arrow" /><span class="s-title">[`Select a primary currency`]</span></div>
+                    <div class="s-sub-title">[`You will later be able to add more currencies in «Settings - Currencies» section`]</div><br/>
+                    <select name="currency" class="s-currency" id="" {if $actions['welcome'].complete != 1}required{/if}>
                         <option value="" disabled selected>[`Select currency`]</option>
-                        {foreach $currencies as $code => $currency}
-                            <option value="{$code}" title="{$code}">{_w($currency.title)}</option>
+                        {foreach $currencies as $currency}
+                            <option value="{$currency.code}" title="{$currency.code}"{if $currency.code === null} disabled{/if}>{_w($currency.title)}</option>
                         {/foreach}
                     </select>
                 </div>
@@ -24,7 +27,7 @@
 
                 <div class="s-tutorial-block">
                     <div class="s-title"><img src="{$wa_app_static_url}img/arrow/img_arrow.png" class="s-arrow" /><span class="s-title-text">[`Select a country`]</span></div>
-                    <div class="s-sub-title">[`The country will include the appropriate tax rates`]</div><br/>
+                    <div class="s-sub-title">[`This will automatically enable corresponding tax rates.`]</div><br/>
                     <select name="country" class="s-country">
                         {foreach $countries as $country}
                             <option value="{$country.iso3letter|escape}"{if $country.iso3letter == $country_iso} selected{/if}>{$country.name|escape}</option>
@@ -35,8 +38,8 @@
                 <div class="clear-both"></div>
 
                 <div class="s-tutorial-block">
-                    <div class="s-title"><img src="{$wa_app_static_url}img/arrow/img_arrow.png" class="s-arrow" /><span class="s-title-text">[`Choose types of products, <br/> examples of which we will add to your store`]</span></div>
-                    <div class="s-sub-title">[`For each type of goods will be determined <br/> their own set of characteristics - they will allow to describe in detail <br/> the goods on the show-window, adjust the filters and automatic recommendations.`]</div><br/>
+                    <div class="s-title"><img src="{$wa_app_static_url}img/arrow/img_arrow.png" class="s-arrow" /><span class="s-title-text">[`Select types of products<br/>which you would like to be added as examples to your catalog.`]</span></div>
+                    <div class="s-sub-title">[`Each type provides its own set of editable product<br/>features to publish detailed product descriptions on the website,<br/>and to set up filters and automated recommendations.`]</div><br/>
                     <div class="s-product-type">
                         {$i=0}
                         {$wrap_count = 7}
@@ -59,7 +62,7 @@
 
                 <div class="s-welcome-import">
                     <div class="s-tutorial-block">
-                        <div class="s-title"><img src="{$wa_app_static_url}img/arrow/img_arrow_orange.png" class="s-arrow" /><span class="s-title-text">[`You can import data<br/>from your old store running on a different platform`]</span></div>
+                        <div class="s-title"><img src="{$wa_app_static_url}img/arrow/img_arrow_orange.png" class="s-arrow" /><span class="s-title-text">[`You can import data from your existing online store<br/>based on another software platform.`]</span></div>
                         {if !empty($backend_welcome)}
                             {foreach $backend_welcome as $plugin => $data}
                                 {if !empty($data['controls'])||!empty($data['name'])}
@@ -86,4 +89,3 @@
         </div>
     </form>
 </div>
-<script type="text/javascript" src="{$wa_app_static_url}js/backend/welcome.js?{$wa->version()}"></script>

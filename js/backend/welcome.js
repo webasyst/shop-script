@@ -18,4 +18,5 @@
             $(this).parents('.value').removeClass('bold');
         }
     });
+
 })(jQuery);

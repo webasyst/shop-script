@@ -553,10 +553,6 @@ ul.tabs li.s-aff-bonus-total { background: #efd !important; margin-right: 10px; 
     background: #aaa;
 }
 
-.s-tutorial-checklist li.selected .count,
-.s-tutorial-checklist li.active-step .count {
-    display: none;
-}
 .s-tutorial-checklist li.selected a {
     background: none!important;
     text-decoration: none!important;
@@ -564,9 +560,15 @@ ul.tabs li.s-aff-bonus-total { background: #efd !important; margin-right: 10px; 
 }
 .s-tutorial-checklist li.active-step .s-activity-point,
 .s-tutotial-steps .tutorial-actions .selected .s-activity-point {
-    background: #3c2f2f!important;
+    background: #00b03b!important;
     border: 3px solid #fd5901!important;
 }
+
+.s-tutorial-checklist li.active-step.complete .s-activity-point{
+    background: #00b03b!important;
+    border: 3px solid #aaa!important;
+}
+
 .s-tutotial-steps .tutorial-actions li.disabled:hover .s-activity-point {
     background: #aaa!important;
     border: none!important;
@@ -603,7 +605,7 @@ ul.tabs li.s-aff-bonus-total { background: #efd !important; margin-right: 10px; 
 .s-tutorial .s-nolevel2-box { padding: 20px 25px; background: #fff; }
 .s-tutorial-tab i.icon16 { margin-top: 10px; }
 
-.s-tutorial .img-margin-left { margin-left: 25px;}
+.s-tutorial .img-margin-left { margin-left: 37px;}
 .s-tutorial #s-content h1 { margin-bottom: 0.8em; }
 .s-tutorial #s-content ul li { margin-bottom: 1em; line-height: 1.5em; font-family: "Lucida Grande","Lucida Sans Unicode","Helvetica Neue",Arial,sans-serif; }
 .s-tutorial #s-content p a { text-decoration: none; }
@@ -613,7 +615,7 @@ ul.tabs li.s-aff-bonus-total { background: #efd !important; margin-right: 10px; 
 .s-tutorial-checklist li a:hover { color: red !important; }
 .s-tutorial-checklist li.selected a { font-weight: normal; color: #000 !important; }
 
-.s-tutorial-checklist li.active-step a { color: #000!important; text-decoration: none; font-weight: bold; }
+.s-tutorial-checklist li.active-step a { color: #000!important; font-weight: bold; }
 
 .s-tutorial-progressbar-outer { background: #fff; width: 45px; position: relative; }
 .s-tutorial-progressbar-inner { background: linear-gradient(45deg, #fd6901, #fe2b01);!important; height: 20px; }
@@ -967,7 +969,7 @@ ul.s-promos-list li.new-promo-placeholder:hover .s-promo-dummy { box-shadow: non
 a.s-page-link .count i.icon10 { display: none; }
 a.s-page-link:hover .count i.icon10 { display: block; }
 .s-page-gray-toolbar { background: #EEE; padding-left: 15px; padding-bottom: 13px; }
-.s-page-gray-toolbar h2 { font-family: 'Lucida Grande'; }
+.s-page-gray-toolbar h2 { font-size: 1.5em; margin-bottom: 10px; }
 .s-page-save-panel { position: fixed; bottom: 0; left: 0; right: 0; background: #eee; padding-left: 470px; }
 
 .block-pages ul li.drag-newposition.active { border-top: 2px solid #BB8; background: none; }

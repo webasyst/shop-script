@@ -331,17 +331,22 @@ class shopFrontendCheckoutAction extends waViewAction
         $this->parseShippingParams($order, $checkout_data);
 
         if (isset($checkout_data['payment'])) {
-            $order['params']['payment_id'] = $checkout_data['payment'];
+            $order['params']['payment_id'] = (int)$checkout_data['payment'];
             $plugin_model = new shopPluginModel();
             $plugin_info = $plugin_model->getById($checkout_data['payment']);
-            $order['params']['payment_name'] = $plugin_info['name'];
-            $order['params']['payment_plugin'] = $plugin_info['plugin'];
-            if (!empty($order['params']['payment'])) {
-                foreach ($order['params']['payment'] as $k => $v) {
-                    $order['params']['payment_params_'.$k] = $v;
+            if ($plugin_info && ($plugin_info['type'] == shopPluginModel::TYPE_PAYMENT)) {
+                $order['params']['payment_name'] = $plugin_info['name'];
+                $order['params']['payment_plugin'] = $plugin_info['plugin'];
+                if (!empty($order['params']['payment'])) {
+                    foreach ($order['params']['payment'] as $k => $v) {
+                        $order['params']['payment_params_'.$k] = $v;
+                    }
                 }
-                unset($order['params']['payment']);
+            } else {
+                $order['params']['payment_name'] = '';
+                $order['params']['payment_plugin'] = null;
             }
+            unset($order['params']['payment']);
         }
 
         $routing_url = wa()->getRouting()->getRootUrl();

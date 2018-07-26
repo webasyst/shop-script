@@ -2183,32 +2183,32 @@ msgstr "С помощью формы быстрого старта вы може
 msgid "Shop Settings"
 msgstr "Настройки Магазина"
 
-msgid "The initial settings can be changed in the Shop setting."
-msgstr "Первоначальные установки можно изменить в настройка Магазина."
+msgid "Values selected here can be changed in the <a href=\"%s\">settings</a> later."
+msgstr "Выбранные здесь значения можно будет позже изменить в <a href=\"%s\">настройках</a>."
 
-msgid "This assistant will help you master the basic steps for launching your online store."
-msgstr "Этот помощник поможет вам освоить основные этапы для запуска вашего интернет-магазина."
+msgid "This screen will help you to quickly launch your new online store."
+msgstr "Этот раздел поможет вам запустить новый интернет-магазин."
 
-msgid "Select the main currency of the store"
-msgstr "Выберите основную валюту магазина"
+msgid "Select a primary currency"
+msgstr "Выберите основную валюту"
 
-msgid "Additional currencies can be added later in the «Settings - Currencies section»"
+msgid "You will later be able to add more currencies in «Settings - Currencies» section"
 msgstr "Дополнительные валюты можно добавить позже в разделе «Настройки - Валюты»"
 
 msgid "Select currency"
 msgstr "Выберите валюту"
 
-msgid "The country will include the appropriate tax rates"
+msgid "This will automatically enable corresponding tax rates."
 msgstr "Для страны включатся соответствующие ставки налогов"
 
-msgid "Choose types of products, <br/> examples of which we will add to your store"
+msgid "Select types of products<br/>which you would like to be added as examples to your catalog."
 msgstr "Выберите типы товаров, <br/>примеры которых мы добавим в ваш магазин"
 
-msgid "For each type of goods will be determined <br/> their own set of characteristics - they will allow to describe in detail <br/> the goods on the show-window, adjust the filters and automatic recommendations."
-msgstr "Для каждого типа товаров будет определён<br/>свой набор характеристик — они позволят подробно описать<br/>товары на витрине, настроить фильтры и автоматические рекомендации."
+msgid "Each type provides its own set of editable product<br/>features to publish detailed product descriptions on the website,<br/>and to set up filters and automated recommendations."
+msgstr "У каждого типа товаров будет<br/>свой набор характеристик — с их помощью можно подробно описать<br/>товары на витрине, настроить фильтры и автоматические рекомендации."
 
-msgid "You can import data<br/>from your old store running on a different platform"
-msgstr "Вы можете импортировать данные<br/>из своего старого магазина, работающего на другой платформе"
+msgid "You can import data from your existing online store<br/>based on another software platform."
+msgstr "Можно импортировать данные из своего старого магазина,<br/>работающего на другой платформе."
 
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:25
 msgid "Other"
@@ -8922,10 +8922,10 @@ msgstr "Smarty-код A/B-теста"
 #: /wa-apps/shop/templates/actions/tutorial/TutorialCheckout.html:1
 #: /wa-apps/shop/templates/actions/tutorial/TutorialCheckout.ru_RU.html:1
 #: /wa-apps/shop/lib/actions/tutorial/shopTutorial.actions.php:120
-msgid "Setup payment"
+msgid "Set up payment"
 msgstr "Настройте оплату"
 
-msgid "Setup shipping"
+msgid "Set up shipping"
 msgstr "Настройте доставку"
 
 #: /wa-apps/shop/templates/actions/tutorial/TutorialDefault.html:14
@@ -8937,8 +8937,12 @@ msgid "You are very close to get your online store ready for your first sale!"
 msgstr "Вы практически закончили подготовку интернет-магазина к началу работы!"
 
 #: /wa-apps/shop/templates/actions/tutorial/TutorialDefault.html:39
-msgid "Profit!"
+msgid "Done!"
 msgstr "Готово!"
+
+#: /wa-apps/shop/templates/actions/tutorial/include.TutorialSidebar.html
+msgid "of"
+msgstr "из"
 
 #: /wa-apps/shop/templates/actions/tutorial/TutorialDefault.html:45
 msgid "Close quick start"
@@ -8947,7 +8951,7 @@ msgstr "Закрыть быстрый старт"
 #: /wa-apps/shop/templates/actions/tutorial/TutorialDesign.html:1
 #: /wa-apps/shop/templates/actions/tutorial/TutorialDesign.ru_RU.html:1
 #: /wa-apps/shop/lib/actions/tutorial/shopTutorial.actions.php:109
-msgid "Choose design"
+msgid "Select design"
 msgstr "Выберите дизайн"
 
 #: /wa-apps/shop/templates/actions/tutorial/TutorialInstall.html:1
@@ -8957,7 +8961,7 @@ msgid "Install Shop-Script"
 msgstr "Установите Shop-Script"
 
 #: /wa-apps/shop/templates/actions/tutorial/TutorialProducts.html:1
-msgid "Presets"
+msgid "Basic settings"
 msgstr "Предварительные настройки"
 
 msgid "Add products "

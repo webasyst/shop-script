@@ -8,13 +8,21 @@
     {if isset($stepArray[$next_step_key+1])}
         {$next_step = $stepArray[$next_step_key+1]}
     {/if}
+    {if isset($stepArray[$next_step_key-1])}
+        {$prev_step = $stepArray[$next_step_key-1]}
+    {/if}
 {/if}
-{$_theme = join(',', $theme_names)}
+{$_themes = join('», «', $theme_names)}
 <div class="s-unboarding-wrapper">
     <h1>Выберите и настройте тему дизайна</h1>
 
-    <p>В вашем магазине уже установлены темы дизайна: <strong>{$_theme}</strong><br/>
-    Настройте ее как вам нужно в разделе «Магазин → Витрина» на вкладке «Оформление».<br/>
+    <p>
+        {if isset($_themes)}
+            В вашем магазине уже установлены темы дизайна: <strong>«{$_themes}»</strong><br/>
+            Настройте ее как вам нужно на вкладке «Оформление» в разделе «Магазин → Витрина».
+        {else}
+            В вашем магазине еще не установлены темы дизайна.
+        {/if}
     </p>
 
     <p><img src="{$wa_app_static_url}img/steps/step03-01.png"></p>
@@ -26,8 +34,8 @@
     <p>После установки новой темы дизайна выберите ее в разделе «Магазин → Витрина» на вкладке «Настройки».</p>
     <br/>
 
-    <a href="javascript:history.back()" class="button yellow">&larr; Назад</a>
-    <a href="{if $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green">Следующий шаг &rarr;</a>
+    <a href="{if isset($prev_step) && $actions[$prev_step]}{$actions[$prev_step]['href']}{else}javascript:void(0){/if}" class="button yellow">&larr; Назад</a>
+    <a href="{if isset($next_step) && $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green">Следующий шаг &rarr;</a>
 </div>
 <script>
     (function ($) {

@@ -248,11 +248,8 @@ class shopCheckoutShipping extends shopCheckout
             }
 
             // When free shipping coupon is used, display all rates as 0
-            $checkout_data = wa('shop')->getStorage()->read('shop/checkout');
-            if (!empty($checkout_data['coupon_code']) && ($m['rate'] !== null)) {
-                empty($cm) && ($cm = new shopCouponModel());
-                $coupon = $cm->getByField('code', $checkout_data['coupon_code']);
-                if ($coupon && $coupon['type'] == '$FS') {
+            if ($m['rate'] !== null) {
+                if ($this->isFreeShipping()) {
                     $m['rate'] = 0;
                     foreach ($m['rates'] as &$r) {
                         $r['rate'] = 0;
@@ -732,6 +729,10 @@ class shopCheckoutShipping extends shopCheckout
             if (is_string($rate)) {
                 $this->assign('error', $rate);
                 $rate = false;
+            } elseif ($rate['rate'] !== null) {
+                if ($this->isFreeShipping()) {
+                    $rate['rate'] = 0;
+                }
             }
 
             $shipping = array(
@@ -816,5 +817,20 @@ class shopCheckoutShipping extends shopCheckout
         }
 
         return $this->getControls($custom_fields, 'shipping_'.$id);
+    }
+
+    protected function isFreeShipping()
+    {
+        $is_free = false;
+
+        $coupon_code = $this->getSessionData('coupon_code');
+        if (!empty($coupon_code)) {
+            empty($cm) && ($cm = new shopCouponModel());
+            $coupon = $cm->getByField('code', $coupon_code);
+            if ($coupon && $coupon['type'] == '$FS') {
+                $is_free = true;
+            }
+        }
+        return $is_free;
     }
 }

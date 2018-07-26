@@ -60,14 +60,7 @@ class shopCheckoutConfirmation extends shopCheckout
                 $params['shipping_name'] = $shipping['name'];
                 $params['shipping_description'] = $plugin_info['description'];
 
-                if (!isset($shipping['rate'])) {
-                    $shipping_step = new shopCheckoutShipping();
-                    $rate = $shipping_step->getRate($shipping['id'], $shipping['rate_id']);
-                    if (is_array($rate) && isset($rate['rate'])) {
-                        $shipping['rate'] = $rate['rate'];
-                    }
-                }
-                $order['shipping'] = $shipping['rate'];
+                $order['shipping'] = ifset($shipping, 'rate', 0);
             }
         }
 

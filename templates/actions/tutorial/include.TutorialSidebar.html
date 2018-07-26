@@ -9,7 +9,7 @@
                         <span class="s-tutorial-step-title">[`Quick start`]</span>
                         <div class="s-tutorial-progressbar-outer">
                             <div class="s-tutorial-progressbar-inner"></div>
-                            <span id="s-tutorial-progressbar-content">{$tutorial_progress.complete} из {$tutorial_progress.total+1}</span>
+                            <span id="s-tutorial-progressbar-content">{$tutorial_progress.complete} [`of`] {$tutorial_progress.total+1}</span>
                         </div>
                     </div>
                 </a>
@@ -18,25 +18,30 @@
         <div class="block">
             <ul class="menu-v s-tutorial-checklist tutorial-actions" id="tutorial-actions">
                 {counter start=0 print=false}
-                    {foreach $actions as $step=>$a}{strip}
-                    <li class="js-actions-link {if $a.complete}complete {else}{if $step == 'welcome'} active-step{else} disabled{/if}{/if} js-step-link {if $step == 'welcome'}active-step{/if}" data-step="{$step}">
-                        <span class="s-activity-point"></span>
-                        <a href="{if $actions['welcome'].complete}{$a.href}{else}javascript:void(0){/if}">
-                            {$a.name|escape}
-                            <span class="count js-status"{if !$a.complete} style="display:none"{/if}><i class="icon10 yes"></i></span>
-                        </a></li>
-                    {/strip}{/foreach}
-                    <li class="js-step-link disabled" data-step="profit">
-                        <a href="javascript:void(0)">
+                {foreach $actions as $step=>$a}
+                    {strip}
+                        <li class="js-actions-link{if $a.complete} complete{else}{if $step == 'welcome'} active-step{else} disabled{/if}{/if} js-step-link{if $step == 'welcome'} active-step{/if}" data-step="{$step}">
                             <span class="s-activity-point"></span>
-                            [`Profit!`]
-                        </a>
-                    </li>
+                            <a href="{if $actions['welcome'].complete}{$a.href}{else}javascript:void(0){/if}">
+                                {$a.name|escape}
+                                <span class="count js-status"{if !$a.complete} style="display:none"{/if}>
+                                    <i class="icon10 yes"></i>
+                                </span>
+                            </a>
+                        </li>
+                    {/strip}
+                {/foreach}
+                <li class="js-step-link disabled" data-step="profit">
+                    <a href="javascript:void(0)">
+                        <span class="s-activity-point"></span>
+                        [`Done!`]
+                    </a>
+                </li>
             </ul>
 
             <hr>
             <p class="align-center">
-                <a href="javascript:void(0)" class="button green js-finish-tutorial">[`Close quick start`]</a>
+                <a href="{$wa_app_url}?skipwelcome=1" class="button green js-finish-tutorial">[`Close quick start`]</a>
             </p>
 
             <!-- plugin hook: 'backend_tutorial.sidebar_block' -->

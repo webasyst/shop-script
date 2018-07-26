@@ -187,8 +187,15 @@ $.order_edit = {
 
                 var url = '?module=orders&action=getProduct&product_id=' + product_id + '&sku_id=' + sku_id;
                 $.getJSON(url + ($.order_edit.id ? '&order_id=' + $.order_edit.id : '&currency=' + $.order_edit.options.currency), function (r) {
+                    var ns;
+                    if (tr.find('input:first').attr('name').indexOf('add') !== -1) {
+                        ns = 'add';
+                    } else {
+                        ns = 'edit';
+                    }
+
                     tr.find('.s-orders-services').replaceWith(
-                        tmpl('template-order-services', {
+                        tmpl('template-order-services-'+ns, {
                             services: r.data.sku.services,
                             service_ids: r.data.service_ids,
                             product_id: product_id,
@@ -203,13 +210,6 @@ $.order_edit = {
                     tr.find('.s-orders-product-price').//find('span').html(r.data.sku.price_html || r.data.sku.price_str).end().
                     find('input').val(r.data.sku.price);
                     //.trigger('change');
-
-                    var ns;
-                    if (tr.find('input:first').attr('name').indexOf('add') !== -1) {
-                        ns = 'add';
-                    } else {
-                        ns = 'edit';
-                    }
 
                     tr.find('.s-orders-sku-stock-place').empty();
                     li.find('.s-orders-sku-stock-place').html(
@@ -585,43 +585,53 @@ $.order_edit = {
 
     setShippingInfo: function () {
         var $methods = $("#shipping_methods"),
-            option = $methods.children(':selected'),
+            $option = $methods.children(':selected'),
             $shipping_input = $('#shipping-rate'),
-            sid = $methods.val().replace(/\..+$/, ''),
+            $shipping_info = $('#shipping-info'),
+            sid = $methods.val(),
             prev_sid = $methods.data('_shipping_id');
 
         var delivery_info = [];
 
-        if (option.data('error')) {
-            delivery_info.push('<span class="error">' + option.data('error') + '</span>');
-        }
-        if (option.data('est_delivery')) {
-            delivery_info.push('<span class="hint est_delivery">' + option.data('est_delivery') + '</span>');
-        }
+        if($option.length) {
 
-        $("#shipping-custom > div").hide();
-
-        if ($('#shipping-custom-' + sid).length) {
-            $('#shipping-custom-' + sid).show();
-        }
-
-        if (option.data('comment')) {
-            delivery_info.push('<span class="hint">' + option.data('comment') + '</span>');
-        }
-
-        if (delivery_info) {
-            if (option.data('error')) {
-                $shipping_input.addClass('error');
-            } else {
-                $("#shipping-rate").removeClass('error');
+            if ($option.data('error')) {
+                delivery_info.push('<span class="error">' + $option.data('error') + '</span>');
             }
-            $("#shipping-info").html(delivery_info.join('<br>')).show();
+            if ($option.data('est_delivery')) {
+                delivery_info.push('<span class="hint est_delivery">' + $option.data('est_delivery') + '</span>');
+            }
+
+            $("#shipping-custom > div").hide();
+
+            if (sid !== null) {
+                sid = ('' + sid).replace(/\..+$/, '');
+                if ($('#shipping-custom-' + sid).length) {
+                    $('#shipping-custom-' + sid).show();
+                }
+            }
+
+            if ($option.data('comment')) {
+                delivery_info.push('<span class="hint">' + $option.data('comment') + '</span>');
+            }
+
+            if (delivery_info) {
+                if ($option.data('error')) {
+                    $shipping_input.addClass('error');
+                    $methods.addClass('error');
+                } else {
+                    $shipping_input.removeClass('error');
+                }
+                $shipping_info.html(delivery_info.join('<br>')).show();
+            } else {
+                $shipping_input.removeClass('error');
+                $shipping_info.empty().hide();
+            }
         } else {
-            $shipping_input.removeClass('error');
-            $("#shipping-info").empty().hide();
+            $methods.addClass('error');
         }
 
-        $.shop.trace('check shipping_methods id', [prev_sid, sid]);
+        $.shop.trace('check shipping_methods id', [prev_sid, sid, $option]);
     },
 
     getOrderItems: function (container) {
@@ -736,6 +746,7 @@ $.order_edit = {
             $total.text(0);
             return;
         }
+        var that = this;
 
         //Disable submit button
         $.order_edit.switchSubmitButton('disable');
@@ -880,9 +891,7 @@ $.order_edit = {
 
                         el.val(el_selected);
                         el.data('_shipping_id', el_selected_id);
-
                         $.shop.trace('set shipping_methods id', [el_selected_id, el_selected]);
-
                     }
 
                     //If user deleted discount value, don't need set zero discount value
@@ -900,6 +909,7 @@ $.order_edit = {
                     $total.text($.order_edit.roundFloat(response.data.total));
 
                     $.order_edit.showValidateErrors(response.data.errors);
+                    that.setShippingInfo();
 
                     //Allow submit button
                     $.order_edit.switchSubmitButton();
@@ -1106,17 +1116,18 @@ $.order_edit = {
     },
 
     showValidateErrors: function (validate_errors) {
+        $.shop.trace('showValidateErrors', validate_errors);
         $('.error').removeClass('error');
         $('#s-order-edit-customer .errormsg').empty();
         if (validate_errors && validate_errors.customer) {
-            var errors = validate_errors.customer;
-            $.order_edit.customer_fields.find('.field-group:first').html(errors.html);
-            delete errors.html;
-            for (var name in errors) {
-                $.order_edit.customer_fields.find('.s-error-customer-' + name).each(function () {
+            var customer_errors = validate_errors.customer;
+            $.order_edit.customer_fields.find('.field-group:first').html(customer_errors.html);
+            delete customer_errors.html;
+            for (var customer_field in customer_errors) {
+                $.order_edit.customer_fields.find('.s-error-customer-' + customer_field).each(function () {
                     var item = $(this);
                     if (this.tagName == 'EM') {
-                        item.text(errors[name]);
+                        item.text(customer_errors[customer_field]);
                     } else {
                         item.addClass('error');
                     }

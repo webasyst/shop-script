@@ -10,13 +10,13 @@
     {/if}
 {/if}
 <div class="s-unboarding-wrapper">
-    <h1>Shipping</h1>
+    <h1>Set up shipping methods</h1>
 
     <p><img src="{$wa_app_static_url}img/steps/eng/step05-01.png"></p>
     <br/>
 
-    <a href="javascript:history.back()" class="button yellow">&larr; Назад</a>
-    <a href="{if $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green">Следующий шаг &rarr;</a>
+    <a href="{if isset($prev_step) && $actions[$prev_step]}{$actions[$prev_step]['href']}{else}javascript:void(0){/if}" class="button yellow">&larr; Back</a>
+    <a href="{if isset($next_step) && $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green js-nextstep-link">Next step &rarr;</a>
 </div>
 <script>
     (function ($) {

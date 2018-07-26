@@ -137,7 +137,10 @@ function Product(form, options) {
                             $('.cart-to-checkout').slideDown(200);
                     });
                     if (cart_div.closest('.dialog').length) {
-                        cart_div.closest('.dialog').hide().find('.cart').empty();
+                        setTimeout(function () {
+                            cart_div.closest('.dialog').hide().find('.cart').empty();
+                        }, 0);
+
                     }
 
                 } else {

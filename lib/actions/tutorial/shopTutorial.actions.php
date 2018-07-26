@@ -32,7 +32,7 @@ class shopTutorialActions extends waViewActions
         $theme_names = array();
 
         foreach ($storefronts as $storefront) {
-            $storefront_theme = ifempty($storefront['route']['theme']);
+            $storefront_theme = ifempty($storefront['route']['theme'], 'default');
             if (!isset($app_themes[$storefront_theme])) {
                 continue;
             }
@@ -40,6 +40,8 @@ class shopTutorialActions extends waViewActions
             $storefront_theme = $app_themes[$storefront_theme];
             $theme_names[] = $storefront_theme->getName();
         }
+
+        $theme_names = array_unique($theme_names);
 
         $this->view->assign('theme_names', $theme_names);
         $this->assignVariables();
@@ -117,7 +119,7 @@ class shopTutorialActions extends waViewActions
         $actions = array(
             'welcome'  => array(
                 'href'     => $backend_url.'?action=welcome',
-                'name'     => _w('Presets'),
+                'name'     => _w('Basic settings'),
                 'complete' => false,
             ),
             'products' => array(
@@ -127,17 +129,17 @@ class shopTutorialActions extends waViewActions
             ),
             'design'   => array(
                 'href'     => $backend_url.$tutorial_url.'#/design/',
-                'name'     => _w('Choose design'),
+                'name'     => _w('Select design'),
                 'complete' => false,
             ),
             'payment' => array(
                 'href'     => $backend_url.$tutorial_url.'#/payment/',
-                'name'     => _w('Setup payment'),
+                'name'     => _w('Set up payment'),
                 'complete' => false,
             ),
             'shipping' => array(
                 'href'     => $backend_url.$tutorial_url.'#/shipping/',
-                'name'     => _w('Setup shipping'),
+                'name'     => _w('Set up shipping'),
                 'complete' => false,
             ),
         );
@@ -171,7 +173,7 @@ class shopTutorialActions extends waViewActions
                 }
 
                 foreach ($storefronts as $storefront) {
-                    $storefront_theme = ifempty($storefront['route']['theme']);
+                    $storefront_theme = ifempty($storefront['route']['theme'], 'default');
                     if (!isset($app_themes[$storefront_theme])) {
                         continue;
                     }
@@ -214,6 +216,8 @@ class shopTutorialActions extends waViewActions
                     foreach ($acts as $i => $a) {
                         if (empty($a['href'])) {
                             $a['href'] = 'javascript:void(0)';
+                        } else {
+                            $a['href'] = $backend_url.$tutorial_url.$a['href'];
                         }
                         if (empty($a['name'])) {
                             $a['name'] = $plugin_id;

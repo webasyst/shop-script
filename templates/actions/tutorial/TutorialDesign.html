@@ -8,26 +8,37 @@
     {if isset($stepArray[$next_step_key+1])}
         {$next_step = $stepArray[$next_step_key+1]}
     {/if}
+    {if isset($stepArray[$next_step_key-1])}
+        {$prev_step = $stepArray[$next_step_key-1]}
+    {/if}
 {/if}
-{$_theme = join(',', $theme_names)}
+{$_themes = join('», «', $theme_names)}
 <div class="s-unboarding-wrapper">
-    <h1>Choose design</h1>
+    <h1>Select and set up a design theme</h1>
 
-    <p>В вашем магазине уже установлены темы дизайна: <strong>{$_theme}</strong><br/>
-        Настройте ее как вам нужно в разделе «Магазин → Витрина» на вкладке «Оформление».<br/>
+    <p>
+        {if isset($_themes)}
+            Design theme <strong>«{$_themes}»</strong> is already installed in your online store.<br/>
+            Configure it to your liking under the «Appearance» tab in «Store → Storefronts» section.<br/>
+        {else}
+            There are no design themes in your shop yet.
+        {/if}
+    </p>
+    <p>Design theme <strong>«{$_themes}»</strong> is already installed in your online store.<br/>
+        Configure it to your liking under the «Appearance» tab in «Store → Storefronts» section.<br/>
     </p>
 
     <p><img src="{$wa_app_static_url}img/steps/eng/step03-01.png"></p>
 
-    <p>Если вам нужен совсем другой дизайн, выберите и установите любую тему дизайна из магазина Webasyst на вкладке «Темы дизайна». Темы есть бесплатные и платные. Все они устанавливаются автоматически — одной кнопкой.</p>
+    <p>If you need an absolutely different design, find and install another design theme from the Webasyst Store available under «Design themes» tab. Some themes are free, others are available for payment. All of them are installed automatically, with one button click.</p>
 
     <p><img src="{$wa_app_static_url}img/steps/eng/step03-02.png"></p>
 
-    <p>После установки новой темы дизайна выберите ее в разделе «Магазин → Витрина» на вкладке «Настройки».</p>
+    <p>Once a new theme has been installed, select it for your storefront under «Settings» tab.</p>
     <br/>
 
-    <a href="javascript:history.back()" class="button yellow">&larr; Назад</a>
-    <a href="{if $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green">Следующий шаг &rarr;</a>
+    <a href="{if isset($prev_step) && $actions[$prev_step]}{$actions[$prev_step]['href']}{else}javascript:void(0){/if}" class="button yellow">&larr; Back</a>
+    <a href="{if isset($next_step) && $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green">Next step &rarr;</a>
 </div>
 <script>
     (function ($) {

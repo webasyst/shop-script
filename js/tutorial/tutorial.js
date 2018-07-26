@@ -11,7 +11,6 @@
             $.store && !$.storage && ($.storage = new $.store());
 
             this.initRouting();
-            this.initFinishTutorial();
         },
 
         initRouting: function () {
@@ -36,16 +35,6 @@
                 return true;
             };
             this.dispatch();
-        },
-
-        initFinishTutorial: function() {
-            $(document).on('click', '.js-finish-tutorial', function() {
-                $.post('?module=tutorial&action=done', function() {
-                    $.tutorial.forceHash('#/products/');
-                    window.location.search = '?action=products';
-                });
-                return false;
-            });
         },
 
         // Set hash without triggering dispatch

@@ -159,13 +159,13 @@ class shopHelper
             $dimensions = shopDimension::getInstance();
 
             foreach ($methods as $m) {
+
                 if ($m['available']) {
                     $method_id = $m['id'];
                     $plugin = shopShipping::getPlugin($m['plugin'], $method_id);
                     $plugin_info = $plugin->info($m['plugin']);
                     $plugin_currency = (array)$plugin->allowedCurrency();
 
-                    $total = null;
                     if ($plugin_currency != $currency) {
                         if (!$config->getCurrencies($plugin_currency)) {
                             $result[$method_id] = array(
@@ -185,37 +185,44 @@ class shopHelper
                             continue;
                         }
                     }
-                    if (isset($params['total_price'])) {
-                        if (!in_array($currency, $plugin_currency)) {
-                            $total = shop_currency($params['total_price'], $currency, reset($plugin_currency), false);
-                        } else {
-                            $total = $params['total_price'];
-                        }
-                    } else {
-                        foreach ($items as $item) {
-                            if (!empty($item['price'])) {
-                                $total += $item['price'] * (isset($item['quantity']) ? $item['quantity'] : 1);
-                            }
-                            if ($total && !in_array($currency, $plugin_currency)) {
-                                $total = shop_currency($total, $currency, reset($plugin_currency), false);
-                            }
-                        }
-                    }
-                    $weight_unit = $plugin->allowedWeightUnit();
-                    foreach ($items as & $item) {
-                        if (!empty($item['weight'])) {
-                            if (empty($item['original_weight'])) {
-                                $item['original_weight'] = $item['weight'];
-                            }
-                            $item['weight'] = $dimensions->convert($item['original_weight'], 'weight', $weight_unit);
-                        }
-                    }
-                    unset($item);
 
-                    if (!empty($params['no_external']) && !empty($plugin_info['external']) && !in_array($m['id'], $params['allow_external_for'])) {
+                    if (!empty($params['no_external']) && !empty($plugin_info['external']) && !in_array($method_id, $params['allow_external_for'])) {
                         $rates = '';
+                        if ($address && !$plugin->isAllowedAddress($address)) {
+                            continue;
+                        }
+
                     } else {
                         $shipping_params = array();
+
+                        $total = null;
+                        if (isset($params['total_price'])) {
+                            if (!in_array($currency, $plugin_currency)) {
+                                $total = shop_currency($params['total_price'], $currency, reset($plugin_currency), false);
+                            } else {
+                                $total = $params['total_price'];
+                            }
+                        } else {
+                            foreach ($items as $item) {
+                                if (!empty($item['price'])) {
+                                    $total += $item['price'] * (isset($item['quantity']) ? $item['quantity'] : 1);
+                                }
+                                if ($total && !in_array($currency, $plugin_currency)) {
+                                    $total = shop_currency($total, $currency, reset($plugin_currency), false);
+                                }
+                            }
+                        }
+                        $weight_unit = $plugin->allowedWeightUnit();
+                        foreach ($items as & $item) {
+                            if (!empty($item['weight'])) {
+                                if (empty($item['original_weight'])) {
+                                    $item['original_weight'] = $item['weight'];
+                                }
+                                $item['weight'] = $dimensions->convert($item['original_weight'], 'weight', $weight_unit);
+                            }
+                        }
+                        unset($item);
+
                         if ($total) {
                             $shipping_params['total_price'] = $total;
                         }
@@ -232,17 +239,25 @@ class shopHelper
                             if (is_array($info)) {
                                 $key = $method_id.'.'.$rate_id;
                                 $rate = is_array($info['rate']) ? max($info['rate']) : $info['rate'];
-                                $rate = (float)shop_currency($rate, reset($plugin_currency), $currency, false);
+                                if ($rate !== null) {
+                                    $rate = shop_currency($rate, reset($plugin_currency), $currency, false);
+                                }
                                 $result[$key] = array(
                                     'plugin'   => $m['plugin'],
                                     'logo'     => $m['logo'],
                                     'icon'     => $plugin_info['icon'],
                                     'img'      => $plugin_info['img'],
                                     'name'     => $m['name'].(!empty($info['name']) ? ' ('.$info['name'].')' : ''),
-                                    'rate'     => $rate,
+                                    'rate'     => (float)$rate,
                                     'currency' => $currency,
                                     'external' => !empty($plugin_info['external']),
                                 );
+
+                                if ($rate === null) {
+                                    $result[$key]['error'] = ifset($info, 'comment', _w('Shipping option not specified'));
+                                    unset($info['comment']);
+                                }
+
                                 foreach (array('est_delivery', 'comment', 'custom_data') as $field) {
                                     if (isset($info[$field]) && !is_null($info[$field])) {
                                         $result[$key][$field] = $info[$field];
@@ -300,6 +315,17 @@ class shopHelper
                             'error'    => $rates,
                             'rate'     => '',
                             'currency' => $currency,
+                            'external' => !empty($plugin_info['external']),
+                        );
+                    } elseif (($rates === false) && in_array($m['id'], $params['allow_external_for'])) {
+                        $result[$method_id] = array(
+                            'plugin'   => $m['plugin'],
+                            'logo'     => $m['logo'],
+                            'icon'     => $plugin_info['icon'],
+                            'img'      => $plugin_info['img'],
+                            'name'     => $m['name'],
+                            'error'    => _w('Not available'),
+                            'rate'     => '',
                             'external' => !empty($plugin_info['external']),
                         );
                     }

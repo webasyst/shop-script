@@ -2335,6 +2335,9 @@ SQL;
             if (isset($table['where'])) {
                 $where = $table['where'];
             }
+            if (isset($table['type'])) {
+                $join_type = $table['type'];
+            }
             $table = $table['table'];
         }
         $t = explode('_', $table);
@@ -2363,6 +2366,9 @@ SQL;
         );
         if ($on) {
             $join['on'] = str_replace(':table', $alias, $on);
+        }
+        if (isset($join_type)) {
+            $join['type'] = $join_type;
         }
         $this->joins[] = $join;
         if ($where) {

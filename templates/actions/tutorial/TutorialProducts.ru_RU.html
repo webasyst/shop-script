@@ -8,6 +8,9 @@
    {if isset($stepArray[$next_step_key+1])}
       {$next_step = $stepArray[$next_step_key+1]}
    {/if}
+   {if isset($stepArray[$next_step_key-1])}
+      {$prev_step = $stepArray[$next_step_key-1]}
+   {/if}
 {/if}
 <div class="s-unboarding-wrapper">
    <h1>Добавьте товары</h1>
@@ -22,15 +25,15 @@
       <p class="img-margin-left"><img src="{$wa_app_static_url}img/steps/step02-02.png"></p>
       <p>В разделе «Импорт/экспорт», в правой верхней области экрана, доступны разные способы массового добавления или обновления товаров.</p>
       <ul>
-         <li>Массовая загрузка изображений: перетащите фотографии со своего компьютера прямо в Shop-Script и сразу создайте из них много товаров.</li>
-         <li>Импорт товаров из CSV-файла: сохраните файл-таблицу в формате CSV с помощью Microsoft Excel, OpenOffice или iWork и загрузите его в Shop-Script. Из файла всего за несколько минут в магазин будут добавлены все нужные товары.</li>
+         <li>Массовая загрузка изображений: перетащите фотографии из папки на своем компьютере прямо в Shop-Script и сразу создайте из них много товаров.</li>
+         <li>Импорт товаров из CSV-файла: сохраните файл-таблицу в формате CSV с помощью Microsoft Excel, OpenOffice или iWork и загрузите его в Shop-Script. Всего за несколько минут из файла в магазин будут добавлены все нужные товары.</li>
          <li>Переход на Shop-Script: перенесите данные из других систем для создания интернет-магазинов в Shop-Script.</li>
       </ul>
 
    </div>
    <br/>
-   <a href="javascript:history.back()" class="button yellow">&larr; Назад</a>
-   <a href="{if $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green">Следующий шаг &rarr;</a>
+   <a href="{if isset($prev_step) && $actions[$prev_step]}{$actions[$prev_step]['href']}{else}javascript:void(0){/if}" class="button yellow">&larr; Назад</a>
+   <a href="{if isset($next_step) && $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green">Следующий шаг &rarr;</a>
 </div>
 <script>
     (function ($) {

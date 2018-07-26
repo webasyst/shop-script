@@ -275,7 +275,7 @@ class shopBackendWelcomeAction extends waViewAction
 
     protected function setupCurrency($currency)
     {
-        $all_currencies = $this->getCurrencies();
+        $all_currencies = waCurrency::getAll(true);
 
         if (isset($all_currencies[$currency])) {
             $currency_model = new shopCurrencyModel();
@@ -395,15 +395,43 @@ class shopBackendWelcomeAction extends waViewAction
      */
     protected function getCurrencies()
     {
-        $currencies = waCurrency::getAll(true);
+        $all_currencies = waCurrency::getAll(true);
 
         $currencies = array(
-            'RUB' => $currencies['RUB'],
-            'UAH' => $currencies['UAH'],
-            'BYN' => $currencies['BYN'],
-            'USD' => $currencies['USD'],
-            'EUR' => $currencies['EUR']
-        ) + $currencies;
+            array(
+                'code'  => 'RUB',
+                'title' => $all_currencies['RUB']['title'],
+            ),
+            array(
+                'code'  => 'UAH',
+                'title' => $all_currencies['UAH']['title'],
+            ),
+            array(
+                'code'  => 'BYN',
+                'title' => $all_currencies['BYN']['title'],
+            ),
+            array(
+                'code'  => 'USD',
+                'title' => $all_currencies['USD']['title'],
+            ),
+            array(
+                'code'  => 'EUR',
+                'title' => $all_currencies['EUR']['title'],
+            ),
+            array(
+                'code'  => null,
+                'title' => null,
+            ),
+        );
+
+        uasort($all_currencies, wa_lambda('$a, $b', 'return strcmp($a["title"], $b["title"]);'));
+
+        foreach ($all_currencies as $currency) {
+            $currencies[] = array(
+                'code'  => $currency['code'],
+                'title' => $currency['title'],
+            );
+        }
 
         return $currencies;
     }

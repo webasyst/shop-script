@@ -341,6 +341,7 @@
                                             {/foreach}{/if}
                                             data-rate="{$m.rate}" value="{$m_id}"{if !empty($m.external)} data-external="1"{/if}
                                             {if !empty($m.comment)} data-comment="{$m.comment|escape}"{/if}
+                                            {if !empty($m.error)} data-error="{$m.error|escape}"{/if}
                                             {if !empty($m.est_delivery)} data-est_delivery="{$m.est_delivery|escape}"{/if}>{$m.name|truncate:80|escape}</option>
                                 {/foreach}
                             </select>

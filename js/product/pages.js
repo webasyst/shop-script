@@ -101,7 +101,7 @@
                         }
 
                         var container = $.product_pages.container,
-                            $page_name = container.find(".s-page-editor h2"),
+                            $page_name = container.find(".s-page-editor .js-product-page-name h2"),
                             url = r.data.frontend_url+'/'+r.data.url+'/';
 
                         if ($('#s-page-v').is(':checked')) {

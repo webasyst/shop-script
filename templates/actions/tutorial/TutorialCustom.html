@@ -1,6 +1,17 @@
+{if !empty($actions)}
+    {$stepArray = array_keys($actions)}
+    {foreach $stepArray as $key => $step}
+        {if $step === $active}
+            {$prev_step_key = $key}
+        {/if}
+    {/foreach}
+    {if isset($stepArray[$prev_step_key-1])}
+        {$prev_step = $stepArray[$prev_step_key-1]}
+    {/if}
+{/if}
 {$html}
-<a href="javascript:history.back()" class="button yellow">&larr; Назад</a>
-<a href="javascript:void(0)" class="button green js-nextstep-link">Следующий шаг &rarr;</a>
+<a href="{if isset($prev_step) && $actions[$prev_step]}{$actions[$prev_step]['href']}{else}javascript:history.back(){/if}" class="button yellow">&larr; [`Back`]</a>
+<a href="javascript:void(0)" class="button green js-nextstep-link">[`Next step`] &rarr;</a>
 <script>
     (function ($) {
         new TutorialSidebar({
