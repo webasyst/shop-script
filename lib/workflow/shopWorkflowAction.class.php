@@ -368,7 +368,15 @@ HTML;
             wa('webasyst');
         }
         $log_model = new waLogModel();
-        return $log_model->add($action, $order_id, $subject_contact_id, $contact_id);
+        $app_id = wa()->getApp();
+        if ($app_id != 'shop') {
+            wa('shop', true);
+        }
+        $result = $log_model->add($action, $order_id, $subject_contact_id, $contact_id);
+        if ($app_id != 'shop') {
+            wa($app_id, true);
+        }
+        return $result;
     }
 
     /**
