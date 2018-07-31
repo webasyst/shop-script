@@ -11,17 +11,23 @@ class shopFrontendCheckoutAction extends waViewAction
     public function execute()
     {
         $steps = $this->getConfig()->getCheckoutSettings();
+        end($steps);
+        $last_step = key($steps);
+        reset($steps);
 
-        $current_step = waRequest::param('step', waRequest::request('step'));
+        $current_step = waRequest::request('step', waRequest::param('step'));
         if (!$current_step) {
             $current_step = key($steps);
         }
+
+        $is_post = (waRequest::method() == 'post');
+        $is_last_step = ($current_step === $last_step);
 
         $title = _w('Checkout');
         if ($current_step == shopCheckout::STEP_SUCCESS) {
             $this->success();
         } elseif ($this->verify($current_step)) {
-            if (waRequest::method() == 'post') {
+            if ($is_post) {
 
                 // checkout auth
                 if (waRequest::post('wa_auth_login')) {
@@ -29,29 +35,27 @@ class shopFrontendCheckoutAction extends waViewAction
                     $login_action->run();
                 } else {
                     $errors = array();
-                    $redirect = false;
-                    $step_keys = array_keys($steps);
-                    $last_step = end($step_keys) == $current_step;
+                    $redirect = null;
 
                     foreach ($steps as $step_id => $step) {
-                        if ($step_id == $current_step) {
-                            $step_instance = $this->getStep($step_id);
-                            if ($step_instance->execute()) {
-                                $redirect = true;
-                            }
-                        } elseif ($redirect) {
-                            $this->redirect(wa()->getRouteUrl('/frontend/checkout', array('step' => $step_id)));
-                        } elseif ($last_step) {
-                            $step_instance = $this->getStep($step_id);
-                            if ($e = $step_instance->getErrors()) {
-                                $errors = array_merge($errors, $e);
-                            }
-                        }
+                        $step_instance = $this->getStep($step_id);
 
+                        if ($step_id == $current_step) {
+                            $redirect = $step_instance->execute();
+                        } elseif ($redirect && empty($errors)) {
+                            $this->redirect(wa()->getRouteUrl('/frontend/checkout', array('step' => $step_id)));
+                        } elseif ($redirect === false) {
+                            break;
+                        }
+                        if ($e = $step_instance->getErrors()) {
+                            $errors = array_merge($errors, $e);
+                        }
                     }
 
                     // last step
-                    if ($redirect && !$errors) {
+                    if ($errors) {
+                        $this->view->assign('error', implode('<br>', $errors));
+                    } elseif ($redirect && $is_last_step) {
                         if ($order_id = $this->createOrder($errors)) {
                             wa()->getStorage()->set('shop/success_order_id', $order_id);
                             $this->redirect(wa()->getRouteUrl('/frontend/checkout', array('step' => shopCheckout::STEP_SUCCESS)));
@@ -60,9 +64,7 @@ class shopFrontendCheckoutAction extends waViewAction
                         }
                     }
 
-                    if ($errors) {
-                        $this->view->assign('error', implode('<br>', $errors));
-                    }
+
                 }
             } else {
                 $this->view->assign('error', '');
@@ -136,9 +138,7 @@ class shopFrontendCheckoutAction extends waViewAction
             $payment = '';
             if (!empty($order['params']['payment_id'])) {
                 try {
-                    /**
-                     * @var waPayment $plugin
-                     */
+                    /** @var waPayment $plugin */
                     $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
                     $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), true);
                 } catch (waException $ex) {
@@ -170,7 +170,7 @@ class shopFrontendCheckoutAction extends waViewAction
                 // if google analytics
                 if (isset($domain_config['google_analytics']) && !is_array($domain_config['google_analytics'])) {
                     $domain_config['google_analytics'] = array(
-                        'code' => $domain_config['google_analytics']
+                        'code' => $domain_config['google_analytics'],
                     );
                 }
                 if (!empty($domain_config['google_analytics']['code'])) {
@@ -199,52 +199,52 @@ class shopFrontendCheckoutAction extends waViewAction
         if ($universal) {
             $result = "ga('require', 'ecommerce', 'ecommerce.js');\n";
             $result .= "ga('ecommerce:addTransaction', {
-                'id': '" . $order['id'] . "',           // transaction ID - required
-                'affiliation': '" . htmlspecialchars($title, ENT_QUOTES, 'utf-8') . "',  // affiliation or store name
-                'revenue': '" . $this->formatPrice($order['total']) . "',          // total - required
-                'shipping': '" . $this->formatPrice($order['shipping']) . "',              // shipping
-                'tax': '" . $this->formatPrice($order['tax']) . "',           // tax
+                'id': '".$order['id']."',           // transaction ID - required
+                'affiliation': '".htmlspecialchars($title, ENT_QUOTES, 'utf-8')."',  // affiliation or store name
+                'revenue': '".$this->formatPrice($order['total'])."',          // total - required
+                'shipping': '".$this->formatPrice($order['shipping'])."',              // shipping
+                'tax': '".$this->formatPrice($order['tax'])."',           // tax
                 'currency': '".$order['currency']."' // currency
             });\n";
 
             foreach ($order['items'] as $item) {
                 $sku = $item['type'] == 'product' ? $item['sku_code'] : '';
                 $result .= "ga('ecommerce:addItem', {
-                'id': '" . $order['id'] . "',           // transaction ID - required
-                'name': '" . htmlspecialchars($item['name'], ENT_QUOTES, 'utf-8') . "',        // product name
-                'sku': '" . $sku . "',           // SKU/code - required
+                'id': '".$order['id']."',           // transaction ID - required
+                'name': '".htmlspecialchars($item['name'], ENT_QUOTES, 'utf-8')."',        // product name
+                'sku': '".$sku."',           // SKU/code - required
                 'category': '',   // category or variation
-                'price': '" . $this->formatPrice($item['price']) . "',          // unit price - required
-                'quantity': '" . $item['quantity'] . "'               // quantity - required
+                'price': '".$this->formatPrice($item['price'])."',          // unit price - required
+                'quantity': '".$item['quantity']."'               // quantity - required
               });\n";
             }
             $result .= "ga('ecommerce:send');\n";
 
         } else {
             $result = "_gaq.push(['_addTrans',
-                '" . $order['id'] . "',           // transaction ID - required
-                '" . htmlspecialchars($title, ENT_QUOTES, 'utf-8') . "',  // affiliation or store name
-                '" . $this->getBasePrice($order['total'], $order['currency']) . "',          // total - required
-                '" . $this->getBasePrice($order['tax'], $order['currency']) . "',           // tax
-                '" . $this->getBasePrice($order['shipping'], $order['currency']) . "',              // shipping
-                '" . $this->getOrderAddressField($order, 'city') . "',       // city
-                '" . $this->getOrderAddressField($order, 'region') . "',     // state or province
-                '" . $this->getOrderAddressField($order, 'country') . "'             // country
+                '".$order['id']."',           // transaction ID - required
+                '".htmlspecialchars($title, ENT_QUOTES, 'utf-8')."',  // affiliation or store name
+                '".$this->getBasePrice($order['total'], $order['currency'])."',          // total - required
+                '".$this->getBasePrice($order['tax'], $order['currency'])."',           // tax
+                '".$this->getBasePrice($order['shipping'], $order['currency'])."',              // shipping
+                '".$this->getOrderAddressField($order, 'city')."',       // city
+                '".$this->getOrderAddressField($order, 'region')."',     // state or province
+                '".$this->getOrderAddressField($order, 'country')."'             // country
             ]);\n";
 
             foreach ($order['items'] as $item) {
                 $sku = $item['type'] == 'product' ? $item['sku_code'] : '';
                 $result .= " _gaq.push(['_addItem',
-                '" . $order['id'] . "',           // transaction ID - required
-                '" . $sku . "',           // SKU/code - required
-                '" . htmlspecialchars($item['name']) . "',        // product name
+                '".$order['id']."',           // transaction ID - required
+                '".$sku."',           // SKU/code - required
+                '".htmlspecialchars($item['name'])."',        // product name
                 '',   // category or variation
-                '" . $this->getBasePrice($item['price'], $order['currency']) . "',          // unit price - required
-                '" . $item['quantity'] . "'               // quantity - required
+                '".$this->getBasePrice($item['price'], $order['currency'])."',          // unit price - required
+                '".$item['quantity']."'               // quantity - required
               ]);\n";
             }
 
-            $result .= "_gaq.push(['_set', 'currencyCode', '" . $this->getConfig()->getCurrency(true) . "']);\n";
+            $result .= "_gaq.push(['_set', 'currencyCode', '".$this->getConfig()->getCurrency(true)."']);\n";
             $result .= "_gaq.push(['_trackTrans']);\n";
         }
         return $result;
@@ -281,13 +281,15 @@ class shopFrontendCheckoutAction extends waViewAction
             $not_available_items = $cart_model->getNotAvailableProducts($cart->getCode(), $check_count);
             foreach ($not_available_items as $row) {
                 if ($row['sku_name']) {
-                    $row['name'] .= ' (' . $row['sku_name'] . ')';
+                    $row['name'] .= ' ('.$row['sku_name'].')';
                 }
                 if ($row['available']) {
                     if ($row['count'] > 0) {
-                        $errors[] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $row['count'], $row['name']);
+                        $template = _w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.');
+                        $errors[] = sprintf($template, $row['count'], $row['name']);
                     } else {
-                        $errors[] = sprintf(_w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience. Please remove this product from your shopping cart to proceed.'), $row['name']);
+                        $template = _w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience. Please remove this product from your shopping cart to proceed.');
+                        $errors[] = sprintf($template, $row['name']);
                     }
                 } else {
                     $errors[] = sprintf(_w('Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed.'), $row['name']);
@@ -329,17 +331,22 @@ class shopFrontendCheckoutAction extends waViewAction
         $this->parseShippingParams($order, $checkout_data);
 
         if (isset($checkout_data['payment'])) {
-            $order['params']['payment_id'] = $checkout_data['payment'];
+            $order['params']['payment_id'] = (int)$checkout_data['payment'];
             $plugin_model = new shopPluginModel();
             $plugin_info = $plugin_model->getById($checkout_data['payment']);
-            $order['params']['payment_name'] = $plugin_info['name'];
-            $order['params']['payment_plugin'] = $plugin_info['plugin'];
-            if (!empty($order['params']['payment'])) {
-                foreach ($order['params']['payment'] as $k => $v) {
-                    $order['params']['payment_params_'.$k] = $v;
+            if ($plugin_info && ($plugin_info['type'] == shopPluginModel::TYPE_PAYMENT)) {
+                $order['params']['payment_name'] = $plugin_info['name'];
+                $order['params']['payment_plugin'] = $plugin_info['plugin'];
+                if (!empty($order['params']['payment'])) {
+                    foreach ($order['params']['payment'] as $k => $v) {
+                        $order['params']['payment_params_'.$k] = $v;
+                    }
                 }
-                unset($order['params']['payment']);
+            } else {
+                $order['params']['payment_name'] = '';
+                $order['params']['payment_plugin'] = null;
             }
+            unset($order['params']['payment']);
         }
 
         $routing_url = wa()->getRouting()->getRootUrl();
@@ -356,9 +363,9 @@ class shopFrontendCheckoutAction extends waViewAction
             if (!empty($ref_parts['query'])) {
                 $search_engines = array(
                     'text' => 'yandex\.|rambler\.',
-                    'q' => 'bing\.com|mail\.|google\.',
-                    's' => 'nigma\.ru',
-                    'p' => 'yahoo\.com'
+                    'q'    => 'bing\.com|mail\.|google\.',
+                    's'    => 'nigma\.ru',
+                    'p'    => 'yahoo\.com',
                 );
                 $q_var = false;
                 foreach ($search_engines as $q => $pattern) {
@@ -454,7 +461,7 @@ class shopFrontendCheckoutAction extends waViewAction
             $step_number = shopCheckout::getStepNumber();
             $checkout_flow = new shopCheckoutFlowModel();
             $checkout_flow->add(array(
-                'step' => $step_number
+                'step' => $step_number,
             ));
 
             $cart->clear();
@@ -485,15 +492,15 @@ class shopFrontendCheckoutAction extends waViewAction
          * See also `backend_settings_stocks` event for how to set up settings form for such rules.
          *
          * @param array $params
-         * @param array[array] $params['order'] order data
-         * @param array[array] $params['rules'] list of rules to modify.
-         * @param array[array] $params['stocks'] same as shopHelper::getStocks()
+         * @param array [array] $params['order'] order data
+         * @param array [array] $params['rules'] list of rules to modify.
+         * @param array [array] $params['stocks'] same as shopHelper::getStocks()
          * @return null
          */
         $event_params = array(
-            'order' => $order,
+            'order'  => $order,
             'stocks' => $stocks,
-            'rules' => &$rules,
+            'rules'  => &$rules,
         );
         self::processBuiltInRules($event_params);
         wa('shop')->event('frontend_checkout_stock_rules', $event_params);
@@ -536,7 +543,7 @@ class shopFrontendCheckoutAction extends waViewAction
         }
         $shipping_country = $shipping_region = null;
         if (!empty($params['order']['params']['shipping_address.country'])) {
-            $shipping_country = (string) $params['order']['params']['shipping_address.country'];
+            $shipping_country = (string)$params['order']['params']['shipping_address.country'];
             if (!empty($params['order']['params']['shipping_address.region'])) {
                 $shipping_region = $shipping_country.':'.$params['order']['params']['shipping_address.region'];
             }

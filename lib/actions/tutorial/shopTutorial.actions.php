@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Tutorial tab in shop backend.
  */
@@ -13,42 +14,66 @@ class shopTutorialActions extends waViewActions
         $this->layout->assign('no_level2', true);
         $this->view->assign(array(
             'backend_tutorial' => self::backendTutorialEvent(),
-            'sidebar_width' => wa('shop')->getConfig()->getSidebarWidth(),
-            'actions' => self::getActions(self::backendTutorialEvent()),
-            'lang' => substr(wa()->getLocale(), 0, 2),
+            'sidebar_width'    => wa('shop')->getConfig()->getSidebarWidth(),
+            'actions'          => self::getActions(self::backendTutorialEvent()),
+            'lang'             => substr(wa()->getLocale(), 0, 2),
         ));
-    }
-
-    protected function installAction()
-    {
-        // Nothing to do!
     }
 
     protected function productsAction()
     {
-        // Nothing to do!
+        $this->assignVariables();
     }
 
     protected function designAction()
     {
-        // Nothing to do!
+        $app_themes = wa()->getThemes('shop'); // all shop themes
+        $storefronts = shopHelper::getStorefronts(true); // all shop storefronts
+        $theme_names = array();
+
+        foreach ($storefronts as $storefront) {
+            $storefront_theme = ifempty($storefront['route']['theme'], 'default');
+            if (!isset($app_themes[$storefront_theme])) {
+                continue;
+            }
+            /** @var waTheme $storefront_theme */
+            $storefront_theme = $app_themes[$storefront_theme];
+            $theme_names[] = $storefront_theme->getName();
+        }
+
+        $theme_names = array_unique($theme_names);
+
+        $this->view->assign('theme_names', $theme_names);
+        $this->assignVariables();
     }
 
-    protected function checkoutAction()
+    protected function paymentAction()
     {
-        // Nothing to do!
+        $this->assignVariables();
+    }
+
+    protected function shippingAction()
+    {
+        $this->assignVariables();
     }
 
     protected function profitAction()
     {
-        // Nothing to do! Love to code actions like that.
+        $this->assignVariables();
     }
+
 
     protected function doneAction()
     {
         $app_settings_model = new waAppSettingsModel();
         $app_settings_model->del('shop', 'show_tutorial');
         exit;
+    }
+
+    protected function assignVariables()
+    {
+        $this->view->assign('actions', self::getActions(true));
+        $this->view->assign('active', waRequest::get('action', null, waRequest::TYPE_STRING));
     }
 
     protected function getTemplate()
@@ -72,82 +97,140 @@ class shopTutorialActions extends waViewActions
         if (!$blocks) {
             throw new waException('Not found', 404);
         }
+
         $html = array();
-        foreach($blocks as $app_id => $b) {
+        foreach ($blocks as $app_id => $b) {
             if ($b && !is_array($b) && !is_object($b)) {
                 $html[] = '<div class="block-'.$app_id.'">'.$b."</div>\n";
             }
         }
 
-        $this->view->assign('html', join('', $html));
+        $this->view->assign(array(
+            'html'    => join('', $html),
+            'actions' => self::getActions(true),
+        ));
     }
 
-    public static function getActions($backend_tutorial)
+    public static function getActions($backend_tutorial = false)
     {
-        $actions = array();
+        $backend_url = wa('shop', 1)->getAppUrl();
+        $tutorial_url = '?module=tutorial';
 
-        $actions[] = array(
-            'href' => '#/install/',
-            'name' => _w('Install Shop-Script'),
-            'complete' => true,
+        $actions = array(
+            'welcome'  => array(
+                'href'     => $backend_url.'?action=welcome',
+                'name'     => _w('Basic settings'),
+                'complete' => false,
+            ),
+            'products' => array(
+                'href'     => $backend_url.$tutorial_url.'#/products/',
+                'name'     => _w('Add products '),
+                'complete' => false,
+            ),
+            'design'   => array(
+                'href'     => $backend_url.$tutorial_url.'#/design/',
+                'name'     => _w('Select design'),
+                'complete' => false,
+            ),
+            'payment' => array(
+                'href'     => $backend_url.$tutorial_url.'#/payment/',
+                'name'     => _w('Set up payment'),
+                'complete' => false,
+            ),
+            'shipping' => array(
+                'href'     => $backend_url.$tutorial_url.'#/shipping/',
+                'name'     => _w('Set up shipping'),
+                'complete' => false,
+            ),
         );
 
-        // Action can only be marked as complete if all previous actions are complete
-        $prev_complete = true;
+        $app_settings_model = new waAppSettingsModel();
+        $shop_product_model = new shopProductModel();
+        $shop_plugin_model = new shopPluginModel();
 
-        // This action is complete if there is at least one product
-        $a = array(
-            'href' => '#/products/',
-            'name' => _w('Add your first product'),
-            'complete' => false,
-        );
-        if ($prev_complete) {
-            $product_model = new shopProductModel();
-            $prev_complete = $a['complete'] = $product_model->countAll() > 0;
-        }
-        $actions[] = $a;
+        $app_settings_model->clearCache('shop');
 
-        // This action is complete if there's a non-default theme installed for Shop
-        $a = array(
-            'href' => '#/design/',
-            'name' => _w('Choose design'),
-            'complete' => false,
-        );
-        if ($prev_complete) {
-            $prev_complete = $a['complete'] = count(wa()->getThemes('shop')) > 1;
-        }
-        $actions[] = $a;
+        $welcome = $app_settings_model->get('shop', 'welcome');
 
-        // Complete when user set up at least one payment or shipping option
-        $a = array(
-            'href' => '#/checkout/',
-            'name' => _w('Setup payment & shipping'),
-            'complete' => false,
-        );
-        if ($prev_complete) {
-            $plugin_model = new shopPluginModel();
-            $prev_complete = $a['complete'] = $plugin_model->countAll() > 0;
-        }
-        $actions[] = $a;
-
-        foreach($backend_tutorial as $plugin_id => $event_result) {
-            if (empty($event_result['sidebar_li']) || !is_array($event_result['sidebar_li'])) {
-                continue;
-            }
-            $acts = $event_result['sidebar_li'];
-            if (empty($acts[0])) {
-                $acts = array($acts);
-            }
-            foreach($acts as $a) {
-                if(empty($a['href'])) {
-                    $a['href'] = 'javascript:void(0)';
+        foreach ($actions as $id => &$action) {
+            if ($id == 'welcome') {
+                if ($welcome) {
+                    //"welcome" requirements were not met
+                    break;
+                } else {
+                    $action['complete'] = true;
                 }
-                if (empty($a['name'])) {
-                    $a['name'] = $plugin_id;
-                }
-                $prev_complete = $a['complete'] = $prev_complete && !empty($a['complete']);
             }
-            $actions[] = $a;
+
+            if ($id == 'products') {
+                $action['complete'] = $shop_product_model->countAll() > 0;
+            }
+
+            if ($id == 'design') {
+                $app_themes = wa()->getThemes('shop'); // all shop themes
+                $storefronts = shopHelper::getStorefronts(true); // all shop storefronts
+
+                if (empty($app_themes) || empty($storefronts)) {
+                    continue;
+                }
+
+                foreach ($storefronts as $storefront) {
+                    $storefront_theme = ifempty($storefront['route']['theme'], 'default');
+                    if (!isset($app_themes[$storefront_theme])) {
+                        continue;
+                    }
+
+                    $storefront_theme = $app_themes[$storefront_theme];
+                    /** @var waTheme $storefront_theme */
+                    if ($storefront_theme->path_custom) {
+                        $action['complete'] = true;
+                        continue;
+                    }
+                }
+            }
+
+            if ($id == 'payment') {
+                $action['complete'] = count($shop_plugin_model->getByField('type', 'payment', true)) > 0;
+            }
+
+            if ($id == 'shipping') {
+                $action['complete'] = count($shop_plugin_model->getByField('type', 'shipping', true)) > 0;
+            }
+        }
+        unset($action);
+
+        if ($backend_tutorial) {
+            if (is_array($backend_tutorial)) {
+                $tutorial_event = $backend_tutorial;
+            } else {
+                $tutorial_event = self::backendTutorialEvent();
+            }
+
+            if ($tutorial_event && is_array($tutorial_event)) {
+                foreach ($tutorial_event as $plugin_id => $event_result) {
+                    if (empty($event_result['sidebar_li']) || !is_array($event_result['sidebar_li'])) {
+                        continue;
+                    }
+                    $acts = $event_result['sidebar_li'];
+                    if (empty($acts[0])) {
+                        $acts = array($acts);
+                    }
+                    foreach ($acts as $i => $a) {
+                        if (empty($a['href'])) {
+                            $a['href'] = 'javascript:void(0)';
+                        } else {
+                            $a['href'] = $backend_url.$tutorial_url.$a['href'];
+                        }
+                        if (empty($a['name'])) {
+                            $a['name'] = $plugin_id;
+                        }
+
+                        $a['complete'] = !empty($a['complete']) && !$welcome; //If welcome complete
+
+                        $actions[ifset($a['action'], $plugin_id.'.'.$i)] = $a;
+                    }
+                }
+            }
         }
 
         return $actions;
@@ -168,6 +251,27 @@ class shopTutorialActions extends waViewActions
             }
         }
         return $result;
+    }
+
+    public static function getTutorialProgress()
+    {
+        $total = 0;
+        $complete = 0;
+
+        $actions = self::getActions(true);
+        if ($actions && is_array($actions)) {
+            $total = count($actions);
+            foreach ($actions as $a) {
+                if (!empty($a['complete'])) {
+                    $complete++;
+                }
+            }
+        }
+
+        return array(
+            'total'    => $total,
+            'complete' => $complete
+        );
     }
 }
 

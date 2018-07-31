@@ -1,5 +1,22 @@
 (function ($) {
     $.extend($.settings = $.settings || {}, {
+        notififcationsSetEditor: function(transport) {
+            if (transport === 'email') {
+                var options = {
+                    'prefix': 'n-send-',
+                    'id': 'n-email-body',
+                    'ace_editor_container': 'n-email-body-container'
+                };
+            } else {
+                var options = {
+                    'prefix': 'n-send-',
+                    'id': 'n-sms-text',
+                    'ace_editor_container': 'n-sms-text-container'
+                };
+            }
+            waEditorAceInit(options);
+        },
+
         notificationsAction: function (tail) {
             if (!tail) {
                 $.wa.setHash($('#notifications a:first').attr('href'));
@@ -35,6 +52,7 @@
                         $(".transport-content").hide().find('input,select,textarea').attr('disabled', 'disabled');
                         $('#' + item.val() + '-content').show().find('input,select,textarea').removeAttr('disabled', 'disabled');
                         $('#' + item.val() + '-content .body').change();
+                       $.settings.notififcationsSetEditor(item.val);
                     };
                     var transport_input = $("#notifications-settings-content input.transport");
                     transport_input.change(function () {

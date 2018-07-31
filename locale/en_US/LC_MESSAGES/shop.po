@@ -3611,167 +3611,167 @@ msgstr ""
 msgid "Please save changes to be able to send tests."
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:10
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:10
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:24
 msgid "An array containing information about the order"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:18
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:18
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:32
 msgid "Order ID"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:26
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:26
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:40
 msgid "Order currency (ISO 3 code)"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:34
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:34
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:48
 msgid "An array containing information about ordered items"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:42
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:42
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:56
 msgid "Item price"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:50
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:50
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:64
 msgid "Ordered item quantity"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:58
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:58
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:72
 msgid "Item download link (SKU attachment)"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:66
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:66
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:80
 msgid "Order discount amount (in order currency)"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:74
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:74
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:88
 msgid "Order tax amount (in order currency)"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:82
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:82
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:96
 msgid "Order shipping cost (amount in order currency)"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:90
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:90
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:104
 msgid "Order total (amount in order currency)"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:98
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:98
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:112
 msgid "Customer’s comment to the order"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:108
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:108
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:122
 msgid "Current order status name"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:117
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:117
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:131
 msgid "An URL to access order page in customer personal account in storefront"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:127
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:127
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:141
 msgid "An array of other (custom) order parameter values"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:135
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:135
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:149
 msgid "Order selected shipping option name"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:143
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:143
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:165
 msgid "Order selected payment option name"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:151
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:151
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:181
 msgid "A 4-digit PIN to access order info page (for customers without permanent account only)"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:159
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:159
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:189
 msgid "Domain and path to Shop-Script storefront where the order was placed"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:167
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:167
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:197
 msgid "Customer’s IP address for the moment of order creation"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:175
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:175
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:205
 msgid "Customer’s User Agent string for the moment of order creation"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:183
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:183
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:213
 msgid "A string indicating approximate timeframe of the order delivery (if defined)"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:191
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:191
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:221
 msgid "Order shipment tracking number (if defined)"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:199
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:199
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:229
 msgid "The list of order params may vary depending on your workflow and plugin setup"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:209
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:209
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:239
 msgid "Customer-related data array"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:217
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:217
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:247
 msgid "Customer full name"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:225
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:225
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:255
 msgid "Customer first name"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:233
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:233
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:263
 msgid "Customer last name"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:241
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:241
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:271
 msgid "Customer email"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:249
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:249
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:279
 msgid "Customer phone"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:257
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:257
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:287
 msgid "The list of available contact fields is defined in your store backend: Settings &rarr; Checkout &rarr; Contact info checkout step"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:267
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:267
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:297
 msgid "Shipping address as string"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:275
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:275
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:305
 msgid "Billing address as string"
 msgstr ""
@@ -8747,7 +8747,7 @@ msgid "Registered customer"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/order/OrderEdit.html:356
-msgid "Discount specified manually"
+msgid "Manually edited discount. Click to apply automatically calculated discount value."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/Product.html:149
@@ -10698,7 +10698,7 @@ msgid "Use lazy loading"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:249
-msgid "New products will be loaded automatically when you scroll. If disabled, pagination will be used instead."
+msgid "Products will be loaded automatically when you scroll the page in “Products” section in backend. If you need pagination, disable this setting."
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:116
@@ -11291,15 +11291,15 @@ msgstr ""
 msgid "Apply new visibility settings to all subcategories"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:285
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:285
 msgid "Signup page URL. Will not be provided if either the order was placed by a registered customer, or <a href=\"?action=settings#/checkout/\">Guest checkout setting</a> is not enabled."
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:294
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:294
 msgid "Indicates if <a href=\"?action=settings#/affiliate/\">Loyalty program</a> is enabled in store settings."
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:303
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:303
 msgid "Amount of affiliate bonus that will be credited to customer account when order is paid."
 msgstr ""
 
@@ -11761,4 +11761,10 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:177
 msgid "To select an online map engine, you need access to Installer app‘s “Settings” screen."
+msgstr ""
+
+msgid "Old name"
+msgstr ""
+
+msgid "Current name"
 msgstr ""

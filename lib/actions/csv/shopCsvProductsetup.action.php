@@ -35,7 +35,7 @@ class shopCsvProductsetupAction extends waViewAction
                     );
                 }
 
-                usort($info, create_function('$a, $b', 'return (max(-1, min(1, $a["mtime"] - $b["mtime"])));'));
+                usort($info, wa_lambda('$a, $b', 'return (max(-1, min(1, $a["mtime"] - $b["mtime"])));'));
             }
 
             $this->view->assign('info', array_slice($info, -5, 5, true));

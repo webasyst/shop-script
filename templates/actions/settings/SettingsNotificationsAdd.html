@@ -117,6 +117,9 @@
 
                 $('#n-send-button').removeClass('yellow').addClass('green');
 
+                var transport = $("#notifications-settings-content input.transport").val();
+                $.settings.notififcationsSetEditor(transport);
+
             } else {
                 $("#notifications-settings-content").hide();
             }

@@ -87,7 +87,7 @@ class shopWorkflowMessageAction extends shopWorkflowAction
         foreach ($order['items'] as &$i) {
             if (!empty($i['file_name'])) {
                 $i['download_link'] = wa()->getRouteUrl('shop/frontend/myOrderDownload', array(
-                    'id' => $order['id'],
+                    'id'   => $order['id'],
                     'code' => $order['params']['auth_code'],
                     'item' => $i['id'],
                 ), true, $storefront_domain, $storefront_route['url']);
@@ -166,9 +166,9 @@ class shopWorkflowMessageAction extends shopWorkflowAction
         }
 
         $view->assign(array(
-            'transport' => $transport,
+            'transport'        => $transport,
             'message_template' => $this->getMessageTemplate($order, $contact),
-            'state_id' => ifset($order['state_id'], '')
+            'state_id'         => ifset($order['state_id'], '')
         ));
         return parent::getHTML($order_id);
     }
@@ -184,13 +184,13 @@ class shopWorkflowMessageAction extends shopWorkflowAction
         $settings = $this->getConfig()->getGeneralSettings();
 
         $view->assign(array(
-            'action' => null,
-            'workhour_days' => ifset($settings['workhours']['days_from_to'], ''),
-            'workhour_from' => ifset($settings['workhours']['hours_from'], ''),
-            'workhour_to' => ifset($settings['workhours']['hours_to'], ''),
-            'user' => wa()->getUser(),
-            'customer' => $customer,
-            'order' => $order,
+            'action'        => null,
+            'workhour_days' => ifset($settings, 'workhours', 'days_from_to', ''),
+            'workhour_from' => ifset($settings, 'workhours', 'hours_from', ''),
+            'workhour_to'   => ifset($settings, 'workhours', 'hours_to', ''),
+            'user'          => wa()->getUser(),
+            'customer'      => $customer,
+            'order'         => $order,
         ));
         $result = $view->fetch('string:'.$template);
         $view->assign('action', $this);
@@ -223,7 +223,7 @@ class shopWorkflowMessageAction extends shopWorkflowAction
             $message->setFrom($from, $from_name);
             $email = $contact->get('email', 'default');
             $message->setTo(array(
-                 $email => $contact->getName()
+                $email => $contact->getName()
             ));
             $text = '<i class="icon16 email float-right" title="'.htmlspecialchars($email, ENT_QUOTES, 'utf-8').'"></i> '.nl2br(htmlspecialchars($text, ENT_QUOTES, 'utf-8'));
             $success = $message->send();

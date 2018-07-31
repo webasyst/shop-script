@@ -8,7 +8,7 @@ class shopBackendLayout extends waLayout
         $app_settings_model = new waAppSettingsModel();
         if (waRequest::get('skipwelcome')) {
             $app_settings_model->del('shop', 'welcome');
-            $app_settings_model->set('shop', 'show_tutorial', 1);
+            $app_settings_model->del('shop', 'show_tutorial');
         } else if ($app_settings_model->get('shop', 'welcome')) {
             $this->redirect(wa()->getConfig()->getBackendUrl(true).'shop/?action=welcome');
         }
@@ -17,18 +17,18 @@ class shopBackendLayout extends waLayout
         $tutorial_progress = 0;
         $tutorial_visible = $app_settings_model->get('shop', 'show_tutorial') || waRequest::request('module') == 'tutorial';
         if ($tutorial_visible) {
-            $tutorial_progress = $this->getTutorialProgress();
+            $tutorial_progress = shopTutorialActions::getTutorialProgress();
         }
 
         $order_model = new shopOrderModel();
         $this->view->assign(array(
-            'page' => $this->getPage(),
-            'frontend_url' => wa()->getRouteUrl('shop/frontend'),
-            'backend_menu' => $this->backendMenuEvent(),
-            'new_orders_count' => $order_model->getStateCounters('new'),
+            'page'              => $this->getPage(),
+            'frontend_url'      => wa()->getRouteUrl('shop/frontend'),
+            'backend_menu'      => $this->backendMenuEvent(),
+            'new_orders_count'  => $order_model->getStateCounters('new'),
             'tutorial_progress' => $tutorial_progress,
-            'tutorial_visible' => $tutorial_visible,
-            'is_web_push_on' => $this->isWebPushOn()
+            'tutorial_visible'  => $tutorial_visible,
+            'is_web_push_on'    => $this->isWebPushOn()
         ));
     }
 
@@ -80,30 +80,6 @@ class shopBackendLayout extends waLayout
         return wa()->event('backend_menu');
     }
 
-    protected function getTutorialProgress()
-    {
-        $total = 0;
-        $complete = 0;
-        foreach(shopTutorialActions::getActions(shopTutorialActions::backendTutorialEvent()) as $a) {
-            $total++;
-            if (!empty($a['complete'])) {
-                $complete++;
-            }
-        }
-
-        // When there's at least one unfinished item,
-        // treat the last pseudo-item 'Profit!' as a real one
-        // and take it into account when calculating percentage.
-        if ($total != $complete) {
-            $total++;
-        }
-
-        if ($total) {
-            return round($complete*100 / $total);
-        } else {
-            return 100;
-        }
-    }
 
     protected function isWebPushOn()
     {

@@ -11,31 +11,10 @@ class shopTaxes
      */
     public static function apply(&$items, $params, $currency = null)
     {
-        $discount_rate = min(1.0, max(0, ifset($params['discount_rate'], 0)));
-        $items_discount = 0.0;
 
-        $order_total = 0;
-        $order_total_without_discounts = 0;
-        foreach ($items as $item) {
-            if ($item['type'] != 'shipping') {
-                $_p = shop_currency($item['price'] * $item['quantity'], $item['currency'], $currency, false);
-
-                if (!empty($item['total_discount'])) {
-                    $items_discount += $item['total_discount'];
-                } else {
-                    $order_total_without_discounts += $_p;
-                }
-                $order_total += $_p;
-                unset($_p);
-            }
-        }
-
-        if ($items_discount) {
-            $order_discount = $order_total * $discount_rate;
-            $discount = $order_discount - $items_discount;
-            $discount_rate = $order_total_without_discounts > 0 ? ($discount / $order_total_without_discounts) : 0;
-        }
-
+        // Gather info about taxes we need to apply.
+        // This sets $i.tax_*, on all $items and gathers $tax_ids
+        // !!! $items must be sorted in a particular way: product, then all of its services!
         $tax_ids = array();
         $parent_tax_id = null;
         foreach ($items as &$i) {
@@ -76,6 +55,50 @@ class shopTaxes
         $addresses = array_intersect_key($params, array('billing' => 1, 'shipping' => 1));
         $result = self::getTaxes($tax_ids, $addresses);
 
+        //
+        // To properly calculate taxes, we must have all discounts attached
+        // to particular order item.
+        //
+        // Unfortunately, some types of discounts are not attached to an item and apply
+        // globally to the whole order. To be able to calculate taxes, we need to
+        // split such global discount proportionally between all items.
+        //
+        // To do that, we calculate effective value for each item in order:
+        //      effective_value = i.price*i.quantity - i.total_discount
+        // and split global discount between items proportionally
+        // to this effective_value.
+        //
+
+        // Calculate certain values to use later
+        $order_subtotal = 0.0;
+        $total_effective_value = 0.0;
+        foreach ($items as &$i) {
+            if ($i['type'] == 'shipping') {
+                continue;
+            }
+
+            // $order_subtotal is total value of all items, no discounts or taxes applied
+            $item_value = shop_currency($i['price'] * $i['quantity'], $i['currency'], $currency, false);
+            $order_subtotal += $item_value;
+
+            // $total_effective_value is item value minus discounts
+            $item_discount = shop_currency(ifset($i, 'total_discount', 0.0), $i['currency'], $currency, false);
+            $item_effective_value = $item_value - $item_discount;
+            $total_effective_value += $item_effective_value;
+
+            // Save effective value to use later
+            $i['effective_value'] = $item_effective_value;
+        }
+        unset($i);
+
+        // $discount_rate is $global_discount / $order_subtotal.
+        // From this we can deduce $global_discount we need to split between items.
+        $global_discount = 0;
+        $discount_rate = min(1.0, max(0, ifset($params, 'discount_rate', 0)));
+        if ($discount_rate > 0) {
+            $global_discount = $order_subtotal * $discount_rate;
+        }
+
         // Compute tax values for each item, and total tax
         foreach ($items as &$i) {
             $tax_id = ifempty($i['tax_id']);
@@ -84,15 +107,11 @@ class shopTaxes
                 $i['tax_included'] = ifset($result[$tax_id]['included']);
             }
 
+            $p = $i['price'] * $i['quantity'];
 
-            if ($i['type'] != 'shipping') {
-                if (!empty($i['total_discount'])) {
-                    $p = $i['price'] * $i['quantity'] - $i['total_discount'];
-                } else {
-                    $p = (1 - $discount_rate) * $i['price'] * $i['quantity'];
-                }
-            } else {
-                $p = $i['price'] * $i['quantity'];
+            // Split global discount proportionally between all items except shipping
+            if ($global_discount > 0 && $i['type'] != 'shipping') {
+                $p -= $global_discount * $i['effective_value'] / $total_effective_value;
             }
 
             $p = shop_currency($p, $i['currency'], $currency, false);
@@ -111,6 +130,9 @@ class shopTaxes
             } elseif ($i['tax']) {
                 $result[$tax_id]['sum'] += $i['tax'];
             }
+
+            // we don't need this internal info anymore
+            unset($i['effective_value']);
         }
         unset($i);
 

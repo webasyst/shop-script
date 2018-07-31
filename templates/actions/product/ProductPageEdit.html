@@ -9,7 +9,7 @@
             </ul>
         </div>
         {/if}
-        <div>
+        <div class="js-product-page-name">
             <h2>{if $page}{$page.name|escape}{if $page.status == shopProductPagesModel::STATUS_DRAFT} <span class="s-page-draft">[`draft`]</span>{/if}{else}[`New page`]{/if}</h2>
             <div class="s-page-urls small">
                 {if $page}
@@ -141,7 +141,7 @@
                 change: function() {
                     $('#s-product-save-button').addClass('yellow');
                     $('#s-page-content').waEditor('sync');
-                },
+                }
             }
         });
 

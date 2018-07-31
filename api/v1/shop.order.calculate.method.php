@@ -72,9 +72,9 @@ class shopOrderCalculateMethod extends shopApiMethod
             $this->errors[] = _w('Order id not found');
         }
 
-        //convert discount for shopOrder (sting to bool)
+        // 'true' is the legacy version of the API
         if ($post['discount'] == 'true') {
-            $post['discount'] = true;
+            $post['discount'] = 'calculate';
         }
 
         if ($this->errors) {

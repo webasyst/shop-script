@@ -11,7 +11,6 @@
             $.store && !$.storage && ($.storage = new $.store());
 
             this.initRouting();
-            this.initFinishTutorial();
         },
 
         initRouting: function () {
@@ -36,16 +35,6 @@
                 return true;
             };
             this.dispatch();
-        },
-
-        initFinishTutorial: function() {
-            $('#wa-app').on('click', '.finish-tutorial', function() {
-                $.post('?module=tutorial&action=done', function() {
-                    $.tutorial.forceHash('#/products/');
-                    window.location.search = '?action=products';
-                });
-                return false;
-            });
         },
 
         // Set hash without triggering dispatch
@@ -196,8 +185,12 @@
             this.load('?module=tutorial&action=design');
         },
 
-        checkoutAction: function () {
-            this.load('?module=tutorial&action=checkout');
+        paymentAction: function () {
+            this.load('?module=tutorial&action=payment');
+        },
+
+        shippingAction: function () {
+            this.load('?module=tutorial&action=shipping');
         },
 
         profitAction: function () {
@@ -280,7 +273,7 @@
                         p = p.parent();
                     }
                     if (p.size() > 0) {
-                        p.addClass('selected');
+                        //p.addClass('selected');
                     }
                 }
             }

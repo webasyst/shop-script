@@ -38,6 +38,7 @@ class shopOrderSaveController extends waJsonController
 
         $options = array(
             'items_format' => 'flat',
+            'ignore_count_validate' => true,
         );
         $order = new shopOrder($data, $options);
         try {

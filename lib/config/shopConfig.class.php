@@ -120,14 +120,17 @@ class shopConfig extends waAppConfig
             foreach ($result as $plugin_id => $routing_rules) {
                 if ($routing_rules) {
                     $plugin = str_replace('-plugin', '', $plugin_id);
+                    if ($plugin == $plugin_id) {
+                        // apps can not add routes to other apps
+                        continue;
+                    }
                     foreach ($routing_rules as $url => & $route) {
                         if (!is_array($route)) {
                             list($route_ar['module'], $route_ar['action']) = explode('/', $route);
                             $route = $route_ar;
                         }
-                        if ($plugin !== $plugin_id && !array_key_exists('plugin', $route)) {
-                            $route['plugin'] = $plugin;
-                        }
+                        $route['plugin'] = $plugin;
+                        $route['app'] = $this->application;
                         $all_plugins_routes[$url] = $route;
                     }
                     unset($route);

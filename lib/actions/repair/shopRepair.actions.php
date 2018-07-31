@@ -22,7 +22,7 @@ class shopRepairActions extends waActions
     public function defaultAction()
     {
         $methods = array_diff(get_class_methods(get_class($this)), get_class_methods(get_parent_class($this)));
-        $callback = create_function('$n', 'return preg_match("@^(\w+)Action$@",$n,$m)?($m[1]!="default"?$m[1]:false):false;');
+        $callback = wa_lambda('$n', 'return preg_match("@^(\w+)Action$@",$n,$m)?($m[1]!="default"?$m[1]:false):false;');
         $actions = array_filter($methods, $callback);
         $actions = array_map($callback, $actions);
         $descriptions = array();

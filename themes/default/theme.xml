@@ -168,9 +168,9 @@
             <name locale="en_US">Slider</name>
             <options>
                 <option value="promos">
-                    <name locale="ru_RU">Промо-карточки</name>
+                    <name locale="ru_RU">Промокарточки</name>
                     <name locale="en_US">Promo cards</name>
-                    <description locale="ru_RU">В слайдере будут показаны промо-карточки, созданные в разделе «Товары → Промо».</description>
+                    <description locale="ru_RU">В слайдере будут показаны промокарточки, созданные в разделе «Товары → Промо».</description>
                     <description locale="en_US">Promo cards editable in “Products → Promos” section will be displayed in home page slider.</description>
                 </option>
                 <option value="products">
@@ -194,14 +194,14 @@
         <setting var="homepage_productset_promo" control_type="text">
             <value>promo</value>
             <name locale="en_US">Slider product set ID</name>
-            <name locale="ru_RU">Список промо-товаров в слайдере</name>
+            <name locale="ru_RU">Список промотоваров в слайдере</name>
             <description locale="ru_RU">Идентификатор списка товаров, которые будут показаны в слайдере, если это выбрано в настройке слайдера выше.</description>
             <description locale="en_US">ID of product set whose products will be shown in homepage slider if selected in the corresponding setting above.</description>
         </setting>
         <setting var="homepage_promocards_below_the_slider" control_type="checkbox">
             <value>1</value>
             <name locale="en_US">Display smaller promo cards below the slider</name>
-            <name locale="ru_RU">Показывать маленькие промо-карточки под слайдером</name>
+            <name locale="ru_RU">Показывать маленькие промокарточки под слайдером</name>
         </setting>
 
         <setting var="homepage_bestsellers_title" control_type="text">
@@ -224,7 +224,7 @@
             <value locale="en_US">ON SALE</value>
             <value locale="ru_RU">Распродажа</value>
             <name locale="en_US">Title above homepage featured product list</name>
-            <name locale="ru_RU">Заголовок над списком промо-товаров</name>
+            <name locale="ru_RU">Заголовок над списком промотоваров</name>
             <description locale="en_US"><![CDATA[If provided, <b>{$date}</b> will be replaced with the current date]]></description>
             <description locale="ru_RU"><![CDATA[Переменная <b>{$date}</b> в заголовке (если указана) будет заменена на текущую дату]]></description>
         </setting>
@@ -232,7 +232,7 @@
             <value>promo</value>
             <name locale="en_US">“Featured on homepage” product set ID</name>
             <name locale="ru_RU">Список «Промо»</name>
-            <description locale="ru_RU">Идентификатор списка промо-товаров. Товары из этого списка будут показаны на витрине магазина под слайдером и под списком товаров-бестселлеров.</description>
+            <description locale="ru_RU">Идентификатор списка промотоваров. Товары из этого списка будут показаны на витрине магазина под слайдером и под списком товаров-бестселлеров.</description>
             <description locale="en_US">Featured products will be displayed on the storefront homepage under the slider and the best-selling product list.</description>
         </setting>
 

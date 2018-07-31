@@ -57,7 +57,11 @@ $.order_edit = {
             options.float_delimeter = '.';
         }
 
+        //VAL
         this.float_delimeter = options.float_delimeter;
+        this.prev_ship_method = null;
+
+        //INIT
         this.initView();
         this.initShippingControl();
         this.initDiscountControl();
@@ -183,8 +187,15 @@ $.order_edit = {
 
                 var url = '?module=orders&action=getProduct&product_id=' + product_id + '&sku_id=' + sku_id;
                 $.getJSON(url + ($.order_edit.id ? '&order_id=' + $.order_edit.id : '&currency=' + $.order_edit.options.currency), function (r) {
+                    var ns;
+                    if (tr.find('input:first').attr('name').indexOf('add') !== -1) {
+                        ns = 'add';
+                    } else {
+                        ns = 'edit';
+                    }
+
                     tr.find('.s-orders-services').replaceWith(
-                        tmpl('template-order-services', {
+                        tmpl('template-order-services-'+ns, {
                             services: r.data.sku.services,
                             service_ids: r.data.service_ids,
                             product_id: product_id,
@@ -199,13 +210,6 @@ $.order_edit = {
                     tr.find('.s-orders-product-price').//find('span').html(r.data.sku.price_html || r.data.sku.price_str).end().
                     find('input').val(r.data.sku.price);
                     //.trigger('change');
-
-                    var ns;
-                    if (tr.find('input:first').attr('name').indexOf('add') !== -1) {
-                        ns = 'add';
-                    } else {
-                        ns = 'edit';
-                    }
 
                     tr.find('.s-orders-sku-stock-place').empty();
                     li.find('.s-orders-sku-stock-place').html(
@@ -253,10 +257,6 @@ $.order_edit = {
         });
 
         this.container.off('click', '.s-order-item-delete').on('click', '.s-order-item-delete', function () {
-//            $(this).parents('tr:first').replaceWith(
-//                $.order_edit.container.find('.template-deleted').clone().show()
-//            );
-
             var self = $(this);
             self.parents('tr:first').remove();
             if (!self.parents('table:first').find('tr.s-order-item:first').length) {
@@ -288,8 +288,9 @@ $.order_edit = {
         );
 
         //Update total if customer address edit
-        $(".s-order-customer-details").on('change', 'input,select,checkbox,textarea', function () {
-            if ($(this).attr('name') && $(this).attr('name').indexOf('address') > 0) {
+        $(".s-order-customer-details").on('change', ':input[name*="[address\.shipping]"]', function (e) {
+            if (e.originalEvent) {
+                $.shop.trace('Update total if customer address edit', [this, e]);
                 $.order_edit.updateTotal();
             }
         });
@@ -335,14 +336,14 @@ $.order_edit = {
 
                 if (!$.order_edit.container.find('.error').length) {
 
-                    $('.s-order-items-edit td.save i.loading').css('display', 'inline-block');
-                    form.find('[type=submit]').attr('disabled', true);
+                    //Disable submit button
+                    $.order_edit.switchSubmitButton('disable');
 
                     var onAlwaysSubmit = function () {
                         orderSaveSubmit.xhr = null;
-                        form.find('[type=submit]').attr('disabled', false);
+                        //Allow submit button
+                        $.order_edit.switchSubmitButton();
                         $('.s-orders-services input:disabled', form).attr('disabled', false);
-                        $('.s-order-items-edit td.save i.loading').css('display', 'none');
                     };
                     if ($.order_edit.id) {
                         orderSaveSubmit.xhr = $.order_edit.saveSubmit(onAlwaysSubmit, 'edit');
@@ -363,8 +364,8 @@ $.order_edit = {
     },
 
     initShippingControl: function () {
-        var $shipping_rate = $('#shipping-rate'),
-            previous_shipping_method = $("#shipping_methods").val();
+        var that = this;
+        that.prev_ship_method = $("#shipping_methods").val();
 
         $("#shipping-custom").on('change', ':input', function (e) {
             /**
@@ -377,55 +378,30 @@ $.order_edit = {
         });
 
         //First load set info.
-        setShippingInfo();
+        that.setShippingInfo();
 
         $("#shipping_methods").change(function () {
-            setShippingInfo();
+            var option = $("#shipping_methods option:selected"),
+                rate = option.data('rate') || 0,
+                $shipping_rate = $('#shipping-rate');
+
+            // Update cost if it is not entered by hand
+            if (!$shipping_rate.data('shipping') || option.val() != that.prev_ship_method) {
+                $shipping_rate.val($.order_edit.formatFloat(rate));
+                $shipping_rate.data('shipping', false);
+                that.prev_ship_method = option.val();
+            }
+
+            that.setShippingInfo();
             $.order_edit.updateTotal();
         });
 
         //Prevent shipping cost updates
-        $('#shipping-rate').keyup(function () {
+        $('#shipping-rate').change(function () {
             $('#shipping-rate').data('shipping', $(this).val());
             $.order_edit.updateTotal();
         });
 
-        function setShippingInfo() {
-            var $methods = $("#shipping_methods"),
-                option = $methods.children(':selected'),
-                rate = option.data('rate') || 0;
-
-            // Update cost if it is not entered by hand
-            if (!$shipping_rate.data('shipping') || option.val() != previous_shipping_method) {
-                $shipping_rate.val($.order_edit.formatFloat(rate));
-                $shipping_rate.data('shipping', false);
-                previous_shipping_method = option.val();
-            }
-
-            var delivery_info = [];
-            if (option.data('error')) delivery_info.push('<span class="error">' + option.data('error') + '</span>');
-            if (option.data('est_delivery')) delivery_info.push('<span class="hint est_delivery">' + option.data('est_delivery') + '</span>');
-            var sid = $methods.val().replace(/\..+$/, '');
-            var prev_sid = $methods.data('_shipping_id');
-            $("#shipping-custom > div").hide();
-            if ($('#shipping-custom-' + sid).length) {
-                $('#shipping-custom-' + sid).show();
-            }
-            if (option.data('comment')) delivery_info.push('<span class="hint">' + option.data('comment') + '</span>');
-            if (delivery_info) {
-                if (option.data('error')) {
-                    $shipping_rate.addClass('error');
-                } else {
-                    $("#shipping-rate").removeClass('error');
-                }
-                $("#shipping-info").html(delivery_info.join('<br>')).show();
-            } else {
-                $shipping_rate.removeClass('error');
-                $("#shipping-info").empty().hide();
-            }
-
-            $.shop.trace('check shipping_methods id', [prev_sid, sid]);
-        }
     },
 
     initDiscountControl: function () {
@@ -512,7 +488,7 @@ $.order_edit = {
             }
         });
 
-        var hide_manual_edit = function(){
+        var hide_manual_edit = function () {
             $discount_input.show();
             $discount_input.parent().find('span.js-order-discount:first').hide();
             $edit_discount_button.hide();
@@ -535,7 +511,7 @@ $.order_edit = {
             $discount_input.val($update_discount_button.data('value') || 0).change();
             $discount_description_input.val($update_discount_button.data('description'));
 
-            $discount_input.attr('title',$discount_description_input.data('edit-manually-msg'));
+            $discount_input.attr('title', $discount_description_input.data('edit-manually-msg'));
 
             $update_discount_button.hide().data('discount', 'calculate');
             $.order_edit.updateTotal();
@@ -544,7 +520,7 @@ $.order_edit = {
         });
 
         // When user updates the discount field by hand, show the button to reset to calculated values
-        $discount_input.on('keyup', function () {
+        $discount_input.on('change', function () {
             $edit_discount_button.click();
             $discount_description_input.val('');
             $('#order-items .js-item-total-discount').hide();
@@ -592,8 +568,8 @@ $.order_edit = {
             delay: 0,
             minLength: 0,
             appendTo: '#order-edit-form',
-            source: function(request, response) {
-                var result = customer_sources.filter(function(v) {
+            source: function (request, response) {
+                var result = customer_sources.filter(function (v) {
                     return v && v.indexOf && v.indexOf(request.term) >= 0;
                 }).slice(0, 10);
                 if (result.length == 1 && result[0] == request.term) {
@@ -602,12 +578,63 @@ $.order_edit = {
                     response(result);
                 }
             }
-        }).on('focus', function() {
+        }).on('focus', function () {
             $input.autocomplete('search');
         });
     },
 
-    getOrderItems: function(container) {
+    setShippingInfo: function () {
+        var $methods = $("#shipping_methods"),
+            $option = $methods.children(':selected'),
+            $shipping_input = $('#shipping-rate'),
+            $shipping_info = $('#shipping-info'),
+            sid = $methods.val(),
+            prev_sid = $methods.data('_shipping_id');
+
+        var delivery_info = [];
+
+        if($option.length) {
+
+            if ($option.data('error')) {
+                delivery_info.push('<span class="error">' + $option.data('error') + '</span>');
+            }
+            if ($option.data('est_delivery')) {
+                delivery_info.push('<span class="hint est_delivery">' + $option.data('est_delivery') + '</span>');
+            }
+
+            $("#shipping-custom > div").hide();
+
+            if (sid !== null) {
+                sid = ('' + sid).replace(/\..+$/, '');
+                if ($('#shipping-custom-' + sid).length) {
+                    $('#shipping-custom-' + sid).show();
+                }
+            }
+
+            if ($option.data('comment')) {
+                delivery_info.push('<span class="hint">' + $option.data('comment') + '</span>');
+            }
+
+            if (delivery_info) {
+                if ($option.data('error')) {
+                    $shipping_input.addClass('error');
+                    $methods.addClass('error');
+                } else {
+                    $shipping_input.removeClass('error');
+                }
+                $shipping_info.html(delivery_info.join('<br>')).show();
+            } else {
+                $shipping_input.removeClass('error');
+                $shipping_info.empty().hide();
+            }
+        } else {
+            $methods.addClass('error');
+        }
+
+        $.shop.trace('check shipping_methods id', [prev_sid, sid, $option]);
+    },
+
+    getOrderItems: function (container) {
         var items = [];
 
         var order_content = [];
@@ -719,6 +746,10 @@ $.order_edit = {
             $total.text(0);
             return;
         }
+        var that = this;
+
+        //Disable submit button
+        $.order_edit.switchSubmitButton('disable');
 
         //clear errors.
         $.order_edit.showValidateErrors();
@@ -795,27 +826,20 @@ $.order_edit = {
                         custom_html_container.find('>div.fields.form').hide();
 
                         for (var i = 0; i < shipping_method_ids.length; i += 1) {
-                            var ship_id = shipping_method_ids[i];
-
-                            var ship = shipping_methods[ship_id];
+                            var ship_id = '' + shipping_method_ids[i],
+                                ship = shipping_methods[ship_id],
+                                plugin_id = ship_id.replace(/\W.+$/, ''),
+                                o = $('<option></option>');
 
                             /**
                              *
                              * @type {*|JQuery|jQuery|HTMLElement}
                              */
-                            var o = $('<option></option>');
                             o.html(ship.name).attr('value', ship_id).data('rate', ship.rate);
                             o.data('error', ship.error || undefined);
                             o.data('est_delivery', ship.est_delivery || undefined);
                             o.data('comment', ship.comment || undefined);
                             o.data('external', ship.external || false);
-                            if (ship.custom_data) {
-                                for (var custom_field in ship.custom_data) {
-                                    if (ship.custom_data.hasOwnProperty(custom_field)) {
-                                        o.data(custom_field, ship.custom_data[custom_field]);
-                                    }
-                                }
-                            }
 
                             el.append(o);
 
@@ -824,19 +848,24 @@ $.order_edit = {
                                 $("#shipping-rate").val($.order_edit.formatFloat(ship.rate));
                             }
 
-                            if (ship.custom_html) {
-                                var plugin_id = ship_id.replace(/\W.+$/, '');
-
-                                var custom_html = custom_html_container.find('#shipping-custom-' + plugin_id);
-                                if (!custom_html.length) {
-                                    custom_html = custom_html_container.append('<div id="shipping-custom-' + plugin_id + '" style="display: none;" class="fields form"></div>');
-                                    custom_html = custom_html_container.find('#shipping-custom-' + plugin_id);
+                            //Custom fields same for all positions of one plug-in
+                            //They are stored only in the last rates ¯\_(ツ)_/¯
+                            if (el_selected_id == plugin_id) {
+                                if (ship.custom_data) {
+                                    for (var custom_field in ship.custom_data) {
+                                        if (ship.custom_data.hasOwnProperty(custom_field)) {
+                                            o.data(custom_field, ship.custom_data[custom_field]);
+                                        }
+                                    }
                                 }
-                                custom_html.html(ship.custom_html);
-                                if (el_selected_id == plugin_id) {
-                                    custom_html.show();
-                                } else {
-                                    custom_html.hide();
+
+                                if (ship.custom_html) {
+                                    var custom_html = custom_html_container.find('#shipping-custom-' + plugin_id);
+                                    if (!custom_html.length) {
+                                        custom_html = custom_html_container.append('<div id="shipping-custom-' + plugin_id + '" class="fields form"></div>');
+                                        custom_html = custom_html_container.find('#shipping-custom-' + plugin_id);
+                                    }
+                                    custom_html.html(ship.custom_html);
                                 }
                             }
 
@@ -852,6 +881,7 @@ $.order_edit = {
                                         ship_id_parts[0] == el_selected_parts[0]) {
                                         el_selected = ship_id;
                                         el.val(el_selected);
+                                        $.order_edit.setShippingInfo();
                                         $.order_edit.realUpdateTotal();
                                         return;
                                     }
@@ -862,7 +892,6 @@ $.order_edit = {
                         el.val(el_selected);
                         el.data('_shipping_id', el_selected_id);
                         $.shop.trace('set shipping_methods id', [el_selected_id, el_selected]);
-
                     }
 
                     //If user deleted discount value, don't need set zero discount value
@@ -870,10 +899,8 @@ $.order_edit = {
                         $('#discount').val($.order_edit.roundFloat(response.data.discount));
                     }
 
-                    //Update shipping rate. If shipping rate not entered by hand
-                    if (!$shipping_rate.data('shipping') ) {
-                        $shipping_rate.val(($.order_edit.roundFloat(response.data.shipping)));
-                    }
+                    //Update shipping rate.
+                    $shipping_rate.val(($.order_edit.roundFloat(response.data.shipping)));
 
                     $('#order-edit-form').trigger('order_total_updated', response.data);
 
@@ -882,6 +909,10 @@ $.order_edit = {
                     $total.text($.order_edit.roundFloat(response.data.total));
 
                     $.order_edit.showValidateErrors(response.data.errors);
+                    that.setShippingInfo();
+
+                    //Allow submit button
+                    $.order_edit.switchSubmitButton();
                 }
             },
             "dataType": 'json'
@@ -909,14 +940,18 @@ $.order_edit = {
         } else if ($('#update-discount').data('discount') === undefined) {
 
             //If discount not changed, not need send discount value, but need send discount_description.
-            data = data.filter(function(el) { return el.name !== 'discount'; });
+            data = data.filter(function (el) {
+                return el.name !== 'discount';
+            });
 
             //If discount previously did not install, need send discount_description.
             if ($('#discount').val() > 0) {
                 //Discount Description contains info about old discounts
-                data.discount_description =  $('#edit-discount').val();
+                data.discount_description = $('#edit-discount').val();
             } else {
-                data = data.filter(function(el) { return el.name !== 'discount_description'; });
+                data = data.filter(function (el) {
+                    return el.name !== 'discount_description';
+                });
             }
         }
 
@@ -952,7 +987,7 @@ $.order_edit = {
      * @param val
      * @returns {*}
      */
-    roundFloat : function(val) {
+    roundFloat: function (val) {
         if (!val) {
             return 0;
         } else {
@@ -1062,18 +1097,37 @@ $.order_edit = {
         return false;
     },
 
+    /**
+     * Disable or allow click to "save" button and show or hide loading icon
+     */
+    switchSubmitButton: function(condition) {
+        var form = this.form,
+            loading_icon = $(form).find('.s-order-items-edit td.save i.loading'),
+            submit_button = $(form).find('[type=submit]');
+
+        if (condition === 'disable') {
+            loading_icon.css('display', 'inline-block');
+            submit_button.attr('disabled', true);
+        } else {
+            loading_icon.css('display', 'none');
+            submit_button.attr('disabled', false);
+        }
+
+    },
+
     showValidateErrors: function (validate_errors) {
+        $.shop.trace('showValidateErrors', validate_errors);
         $('.error').removeClass('error');
         $('#s-order-edit-customer .errormsg').empty();
         if (validate_errors && validate_errors.customer) {
-            var errors = validate_errors.customer;
-            $.order_edit.customer_fields.find('.field-group:first').html(errors.html);
-            delete errors.html;
-            for (var name in errors) {
-                $.order_edit.customer_fields.find('.s-error-customer-' + name).each(function () {
+            var customer_errors = validate_errors.customer;
+            $.order_edit.customer_fields.find('.field-group:first').html(customer_errors.html);
+            delete customer_errors.html;
+            for (var customer_field in customer_errors) {
+                $.order_edit.customer_fields.find('.s-error-customer-' + customer_field).each(function () {
                     var item = $(this);
                     if (this.tagName == 'EM') {
-                        item.text(errors[name]);
+                        item.text(customer_errors[customer_field]);
                     } else {
                         item.addClass('error');
                     }

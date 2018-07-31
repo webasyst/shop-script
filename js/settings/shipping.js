@@ -255,7 +255,7 @@ if (typeof($) != 'undefined') {
 
         shippingPlugins: function () {
             $('#s-settings-content').find('#s-settings-shipping').hide();
-            var url = this.options.backend_url + 'installer/?module=plugins&action=view&options[no_confirm]=1&slug=wa-plugins/shipping&return_hash=/shipping/';
+            var url = this.options.backend_url + 'installer/?module=plugins&action=view&options[no_confirm]=1&slug=wa-plugins/shipping&return_hash=/shipping/plugin/add/%plugin_id%/';
             $('#s-settings-shipping-setup').show().html(this.shipping_options.loading).load(url);
         },
 

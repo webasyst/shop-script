@@ -2006,7 +2006,7 @@ class shopCsvProductrunController extends waLongActionController
                 $emulate[$key][] = $row;
             }
         }
-        return array_filter($emulate, create_function('$a', 'return count($a)>1;'));
+        return array_filter($emulate, wa_lambda('$a', 'return count($a)>1;'));
     }
 
     protected function restore()

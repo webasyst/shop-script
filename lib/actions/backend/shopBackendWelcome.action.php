@@ -32,9 +32,24 @@ class shopBackendWelcomeAction extends waViewAction
 
         if (waRequest::post()) {
             $app_settings_model = new waAppSettingsModel();
+
+            $passed_steps = json_decode($app_settings_model->get('shop', 'tutorial_passed_steps', '[]'), true);
+            $passed_action = waRequest::post('passed_action', null, waRequest::TYPE_STRING);
+            if ($passed_action && !in_array($passed_action,$passed_steps)) {
+                $passed_steps[] = $passed_action;
+                $app_settings_model->set('shop', 'tutorial_passed_steps', json_encode($passed_steps));
+            }
+
+            $welcome = $app_settings_model->get('shop', 'welcome', false);
             $app_settings_model->set('shop', 'show_tutorial', 1);
-            $app_settings_model->del('shop', 'welcome');
-            $this->setup();
+            if ($welcome) {
+                $app_settings_model->del('shop', 'welcome');
+                $this->setup();
+            } else {
+                //If Welcome is passed, then just go to the next page
+                $this->redirectToProducts();
+            }
+
         } else {
             $this->overview();
         }
@@ -42,105 +57,137 @@ class shopBackendWelcomeAction extends waViewAction
 
     private function setup()
     {
-        if ($country = waRequest::post('country')) {
+        $country = waRequest::post('country');
+        if ($country) {
             if (!empty($this->countries[$country])) {
-                $path = $this->getConfig()->getConfigPath('data/welcome/', false);
+                $this->setupCountry($country);
+                $this->setupTaxes($country);
+                $this->setupCustomerFilters($country);
+            }
+        }
 
-                $country_data = include($path."country_{$country}.php");
+        $currency = waRequest::post('currency');
+        if ($currency) {
+            $this->setupCurrency($currency);
+        }
 
-                # Main country setting
-                $model = new waAppSettingsModel();
-                $model->set('shop', 'country', $country);
+        $this->setupTypes();
+        $this->setupBasicSets();
+        $this->setupBasicNotifications();
+        $this->setupBasicPromos();
 
-                #currency
-                if (!empty($country_data['currency'])) {
-                    $currency_model = new shopCurrencyModel();
-                    $count = $currency_model->countAll();
-                    $sort = $count;
-                    foreach ($country_data['currency'] as $code => $rate) {
-
-                        // Ignore if currency already exists
-                        if (!$currency_model->getById($code)) {
-                            $currency_model->insert(array('code' => $code, 'rate' => $rate, 'sort' => $sort), 2);
-                        }
-
-                        if ($sort == 1) {
-                            $currency_model->deleteCache();
-                            $currency_model->setPrimaryCurrency($code);
-                        }
-                        ++$sort;
-                    }
-                    $currency_model->deleteCache();
-
-                }
-
-                #taxes
-                if (!empty($country_data['taxes'])) {
-                    $tax_model = new shopTaxModel();
-                    foreach ($country_data['taxes'] as $tax_data) {
-                        if (!$tax_model->getByName($tax_data['name'])) {
-                            shopTaxes::save($tax_data);
-                        }
-                    }
-                }
-
-                // Customer filters (country depended)
-                $customers_filter_model = new shopCustomersFilterModel();
-                if (method_exists($customers_filter_model, 'addWelcomeCountry' . ucfirst($country) . 'Filters')) {
-                    $method = 'addWelcomeCountry' . ucfirst($country) . 'Filters';
-                    $customers_filter_model->$method();
-                }
-
-                #custom code
-                $function = 'shopWelcome'.ucfirst($country);
-                if (function_exists($function)) {
-                    try {
-                        call_user_func_array($function, array());
-                    } catch (Exception $ex) {
-                        //TODO
-                        ;
-                    }
+        $redirect = null;
+        if ($plugin_id = waRequest::post('plugin')) {
+            $data = waRequest::post($plugin_id);
+            if (preg_match('@^(.+)-plugin$@', $plugin_id, $matches)) {
+                $plugin_id = $matches[1];
+                if (($plugin = wa('shop')->getPlugin($plugin_id)) && (method_exists($plugin, 'getWelcomeUrl'))) {
+                    $redirect = $plugin->getWelcomeUrl($data);
                 }
             }
         }
 
-        if (!empty($this->types)) {
-            $type_model = new shopTypeModel();
-            $type_features_model = new shopTypeFeaturesModel();
+        // Customer filters (other, i.e. not country depended)
+        $customers_filter_model = new shopCustomersFilterModel();
+        $customers_filter_model->addWelcomeRefererFacebookFilter();
+        $customers_filter_model->addWelcomeRefererTwitterFilter();
+        $customers_filter_model->addWelcomeLastOrderedMonthAgoFilter();
 
-            $types = waRequest::post('types');
-            if (empty($types)) {
-                if (!$type_features_model->countAll()) {
-                    $types[] = 'default';
-                }
-            }
-            if ($types) {
-                foreach ($types as $type) {
-                    $type_model->insertTemplate($type);
-                }
+        //Clear cache. Cloud has problem with cache
+        $app_settings_model = new waAppSettingsModel();
+        $app_settings_model->clearCache('shop');
+
+        $this->redirectToProducts($redirect);
+    }
+
+    private function overview()
+    {
+        $this->setLayout(new shopWelcomeLayout());
+
+        #countries
+        $cm = new waCountryModel();
+        $cm->preload();
+        $countries = array();
+        if (!empty($this->countries)) {
+            foreach ($this->countries as $iso3) {
+                $countries[$iso3] = $cm->get($iso3);
             }
         }
+        $locale = waLocale::getInfo(wa()->getUser()->getLocale());
+        if (!isset($locale['iso3']) || !isset($countries[$locale['iso3']])) {
+            if (isset($countries['usa'])) {
+                $country_iso3 = 'usa';
+            } else {
+                reset($countries);
+                $country_iso3 = key($countries);
+            }
+        } else {
+            $country_iso3 = $locale['iso3'];
+        }
 
-        $set_model = new shopSetModel();
-        $set_model->add(
-            array(
-                'id'   => 'promo',
-                'name' => _w('Featured on homepage'),
-                'type' => shopSetModel::TYPE_STATIC,
-            )
-        );
-        $set_model->add(
-            array(
-                'id'    => 'bestsellers',
-                'name'  => _w('Bestsellers'),
-                'type'  => shopSetModel::TYPE_DYNAMIC,
-                'count' => 8,
-                'rule'  => 'rating DESC',
-            )
-        );
+        $app_settings_model = new waAppSettingsModel();
+        $tutorial_visible = $app_settings_model->get('shop', 'show_tutorial') || waRequest::request('module') == 'tutorial';
 
+        $this->view->assign(array(
+            'countries'         => $countries,
+            'country_iso'       => $country_iso3,
+            'translate'         => $this->translate,
+            'actions'           => shopTutorialActions::getActions(true),
+            'currencies'        => $this->getCurrencies(),
+            'types'             => $this->getShortedProductTypes(),
+            'backend_welcome'   => $this->getBackendWelcomeEvent(),
+            'tutorial_progress' => shopTutorialActions::getTutorialProgress(),
+            'tutorial_visible'  => $tutorial_visible
+        ));
+    }
 
-// notifications
+    public function redirectToProducts($redirect = null)
+    {
+        if (!$redirect) {
+            $redirect = '?module=tutorial#/products/';
+        }
+
+        $this->redirect($redirect);
+    }
+
+    protected function setupBasicPromos()
+    {
+        $promo_model = new shopPromoModel();
+        $promo_routes_model = new shopPromoRoutesModel();
+
+        if ($promo_model->countAll() <= 0) {
+            $promo_routes = array();
+            $promo_stubs_path = wa()->getAppPath('lib/config/data/promos.php', 'shop');
+
+            if (file_exists($promo_stubs_path)) {
+                $promo_stubs = include($promo_stubs_path);
+
+                foreach ($promo_stubs as $stub) {
+                    $file = $stub['image'];
+                    $ext = explode('.', $file);
+                    $ext = array_pop($ext);
+                    unset($stub['image']);
+                    $id = $promo_model->insert($stub + array(
+                            'type' => 'link',
+                            'ext'  => $ext,
+                        ));
+                    waFiles::copy(wa()->getAppPath($file, 'shop'), wa('shop')->getDataPath('promos/'.$id.'.'.$ext, true));
+                    $promo_routes[] = array(
+                        'promo_id'   => $id,
+                        'storefront' => '%all%',
+                        'sort'       => count($promo_routes) + 1,
+                    );
+                }
+                $promo_routes_model->multipleInsert($promo_routes);
+            }
+
+        }
+
+        return true;
+    }
+
+    protected function setupBasicNotifications()
+    {
         $notifications_model = new shopNotificationModel();
         if ($notifications_model->countAll() == 0) {
             $notifications_action = new shopSettingsNotificationsAddAction();
@@ -171,84 +218,119 @@ class shopBackendWelcomeAction extends waViewAction
             }
         }
 
-        $redirect = null;
-        if ($plugin_id = waRequest::post('plugin')) {
-            $data = waRequest::post($plugin_id);
-            if (preg_match('@^(.+)-plugin$@', $plugin_id, $matches)) {
-                $plugin_id = $matches[1];
-                if (($plugin = wa('shop')->getPlugin($plugin_id)) && (method_exists($plugin, 'getWelcomeUrl'))) {
-                    $redirect = $plugin->getWelcomeUrl($data);
+        return true;
+    }
+
+    protected function setupBasicSets()
+    {
+        $set_model = new shopSetModel();
+        $set_model->add(
+            array(
+                'id'   => 'promo',
+                'name' => _w('Featured on homepage'),
+                'type' => shopSetModel::TYPE_STATIC,
+            )
+        );
+        $set_model->add(
+            array(
+                'id'    => 'bestsellers',
+                'name'  => _w('Bestsellers'),
+                'type'  => shopSetModel::TYPE_DYNAMIC,
+                'count' => 8,
+                'rule'  => 'rating DESC',
+            )
+        );
+        return true;
+    }
+
+    protected function setupTypes()
+    {
+        $types = waRequest::post('types');
+
+        if (!empty($this->types)) {
+            $type_model = new shopTypeModel();
+            $type_features_model = new shopTypeFeaturesModel();
+
+            if (empty($types)) {
+                if (!$type_features_model->countAll()) {
+                    $types[] = 'default';
+                }
+            }
+            if ($types) {
+                foreach ($types as $type) {
+                    $type_model->insertTemplate($type);
                 }
             }
         }
-        if (empty($redirect)) {
-            $redirect = '?module=tutorial#/products/';
-        }
 
-        // Promos
-        $promo_model = new shopPromoModel();
-        if ($promo_model->countAll() <= 0) {
-            $promo_routes = array();
-            $promo_routes_model = new shopPromoRoutesModel();
-            $promo_stubs = include(wa()->getAppPath('lib/config/data/promos.php', 'shop'));
-            foreach ($promo_stubs as $stub) {
-                $file = $stub['image'];
-                $ext = explode('.', $file);
-                $ext = array_pop($ext);
-                unset($stub['image']);
-                $id = $promo_model->insert($stub + array(
-                        'type' => 'link',
-                        'ext'  => $ext,
-                    ));
-                waFiles::copy(wa()->getAppPath($file, 'shop'), wa('shop')->getDataPath('promos/'.$id.'.'.$ext, true));
-                $promo_routes[] = array(
-                    'promo_id'   => $id,
-                    'storefront' => '%all%',
-                    'sort'       => count($promo_routes) + 1,
-                );
-            }
-            $promo_routes_model->multipleInsert($promo_routes);
-        }
-
-        // Customer filters (other, i.e. not country depended)
-        $customers_filter_model = new shopCustomersFilterModel();
-        $customers_filter_model->addWelcomeRefererFacebookFilter();
-        $customers_filter_model->addWelcomeRefererTwitterFilter();
-        $customers_filter_model->addWelcomeLastOrderedMonthAgoFilter();
-
-        $this->redirect($redirect);
+        return true;
     }
 
-    private function overview()
+    protected function setupCountry($country)
     {
-        $this->setLayout(new shopWelcomeLayout());
-
-        #countries
-        $cm = new waCountryModel();
-        $cm->preload();
-        $countries = array();
-        if (!empty($this->countries)) {
-            foreach ($this->countries as $iso3) {
-                $countries[$iso3] = $cm->get($iso3);
-            }
+        if (!empty($this->countries[$country])) {
+            # Main country setting
+            $model = new waAppSettingsModel();
+            $model->set('shop', 'country', $country);
         }
-        $locale = waLocale::getInfo(wa()->getUser()->getLocale());
-        if (!isset($locale['iso3']) || !isset($countries[$locale['iso3']])) {
-            if (isset($countries['usa'])) {
-                $country_iso3 = 'usa';
-            } else {
-                reset($countries);
-                $country_iso3 = key($countries);
-            }
+
+        return true;
+    }
+
+    protected function setupCurrency($currency)
+    {
+        $all_currencies = waCurrency::getAll(true);
+
+        if (isset($all_currencies[$currency])) {
+            $currency_model = new shopCurrencyModel();
+            wa('shop')->getConfig()->setCurrency($currency);
+            $currency_model->setPrimaryCurrency($currency);
         } else {
-            $country_iso3 = $locale['iso3'];
+            throw new waException('Currency not found');
         }
 
-        $this->view->assign('countries', $countries);
-        $this->view->assign('country_iso', $country_iso3);
+        return true;
+    }
 
-        $this->view->assign('translate', $this->translate);
+    protected function setupTaxes($country)
+    {
+        $path = $this->getConfig()->getConfigPath('data/welcome/', false);
+        $country_config_path = $path."country_{$country}.php";
 
+        if (file_exists($country_config_path)) {
+            $country_data = include($country_config_path);
+
+            if (!empty($country_data['taxes'])) {
+                $tax_model = new shopTaxModel();
+                foreach ($country_data['taxes'] as $tax_data) {
+                    if (!$tax_model->getByName($tax_data['name'])) {
+                        shopTaxes::save($tax_data);
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    protected function setupCustomerFilters($country)
+    {
+        // Customer filters (country depended)
+        $customers_filter_model = new shopCustomersFilterModel();
+        if (method_exists($customers_filter_model, 'addWelcomeCountry'.ucfirst($country).'Filters')) {
+            $method = 'addWelcomeCountry'.ucfirst($country).'Filters';
+            $customers_filter_model->$method();
+        }
+
+        return true;
+    }
+
+    /**
+     * Get product types without features
+     * @return array
+     */
+    protected function getShortedProductTypes()
+    {
         #product types
         $types = array();
         if (!empty($this->types)) {
@@ -263,8 +345,17 @@ class shopBackendWelcomeAction extends waViewAction
                 }
             }
         }
-        $this->view->assign('types', $types);
 
+        return $types;
+    }
+
+    /**
+     * Call backend_welcome event and convert data to html
+     * @return array
+     * @throws Exception
+     */
+    protected function getBackendWelcomeEvent()
+    {
         $backend_welcome = wa()->event('backend_welcome');
 
         $params = array(
@@ -299,6 +390,54 @@ class shopBackendWelcomeAction extends waViewAction
             }
             unset($data);
         }
-        $this->view->assign('backend_welcome', $backend_welcome);
+
+        return $backend_welcome;
+    }
+
+    /**
+     * Get all currencies
+     * @return array|null
+     */
+    protected function getCurrencies()
+    {
+        $all_currencies = waCurrency::getAll(true);
+
+        $currencies = array(
+            array(
+                'code'  => 'RUB',
+                'title' => $all_currencies['RUB']['title'],
+            ),
+            array(
+                'code'  => 'UAH',
+                'title' => $all_currencies['UAH']['title'],
+            ),
+            array(
+                'code'  => 'BYN',
+                'title' => $all_currencies['BYN']['title'],
+            ),
+            array(
+                'code'  => 'USD',
+                'title' => $all_currencies['USD']['title'],
+            ),
+            array(
+                'code'  => 'EUR',
+                'title' => $all_currencies['EUR']['title'],
+            ),
+            array(
+                'code'  => null,
+                'title' => null,
+            ),
+        );
+
+        uasort($all_currencies, wa_lambda('$a, $b', 'return strcmp($a["title"], $b["title"]);'));
+
+        foreach ($all_currencies as $currency) {
+            $currencies[] = array(
+                'code'  => $currency['code'],
+                'title' => $currency['title'],
+            );
+        }
+
+        return $currencies;
     }
 }

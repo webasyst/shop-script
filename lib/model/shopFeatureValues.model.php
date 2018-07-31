@@ -172,8 +172,8 @@ SQL;
                     $exists[$row['sort']] = intval($row['id']);
 
                 } elseif ($update) {
-                    $data['sort'] = ($sort === false) ? ($sort = 0) : ++$sort;;
-                    $data['id'] = intval($this->insert($data));;
+                    $data['sort'] = ($sort === false) ? ($sort = 0) : ++$sort;
+                    $data['id'] = intval($this->insert($data));
                     $result[$data['sort']] = $data['id'];
                 }
             }
@@ -212,7 +212,7 @@ SQL;
      * @param int $id
      * @param string $type
      * @param int $sort
-     * @return int inserted or exist value
+     * @return array inserted or exist value
      */
     public function addValue($feature_id, $value, $id = null, $type = null, $sort = null)
     {

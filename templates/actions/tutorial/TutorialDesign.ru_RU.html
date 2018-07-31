@@ -1,15 +1,49 @@
-<h1>Выберите дизайн</h1>
+{if !empty($actions)}
+    {$stepArray = array_keys($actions)}
+    {foreach $stepArray as $key => $step}
+        {if $step === $active}
+            {$next_step_key = $key}
+        {/if}
+    {/foreach}
+    {if isset($stepArray[$next_step_key+1])}
+        {$next_step = $stepArray[$next_step_key+1]}
+    {/if}
+    {if isset($stepArray[$next_step_key-1])}
+        {$prev_step = $stepArray[$next_step_key-1]}
+    {/if}
+{/if}
+{$_themes = join('», «', $theme_names)}
+{if count($theme_names)==1}{$letter = 'а'}{else}{$letter = 'ы'}{/if}
+<div class="s-unboarding-wrapper">
+    <h1>Выберите и настройте тему дизайна</h1>
 
-<p>Перейдите в раздел <strong>Витрина &rarr; <a href="?action=storefronts#/design/themes/">Темы</a></strong>, чтобы посмотреть список доступных тем дизайна, и выберите любую на свой вкус.</p>
+    <p>
+        {if isset($_themes)}
+            В вашем магазине уже установлен{$letter} тем{$letter} дизайна: <strong>«{$_themes}»</strong><br/>
+            Настройте ее как вам нужно на вкладке «Оформление» в разделе «Магазин → Витрина».
+        {else}
+            В вашем магазине еще не установлены темы дизайна.
+        {/if}
+    </p>
 
-<p><img src="http://www.shop-script.com/wa-data/public/site/shop-script-6-welcome/ss6-choose-theme-ru.gif" class="s-screencast"></p>
+    <p><img src="{$wa_app_static_url}img/steps/step03-01.png"></p>
 
-<p><em>Попробуйте установить несколько бесплатных тем дизайна. Все темы загружаются из <a href="http://www.webasyst.ru/store/" target="_blank">магазина Webasyst</a> и автоматически устанавливаются в ваш магазин.</em></p>
+    <p>Если вам нужен совсем другой дизайн, выберите и установите любую тему дизайна из магазина Webasyst на вкладке «Темы дизайна». Темы есть бесплатные и платные. Все они устанавливаются автоматически — одной кнопкой.</p>
 
-<h2>Настройка</h2>
+    <p><img src="{$wa_app_static_url}img/steps/step03-02.png"></p>
 
-<p>После установки темы настройте ее внешний вид с помощью встроенных инструментов <strong>Оформление</strong> и <strong>Шаблоны</strong>. </p>
+    <p>После установки новой темы дизайна выберите ее в разделе «Магазин → Витрина» на вкладке «Настройки».</p>
+    <br/>
 
-<p><img src="http://www.shop-script.com/wa-data/public/site/shop-script-6-welcome/ss6-customize-theme-ru.gif" class="s-screencast"></p>
-
-<p><em>Файлы тем дизайна сохраняются в специальную директорию на сервере (<tt>wa-data/public/</tt>) для того чтобы все сделанные вами изменения сохранились при установке обновленных версий темы дизайна.</em></p>
+    <a href="{if isset($prev_step) && $actions[$prev_step]}{$actions[$prev_step]['href']}{else}javascript:void(0){/if}" class="button yellow">&larr; Назад</a>
+    <a href="{if isset($next_step) && $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green">Следующий шаг &rarr;</a>
+</div>
+<script>
+    (function ($) {
+        new TutorialSidebar({
+            $wrapper: $("#tutorial-actions"),
+            $active: {$active|json_encode},
+            $actions: {$actions|json_encode}
+        });
+    })(jQuery);
+</script>

@@ -165,6 +165,13 @@ SQL;
                     }
                     $product['skus'][$sku_id]['name'] = $name_of_fake_sku;
                 }
+
+                $current_product_name = $product['name'];
+                if (!empty($product['skus'][$sku_id]['name'])) {
+                    $current_product_name .= ' ('.$product['skus'][$sku_id]['name'].')';
+                }
+
+                $product['current_product_name'] = $current_product_name;
             }
 
             $service_id = $item['service_id'];

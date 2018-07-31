@@ -25,12 +25,14 @@ class shopCheckoutConfirmation extends shopCheckout
         }
 
         $order = array(
-            'contact' => $contact,
-            'total'   => $this->cart->total(false),
-            'items'   => $this->cart->items(false),
+            'contact'  => $contact,
+            'total'    => $this->cart->total(false),
+            'items'    => $this->cart->items(false),
+            'shipping' => 0,
         );
 
         $order['discount'] = shopDiscounts::calculate($order);
+
 
         $shipping_address = $contact->getFirst('address.shipping');
         if (!$shipping_address) {
@@ -47,9 +49,6 @@ class shopCheckoutConfirmation extends shopCheckout
             );
         }
 
-        $shipping_step = new shopCheckoutShipping();
-        $shipping_step->verify($order);
-
         $params = array();
 
         if ($shipping = $this->getSessionData('shipping')) {
@@ -60,6 +59,8 @@ class shopCheckoutConfirmation extends shopCheckout
                 $params['shipping_tax_id'] = ifset($plugin_info['options']['tax_id']);
                 $params['shipping_name'] = $shipping['name'];
                 $params['shipping_description'] = $plugin_info['description'];
+
+                $order['shipping'] = ifset($shipping, 'rate', 0);
             }
         }
 
@@ -77,10 +78,9 @@ class shopCheckoutConfirmation extends shopCheckout
             'discount_rate' => ($order['total']) ? ($order['discount'] / $order['total']) : 0,
         );
 
+        /** @var shopConfig $config */
         $config = wa('shop')->getConfig();
-        /**
-         * @var shopConfig $config
-         */
+
 
         $frontend_currency = $config->getCurrency(false);
 

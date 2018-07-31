@@ -1,12 +1,23 @@
-<h1>Congratulations!</h1>
+<div class="s-profit-block">
+    <h1 style="margin:0px;">Done</h1>
 
-<p>
-    Your online store has been configured and is ready for your first sale!
-</p>
-<p>
-    Check out some useful articles on ecommerce for beginners and get help on Shop-Script at <a href="http://www.shop-script.com/help/">www.shop-script.com/help/</a>
-</p>
+    <p class="s-congratulations-text">Congratulations, now your online store is ready to accept your first customers!</p>
 
-<p>
-    <a href="javascript:void(0)" class="button green finish-tutorial">Ok, close this welcome tutorial</a>
-</p>
+    <h2>If you have questions</h2>
+
+    <ul>
+        <li><a href="https://www.shop-script.com/help/" target="_blank">Shop-Script knowledge base</a></li>
+        <li><a href="https://support.webasyst.com/" target="_blank">Users questions and answers</a></li>
+        <li><a href="https://www.webasyst.com/my/requests/my/" target="_blank">Pricing-related and pre-sale inquiries, and personal support requests.</a></li>
+    </ul>
+
+</div>
+<script>
+    (function ($) {
+        new TutorialSidebar({
+            $wrapper: $("#tutorial-actions"),
+            $active: {$active|json_encode},
+            $app_url: {$wa_app_url|json_encode}
+        });
+    })(jQuery);
+</script>
