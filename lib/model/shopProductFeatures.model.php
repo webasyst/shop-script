@@ -282,7 +282,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         /**
          * composite fields workaround
          */
-        $composite = array_filter(array_keys($result), create_function('$a', 'return preg_match("/\.0$/",$a);'));
+        $composite = array_filter(array_keys($result), wa_lambda('$a', 'return preg_match("/\.0$/",$a);'));
         foreach ($composite as $code) {
             $code = preg_replace('/\.0$/', '', $code);
             $result[$code] = new shopCompositeValue($code, $result);

@@ -417,7 +417,7 @@ class shopCheckoutShipping extends shopCheckout
                 $code = ' $map = '.var_export($sort, true).';';
                 $code .= ' return ifset($map[$a],0)-ifset($map[$b],0);';
 
-                $compare = create_function('$a, $b', $code);
+                $compare = wa_lambda('$a, $b', $code);
                 uksort($address['fields'], $compare);
             }
 

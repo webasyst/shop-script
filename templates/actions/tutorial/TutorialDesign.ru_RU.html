@@ -13,12 +13,13 @@
     {/if}
 {/if}
 {$_themes = join('», «', $theme_names)}
+{if count($theme_names)==1}{$letter = 'а'}{else}{$letter = 'ы'}{/if}
 <div class="s-unboarding-wrapper">
     <h1>Выберите и настройте тему дизайна</h1>
 
     <p>
         {if isset($_themes)}
-            В вашем магазине уже установлены темы дизайна: <strong>«{$_themes}»</strong><br/>
+            В вашем магазине уже установлен{$letter} тем{$letter} дизайна: <strong>«{$_themes}»</strong><br/>
             Настройте ее как вам нужно на вкладке «Оформление» в разделе «Магазин → Витрина».
         {else}
             В вашем магазине еще не установлены темы дизайна.

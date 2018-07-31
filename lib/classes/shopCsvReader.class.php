@@ -295,7 +295,7 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
                 $positions = $this->offset_map ? array_keys($this->offset_map) : array();
                 $key = max($positions);
                 if (($key >= $position) && $this->offset_map) {
-                    $callback = create_function('$a', sprintf(' return ($a < %d);', $position));
+                    $callback = wa_lambda('$a', sprintf(' return ($a < %d);', $position));
                     $positions = array_filter($positions, $callback);
                     $key = max($positions);
                 }

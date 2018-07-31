@@ -1274,7 +1274,7 @@ class shopProduct implements ArrayAccess
         $product_skus_model = new shopProductSkusModel();
         $images_model = new shopProductImagesModel();
         $images = $images_model->getByField('product_id', $this->getId(), $images_model->getTableId());
-        $callback = create_function('$a, $b', 'return (max(-1, min(1, $a["sort"] - $b["sort"])));');
+        $callback = wa_lambda('$a, $b', 'return (max(-1, min(1, $a["sort"] - $b["sort"])));');
         usort($images, $callback);
         foreach ($images as $id => $image) {
             $source_path = shopImage::getPath($image);

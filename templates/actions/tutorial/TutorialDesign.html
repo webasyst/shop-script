@@ -13,12 +13,13 @@
     {/if}
 {/if}
 {$_themes = join('», «', $theme_names)}
+{if count($theme_names)==1}{$letter = ''}{$count = 'is'}{else}{$letter = 's'}{$count = 'are'}{/if}
 <div class="s-unboarding-wrapper">
     <h1>Select and set up a design theme</h1>
 
     <p>
         {if isset($_themes)}
-            Design theme <strong>«{$_themes}»</strong> is already installed in your online store.<br/>
+            Design theme{$letter} <strong>«{$_themes}»</strong> {$count} already installed in your online store.<br/>
             Configure it to your liking under the «Appearance» tab in «Store → Storefronts» section.<br/>
         {else}
             There are no design themes in your shop yet.

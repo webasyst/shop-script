@@ -116,7 +116,7 @@
             <!-- TOTAL -->
             <div class="row large no-border">
                 <div class="col w12 no-border">
-                    [`Total`]
+                    <div style="text-align: right;">[`Total`]</div>
                     {if shopDiscounts::isEnabled('coupons') && !$coupon_code}<a href="#" class="small inline-link not-visited" id="use-coupon"><b><i>[`I have a coupon!`]</i></b></a>{/if}
                 </div>
                 <div class="col w3 cart-total align-center total bold nowrap">{shop_currency_html($cart.total, true)}</div>

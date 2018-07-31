@@ -433,7 +433,7 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
                         $feature['sort'] = ifset($feature['sort'][$product->type_id]);
                         unset($feature);
                     }
-                    uasort($features, create_function('$a,$b', 'return max(-1,min(1,$a["sort"]-$b["sort"]));'));
+                    uasort($features, wa_lambda('$a,$b', 'return max(-1,min(1,$a["sort"]-$b["sort"]));'));
                 }
             }
 

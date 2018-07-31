@@ -148,6 +148,8 @@ class shopTutorialActions extends waViewActions
         $shop_product_model = new shopProductModel();
         $shop_plugin_model = new shopPluginModel();
 
+        $app_settings_model->clearCache('shop');
+
         $welcome = $app_settings_model->get('shop', 'welcome');
 
         foreach ($actions as $id => &$action) {
@@ -188,11 +190,11 @@ class shopTutorialActions extends waViewActions
             }
 
             if ($id == 'payment') {
-                $action['complete'] = count($shop_plugin_model->getByField('type', 'payment')) > 0;
+                $action['complete'] = count($shop_plugin_model->getByField('type', 'payment', true)) > 0;
             }
 
             if ($id == 'shipping') {
-                $action['complete'] = count($shop_plugin_model->getByField('type', 'shipping')) > 0;
+                $action['complete'] = count($shop_plugin_model->getByField('type', 'shipping', true)) > 0;
             }
         }
         unset($action);

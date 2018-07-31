@@ -93,6 +93,10 @@ class shopBackendWelcomeAction extends waViewAction
         $customers_filter_model->addWelcomeRefererTwitterFilter();
         $customers_filter_model->addWelcomeLastOrderedMonthAgoFilter();
 
+        //Clear cache. Cloud has problem with cache
+        $app_settings_model = new waAppSettingsModel();
+        $app_settings_model->clearCache('shop');
+
         $this->redirectToProducts($redirect);
     }
 
@@ -279,6 +283,7 @@ class shopBackendWelcomeAction extends waViewAction
 
         if (isset($all_currencies[$currency])) {
             $currency_model = new shopCurrencyModel();
+            wa('shop')->getConfig()->setCurrency($currency);
             $currency_model->setPrimaryCurrency($currency);
         } else {
             throw new waException('Currency not found');
