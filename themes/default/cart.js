@@ -104,6 +104,7 @@ $(function () {
     });
 
     $("#use-coupon").click(function () {
+        $(this).hide();
         $('#discount-row:hidden').slideToggle(200);
         $('#discount-row').addClass('highlighted');
         $('#apply-coupon-code:hidden').show();

@@ -53,6 +53,11 @@ if (typeof($) != 'undefined') {
                 'type' : 'POST',
                 'dataType': 'html',
                 'success' : function(response, textStatus, jqXHR) {
+                    //remove tutorial_step_link it is used for onboarding
+                    var step_link = localStorage.getItem('tutorial_step_link');
+                    if (step_link) {
+                        localStorage.removeItem('tutorial_step_link');
+                    }
                     $.shop.trace('$.settings.resetSubmit response', [textStatus, response]);
 
                     var data = false;

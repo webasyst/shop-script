@@ -118,7 +118,7 @@
                     {if $tutorial_visible}
                         <li class="s-tutorial-qs-lnk">
                             <div class="s-tutorial-quick-start">
-                                <a href="{$wa_app_url}?action=welcome" class="s-tutorial-url">
+                                <a href="{$wa_app_url}?module=tutorial#/products/" class="s-tutorial-url js-tutorial-url">
                                     <div class="s-tutorial-progressbar" id="s-tutorial-progressbar">
                                         <img src="{$wa_app_static_url}img/rocket-fly.png" class="s-rocket"/>
                                         <span class="s-tutorial-step-title" style="display: inline-block;">[`Quick start`]</span>
@@ -130,6 +130,17 @@
                                 </a>
                             </div>
                         </li>
+                        {if $tutorial_progress['complete']>0}
+                            <!-- Set tutorial Back link  -->
+                            <script>
+                                $(function() {
+                                    var step_link = localStorage.getItem('tutorial_step_link');
+                                    if (step_link) {
+                                        $('.js-tutorial-url').attr('href', step_link);
+                                    }
+                                });
+                            </script>
+                        {/if}
                     {/if}
 
                     {if $wa->userRights('orders')}

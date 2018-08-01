@@ -497,12 +497,13 @@ ul.tabs li.s-aff-bonus-total { background: #efd !important; margin-right: 10px; 
 }
 .s-tutorial-quick-start {
     display: inline-block;
-    padding: 6px 5px 8px;
+    padding: 6px 5px 5px;
     background: #e4e4e4;
 }
 .s-tutorial-quick-start .s-tutorial-progressbar .s-tutorial-progressbar-outer{
     float: right;
     margin-right: 5px;
+    margin-top: 1px;
 }
 .s-tutorial-quick-start .s-tutorial-progressbar {
     margin-left: 5px;
@@ -513,10 +514,11 @@ ul.tabs li.s-aff-bonus-total { background: #efd !important; margin-right: 10px; 
     color: #333;
     padding: 0px;
     font-weight: bold;
-    line-height: 15px;
+    line-height: 22px;
     margin-left: 7px;
     margin-right: 7px;
     font-size: 14px;
+    float: left;
 }
 .s-tutorial-quick-start .s-tutorial-progressbar .s-rocket {
     float: left;

@@ -174,26 +174,38 @@
         },
 
         productsAction: function () {
+            localStorage.removeItem('tutorial_step_link');
+            localStorage.setItem('tutorial_step_link', '?module=tutorial#/products/');
             this.load('?module=tutorial&action=products');
         },
 
         pageAction: function (page) {
+            localStorage.removeItem('tutorial_step_link');
+            localStorage.setItem('tutorial_step_link', '?module=tutorial#/page/'+page+'/');
             this.load('?module=tutorial&action=custom&page='+page);
         },
 
         designAction: function () {
+            localStorage.removeItem('tutorial_step_link');
+            localStorage.setItem('tutorial_step_link', '?module=tutorial#/design/');
             this.load('?module=tutorial&action=design');
         },
 
         paymentAction: function () {
+            localStorage.removeItem('tutorial_step_link');
+            localStorage.setItem('tutorial_step_link', '?module=tutorial#/payment/');
             this.load('?module=tutorial&action=payment');
         },
 
         shippingAction: function () {
+            localStorage.removeItem('tutorial_step_link');
+            localStorage.setItem('tutorial_step_link', '?module=tutorial#/shipping/');
             this.load('?module=tutorial&action=shipping');
         },
 
         profitAction: function () {
+            localStorage.removeItem('tutorial_step_link');
+            localStorage.setItem('tutorial_step_link', '?module=tutorial#/profit/');
             this.load('?module=tutorial&action=profit');
         },
 

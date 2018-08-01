@@ -90,11 +90,11 @@
                             {/if}
                         </div>
                     {/if}
-                    
+                    <div class="cart-have-coupon-link">{if shopDiscounts::isEnabled('coupons') && !$coupon_code}<a href="#" class="small inline-link not-visited" id="use-coupon"><b><i>[`I have a coupon!`]</i></b></a>{/if}</div>
                 </div>
-                <div class="col w2 align-center">[`Discount`]</div>
-                <div class="col w3 align-center cart-discount nowrap">&minus; {shop_currency_html($discount, true)}</div>
-                <div class="col w1"></div>
+                <div class="col w2 align-center title-padding">[`Discount`]</div>
+                <div class="col w3 align-center cart-discount title-padding nowrap">&minus; {shop_currency_html($discount, true)}</div>
+        <div class="col w1"></div>
             </div>
 
             {if shopAffiliate::isEnabled() && $affiliate_bonus > 0}
@@ -115,9 +115,9 @@
             
             <!-- TOTAL -->
             <div class="row large no-border">
-                <div class="col w12 no-border">
-                    <div style="text-align: right;">[`Total`]</div>
-                    {if shopDiscounts::isEnabled('coupons') && !$coupon_code}<a href="#" class="small inline-link not-visited" id="use-coupon"><b><i>[`I have a coupon!`]</i></b></a>{/if}
+                <div class="col w10 empty-block no-border"></div>
+                <div class="col w2 no-border">
+                    <div class="cart-total-title">[`Total`]</div>
                 </div>
                 <div class="col w3 cart-total align-center total bold nowrap">{shop_currency_html($cart.total, true)}</div>
                 <div class="col w1">&nbsp;</div>
