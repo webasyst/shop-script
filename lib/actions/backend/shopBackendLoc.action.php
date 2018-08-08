@@ -67,7 +67,9 @@ class shopBackendLocAction extends waViewAction
             'Profit',
             '%s will be sent to customer by email. Are you sure?',
             'This is a preview of actions available for orders in this state',
-            'Maximum of %d orders is allowed for bulk form printing.'
+            'Maximum of %d orders is allowed for bulk form printing.',
+            'Cancel',
+            'cancel'
         ) as $s) {
             $strings[$s] = _w($s);
         }
