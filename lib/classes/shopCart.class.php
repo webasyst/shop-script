@@ -146,6 +146,18 @@ class shopCart
         $this->model->updateByField(array('code' => $this->code, 'id' => $item_id), $data);
         $this->model->updateByField(array('code' => $this->code, 'parent_id' => $item_id), $data);
         $this->setSessionData('total', null);
+
+        /**
+         * @event cart_update.quantity
+         * @param array [string]mixed $event_params
+         * @param array [string]int $event_params['item_id']
+         * @param array [string]int $event_params['quantity']
+         */
+        $event_params = array(
+            'item_id' => $item_id,
+            'quantity' => $quantity
+        );
+        wa()->event('cart_update.quantity', $event_params);
     }
 
     /**
@@ -158,6 +170,18 @@ class shopCart
     {
         $this->model->updateByField(array('code' => $this->code, 'id' => $item_id), array('service_variant_id' => $variant_id));
         $this->setSessionData('total', null);
+
+        /**
+         * @event cart_update.service
+         * @param array [string]mixed $event_params
+         * @param array [string]int $event_params['item_id']
+         * @param array [string]int $event_params['variant_id']
+         */
+        $event_params = array(
+            'item_id' => $item_id,
+            'variant_id' => $variant_id
+        );
+        wa()->event('cart_update.service', $event_params);
     }
 
     /**
