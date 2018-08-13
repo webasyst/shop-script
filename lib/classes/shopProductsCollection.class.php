@@ -118,7 +118,7 @@ class shopProductsCollection
                     // We use main SKU price if it's not filtered out;
                     // otherwise min of all remaining SKU prices.
                     $sku_price = 'MIN(ps1.primary_price)';
-                    $main_sku_price = 'MAX(IF(ps1.id=p.id, ps1.primary_price, -1))';
+                    $main_sku_price = 'MAX(IF(ps1.product_id=p.id, ps1.primary_price, -1))';
                     $main_sku_exists = '-1 < '.$main_sku_price;
                     $this->order_by = "IF($main_sku_exists, $main_sku_price, $sku_price) $order";
 
