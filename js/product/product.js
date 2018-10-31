@@ -939,10 +939,16 @@ editClick:(function ($) {
 
         onSkuTypeEnabled: function (type_id) {
             var $features = $('#s-product-feature-superposition-field-group');
+
+
             if (type_id) {
                 $features.data('type', type_id);
             }
-            $features.show();
+            $features.show(400, function() {
+                // show warning message on change selling mode (case:  if not select the parameters that will be available to customers)
+                $.product.checkFeatureValidation();
+            });
+
             $features.find('input').attr('disabled', false);
             if ($.product.path.id == 'new') {
                 $.product.disableSkus(false, true);
@@ -962,6 +968,19 @@ editClick:(function ($) {
                     }
                 }
             }
+        },
+
+        checkFeatureValidation: function(){
+            var $features = $('#s-product-feature-superposition-field-group'),
+                $features_li = $features.find('ul.features li'),
+                $message_block = $("#product-save-message");
+
+            if (!$features_li.find('.status-blue-tiny').length) {
+                $message_block.addClass('errormsg').empty().html($_('Select parameters to be available to customers for ordering this product in the storefront.')).show();
+            }else{
+                $message_block.removeClass('errormsg').empty();
+            }
+
         },
 
         onSkuTypeChange: function (sku_type) {
@@ -987,7 +1006,10 @@ editClick:(function ($) {
 
                 // flat sku case
             } else {
-                $features.hide();
+                $features.hide(400, function () {
+                    //empty warning message on change selling mode
+                    $("#product-save-message").removeClass('errormsg').empty();
+                });
                 $features.find('input').attr('disabled', true);
                 //product_skus.find('.alist .all-skus').hide();
 
@@ -1055,6 +1077,9 @@ editClick:(function ($) {
                 addClass(icon_class);
 
                 self.featureSelectableCount($this);
+
+                // Show warning message (case:  if not select the parameters that will be available to customers)
+                $.product.checkFeatureValidation();
             });
 
 
@@ -1236,6 +1261,8 @@ editClick:(function ($) {
 
             $form.on('change', 'input[name="product[sku_type]"]', function () {
                 $.product.onSkuTypeChange(this.value);
+                //$('#s-product-edit-menu li a i.icon10').addClass('status-yellow-tiny');
+                //$('#s-product-edit-save-panel :submit').removeClass('green').addClass('yellow');
             }).change();
 
             $.product.featureSelectableInit();
@@ -1752,7 +1779,28 @@ editClick:(function ($) {
                             // ignore it
                             break;
                         case 'hidden':
-                            // do nothing
+                            // case only change SkuType in Edit Product Page
+                            var $wrapper = $(this).closest('.s-selling-mode');
+
+                            if ($wrapper.length && $(this).attr('data-value')) {
+                                var defvalue = $(this).attr('data-value');
+
+                                if ($(this).attr('disabled')) {
+                                    $(this).attr('data-value', 'empty');
+                                }else{
+                                    $(this).attr('data-value', defvalue);
+                                }
+
+                                if ($(this).attr('data-value') != this.value) {
+                                    changed = true;
+                                    if (update) {
+                                        $(this).attr('data-value', this.value);
+                                    }
+                                    return update || !changed;
+                                }else{
+
+                                }
+                            }
                             break;
                         default:
                             $.shop.error('$.product.checkChangesDelayed unsupported type ' + type, [type, this]);
@@ -1825,6 +1873,8 @@ editClick:(function ($) {
                 table.find('thead tr th.s-sku-sort').hide();
                 table.find('.s-name,.s-sku-sort').hide();
                 table.find('.delete').parent('a').hide();
+                //Reduce the width of the article field (case in one sku in product)
+                table.find('.s-sku-big').removeClass('s-sku-big');
             }
         },
 
@@ -1877,6 +1927,9 @@ editClick:(function ($) {
                     'stock_ids': this.getData('main', 'stock_ids')
                 }, true));
                 $skus.find('.s-product-currency').trigger('change');
+
+                //Increase the width of the article field
+                $skus.find('td.s-sku').addClass('s-sku-big');
 
             } catch (e) {
                 $.shop.error(e.message, e);

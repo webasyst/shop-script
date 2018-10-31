@@ -1,0 +1,188 @@
+{function renderExtraWorkday day=[]}
+    <tr class="js-day-wrapper worked">
+        <td class="min-width"></td>
+        <td>
+            <label>
+                <input data-name="date" class="s-date js-datepicker" autocomplete="off" value="{$day.date|default:null|wa_date|escape}" />
+                <i class="icon16 calendar"></i>
+            </label>
+        </td>
+        <td>
+            [`from`]
+            <input data-name="start_work" class="s-time" type="text" autocomplete="off" value="{$day.start_work|default:null|escape}" placeholder="00:00" />
+            [`to`]
+            <input data-name="end_work" class="s-time" type="text" autocomplete="off" value="{$day.end_work|default:null|escape}" placeholder="23:59" />
+        </td>
+        <td class="align-center">
+            [`to`]
+            <input data-name="end_processing" class="s-time" type="text" autocomplete="off" value="{$day.end_processing|default:null|escape}" placeholder="14:00" />
+        </td>
+        <td>
+            <i class="icon16 no s-remove js-remove"></i>
+        </td>
+    </tr>
+{/function}
+{function renderWeekend date=''}
+    <tr class="js-day-wrapper">
+        <td class="min-width"></td>
+        <td>
+            <label>
+                <input class="s-date js-datepicker js-extra-weekend" autocomplete="off" value="{$date|wa_date|escape}" />
+                <i class="icon16 calendar"></i>
+            </label>
+        </td>
+        <td>
+            <i class="icon16 no s-remove js-remove"></i>
+        </td>
+    </tr>
+{/function}
+
+{$class = 's-settings-schedule-content'}
+{$id = uniqid($class)}
+<div class="{$class} content blank" id="{$id}">
+    <div class="s-settings-form">
+        <form action="?module=settingsScheduleSave">
+            <div class="block double-padded">
+                <h1>[`Operation mode`]</h1>
+
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">[`Timezone`]</div>
+                        <div class="value">
+                            <select name="data[timezone]">
+                                {foreach $timezones as $timezone_id => $info}
+                                    <option value="{$timezone_id}"{if $timezone_id == $timezone} selected{/if}>{$info}</option>
+                                {/foreach}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">[`Order processing schedule`]</div>
+                        <div class="value js-week-wrapper">
+                            <table class="zebra s-week" data-block-name="week" style="max-width: 600px; border: 1px solid #fff;">
+                                <thead class="header">
+                                    <tr>
+                                        <th></th>
+                                        <th>[`Day of the week`]</th>
+                                        <th>[`Open`]</th>
+                                        <th>[`Working hours`]</th>
+                                        <th>[`New orders for processing`]</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {foreach $week as $_day_id => $_day_params}
+                                        {$_work = $_day_params.work}
+                                        <tr class="s-day js-day-wrapper{if $_work} worked{/if}">
+                                            <td></td>
+                                            <td class="s-day-name"><label for="day_{$_day_id}">{$_day_params.name|escape}</label></td>
+                                            <td class="align-center"><input id="day_{$_day_id}" class="js-work" type="checkbox" name="data[week][{$_day_id}][work]"{if $_work} checked{/if}/></td>
+                                            <td class="align-center">
+                                                [`from`]
+                                                <input class="s-time js-time" type="text" autocomplete="off" name="data[week][{$_day_id}][start_work]"{if !$_work} disabled{/if} value="{if $_work}{$_day_params.start_work|escape}{/if}"{if $_work} placeholder="00:00"{/if} data-placeholder="00:00" />
+                                                [`to`]
+                                                <input class="s-time js-time" type="text" autocomplete="off" name="data[week][{$_day_id}][end_work]"{if !$_work} disabled{/if} value="{if $_work}{$_day_params.end_work|escape}{/if}"{if $_work} placeholder="23:59"{/if} data-placeholder="23:59" />
+                                            </td>
+                                            <td class="align-center">
+                                                [`to`]
+                                                <input class="s-time js-time" type="text" autocomplete="off" name="data[week][{$_day_id}][end_processing]"{if !$_work} disabled{/if} value="{if $_work}{$_day_params.end_processing|escape}{/if}"{if $_work} placeholder="14:00"{/if} data-placeholder="14:00" />
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                    {/foreach}
+                                </tbody>
+                            </table>
+
+                            <p class="hint">{sprintf('[`Values of “%s” and “%s” fields can be used to calculate the shipping terms.`]', '[`Working hours`]', '[`New orders for processing`]')}</p>
+                            <p class="hint">{sprintf('[`Values in “%s” column denote the last hour of a workday before which orders are accepted for processing on the same day. Orders accepted after that hour are processed on the next workday.`]', '[`New orders for processing`]')}</p>
+                            <p class="hint">[`The setting is used by default in all storefronts.`]</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">
+                            <label for="processing_time">[`Working hours required to process an order`]</label>
+                        </div>
+                        <div class="value">
+                            <input id="processing_time" class="s-time" type="text" autocomplete="off" name="data[processing_time]" value="{$processing_time|escape}" />
+
+                            <div class="hint" style="margin: 10px 0 5px; max-width: 570px;">[`Is used to calculate order shipping terms. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later.`]</div>
+                            <div class="hint">[`The setting is used by default in all storefronts.`]</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">[`Extra workdays`]</div>
+                        <div class="value js-extra-workdays-wrapper">
+                            <table class="zebra" style="max-width: 475px;">
+                                <thead class="header"{if empty($extra_workdays)} style="display: none;"{/if}>
+                                <tr>
+                                    <th class="min-width"></th>
+                                    <th>[`Date`]</th>
+                                    <th>[`Working hours`]</th>
+                                    <th>[`New orders for processing`]</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody class="js-days-list">
+                                    {foreach $extra_workdays as $_id => $_day}
+                                        {renderExtraWorkday day=$_day}
+                                    {/foreach}
+                                </tbody>
+                            </table>
+                            <div class="block">
+                                <a href="javascript:void(0);" class="inline-link js-add-day" style="margin-left: 5px;">
+                                    <i class="icon16 add"></i>
+                                    <b><i>[`Add day`]</i></b>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">[`Extra weekend`]</div>
+                        <div class="value js-extra-weekends-wrapper">
+                            <table class="zebra" style="max-width: 160px;">
+                                <tbody class="js-days-list">
+                                {foreach $extra_weekends as $_id => $_date}
+                                    {renderWeekend date=$_date}
+                                {/foreach}
+                                </tbody>
+                            </table>
+                            <div class="block">
+                                <a href="javascript:void(0);" class="inline-link js-add-day" style="margin-left: 5px;">
+                                    <i class="icon16 add"></i>
+                                    <b><i>[`Add day`]</i></b>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <input class="button js-submit-button green" type="submit" name="" value="[`Save`]">
+                <i class="icon16 loading js-loading" style="margin: 9px 0 0 6px; display: none;"></i>
+            </div>
+        </form>
+    </div>
+    <div class="clear-both"></div>
+</div>
+<script type="text/javascript" src="{$wa_app_static_url}js/settings/schedule.js?{$wa->version()}"></script>
+<script>
+    (function ($) {
+        new ShopSettingsSchedule({
+            $wrapper: $("#{$id}"),
+            extra_workday_template: {renderExtraWorkday|json_encode},
+            extra_weekend_template: {renderWeekend|json_encode},
+            date_format: {waDateTime::getFormatJs('date')|json_encode}
+        });
+    })(jQuery);
+</script>

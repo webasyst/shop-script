@@ -1,37 +1,48 @@
-<div class="blank">
-
-<div class="sidebar right250px">
-    <div class="block double-padded">
-        <p class="small">
-            <strong>[`Recommended setup`]:</strong>
-            <br /><br />
-            [`For online stores shipping to multiple countries and regions: <em>1.&nbsp;Contact info &rarr; 2.&nbsp;Shipping &rarr; 3.&nbsp;Payment &rarr; 4.&nbsp;Confirmation.</em>`]
-            <br /><br />
-            [`For one-city-centric stores offering mostly courier shipping: <em>1.&nbsp;Shipping &rarr; 2.&nbsp;Contact info &rarr; 3.&nbsp;Payment &rarr; 4.&nbsp;Confirmation</em>`]
-            <br /><br />
-            [`For electronic-delivery-only stores: <em>1.&nbsp;Contact info &rarr; 2.&nbsp;Payment &rarr; 3.&nbsp;Confirmation</em>`]
-            <br /><br />
-            [`Keep the checkout setup as simple as possible.`]
-        </p>
-        <p class="hint">
-            <i class="icon10 exclamation"></i>
-            <strong>[`Shipping & Contacts`].</strong>
-            [`Some shipping options require to know the destination address. If shipping step is before the contact info step (i.e. customer didn't input the address yet), certain shipping options may not calculate shipping rates properly.`]
-        </p>
-        <p class="hint">
-            <i class="icon10 exclamation"></i>
-            <strong>[`Confirmation`].</strong>
-            [`Disabling the Confirmation step is bad if the order total can be changed during the checkout, e.g. if shipping, tax, or promotions can increase the order total. Make sure your customer seen the final order amount before the order is placed.`]
-        </p>
-    </div>
-</div>
-
-<div class="content right250px">
+{* Render checkout settings sidebar *}
+{$checkout_sidebar}
+{if $redirect_hash}
+    <script>location.hash='{$redirect_hash}';</script>
+{/if}
+<div class="s-settings-checkout-content content blank left200px">
     <div class="block double-padded s-settings-form">
-        <h1 style="margin-bottom: 1.3em;">[`Checkout`]</h1>
+        {* TODO: Locale *}
+        <h1 style="margin-bottom: 1.3em;">[`Настройка "Пошагового оформления заказа"`]</h1>
 
-        <h2><i class="icon16 ss cart-bw"></i>[`Storefront`]</h2>
+        <h2><i class="icon16 ss cart-bw"></i> [`Storefront`]</h2>
         <p>[`Define the checkout step order and each step settings using the form below.`]</p>
+        <p>
+            <a href="javascript:void(0);" class="js-checkout-recommendations-link" style="text-decoration: none;">
+                <i class="icon16 info"></i>
+                {* TODO: Locale *}
+                [`Рекомендации по настройке оформления`]
+                <i class="icon16 darr js-arrow" style="margin-top: 2px;"></i>
+            </a>
+        </p>
+        <div class="s-alert s-checkout-recommendations js-checkout-recommendations">
+            <a class="close s-alert-close" href="javascript:void(0);">×</a>
+            <p>
+                <strong>[`For online stores shipping to multiple countries and regions:`]</strong><br>
+                <em>[`1.&nbsp;Contact info &rarr; 2.&nbsp;Shipping &rarr; 3.&nbsp;Payment &rarr; 4.&nbsp;Confirmation.`]</em>
+                <br /><br />
+                <strong>[`For one-city-centric stores offering mostly courier shipping:`]</strong><br>
+                <em>[`1.&nbsp;Shipping &rarr; 2.&nbsp;Contact info &rarr; 3.&nbsp;Payment &rarr; 4.&nbsp;Confirmation`]</em>
+                <br /><br />
+                <strong>[`For electronic-delivery-only stores:`]</strong><br>
+                <em>[`1.&nbsp;Contact info &rarr; 2.&nbsp;Payment &rarr; 3.&nbsp;Confirmation`]</em>
+                <br /><br />
+                [`Keep the checkout setup as simple as possible.`]
+            </p>
+            <p class="gray">
+                <i class="icon10 exclamation"></i>
+                <strong>[`Shipping & Contacts`].</strong>
+                [`Some shipping options require to know the destination address. If shipping step is before the contact info step (i.e. customer didn't input the address yet), certain shipping options may not calculate shipping rates properly.`]
+            </p>
+            <p class="gray">
+                <i class="icon10 exclamation"></i>
+                <strong>[`Confirmation`].</strong>
+                [`Disabling the Confirmation step is bad if the order total can be changed during the checkout, e.g. if shipping, tax, or promotions can increase the order total. Make sure your customer seen the final order amount before the order is placed.`]
+            </p>
+        </div>
         <table id="checkout-steps" class="s-big-table">
         {foreach $steps as $step_id => $step}
         <tr {if !$step.status}class="disabled"{/if} id="step-{$step_id}" data-step-id="{$step_id}">
@@ -127,185 +138,9 @@
             </script>
         </div>
     </div>
-    <div class="block double-padded">
-        <h2><i class="icon16 lock-bw"></i>[`Backend`]</h2>
-        <div class="fields form">
-            <div class="field">
-                <div class="name">[`Required fields validation`]</div>
-                <div class="value s-ibutton-checkbox no-shift">
-                    <ul class="menu-h">
-                        <li><span {if empty($disable_backend_customer_form_validation)} class="gray"{/if} id="s-toggle-backend-validation-disabled-label">[`Disabled`]</span></li>
-                        <li>
-                            <input type="checkbox" id="s-toggle-backend-validation-status" name="enabled" value="1"{if empty($disable_backend_customer_form_validation)} checked{/if}>
-                        </li>
-                        <li><span id="s-toggle-backend-validation-enabled-label" {if !empty($disable_backend_customer_form_validation)} class="gray"{/if}>[`Enabled`]</span></li>
-                    </ul>
-                </div>
-                <div class="value description"{if empty($disable_backend_customer_form_validation)} style="display:none"{/if}>
-                    <!-- enabled -->
-                    <p class="small">[`When a new order is created via backend manually, contact info form will not be validated. Fields which are necessary to fill in when order is placed in the storefront, can be left blank when order is created via backend.`]</p>
-                </div>
-                <div class="value description"{if !empty($disable_backend_customer_form_validation)} style="display:none"{/if}>
-                    <!-- disabled -->
-                    <p class="small">[`When a new order is created via backend manually, contact info form will be validated according the Contact info form setup defined for the storefront (above). All required fields will be necessary to fill in.`]</p>
-                </div>
-                <div class="value saved" style="opacity:0;">
-                    <i class="icon16 yes"></i> [`Saved`]
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="block double-padded">
-        <h2>[`Anti-spam`]</h2>
-        {$enable_checkout_antispam_filters = $checkout_antispam}
-        <form id="s-checkout-antispam-form" method="post" action="?module=settingsCheckoutSave&action=antispam">
-        <div class="fields form">
-            <div class="field">
-                <div class="name">[`Checkout anti-spam filter`]</div>
-                <div class="value s-ibutton-checkbox no-shift">
-                    <ul class="menu-h">
-                        <li><span {if !empty($enable_checkout_antispam_filters)} class="gray"{/if} id="s-toggle-checkout-antispam-disabled-label">[`Disabled`]</span></li>
-                        <li>
-                            <input type="checkbox" id="s-toggle-checkout-antispam-status" name="enabled" value="1"{if !empty($enable_checkout_antispam_filters)} checked{/if}>
-                        </li>
-                        <li><span id="s-toggle-checkout-antispam-enabled-label" {if !!empty($enable_checkout_antispam_filters)} class="gray"{/if}>[`Enabled`]</span></li>
-                    </ul>
-                </div>
-                <div class="value description antispam-enabled"{if empty($enable_checkout_antispam_filters)} style="display:none"{/if}>
-                    <!-- enabled -->
-                    <p class="small">[`Checkout anti-spam filtering is seamless for real customers and will automatically reject spammy orders placed by robots.`]</p>
-
-                    <div class="fields form width100px">
-                        <div class="field">
-                            <div class="name">[`Alerts on rejected checkout attempts`]</div>
-                            <div class="value">
-                                <input name="email" type="email" placeholder="your@email.here" value="{$checkout_antispam_email|escape}" class="long">
-                            </div>
-                            <div class="value">
-                                <span class="hint">[`Enable alerts on spammy checkout attempts to make sure none of real orders were rejected by the anti-spam filter.`]</span>
-                            </div>
-                        </div>
-                        <div class="field">
-                            <div class="name">[`Captcha`]</div>
-                            <div class="value no-shift">
-                                <label><input name="captcha" value="1" type="checkbox"{if $checkout_antispam_captcha} checked{/if}> [`Enable captcha for checkout (not required)`]</label>
-                            </div>
-                            <div class="value">
-                                <span class="hint">[`Optional. Enable checkout captcha when seamless anti-spam protection is not enough.`]</span>
-                            </div>
-                        </div>
-                        <div class="field">
-                            <div class="value no-shift submit">
-                                <label><input type="submit" class="button green" value="[`Save`]"></label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="clear-both"></div>
-                </div>
-                <div class="value description antispam-disabled"{if !empty($enable_checkout_antispam_filters)} style="display:none"{/if}>
-                    <!-- disabled -->
-                    <p class="hint">[`If your store is under spammers attack and you receive lots of fraudulent orders placed by robots, protect the checkout routine with seamless anti-spam filtering. This will automatically filter all spam and save genuine orders only.`]</p>
-                </div>
-                <div class="value saved" style="opacity:0;">
-                    <i class="icon16 yes"></i> [`Saved`]
-                </div>
-            </div>
-        </div>
-        </form>
-    </div>
-
-    <div class="block double-padded">
-        <h2>[`Web push notifications`]</h2>
-        {if !$web_push->isBrowserSupported()}
-            <div class="block not-padded">
-                <p>
-                    <i class="icon16 exclamation"></i>
-                    [`Your browser doesn't support web push technology.`]
-                    <br>
-                    [`However, you can configure web push notifications so that users with supported browsers can receive them.`]
-                    <br>
-                    [`Check <a target="_blank" href="https://documentation.onesignal.com/docs/website-sdk-overview">web push documentation</a> for the list of supported browsers.`]
-                </p>
-            </div>
-        {/if}
-        <div class="fields form">
-            {$domain = $web_push->getDomain()}
-            {$manifest = $web_push->getManifest()}
-            {$is_active = $web_push->isActive()}
-            {$is_allowed = $web_push->isAllowed()}
-            <form id="s-checkout-web-push-form" method="post" action="?module=settingsCheckoutSave&action=webpush">
-                <div class="field">
-                    <div class="name">{waIdna::dec($domain)}</div>
-
-                    <div class="value s-ibutton-checkbox no-shift">
-
-                        {if !$is_allowed}
-                            <i class="icon10 exclamation"></i> [`This domain does not support push notifications. Ensure that an SSL certificate is installed for the domain name.`]
-                        {else}
-                            <ul class="menu-h">
-                                <li><span {if !$is_active} class="gray"{/if} id="s-toggle-web-push-disabled-label">[`Disabled`]</span></li>
-                                <li>
-                                    <input type="checkbox" id="s-toggle-web-push-active" name="web_push_settings[active]" value="1" {if $is_active}checked="checked"{/if}>
-                                </li>
-                                <li><span id="s-toggle-web-push-enabled-label" {if $is_active} class="gray"{/if}>[`Enabled`]</span></li>
-                            </ul>
-                        {/if}
-
-                    </div>
-
-                    {if $is_allowed}
-
-                        <div id="s-web-push-enabled-block" class="value s-web-push-settings" {if !$is_active}style="display: none"{/if}>
-                            <p class="small">{sprintf('[`User manual on setting up web push notifications: <a href="%s" target="_blank">%s</a>.`]','[`http://www.shop-script.com/help/13536/push-notifications/`]','[`http://www.shop-script.com/help/13536/push-notifications/`]')}</p>
-                            <div class="fields form">
-                            <div class="field">
-                                <div class="name">[`Short company name`]</div>
-                                <div class="value">
-                                    <input type="text" name="web_push_settings[manifest][short_name]" value="{$manifest.short_name|default:''}">
-                                </div>
-                            </div>
-                            <div class="field">
-                                <div class="name">[`Safari Web ID`]</div>
-                                <div class="value">
-                                    <input type="text" name="web_push_settings[safari_web_id]" value="{$web_push->getSafariWebId()}">
-                                </div>
-                            </div>
-                            <div class="field">
-                                <div class="name">[`OneSignal App ID`]</div>
-                                <div class="value">
-                                    <input type="text" name="web_push_settings[app_id]" value="{$web_push->getAppId()}">
-                                </div>
-                            </div>
-                            <div class="field">
-                                <div class="name">[`REST API Key`]</div>
-                                <div class="value">
-                                    <input type="text" name="web_push_settings[rest_api_key]" value="{$web_push->getRestApiKey()}">
-                                </div>
-                            </div>
-                            <div class="field buttons">
-                                <div class="value">
-                                    <input type="submit" class="button green" value="[`Save`]">
-                                    <i class="icon16 loading" style="display: none"></i>
-                                    <i class="icon16 yes" style="display: none"></i>
-                                </div>
-                            </div>
-                            </div>
-                        </div>
-
-                        <div id="s-web-push-disabled-block" class="value" {if $is_active}style="display: none"{/if}>
-                            <p class="hint">[`Enable web push notifications for your browser to get notified on new orders on your computer screen.`]</p>
-                        </div>
-
-                    {/if}
-                </div>
-            </form>
-        </div>
-    </div>
 
     <div class="clear-both"></div>
 </div>
-
-</div>{* .blank *}
 
 <script type="text/javascript" src="{$wa_app_static_url}js/settings/checkout.js?{$wa->version()}"></script> {* !!! move to layout? *}
 <script type="text/javascript">
@@ -316,86 +151,4 @@
             saved: "[`Saved`]"
         }
     });
-
-    $('#s-toggle-checkout-antispam-status').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change(function() {
-        if (this.checked) {
-            $('#s-toggle-checkout-antispam-disabled-label').addClass('gray');
-            $('#s-toggle-checkout-antispam-enabled-label').removeClass('gray');
-            $('.antispam-enabled').show();
-            $('.antispam-disabled').hide();
-        } else {
-            $('#s-toggle-checkout-antispam-disabled-label').removeClass('gray');
-            $('#s-toggle-checkout-antispam-enabled-label').addClass('gray');
-            $('.antispam-enabled').hide();
-            $('.antispam-disabled').show();
-        }
-        $('#s-checkout-antispam-form').submit();
-    });
-
-    $('#s-checkout-antispam-form').submit(function () {
-        var self = $(this);
-        $.post(self.attr('action'), self.serialize(), function (response) {
-            setTimeout(function () {
-                self.find('.value.saved').animate({ 'opacity': 0.8}, 200).delay(500).animate({ 'opacity': 0}, 800);
-            }, 400);
-        }, 'json');
-        return false;
-    });
-
-    // Logic for backend validation iButton
-    $('#s-toggle-backend-validation-status').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change(function() {
-        var self = $(this);
-        self.closest('.value').siblings('.value.description').toggle();
-        if (this.checked) {
-            $('#s-toggle-backend-validation-disabled-label').addClass('gray');
-            $('#s-toggle-backend-validation-enabled-label').removeClass('gray');
-        } else {
-            $('#s-toggle-backend-validation-disabled-label').removeClass('gray');
-            $('#s-toggle-backend-validation-enabled-label').addClass('gray');
-        }
-        $.post('?module=settingsCheckoutSave&action=backendCustomerFormValidation', { enable: self.is(':checked') ? '1' : '0' }, function() {
-            setTimeout(function(){
-                self.closest('.value').siblings('.value.saved').animate({ 'opacity': 0.8 }, 200).delay(500).animate({ 'opacity': 0 }, 800);
-            }, 400);
-        });
-    });
-
-    // web push active trigger
-    (function () {
-
-        var save = function (animate) {
-            var $form = $('#s-checkout-web-push-form');
-            animate && $form.find('.buttons .loading').show();
-            $.post($form.attr('action'), $form.serialize(), function () {
-                if (animate) {
-                    $form.find('.buttons .loading').hide();
-                    $form.find('.buttons .yes').show();
-                    setTimeout(function () {
-                        $form.find('.buttons .yes').hide();
-                    }, 400);
-                }
-            });
-        };
-
-        $('#s-toggle-web-push-active').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change(function() {
-            if (this.checked) {
-                $('#s-toggle-web-push-disabled-label').addClass('gray');
-                $('#s-toggle-web-push-enabled-label').removeClass('gray');
-                $('#s-web-push-disabled-block').hide();
-                $('#s-web-push-enabled-block').show();
-            } else {
-                $('#s-toggle-web-push-disabled-label').removeClass('gray');
-                $('#s-toggle-web-push-enabled-label').addClass('gray');
-                $('#s-web-push-enabled-block').hide();
-                $('#s-web-push-disabled-block').show();
-            }
-            save(false);
-        });
-
-        $('#s-checkout-web-push-form').submit(function () {
-            save(true);
-            return false;
-        });
-    })();
-
 </script>

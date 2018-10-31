@@ -135,6 +135,8 @@ class shopFrontendCheckoutAction extends waViewAction
             $order['params'] = $order_params_model->get($order_id);
             $order_items_model = new shopOrderItemsModel();
             $order['items'] = $order_items_model->getByField('order_id', $order_id, true);
+            shopOrderItemsModel::sortItemsByGeneralSettings($order['items']);
+
             $payment = '';
             if (!empty($order['params']['payment_id'])) {
                 try {
@@ -474,7 +476,7 @@ class shopFrontendCheckoutAction extends waViewAction
         }
     }
 
-    protected static function determineStockIds($order)
+    public static function determineStockIds($order)
     {
         $stock_rules_model = new shopStockRulesModel();
         $rules = $stock_rules_model->getRules();

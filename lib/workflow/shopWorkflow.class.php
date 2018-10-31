@@ -70,6 +70,7 @@ class shopWorkflow extends waWorkflow
             $original_actions = ifset($original_config['actions'], array());
             foreach ($config['actions'] as $action_id => &$action) {
                 $action['original'] = isset($original_actions[$action_id]);
+                $action['plugin'] = !preg_match('@^shopWorkflow\w+Action$@', $action['classname']);
             }
             unset($action);
         }
@@ -143,5 +144,33 @@ class shopWorkflow extends waWorkflow
             $count += 1;
         }
         return $id;
+    }
+
+    public static function getExtendsActions()
+    {
+        //TODO add descriptions; manage available actions (use only predefined)
+        return array(
+            'process'       =>  array(
+                'name' => sprintf(_w('“%s” action'), _w('Process')),
+            ),
+            'pay'       =>  array(
+                'name' => sprintf(_w('“%s” action'), _w('Paid')),
+            ),
+            'ship'    =>  array(
+                'name' => sprintf(_w('“%s” action'), _w('Sent')),
+            ),
+            'refund'    =>  array(
+                'name' => sprintf(_w('“%s” action'), _w('Refund')),
+            ),
+            'delete'    =>  array(
+                'name' => sprintf(_w('“%s” action'), _w('Delete')),
+            ),
+            'restore'       =>  array(
+                'name' => sprintf(_w('“%s” action'), _w('Restore')),
+            ),
+            'complete'  =>  array(
+                'name' => sprintf(_w('“%s” action'), _w('Mark as Completed')),
+            ),
+        );
     }
 }

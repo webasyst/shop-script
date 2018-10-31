@@ -9,6 +9,8 @@
  * @property-read string $html Color icon and name
  * @property-read string $icon HTML colorized icon
  * @property-read string $style CSS style for element
+ *
+ * @property-read array row request rows
  * @property string $value Color name
  * @property int $code
  */
@@ -19,14 +21,16 @@ class shopColorValue implements ArrayAccess
     const CMYK = 'cmyk';
     const HSV = 'hsv';
 
+    private $row;
+
     private $code;
     private $value;
-    private $id;
-    private $sort;
     private $internal_data;
 
     public function __construct($row)
     {
+        $this->row = $row;
+
         foreach ($row as $field => $value) {
             $this->{$field} = $value;
         }
@@ -86,18 +90,21 @@ class shopColorValue implements ArrayAccess
     }
 
     /**
-     * Returns properties of current color object: id, code, value, sort order.
+     * Returns rows from the constructor
      *
      * @return array
      */
     public function getRaw()
     {
-        return array(
-            'id'    => $this->id,
-            'code'  => $this->code,
-            'value' => $this->value,
-            'sort'  => $this->sort,
-        );
+        $raws = array();
+
+        if (!empty($this->row)) {
+            foreach ($this->row as $row => $data) {
+                $raws[$row] = $this->{$row};
+            }
+        }
+
+        return $raws;
     }
 
     private static function getColors($locale = null)
@@ -288,7 +295,6 @@ class shopColorValue implements ArrayAccess
         }
         return $value;
     }
-
 
     public function offsetGet($offset)
     {

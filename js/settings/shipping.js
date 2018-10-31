@@ -14,7 +14,7 @@ if (typeof($) != 'undefined') {
 
         shipping_options: {
             null: null,
-            loading: 'Loading...<i class="icon16 loading"><i>'
+            loading: $_('Loading')+'...<i class="icon16 loading"><i>'
         },
         /**
          * Init section
@@ -57,6 +57,11 @@ if (typeof($) != 'undefined') {
                 }
             });
 
+            $('#s-settings-shipping-params').on('submit', 'form', function () {
+                var $this = $(this);
+                return self.shippingParamsSave($this);
+            });
+
         },
 
         shipping_data: {
@@ -86,8 +91,13 @@ if (typeof($) != 'undefined') {
                 this[method.name].apply(this, method.params);
             } else {
                 var $content = $('#s-settings-content');
+                $content.find('#s-settings-shipping-params').show();
+                $content.find('#s-settings-shipping-rounding').show();
                 $content.find('#s-shipping-menu').show();
                 $content.find('#s-settings-shipping').show();
+
+
+                $content.find('#s-settings-shipping #s-settings-shipping-params div.field-group').slideUp();
                 $('#s-settings-shipping-setup').html(this.shipping_options.loading).hide();
                 $content.find('h1.js-bread-crumbs:not(:first)').remove();
                 $content.find('h1:first').show();
@@ -113,6 +123,75 @@ if (typeof($) != 'undefined') {
                 $.shop.error('Error occurred while sorting shipping plugins', 'error');
                 return false;
             });
+        },
+
+        shippingParams: function () {
+            var $content = $('#s-settings-content #s-settings-shipping-params');
+            $content.find('div.field-group').each(function (index, elem) {
+                var $elem = $(elem);
+                if ($elem.is(':visible')) {
+                    $elem.slideUp();
+                } else {
+                    $elem.slideDown();
+                }
+            });
+        },
+
+        /**
+         * @param {jQuery} $form
+         */
+        shippingParamsSave: function ($form) {
+            var self = this;
+            var url = '?module=settings&action=shippingSave';
+            self.shippingHelper.message('submit', null, $form);
+            var $submit = $form.find(':submit').prop('disabled', true);
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: $form.serialize(),
+                dataType: 'json',
+                success: function (data, textStatus, jqXHR) {
+                    if (data && (data.status == 'ok')) {
+                        var message = 'Saved';
+                        if (data.data && data.data.message) {
+                            message = data.data.message;
+                        }
+                        if(data.data.params){
+                            var params = data.data.params;
+                            for(var param in params){
+                                $('.js-shipping-'+param).each(
+                                    function(){
+                                        var $param = $(this);
+                                        if($param.data('state')==params[param]){
+                                            $param.show();
+                                        } else {
+                                            $param.hide();
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                        self.shippingHelper.message('success', message, $form);
+                        setTimeout(function () {
+                            $('#s-settings-content #s-settings-shipping-params div.field-group').slideUp();
+                        }, 1000);
+                    } else {
+                        self.shippingHelper.message('error', data.errors || [], $form);
+                    }
+                },
+                error: function (jqXHR, errorText) {
+                    self.shippingHelper.message(
+                        'error',
+                        [[errorText]],
+                        $form
+                    );
+
+                },
+                complete: function () {
+                    $submit.prop('disabled', false);
+                }
+            });
+            return false;
         },
 
         shippingPluginAdd: function (plugin_id, $el) {
@@ -145,6 +224,8 @@ if (typeof($) != 'undefined') {
         shippingPluginShow: function (plugin_id, callback) {
             var $content = $('#s-settings-content');
             $content.find('#s-shipping-menu').hide();
+            $content.find('#s-settings-shipping-params').hide();
+            $content.find('#s-settings-shipping-rounding').hide();
             var $plugins = $content.find('#s-settings-shipping');
             $plugins.hide();
             var url = '?module=settings&action=shippingSetup&plugin_id=' + plugin_id;
@@ -267,10 +348,10 @@ if (typeof($) != 'undefined') {
                 success: '<i style="vertical-align:middle" class="icon16 yes"></i>',
                 error: '<i style="vertical-align:middle" class="icon16 no"></i>'
             },
-            message: function (status, message) {
+            message: function (status, message, $container) {
                 /* enable previos disabled inputs */
 
-                var $container = $('#settings-shipping-form-status');
+                $container = $container ? $container.find('.js-form-status:first') : $('#settings-shipping-form-status');
                 $container.empty().show();
                 var $parent = $container.parents('div.value');
                 $parent.removeClass('errormsg successmsg status');

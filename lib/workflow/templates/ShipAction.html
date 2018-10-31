@@ -30,7 +30,7 @@
     <span class="shipping-time-to-fields">
         <label>[`to `] <input type="text" name="shipping_time_to" data-time-format="H:i" value="{$shipping_time_end|escape}"></label>
     </span>
-
+    <span class="hint">[`specify date and time`]</span>
     {if $customer_delivery_date || $customer_delivery_date_str || $customer_delivery_time}
         <br><br>
         [`Preferred shipping time:`]
@@ -47,11 +47,8 @@
             -
             <span class="customer-delivery-time-to">{$customer_delivery_time.to_hours|escape}:{$customer_delivery_time.to_minutes|escape}</span>
         {/if}
-        {if $customer_delivery_date}
             <a href="javascript:void(0)" class="small inline-link use-customer-delivery-time-link"><b>[`apply`]</b></a>
-        {/if}
     {/if}
-
     {if $couriers}
         <br><br>
         <label>[`Courier`]:

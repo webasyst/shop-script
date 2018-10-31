@@ -57,6 +57,12 @@ class shopProductsCollection
             $this->options['round_prices'] = $this->is_frontend;
         }
         $this->setHash($hash);
+
+        /**
+         * @event products_collection.filter
+         * @param array shopProductsCollection $this
+         */
+        wa()->event('products_collection.filter', $this);
     }
 
     /**
@@ -118,7 +124,7 @@ class shopProductsCollection
                     // We use main SKU price if it's not filtered out;
                     // otherwise min of all remaining SKU prices.
                     $sku_price = 'MIN(ps1.primary_price)';
-                    $main_sku_price = 'MAX(IF(ps1.id=p.id, ps1.primary_price, -1))';
+                    $main_sku_price = 'MAX(IF(ps1.id=p.sku_id, ps1.primary_price, -1))';
                     $main_sku_exists = '-1 < '.$main_sku_price;
                     $this->order_by = "IF($main_sku_exists, $main_sku_price, $sku_price) $order";
 
@@ -507,6 +513,11 @@ SQL;
             }
             $this->setHash(implode('/', $hash));
         }
+
+        //Group by faster than DISTINCT
+        if (empty($this->group_by)) {
+            $this->group_by = 'p.id';
+        }
     }
 
     /**
@@ -609,6 +620,12 @@ SQL;
         }
     }
 
+
+    /**
+     * @param $query
+     * @return array
+     * @see how it work in waContactsCollection::searchPrepare
+     */
     public static function parseConditions($query)
     {
         $escapedBS = 'ESCAPED_BACKSLASH';
@@ -632,7 +649,7 @@ SQL;
                 if ($name == 'tag') {
                     $temp[1] = explode('||', $temp[1]);
                 }
-                if ($name != 'price') {
+                if ($name != 'price' && $temp[0] != '>=' && $temp[0] != '<=') {
                     $result[$name] = $temp;
                 } else {
                     if ($temp[0] == '>=') {
@@ -696,7 +713,7 @@ SQL;
                         $v = isset($product['features'][$row['feature']]) ? $product['features'][$row['feature']] : null;
                     }
                     if (!$v) {
-                        continue;
+                        continue 2;
                     }
                     $min = $v * (float)(100 + $min) / 100;
                     $max = $v * (float)(100 + $max) / 100;
@@ -830,7 +847,9 @@ SQL;
         $query_parts[] = str_replace('\&', '&', substr($query, $i));
 
         $model = $this->getModel();
-        $title = array();
+        $title = [];
+        $range_collection = [];
+
         foreach ($query_parts as $part) {
             if (!($part = trim($part))) {
                 continue;
@@ -956,21 +975,76 @@ SQL;
                     /**
                      * @var shopFeatureModel $feature_model
                      */
-                    $f = $feature_model->getByCode($code);
-                    if ($f) {
+                    $feature = $feature_model->getByCode($code);
+                    if ($feature) {
                         if ($is_value_id) {
-                            $value_id = $parts[2];
+                            $value_id = array_map('intval', preg_split('@[,\s]+@', $parts[2]));
+                            $values_id = $value_id;
+                            $value_id = implode(', ', $value_id);
                         } else {
-                            $values_model = $feature_model->getValuesModel($f['type']);
-                            $value_id = $values_model->getValueId($f['id'], $parts[2]);
+                            $values_model = $feature_model->getValuesModel($feature['type']);
+                            $value_id = (int) $values_model->getValueId($feature['id'], $parts[2]);
+                            $values_id = [$value_id];
                         }
-                        $this->addJoin('shop_product_features', null, ':table.feature_id = '.$f['id'].' AND :table.feature_value_id = '.(int)$value_id);
-                        $this->filtered_by_features[$f['id']] = array($value_id);
+
+                        $this->addJoin('shop_product_features', null, ':table.feature_id = '.$feature['id'].' AND :table.feature_value_id IN ('.$value_id.')');
+                        $this->filtered_by_features[$feature['id']] = $values_id;
                         $this->group_by = 'p.id';
+                    }
+                } elseif ($parts[1] == '<=' || $parts[1] == '>=') {
+                    $range_collection[$parts[0]][] = $parts;
+                }
+            }
+        }
+
+        if ($range_collection) {
+            foreach ($range_collection as $code => $ranges) {
+                $begin = $end = null;
+
+                if (substr($code, -9) == '.value_id') {
+                    $code = substr($code, 0, -9);
+                }
+
+                $feature_model = $this->getModel('feature');
+                $feature = $feature_model->getByCode($code);
+
+                if ($feature) {
+                    foreach ($ranges as $range) {
+                        if ($range[1] == '<=') {
+                            $end[] = (int)$range[2];
+                        } elseif ($range[1] == '>=') {
+                            $begin[] = (int)$range[2];
+                        }
+                    }
+
+                    $where = ['feature_id = i:feature_id'];
+                    $where_placeholder =  ['feature_id' => $feature['id']];
+                    if ($end) {
+                        $where[] = 'end <= i:end';
+                        $where_placeholder['end'] = max($end);
+                    } else {
+                        $where[] = 'begin >= i:begin';
+                        $where_placeholder['begin'] = min($begin);
+                    }
+                    $where = join(' AND ', $where);
+
+                    $feature_range_model = new shopFeatureValuesRangeModel();
+                    $range_ids = $feature_range_model->select('id')
+                                                     ->where($where, $where_placeholder)
+                                                     ->fetchAll('id');
+                    if ($range_ids) {
+                        $value_ids = join(', ', array_keys($range_ids));
+
+                        $this->addJoin('shop_product_features', null, ':table.feature_id = '.$feature['id'].' AND :table.feature_value_id IN ('.$value_ids.')');
+                        $this->filtered_by_features[$feature['id']] = array_keys($range_ids);
+                        $this->group_by = 'p.id';
+                    } else {
+                        $this->addJoin('shop_product_features', null, '1=0');
                     }
                 }
             }
         }
+
         if ($title) {
             $title = implode(', ', $title);
             // Strip slashes from search title.
@@ -1218,10 +1292,21 @@ SQL;
      * Returns product selection SQL query
      *
      * @return string
+     * @throws waException
      */
     public function getSQL()
     {
         $this->prepare();
+
+        /**
+         * Products collection after prepare
+         *
+         * @event products_collection.prepared
+         * @param shopProductsCollection $this
+         */
+        wa()->event('products_collection.prepared', $this);
+
+
         $sql = "FROM shop_product p";
 
         if ($this->joins) {
@@ -1681,7 +1766,6 @@ SQL;
                             $values = array_filter($values, 'wa_is_int');
                             $feature_conditions[] = "(feature_id = ".((int)$feature_id)." AND feature_value_id IN (".join(',', $values)."))";
                         }
-                        $feature_conditions = join("\n\tOR ", $feature_conditions);
 
                         if ($feature_conditions) {
 
@@ -1689,7 +1773,7 @@ SQL;
                             $sql = "SELECT *
                                     FROM shop_product_features
                                     WHERE product_id IN (".join(',', array_keys($products)).")
-                                        AND ({$feature_conditions})";
+                                        AND (".join("\n\tOR ", $feature_conditions).")";
                             foreach($this->getModel()->query($sql) as $row) {
                                 if (!empty($row['sku_id'])) {
                                     if (!empty($skus[$row['sku_id']])) {
@@ -2049,6 +2133,10 @@ SQL;
                 }
 
                 // For each product calculate counts with respect to $public_stocks visible in current storefront.
+                // When product does not use stocks, and actual counts are stored in sku.count,
+                // this logic returns null (infinity). This is not currently considered a bug.
+                // Storefront limited by main stock should not list products that does not use stocks.
+                // See also: shopCartItemsModel->checkAvailability()
                 if (!empty($public_stocks)) {
                     $products[$p_id]['count'] = $this->countOfSelectedStocks($public_stocks, ifempty($stock_counts, $p_id, null));
                 }
@@ -2397,6 +2485,7 @@ SQL;
      *     feature2_id => array(feature2_value1_id, feature2_value2_id, ...),
      *     ...
      * )
+     * @throws waException
      */
     public function getFeatureValueIds($filtered = true)
     {

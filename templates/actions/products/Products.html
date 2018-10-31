@@ -199,16 +199,20 @@
                         <ul class="menu-v with-icon">
                             {strip}
                             {if $manual}
+                                {if !isset($info['subcategories'])}
+                                    <li class="sort">
+                                        <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=sort" class="no-underline {if $sort == 'sort'}selected{/if}">
+                                            [`manual`]
+                                        </a>
+                                    </li>
+                                {/if}
+                            {/if}
+                            {if !isset($info['subcategories'])}
                                 <li class="sort">
-                                    <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=sort" class="no-underline {if $sort == 'sort'}selected{/if}">
-                                        [`manual`]
-                                    </a>
+                                    <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=name&order={if $order == 'asc' && $sort=='name'}desc{else}asc{/if}" class="no-underline {if $sort=='name'}selected{/if}">[`name`]</a>
+                                    {if $sort=='name'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
                                 </li>
                             {/if}
-                            <li class="sort">
-                                <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=name&order={if $order == 'asc' && $sort=='name'}desc{else}asc{/if}" class="no-underline {if $sort=='name'}selected{/if}">[`name`]
-                                </a>{if $sort=='name'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
-                            </li>
                             <li class="sort">
                                 <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=price&order={if $order == 'asc' && $sort=='price'}desc{else}asc{/if}" class="no-underline {if $sort=='price'}selected{/if}">[`price`]
                                 </a>{if $sort=='price'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
@@ -306,7 +310,7 @@
         </div>
         {else}
             {if isset($pages_count) && $pages_count > 1}
-                <div class="block pagination">
+                <div class="block pagination s-product-list-paginations">
                     {wa_pagination total=$pages_count attrs=['class' => "menu-h"] url="#" nb=3}
                 </div>
             {/if}

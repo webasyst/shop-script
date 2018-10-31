@@ -28,7 +28,7 @@ abstract class shopApiMethod extends waAPIMethod
         if (!$internal && $this->courier) {
             if (!$this->courier_allowed) {
                 throw new waAPIException('access_denied', 'Access denied to limited courier token.', 403);
-            } else if (!$this->courier['enabled']) {
+            } elseif (!$this->courier['enabled']) {
                 throw new waAPIException('invalid_token', 'Access token has expired', 401);
             }
         }

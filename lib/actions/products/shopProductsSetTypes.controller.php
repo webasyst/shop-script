@@ -25,31 +25,60 @@ class shopProductsSetTypesController extends waJsonController
         }
 
         $hash = waRequest::post('hash', '', waRequest::TYPE_STRING_TRIM);
-        if (!$hash) {
-            $product_ids = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
-            $product_ids = $this->product_model->filterAllowedProductIds($product_ids);
-            if (!$product_ids) {
-                return;
-            }
-            $this->product_model->updateType($product_ids, $type_id);
+        $products_id = null;
 
-            $this->response['types'] = $this->type_model->getTypes();
-        } else if (substr($hash, 0, 5) != 'type/') {
+        if (!$hash) {
+            $products_id = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
+            $hash = 'id/'.join(',', $products_id);
+        }
+
+        /**
+         * Attaches a product to the types. Get data before changes
+         *
+         * @param array[string]int $products_id[%id][id] Product id(s)
+         * @param string $type_id product type id
+         * @param string $hash Collection Hash
+         * @event products_types_set.before
+         */
+        $params = array(
+            'type_id'     => $type_id,
+            'products_id' => $products_id,
+            'hash'        => $hash,
+        );
+        wa('shop')->event('products_types_set.before', $params);
+
+        if (substr($hash, 0, 5) != 'type/') {
             $collection = new shopProductsCollection($hash);
             $offset = 0;
             $count = 100;
             $total_count = $collection->count();
             while ($offset < $total_count) {
-                $ids = array_keys($collection->getProducts('*', $offset, $count));
-                $filtered = $this->product_model->filterAllowedProductIds($ids);
+                $products_id = array_keys($collection->getProducts('*', $offset, $count));
+                $filtered = $this->product_model->filterAllowedProductIds($products_id);
                 $this->product_model->updateType($filtered, $type_id);
-                $offset += count($ids);
+                $offset += count($products_id);
             }
-            $this->response['types'] = $this->type_model->getTypes();
         } else {
             $this->product_model->changeType(substr($hash, 5), $type_id);
-            $this->response['types'] = $this->type_model->getTypes();
         }
+
+        /**
+         * Attaches a product to the types
+         *
+         * @param array[string]int $products_id[%id][id] Product id(s)
+         * @param string $type_id product type id
+         * @param hash $hash Collection Hash
+         * @event products_types_set.after
+         */
+        $params = array(
+            'type_id'     => $type_id,
+            'products_id' => $products_id,
+            'hash'        => $hash,
+        );
+        wa('shop')->event('products_types_set.after', $params);
+
+        $this->response['types'] = $this->type_model->getTypes();
+
     }
 
     public function getType()

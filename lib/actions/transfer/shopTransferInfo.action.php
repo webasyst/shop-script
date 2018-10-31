@@ -5,8 +5,24 @@ class shopTransferInfoAction extends waViewAction
     public function execute()
     {
         $transfer = $this->getTransfer();
-        $this->view->assign(array(
+
+        /**
+         * Show Transfer info
+         *
+         * @param array $transfer Extend transfer info
+         *
+         * @event backend_stocks.transfer_info
+         */
+        $params = array(
             'transfer' => $transfer,
+        );
+
+        $backend_stocks_hook = wa('shop')->event('backend_stocks.transfer_info', $params);
+        $this->view->assign('backend_stocks_hook', $backend_stocks_hook);
+
+
+        $this->view->assign(array(
+            'transfer'       => $transfer,
             'printable_docs' => $this->getTransferPrintForms($transfer)
         ));
     }

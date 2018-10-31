@@ -1,0 +1,60 @@
+{$_class = 's-settings-checkout-sidebar'}
+{$_id = uniqid($_class)}
+{$_new_checkouts = $storefronts.2}
+{$_old_checkouts = $storefronts.1}
+
+<div class="{$_class} sidebar left200px" id="{$_id}">
+    <div class="block padded hint" style="line-height: 14px;">
+        {sprintf(_w('"<i class="icon16 status-green-tiny"></i>Оформление заказа в корзине" или "<i class="icon16 status-blue-tiny"></i>Пошаговое оформление заказа" выбирается в <a href="%s" target="_blank">настройках Витрины</a> <i class="icon10 new-window"></i> отдельно для каждой витрины.'), "?action=storefronts#/design/action=settings")}
+    </div>
+
+    <h5 class="heading js-list-header" data-version="2">
+        <span class="table-cell"><i class="icon16 darr"></i></span>
+        <a class="table-cell" href="javascript:void(0);">[`Оформление заказа в&nbsp;корзине`]&nbsp;({$_new_checkouts|count})</a>
+    </h5>
+    <ul class="menu-v js-storefronts-list" data-version="2">
+        {* Routes with new checkout *}
+        {foreach $_new_checkouts as $_route}
+            {$_domain = waIdna::dec($_route.domain)}
+            {$_url = "`$_domain`/`$_route.url|escape`"}
+            <li class="s-domain-item" data-domain-id="{waIdna::dec($_domain)}" data-route-id="{$_route.id}" title="{$_url}">
+                <a href="{$wa_app_url}?action=settings#/checkout2&domain={$_domain}&route={$_route.id}/">
+                    <i class="icon16 status-green-tiny"></i>{$_url}
+                    <i class="shortener"></i>
+                </a>
+            </li>
+        {/foreach}
+    </ul>
+
+    <h5 class="heading js-list-header" data-version="1">
+        <span class="table-cell"><i class="icon16 darr"></i></span>
+        <a class="table-cell" href="javascript:void(0);">[`Пошаговое оформление заказа`]&nbsp;({$_old_checkouts|count})</a>
+    </h5>
+    <ul class="menu-v js-storefronts-list" data-version="1">
+        <li class="js-old-checkout">
+            <a href="?action=settings#/checkout&r=1">
+                <div class="table-cell"><i class="icon16 settings"></i></div>
+                <div class="table-cell">[`Общие настройки для&nbsp;витрин`]</div>
+            </a>
+        </li>
+        {* Routes with old checkout *}
+        {foreach $_old_checkouts as $_route}
+            {$_domain = waIdna::dec($_route.domain)}
+            {$_url = "`$_domain`/`$_route.url|escape`"}
+            <li class="s-domain-item">
+                <span title="{$_url}">
+                    <i class="icon16 status-blue-tiny"></i>{$_url}
+                    <i class="shortener"></i>
+                </span>
+            </li>
+        {/foreach}
+    </ul>
+</div>
+<script type="text/javascript" src="{$wa_app_static_url}js/settings/checkout_sidebar.js?{$wa->version()}"></script>
+<script>
+    (function ($) {
+        new ShopSettingsCheckoutSidebar({
+            $wrapper: $("#{$_id}")
+        });
+    })(jQuery);
+</script>

@@ -20,6 +20,12 @@
     {$wa_app_static_url}js/product/orders.js
     {$wa_url}wa-content/js/jquery-plugins/jquery-tagsinput/jquery.tagsinput.min.js
     {$wa_app_static_url}js/product/list.js
+
+    {$wa_app_static_url}js/set/products.set.js
+
+    {*Create category*}
+    {$wa_app_static_url}js/category/products.category.js
+    {$wa_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js
 {/wa_js}
 <script type="text/javascript" src="{$wa_url}wa-content/js/ace/ace.js?{$wa->version(true)}"></script>
 
@@ -264,7 +270,8 @@
              <span class="hint id">{%#o.item.id%}</span>
          {% } %}
          <strong class="small highlighted count-new"><\/strong>
-         {% if (o.type == 'category') { %}
+             {% if (o.type == 'category') { %}
+             <span class="hint routes"><\/span>
              <span class="count"><i class="icon10 add s-new-list"><\/i><\/span>
          {% } %}
     <\/a>

@@ -163,6 +163,23 @@ class shopWebPushNotifications
 
         $backend_url = wa()->getConfig()->getBackendUrl();
         $url = "https://{$this->domain}/{$backend_url}/shop?action=orders";
+        $notification_text = _w('New order').' '.shopHelper::encodeOrderId($data['order']['id']);
+
+        /**
+         * Send push notification from shop
+         *
+         * @param array $data
+         * @param string $notification_text
+         *
+         * @event web_push_send
+         */
+        $event_params = [
+            'data'  => &$data,
+            'notification_text' => &$notification_text,
+        ];
+
+        wa('shop')->event('web_push_send', $event_params);
+
         $request_data = array(
             'app_id' => ifset($this->settings['app_id'], ''),
             'tags' => array(
@@ -171,7 +188,7 @@ class shopWebPushNotifications
             ),
             'url' => $url,
             'contents' => array(
-                "en" => _w('New order').' '.shopHelper::encodeOrderId($data['order']['id']),
+                "en" => $notification_text,
             ),
             'headings' => array(
                 "en" => _w("Shop orders")

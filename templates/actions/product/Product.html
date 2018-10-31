@@ -516,6 +516,11 @@
 
                                 <a href="#" class="s-product-delete-from-category" title="[`Remove product from this category`]" {if !$c.id}style="display:none;"{/if}><i class="icon10 delete-bw no-overhanging"></i></a>
                             {/if}
+                            <span class="s-new-category" style="display:none;">
+                                <input type="text" name="new_category" class="new-category" class="js-ignore-change" placeholder="[`Category name`]">
+                                <input type="hidden" name="product[categories][]" class="val" value="{$category_id}" disabled="disabled">
+                                <input type="button" value="[`Create`]">
+                            </span>
                         </div>
                     {/foreach}
 
@@ -588,14 +593,14 @@
                             <li{if empty($features) || $product.sku_type == shopProductModel::SKU_TYPE_FLAT} class="selected"{/if}>
                                 <label>
                                     <a href="javascript:void(0);">[`Purchase options`]</a> {shopHinter::hint('product_skus_plain')}
-                                    <input type="hidden" name="product[sku_type]" value="{shopProductModel::SKU_TYPE_FLAT}"
+                                    <input type="hidden" name="product[sku_type]" data-value="{shopProductModel::SKU_TYPE_FLAT}" value="{shopProductModel::SKU_TYPE_FLAT}"
                                                             {if !empty($features) && $product.sku_type != shopProductModel::SKU_TYPE_FLAT}disabled="disabled"{/if} />
                                 </label>
                             </li>
                             <li class="{if !empty($features) && $product.sku_type == shopProductModel::SKU_TYPE_SELECTABLE}selected{/if} {if empty($features)}gray{/if}">
                                 <label>
                                     <a href="javascript:void(0);"><span{if empty($features)} class="gray"{/if}>[`Selectable parameters`]</span></a> {shopHinter::hint('product_skus_features')}
-                                    <input type="hidden" name="product[sku_type]" value="{shopProductModel::SKU_TYPE_SELECTABLE}"
+                                    <input type="hidden" name="product[sku_type]" data-value="{shopProductModel::SKU_TYPE_SELECTABLE}" value="{shopProductModel::SKU_TYPE_SELECTABLE}"
                                                             {if empty($features) || $product.sku_type != shopProductModel::SKU_TYPE_SELECTABLE}disabled="disabled"{/if} />
                                 </label>
                             </li>
@@ -645,17 +650,17 @@
                                         <input type="radio" name="product[sku_id]" value="{$sku_id}" {if $product.sku_id == $sku.id}checked="checked"{/if}>
                                         <input type="hidden" name="skus[{$sku_id}][available]" value="{intval($sku.available)}">
                                     </td>
-                                    <td class="s-sku">
+                                    <td class="s-sku{if $sku@total > 1} s-sku-big{/if}">
                                         <div class="s-name"{if $sku@total <= 1} style="display: none;"{/if}>
                                             <input type="text" name="skus[{$sku_id}][name]" value="{$sku.name|escape}" class="bold s-sku-name-input long large{if empty($sku.available)} grey{/if}" placeholder="[`SKU name`]" title="[`SKU name displayed in the storefront`]">
                                         </div>
-                                        <input type="text" name="skus[{$sku_id}][sku]" value="{$sku.sku|escape}" placeholder="[`SKU code`]" title="[`Any text code or label identifying this product, e.g. model or serial number`]"{if empty($sku.available)} class="grey"{/if}>
+                                        <input type="text" name="skus[{$sku_id}][sku]" value="{$sku.sku|escape}" placeholder="[`SKU code`]" title="[`Any text code or label identifying this product, e.g. model or serial number`]" class="s-sku-code{if empty($sku.available)} grey{/if}">
                                     </td>
                                     <td class="s-price">
                                         <input type="text" name="skus[{$sku_id}][purchase_price]" value="{$sku.purchase_price|escape}" class="{if empty($sku.available)} grey{/if}" placeholder="0" title="[`Purchase price`]">
                                     </td>
                                     <td class="s-price">
-                                        <input type="text" name="skus[{$sku_id}][compare_price]" value="{$sku.compare_price|escape}" class="bold strike gray {if empty($sku.available)} grey{/if}" placeholder="0" title="[`Compare at price`]">
+                                        <input type="text" name="skus[{$sku_id}][compare_price]" value="{$sku.compare_price|escape}" class="strike {if empty($sku.available)} grey{/if}" placeholder="0" title="[`Compare at price`]">
                                     </td>
                                     <td class="s-price">
                                         <input type="text" name="skus[{$sku_id}][price]" value="{$sku.price|escape}" class="bold large {if empty($sku.available)} grey{/if}" placeholder="0" title="[`Price`]">
@@ -727,11 +732,11 @@
                                         <input type="radio" name="product[sku_id]" value="{%=sku_id%}" {% if (o.checked) { %}checked="checked"{%}%}>
                                         <input type="hidden" name="skus[{%=sku_id%}][available]" value="{%=sku.available%}">
                                     </td>
-                                    <td class="s-sku">
+                                    <td class="s-sku s-sku-big">
                                         <div class="s-name">
                                             <input type="text" name="skus[{%=sku_id%}][name]" value="{%=sku.name%}" class="bold s-sku-name-input long large {% if (empty(sku.available)) { %}grey{% } %}" placeholder="[`SKU name`]">
                                         </div>
-                                        <input type="text" name="skus[{%=sku_id%}][sku]" value="{%=sku.sku%}" class="{% if (empty(sku.available)) { %}grey{% } %}" placeholder="[`SKU code`]">
+                                        <input type="text" name="skus[{%=sku_id%}][sku]" value="{%=sku.sku%}" class="s-sku-code {% if (empty(sku.available)) { %}grey{% } %}" placeholder="[`SKU code`]">
                                     </td>
                                     <td class="s-price">
                                         <input type="text" name="skus[{%=sku_id%}][purchase_price]" value="{%=sku.purchase_price_loc%}" class="{% if (empty(sku.available)) { %}grey{% } %}" placeholder="0">

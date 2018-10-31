@@ -276,9 +276,11 @@ class shopProductAction extends waViewAction
                 $rows = $order_model->getTotalSkuSalesByProduct($product['id'], $product['currency']);
                 foreach ($rows as $sku_id => $v) {
                     $name = 'sku_id='.$sku_id;
-                    if (!empty($product['skus'][$sku_id]['name'])) {
+                    $real_name = ifset($product, 'skus', $sku_id, 'name', null);
+                    if (strlen($real_name)) {
                         $name = $product['skus'][$sku_id]['name'];
                     }
+
                     $sku_sales_data[] = array($name, (float)$v['total']);
                 }
                 $this->view->assign('sku_plot_data', array($sku_sales_data));

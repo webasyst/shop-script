@@ -4,7 +4,7 @@ class shopWorkflowCompleteAction extends shopWorkflowAction
 {
     public function execute($order_id = null)
     {
-        $order = $this->order_model->getById($order_id);
+        $order = $this->getOrder($order_id);
 
         // update orders counter of a courier this order is assigned to
         $params = $this->order_params_model->get($order_id);

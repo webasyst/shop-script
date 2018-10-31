@@ -4,13 +4,31 @@ class shopTransferAction extends waViewAction
 {
     public function execute()
     {
-        $this->view->assign(array(
-            'from' => (int) $this->getRequest()->request('from'),
-            'to' => (int) $this->getRequest()->request('to'),
-            'skus' => $this->getSkus(),
-            'stocks' => $this->getStocks(),
+        $smarty_variables = array(
+            'from'      => (int)$this->getRequest()->request('from'),
+            'to'        => (int)$this->getRequest()->request('to'),
+            'skus'      => $this->getSkus(),
+            'stocks'    => $this->getStocks(),
             'string_id' => $this->getStringId()
-        ));
+        );
+
+        /**
+         * Create new transfer
+         *
+         * @param int $from From Stock
+         * @param int $to To Stock
+         * @param array $skus
+         * @param array $stocks
+         * @param int $string_id Transfer id
+         *
+         * @event backend_stocks.transfer
+         */
+        $params = $smarty_variables;
+
+        $backend_stocks_hook = wa('shop')->event('backend_stocks.transfer', $params);
+        $this->view->assign('backend_stocks_hook', $backend_stocks_hook);
+
+        $this->view->assign($smarty_variables);
     }
 
     public function getStocks()
@@ -21,7 +39,7 @@ class shopTransferAction extends waViewAction
 
     public function getSkus()
     {
-        $ids = array_map('intval', (array) $this->getRequest()->request('sku_id'));
+        $ids = array_map('intval', (array)$this->getRequest()->request('sku_id'));
         if (!$ids) {
             return array();
         }

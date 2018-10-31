@@ -16,8 +16,18 @@ class shopFrontendMyOrdersAction extends shopFrontendAction
 
         // Items for all orders, one query
         $im = new shopOrderItemsModel();
-        foreach($im->getByField('order_id', array_keys($orders), true) as $row) {
+        $items = $im->getByField('order_id', array_keys($orders), true);
+
+        foreach($items as $row) {
             $orders[$row['order_id']]['items'][] = $row;
+        }
+
+        if ($orders) {
+            foreach ($orders as $id => $order) {
+                if (isset($order['items'])) {
+                    shopOrderItemsModel::sortItemsByGeneralSettings($orders[$id]['items']);
+                }
+            }
         }
 
         // Params for all orders, one query

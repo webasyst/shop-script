@@ -1,0 +1,72 @@
+<form id="wf-refund-form" action="?module=workflow&action=perform" method="post">
+    <input type="hidden" name="id" value="{$order_id}">
+    <input type="hidden" name="action_id" value="{$action_id}">
+
+    {* begin shipping plugin form*}
+    {if !empty($shipping_controls)}
+        <div class="form">
+            {foreach $shipping_controls as $control}
+                {$control}
+            {/foreach}
+        </div>
+    {/if}
+    {* end shipping plugin form *}
+
+    {if !empty($transaction_data)}
+        <div class="field">
+            <div class="name">[`Actual refund`]</div>
+            <div class="value s-refund-field-value">
+                <label>
+                    <input type="checkbox" name="refund" class="js-refund-checkbox" checked>
+                </label>
+                <div class="s-refund-message js-refund-message">
+                    <i class="icon16 exclamation"></i><span class="black">[`Money will be returned to the customer via the payment gateway.`]</span>
+                </div>
+            </div>
+        </div>
+        {if !empty($partial_refund)}
+        <div class="field">
+            <div class="name">[`Amount`]</div>
+            <div class="value"><input type="text" name="refund_amount" placeholder="{$transaction_data.amount}" value="{$transaction_data.amount}">{$transaction_data.currency_id}</div>
+        </div>
+        {/if}
+
+    {/if}
+
+    <textarea name="text" placeholder="[`Refund reason`]">[`Customer request`]</textarea>
+    <br><br>
+    {if !empty($plugins_html)}
+        {foreach $plugins_html as $plugin_id => $html}
+            <!-- {$plugin_id} -->
+            {$html}
+        {/foreach}
+    {/if}
+    <input type="submit" value="[`Refund`]" class="button {$button_class}"> [`or`] <a class="cancel inline-link" href="#"><b><i>[`cancel`]</i></b></a>
+</form>
+
+<script type="text/javascript">
+    //show refund message
+    $("#wf-refund-form").on('change', '.js-refund-checkbox', function () {
+        if (this.checked) {
+            $("#wf-refund-form").find('.js-refund-message').show();
+        }else{
+            $("#wf-refund-form").find('.js-refund-message').hide();
+        }
+    });
+
+    // cancel link
+    $('#wf-refund-form > a.cancel').click(function () {
+        $('#workflow-content').empty().hide();
+        $('.workflow-actions').show();
+        return false;
+    });
+
+    $("#wf-refund-form").submit(function () {
+        var f = $(this);
+        f.find(':submit').attr('disabled', true);
+        $.post(f.attr('action'), f.serialize(), function () {
+            $.order.reload();
+        }, "json");
+        return false;
+    });
+</script>

@@ -137,6 +137,16 @@ class shopProductImagesModel extends waModel
         if (!$image) {
             return false;
         }
+
+        /**
+         * Delete image event
+         * @param array $image
+         *
+         * @event product_images_delete
+         */
+
+        wa()->event('product_images_delete', $image);
+
         $product_id = $image['product_id'];
 
         // first of all try delete files from disk

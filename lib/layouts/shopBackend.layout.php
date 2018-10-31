@@ -9,6 +9,7 @@ class shopBackendLayout extends waLayout
         if (waRequest::get('skipwelcome')) {
             $app_settings_model->del('shop', 'welcome');
             $app_settings_model->del('shop', 'show_tutorial');
+            $this->insertOneType();
         } else if ($app_settings_model->get('shop', 'welcome')) {
             $this->redirect(wa()->getConfig()->getBackendUrl(true).'shop/?action=welcome');
         }
@@ -78,6 +79,18 @@ class shopBackendLayout extends waLayout
          * @return array[string][string]string $return[%plugin_id%]['core_li'] Single menu items
          */
         return wa()->event('backend_menu');
+    }
+
+    protected function insertOneType()
+    {
+        $stm = new shopTypeModel();
+        if (!$stm->countAll()) {
+            $data = array(
+                'name' => _w('Conventional commodity'),
+                'icon' => 'ss pt box',
+            );
+            $stm->insert($data);
+        }
     }
 
 

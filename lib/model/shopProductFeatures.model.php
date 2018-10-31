@@ -216,9 +216,6 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         // and places to fetch them from.
         $storages = array();
         foreach ($data as $row) {
-            if ($sku_id && $row['code'] == 'weight' && !$row['sku_id']) {
-                continue;
-            }
             $features[$row['feature_id']] = array(
                 'type'     => $row['type'],
                 'code'     => $row['code'],
@@ -233,28 +230,25 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
             unset($codes_to_remove[$code]);
 
             $type = preg_replace('/\..*$/', '', $row['type']);
-            if ($type == shopFeatureModel::TYPE_BOOLEAN) {
-                /**
-                 * @var shopFeatureValuesBooleanModel $model
-                 */
-                $model = shopFeatureModel::getValuesModel($type);
-                $values = $model->getValues('id', $row['feature_value_id']);
-                $result[$row['code']] = reset($values);
-            } elseif ($type == shopFeatureModel::TYPE_DIVIDER) {
-                /**
-                 * @var shopFeatureValuesDividerModel $model
-                 */
-                $model = shopFeatureModel::getValuesModel($type);
-                $values = $model->getValues('id', $row['feature_value_id']);
-                $result[$row['code']] = reset($values);
-            } else {
-                if ($sku_id) {
-                    $storages[$type][$row['feature_id']] = $row['feature_value_id'];
-                } else {
-                    $storages[$type][] = $row['feature_value_id'];
-                }
+            switch ($type) {
+                case shopFeatureModel::TYPE_BOOLEAN:
+                case shopFeatureModel::TYPE_DIVIDER:
+                    /** @var shopFeatureValuesBooleanModel|shopFeatureValuesDividerModel $model */
+                    $model = shopFeatureModel::getValuesModel($type);
+                    $values = $model->getValues('id', $row['feature_value_id']);
+                    $feature_values = reset($values);
+                    $result[$row['code']] = $feature_values[$row['feature_value_id']];
+                    break;
+                default:
+                    if ($sku_id) {
+                        // Make sure feature assigned to SKU overrides feature assigned to product
+                        if (!empty($row['sku_id']) || !isset($storages[$type][$row['feature_id']])) {
+                            $storages[$type][$row['feature_id']] = $row['feature_value_id'];
+                        }
+                    } else {
+                        $storages[$type][] = $row['feature_value_id'];
+                    }
             }
-
         }
 
         // Fetch actual values from shop_feature_values_* tables

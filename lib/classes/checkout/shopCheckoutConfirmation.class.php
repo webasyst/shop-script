@@ -31,6 +31,7 @@ class shopCheckoutConfirmation extends shopCheckout
             'shipping' => 0,
         );
 
+        shopOrderItemsModel::sortItemsByGeneralSettings($order['items']);
         $order['discount'] = shopDiscounts::calculate($order);
 
 

@@ -14,6 +14,10 @@ class shopFeatureModel extends waModel
     const TYPE_COLOR = 'color';
 
     const STATUS_PUBLIC = 'public';
+
+    /**
+     * todo what is "hidden" Vlad? Its not use =(
+     */
     const STATUS_HIDDEN = 'hidden';
     const STATUS_PRIVATE = 'private';
 
@@ -251,67 +255,183 @@ SQL;
     }
 
     /**
-     * @param mixed [string] $options
-     * @param int $limit
-     * @return array
+     * Get features count by options
+     * @param $options
+     * @return int|bool
+     * @throws waException
      */
-    public function getFilterFeatures($options = array(), $limit = 500)
+    public function getFeaturesCount($options)
     {
-        $where = array(
-            'parent_id IS NULL',
-            'union' => array(),
-        );
-        $options += array(
-            'status'   => self::STATUS_PUBLIC,
-            'count'    => true,
-            'interval' => false,
-        );
+        $feature_count = $this->getFilterFeatures($options, 500, false);
+
+        return ifset($feature_count, 'COUNT(*)', false);
+    }
+
+    /**
+     * @param array $options
+     *      array|int $code get features by code's
+     *      array|int $id get features by id's
+     *      array|int $ignore_code ignore this code's
+     *      array|int $ignore_id ignore this id's
+     *      array|int $type_id get features by product type id's
+     *      bool|int $count is greater than or equal to the number of values. Default > 0
+     *      bool|string $status get by feature status. Default - public
+     *      bool $interval get interval features
+     *      bool $frontend get the features that you can use for the frontend
+     *      bool $ignore ignore divider and %d.dimensions. Default - true
+     *      array|string $select select expression. Default - *
+     *      int $offset mysql offset
+     *
+     * @param int $limit
+     * @param bool|string $all if string, fetch array by $all
+     * @return array
+     * @throws waException
+     *
+     * @see test tests/wa-apps/shop/model/feature/shopFeatureModelGetFilterFeaturesTest.php
+     */
+    public function getFilterFeatures($options = [], $limit = 500, $all = true)
+    {
+        $select = ['*'];
+        $join = [];
+        $where = [];
+        $fetch = 'code';
+
+        $options += [
+            'status' => self::STATUS_PUBLIC,
+            'count'  => true,
+            'ignore' => true,
+        ];
+
         foreach ($options as $field => $value) {
             switch ($field) {
-                case 'type_id':
-                    //join
-                    break;
-                case 'status':
-                    $where[$field] = $this->getWhereByField($field, $value);
-                    break;
                 case 'code':
                 case 'id':
-                    $where/*['union']*/
-                    [$field] = $this->getWhereByField($field, $value);
+                    if ($value !== false) {
+                        $where[$field] = $this->getWhereByField($field, $value, 'sf');
+                    }
                     break;
-                case 'interval':
-                    if (!empty($value)) {
-                        $where['union'][] = sprintf("type='%s'", self::TYPE_DOUBLE);
-                        $where['union'][] = sprintf("type LIKE '%s.%%'", self::TYPE_DIMENSION);
-                        $where['union'][] = sprintf("type LIKE '%s.%%'", self::TYPE_RANGE);
-                        // } else {
-                        $where['union'][] = 'selectable=1';
-                        $where['union'][] = sprintf("type='%s'", self::TYPE_BOOLEAN);
+                case 'type_id':
+                    if ($value !== false) {
+                        $type_where = [];
+                        if (is_array($value)) {
+                            foreach ($value as $type_id) {
+                                if ($type_id = intval($type_id)) {
+                                    $type_where[] = $type_id;
+                                }
+                            }
+                        } elseif ($value = intval($value)) {
+                            $type_where[] = $value;
+                        }
+                        $type_where[] = 0;
+
+                        $join[] = " JOIN shop_type_features AS stf ON stf.feature_id = sf.id ";
+                        $where[] = 'stf.type_id IN ('.implode(', ', $type_where).')';
                     }
                     break;
                 case 'count':
-                    if (!empty($value)) {
+                    if ($value !== false) {
                         if ($value === true) {
-                            $where[$field] = '`count` > 0';
+                            $where[$field] = 'sf.count > 0';
                         } else {
-                            $where[$field] = sprintf('`count` > %d', max(1, $value));
+                            $where[$field] = sprintf('sf.count >= %d', max(0, $value));
                         }
                     }
                     break;
-                default:
-                    $where[$field] = $this->getWhereByField($field, $value);
+                case 'status':
+                    if (!empty($value)) {
+                        $where[$field] = $this->getWhereByField($field, $value, 'sf');
+                    }
                     break;
+                case 'interval':
+                    if ($value !== false) {
+                        $where['union'][] = sprintf("sf.type='%s'", self::TYPE_DOUBLE);
+                        $where['union'][] = sprintf("sf.type LIKE '%s.%%'", self::TYPE_DIMENSION);
+                        $where['union'][] = sprintf("sf.type LIKE '%s.%%'", self::TYPE_RANGE);
+                    }
+                    break;
+                case 'frontend':
+                    if ($value !== false) {
+                        $where['union'][] = 'sf.selectable=1';
+                        $where['union'][] = sprintf("sf.type='%s'", self::TYPE_BOOLEAN);
+                        $where['union'][] = sprintf("sf.type='%s'", self::TYPE_DOUBLE);
+                        $where['union'][] = sprintf("sf.type='%s'", self::TYPE_TEXT);
+                        $where['union'][] = sprintf("sf.type='%s'", self::TYPE_VARCHAR);
+                        $where['union'][] = sprintf("sf.type LIKE '%s.%%'", self::TYPE_DIMENSION);
+                        $where['union'][] = sprintf("sf.type LIKE '%s.%%'", self::TYPE_RANGE);
+                    }
+                    break;
+                case 'ignore_id':
+                    if (!empty($value)) {
+                        $ignore_id = $this->getWhereByField('id', $value, 'sf');
+                        $ignore_id = preg_replace('/IN/', 'NOT IN', $ignore_id, 1);
+                        $ignore_id = preg_replace('/^sf.`id` = /', 'sf.`id` != ', $ignore_id, 1);
+                        $where[$field] = $ignore_id;
+                    }
+                    break;
+                case 'ignore_code':
+                    if (!empty($value)) {
+                        $ignore_code = $this->getWhereByField('code', $value, 'sf');
+                        $ignore_code = preg_replace('/IN/', 'NOT IN', $ignore_code, 1);
+                        $ignore_code = preg_replace('/^sf.`code` = /', 'sf.`code` != ', $ignore_code, 1);
+                        $where[$field] = $ignore_code;
+                    }
+                    break;
+                case 'ignore':
+                    if ($value === true) {
+                        $where[] = 'sf.parent_id IS NULL';
+                        $where[] = 'sf.type != \'divider\'';
+                        $where[] = sprintf("sf.type NOT LIKE '%%.%s.%%'", self::TYPE_DIMENSION); //ignore %D.dimension
+                    }
+                    break;
+                case 'select':
+                        $select = [];
+                        if (is_array($value)) {
+                            foreach ($value as $data) {
+                                $select[] = $data;
+                            }
+                        } elseif (is_string($value)) {
+                            $select[] = $value;
+                        }
 
+                        //Reset fetch if not found key code
+                        if (!array_search('*', $select) && !array_search('code', $select) && !is_string($all)) {
+                            $fetch = null;
+                        }
+
+                    break;
+                case 'offset':
+                    if ($value !== false) {
+                        $limit = $value.', '.$limit;
+                    }
+                    break;
+                default:
+                    $where[$field] = $this->getWhereByField($field, $value, 'sf');
+                    break;
             }
         }
-        if (count($where['union'])) {
+
+        if (isset($where['union']) && count($where['union'])) {
             $where['union'] = '('.implode(') OR (', $where['union']).')';
         } else {
             unset($where['union']);
         }
 
         $where = '('.implode(') AND (', $where).')';
-        return $this->select('*')->where($where)->limit($limit)->order('count DESC')->fetchAll('id');
+        $join = join(' ', $join);
+        $select = join(', ', $select);
+
+        $query = "SELECT {$select} FROM {$this->table} AS sf {$join} WHERE {$where} ORDER BY sf.count DESC LIMIT {$limit}";
+        $result = $this->query($query);
+
+        if ($all === false) {
+            return $result->fetchAssoc();
+        } else {
+            if (is_string($all)) {
+                $fetch = $all;
+            }
+
+            return $result->fetchAll($fetch);
+        }
     }
 
     /**
@@ -322,6 +442,7 @@ SQL;
      * @param string $key
      * @param bool $fill_values
      * @return array
+     * @throws waException
      */
     public function getFeatures($field, $value = null, $key = 'id', $fill_values = false)
     {
@@ -358,8 +479,11 @@ SQL;
             }
             $features = $this->select('*')->where($where, $params)->fetchAll($key);
         } else {
-
-            $features = $this->getByField($field, $value, $key);
+            if (is_array($field)) {
+                $features = $this->getByField($field, $key);
+            } else {
+                $features = $this->getByField($field, $value, $key);
+            }
         }
         if ($fill_values) {
             $features = $this->getValues($features, (is_int($fill_values) ? $fill_values : (($field === true) || $fill_values === true)));
@@ -368,33 +492,83 @@ SQL;
 
     }
 
+    /**
+     * @param array[] $features An array of features for which the values will be filled
+     *
+     * @param null|int|true|int[][] $all
+     * - null for all
+     * - int for values with limit=$all
+     * - true for every one
+     * - array of features value_ids to get only specified values
+     * @return array[]
+     * @throws waException
+     */
     public function getValues($features, $all = null)
     {
-        foreach ($features as & $feature) {
+        foreach ($features as &$feature) {
             $feature['values'] = array();
         }
         unset($feature);
-        $types = $this->groupByValueType($features);
-        foreach ($types as $type => $ids) {
-            if ($model = self::getValuesModel($type)) {
-                $field = ($all === true) ? true : 'feature_id';
-                $value = ($all === true) ? null : array_keys($ids);
-                $features_values = $model->getValues($field, $value, ($all === true) ? null : $all);
-                foreach ($features_values as $feature_id => $values) {
-                    if (isset($ids[$feature_id])) {
-                        // avoid values with wrong types
-                        $id = $ids[$feature_id];
 
-                        if (isset($features[$id])) {
+        $types = $this->groupByValueType($features);
+
+        foreach ($types as $type => $keys) {
+            if ($model = self::getValuesModel($type)) {
+
+                $value_ids = null;
+                if (is_array($all)) {
+                    $field = 'id';
+                    $value = array();
+                    $limit = null;
+
+                    $value_ids = array();
+                    foreach ($keys as $feature_id => $feature_key) {
+                        if (isset($all[$feature_key])) {
+                            $value_ids[$feature_key] = (array)$all[$feature_key];
+                            $value = array_merge($value, (array)$all[$feature_key]);
+                        }
+                    }
+                } elseif ($all === true) {
+                    $field = true;
+                    //Actually will be used method getAll at model;
+                    $value = null;
+                    $limit = null;
+                } else {
+                    # $all is null or integer
+                    $field = 'feature_id';
+                    $value = array_keys($keys);
+                    $limit = $all;
+                }
+
+                $features_values = $model->getValues($field, $value, $limit);
+
+                foreach ($features_values as $feature_id => $values) {
+
+                    if ($feature_id === 0) {
+                        foreach ($keys as $feature_key) {
+                            if ($value_ids === null) {
+                                $features[$feature_key]['values'] = $values;
+                            } else {
+                                if (isset($value_ids[$feature_key])) {
+                                    foreach ($value_ids[$feature_key] as $value_id) {
+                                        if (isset($values[$value_id])) {
+                                            $features[$feature_key]['values'][$value_id] = $values[$value_id];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    } elseif (isset($keys[$feature_id])) {
+                        // avoid values with wrong types
+                        $feature_key = $keys[$feature_id];
+
+                        if (isset($features[$feature_key])) {
                             //avoid values without related features
-                            $features[$id]['values'] = $values;
+                            $features[$feature_key]['values'] = $values;
                         } else {
-                            //TODO
                             trigger_error("Outdated records at {$this->table}", E_USER_WARNING);
                         }
-                    } else {
-                        //TODO
-                        //trigger_error("Outdated records at {$model->getTableName()} with 'feature_id'={$feature_id}", E_USER_WARNING);
                     }
                 }
             }

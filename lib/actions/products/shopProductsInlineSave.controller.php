@@ -21,8 +21,8 @@ class shopProductsInlineSaveController extends shopProductListAction
         }
 
         // Modify $product altering SKU price
-        $price = waRequest::post('price');
-        if ($price) {
+        $price = waRequest::post('price', null);
+        if ($price !== null) {
             $price = str_replace(',', '.', $price);
             if (is_numeric($price)) {
                 $skus = $product->skus;
@@ -40,11 +40,9 @@ class shopProductsInlineSaveController extends shopProductListAction
             $skus = $product->skus;
             foreach ($skus as &$s) {
                 if (is_array($stock)) {
-                    $s['count'] = null;
                     $s['stock'] = $stock;
                 } else {
-                    $s['count'] = $stock === '' ? null : $stock;
-                    $s['stock'] = null;
+                    $s['stock'][0] = $stock;
                 }
             }
             unset($s);

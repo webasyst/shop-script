@@ -114,10 +114,14 @@ class shopSettingsSaveStockController extends waJsonController
     {
         $data = array();
         $ids = array();
-        foreach (waRequest::post($field, array()) as $name => $items) {
+        $fields = waRequest::post($field, array());
+
+        foreach ($fields as $name => $items) {
             foreach ($items as $k => $value) {
                 if ($name == 'id') {
                     $ids[$k] = (int)$value;
+                } elseif ($name == 'public') {
+                    continue;
                 } else {
                     $data[$k][$name] = $value;
                 }
@@ -126,6 +130,16 @@ class shopSettingsSaveStockController extends waJsonController
         if (!empty($data)) {
             $data = array_combine($ids, $data);
         }
+
+        //Set stocks visible
+        if (isset($fields['public'])) {
+            foreach ($fields['public'] as $id) {
+                if (isset($data[$id])){
+                    $data[$id]['public'] = 1;
+                }
+            }
+        }
+
         $this->correct($data);
         return $data;
     }

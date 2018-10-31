@@ -40,13 +40,13 @@ class shopOrderEditAction extends waViewAction
         $shipping_address = $order->shipping_address;
         $shipping_methods = $this->getShipMethods($shipping_address, $order_data);
 
-        
+
         //Calculate total items discount
         $items_total_discount = null;
         $item_discount = $order->items;
         if (!empty($item_discount)) {
             foreach ($item_discount as $item) {
-                $items_total_discount += (int) $item['total_discount'];
+                $items_total_discount += (int)$item['total_discount'];
             }
         }
 
@@ -160,6 +160,7 @@ class shopOrderEditAction extends waViewAction
             $order_currency = null;
             $order_total = 0;
         }
+
         $params = array(
             'currency'           => $order_currency,
             'total_price'        => $order_total,
@@ -167,6 +168,7 @@ class shopOrderEditAction extends waViewAction
             'allow_external_for' => $allow_external_for,
             'shipping_params'    => array(),
             'custom_html'        => true,
+            'departure_datetime' => shopDepartureTimeFacade::getDepartureByStorefront(ifset($order, 'params', 'storefront', null)),
         );
 
         if ($shipping_id && !empty($order['params'])) {

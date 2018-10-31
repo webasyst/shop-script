@@ -24,6 +24,23 @@ class shopNotifications
     public static function send($event, $data)
     {
         $notifications = self::getModel()->getByEvent($event, true);
+
+        /**
+         * Run before send notification from shop
+         *
+         * @param string $event
+         * @param array $notifications
+         * @param array $data
+         *
+         * @event notifications_send.before
+         */
+        $event_params = [
+            'event' => $event,
+            'notifications' => $notifications,
+            'data'  => &$data,
+        ];
+        wa('shop')->event('notifications_send.before', $event_params);
+
         self::prepareData($data);
 
         if ($notifications) {
@@ -56,6 +73,21 @@ class shopNotifications
                 wa()->getRouting()->setRoute($old_route, $old_domain);
             }
         }
+        /**
+         * Run after send notification from shop
+         *
+         * @param string $event
+         * @param array $notifications
+         * @param array $data
+         *
+         * @event notifications_send.after
+         */
+        $event_params = [
+            'event' => $event,
+            'notifications' => $notifications,
+            'data'  => &$data,
+        ];
+        wa('shop')->event('notifications_send.after', $event_params);
 
         self::sendPushNotifications($event, $data);
     }
@@ -73,6 +105,25 @@ class shopNotifications
         if (!$n) {
             return;
         }
+
+        /**
+         * Run before send one notification from shop
+         *
+         * @param int $id
+         * @param array $notifications
+         * @param array $data
+         * @param string|null $to Recipient address/number.
+         *
+         * @event notifications_send_one.before
+         */
+        $event_params = [
+            'id' => $id,
+            'notifications' => $n,
+            'data'  => &$data,
+            'to' => $to,
+        ];
+        wa('shop')->event('notifications_send_one.before', $event_params);
+
         self::prepareData($data);
 
         $method = 'send'.ucfirst($n['transport']);
@@ -92,6 +143,25 @@ class shopNotifications
                 wa()->getRouting()->setRoute($old_route, $old_domain);
             }
         }
+
+        /**
+         * Run after send one notification from shop
+         *
+         * @param id $id
+         * @param array $notifications
+         * @param array $data
+         * @param string|null $to Recipient address/number.
+         *
+         * @event notifications_send_one.after
+         */
+        $event_params = [
+            'id' => $id,
+            'notifications' => $n,
+            'data'  => &$data,
+            'to' => $to,
+        ];
+
+        wa('shop')->event('notifications_send_one.after', $event_params);
     }
 
     protected static function prepareData(&$data)
@@ -620,6 +690,25 @@ SQL;
 
         // Send to recipients, grouped by domain name they registered to
         $results = array();
+
+        /**
+         * Run before send push notification from shop
+         *
+         * @param string $event
+         * @param array $data
+         * @param string $notification_text
+         * @param array $host_client_ids
+         *
+         * @event notifications_send_push
+         */
+        $event_params = [
+            'event' => $event,
+            'data'  => &$data,
+            'notification_text' => &$notification_text,
+            'host_client_ids' => $host_client_ids,
+        ];
+        wa('shop')->event('notifications_send_push', $event_params);
+
         foreach ($host_client_ids as $shop_url => $client_ids) {
             $request_data = array(
                 'app_id'             => "0b854471-089a-4850-896b-86b33c5a0198",

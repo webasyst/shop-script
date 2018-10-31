@@ -11,6 +11,9 @@ class shopTaxes
      */
     public static function apply(&$items, $params, $currency = null)
     {
+        if ($currency === null) {
+            $currency = wa('shop')->getConfig()->getCurrency(false);
+        }
 
         // Gather info about taxes we need to apply.
         // This sets $i.tax_*, on all $items and gathers $tax_ids
@@ -78,11 +81,19 @@ class shopTaxes
             }
 
             // $order_subtotal is total value of all items, no discounts or taxes applied
-            $item_value = shop_currency($i['price'] * $i['quantity'], $i['currency'], $currency, false);
+            $item_value = $i['price'] * $i['quantity'];
+            if (!empty($i['currency'])) {
+                $item_value = shop_currency($i['price'] * $i['quantity'], $i['currency'], $currency, false);
+            }
+
             $order_subtotal += $item_value;
 
             // $total_effective_value is item value minus discounts
-            $item_discount = shop_currency(ifset($i, 'total_discount', 0.0), $i['currency'], $currency, false);
+            $item_discount = ifset($i, 'total_discount', 0.0);
+            if (!empty($i['currency'])) {
+                $item_discount = shop_currency(ifset($i, 'total_discount', 0.0), $i['currency'], $currency, false);
+            }
+
             $item_effective_value = $item_value - $item_discount;
             $total_effective_value += $item_effective_value;
 
@@ -114,7 +125,10 @@ class shopTaxes
                 $p -= $global_discount * $i['effective_value'] / $total_effective_value;
             }
 
-            $p = shop_currency($p, $i['currency'], $currency, false);
+            if (!empty($i['currency'])) {
+                $p = shop_currency($p, $i['currency'], $currency, false);
+            }
+
             $r = max(0.0, ifset($result[$tax_id]['rate'], 0.0));
 
             if ($i['tax_included']) {

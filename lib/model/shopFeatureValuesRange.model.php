@@ -118,6 +118,11 @@ class shopFeatureValuesRangeModel extends shopFeatureValuesModel
 }
 
 
+/**
+ * Class shopRangeValue
+ * @property-read string $begin_base_unit
+ * @property-read string $end_base_unit
+ */
 class shopRangeValue implements ArrayAccess
 {
     static private $format = '%s %s';

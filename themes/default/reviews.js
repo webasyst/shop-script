@@ -88,7 +88,7 @@ $(function() {
 
     function addReview() {
         $.post(
-            location.href.replace(/\/#\/[^#]*|\/#|\/$/g, '') + '/add/',
+            location.href.replace(/(\/(#)\/[^#]*|\/#|\/$)|((\/\?|\?).*)/g, '') + '/add/',
             form.serialize(),
             function (r) {
                 if (r.status == 'fail') {

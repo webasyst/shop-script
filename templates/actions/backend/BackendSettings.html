@@ -10,6 +10,12 @@
                     <i class="icon16 ss settings-bw"></i>[`General settings`]
                 </a>
             </li>
+            <li>
+                <a href="?action=settings#/schedule/">
+                    <i class="icon16 ss schedule-bw"></i>[`Operation mode`]
+                </a>
+            </li>
+
             <!-- plugin hook: 'backend_settings.sidebar_top_li' -->
             {* @event backend_settings.%plugin_id%.sidebar_top_li *}
             {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
@@ -43,12 +49,6 @@
             <!-- plugin hook: 'backend_settings.sidebar_middle_li' -->
             {* @event backend_settings.%plugin_id%.sidebar_middle_li *}
             {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_middle_li)}{/foreach}{/if}
-
-            <li class="top-padded">
-                <a href="?action=settings#/checkout/">
-                    <i class="icon16 ss cart-bw"></i>[`Checkout`]
-                </a>
-            </li>
             <li>
                 <a href="?action=settings#/orderStates/">
                     <i class="icon16 ss flag-bw"></i>[`Order states`]
@@ -67,6 +67,11 @@
             <li>
                 <a href="?action=settings#/payment/">
                     <i class="icon16 ss payment-bw"></i>[`Payment`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/checkout/">
+                    <i class="icon16 ss cart-bw"></i>[`Checkout`]
                 </a>
             </li>
             <li>

@@ -11,7 +11,6 @@ class shopConfig extends waAppConfig
         'crop_small' => '48x48'
     );
 
-
     public function checkRights($module, $action)
     {
         if ($module == 'frontend' && waRequest::param('ssl') &&
@@ -36,6 +35,15 @@ class shopConfig extends waAppConfig
             return wa()->getUser()->getRights('shop', 'setscategories');
         }
         return true;
+    }
+
+    public function getSortOrderItemsVariants()
+    {
+        return [
+            'user_cart' => ['name' => _w('as added to the shopping cart')],
+            'sku_name'  => ['name' => _w('by item name')],
+            'sku_code'  => ['name' => _w('by SKU code')],
+        ];
     }
 
     public function getImageSize($name)
@@ -204,18 +212,19 @@ class shopConfig extends waAppConfig
         if (!$settings) {
             $all_settings = wa()->getSetting(null, '', 'shop');
             foreach (array(
-                         'name'                  => wa()->accountName(),
-                         'email'                 => wa()->getSetting('email', '', 'webasyst'),
-                         'phone'                 => '+1 (234) 555-1234',
-                         'country'               => '',
-                         'order_format'          => $this->getOrderFormat(),
-                         'use_gravatar'          => 1,
-                         'map'                   => 'google',
-                         'gravatar_default'      => 'custom',
-                         'require_captcha'       => 1, // is captcha is required for add reviews
-                         'require_authorization' => 0, // is authorization is required for add reviews
+                         'name'                          => wa()->accountName(),
+                         'email'                         => wa()->getSetting('email', '', 'webasyst'),
+                         'phone'                         => '+1 (234) 555-1234',
+                         'country'                       => '',
+                         'order_format'                  => $this->getOrderFormat(),
+                         'use_gravatar'                  => 1,
+                         'map'                           => 'google',
+                         'gravatar_default'              => 'custom',
+                         'require_captcha'               => 1, // is captcha is required for add reviews
+                         'require_authorization'         => 0, // is authorization is required for add reviews
                          'review_service_agreement'      => '',
                          'review_service_agreement_hint' => '',
+                         'sort_order_items'              => 'user_cart',
                      ) as $k => $value) {
                 $settings[$k] = isset($all_settings[$k]) ? $all_settings[$k] : $value;
             }
@@ -223,9 +232,9 @@ class shopConfig extends waAppConfig
                 if ($all_settings['workhours']) {
                     $workhours = json_decode($all_settings['workhours'], true);
                     $settings['workhours'] = array(
-                        'hours_from' => $workhours['from'],
-                        'hours_to' => $workhours['to'],
-                        'days' => array(),
+                        'hours_from'   => $workhours['from'],
+                        'hours_to'     => $workhours['to'],
+                        'days'         => array(),
                         'days_from_to' => '',
                     );
                     $strings = array(
@@ -302,7 +311,7 @@ class shopConfig extends waAppConfig
             if ($i == $last_day_of_week) {
                 break;
             }
-            $i = ($i+1)%7;
+            $i = ($i + 1) % 7;
         }
         if ($last_day_to_add !== null) {
             $days_from_to[] = self::getDaysFromToPeriod($first_day_to_add, $last_day_to_add, $day_names);
@@ -328,7 +337,7 @@ class shopConfig extends waAppConfig
             if ($i == $last_day_to_add) {
                 break;
             }
-            $i = ($i+1)%7;
+            $i = ($i + 1) % 7;
         }
         if (count($period) > 2) {
             return $period[0].'—'.end($period);
@@ -364,6 +373,8 @@ class shopConfig extends waAppConfig
     }
 
     /**
+     * Return steps of old (before 8.0) checkout
+     *
      * @param bool $all - return all available or only enabled steps
      * @return array
      */
@@ -421,6 +432,155 @@ class shopConfig extends waAppConfig
         return $result;
     }
 
+    public function getSchedule($schedule = null)
+    {
+        $prepare_time = function ($value, $default) {
+            $time_validator = new waTimeValidator();
+            if (!$time_validator->isValid($value)) {
+                return $default;
+            }
+
+            $time = $time_validator->parse($value);
+            if (mb_strlen($time['hours']) === 1) {
+                $time['hours'] = "0{$time['hours']}";
+            }
+            if (empty($time['minutes'])) {
+                $time['minutes'] = '00';
+            }
+
+            return $time['hours'].':'.$time['minutes'];
+        };
+
+        // Default times
+        $start_time = '00:00';
+        $end_time = '23:59';
+        $end_processing_time = '14:00';
+
+        if (!$schedule || !is_array($schedule)) {
+            // Load shop schedule
+            $schedule = json_decode(wa()->getSetting('schedule', '{}'), true);
+            $schedule = is_array($schedule) ? $schedule : [];
+        }
+
+        // Previously, the store was setting up a schedule.
+        // Try to use this data if they were
+        $workhours = json_decode(wa()->getSetting('workhours', '{}', 'shop'), true);
+        $workhours = is_array($workhours) ? $workhours : [];
+
+        // Week:
+        $weekdays = waDateTime::getWeekdayNames();
+        $week = ifset($schedule, 'week', []);
+
+        foreach ($weekdays as $id => $day) {
+            if ($week) {
+                $start_work = ifset($week, $id, 'start_work', $start_time);
+                $start_work = $prepare_time($start_work, $start_time);
+
+                $end_work = ifset($week, $id, 'end_work', $end_time);
+                $end_work = $prepare_time($end_work, $end_time);
+
+                $end_processing = ifset($week, $id, 'end_processing', $end_processing_time);
+                $end_processing = $prepare_time($end_processing, $end_processing_time);
+
+                $weekdays[$id] = array(
+                    'name'           => $day,
+                    'work'           => (bool)ifset($week, $id, 'work', false),
+                    'start_work'     => $start_work,
+                    'end_work'       => $end_work,
+                    'end_processing' => $end_processing,
+                );
+
+            // Old shop setting
+            } elseif ($workhours) {
+                $start_work = ifset($workhours, 'from', $start_time);
+                $start_work = $prepare_time($start_work, $start_time);
+
+                $end_work = ifset($workhours, 'to', $end_time);
+                $end_work = $prepare_time($end_work, $end_time);
+
+                $weekdays[$id] = array(
+                    'name'           => $day,
+                    'work'           => in_array($id, ifset($workhours, 'days', array())),
+                    'start_work'     => $start_work,
+                    'end_work'       => $end_work,
+                    'end_processing' => $end_processing_time,
+                );
+
+            // Default
+            } else {
+                $weekdays[$id] = array(
+                    'name'           => $day,
+                    'work'           => ($id > 5) ? false : true,
+                    'start_work'     => $start_time,
+                    'end_work'       => $end_time,
+                    'end_processing' => $end_processing_time,
+                );
+            }
+        }
+
+        // Work days
+        $workdays = ifset($schedule, 'extra_workdays', []);
+        $used_days = [];
+        $date_validator = new waDateValidator();
+        foreach ($workdays as $id => $day) {
+            $date = ifset($day, 'date', null);
+            if (!$date || !$date_validator->isValid($date)) {
+                unset($workdays[$id]);
+                continue;
+            }
+
+            $date = date('Y-m-d', strtotime($date));
+
+            if (!$date || in_array($date, $used_days)) {
+                unset($workdays[$id]);
+                continue;
+            }
+
+            $used_days[] = $date;
+
+            $start_work = ifset($day, 'start_work', $start_time);
+            $start_work = $prepare_time($start_work, $start_time);
+
+            $end_work = ifset($day, 'end_work', $end_time);
+            $end_work = $prepare_time($end_work, $end_time);
+
+            $end_processing = ifset($day, 'end_processing', $end_processing_time);
+            $end_processing = $prepare_time($end_processing, $end_processing_time);
+
+            $workdays[$id]['date'] = $date;
+            $workdays[$id]['start_work'] = $start_work;
+            $workdays[$id]['end_work'] = $end_work;
+            $workdays[$id]['end_processing'] = $end_processing;
+        }
+
+        // Weekends
+        $weekends = ifset($schedule, 'extra_weekends', []);
+        $date_validator = new waDateValidator();
+        foreach ($weekends as $id => $date) {
+            if (empty($date) || !$date_validator->isValid($date)) {
+                unset($weekends[$id]);
+                continue;
+            }
+
+            $date = date('Y-m-d', strtotime($date));
+
+            if (!$date || in_array($date, $used_days)) {
+                unset($weekends[$id]);
+                continue;
+            }
+
+            $weekends[$id] = $date;
+        }
+
+        $schedule['timezone'] = ifset($schedule, 'timezone', wa()->getUser()->getTimezone());
+        $schedule['processing_time'] = ifset($schedule, 'processing_time', 0);
+        $schedule['week'] = $weekdays;
+        $schedule['extra_workdays'] = $workdays;
+        $schedule['extra_weekends'] = array_unique($weekends);
+
+        return $schedule;
+    }
+
     public function explainLogs($logs)
     {
         $logs = parent::explainLogs($logs);
@@ -448,10 +608,10 @@ class shopConfig extends waAppConfig
                             $_image_size = '96x96@2x';
                         }
                         $img = shopImage::getUrl(array(
-                            'id' => $p['image_id'],
+                            'id'         => $p['image_id'],
                             'product_id' => $p['id'],
-                            'filename' => $p['image_filename'],
-                            'ext' => $p['ext']
+                            'filename'   => $p['image_filename'],
+                            'ext'        => $p['ext']
                         ), $_image_size);
                         $logs[$l_id]['params_html'] .= '<div class="activity-photo-wrapper">
                             <div class="activity-photo-list"><div class="photo-item"><a href="'.$url.'">
@@ -474,6 +634,17 @@ class shopConfig extends waAppConfig
 
 function shop_currency($n, $in_currency = null, $out_currency = null, $format = true)
 {
+    if (is_array($in_currency)) {
+        $options = $in_currency;
+        $in_currency = ifset($options, 'in_currency', null);
+        $out_currency = ifset($options, 'out_currency', null);
+        if (array_key_exists('format', $options)) {
+            $format = $options['format']; // can't use ifset because null is a valid value
+        } else {
+            $format = true;
+        }
+    }
+
     /**
      * @var shopConfig $config
      */
@@ -512,7 +683,11 @@ function shop_currency($n, $in_currency = null, $out_currency = null, $format = 
     if ($format === 'h') {
         return wa_currency_html($n, $out_currency);
     } elseif ($format) {
-        return wa_currency($n, $out_currency);
+        if (empty($options['extended_format'])) {
+            return wa_currency($n, $out_currency);
+        } else {
+            return waCurrency::format($options['extended_format'], $n, $currency);
+        }
     } else {
         return str_replace(',', '.', $n);
     }
@@ -521,5 +696,10 @@ function shop_currency($n, $in_currency = null, $out_currency = null, $format = 
 
 function shop_currency_html($n, $in_currency = null, $out_currency = null, $format = 'h')
 {
+    if (is_array($in_currency)) {
+        $in_currency += array(
+            'format' => $format,
+        );
+    }
     return shop_currency($n, $in_currency, $out_currency, $format);
 }

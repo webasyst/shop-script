@@ -151,7 +151,7 @@ class shopWorkflowEditAction extends shopWorkflowAction
                     $data['params']['shipping_currency'] = $shipping_currency;
                     $rate_model = new shopCurrencyModel();
                     if ($row = $rate_model->getById($shipping_currency)) {
-                        $data['params']['shipping_currency_rate'] = $row['rate'];
+                        $data['params']['shipping_currency_rate'] = str_replace(',', '.',$row['rate'] );
                     }
                 }
 
@@ -210,7 +210,7 @@ class shopWorkflowEditAction extends shopWorkflowAction
             }
         }
         return <<<HTML
-<a href="#" class="s-edit-order" {$attrs}>
+<a href="#" class="s-edit-order show-alert" {$attrs}>
     <i class="icon16 edit"></i><span>{$this->getName()}</span>
     <i class="icon16 loading" style="margin-left: 4px; display:none;"></i>
 </a>

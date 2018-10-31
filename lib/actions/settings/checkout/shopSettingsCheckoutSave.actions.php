@@ -102,40 +102,4 @@ class shopSettingsCheckoutSaveActions extends waJsonActions
     {
         waUtils::varExportToFile($data, $this->getConfig()->getConfigPath('checkout.php', true, 'shop'));
     }
-
-    protected function backendCustomerFormValidationAction()
-    {
-        $asm = new waAppSettingsModel();
-        $asm->set('shop', 'disable_backend_customer_form_validation', waRequest::post('enable') ? null : '1');
-    }
-
-    public function antispamAction()
-    {
-        $enabled = waRequest::post('enabled');
-        $asm = new waAppSettingsModel();
-
-        if ($enabled) {
-            $asm->set('shop', 'checkout_antispam', 1);
-            foreach (array('email', 'captcha') as $key) {
-                $v = trim(waRequest::post($key));
-                if ($v) {
-                    $asm->set('shop', 'checkout_antispam_'.$key, $v);
-                } else {
-                    $asm->del('shop', 'checkout_antispam_'.$key);
-                }
-            }
-        } else {
-            $asm->del('shop', 'checkout_antispam');
-        }
-    }
-
-    public function webpushAction()
-    {
-        $web_push = new shopWebPushNotifications();
-        $settings = $this->getRequest()->post('web_push_settings');
-        if (empty($settings['manifest']['name'])) {
-            $settings['manifest']['name'] = $this->getConfig()->getGeneralSettings('name');
-        }
-        $web_push->saveSettings($settings);
-    }
 }

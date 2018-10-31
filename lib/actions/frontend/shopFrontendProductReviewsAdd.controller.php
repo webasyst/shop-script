@@ -41,6 +41,21 @@ class shopFrontendProductReviewsAddController extends waJsonController
         if ($this->errors) {
             return false;
         }
+
+        /**
+         * Add new review to product. Before save.
+         * @param array $data info about user and Review text
+         * @param array $product info about product
+         *
+         * @event frontend_review_add.before
+         */
+        $params = array(
+            'data'    => &$data,
+            'product' => $product
+        );
+
+        wa()->event('frontend_review_add.before', $params);
+
         $id = $this->model->add($data, $data['parent_id']);
         if (!$id) {
             throw new waException("Error in adding review");
@@ -48,24 +63,43 @@ class shopFrontendProductReviewsAddController extends waJsonController
             $this->logAction('product_review_add', $product['id']);
         }
 
+        /**
+         * Add new review to product. After save.
+         *
+         * @param int $id Id a new review
+         * @param array $data info about user and Review text
+         * @param array $product info about product
+         *
+         * @event frontend_review_add.after
+         */
+
+        $params = array(
+            'id'      => $id,
+            'data'    => &$data,
+            'product' => $product
+        );
+
+        wa()->event('frontend_review_add.after', $params);
+
         $count = waRequest::post('count', 0, waRequest::TYPE_INT) + 1;
 
         $this->response = array(
-            'id' => $id,
-            'parent_id' => $this->getParentId(),
-            'count' => $count,
-            'html' => $this->renderTemplate(array(
-                    'review' => $this->model->getReview($id, true),
-                    'reply_allowed' => true,
-                    'product' => $product,
-                    'ajax_append' => true),
+            'id'               => $id,
+            'parent_id'        => $this->getParentId(),
+            'count'            => $count,
+            'html'             => $this->renderTemplate(array(
+                'review'        => $this->model->getReview($id, true),
+                'reply_allowed' => true,
+                'product'       => $product,
+                'ajax_append'   => true
+            ),
                 'file:review.html'
             ),
             'review_count_str' => _w(
-                '%d review for ',
-                '%d reviews for ',
-                $count
-            ).$product['name']
+                    '%d review for ',
+                    '%d reviews for ',
+                    $count
+                ).$product['name']
         );
     }
 
@@ -94,18 +128,18 @@ class shopFrontendProductReviewsAddController extends waJsonController
             $parent_comment = $this->model->getById($parent_id);
             $product_id = $parent_comment['product_id'];
         }
-        $text  = waRequest::post('text',  null, waRequest::TYPE_STRING_TRIM);
+        $text = waRequest::post('text', null, waRequest::TYPE_STRING_TRIM);
         $title = waRequest::post('title', null, waRequest::TYPE_STRING_TRIM);
 
         return array(
-            'product_id'  => $product_id,
-            'parent_id' => $parent_id,
-            'text' => $text,
-            'title' => $title,
-            'rate' => $rate && !$parent_id ? $rate : null,
-            'datetime' => date('Y-m-d H:i:s'),
-            'status' => shopProductReviewsModel::STATUS_PUBLISHED
-        ) + $this->getContactData();
+                'product_id' => $product_id,
+                'parent_id'  => $parent_id,
+                'text'       => $text,
+                'title'      => $title,
+                'rate'       => $rate && !$parent_id ? $rate : null,
+                'datetime'   => date('Y-m-d H:i:s'),
+                'status'     => shopProductReviewsModel::STATUS_PUBLISHED
+            ) + $this->getContactData();
     }
 
     protected function checkServiceAgreement()
@@ -138,18 +172,18 @@ class shopFrontendProductReviewsAddController extends waJsonController
         }
 
         if ($adapter == 'guest') {
-            $data['name']  = waRequest::post('name',  '', waRequest::TYPE_STRING_TRIM);
+            $data['name'] = waRequest::post('name', '', waRequest::TYPE_STRING_TRIM);
             $data['email'] = waRequest::post('email', '', waRequest::TYPE_STRING_TRIM);
-            $data['site']  = waRequest::post('site',  '', waRequest::TYPE_STRING_TRIM);
+            $data['site'] = waRequest::post('site', '', waRequest::TYPE_STRING_TRIM);
             $this->getStorage()->del('auth_user_data');
-        } else if ($adapter != 'user') {
+        } elseif ($adapter != 'user') {
             $auth_adapters = wa()->getAuthAdapters();
             if (!isset($auth_adapters[$adapter])) {
                 $this->errors[] = _w('Invalid auth provider');
             } elseif ($user_data = $this->getStorage()->get('auth_user_data')) {
-                $data['name']  = $user_data['name'];
+                $data['name'] = $user_data['name'];
                 $data['email'] = '';
-                $data['site']  = $user_data['url'];
+                $data['site'] = $user_data['url'];
             } else {
                 $this->errors[] = _w('Invalid auth provider data');
             }

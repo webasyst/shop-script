@@ -4,13 +4,13 @@
 
     <form id="new-customer-form" class="s-order-customer-details" action="?module=customers&action=add">
         <div class="fields form">
-            <div class="field-group">
+            <div class="field-group s-customers-add-block">
                 {$form->html()}
             </div>
 
             <div class="field">
                 <div class="value">
-                    <input type="submit" class="button green" value="[`Add`]">
+                    <input id="new-customer-add" type="submit" class="button green" value="[`Add`]">
                 </div>
             </div>
         </div>
@@ -20,14 +20,23 @@
 
 <script>$(function() { "use strict";
 
-    var form = $('#new-customer-form');
+    var form = $('#new-customer-form'),
+        is_locked = false;
 
     // Form submit via XHR
     form.submit(function() {
-        $.post(form.attr('action'), form.serialize(), function(r) {
-            $('#s-content').html(r);
-        });
-        return false;
+        if (!is_locked) {
+            // Disable submit button
+            $('#new-customer-add').attr("disabled", true);
+            is_locked = true;
+            $.post(form.attr('action'), form.serialize(), function (r) {
+                $('#s-content').html(r);
+            }).always(function () {
+                is_locked = false;
+                $('#new-customer-add').attr("disabled", false);
+            });
+            return false;
+        }
     });
 
     {if $customer_validation_disabled}

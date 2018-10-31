@@ -7,7 +7,7 @@ class shopBackendAutocompleteController extends waController
     public function execute()
     {
         $data = array();
-        $q = waRequest::get('term', '', waRequest::TYPE_STRING_TRIM);
+        $q = waRequest::request('term', '', waRequest::TYPE_STRING_TRIM);
         if ($q) {
             $type = waRequest::get('type', 'product', waRequest::TYPE_STRING_TRIM);
             if ($type == 'sku') {
@@ -438,36 +438,61 @@ class shopBackendAutocompleteController extends waController
 
     private function featuresAutocomplete($q)
     {
-        $result = array();
         $model = new shopFeatureModel();
-        $value = $model->escape($q, 'like');
+        $result = [];
+
+        $term = $model->escape($q, 'like');
         $table = $model->getTableName();
-        $options = (array)waRequest::get('options', array());
-        $where = array('1');
-        if (!empty($options['single'])) {
-            $where[] = '`multiple`=0';
+        $options = (array)waRequest::request('options', array());
+
+        $where = [1];
+
+        if (!empty($options)) {
+            foreach ($options as $name => $value) {
+                switch ($name) {
+                    case('single'):
+                        $where[] = '`multiple`=0';
+                        break;
+                    case ('ignore_id'):
+                        $ignore_features = (array) $model->escape($value, 'int');
+                        if ($ignore_features)  {
+                            $where[] =  'id NOT IN('.join(",", $ignore_features).')';
+                        }
+                        break;
+                    case ('count'):
+                        $where[] =  'count >='.$value;
+                        break;
+                }
+            }
         }
-        $where = ' AND (('.implode(') AND (', $where).'))';
+
+        if ($where) {
+            $where = ' AND (('.implode(') AND (', $where).'))';
+        }
+
         $sql = <<<SQL
-SELECT * FROM {$table}
-WHERE
-  (`parent_id` IS NULL
-  AND
-  (
-  (`name` LIKE '%{$value}%')
-  OR
-  (`code` LIKE '%{$value}%')
-  )){$where}
-ORDER BY `count` DESC
-LIMIT 20
+                SELECT * FROM {$table}
+                WHERE
+                  (`parent_id` IS NULL
+                    AND
+                    (
+                    (`name` LIKE '%{$term}%')
+                    OR
+                    (`code` LIKE '%{$term}%')
+                    )
+                  ){$where}
+                ORDER BY `count` DESC
+                LIMIT 20
 SQL;
-        foreach ($model->query($sql)->fetchAll('code', true) as $code => $f) {
+
+        $data = $model->query($sql)->fetchAll('code', true);
+
+        foreach ($data as $code => $f) {
             $label = array(
                 'name'  => $f['name'],
                 'type'  => shopFeatureModel::getTypeName($f),
                 'count' => _w('%d value', '%d values', $f['count']),
             );
-
 
             $result[] = array(
                 'id'    => $f['id'],

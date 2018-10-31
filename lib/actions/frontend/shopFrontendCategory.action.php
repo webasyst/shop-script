@@ -152,10 +152,17 @@ class shopFrontendCategoryAction extends shopFrontendAction
                         );
                     }
                 } elseif (isset($features[$fid]) && isset($category_value_ids[$fid])) {
+                    //set existing feature code with saved filter id
                     $feature_map[$features[$fid]['code']] = $fid;
+
+                    //set feature data
                     $filters[$fid] = $features[$fid];
+
                     $min = $max = $unit = null;
+
                     foreach ($filters[$fid]['values'] as $v_id => $v) {
+
+                        //remove unused
                         if (!in_array($v_id, $category_value_ids[$fid])) {
                             unset($filters[$fid]['values'][$v_id]);
                         } else {
@@ -210,14 +217,10 @@ class shopFrontendCategoryAction extends shopFrontendAction
             }
         }
 
-        $category_filters = $filters;
-
         if ($category['type'] == shopCategoryModel::TYPE_DYNAMIC) {
 
-            // Collect feature codes we do not have IDs for
-            $feature_codes_to_fix_ids = array();
-
             $conditions = shopProductsCollection::parseConditions($category['conditions']);
+
             foreach ($conditions as $field => $field_conditions) {
                 switch ($field) {
                     case 'price':
@@ -233,15 +236,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
                                         $filter_data['price_min'] = max($min, $filter_data['price_min']);
                                     }
 
-                                    if (empty($category_filters['price'])) {
-                                        $range = $collection->getPriceRange();
-                                        if ($range['min'] != $range['max']) {
-                                            $category_filters['price'] = array(
-                                                'min' => shop_currency($range['min'], null, null, false),
-                                                'max' => shop_currency($range['max'], null, null, false),
-                                            );
-                                        }
-                                    } elseif (isset($filters['price']['min'])) {
+                                    if (isset($filters['price']['min'])) {
                                         $filters['price']['min'] = max($filter_data['price_min'], $filters['price']['min']);
                                     }
                                     break;
@@ -252,16 +247,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
                                     } else {
                                         $filter_data['price_max'] = min($max, $filter_data['price_max']);
                                     }
-
-                                    if (empty($category_filters['price'])) {
-                                        $range = $collection->getPriceRange();
-                                        if ($range['min'] != $range['max']) {
-                                            $category_filters['price'] = array(
-                                                'min' => shop_currency($range['min'], null, null, false),
-                                                'max' => shop_currency($range['max'], null, null, false),
-                                            );
-                                        }
-                                    } elseif (isset($filters['price']['max'])) {
+                                    if (isset($filters['price']['max'])) {
                                         $filters['price']['max'] = min($filter_data['price_max'], $filters['price']['max']);
                                     }
                                     break;
@@ -284,48 +270,29 @@ class shopFrontendCategoryAction extends shopFrontendAction
                     default:
                         if (preg_match('@(\w+)\.(value_id)$@', $field, $matches)) {
                             $feature_code = $matches[1];
-                            $value_id = array_map('intval', preg_split('@[,\s]+@', end($field_conditions)));
-                            if (!isset($feature_map[$feature_code])) {
-                                // $feature_map is not guaranteed to contain all features at this point.
-                                // We will fetch and fix them later.
-                                $feature_codes_to_fix_ids[$feature_code] = $feature_code;
-                            }
-                            $feature_id = ifset($feature_map, $feature_code, $feature_code);
-                            if (!isset($category_filters[$feature_id])) {
-                                $category_filters[$feature_id] = array();
-                            }
-                            $category_filters[$feature_id] += array(
-                                'code' => $feature_code,
-                            );
-                            if (!empty($filter_data[$feature_code])) {
-                                //$filter_data[$feature_code] = array_intersect($filter_data[$feature_code], $value_id);
-                            } else {
-                                $filter_data[$feature_code] = $value_id;
-                            }
+                            $first_condition = reset($field_conditions);
 
-                            if (!empty($filters[$feature_id]['values'])) {
-                                foreach ($filters[$feature_id]['values'] as $_value_id => $_value) {
-                                    if (!in_array($_value_id, $value_id)) {
-                                        unset($filters[$feature_id]['values'][$_value_id]);
+                            //If first condition is array that is range. Not need this magic (May be) See below comment)
+                            if (!is_array($first_condition)) {
+                                $value_id = array_map('intval', preg_split('@[,\s]+@', end($field_conditions)));
+
+                                $feature_id = ifset($feature_map, $feature_code, $feature_code);
+
+                                if (empty($filter_data[$feature_code])) {
+                                    $filter_data[$feature_code] = $value_id;
+                                }
+
+                                //If you understand what this block does write a comment please.
+                                if (!empty($filters[$feature_id]['values'])) {
+                                    foreach ($filters[$feature_id]['values'] as $_value_id => $_value) {
+                                        if (!in_array($_value_id, $value_id)) {
+                                            unset($filters[$feature_id]['values'][$_value_id]);
+                                        }
                                     }
                                 }
                             }
                         }
                         break;
-                }
-            }
-
-            // Loop above might have written filter code where filter_id is expected,
-            // because it did not find feature_id by code. This fixes that.
-            if ($feature_codes_to_fix_ids) {
-                if (empty($feature_model)) {
-                    $feature_model = new shopFeatureModel();
-                }
-                foreach($feature_model->getByCode($feature_codes_to_fix_ids) as $f) {
-                    if (isset($category_filters[$f['code']])) {
-                        $category_filters[$f['id']] = $category_filters[$f['code']];
-                        unset($category_filters[$f['code']]);
-                    }
                 }
             }
         }

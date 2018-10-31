@@ -1,36 +1,44 @@
 <?php
+
 /**
-  * Performed when user clicks action button on request page in backend.
-  *
-  * For actions with form, returns form HTML.
-  * For actions without form, performs action and returns <script> tag to reload request page.
-  * For actions that cannot be performed by backend users, throws an excepton.
-  */
+ * Performed when user clicks action button on request page in backend.
+ *
+ * For actions with form, returns form HTML.
+ * For actions without form, performs action and returns <script> tag to reload request page.
+ * For actions that cannot be performed by backend users, throws an excepton.
+ */
 class shopWorkflowPrepareController extends waController
 {
-    public function execute() {
-        if (! ( $order_id = waRequest::post('id', 0, 'int'))) {
+    public function execute()
+    {
+        if (!($order_id = waRequest::post('id', 0, 'int'))) {
             throw new waException('No order id given.');
         }
-        if (! ( $action_id = waRequest::post('action_id'))) {
+        if (!($action_id = waRequest::post('action_id'))) {
             throw new waException('No action id given.');
         }
 
         $workflow = new shopWorkflow();
-        // @todo: check action availablity in state
+        // @todo: check action availability in state
+        /** @var shopWorkflowAction $action */
         $action = $workflow->getActionById($action_id);
 
         try {
             $html = $action->getHTML($order_id);
         } catch (SmartyCompilerException $e) {
-            $msg = 'Syntax Error in template "c819a6f6e20c401f73bc5bf68f3e0857f76eec24" on line 1 "{foreach {$order.items}}{/foreach}" missing "item" attribute';
+            $msg = $e->getMessage();
             preg_match('/^Syntax Error in template ".*?" on line ([\d+]) "(.*?)" (.*?)$/i', $msg, $m);
             if ($m) {
                 str_replace($m[0], '', $msg);
                 $msg = sprintf(_w("Syntax Error in template for action \"%s\" in line %s \"%s\". Reason: %s. "), $action->getName(), $m[1], $m[2], $m[3]);
             }
             $msg .= sprintf(_w("You can edit template <a href=\"?action=settings#/orderStates/\">order states settings</a>"));
-            die("<script>$.shop.alertError('{$msg}');</script>");
+            $msg = htmlentities($msg, ENT_QUOTES, 'utf-8');
+            $html = <<<HTML
+<script>
+$.shop.alertError('{$msg}');
+</script>
+HTML;
         }
 
         if ($html) {
@@ -49,17 +57,23 @@ class shopWorkflowPrepareController extends waController
                 (!empty($state_counters['processing']) ? $state_counters['processing'] : 0) +
                 (!empty($state_counters['paid']) ? $state_counters['paid'] : 0);
 
-            // update app coutner
+            // update app counter
             wa('shop')->getConfig()->setCount($state_counters['new']);
 
-            echo "<script>";
-            echo "$.order_list.updateCounters(".json_encode(array(
+            $data = json_encode(array(
                 'state_counters'  => $state_counters,
                 'common_counters' => array(
-                    'pending_counters' => $pending_counters
-                )
-            )).");";
-            echo "$.order.reload();</script>";
+                    'pending_counters' => $pending_counters,
+                ),
+            ));
+
+            echo <<<HTML
+<script>
+    $.order_list.updateCounters({$data});
+    $.order.reload();
+</script>
+HTML;
+
         }
     }
 }

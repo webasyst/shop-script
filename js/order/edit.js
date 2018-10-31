@@ -259,7 +259,8 @@ $.order_edit = {
         this.container.off('click', '.s-order-item-delete').on('click', '.s-order-item-delete', function () {
             var self = $(this);
             self.parents('tr:first').remove();
-            if (!self.parents('table:first').find('tr.s-order-item:first').length) {
+
+            if (!$('table#order-items').find('tr.s-order-item:first').length) {
                 $('#s-order-comment-edit').hide();
             }
 
@@ -361,6 +362,7 @@ $.order_edit = {
         $("#subtotal").text(this.roundFloat($("#subtotal").text()));
         $("#total").text(this.roundFloat($("#total").text()));
         $('#discount').val(this.roundFloat($('#discount').val()));
+        $('#tax').text(this.roundFloat($('#tax').text()));
     },
 
     initShippingControl: function () {
@@ -645,7 +647,8 @@ $.order_edit = {
                 services = [],
                 price = $.order_edit.parseFloat(tr.find('.s-orders-product-price input').val()),
                 quantity = $.order_edit.parseFloat(tr.find('input.s-orders-quantity').val()),
-                stock_id = tr.find('select.s-orders-sku-stock-select').val();
+                stock_id = tr.find('select.s-orders-sku-stock-select').val(),
+                item_id = tr.data('item-id');
 
             // get SKU id
             var sku_input = tr.find('input[name^=sku]:not(:radio)').add(tr.find('input[name^=sku]:checked')).first();
@@ -677,6 +680,7 @@ $.order_edit = {
             order_item.services = order_item.services.join('_');
 
             items.push({
+                id: item_id,
                 product_id: product_id,
                 quantity: quantity,
                 price: price,
@@ -740,7 +744,8 @@ $.order_edit = {
     realUpdateTotal: function () {
         var container = $.order_edit.container,
             $subtotal = $("#subtotal"),
-            $total = $("#total");
+            $total = $("#total"),
+            $tax = $("#tax");
         if (!container.find('.s-order-item').length) {
             $subtotal.text(0);
             $total.text(0);
@@ -787,6 +792,7 @@ $.order_edit = {
 
         data['params'] = {shipping_id: shipping_id};
         data['customer[id]'] = data['contact_id'] = $('#s-customer-id').val();
+        data.tax = 'calculate';
 
         if (shipping_id) {
             shipping_id = parseInt(shipping_id.split('.')[0]);
@@ -803,7 +809,7 @@ $.order_edit = {
             "url": '?module=order&action=total',
             "data": data,
             "success": function (response) {
-                if (response.status === 'ok') {
+                if (response && response.status === 'ok') {
                     var $shipping_rate = $('#shipping-rate');
                     if (response.data.shipping_method_ids.length > 0) {
                         var el = $("#shipping_methods"),
@@ -820,7 +826,20 @@ $.order_edit = {
                         var shipping_methods = response.data.shipping_methods;
 
                         // exact match
-                        var found = shipping_method_ids.indexOf(el_selected) !== -1;
+                        var found = false,
+                            problem_shipping = false;
+
+                        if (shipping_method_ids.indexOf(el_selected) !== -1) {
+                            found = true;
+                        }
+
+                        //If the delivery is not available, it will return and will contain an error.
+                        //Available only on id plugin
+                        if (!found && shipping_method_ids.indexOf(Number(el_selected_id)) !== -1) {
+                            found = true;
+                            problem_shipping = true;
+                        }
+
                         var custom_html_container = $('#shipping-custom');
 
                         custom_html_container.find('>div.fields.form').hide();
@@ -888,8 +907,14 @@ $.order_edit = {
                                 }
                             }
                         }
-
+                        
                         el.val(el_selected);
+
+                        //If there is a problematic delivery, choose it.
+                        if (problem_shipping) {
+                            el.val(el_selected_id)
+                        }
+
                         el.data('_shipping_id', el_selected_id);
                         $.shop.trace('set shipping_methods id', [el_selected_id, el_selected]);
                     }
@@ -907,10 +932,14 @@ $.order_edit = {
                     //Update order value after calculate.
                     $subtotal.text($.order_edit.roundFloat(response.data.subtotal));
                     $total.text($.order_edit.roundFloat(response.data.total));
+                    $tax.text($.order_edit.roundFloat(response.data.tax));
 
                     $.order_edit.showValidateErrors(response.data.errors);
                     that.setShippingInfo();
 
+                    //Allow submit button
+                    $.order_edit.switchSubmitButton();
+                } else {
                     //Allow submit button
                     $.order_edit.switchSubmitButton();
                 }

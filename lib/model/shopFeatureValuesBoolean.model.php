@@ -81,19 +81,39 @@ class shopFeatureValuesBooleanModel extends shopFeatureValuesModel
     public function getValues($field, $value = null, $limit = null)
     {
         $values = array();
-        switch ($field) {
+        if ($field === true) {
+            $switch = 'feature_id';
+        } else {
+            $switch = $field;
+        }
+        switch ($switch) {
+            case 'all':
+                $values = array(
+                    0 => $this->getValue($this->parseValue(false, null)),
+                    1 => $this->getValue($this->parseValue(true, null)),
+                );
+                break;
             case 'id':
+                $raw_values = array();
                 foreach ((array)$value as $id) {
-                    $values[$id] = $this->getValue($this->parseValue($id, null));
+                    $raw_values[$id] = $this->getValue($this->parseValue($id, null));
                 }
+                $values[0] = $raw_values;
                 break;
             case 'feature_id':
                 $raw_values = array(
                     0 => $this->getValue($this->parseValue(false, null)),
                     1 => $this->getValue($this->parseValue(true, null)),
                 );
-                foreach ((array)$value as $id) {
-                    $values[$id] = $raw_values;
+                if ($limit) {
+                    $raw_values = array_slice($raw_values, 0, $limit);
+                }
+                if ($value !== null) {
+                    foreach ((array)$value as $id) {
+                        $values[$id] = $raw_values;
+                    }
+                } else {
+                    $values[0] = $raw_values;
                 }
                 break;
             default:

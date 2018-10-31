@@ -103,12 +103,13 @@
                                         </tr>
                                     </tfoot>
                                 </table>
-
                             </div>
                         </div>
-
                     </div>
                 </div>
+                    <!-- plugin hook: 'backend_stocks.%plugin_id%.transfer' -->
+                    {* @event backend_stocks.%plugin_id%.transfer *}
+                    {foreach $backend_stocks_hook as $_}{$_.transfer|default:''}{/foreach}
             </div>
             <div class="dialog-buttons">
                 <div class="dialog-buttons-gradient">

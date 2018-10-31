@@ -366,6 +366,22 @@ class shopCategoryModel extends waNestedSetModel
             unset($data['url']);
         }
         $item = $this->getById($id);
+
+        /**
+         * Update category data
+         *
+         * @params array $item
+         * @params array $data new data for category
+         *
+         * @event category_update
+         */
+        $params = array(
+            'item' => $item,
+            'data' => &$data,
+        );
+
+        wa('shop')->event('category_update', $params);
+
         if (isset($url)) {
             if ($this->urlExists($url, $id, $item['parent_id'])) {
                 return false;

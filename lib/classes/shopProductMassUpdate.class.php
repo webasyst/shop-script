@@ -293,13 +293,15 @@ class shopProductMassUpdate
         }
 
         // Update product.count to match counts of SKUs
-        foreach($new_sku_data as $product_id => $product_skus) {
+        foreach ($new_sku_data as $product_id => $product_skus) {
             $count = 0;
-            foreach($product_skus as $sku) {
+            foreach ($product_skus as $sku) {
                 if (!empty($sku['available'])) {
                     if (is_null($sku['count'])) {
                         $count = null;
                         break;
+                    } elseif ($sku['count'] < 0) {
+                        continue;
                     } else {
                         $count += $sku['count'];
                     }
@@ -330,6 +332,9 @@ class shopProductMassUpdate
     {
         $values = array();
         $datetime = date('Y-m-d H:i:s');
+
+        $log_model_context_type = self::getStockLogContextType();
+
         foreach($new_sku_data as $product_id => $product_skus) {
             foreach(array_keys($product_skus) as $sku_id) {
                 $old_data = $old_sku_data[$product_id][$sku_id];
@@ -348,7 +353,7 @@ class shopProductMassUpdate
                                 'stock_id' => null,
                                 'product_id' => $product_id,
                                 'datetime' => $datetime,
-                                'type' => shopProductStocksLogModel::TYPE_IMPORT,
+                                'type' => $log_model_context_type,
                                 'diff_count' => $new_count === null ? null : $new_count - (int) $old_count,
                                 'before_count' => $old_count,
                                 'after_count' => $new_count,
@@ -369,7 +374,7 @@ class shopProductMassUpdate
                                 'stock_id' => $stock_id,
                                 'product_id' => $product_id,
                                 'datetime' => $datetime,
-                                'type' => shopProductStocksLogModel::TYPE_IMPORT,
+                                'type' => $log_model_context_type,
                                 'diff_count' => $new_count === null ? null : $new_count - (int) $old_count,
                                 'before_count' => $old_count,
                                 'after_count' => $new_count,
@@ -388,7 +393,7 @@ class shopProductMassUpdate
                                     'stock_id' => $stock_id,
                                     'product_id' => $product_id,
                                     'datetime' => $datetime,
-                                    'type' => shopProductStocksLogModel::TYPE_IMPORT,
+                                    'type' => $log_model_context_type,
                                     'diff_count' => $new_count === null ? null : $new_count - (int) $old_count,
                                     'before_count' => $old_count,
                                     'after_count' => $new_count,
@@ -406,7 +411,7 @@ class shopProductMassUpdate
                             'stock_id' => null,
                             'product_id' => $product_id,
                             'datetime' => $datetime,
-                            'type' => shopProductStocksLogModel::TYPE_IMPORT,
+                            'type' => $log_model_context_type,
                             'diff_count' => $new_count === null ? null : $new_count - (int) $old_count,
                             'before_count' => $old_count,
                             'after_count' => $new_count,
@@ -417,6 +422,24 @@ class shopProductMassUpdate
         }
 
         return $values;
+    }
+
+    /**
+     * If set context use it. Otherwise use default shopProductStocksLogModel::TYPE_IMPORT
+     * Context set there wa-apps/shop/lib/actions/products/shopProductsMassUpdate.controller.php
+     * @return string
+     */
+    protected static function getStockLogContextType()
+    {
+        $log_model_context = shopProductStocksLogModel::getContext();
+
+        if (!empty($log_model_context['type'])) {
+            $type = $log_model_context['type'];
+        } else {
+            $type = shopProductStocksLogModel::TYPE_IMPORT;
+        }
+
+        return $type;
     }
 
     protected static function updateStockLog($old_sku_stocks, $new_sku_stocks, $old_sku_data, $new_sku_data)

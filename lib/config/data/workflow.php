@@ -136,6 +136,7 @@ return array(
             'options'   => array(
                 'log_record'   => _w('Order was confirmed and accepted for processing'),
                 'button_class' => 'green',
+                'description' => sprintf(_w('Order status will be changed to “%s”.'), _w('Processing')),
             ),
             'state'     => 'processing',
         ),
@@ -145,6 +146,8 @@ return array(
             'options'   => array(
                 'log_record'   => _w('Order was paid'),
                 'button_class' => 'yellow',
+                'description' => sprintf(_w('Order status will be changed to “%s”.'), _w('Paid'))
+                    .' '._w('A payment date will be saved.'),
             ),
             'state'     => 'paid',
         ),
@@ -154,6 +157,7 @@ return array(
             'options'   => array(
                 'log_record'   => _w('Order was shipped'),
                 'button_class' => 'blue',
+                'description' => sprintf(_w("Order status will be changed to “%s”."), _w('Sent')),
             ),
             'state'     => 'shipped',
         ),
@@ -163,6 +167,8 @@ return array(
             'options'   => array(
                 'log_record'   => _w('Order was refunded'),
                 'button_class' => 'red',
+                'description' => sprintf(_w("Order status will be changed to “%s”."), _w('Refunded'))
+                    .' '._w('Quantities of ordered products and their SKUs, if non-empty, will be increased accordingly. Order payment date will be cleared.'),
             ),
             'state'     => 'refunded',
         ),
@@ -196,6 +202,8 @@ return array(
             'name'      => _w('Delete'),
             'options'   => array(
                 'log_record' => _w('Order was deleted'),
+                'description' => sprintf(_w('Order status will be changed to “%s”.'), _w('Deleted'))
+                    .' '._w('Quantities of ordered products and their SKUs, if non-empty, will be increased accordingly. Order payment date will be cleared.'),
             ),
             'state'     => 'deleted',
         ),
@@ -206,6 +214,7 @@ return array(
                 'icon'         => 'restore',
                 'log_record'   => _w('Order was re-opened'),
                 'button_class' => 'green',
+                'description' => _w('Order status will be changed to the one the order had before deletion.'),
             ),
         ),
         'complete' => array(
@@ -213,7 +222,9 @@ return array(
             'name'      => _w('Mark as Completed'),
             'options'   => array(
                 'log_record'   => _w('Order was marked as completed'),
-                'button_class' => 'purple'
+                'button_class' => 'purple',
+                'description' => sprintf(_w('Order status will be changed to “%s”.'), _w('Completed'))
+                    .' '._w('A payment date will be saved.'),
             ),
             'state'     => 'completed',
         ),

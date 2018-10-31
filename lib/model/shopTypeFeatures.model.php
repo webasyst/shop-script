@@ -96,7 +96,6 @@ SQL;
                 $types[$row['id']] += $row;
             }
         }
-
     }
 
     public function fillTypes(&$features, &$types = null)
@@ -122,7 +121,7 @@ SQL;
         } elseif ($types === null) {
             $sql .= ' WHERE '.$this->getWhereByField('feature_id', array_keys($map));
         } elseif ($types) {
-            $sql .= ' WHERE '.$this->getWhereByField('type_id',  array_keys($types));
+            $sql .= ' WHERE '.$this->getWhereByField('type_id', array_keys($types));
         }
 
         $result = $this->query($sql);

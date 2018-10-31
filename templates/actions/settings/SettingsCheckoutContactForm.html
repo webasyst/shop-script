@@ -6,12 +6,6 @@
 <div class="field">
     <div class="name">[`Misc fields`]</div>
     <div class="value no-shift">
-
-        <p>
-            <img src="{$wa_url}wa-apps/contacts/img/contacts.png" class="float-right">
-            {sprintf('[`Checkout form is based on your system contact field set configured in the <a href="%s">Contacts</a> app. The form below allows you to customize the list of fields prompted during checkout.`]',$wa_backend_url|cat:'contacts/')}
-        </p>
-
         <table id="main-field-list" class="field-list zebra"><tbody>
             {foreach $fields as $fid => $f}
                 {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid=$fid f=$f css_class='field-row editor-off'}

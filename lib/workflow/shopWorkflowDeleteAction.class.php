@@ -4,7 +4,7 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
 {
     public function execute($order_id = null)
     {
-        $order = $this->order_model->getById($order_id);
+        $order = $this->getOrder($order_id);
         shopAffiliate::refundDiscount($order);
         if ($order['paid_year']) {
             shopAffiliate::cancelBonus($order);

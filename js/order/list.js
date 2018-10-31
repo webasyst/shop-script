@@ -567,6 +567,12 @@
                 $(this).trigger('select', this.checked);
             });
 
+
+            // Hide action panel if user open other window
+            $(window).one('wa_before_dispatched',function (e) {
+                that.$selectionMenu.hide();
+            });
+
             that.xhrs.printforms = null;
 
             var renderPrintforms = function(data) {

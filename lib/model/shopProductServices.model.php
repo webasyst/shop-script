@@ -445,9 +445,11 @@ class shopProductServicesModel extends waModel
             if ($default && $variants[$default]['status'] == self::STATUS_PERMITTED) {
                 $variants[$default]['status'] = self::STATUS_DEFAULT;
             } else {
-                foreach ($variants as &$variant) {
+                foreach ($variants as $variant_id => &$variant) {
                     if ($variant['status'] == self::STATUS_PERMITTED) {
                         $variant['status'] = self::STATUS_DEFAULT;
+                        //If the default option is not available for this sku set first available
+                        $default = $variant_id;
                         break;
                     }
                 }

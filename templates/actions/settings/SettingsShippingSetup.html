@@ -1,5 +1,5 @@
 {if !empty($error)}
-<h1 class="js-bread-crumbs"><a href="#/payment/" class="back">&larr; [`Shipping`]</a>&nbsp;[`Error`]</h1>
+<h1 class="js-bread-crumbs"><a href="#/shipping/" class="back">&larr; [`Shipping`]</a>&nbsp;[`Error`]</h1>
 <span class="errormsg">{$error|escape}</span>
 {else}
 <form>
@@ -80,6 +80,22 @@
         *}
     </div>
 
+    <div class="field-group">
+        <div class="field">
+            <div class="name">[`Offer shipping to customer types`]</div>
+            <div class="value">
+                <label><input type="radio" name="shipping[options][customer_type]" value="" {if empty($plugin.options.customer_type)} checked{/if}> [`All`]</label>
+            </div>
+            <div class="value">
+                <label><input type="radio" name="shipping[options][customer_type]" value="person" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'person'))} checked{/if}> [`Persons`]</label>
+            </div>
+            <div class="value">
+                <label><input type="radio" name="shipping[options][customer_type]" value="company" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'company'))} checked{/if}> [`Companies`]</label>
+            </div>
+            <div class="value hint">{sprintf('[`In  “%s” mode shipping is offered only to selected customer types.<br>In “%s” mode this setting is ignored and shipping is always offered to all customer types.`]', '[`In-cart checkout`]', '[`Multi-step checkout`]')}</div>
+        </div>
+    </div>
+
     <!-- CUSTOM SHIPPING MODULE PARAMS -->
     <div class="field-group">
         {$settings_html}
@@ -89,7 +105,7 @@
         <div class="field">
             <div class="value submit">
                 <input type="submit" class="button green" value="[`Save`]"> [`or`] <a href="#/shipping/" class="inline-link">[`cancel`]</a>
-                <span id="settings-shipping-form-status" style="display:none"><!-- message placeholder --></span>
+                <span id="settings-shipping-form-status" class="js-form-status" style="display:none"><!-- message placeholder --></span>
             </div>
         </div>
     </div>

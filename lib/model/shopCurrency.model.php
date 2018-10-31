@@ -234,7 +234,11 @@ class shopCurrencyModel extends waModel
             $this->exec("UPDATE `shop_customer`  SET total_spent = total_spent/$rate");
             $this->exec("UPDATE `shop_product` SET total_sales = total_sales/$rate");
             $this->exec("UPDATE `shop_order` SET rate = rate/$rate");
-            $this->exec("UPDATE `shop_order_params` SET value = value/$rate WHERE name='shipping_currency_rate'");
+            try {
+                $this->exec("UPDATE `shop_order_params` SET value = value/$rate WHERE name='shipping_currency_rate'");
+            } catch (waException $e) {
+                waLog::log('Error updating currencies. Perhaps there is a currency with a comma.');
+            }
             $this->exec("UPDATE `shop_expense` SET amount = amount/$rate");
             $this->exec("DELETE FROM `shop_sales`");
             $this->updateById($old_code, array('sort' => $currencies[$new_code]));

@@ -205,17 +205,27 @@
     var $content = $wrapper.find('.content');
     var $form = $content.find('form');
     var $submit_button = $form.find(':submit:first');
+    var is_locked = false;
 
     // Highlight items in both sidebars
     $sidebar.find('a[href="'+location.hash+'"]').parent().addClass('selected');
 
     // Form submit via XHR
     $form.submit(function() {
-        $submit_button.parent().append('<i class="icon16 loading"></i>');
-        $.post($form.attr('action'), $form.serialize(), function(r) {
-            $wrapper.html(r);
-        });
-        return false;
+        if (!is_locked) {
+            $submit_button.attr("disabled", true);
+            is_locked = true;
+            $submit_button.parent().append('<i class="icon16 loading"></i>');
+
+            $.post($form.attr('action'), $form.serialize(), function (r) {
+                $wrapper.html(r);
+            }).always(function () {
+                is_locked = false;
+                $submit_button.attr("disabled", false);
+            });
+
+            return false;
+        }
     });
 
     // Validation errors

@@ -11,11 +11,11 @@
 
         <div class="hr"></div>
         <div class="block small">
-            <p>[`If more then one rule is applicable for the customer order, how the total discount should be calculated?`]</p>
+            <p>[`How total discount should be calculated if multiple rules are applicable for an order:`]</p>
             <p>
-                <label><input type="radio" name="combiner" value="max"{if $combiner != 'sum'} checked{/if}> [`Maximum`]</label>
+                <label><input type="radio" name="combiner" value="max"{if $combiner != 'sum'} checked{/if}> [`maximum`]</label>
                 <br><br>
-                <label><input type="radio" name="combiner" value="sum"{if $combiner == 'sum'} checked{/if}> [`Sum`]</label>
+                <label><input type="radio" name="combiner" value="sum"{if $combiner == 'sum'} checked{/if}> [`sum`]</label>
             </p>
             <input type="button" id="combiner-save-button" value="[`Save`]" style="display:none">
         </div>
@@ -23,11 +23,11 @@
 
         <div class="hr"></div>
         <div class="block small">
-            <p>[`Save detailed description on how discount was calculated:`]</p>
+            <p>[`How to save discount calculation description:`]</p>
             <p>
-                <label><input type="radio" name="discount_description" value="1" {if $discount_description}checked{/if}> [`For each product`]</label>
+                <label><input type="radio" name="discount_description" value="1" {if $discount_description}checked{/if}> [`for each product`]</label>
                 <br><br>
-                <label><input type="radio" name="discount_description" value="0" {if !$discount_description}checked{/if}> [`For the entire order`]</label>
+                <label><input type="radio" name="discount_description" value="0" {if !$discount_description}checked{/if}> [`for entire order`]</label>
             </p>
             <p class="gray">[`Depending on your store setup, different levels of discount detalization may be useful.`]</p>
             <input type="button" id="discount-desc-save-button" value="[`Save`]" style="display:none">

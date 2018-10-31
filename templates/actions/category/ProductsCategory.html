@@ -1,0 +1,567 @@
+<div class="dialog large" id="s-product-category-dialog">
+    <div class="dialog-background"></div>
+    <form id="s-product-list-create-form" method="post"
+          action="?module=category&action=save&category_id={$settings.id|default:0}&parent_id={if !empty($parent)}{$parent.id}{else}0{/if}"
+          enctype="multipart/form-data">
+        <div class="dialog-window s-category-settings">
+            <div class="dialog-content">
+                <div class="dialog-content-indent">
+                    {*TITLE*}
+                    <h1>
+                        {if !empty($settings.id)}
+                            {$settings.name|escape}
+                            <i class="icon16 {if $settings.type == shopCategoryModel::TYPE_STATIC}folder{else}funnel{/if}"></i>
+                            <span class="hint float-right">id: {$settings.id}</span>
+                        {else}
+                            [`New category`]
+                        {/if}
+                    </h1>
+                    <div class="fields form s-dialog-form">
+
+
+                        {*CATEGORY NAME*}
+                        <div class="field-group">
+                            <div class="field">
+                                <div class="name">[`Name`]</div>
+                                <div class="value">
+                                    <input type="text" name="name" class="large long s-full-width-input js-product-list-name" value="{$settings.name|escape}">
+                                </div>
+                            </div>
+                        </div>
+
+                        {*PUBLIC LINK*}
+                        <div class="field-group">
+                            <div class="field">
+                                <div class="name">
+                                    [`Public link`]
+                                </div>
+                                {if $settings.frontend_urls}
+                                    {foreach $settings.frontend_urls as $frontend_url}
+                                        <div class="value no-shift{if !$frontend_url@first} small{/if}">
+                                            {if $frontend_url@first}
+                                                {strip}
+                                                    <span class="s-frontend-base-url" style="display:none;">
+                                                        {waIdna::dec($frontend_url.base)}
+                                                    </span>
+                                                    <a href="{$frontend_url.url}" class="s-frontend-base-url" target="_blank">
+                                                        {waIdna::dec($frontend_url.base)}
+                                                        <span id="s-settings-frontend-url">{waIdna::dec($settings.url)}</span>
+                                                        <span class="slash"></span>
+                                                    </a>
+                                                {/strip}
+                                                <input type="text" id="s-settings-frontend-url-input" value="{$settings.url}" name="url" style="display:none;">
+                                                <a href="javascript:void(0);" class="small gray inline-link js-settings-frontend-url-edit-link"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
+                                                <em class="errormsg"></em>
+                                            {else}
+                                                <a href="{$frontend_url.url}" target="_blank">{waIdna::dec($frontend_url.url)}</a>
+                                            {/if}
+                                        </div>
+                                    {/foreach}
+                                {else}
+                                    <div class="value">
+                                        {$frontend_base_url}{if !empty($parent)}{$parent.full_url}/{/if}<input type="text" name="url" value="" class="js-product-list-url">/
+                                    </div>
+                                {/if}
+
+                                <div class="value no-shift">
+                                    <label>
+                                        <input value="1" name="hidden" {if !$settings.status && $settings.id !== ''}checked{/if} type="checkbox">
+                                        [`Hidden category`] <span class="hint">[`Hide links to this category in the storefront`]</span>
+                                    </label>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        {*EVENT*}
+                        {if !empty($event_dialog)}{foreach $event_dialog as $plugin_id => $plugin_html}{$plugin_html}{/foreach}{/if}
+
+
+                        {*CATEGORY TYPE*}
+                        {if empty($settings.id)}
+                            <div class="field-group">
+                                <div class="field">
+                                    <div class="name">
+                                        [`Type`]
+                                    </div>
+                                    <div class="value no-shift">
+                                        <ul class="thumbs li150px s-list-type-selector">
+                                            {if ifset($parent, 'type', 0) != 1}
+                                                <li style="margin-bottom: 0;">
+                                                    <label>
+                                                        <input id="s-type-static" type="radio" name="type" value="0" checked="checked">
+                                                        <strong>[`Category`]</strong>
+                                                        <i class="icon16 folder"></i>
+                                                        <br><br>
+                                                        <span class="hint">[`A static category for adding and arranging products manually.`]</span>
+                                                    </label>
+                                                </li>
+                                            {/if}
+                                            <li style="margin-bottom: 0;">
+                                                <label>
+                                                    <input id="s-type-dynamic" type="radio" name="type" value="1" {if ifset($parent,'type', 0) == 1}checked="checked"{/if}>
+                                                    <strong>[`Filter`]</strong>
+                                                    <i class="icon16 funnel"></i>
+                                                    <br><br>
+                                                    <span class="hint">[`A dynamic category based on a search criteria, e.g. rating or tags.`]</span>
+                                                </label>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        {else}
+                            <input type="hidden" name="type" value="{$settings.type}">
+                        {/if}
+
+                        {*DYNAMIC FILTERS*}
+                        {if $settings.id === '' || $settings.type == shopCategoryModel::TYPE_DYNAMIC}
+                            <div class="field-group js-category-dynamic-settings" {if $settings.id === '' && empty($parent)} style="display: none;" {/if}>
+                                <div class="field">
+                                    <div class="name">
+                                        [`Product filtering options`]
+                                    </div>
+                                    <div class="value">
+                                        <table class="zebra s-condition-block js-condition-list">
+                                            <tbody class="js-feature-insertion-block">
+                                            <tr style="{if empty($parent)}display: none;{/if}">
+                                                <td class="min-width" style="vertical-align: top;">
+                                                    <input type="checkbox" disabled="disabled" checked="checked" class="js-always-disabled">
+                                                </td>
+                                                <td colspan="3">
+                                                    {sprintf('[`<strong>%s</strong> category only`]', $parent.name|default:'')}
+                                                    <p class="hint" style="margin-bottom: 0;">[`Dynamic categories filter products only from parent categories they belong to.`]</p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" style="min-width: 200px;width: 32%;">
+                                                    <label><input class="js-condition-price-interval s-condition" type="checkbox" name="condition[price]" value="price"
+                                                           {if isset($settings.conditions.price)}checked{/if}>
+                                                    [`Price`]</label>
+                                                </td>
+                                                <td colspan="2">
+                                                    <div class="js-feature-slider-base-price s-feature-slider-block" data-slider="range" data-code="base-price">
+                                                        [`from`]
+                                                        <input type="text" name="price[0]" class="js-begin short" placeholder="{if isset($settings.conditions.price['begin'])}{$settings.conditions.price['begin']}{else}0{/if}"
+                                                               value="{if isset($settings.conditions.price['begin'])}{$settings.conditions.price['begin']}{else}0{/if}">
+                                                        [`to`]
+                                                        <input type="text" name="price[1]" class="js-end short" placeholder="{if isset($settings.conditions.price['end'])}{$settings.conditions.price['end']}{else}&infin;{/if}"
+                                                               value="{if isset($settings.conditions.price['end'])}{$settings.conditions.price['end']}{/if}">
+                                                        {$currency}
+                                                        <div class="js-range-slider"></div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2">
+                                                    <label><input class="js-condition-rate s-condition" type="checkbox" name="condition[rating]" value="rating"
+                                                           {if isset($settings.conditions.rating)}checked{/if}>
+                                                    [`Rating`]</label>
+                                                </td>
+                                                <td>
+                                                    <select name="rating[]">
+                                                        <option value=">=" {if isset($settings.conditions.rating.condition) && $settings.conditions.rating.condition == '>='}selected{/if}>[`is
+                                                            greater or equal`]
+                                                        </option>
+                                                        <option value="<=" {if isset($settings.conditions.rating.condition) && $settings.conditions.rating.condition == '<='}selected{/if}>[`is
+                                                            lesser or equal`]
+                                                        </option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="hidden" name="rating[]" class="js-c-category-rate-value"
+                                                           value="{if isset($settings.conditions.rating.values[0])}{$settings.conditions.rating.values[0]}{else}0{/if}">
+                                                    <a href="javascript:void(0);" class="js-category-rate s-rate-photo" title="Rate photo"
+                                                       data-rate="{if isset($settings.conditions.rating.values[0])}{$settings.conditions.rating.values[0]}{else}0{/if}">
+                                                        {$wa->shop->ratingHtml(0, 16, true)}
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            {if !empty($settings.cloud)}
+                                                <tr>
+                                                    <td colspan="2">
+                                                        <label><input class="js-condition-tag js-condition-tag s-condition" type="checkbox" name="condition[tag]" value="tag"
+                                                               {if !empty($settings.conditions.tag.tags)}checked{/if}>
+                                                        [`Tags`]</label>
+                                                    </td>
+
+                                                    <td colspan="2">
+                                                        <div class="js-condition-tag-block block double-padded align-center">
+                                                            {foreach $settings.cloud as $tag}
+                                                                <label>
+                                                                     <span class="s-tag nowrap" style="font-size: {$tag.size}%;" data-id="{$tag.id}">
+                                                                         <input type="checkbox" class="js-tag-value" name="tag[]" value="{$tag.name|escape}"
+                                                                                {if !empty($settings.conditions.tag.tags) && in_array($tag.name, $settings.conditions.tag.tags)}checked{/if}> {$tag.name|escape}
+                                                                     </span>
+                                                                </label>
+                                                            {/foreach}
+                                                            <span class="errormsg"></span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {/if}
+                                            <tr>
+                                                <td colspan="2">
+                                                    <label><input class="js-condition-count s-condition" type="checkbox" name="condition[count]" value="count"
+                                                           {if isset($settings.conditions.count)}checked{/if}>
+                                                    [`In stock`]</label>
+                                                </td>
+                                                <td>
+                                                    <select name="count[]">
+                                                        <option value=">=" {if isset($settings.conditions.count.condition) && $settings.conditions.count.condition == '>='}selected{/if}>[`is
+                                                            greater or equal`]
+                                                        </option>
+                                                        <option value="<=" {if isset($settings.conditions.count.condition) && $settings.conditions.count.condition == '<='}selected{/if}>[`is
+                                                            lesser or equal`]
+                                                        </option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="count[]" class="js-category-count-value"
+                                                           value="{if isset($settings.conditions.count.values[0])}{$settings.conditions.count.values[0]}{else}0{/if}">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="4">
+                                                    <label><input class="js-condition-compare_price s-condition" type="checkbox" name="condition[compare_price]" value="compare_price"
+                                                           {if isset($settings.conditions.compare_price)}checked{/if}>
+                                                    [`Compare at price`]</label>
+                                                </td>
+                                            </tr>
+                                            {include file="./feature.template.html" inline}
+                                            </tbody>
+                                        </table>
+                                        <table class="js-autocomplete-wrapper" style="margin-top: 10px; margin-left: 4px;">
+                                            <tbody>
+                                                <tr {if $settings.feature_count <= 0} style="display: none"{/if}>
+                                                    <td>
+                                                        {if isset($settings.feature_count) && $settings.feature_count > 0}
+                                                            <a href="javascript:void(0);" class="js-show-more inline-link" data-offset="0" data-count="{$settings.feature_count}">
+                                                                <b><i>{(20)|string_format:"[`Show %d more`]"} [`From`] {$settings.feature_count}</i></b>
+                                                            </a>
+                                                        {/if}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="js-autocomplete-block">
+                                                        <input type="text" class="js-autocomplete ui-autocomplete-input" autocomplete="off" placeholder="[`Type text to start search`]" style="margin-top: 12px;">
+                                                        <span class="errormsg"></span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <!-- extra custom condition items -->
+                                        <input type="hidden" name="custom_conditions" value="{$settings['custom_conditions']}">
+                                    </div>
+                                </div>
+                            </div>
+                        {/if}
+
+                        {*SORT*}
+                        <div class="field-group">
+                            <div class="field">
+                                <div class="name">
+                                    [`Product sort order`]
+                                </div>
+                                <div class="value no-shift">
+                                    <select name="sort_products" class="js-sort-type">
+                                        {if $settings.type == shopCategoryModel::TYPE_STATIC}
+                                            <option value="" {if empty($settings.sort_products)}selected="selected"{/if} {if $settings.include_sub_categories|default:'0'}disabled="disabled"{/if}>[`Manual (as defined in the backend)`]</option>
+                                        {/if}
+                                        <option value="name ASC" {if $settings.sort_products == 'name ASC'}selected="selected"{/if}>[`By name`]</option>
+                                        <option value="price DESC" {if $settings.sort_products == 'price DESC'}selected="selected"{/if}>[`Most expensive`]</option>
+                                        <option value="price ASC" {if $settings.sort_products == 'price ASC'}selected="selected"{/if}>[`Least expensive`]</option>
+                                        <option value="rating DESC" {if $settings.sort_products == 'rating DESC'}selected="selected"{/if}>[`Highest rated`]</option>
+                                        <option value="rating ASC" {if $settings.sort_products == 'rating ASC'}selected="selected"{/if}>[`Lowest rated`]</option>
+                                        <option value="total_sales DESC" {if $settings.sort_products == 'total_sales DESC'}selected="selected"{/if}>[`Best sellers`]</option>
+                                        <option value="total_sales ASC" {if $settings.sort_products == 'total_sales ASC'}selected="selected"{/if}>[`Worst sellers`]</option>
+                                        <option value="count DESC" {if $settings.sort_products == 'count DESC'}selected="selected"{/if}>[`In stock`]</option>
+                                        {if $settings.type == shopCategoryModel::TYPE_DYNAMIC}
+                                            <option value="" {if empty($settings.sort_products)}selected="selected"{/if}>[`Date added`]</option>
+                                        {else}
+                                            <option value="create_datetime DESC" {if $settings.sort_products == 'create_datetime DESC'}selected="selected"{/if}>[`Date added`]
+                                            </option>
+                                        {/if}
+                                        <option value="stock_worth DESC" {if $settings.sort_products == 'stock_worth DESC'}selected="selected"{/if}>[`Stock net worth`]</option>
+                                    </select>
+                                    <label class="small">
+                                        <input type="checkbox" name="enable_sorting" {if $settings.enable_sorting}checked="checked"{/if} value="1"> [`Customers can select
+                                        preferable product sort order`]
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        {*FRONTEND VISIBLE*}
+                        <div class="field-group">
+                            <div class="field">
+                                <div class="name">
+                                    [`Frontend display`]
+                                </div>
+                                <div class="value no-shift"{if $settings.type == shopCategoryModel::TYPE_DYNAMIC} style="display: none;"{/if}>
+                                    <label>
+                                        <input type="checkbox" class="js-subcategory-toggle" name="include_sub_categories" {if $settings.include_sub_categories|default:'0'}checked="checked"{/if} value="1">
+                                        [`Include products from sub-categories`]
+                                        <span class="hint">[`When enabled, products will be fetched from both the current category and all its sub-categories — and shown in one list`]</span>
+                                    </label>
+                                </div>
+                                <div class="value no-shift">
+                                    <label>
+                                        <input type="checkbox" name="allow_filter" value="1"
+                                               class="js-category-allow-filter" {if $settings.allow_filter}checked{/if}> [`Allow product filtering`]
+                                        <span class="hint">[`Product filtering allows your customers to filter (search) products within this category by feature values, e.g. by color, manufacturer, price`]</span>
+                                    </label>
+
+                                    <div class="block js-category-filter" {if !$settings.allow_filter}style="display:none;"{/if}>
+                                        <ul class="menu-v compact small">
+                                            {* Show enabled filters *}
+                                            {if !empty($settings.allow_filter_data)}
+                                                {foreach $settings.allow_filter_data as $allow_filter}
+                                                    <li title="{$feature.code|default:''|escape}" class="js-filter-item">
+                                                        <i class="icon16 sort"></i>
+                                                        <label>
+                                                            <input type="checkbox" name="filter[]" data-filter-id="{$allow_filter.id}" class="js-filter-chekbox" value="{$allow_filter.id}"
+                                                            {if $settings.type == 1}{* Dynamic category *}
+                                                                {if !empty($settings['conditions']['feature'][$allow_filter.code]['values'])}
+                                                                    {if count($settings['conditions']['feature'][$allow_filter.code]['values']) < 2}
+                                                                        data-disabled="1" disabled="disabled" title="[`Filtering by this feature is not available, because only one of its values is selected in “Product filtering options” section.`]"
+                                                                    {/if}
+                                                                {/if}
+                                                            {/if}
+                                                            checked="checked">
+                                                                 {$allow_filter.name|escape}
+                                                            {if isset($allow_filter.code)}
+                                                                <span class="hint">{$allow_filter.code|escape} {$allow_filter.type_name|default:''|escape}</span>
+                                                            {/if}
+                                                        </label>
+                                                    </li>
+                                                {/foreach}
+                                            {/if}
+                                            {foreach $settings.filter as $feature}
+                                                <li title="{$feature.code|default:''|escape}" class="js-filter-item unsortable">
+                                                    <i class="icon16 sort" style="display: none;"></i>
+                                                    <label>
+                                                        <input type="checkbox" name="filter[]" data-filter-id="{$feature.id}" class="js-filter-chekbox" value="{$feature.id}"
+                                                        {if $settings.type == 1}{* Dynamic category *}
+                                                            {if !empty($settings['conditions']['feature'][$feature.code]['values'])}
+                                                                {if count($settings['conditions']['feature'][$feature.code]['values']) < 2}
+                                                                    data-disabled="1" disabled="disabled" title="[`Filtering by this feature is not available, because only one of its values is selected in “Product filtering options” section.`]"
+                                                                {/if}
+                                                            {/if}
+                                                        {/if}
+                                                        {if ($feature.id == 'price' && !$settings.allow_filter)}checked="checked"{/if}>
+                                                             {$feature.name|escape}
+                                                        {if isset($feature.code)}
+                                                            <span class="hint">{$feature.code|escape} {$feature.type_name|default:''|escape}</span>
+                                                        {/if}
+                                                    </label>
+                                                </li>
+                                            {/foreach}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {*CATEGORY VISIBLE*}
+                        <div class="field js-product-category-visibility-block">
+                            <div class="name">
+                                [`Category visibility`]
+                            </div>
+                            <div class="value no-shift">
+                                <label><input type="radio" name="storefront" value="" {if !$settings.routes}checked="checked"{/if}>
+                                    [`All storefronts`]
+                                </label>
+                            </div>
+                            <div class="value no-shift">
+                                <label><input type="radio" name="storefront" value="route" {if $settings.routes}checked="checked"{/if}>
+                                    [`Selected storefronts only`]
+                                </label>
+                            </div>
+                            {if !empty($routes)}
+                                <div class="value">
+
+                                    {foreach $routes as $domain => $domain_routes}
+                                        {foreach $domain_routes as $route}
+                                            {$url = $domain|cat:"/":$route.url}
+                                            <label>
+                                                <input {if in_array($url, $settings.routes)}checked{/if} {if !$settings.routes}disabled{/if} type="checkbox" name="routes[]"
+                                                       value="{$url}"> {waIdna::dec($url)}
+                                            </label>
+                                            <br>
+                                        {/foreach}
+                                    {/foreach}
+                                </div>
+                            {/if}
+                            {if $settings.has_children}
+                                <div class="value" style="margin-top: 20px">
+                                    <label class="italic">
+                                        <input type="checkbox" name="propagate_visibility" value="1" checked="checked"> [`Apply new visibility settings to all subcategories`]
+                                    </label>
+                                </div>
+                            {/if}
+                        </div>
+
+                        {*META TAGS*}
+                        <div class="field-group">
+                            <div class="field">
+                                <div class="name">[`Title`]</div>
+                                <div class="value">
+                                    <input value="{$settings.meta_title|default:''|escape}"
+                                           id="s-meta-title"
+                                           name="meta_title"
+                                           placeholder="{shopCategoryModel::getDefaultMetaTitle($settings)}" class="long bold">
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name">[`META Keywords`]</div>
+                                <div class="value">
+            <textarea name="meta_keywords"
+                      placeholder="{shopCategoryModel::getDefaultMetaKeywords($settings)}">{$settings.meta_keywords|default:''|escape}</textarea>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name">[`META Description`]</div>
+                                <div class="value">
+                                    <textarea name="meta_description">{$settings.meta_description|default:''|escape}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        {*SOCIAL NETWORK*}
+                        {$category_og = ifempty($settings.og, [])}
+                        {$editable_ogs_list = explode(',', 'title,image,video,description,type')}
+                        {$editable_ogs = array_intersect_key($category_og, array_fill_keys($editable_ogs_list, 1))}
+                        {$other_ogs = array_diff_key($category_og, $editable_ogs)}
+                        {$og = $editable_ogs}
+
+                        <div class="field-group" style="display: none;">
+                            <div class="field">
+                                <div class="name">[`Social sharing`]</div>
+                                <div class="value no-shift">
+                                    <label><input type="checkbox" class="js-category-social-metatag" {if !$editable_ogs} checked{/if}> [`Use these meta tags for social sharing too`]</label>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <div class="name">[`Social sharing title`] <span class="hint">og:title</span></div>
+                                <div class="value">
+                                    <input name="og[title]" value="{ifset($og['title'])|escape}" class="long bold">
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name">[`Social sharing image URL`] <span class="hint">og:image</span></div>
+                                <div class="value">
+                                    <input name="og[image]" value="{ifset($og['image'])|escape}" placeholder="" class="long">
+                                    <br>
+                                    <span class="hint">[`If not set, a social network will attempt to determine preview image on it’s own.`]</span>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name">[`Social sharing video URL`] <span class="hint">og:video</span></div>
+                                <div class="value">
+                                    <input name="og[video]" value="{ifset($og['video'])|escape}" placeholder="" class="long">
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name">[`Social sharing description`] <span class="hint">og:description</span></div>
+                                <div class="value">
+                                    <textarea name="og[description]">{ifset($og['description'])|escape}</textarea>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name">[`Social sharing type`] <span class="hint">og:type</span></div>
+                                <div class="value">
+                                    <input name="og[type]" value="{ifset($og['type'])|escape}" placeholder="article">
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <div class="value">
+                                    <p class="hint">[`Please refer to <a href="http://ogp.me" target="_blank">Open Graph</a> protocol site for more information on social sharing meta tags and available values.`]</p>
+                                </div>
+                            </div>
+
+                            {* Make sure not to delete OG tags we can't edit. Trying to be plugin-friendly. *}
+                            {foreach $other_ogs as $k => $v}
+                                <input type="hidden" name="og[{$k|escape}]" value="{$v|escape}">
+                            {/foreach}
+
+                            {* We enable this hidden fields when user checks the checkbox "use default og values",
+                               so that the server receives empty values instead of OG fields above. *}
+                            {foreach $editable_ogs_list as $k}
+                                <input type="hidden" name="og[{$k|escape}]" value="" class="editable-og-disabler"{if $editable_ogs} disabled{/if}>
+                            {/foreach}
+                        </div>
+
+                        {*DESCRIPTION*}
+                        <div class="field-group">
+                            <div class="field description">
+                                <div class="name">
+                                    <label for="description">
+                                        [`Description`]
+                                    </label>
+                                </div>
+                                <div class="value">
+                                    <i class="icon16 loading"></i>
+                                    <div class="s-editor-core-wrapper wa-editor-core-wrapper" style="display:none;">
+                                        <ul class="wa-editor-wysiwyg-html-toggle s-wysiwyg-html-toggle">
+                                            <li class="selected"><a class="wysiwyg" href="#">[s`WYSIWYG`]</a></li>
+                                            <li><a class="html" href="#">HTML</a></li>
+                                        </ul>
+                                        <div>
+                    <textarea style="display:none" id="s-category-description-content" name="description"
+                              data-modification-wysiwyg-msg="[s`WYSIWYG editor may change your HTML code. It is necessary for correct text formatting. Smarty code may be broken and outdated HTML tags may be replaced with modern ones. Are you sure to switch to WYSIWYG editor?`]"
+                    >{if isset($settings.description)}{$settings.description|escape}{/if}</textarea>
+                                            <div class="ace">
+                                                <div id="wa-ace-editor-container"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {*CUSTOM PARAMS*}
+                        <div class="field-group">
+                            <div class="field">
+                                <div class="name">
+                                    <label for="custom-settings">
+                                        [`Custom parameters`]
+                                    </label>
+                                </div>
+                                <div class="value">
+                                    <textarea name="params" rows="10" cols="5">{if !empty($settings.params)}{foreach $settings.params as $k=>$v}{if $k!='order'}{$k}={$v|escape|cat:"\n"}{/if}{/foreach}{/if}</textarea><br>
+                                    <span class="hint">[`Optional set of custom <em>key=value</em> parameters which can be used within a frontend's theme template as <em>&#123;$category.params.key&#125;</em>. Each key=value pair should be on a separate line.`]</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="dialog-buttons">
+                <div class="dialog-buttons-gradient">
+                    <input type="submit" value="[`Save`]" class="button green">
+                    [`or`] <a class="cancel" href="#">[`cancel`]</a>
+                    <span class="s-category-error errormsg js-category-error"></span>
+                </div>
+            </div>
+            {$wa->csrf()}
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+    //VARS NEED TO wysiwyg and
+    var wa_url = '{$wa_url}';
+    var wa_app = 'shop';
+    var wa_lang = '{$lang}';
+
+    (function ($) {
+        new shopDialogProductsCategory({
+            $wrapper: $('#s-product-category-dialog'),
+            category_id: {$settings.id|json_encode},
+            account_name: "{$wa->accountName()}"
+        });
+    })(jQuery);
+</script>

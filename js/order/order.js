@@ -70,6 +70,10 @@
                                 el = self.closest('.workflow-actions').next();
                             }
                             el.empty().html(response).show();
+                            // set focus on comment field(textarea)
+                            if (self.attr('data-action-id') == 'comment') {
+                                el.find('textarea').focus();
+                            }
                         });
                     }
                 }

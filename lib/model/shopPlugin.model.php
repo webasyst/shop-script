@@ -34,10 +34,65 @@ class shopPluginModel extends shopSortableModel
         if (!empty($options[$complementary])) {
             $non_available = shopHelper::getDisabledMethods($type, $options[$complementary]);
         }
-        foreach ($plugins as & $plugin) {
+
+        foreach ($plugins as &$plugin) {
             $plugin['available'] = !in_array($plugin['id'], $non_available);
+            #filter by customer type
+            if (isset($options['customer_type'])) {
+                if (!empty($options['customer_type']) # customer_type specified
+                    && !empty($plugin['options']['customer_type']) # and plugin has customer_type specified
+                    && ($options['customer_type'] != $plugin['options']['customer_type']) # and their are different
+                ) {
+                    $plugin['available'] = false;
+                }
+            }
+
+            #filter by shipping type (applicable for payment plugins)
+            if ($plugin['available']
+                && !empty($options['shipping_type'])
+                && !empty($plugin['options']['shipping_type'])) {
+                if (!isset($plugin['options']['shipping_type'][$options['shipping_type']])) {
+                    $plugin['available'] = false;
+                }
+            }
         }
         unset($plugin);
+
+        if (!empty($options['info'])) {
+            $info_map = array();
+            foreach ($plugins as $plugin) {
+                if (!isset($info_map[$plugin['plugin']])) {
+                    $info_map[$plugin['plugin']] = array();
+                }
+            }
+            unset($plugin);
+
+            foreach ($info_map as $plugin_id => &$info) {
+                try {
+                    switch ($type) {
+                        case waShipping::PLUGIN_TYPE:
+                            if ($plugin_id == shopShipping::DUMMY) {
+                                $info = shopShippingDummy::dummyInfo();
+                            } else {
+                                $info = waShipping::info($plugin_id);
+                            }
+                            break;
+                        case waPayment::PLUGIN_TYPE:
+                            $info = waPayment::info($plugin_id);
+                            break;
+                    }
+                } catch (waException $ex) {
+
+                }
+                unset($info);
+            }
+
+            foreach ($plugins as &$plugin) {
+                $plugin['info'] = ifset($info_map, $plugin['plugin'], array());
+            }
+            unset($plugin);
+        }
+
         return $plugins;
     }
 
@@ -116,6 +171,11 @@ class shopPluginModel extends shopSortableModel
         }
         if (empty($plugin['options'])) {
             $plugin['options'] = array();
+        }
+        switch ($plugin['type']) {
+            case waPayment::PLUGIN_TYPE:
+                shopPayment::fillDefaultData($plugin);
+                break;
         }
     }
 

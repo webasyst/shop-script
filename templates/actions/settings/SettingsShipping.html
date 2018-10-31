@@ -1,14 +1,56 @@
 <div class="blank s-settings-form">
-    {if $no_weight}
-        <div class="block double-padded s-banner-error">
-            <i class="icon10 exclamation"></i>
-            {sprintf('[`Most shipping rate calculation modules require <strong>product weight</strong> information which is taken from a product feature with the <code>%s</code> identifier.`]', 'weight')}
-            [`You don't have such feature in your online store setup.`]
-            {sprintf('[`Add it in the <a href="%s">Product types &amp; Features</a> screen to make.`]', '?action=settings#/features/')}
-        </div>
-    {/if}
-
     <div class="block double-padded">
+        <h1 class="js-bread-crumbs">[`Shipping`]</h1>
+        <br/>
+        <div id="s-settings-shipping-params" class="block hr double-padded s-settings-shipping-params">
+            <a href="#/shipping/params/" class="inline-link js-action float-right"><i class="icon16 settings"></i><b><i>[`Settings`]</i></b></a>
+            <h2 class="s-order-weight-size">[`Order weight &amp; dimensions`]</h2>
+
+            <form method="post">
+                {foreach $shipping_params as $param => $param_data}
+                    {if !empty($param_data.states)}
+                        {foreach $param_data.states as $state=>$description}
+                        <p class="js-shipping-{$param|escape}" data-state="{$state|escape}"{if (empty($param_data.state)||($param_data.state neq $state))} style="display: none;" {/if}>{$description}</p>
+                        {/foreach}
+                    {/if}
+                {/foreach}
+                <div class="field-group" style="display: none;">
+                    {if !empty($shipping_params)}
+                        {foreach $shipping_params as $param => $param_data}
+                            <div class="field">
+                                <div class="name">{$param_data.name|default:$param|escape}</div>
+                                <div class="value">
+                                    {if !empty($param_data.readonly)}
+                                        {$param_data.readonly}
+                                        {else}
+                                    <select name="params[{$param|escape}]">
+                                        {foreach $param_data.options as $option_id=>$option_data}
+                                            <option value="{$option_id|escape}" title="{$option_data.title|default:''|escape}"{if isset($param_data['value'])&&($param_data['value'] == $option_id)} selected{/if}>{$option_data.name|default:$option_id|escape}</option>
+                                        {/foreach}
+                                    </select>
+                                    {/if}
+                                </div>
+                                {if !empty($param_data.description)}
+                                    <div class="value hint">{$param_data.description}</div>
+                                {/if}
+                            </div>
+                        {/foreach}
+                    {/if}
+                </div>
+                <div class="field-group" style="display: none;">
+                    <div class="field">
+                        <div class="value submit">
+                            <input type="submit" value="[`Save`]" class="button green">
+                            <span class="js-form-status" style="display:none"><!-- message placeholder --></span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div id="s-settings-shipping-rounding" class="block double-padded hr s-settings-shipping-rounding">
+            <p>{sprintf_wp("Rounding of fractional shipping costs can be set up in %scurrency settings%s.", '<a href="#/currencies/">', '</a>')}</p>
+        </div>
 
         <div class="float-right">
             <ul class="menu-h with-icons dropdown s-add-shipping-method" id="s-shipping-menu">
@@ -35,11 +77,11 @@
                 </li>
             </ul>
         </div>
+        <h2>[`Shipping options`]</h2>
+        <br/>
 
-        <h1 class="js-bread-crumbs">[`Shipping`]</h1>
-
-        <br>
         <table class="zebra" id="s-settings-shipping">
+
             <tbody>
             {foreach $instances as $id => $plugin}
 
@@ -91,25 +133,15 @@
             </tr>
             {/foreach}
             </tbody>
-            {if $instances}
-                <tfoot>
-                <tr>
-                    <td colspan="4" style="background-color: #fff !important;">
-                        <p style="margin-top:20px;" class="hint">
-                            {sprintf_wp("Rounding of fractional shipping costs can be set up in %scurrency settings%s.", '<a href="#/currencies/">', '</a>')}
-                        </p>
-                    </td>
-                </tr>
-                </tfoot>
-            {/if}
         </table>
 
 
 
-    <div id="s-settings-shipping-setup" class="fields form"></div>
+        <div id="s-settings-shipping-setup" class="fields form"></div>
 
     </div>
     <div class="clear-both"></div>
+
 </div>
 
 

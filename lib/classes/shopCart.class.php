@@ -4,25 +4,26 @@ class shopCart
 {
     const COOKIE_KEY = 'shop_cart';
     protected $code;
-    /**
-     * @var shopCartItemsModel
-     */
-    protected $model;
 
     /**
      * Constructor
      * @param string $code Cart unique ID
      */
-    public function __construct($code='')
+    public function __construct($code='', $options = array())
     {
-        $this->model = new shopCartItemsModel();
         $this->code = waRequest::cookie(self::COOKIE_KEY, $code);
-        if (!$this->code && wa()->getUser()->isAuth()) {
-            $code = $this->model->getLastCode(wa()->getUser()->getId());
-            if ($code) {
-                $this->code = $code;
-                // set cookie
-                wa()->getResponse()->setCookie(self::COOKIE_KEY, $code, time() + 30 * 86400, null, '', false, true);
+        if (!$this->code) {
+            if (wa()->getUser()->isAuth()) {
+                $code = $this->model()->getLastCode(wa()->getUser()->getId());
+                if ($code) {
+                    $this->code = $code;
+                }
+            }
+            if (!$this->code && !empty($options['generate_code'])) {
+                $this->code = self::generateCode();
+            }
+            if ($this->code) {
+                wa()->getResponse()->setCookie(self::COOKIE_KEY, $this->code, time() + 30 * 86400, null, '', false, true);
                 $this->clearSessionData();
             }
         }
@@ -36,6 +37,11 @@ class shopCart
     public function getCode()
     {
         return $this->code;
+    }
+
+    public static function generateCode()
+    {
+        return md5(uniqid(mt_rand().mt_rand().mt_rand().mt_rand(), true));
     }
 
     /**
@@ -60,7 +66,7 @@ class shopCart
         wa()->getStorage()->set('shop/cart', $data);
     }
 
-    protected function clearSessionData()
+    public function clearSessionData()
     {
         wa()->getStorage()->remove('shop/cart');
     }
@@ -74,11 +80,11 @@ class shopCart
     public function total($discount = true)
     {
         if (!$discount) {
-            return (float) $this->model->total($this->code);
+            return (float) $this->model()->total($this->code);
         }
         $total = $this->getSessionData('total');
         if ($total === null) {
-            $total = $this->model->total($this->code);
+            $total = $this->model()->total($this->code);
             if ($total > 0) {
                 $order = array(
                     'currency' => wa('shop')->getConfig()->getCurrency(false),
@@ -103,7 +109,7 @@ class shopCart
      */
     public function discount(&$order = array())
     {
-        $total = $this->model->total($this->code);
+        $total = $this->model()->total($this->code);
         $order = array(
             'currency' => wa('shop')->getConfig()->getCurrency(false),
             'total' => $total,
@@ -119,7 +125,7 @@ class shopCart
      */
     public function count()
     {
-        return (int)$this->model->count($this->code, 'product');
+        return (int)$this->model()->count($this->code, 'product');
     }
 
     /**
@@ -131,7 +137,7 @@ class shopCart
      */
     public function items($hierarchy = true)
     {
-        return $this->model->getByCode($this->code, true, $hierarchy);
+        return $this->model()->getByCode($this->code, true, $hierarchy);
     }
 
     /**
@@ -142,9 +148,69 @@ class shopCart
      */
     public function setQuantity($item_id, $quantity)
     {
-        $data = array('quantity' => $quantity);
-        $this->model->updateByField(array('code' => $this->code, 'id' => $item_id), $data);
-        $this->model->updateByField(array('code' => $this->code, 'parent_id' => $item_id), $data);
+        if ($quantity > 0) {
+            $this->updateItem($item_id, [
+                'quantity' => $quantity,
+            ]);
+        }
+    }
+
+    /**
+     * Update quantity and sku_id for product item,
+     * or variant_id for service item.
+     *
+     * @param int $item_id Item id
+     * @param array
+     */
+    public function updateItem($item_id, $data)
+    {
+        if (!is_array($data) || !wa_is_int($item_id)) {
+            return;
+        }
+
+        // Do not allow to change product or service of an item.
+        // Have to delete the whole item and create anew to do that.
+        $data = array_intersect_key($data, [
+            //'product_id' => 1, // nope
+            'sku_id' => 1,
+            //'service_id' => 1, // nope
+            'service_variant_id' => 1,
+            'quantity' => 1,
+        ]);
+
+        if ($data) {
+            $item = $this->model()->getById($item_id);
+            if (!$item || $item['code'] != $this->code) {
+                return;
+            }
+            if ($item['type'] == 'product') {
+                unset($data['service_variant_id']);
+            } else {
+                unset($data['quantity'], $data['sku_id']);
+            }
+        }
+        if (!$data) {
+            return;
+        }
+
+        $this->model()->updateByField([
+            'code' => $this->code,
+            'id' => $item_id,
+        ], $data);
+
+        if ($item['type'] == 'product') {
+            $this->model()->updateByField([
+                'code' => $this->code,
+                'parent_id' => $item_id,
+            ], $data);
+        }
+
+        wa()->event('cart_update', ref([
+            'item' => $data + $item,
+            'old_item' => $item,
+            'update' => $data,
+        ]));
+
         $this->setSessionData('total', null);
     }
 
@@ -156,7 +222,7 @@ class shopCart
      */
     public function setServiceVariantId($item_id, $variant_id)
     {
-        $this->model->updateByField(array('code' => $this->code, 'id' => $item_id), array('service_variant_id' => $variant_id));
+        $this->model()->updateByField(array('code' => $this->code, 'id' => $item_id), array('service_variant_id' => $variant_id));
         $this->setSessionData('total', null);
     }
 
@@ -174,7 +240,7 @@ class shopCart
         }
         $item['code'] = $this->code;
         $item['contact_id'] = wa()->getUser()->getId();
-        $item['id'] = $this->model->insert($item);
+        $item['id'] = $this->model()->insert($item);
 
         // add services
         if (($item['type'] == 'product') && $services) {
@@ -187,7 +253,7 @@ class shopCart
                 if (!empty($item['quantity'])) {
                     $s['quantity'] = $item['quantity'];
                 }
-                $s['id'] = $this->model->insert($s);
+                $s['id'] = $this->model()->insert($s);
                 $item['services'][] = $s;
             }
         }
@@ -210,7 +276,7 @@ class shopCart
      */
     public function getItem($item_id)
     {
-        return $this->model->getItem($this->code, $item_id);
+        return $this->model()->getItem($this->code, $item_id);
     }
 
     /**
@@ -292,7 +358,7 @@ class shopCart
      */
     public function clear()
     {
-        $this->model->deleteByField('code', $this->code);
+        $this->model()->deleteByField('code', $this->code);
         wa()->getStorage()->remove('shop/cart');
     }
 
@@ -304,13 +370,13 @@ class shopCart
      */
     public function deleteItem($id)
     {
-        $item = $this->model->getById($id);
+        $item = $this->model()->getById($id);
         if ($item) {
             if ($item['type'] == 'product') {
                 // remove all services
-                $this->model->deleteByField(array('code' => $this->code, 'parent_id' => $id));
+                $this->model()->deleteByField(array('code' => $this->code, 'parent_id' => $id));
             }
-            $this->model->deleteByField(array('code' => $this->code, 'id' => $id));
+            $this->model()->deleteByField(array('code' => $this->code, 'id' => $id));
             /**
              * @event cart_delete
              * @param array $item
@@ -319,5 +385,17 @@ class shopCart
             $this->clearSessionData();
         }
         return $item;
+    }
+
+    /**
+     * @return shopCartItemsModel
+     */
+    protected function model()
+    {
+        static $cart_items_model = null;
+        if (!$cart_items_model) {
+            $cart_items_model = new shopCartItemsModel();
+        }
+        return $cart_items_model;
     }
 }

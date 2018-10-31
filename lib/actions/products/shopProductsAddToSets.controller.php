@@ -25,6 +25,7 @@ class shopProductsAddToSetsController extends waJsonController
         }
 
         $set_ids = waRequest::post('set_id', array());
+        $product_ids = null;
 
         // create new set
         $new_set_id = null;
@@ -42,23 +43,37 @@ class shopProductsAddToSetsController extends waJsonController
         // add products to sets
         $hash = waRequest::post('hash', '');
         if (!$hash) {
-            $product_ids = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
-            if (!$product_ids) {
-                return;
-            }
-            // add just selected products
+            $products_id = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
+            $hash = 'id/'.join(',', $products_id);
+        }
+
+        /**
+         * Attaches a product to the sets. Get data before changes
+         *
+         * @param int $new_set_id
+         * @param array $set_ids with $new_set_id
+         * @param string $hash
+         * @param array|string products_id
+         *
+         * @event products_add_sets.before
+         */
+        $params = array(
+            'set_ids'    => $set_ids,
+            'new_set_id' => $new_set_id,
+            'hash'       => $hash,
+            'products_id' => $product_ids,
+        );
+        wa('shop')->event('products_add_sets.before', $params);
+
+        // add all products of collection with this hash
+        $collection = new shopProductsCollection($hash);
+        $offset = 0;
+        $count = 100;
+        $total_count = $collection->count();
+        while ($offset < $total_count) {
+            $product_ids = array_keys($collection->getProducts('*', $offset, $count));
             $this->set_products_model->add($product_ids, $set_ids);
-        } else {
-            // add all products of collection with this hash
-            $collection = new shopProductsCollection($hash);
-            $offset = 0;
-            $count = 100;
-            $total_count = $collection->count();
-            while ($offset < $total_count) {
-                $ids = array_keys($collection->getProducts('*', $offset, $count));
-                $this->set_products_model->add($ids, $set_ids);
-                $offset += count($ids);
-            }
+            $offset += count($product_ids);
         }
 
         // form a response
@@ -67,6 +82,25 @@ class shopProductsAddToSetsController extends waJsonController
             $this->response['new_set'] = $sets[$new_set_id];
             unset($sets[$new_set_id]);
         }
+
+        /**
+         * Attaches a product to the sets
+         *
+         * @param int $new_set_id
+         * @param array $set_ids with $new_set_id
+         * @param string $hash
+         * @param array|string products_id
+         *
+         * @event products_add_sets.after
+         */
+        $params = array(
+            'set_ids'    => $set_ids,
+            'new_set_id' => $new_set_id,
+            'hash'       => $hash,
+            'products_id' => $product_ids,
+        );
+        wa('shop')->event('products_add_sets.after', $params);
+
         $this->response['sets'] = $sets;
     }
 
@@ -78,7 +112,8 @@ class shopProductsAddToSetsController extends waJsonController
             $name = _w('(no-name)');
         }
         return $this->set_model->add(array(
-            'id'  => $id, 'name' => $name,
+            'id'   => $id,
+            'name' => $name,
         ));
     }
 }

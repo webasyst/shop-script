@@ -248,7 +248,7 @@ class shopCheckoutShipping extends shopCheckout
             }
 
             // When free shipping coupon is used, display all rates as 0
-            if ($m['rate'] !== null) {
+            if (isset($m['rate']) && ($m['rate'] !== null)) {
                 if ($this->isFreeShipping()) {
                     $m['rate'] = 0;
                     foreach ($m['rates'] as &$r) {
@@ -428,51 +428,22 @@ class shopCheckoutShipping extends shopCheckout
     }
 
 
-    public function getItems($weight_unit = null)
+    public function getItems($weight_unit = null, $dimensions_unit = null)
     {
         $items = array();
         $cart_items = $this->cart->items();
 
+        $units = array();
+
+        if ($weight_unit) {
+            $units['weight'] = $weight_unit;
+        }
+        if ($dimensions_unit) {
+            $units['dimensions'] = $dimensions_unit;
+        }
+
         #get actual order items weight
-        $product_ids = $sku_ids = array();
-        foreach ($cart_items as $item) {
-            $product_ids[] = $item['product_id'];
-            $sku_ids[] = $item['sku_id'];
-        }
-        $values = array();
-        #get weight unit multiplier
-        $m = null;
-
-        $feature_model = new shopFeatureModel();
-        $f = $feature_model->getByCode('weight');
-        if ($f) {
-            $values_model = $feature_model->getValuesModel($f['type']);
-            if ($values_model) {
-                $values = $values_model->getProductValues($product_ids, $f['id']);
-                if ($values) {
-                    if ($weight_unit) {
-                        $dimension = shopDimension::getInstance()->getDimension('weight');
-                        if ($weight_unit != $dimension['base_unit']) {
-                            $m = $dimension['units'][$weight_unit]['multiplier'];
-                        }
-                    }
-                }
-            }
-        }
-
-
-        foreach ($cart_items as &$item) {
-            if (isset($values['skus'][$item['sku_id']])) {
-                $w = $values['skus'][$item['sku_id']];
-            } else {
-                $w = isset($values[$item['product_id']]) ? $values[$item['product_id']] : 0;
-            }
-            if ($m !== null) {
-                $w = $w / $m;
-            }
-            $item['_weight'] = $w;
-            unset($item);
-        }
+        shopShipping::extendItems($cart_items, $units);
 
         foreach ($cart_items as $item) {
             $items[] = array(
@@ -480,7 +451,10 @@ class shopCheckoutShipping extends shopCheckout
                 'price'    => $item['price'],
                 'currency' => $item['currency'],
                 'quantity' => $item['quantity'],
-                'weight'   => $item['_weight'],
+                'weight'   => ifset($item['weight']),
+                'height'   => ifset($item['height']),
+                'width'    => ifset($item['width']),
+                'length'   => ifset($item['length']),
             );
         }
         return $items;
@@ -560,7 +534,7 @@ class shopCheckoutShipping extends shopCheckout
 
         $params = $this->extendShippingParams($params, $id);
 
-        $items = $this->getItems($plugin->allowedWeightUnit());
+        $items = $this->getItems($plugin->allowedWeightUnit(), $plugin->allowedLinearUnit());
 
         $rates = $plugin->getRates($items, $this->getAddress($contact), $params);
         if (!$rates) {
@@ -695,7 +669,7 @@ class shopCheckoutShipping extends shopCheckout
                     return false;
                 }
                 $form = $this->getAddressForm($shipping_id, $plugin, null, array(), true);
-                if (!$form->isValid()) {
+                if (!($form instanceof waContactForm) || !$form->isValid()) {
                     return false;
                 }
 

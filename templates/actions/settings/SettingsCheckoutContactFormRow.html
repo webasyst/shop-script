@@ -3,6 +3,8 @@
         {$ftypes['Branch']}
     {elseif $f instanceof waContactStringField && $f->getParameter('input_height') > 1}
         {$ftypes['Text']}
+    {elseif $f instanceof waContactRadioSelectField}
+        {$ftypes['Radio']}
     {else}
         {ifempty($ftypes[$f->getType()], $f->getType())}
     {/if}

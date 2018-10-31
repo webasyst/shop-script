@@ -17,7 +17,7 @@
  * @property-read double $total             Order total in order currency
  * @property string $currency               ISO3 code - all prices here and in order items use this currency. Note that currency of existing order can not be changed.
  * @property-read double $rate              Order currency rate relative to default shop currency, as used to be when order were created
- * @property-read double $tax               Total order tax in order currency.
+ * @property-read double $tax               Total order tax in order currency. Set it into 'calculate' to recalculate tax;
  * @property double $shipping               Total order shipping cost in order currency.
  * @property double $discount               Total order discount in order currency. Set it into `null` or empty to hold previous calculated discount or set into 'calculate' to recalculate.
  * @property string $discount_description   Human-readable text description of how discounts were calculated. Intended for store admin, not customer. If you call without calculating a discount, then you will calculate the discount yourself and return the value without affecting the rest of the order.
@@ -37,6 +37,7 @@
  * @property-read array[] $last_action_datetime
  * @property-read double $subtotal          Subtotal is price*quantity for all items. This does not include discounts and certain taxes, and does not include shipping.
  * @property array[] $items_discount        Calculates the discount for each item and generates html. Can return the discount to items without calculating the total discount
+ * @property-read array[] $items_tax        Calculate the tax for each item.  Can return the tax to items without calculating the total discount
  *
  * @property-read array[] $products
  *
@@ -73,6 +74,7 @@
  * @property-read string $map                       HTML contains data to display map
  * @property-read array[] $shipping_methods
  * @property-read string $shipping_id
+ * @property-read array[] $shipping_plugin_info            Get information about a specific plug-in installation
  *
  * # meta fields related to payment
  *
@@ -91,14 +93,15 @@
 class shopOrder implements ArrayAccess
 {
     protected $options = array(
-        'name'           => 'value',
-        'mode'           => 'read',
-        'escape'         => false,
-        'items_escape'   => false,
-        'items_format'   => 'raw', # one of `raw`,`tree` or `flat`
-        'fields'         => '*',
-        'product_fields' => '*',
-        'sku_fields'     => '*',
+        'name'                  => 'value',
+        'mode'                  => 'read',
+        'escape'                => false,
+        'items_escape'          => false,
+        'items_format'          => 'raw', # one of `raw`,`tree` or `flat`
+        'items_extend_round'    => false,
+        'fields'                => '*',
+        'product_fields'        => '*',
+        'sku_fields'            => '*',
         'ignore_count_validate' => false,
     );
     protected $data = array();
@@ -154,7 +157,6 @@ class shopOrder implements ArrayAccess
         'paid_date',
         'is_first',
         'total',
-        'tax',
         'unsettled',
         'shipping_datetime',
         'log',
@@ -198,7 +200,6 @@ class shopOrder implements ArrayAccess
 
     protected static $dynamic_fields = array(
         'total',
-        'tax',
     );
 
     /**
@@ -211,14 +212,14 @@ class shopOrder implements ArrayAccess
     protected static $dependencies = array(
         'items'                => array(
             'items_extended' => true,
-            'tax'      => true,
-            'subtotal' => true,
-            'total'    => true,
-            'shipping' => false,
-            'params'   => array(
+            'tax'            => true,
+            'subtotal'       => true,
+            'total'          => true,
+            'shipping'       => false,
+            'params'         => array(
                 'shipping_name' => true,
             ),
-            'discount' => false,
+            'discount'       => false,
         ),
         'shipping'             => array(
             'tax'    => true,
@@ -311,7 +312,7 @@ class shopOrder implements ArrayAccess
                 }
 
                 $data += array(
-                    'params'   => array(),
+                    'params' => array(),
                 );
 
             } else {
@@ -482,27 +483,34 @@ class shopOrder implements ArrayAccess
                 $this->is_changed[$name] = $is_changed;
             }
 
-            if (!empty($this->is_changed[$name]) && isset(self::$dependencies[$name])) {
-                foreach (self::$dependencies[$name] as $field => $strict) {
-                    if (is_array($strict)) {
-                        if (isset($this->data[$field])) {
-                            $fields = $strict;
-                            unset($strict);
-                            foreach ($fields as $subfield => $sub_strict) {
-                                if ($sub_strict || !empty($this->is_changed[$field])) {
-                                    unset($this->data[$field][$subfield]);
+            if (!empty($this->is_changed[$name])) {
+                $dependencies_method = self::camelMethod('dependencies%s', $name);
+                if (method_exists($this, $dependencies_method)) {
+                    $this->{$dependencies_method}($value);
+                } else {
+                    if (isset(self::$dependencies[$name])) {
+                        foreach (self::$dependencies[$name] as $field => $strict) {
+                            if (is_array($strict)) {
+                                if (isset($this->data[$field])) {
+                                    $fields = $strict;
+                                    unset($strict);
+                                    foreach ($fields as $subfield => $sub_strict) {
+                                        if ($sub_strict || !empty($this->is_changed[$field])) {
+                                            unset($this->data[$field][$subfield]);
+                                        }
+                                    }
                                 }
+                            } elseif ($strict) {
+                                # The field dependency is strict
+                                unset($this->data[$field]);
+                                unset($this->is_changed[$field]);
+                            } elseif (!isset($this->is_changed[$field]) || in_array($this->is_changed, array(true, false), true)) {
+                                # The field (re)calculate automatically
+                                # if it was calculate by request via getMethod (field not is set at is_changed array)
+                                # or if was changed without extra logic (`manual`,`hold` and etc) detected via compare%Field% method
+                                unset($this->data[$field]);
                             }
                         }
-                    } elseif ($strict) {
-                        # The field dependency is strict
-                        unset($this->data[$field]);
-                        unset($this->is_changed[$field]);
-                    } elseif (!isset($this->is_changed[$field]) || in_array($this->is_changed, array(true, false), true)) {
-                        # The field (re)calculate automatically
-                        # if it was calculate by request via getMethod (field not is set at is_changed array)
-                        # or if was changed without extra logic (`manual`,`hold` and etc) detected via compare%Field% method
-                        unset($this->data[$field]);
                     }
                 }
             }
@@ -1044,8 +1052,8 @@ class shopOrder implements ArrayAccess
             $this->errors['order']['discount'] = _w('!!! Скидка больше стоимости заказа');
         }
 
-        if (!$this->errors) {
-            //check stocks
+        if (!$this->errors && !$this->options(null, 'ignore_stock_validate')) {
+            // Check stocks. This does not happen in frontend checkout because stocks are assigned by WorkflowCreate.
             $this->validateStockSelection();
 
             if (!wa('shop')->getSetting('ignore_stock_count') && !$this->options(null, 'ignore_count_validate')) {
@@ -1098,7 +1106,7 @@ class shopOrder implements ArrayAccess
 
         foreach ($sku_stocks as $sku_id => &$stock) {
             if (!is_array($stock)) {
-                    $counts[$sku_id][0] = $stock;
+                $counts[$sku_id][0] = $stock;
             } else {
                 foreach ($stock as $stock_id => $st) {
                     $counts[$sku_id][$stock_id] = $st['count'];
@@ -1236,7 +1244,7 @@ class shopOrder implements ArrayAccess
         return $stocks_count;
     }
 
-    ###############################$this->product_skus_model = new shopProductSkusModel();
+    ###############################
     # Contact section
     ###############################
 
@@ -1279,6 +1287,20 @@ class shopOrder implements ArrayAccess
                 }
             }
         } else { #NEW ORDER
+
+            // This option to pass customer fields is used by new SS8 checkout.
+            if (!empty($this->options['customer_form_fields'])) {
+                $config_fields = array_fill_keys($this->options['customer_form_fields'], 1);
+                $config_fields['address'] = 1;
+
+                $fields = waContactFields::getAll('enabled');
+                $fields = array_intersect_key($fields, $config_fields);
+                $fields['address.shipping'] = $fields['address'];
+                unset($fields['address']);
+
+                return waContactForm::loadConfig($fields, ['namespace' => 'customer']);
+            }
+
             if ($this->contact_id) {
                 try {
                     $c = $this->contact;
@@ -1383,10 +1405,10 @@ class shopOrder implements ArrayAccess
             foreach ((array)$data as $f_id => $value) {
                 if (isset($fields[$f_id])) {
                     $multiple = is_array($value) && array_filter(array_keys($value), 'is_int');
-                    if ($multiple) {
+                    if ($multiple || is_string($value)) {
                         $post[$f_id] = $value;
                     } else {
-                        $post[$f_id][0] =$value;
+                        $post[$f_id][0] = $value;
                     }
                 }
             }
@@ -1438,14 +1460,22 @@ class shopOrder implements ArrayAccess
                         $this->contact->set($fld_id, $v, true);
                     }
                 } else {
-                    $this->contact[$fld_id] = isset($fld_data[0]) ? $fld_data[0] : $fld_data;
+                    if (is_array($fld_data) && isset($fld_data[0])) {
+                        $fld_data = $fld_data[0];
+                    }
+                    $this->contact[$fld_id] = $fld_data;
                 }
             }
 
-            $customer_validation_disabled = false;
-            if (ifset($this->options, 'environment', wa()->getEnv()) == 'backend') {
-                    $customer_validation_disabled = wa()->getSetting('disable_backend_customer_form_validation', '', 'shop');
+            $customer_validation_disabled = ifset($this->options, 'customer_validation_disabled', false);
+            if (!$customer_validation_disabled && ifset($this->options, 'environment', wa()->getEnv()) == 'backend') {
+                $customer_validation_disabled = wa()->getSetting('disable_backend_customer_form_validation', '', 'shop');
             }
+
+            if (!$this->contact->getId() && !empty($this->options['customer_is_company'])) {
+                $this->contact['is_company'] = 1;
+            }
+
             if (!empty($customer_validation_disabled)) {
                 $this->contact->save();
             } else {
@@ -1513,13 +1543,13 @@ class shopOrder implements ArrayAccess
             // In case we found address in contact, we replace it
             $customer_addresses[$match_index] = array(
                 'data' => $new_address,
-                'ext' => $ext,
+                'ext'  => $ext,
             );
         } else {
             // ...otherwise we add it as a new one
             array_unshift($customer_addresses, array(
                 'data' => $new_address,
-                'ext' => $ext,
+                'ext'  => $ext,
             ));
         }
         $contact['address'] = $customer_addresses;
@@ -1537,7 +1567,7 @@ class shopOrder implements ArrayAccess
             }
             $match = true;
             foreach ($old_address as $k => $v) {
-                if ($v !== $address[$k]) {
+                if (!array_key_exists($k, $address) || $v !== $address[$k]) {
                     $match = false;
                     break;
                 }
@@ -1666,7 +1696,9 @@ class shopOrder implements ArrayAccess
     {
         $params = &$this->data['params'];
         //shipping
-        $plugin_params = array();
+        $plugin_params = array(
+            'departure_datetime' => ifset($this, 'params', 'departure_datetime', 0),
+        );
         $plugin_params['shipping_params'] = isset($params['shipping_params']) ? $params['shipping_params'] : array();
 
         $shipping_id = ifset($params, 'shipping_id', null);
@@ -1674,8 +1706,12 @@ class shopOrder implements ArrayAccess
         $shipping_address = $this->shipping_address;
         $plugin = $this->shipping_plugin;
         if ($plugin) {
-            $weight_unit = $plugin->allowedWeightUnit();
-            $this->extendItemsWeight($this->data['items'], $weight_unit);
+            $units = array(
+                'weight'     => $plugin->allowedWeightUnit(),
+                'dimensions' => $plugin->allowedLinearUnit(),
+            );
+
+            shopShipping::extendItems($this->data['items'], $units);
 
             $empty_address = $plugin->allowedAddress() === false;
             if (!$empty_address && $shipping_address) {
@@ -1811,6 +1847,43 @@ class shopOrder implements ArrayAccess
         return $is_changed;
     }
 
+    /**
+     * Clear specific dependencies
+     * @param null|array $params
+     */
+    protected function dependenciesParams($params = null)
+    {
+        $dependencies_map = [
+            'shipping_id' => [
+                'shipping'
+            ]
+        ];
+
+        if ($params === null) {
+            $params = $this->data['params'];
+        }
+        $original_params = $this->original_data['params'];
+
+        foreach ($params as $name => $value) {
+            $original_param = ifset($original_params, $name, false);
+
+            if ($original_param !== $value && !empty($dependencies_map[$name])) {
+                $dependencies = $dependencies_map[$name];
+
+                if (is_array($dependencies)) {
+                    foreach ($dependencies as $dependency) {
+                        //Check if it is not set manually
+                        if (ifset($this->is_changed, $dependency, null) !== 'manual') {
+                            unset($this->data[$dependency]);
+                        }
+
+                    }
+                } elseif (ifset($this->is_changed, $dependencies, null) == 'manual') {
+                    unset($this->data[$dependencies]);
+                }
+            }
+        }
+    }
 
     ###############################
     # Discount section
@@ -1930,9 +2003,15 @@ class shopOrder implements ArrayAccess
                             break;
                     }
                     $this->data['items_discount'][] = array(
-                        'value'    => $item['total_discount'],
-                        'html'     => $item['discount_description'],
-                        'selector' => $selector,
+                        'value'              => $item['total_discount'],
+                        'html'               => $item['discount_description'],
+                        'selector'           => $selector,
+                        'cart_item_id'       => ifset($item, 'cart_item_id', null),
+                        'type'               => ifset($item, 'type', isset($item['service_id']) ? 'service' : 'product'),
+                        'product_id'         => ifset($item, 'product_id', null),
+                        'sku_id'             => ifset($item, 'sku_id', null),
+                        'service_id'         => ifset($item, 'service_id', null),
+                        'service_variant_id' => ifset($item, 'service_variant_id', null),
                     );
                 }
             }
@@ -2004,6 +2083,19 @@ class shopOrder implements ArrayAccess
         }
 
         return $discount;
+    }
+
+    protected function getDiscountParams()
+    {
+        if (!isset($this->is_changed['discount']) || ($this->is_changed['discount'] === 'hold')) {
+            return $this['params'];
+        }
+
+        if (!$this->calculated_discounts) {
+            $this->calculateDiscount();
+        }
+
+        return ifset($this->calculated_discounts, 'params', []);
     }
 
     protected function parseDiscount($value)
@@ -2090,6 +2182,132 @@ class shopOrder implements ArrayAccess
     }
 
     ###############################
+    # Tax section
+    ###############################
+    protected function calculateTax()
+    {
+        $shipping_address = $this->shipping_address;
+        $billing_address = $this->billing_address;
+        $currency = $this->currency;
+        $items = $this->items;
+
+        if (empty($billing_address['zip']) && empty($billing_address['country'])) {
+            $billing_address['zip'] = ifset($shipping_address, 'zip', null);
+            $billing_address['country'] = ifset($shipping_address, 'country', null);
+        }
+
+        $taxes_params = array(
+            'shipping'      => $shipping_address,
+            'billing'       => $billing_address,
+            'discount_rate' => $this->subtotal ? ($this->discount / $this->subtotal) : 0,
+        );
+
+        //Add shipping
+        $shipping_info = $this->shipping_plugin_info;
+
+        if ($shipping_info && !empty($shipping_info['options']['tax_id'])) {
+            $items['%shipping%'] = array(
+                'type'     => 'shipping',
+                'tax_id'   => $shipping_info['options']['tax_id'],
+                'quantity' => 1,
+                'price'    => $this->shipping,
+                'currency' => $currency,
+            );
+        }
+
+        $taxes = shopTaxes::apply($items, $taxes_params, $currency);
+
+        return array(
+            'taxes' => $taxes,
+            'items' => $items,
+        );
+    }
+
+    protected function getTax()
+    {
+        if (!isset($this->is_changed['tax']) || ($this->is_changed['tax'] === 'hold')) {
+            return max(0, $this->original_data['tax']);
+        }
+
+        $calculate_tax = $this->calculateTax();
+        $taxes = $calculate_tax['taxes'];
+        $items = $calculate_tax['items'];
+
+        $total_tax = 0;
+
+        foreach ($taxes as $tax) {
+            if (!empty($tax['sum_included'])) {
+                $total_tax += $tax['sum_included'];
+            }
+            if (!empty($tax['sum'])) {
+                $total_tax += $tax['sum'];
+            }
+        }
+
+        foreach ($items as $key => $item) {
+            if (isset($item['tax'])) {
+                $this->data['items'][$key]['tax'] = $item['tax'];
+            }
+        }
+
+        return $total_tax;
+    }
+
+    public function getItemsTax()
+    {
+        $calculate_tax = $this->calculateTax();
+        $items = $calculate_tax['items'];
+        $this->data['items_tax'] = [];
+
+        if (!empty($items)) {
+            foreach ($items as $id => $item) {
+                if (!empty($item['tax'])) {
+                    switch ($item['type']) {
+                        case 'service':
+                            $selector = sprintf('%d_%d', ifset($item, '_index', 0), $item['service_id']);
+                            break;
+                        default:
+                            $selector = ifset($item, '_index', 0);
+                            break;
+                    }
+                    $this->data['items_tax'][] = array(
+                        'value'    => $item['tax'],
+                        'selector' => $selector,
+                    );
+                }
+            }
+        }
+
+        return $this->data['items_tax'];
+    }
+
+    protected function parseTax($value)
+    {
+        if ($value === null) {
+            // Hold previous calculated tax
+            $value = $this->original_data['tax'];
+        } elseif ($value === 'calculate') {
+            $value = null;
+            // Recalculate discount
+        }
+
+        return $value;
+    }
+
+    protected function compareTax($value)
+    {
+        if ($value === null) {
+            $is_changed = 'hold';
+        } elseif ($value === 'calculate') {
+            $is_changed = true;
+        } else {
+            $is_changed = false;
+        }
+
+        return $is_changed;
+    }
+
+    ###############################
     # Items section
     ###############################
 
@@ -2137,6 +2355,26 @@ class shopOrder implements ArrayAccess
                     }
                 }
                 break;
+            case 'cart': // as returned by shopCart->items(true); all new; used in new checkout
+                $data = array_map(function ($item) {
+                    return [
+                        'cart_item_id' => $item['id'],
+                        'product_id'   => $item['product_id'],
+                        'sku_id'       => $item['sku_id'],
+                        'quantity'     => $item['quantity'],
+                        'price'        => shop_currency($item['price'], $item['currency'], $this->currency, false),
+                        'services'     => array_map(function ($service_item) {
+                            return [
+                                'cart_item_id' => $service_item['id'],
+                                'id'           => $service_item['service_id'],
+                                'variant_id'   => $service_item['service_variant_id'],
+                                'price'        => shop_currency($service_item['price'], $service_item['currency'], $this->currency, false),
+                            ];
+                        }, ifset($item, 'services', [])),
+                    ];
+                }, $data);
+                $data = array_filter(array_values($data));
+            // breakthrough
             case 'tree': # at order edit screen (calculate discounts and list available shipping methods)
                 /**
                  * Convert tree-like structure where services are part of products
@@ -2158,6 +2396,8 @@ class shopOrder implements ArrayAccess
             case 'flat': # at order save screen
                 $items = $this->castItemsFlat($data);
                 break;
+            default:
+                throw new waException('Unknown items_format: '.htmlspecialchars($format));
         }
 
         $this->mergeItems($items);
@@ -2324,73 +2564,6 @@ class shopOrder implements ArrayAccess
         return $merged_items;
     }
 
-    private function extendItemsWeight(&$items, $weight_unit = null)
-    {
-        $m = null;
-        if ($weight_unit) {
-            $dimension = shopDimension::getInstance()->getDimension('weight');
-            if ($weight_unit != $dimension['base_unit']) {
-                $m = $dimension['units'][$weight_unit]['multiplier'];
-            }
-        }
-        $product_ids = array();
-
-        foreach ($items as $i) {
-            if (!isset($i['weight'])) {
-                if (isset($i['item'])) {
-                    $product_ids[] = $i['item']['product_id'];
-                } else {
-                    $product_ids[] = $i['product_id'];
-                }
-            }
-        }
-        $product_ids = array_unique($product_ids);
-
-        $feature_model = new shopFeatureModel();
-        $f = $feature_model->getByCode('weight');
-        if (!$f || !$product_ids) {
-            $values = array();
-        } else {
-            $values_model = $feature_model->getValuesModel($f['type']);
-            $values = $values_model->getProductValues($product_ids, $f['id']);
-        }
-
-        foreach ($items as &$item) {
-            if (isset($item['weight'])) {
-                continue;
-            }
-            if (empty($item['type']) || ($item['type'] == 'product')) {
-
-                if (isset($item['item'])) {
-                    $i = $item['item'];
-                } else {
-                    $i = $item;
-                }
-
-                if (isset($values['skus'][$i['sku_id']])) {
-                    $w = $values['skus'][$i['sku_id']];
-                } elseif (isset($i['product_id']) && isset($values[$i['product_id']])) {
-                    $w = $values[$i['product_id']];
-                } else {
-                    if (isset($item['product_id'])) {
-                        $w = isset($values[$item['product_id']]) ? $values[$item['product_id']] : 0;
-                    } else {
-                        $w = isset($values[$item['id']]) ? $values[$item['id']] : 0;
-                    }
-                }
-                if ($m !== null) {
-                    $w = $w / $m;
-                }
-            } else {
-                $w = 0;
-            }
-            $item['weight'] = $w;
-        }
-        unset($item);
-
-        return $items;
-    }
-
     private static function itemUniqueKey($item, $parent = array())
     {
         switch ($item['type']) {
@@ -2474,6 +2647,9 @@ class shopOrder implements ArrayAccess
             'service_variant_id' => null,
             '_index'             => sprintf('%d', $index),
         );
+        if (isset($i['cart_item_id'])) {
+            $item['cart_item_id'] = $this->formatValue($i['cart_item_id'], 'int');
+        }
 
         $item += $this->formatValues($i, self::$product_fields);
 
@@ -2535,6 +2711,9 @@ class shopOrder implements ArrayAccess
             'type'          => 'service',
             'stock_id'      => null,
         );
+        if (isset($s['cart_item_id'])) {
+            $item['cart_item_id'] = $this->formatValue($s['cart_item_id'], 'int');
+        }
 
         $item += $this->formatValues($s, self::$service_fields);
 
@@ -2638,6 +2817,12 @@ class shopOrder implements ArrayAccess
             }
 
             $product = $this->itemProduct($item);
+            if ($this->options('items', 'extend_round')) {
+                shopRounding::roundProducts(ref([&$product]));
+                if (!empty($product['services'])) {
+                    shopRounding::roundServices($product['services']);
+                }
+            }
             switch ($item['type']) {
                 case 'product':
                     $item = $product_item = $this->extendProductItem($item, $product);
@@ -2648,7 +2833,7 @@ class shopOrder implements ArrayAccess
                 case 'service':
                     $item = $this->extendServiceItem($item, $product_item, $product);
                     $item['_parent_index'] = $product_item['_index'];
-                    $item['purchase_price']=0;
+                    $item['purchase_price'] = 0;
                     break;
             }
 
@@ -2829,7 +3014,6 @@ class shopOrder implements ArrayAccess
                 }
             }
         }
-
     }
 
     private function itemProduct($item)
@@ -2844,6 +3028,7 @@ class shopOrder implements ArrayAccess
                 'id'        => $id,
                 'name'      => ifempty($item['name'], sprintf('product_id=%d', $id)),
                 'price'     => $price,
+                'currency'  => $this['currency'],
                 'type_id'   => null,
                 'min_price' => $price,
                 'max_price' => $price,
@@ -2863,6 +3048,7 @@ class shopOrder implements ArrayAccess
             'service_variant_id' => null,
             'purchase_price'     => 0,
             'sku_code'           => '',
+            'sku_name'           => '',
             'name'               => '',
             'tax_id'             => intval(ifset($product['tax_id'])),
         );
@@ -2903,6 +3089,7 @@ class shopOrder implements ArrayAccess
                 $i['purchase_price'] = $sku['purchase_price'];
             }
             $i['sku_code'] = $sku['sku'];
+            $i['sku_name'] = $sku['name'];
             $i['name'] = $name;
         } else {
             $i['deleted'] = true;
@@ -2937,6 +3124,7 @@ class shopOrder implements ArrayAccess
         } else {
             $service = array(
                 'fake' => true,
+                'id'   => $item['service_id'],
             );
             $variant = array(
                 'fake' => true,
@@ -2982,6 +3170,8 @@ class shopOrder implements ArrayAccess
             if (strlen(ifset($variant, 'name', null))) {
                 $item['name'] .= sprintf(' (%s)', $variant['name']);
             }
+        } elseif (empty($item['name'])) {
+            $item['name'] = '';
         }
 
         #copy parent fields into child
@@ -3161,27 +3351,23 @@ class shopOrder implements ArrayAccess
         $shipping_items = array();
         $this->items;
 
-        $this->extendItemsWeight($this->data['items']);
+        $units = array();
 
-        $m = null;
         if ($weight_unit) {
-            $dimension = shopDimension::getInstance()->getDimension('weight');
-            if ($weight_unit != $dimension['base_unit']) {
-                $m = $dimension['units'][$weight_unit]['multiplier'];
-            }
+            $units['weight'] = $weight_unit;
         }
 
-        foreach ($this->items as $i) {
-            $i['price'] = shop_currency($i['price'], $currency, $currency, false);
-            if ($m !== null) {
-                $i['weight'] = $i['weight'] / $m;
-            }
+        shopShipping::extendItems($this->data['items'], $units);
 
+        foreach ($this->items as $i) {
             $shipping_items[] = array(
                 'name'     => '',
-                'price'    => $i['price'],
+                'price'    => shop_currency($i['price'], $currency, $currency, false),
                 'quantity' => $i['quantity'],
-                'weight'   => $i['weight'],
+                'weight'   => ifset($i['weight']),
+                'height'   => ifset($i['height']),
+                'width'    => ifset($i['width']),
+                'length'   => ifset($i['length']),
             );
         }
         return $shipping_items;
@@ -3372,6 +3558,26 @@ HTML;
         return $tracking;
     }
 
+    public function getShippingPluginInfo($shipping_id = null)
+    {
+        $plugin_info = [];
+
+        if (!$shipping_id) {
+            $shipping_id = $this->shipping_id;
+
+            if ($shipping_id) {
+                $shipping_id = explode('.', $shipping_id);
+                $shipping_id = $shipping_id[0];
+            }
+        }
+
+        if ($shipping_id) {
+            $plugin_info = $this->pluginInfo($shipping_id, shopPluginModel::TYPE_SHIPPING);
+        }
+
+        return $plugin_info;
+    }
+
     protected function parseShipping($value)
     {
         if ($value === true) {
@@ -3458,11 +3664,13 @@ HTML;
 
         $method_params = array(
             'currency'           => $this->currency,
-            'total_price'        => $this->subtotal - $this->discount, //Subtraction of a discount is necessary for the correct calculation of deliveries. This is how the frontend works;
+            'total_price'        => $this->subtotal - $this->discount,
+            //Subtraction of a discount is necessary for the correct calculation of deliveries. This is how the frontend works;
             'no_external'        => true,
             'allow_external_for' => (array)$allow_external_for,
             'custom_html'        => true,
             'shipping_params'    => array(),
+            'departure_datetime' => ifset($this, 'params', 'departure_datetime', 0),
         );
 
         $shipping_id = $this['shipping_id'];
@@ -3630,7 +3838,7 @@ HTML;
         $result = self::$readonly_fields;
         $result[] = 'id';
         if (!empty($this->original_data['id'])) {
-             $result[] = 'currency';
+            $result[] = 'currency';
         }
         return $result;
     }

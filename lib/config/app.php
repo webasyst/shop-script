@@ -5,7 +5,7 @@ return array(
     'icon'             => array(
         16 => 'img/shop16.png',
         24 => 'img/shop24.png',
-        48 => 'img/shop.png',
+        48 => 'img/shop48.png',
         96 => 'img/shop96.png',
     ),
     'sash_color'       => '#27bf52',
@@ -17,7 +17,7 @@ return array(
     'pages'            => true,
     'mobile'           => true,
     'my_account'       => true,
-    'version'          => '7.5.1',
+    'version'          => '8.0.0', // RC1 developer preview
     'critical'         => '7.0.0',
     'vendor'           => 'webasyst',
     'csrf'             => true,

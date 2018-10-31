@@ -11,6 +11,39 @@ $.extend($.settings = $.settings || {}, {
         $.settings.checkoutOptions = options || {};
         $.settings.checkoutOptions.loc = this.checkoutOptions.loc || {};
 
+        // Init checkout recommendations alert
+        var $alert_link = $('.js-checkout-recommendations-link'),
+            $link_arrow = $alert_link.find('.js-arrow'),
+            $alert = $('.js-checkout-recommendations'),
+            storage_key = 'shop/checkout_alert_hidden';
+
+        function showAlert() {
+            $alert.show();
+            $link_arrow.removeClass('darr').addClass('uarr');
+            $.storage.del(storage_key);
+        }
+
+        function hideAlert() {
+            $alert.hide();
+            $link_arrow.removeClass('uarr').addClass('darr');
+            $.storage.set(storage_key, 1);
+        }
+
+        if (!$.storage.get(storage_key)) {
+            showAlert();
+        }
+
+        $alert.on('click', '.close', hideAlert);
+        $alert_link.on('click', function () {
+            if ($.storage.get(storage_key)) {
+                showAlert();
+            } else {
+                hideAlert();
+            }
+        });
+
+        $('.js-old-checkout').addClass('selected');
+
         // checkout steps
         $("#checkout-steps td div.float-right").on('click', 'a.link-options', function() {
             var td = $(this).closest('td');

@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 2.0.6\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -293,16 +293,25 @@ msgid "Recommended setup"
 msgstr "Рекомендуемая настройка"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:10
-msgid "For online stores shipping to multiple countries and regions: <em>1.&nbsp;Contact info &rarr; 2.&nbsp;Shipping &rarr; 3.&nbsp;Payment &rarr; 4.&nbsp;Confirmation.</em>"
-msgstr "Для интернет-магазинов, отправляющих заказы в несколько стран и регионов: <em>1.&nbsp;Контактные данные &rarr; 2.&nbsp;Доставка &rarr; 3.&nbsp;Оплата &rarr; 4.&nbsp;Подтверждение.</em>"
+msgid "For online stores shipping to multiple countries and regions:"
+msgstr "Для интернет-магазинов, отправляющих заказы в несколько стран и регионов:"
+
+msgid "1.&nbsp;Contact info &rarr; 2.&nbsp;Shipping &rarr; 3.&nbsp;Payment &rarr; 4.&nbsp;Confirmation."
+msgstr "1.&nbsp;Контактные данные &rarr; 2.&nbsp;Доставка &rarr; 3.&nbsp;Оплата &rarr; 4.&nbsp;Подтверждение."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:12
-msgid "For one-city-centric stores offering mostly courier shipping: <em>1.&nbsp;Shipping &rarr; 2.&nbsp;Contact info &rarr; 3.&nbsp;Payment &rarr; 4.&nbsp;Confirmation</em>"
-msgstr "Для магазинов, обычно доставляющих заказы курьером в пределах одного города: <em>1.&nbsp;Доставка &rarr; 2.&nbsp;Контактные данные &rarr; 3.&nbsp;Оплата &rarr; 4.&nbsp;Подтверждение</em>"
+msgid "For one-city-centric stores offering mostly courier shipping:"
+msgstr "Для магазинов, обычно доставляющих заказы курьером в пределах одного города:"
+
+msgid "1.&nbsp;Shipping &rarr; 2.&nbsp;Contact info &rarr; 3.&nbsp;Payment &rarr; 4.&nbsp;Confirmation"
+msgstr "1.&nbsp;Доставка &rarr; 2.&nbsp;Контактные данные &rarr; 3.&nbsp;Оплата &rarr; 4.&nbsp;Подтверждение"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:14
-msgid "For electronic-delivery-only stores: <em>1.&nbsp;Contact info &rarr; 2.&nbsp;Payment &rarr; 3.&nbsp;Confirmation</em>"
-msgstr "Для магазинов, доставляющих электронные товары только через интернет: <em>1.&nbsp;Контактные данные &rarr; 2.&nbsp;Оплата &rarr; 3.&nbsp;Подтверждение</em>"
+msgid "For electronic-delivery-only stores:"
+msgstr "Для магазинов, доставляющих электронные товары только через интернет:"
+
+msgid "1.&nbsp;Contact info &rarr; 2.&nbsp;Payment &rarr; 3.&nbsp;Confirmation"
+msgstr "1.&nbsp;Контактные данные &rarr; 2.&nbsp;Оплата &rarr; 3.&nbsp;Подтверждение"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:16
 msgid "Keep the checkout setup as simple as possible."
@@ -387,10 +396,6 @@ msgstr "Настройте список полей, запрашиваемых �
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:25
 msgid "Misc fields"
 msgstr "Общие поля"
-
-#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:30
-msgid "Checkout form is based on your system contact field set configured in the <a href=\"%s\">Contacts</a> app. The form below allows you to customize the list of fields prompted during checkout."
-msgstr "Форма оформления заказа формируется на основе списка полей, настроенного в приложении <a href=\"%s\">Контакты</a>. С помощью следующей формы вы можете изменить перечень полей, отображаемых во время оформления заказа."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:178
 msgid "Required"
@@ -604,16 +609,16 @@ msgid "Unknown plugin"
 msgstr "Неизвестный плагин"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:16
-msgid "If more then one rule is applicable for the customer order, how the total discount should be calculated?"
-msgstr "Если к заказу применимо более одного правила, как должна рассчитываться скидка?"
+msgid "How total discount should be calculated if multiple rules are applicable for an order:"
+msgstr "Как должна рассчитываться скидка, если к заказу применимо более одного правила:"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:18
-msgid "Maximum"
-msgstr "Максимум"
+msgid "maximum"
+msgstr "максимум"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:20
-msgid "Sum"
-msgstr "Сумма"
+msgid "sum"
+msgstr "сумма"
 
 #: /wa-apps/shop/templates/actions/backend/BackendSettings.html:57
 msgid "Discounts"
@@ -1242,14 +1247,14 @@ msgid "This value must be no greater than previous field count"
 msgstr "Это значение не должно быть выше значения в предыдущем поле"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:7
-msgid "Most shipping rate calculation modules require <strong>product weight</strong> information which is taken from a product feature with the <code>%s</code> identifier."
-msgstr "Большинство модулей расчета стоимости доставки требуют информацию <strong>о весе товара</strong>, которая извлекается из характеристики с идентификатором <code>%s</code>."
+msgid "Most shipping rate calculation plugins require <strong>product weight</strong> information which is taken from a product feature with code <tt>%s</tt>."
+msgstr "Большинство плагинов расчета стоимости доставки требуют информацию <strong>о весе товара</strong>, которая хранится в характеристике с идентификатором <code>%s</code>."
 
-msgid "You don't have such feature in your online store setup."
-msgstr "В вашем магазине нет такой характеристики."
+msgid "You have no such feature in your online store settings."
+msgstr "В настройках вашего магазина нет такой характеристики."
 
-msgid "Add it in the <a href=\"%s\">Product types &amp; Features</a> screen to make."
-msgstr "Добавьте ее в разделе <a href=\"%s\">Типы и характеристики товаров</a>."
+msgid "Add it in “<a href=\"%s\">Product types &amp; Features</a>” screen."
+msgstr "Добавьте ее в разделе «<a href=\"%s\">Типы и характеристики товаров</a>»."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:16
 msgid "Add shipping option"
@@ -2802,7 +2807,7 @@ msgid "(no-name)"
 msgstr "(без названия)"
 
 #: /wa-apps/shop/lib/actions/products/shopProductsSaveListSettings.controller.php:81
-msgid "Url is in use"
+msgid "URL is in use"
 msgstr "URL уже используется"
 
 #: /wa-apps/shop/lib/actions/products/shopProductsSaveListSettings.controller.php:131
@@ -6584,8 +6589,8 @@ msgid "Force drop out-of-stock products to the bottom of all lists"
 msgstr "Автоматически перемещать вниз списка все товары, которых нет на складе"
 
 #: /wa-apps/shop/lib/config/site.php:114
-msgid "When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more."
-msgstr "Товары, которых нет на складе, будут автоматически перемещены вниз всех списков товаров на витрине интернет-магазина: в результатах поиска, в списках товаров внутри категорий, в результатах фильтрации товаров и т. д."
+msgid "When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more. Product quantities in all stocks are taken into account."
+msgstr "Товары, которых нет на складе, будут автоматически перемещены вниз всех списков товаров на витрине интернет-магазина: в результатах поиска, в списках товаров внутри категорий, в результатах фильтрации товаров и т. д. Учитываются остатки товаров на всех складах."
 
 #: /wa-apps/shop/lib/config/site.php:177 /wa-apps/shop/lib/config/site.php:181
 #: /wa-apps/shop/lib/config/site.php:182
@@ -8228,8 +8233,8 @@ msgid "Link"
 msgstr "Ссылка"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:171
-msgid "Custom order email and SMS notifications can be setup on the <strong class=\"nowrap\">Settings > Notifications</strong> screen."
-msgstr "Email и SMS-уведомления настраиваются в разделе <strong class=\"nowrap\">Настройки > Уведомления</strong>"
+msgid "Email and SMS notifications on order actions are configured in “<a href=\"?action=settings#/notifications/\" class=\"nowrap\">Settings → Notifications</a>” section."
+msgstr "Email- и SMS-уведомления о действиях с заказами настраиваются в разделе «<a href=\"?action=settings#/notifications/\" class=\"nowrap\">Настройки → Уведомления</a>»."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsSearch.html:6
 msgid "Search algorithm"
@@ -9345,8 +9350,8 @@ msgid "Multiple instances of every payment option with custom settings can be cr
 msgstr "Каждый способ оплаты можно установить несколько раз и задать каждому способу различные настройки."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:71
-msgid "Limit this payment option only if one of the following shipping options is selected"
-msgstr "Предлагать этот способ оплаты только для выбранных способов доставки"
+msgid "Offer this payment method with the selected shipping methods"
+msgstr "Предлагать этот способ оплаты для выбранных способов доставки"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:31
 msgid "Multiple instances of every shipping option with custom settings can be created."
@@ -9508,8 +9513,8 @@ msgid "Hide out-of-stock products"
 msgstr "Скрыть все товары, которых нет на складе"
 
 #: /wa-apps/shop/lib/config/site.php:117
-msgid "Out-of-stock products will remain published, but will be automatically hidden from all product lists on this storefront, e.g. product search results, category product filtering, and others."
-msgstr "Товары, которых нет на складе, будут опубликованы и доступны на витрине по прямой ссылке, но будут скрыты из всех списков товаров: из результатов поиска, из категорий, из результатов фильтрации товаров и т. д."
+msgid "Out-of-stock products will remain published, but will be automatically hidden from all product lists on this storefront, e.g. product search results, category product filtering, and others. Product quantities in all stocks are taken into account."
+msgstr "Товары, которых нет на складе, будут опубликованы и доступны на витрине по прямой ссылке, но будут скрыты из всех списков товаров: из результатов поиска, из категорий, из результатов фильтрации товаров и т. д. Учитываются остатки товаров на всех складах."
 
 #: /wa-apps/shop/lib/config/site.php:120
 msgid "Display as is"
@@ -9532,16 +9537,16 @@ msgid "Limits the maximum % of order amount that can be paid with bonus (i.e. ma
 msgstr "Ограничение на максимальную скидку на заказ, которую можно получить, используя бонусную программу (% от суммы заказа)."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:26
-msgid "Save detailed description on how discount was calculated:"
-msgstr "Сохранять описание как была рассчитана скидка:"
+msgid "How to save discount calculation description:"
+msgstr "Как сохранять описание расчета скидки:"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:28
-msgid "For each product"
-msgstr "Для каждого товара"
+msgid "for each product"
+msgstr "для каждого товара"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:30
-msgid "For the entire order"
-msgstr "Для всего заказа"
+msgid "for entire order"
+msgstr "для всего заказа"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:32
 msgid "Depending on your store setup, different levels of discount detalization may be useful."
@@ -9701,6 +9706,9 @@ msgstr "Для заказов этого типа будут доступны в
 #: /wa-apps/shop/lib/model/shopTransfer.model.php:370
 msgid "Transfer %s"
 msgstr "Трансфер %s"
+
+msgid "Inventory transferred to warehouse"
+msgstr "Выполнен трансфер товара на склад"
 
 #: /wa-apps/shop/lib/workflow/shopWorkflowSettleAction.class.php:30
 #: /wa-apps/shop/lib/workflow/shopWorkflowSettleAction.class.php:61
@@ -10187,6 +10195,10 @@ msgstr "Курьер будет полностью удален без возм�
 msgid "Only visible in backend"
 msgstr "Видна только в бекенде"
 
+#: /wa-apps/shop/js/settings/features.js
+msgid "Sorting in the common list is disabled. Drag-and-drop features into product types."
+msgstr "Сортировка в общем списке запрещена. Перетаскивайте характеристики в типы товаров."
+
 #: /wa-apps/shop/templates/actions/product/ProductImages.html:82
 msgid "This will remove video from the product page. Are you sure?"
 msgstr "Видео товара будет удалено. Продолжить?"
@@ -10410,16 +10422,16 @@ msgid "Current order status"
 msgstr "Текущий статус заказа"
 
 #: /wa-apps/shop/lib/workflow/templates/RefundAction.html:5
-msgid "Attention: money will be returned to customer via payment gate"
-msgstr ""
+msgid "Money will be returned to the customer via the payment gateway."
+msgstr "Деньги будут возвращены покупателю через платежную систему."
 
 #: /wa-apps/shop/lib/workflow/templates/RefundAction.html:8
 msgid "Refund reason"
-msgstr ""
+msgstr "Причина возврата"
 
 #: /wa-apps/shop/lib/workflow/templates/RefundAction.html:8
-msgid "Customer decline order"
-msgstr ""
+msgid "Customer request"
+msgstr "По запросу покупателя"
 
 #: /wa-apps/shop/templates/actions/backend/BackendOrders.html:17
 msgid "Get instant updates on your mobile device"
@@ -10490,12 +10502,15 @@ msgid "Execution of “Paid” action manually in backend or automatically by a 
 msgstr "Выполнение действия «Оплачен» в бекенде магазина либо в результате автоматического запроса (callback) платежной системы."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:175
-msgid "Select an online map engine in Installer app‘s “<a href=\"%s\">Settings</a>” screen."
-msgstr "Выберите тип онлайн-карт в разделе «<a href=\"%s\">Настройки</a>» приложения «Инсталлер»."
+msgid "Select an online map engine in “<a href=\"%s\">Settings</a>” app‘s."
+msgstr "Выберите тип онлайн-карт в приложении «<a href=\"%s\">Настройки</a>»."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:177
-msgid "To select an online map engine, you need access to Installer app‘s “Settings” screen."
-msgstr "Для выбора типа онлайн-карт необходим доступ к разделу «Настройки» приложения «Инсталлер»."
+msgid "To select an online map engine, you need access to “Settings” app‘s."
+msgstr "Для выбора типа онлайн-карт необходим доступ к приложению «Настройки»."
+
+msgid "To select an captcha engine, you need access to “Settings” app‘s."
+msgstr "Для выбора типа капчи необходим доступ к приложению «Настройки»."
 
 msgid "Only couriers for storefront %s are shown."
 msgstr "Показаны только курьеры, настроенные для витрины %s."
@@ -10861,3 +10876,222 @@ msgstr "Актуальное наименование"
 
 msgid "Quick start"
 msgstr "Быстрый старт"
+
+msgid "specify date and time"
+msgstr "укажите дату и время"
+
+msgid "“%s” action"
+msgstr "действие «%s»"
+
+msgid "Behavior"
+msgstr "Поведение"
+
+msgid "Payment option availability"
+msgstr "Доступность возможности оплаты"
+
+msgid "customers can pay for orders in this state in their personal accounts"
+msgstr "покупатели могут оплачивать заказы в этом статусе в личном кабинете"
+
+msgid "Order status will be changed to “%s”."
+msgstr "Статус заказа изменится на «%s»."
+
+msgid "A payment date will be saved."
+msgstr "Сохранится дата оплаты."
+
+msgid "Quantities of ordered products and their SKUs, if non-empty, will be increased accordingly. Order payment date will be cleared."
+msgstr "Количество на складе для заказанных товаров и их артикулов, если непустое, увеличится соответственно. Дата оплаты будет удалена."
+
+msgid "Order status will be changed to the one the order had before deletion."
+msgstr "Статус заказа изменится на тот, который был у заказа до удаления."
+
+msgid "https://www.shop-script.com/help/28265/order-processing-in-shop-script/"
+msgstr "https://support.webasyst.ru/shop-script/8699/order-workflow/"
+
+msgid "About order statuses and actions"
+msgstr "О статусах и действиях с заказами"
+
+msgid "Enter a hint, visible only in backend, to describe what your action does and when it should be executed."
+msgstr "Введите подсказку, видимую только в бекенде, о том, что делает ваше действие и для чего его нужно выполнять."
+
+msgid "Sort order items"
+msgstr "Сортировка товаров в заказе"
+
+msgid "as added to the shopping cart"
+msgstr "по времени добавления в корзину"
+
+msgid "by item name"
+msgstr "по наименованию"
+
+msgid "by SKU code"
+msgstr "по коду артикула"
+
+msgid "Select parameters to be available to customers for ordering this product in the storefront."
+msgstr "Выберите параметры, которые будут доступны покупателям при заказе товара на витрине."
+
+msgid "Show all"
+msgstr "Показать все"
+
+msgid "Conventional commodity"
+msgstr "Обычный товар"
+
+msgid "To edit countries and regions, you need to access the “Settings” app‘s."
+msgstr "Чтобы редактировать страны и регионы, вам необходимо получить доступ к приложению «Настройки»."
+
+msgid "You can set up a directory of countries and regions in “<a href=\"%s\">Settings</a>” app‘s."
+msgstr "Настроить справочник стран и регионов можно в приложении «<a href=\"%s\">Настройки</a>»."
+
+msgid "Operation mode"
+msgstr "Режим работы"
+
+msgid "Timezone"
+msgstr "Часовой пояс"
+
+msgid "Extra workdays"
+msgstr "Дополнительные рабочие дни"
+
+msgid "Extra weekend"
+msgstr "Дополнительные выходные дни"
+
+msgid "Add day"
+msgstr "Добавить день"
+
+msgid "Please enter at least one working day"
+msgstr "Укажите хотя бы один рабочий день"
+
+msgid "Remove the date from extra work days days"
+msgstr "Удалить дату из дополнительных рабочих дней"
+
+msgid "Invalid time"
+msgstr "Некорректное время"
+
+msgid "Invalid date"
+msgstr "Некорректная дата"
+
+msgid "Nothing selected"
+msgstr "Ничего не выбрано"
+
+msgid "Matching features were not found or are already selected."
+msgstr "Подходящие характеристики не найдены или уже выбраны."
+
+msgid "Refunded %s via %s payment gateway."
+msgstr "Возвращено %s через платежную систему «%s»."
+
+msgid "Filtering by this feature is not available, because only one of its values is selected in “Product filtering options” section."
+msgstr "Фильтрация по этой характеристике недоступна, потому что для нее выбрано только одно значение в секции «Параметры фильтрации товаров»."
+
+msgid "Type text to start search"
+msgstr "Начните писать для поиска"
+
+msgid "Actual refund"
+msgstr "Возврат денег"
+
+msgid "Offer shipping to customer types"
+msgstr "Предлагать доставку типам покупателей"
+
+msgid "Offer payment to customer types"
+msgstr "Предлагать оплату типам покупателей"
+
+msgid "Offer this payment method with selected shipping types"
+msgstr "Предлагать этот способ оплаты для выбранных типов доставки"
+
+msgid "Persons"
+msgstr "Персоны"
+
+msgid "Companies"
+msgstr "Компании"
+
+msgid "In  “%s” mode shipping is offered only to selected customer types.<br>In “%s” mode this setting is ignored and shipping is always offered to all customer types."
+msgstr "В режиме «%s» доставка предлагается только выбранным типам покупателей.<br>В режиме «%s» эта настройка игнорируется, и доставка всегда предлагается всем типам покупателей."
+
+msgid "In  “%s” mode payment is offered only to selected customer types.<br>In “%s” mode this setting is ignored and payment is always offered to all customer types."
+msgstr "В режиме «%s» оплата предлагается только выбранным типам покупателей.<br>В режиме «%s» эта настройка игнорируется, и оплата всегда предлагается всем типам покупателей."
+
+msgid "In  “%s” mode payment is offered only with selected shipping types.<br>In “%s” mode this setting is ignored and payment is always offered with all shipping types."
+msgstr "В режиме «%s» оплата предлагается только для выбранных типов доставки.<br>В режиме «%s» эта настройка игнорируется, и оплата всегда предлагается для всех типов доставки."
+
+msgid "In-cart checkout"
+msgstr "Оформление заказа в корзине"
+
+msgid "Multi-step checkout"
+msgstr "Пошаговое оформление заказа"
+
+msgid "shipping type “%s”"
+msgstr "тип доставки «%s»"
+
+msgid "pickup"
+msgstr "самовывоз"
+
+msgid "courier"
+msgstr "курьер"
+
+msgid "post"
+msgstr "почта"
+
+msgid "Product dimensions are passed on to shipping plugins."
+msgstr "Размеры товаров передаются плагинам доставки."
+
+msgid "Passing of product dimensions on to shipping plugins is not set up."
+msgstr "Передача размеров товаров плагинам доставки не настроена."
+
+msgid "Product feature “%s” with code <tt>%s</tt> is used."
+msgstr "Используется характеристика товара «%s» с кодом <tt>%s</tt>."
+
+msgid "Shipping plugins retrieve weight from the vaules of a product feature with code <tt>%s</tt>."
+msgstr "Плагины доставки получают вес товаров из значений характеристики с кодом <tt>%s</tt>."
+
+msgid "Product dimensions (value × value × value)"
+msgstr "Размеры товара (значение × значение × значение)"
+
+msgid "Order dimensions calculation plugin"
+msgstr "Плагин расчета размеров отправления"
+
+msgid "Order dimensions calculation is set up."
+msgstr "Расчет размеров отправления настроен."
+
+msgid "Order dimensions calculation is not set up."
+msgstr "Расчет размеров отправления не настроен."
+
+msgid "Install an order dimensions calculation plugin."
+msgstr "Установите плагин для расчета размеров отправления."
+
+msgid "Do not calculate order dimensions"
+msgstr "Не расчитывать общие размеры отправления"
+
+msgid "If no plugin is selected, then order dimensions are calculated by shipping plugins."
+msgstr "Если плагин не будет выбран, то общие размеры будут расчитаны плагином доставки."
+
+msgid "Select a feature"
+msgstr "Выберите характеристику"
+
+msgid "Order weight &amp; dimensions"
+msgstr "Вес и размеры заказа"
+
+msgid "Order processing schedule"
+msgstr "Время приема и обработки заказов"
+
+msgid "Day of the week"
+msgstr "День недели"
+
+msgid "Open"
+msgstr "Рабочий"
+
+msgid "Working hours"
+msgstr "Часы работы"
+
+msgid "New orders for processing"
+msgstr "Заказы в обработку"
+
+msgid "Values of “%s” and “%s” fields can be used to calculate the shipping terms."
+msgstr "Значения полей «%s» и «%s» могут быть использованы для расчета сроков доставки."
+
+msgid "The setting is used by default in all storefronts."
+msgstr "Настройка используется по умолчанию на всех витринах магазина."
+
+msgid "Working hours required to process an order"
+msgstr "Количество рабочих часов на обработку заказа"
+
+msgid "Is used to calculate order shipping terms. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later."
+msgstr "Используется для расчета сроков доставки. Указанный период добавляется ко времени оформления заказа и учитывается при переносе обработки заказов на другой день — для заказов, оформленных в конце или после окончания текущего рабочего дня."
+
+msgid "Values in “%s” column denote the last hour of a workday before which orders are accepted for processing on the same day. Orders accepted after that hour are processed on the next workday."
+msgstr "Значения в столбце «%s» обозначают последний час рабочего дня, до которого заказы принимаются для обработки в течение дня. Заказы, оформленные после указанного часа, обрабатываются на следующий день."

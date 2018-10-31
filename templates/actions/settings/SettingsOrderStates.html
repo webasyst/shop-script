@@ -22,6 +22,11 @@
                     <i class="icon10 add"></i>[`New order state`]
                 </a>
             </li>
+            <li class="top-padded small">
+                <a href="[`https://www.shop-script.com/help/28265/order-processing-in-shop-script/`]" target="_blank">
+                    <i class="icon10 info"></i>[`About order statuses and actions`]
+                </a>
+            </li>
         </ul>
     </div>
 </div>
@@ -108,6 +113,17 @@
                         </ul>
                     </div>
                 </div>
+                  {if $info['payment_allowed']!==null}
+                  <div class="field">
+                      <div class="name">[`Payment option availability`]</div>
+                      <div class="value no-shift">
+                          <label>
+                              <input type="checkbox" name="payment_allowed" value="1" {if $info['payment_allowed']} checked="checked"{/if}>
+                              [`customers can pay for orders in this state in their personal accounts`]
+                          </label>
+                      </div>
+                  </div>
+                  {/if}
                 <div class="field">
                     <div class="name">
                         [`Allowed actions`]
@@ -115,15 +131,19 @@
                     <div class="s-order-allowed-actions">
                         {foreach $actions as $id => $a}
                             {if empty($a.internal)}
-                            <div class="value no-shift s-order-action"
+                            <div class="value no-shift s-order-action{if !in_array($id, $info.actions)} unsortable{/if}"
                                     data-id="{$id|escape}"
                                     data-name="{$a.name|escape}"
+                                    data-description="{$a.options.description|default:''|escape}"
                                     data-state="{$a.state|default:''|escape}"
                                     data-link="{if !empty($a.options) && !empty($a.options.position)}1{/if}"
                                     data-border_color="{if !empty($a.options) && !empty($a.options.border_color)}{$a.options.border_color}{else}dddddd{/if}"
-                                    data-icon="{if !empty($a.options) && !empty($a.options.icon)}{$a.options.icon}{/if}">
+                                    data-extends="{$a.extends|default:''|escape}"
+                                    data-icon="{if !empty($a.options) && !empty($a.options.icon)}{$a.options.icon}{/if}"
+                                 title="{$a.options.description|default:''|escape}"
+                            >
                                 <label>
-                                    <i class="icon16 sort"></i>
+                                    <i class="icon16 sort"{if !in_array($id, $info.actions)} style="display: none;"{/if}></i>
                                     <input type="checkbox" name="action[]" value="{$id|escape}" {if in_array($id, $info.actions)}checked="checked"{/if} {if $id == 'create'}disabled="disabled"{/if}>
                                     {$a.name|escape} <span class="hint">{$id|upper}</span>
                                 </label>
@@ -141,7 +161,7 @@
                     {*
                      * Form to create new or modify existing custom action.
                      *}
-                    <div class="value no-shift s-new-action" style="display:none">
+                    <div class="value no-shift s-new-action" style="display:none" title="">
                         <div class="block double-padded s-new-action-details">
                             <div class="float-right hidden s-delete-action">
                                 <ul class="menu-h">
@@ -152,6 +172,9 @@
                             <input type="text" name="new_action_name[0]" value="" placeholder="[`Action name`]" disabled="disabled" class="bold">
                             <input type="hidden" name="new_action_id[0]" value="" disabled="disabled" class="short">
                             <div class="fields form width100px">
+                                <div class="field">
+                                    <textarea name="new_action_description[0]" placeholder="[`Enter a hint, visible only in backend, to describe what your action does and when it should be executed.`]"></textarea>
+                                </div>
                                 <div class="field">
                                     <div class="name">[`Set order state`]</div>
                                     <div class="value no-shift">
@@ -193,10 +216,27 @@
                                         </ul>
                                     </div>
                                 </div>
+
                                 <div class="field">
-                                    <div class="name">[`Notification`]</div>
+                                    <div class="name">[`Behavior`]</div>
+                                    <div class="value no-shift">
+                                        <label><input name="new_action_extends[0]" type="radio" value="" checked>&nbsp;[`default`]</label>
+                                    </div>
+                                    {foreach shopWorkflow::getExtendsActions() as $pattern_id => $pattern_info}
+
+                                    <div class="value no-shift">
+                                        <label><input name="new_action_extends[0]" type="radio" value="{$pattern_id|escape}">&nbsp;{$pattern_info.name|default:$pattern_id|escape}</label>
+                                        <span class="hint">{$pattern_id|upper}</span>
+                                        {if !empty($pattern_info.options.description)}
+                                        <span class="hint">{$pattern_info.options.description|escape}</span>
+                                        {/if}
+                                    </div>
+                                    {/foreach}
+                                </div>
+                                <div class="field">
+                                    <div class="name">[`Notifications`]</div>
                                     <div class="value no-shift s-new-action-hint">
-                                        [`Custom order email and SMS notifications can be setup on the <strong class="nowrap">Settings > Notifications</strong> screen.`]
+                                        [`Email and SMS notifications on order actions are configured in “<a href="?action=settings#/notifications/" class="nowrap">Settings → Notifications</a>” section.`]
                                     </div>
                                 </div>
                             </div>
@@ -246,6 +286,7 @@
                         <input type="submit" class="button green" value="[`Save`]"  id="s-settings-order-states-submit">
                         <i class="icon16 loading" style="display:none;"></i>
                         <i class="icon16 yes" style="display:none;"></i>
+                        <i class="icon16 no" style="display:none;"></i>
                     </div>
                 </div>
               </div>

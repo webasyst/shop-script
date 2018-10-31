@@ -8,7 +8,7 @@ class shopSettingsFeaturesAction extends waViewAction
         }
 
         $types_per_page = (int) $this->getConfig()->getOption('types_per_page');
-        $values_per_feature = 7;
+        $values_per_feature = (int) $this->getConfig()->getOption('features_values_per_page');
 
         $type_model = new shopTypeModel();
         $type_features_model = new shopTypeFeaturesModel();

@@ -25,8 +25,15 @@ class shopFrontendMyOrderAction extends shopFrontendAction
         if ($order['paid_date']) {
             foreach ($order['items'] as &$i) {
                 if (!empty($i['file_name'])) {
-                    $i['download_link'] = wa()->getRouteUrl('/frontend/myOrderDownload',
-                        array('id' => $order['id'], 'code' => $order['params']['auth_code'], 'item' => $i['id']), true);
+                    $i['download_link'] = wa()->getRouteUrl(
+                        '/frontend/myOrderDownload',
+                        array(
+                            'id'   => $order['id'],
+                            'code' => $order['params']['auth_code'],
+                            'item' => $i['id'],
+                        ),
+                        true
+                    );
                 }
             }
             unset($i);
@@ -36,19 +43,21 @@ class shopFrontendMyOrderAction extends shopFrontendAction
         $order_params_model = new shopOrderParamsModel();
         $order['params'] = $order_params_model->get($order['id']);
         $order['id_str'] = $encoded_order_id;
-        $order['state'] = $workflow->getStateById($order['state_id']);
+        /** @var shopWorkflowState $state */
+        $state = $workflow->getStateById($order['state_id']);
 
+        $order['state'] = $state;
         // Order subtotal
         $subtotal = 0;
         foreach ($order['items'] as $item) {
-            $subtotal += $item['price']*$item['quantity'];
+            $subtotal += $item['price'] * $item['quantity'];
         }
 
         // Order comment
         $lm = new shopOrderLogModel();
         $l = $lm->getByField(array(
             'action_id' => 'create',
-            'order_id' => $order['id'],
+            'order_id'  => $order['id'],
         ));
         $order['comment'] = ifempty($l['text']);
         $order['payment_name'] = ifset($order['params']['payment_name'], '');
@@ -89,7 +98,10 @@ class shopFrontendMyOrderAction extends shopFrontendAction
         }
 
         $payment = '';
-        if (!empty($order['params']['payment_id']) && !$order['paid_date']) {
+        if (!$order['paid_date'] && # order not paid
+            !empty($order['params']['payment_id']) && # order has related payment plugin
+            $order['state']->paymentAllowed() # order state allow payment
+        ) {
             try {
                 $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
                 $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), false);
@@ -155,7 +167,7 @@ class shopFrontendMyOrderAction extends shopFrontendAction
         $result = shopFrontendMyOrdersAction::getBreadcrumbs();
         $result[] = array(
             'name' => _w('My orders'),
-            'url' => wa()->getRouteUrl('/frontend/myOrders'),
+            'url'  => wa()->getRouteUrl('/frontend/myOrders'),
         );
         return $result;
     }
@@ -165,4 +177,3 @@ class shopFrontendMyOrderAction extends shopFrontendAction
         return $order['contact_id'] == wa()->getUser()->getId() && $order['state_id'] != 'deleted';
     }
 }
-

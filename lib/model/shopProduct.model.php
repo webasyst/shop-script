@@ -43,6 +43,19 @@ class shopProductModel extends waModel
             $delete_ids = $product_ids;
         }
 
+        if (empty($delete_ids)) {
+            return false;
+        }
+
+        $params = array('ids' => $delete_ids);
+        /**
+         * @event product_delete
+         * @param array [string]mixed $params
+         * @param array [string]array $params['ids'] Array of IDs of deleted product entries
+         * @return void
+         */
+        wa()->event('product_delete', $params);
+
         // remove files
         foreach ($delete_ids as $product_id) {
             $paths = array(
@@ -59,19 +72,6 @@ class shopProductModel extends waModel
                 }
             }
         }
-
-        if (empty($delete_ids)) {
-            return false;
-        }
-
-        $params = array('ids' => $delete_ids);
-        /**
-         * @event product_delete
-         * @param array [string]mixed $params
-         * @param array [string]array $params['ids'] Array of IDs of deleted product entries
-         * @return void
-         */
-        wa()->event('product_delete', $params);
 
         // remove from related models
         foreach (array(

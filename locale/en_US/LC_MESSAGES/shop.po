@@ -10,7 +10,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 2.0.6\n"
 "Plural-Forms: nplurals=2; plural=n == 1 ? 0 : 1;\n"
 "Language: en_US\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -3084,10 +3084,6 @@ msgstr ""
 msgid "Misc fields"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:12
-msgid "Checkout form is based on your system contact field set configured in the <a href=\"%s\">Contacts</a> app. The form below allows you to customize the list of fields prompted during checkout."
-msgstr ""
-
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:26
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:52
 msgid "Add field"
@@ -3294,15 +3290,15 @@ msgid "Don't convert, leave all product prices as is"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:15
-msgid "If more then one rule is applicable for the customer order, how the total discount should be calculated?"
+msgid "How total discount should be calculated if multiple rules are applicable for an order:"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:17
-msgid "Maximum"
+msgid "maximum"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:19
-msgid "Sum"
+msgid "sum"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscountsCategory.html:3
@@ -4446,15 +4442,15 @@ msgid "Start re-indexing process"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:5
-msgid "Most shipping rate calculation modules require <strong>product weight</strong> information which is taken from a product feature with the <code>%s</code> identifier."
+msgid "Most shipping rate calculation plugins require <strong>product weight</strong> information which is taken from a product feature with code <tt>%s</tt>."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:6
-msgid "You don't have such feature in your online store setup."
+msgid "You have no such feature in your online store settings."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:7
-msgid "Add it in the <a href=\"%s\">Product types &amp; Features</a> screen to make."
+msgid "Add it in “<a href=\"%s\">Product types &amp; Features</a>” screen."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:16
@@ -6700,7 +6696,7 @@ msgid "(no-name)"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/products/shopProductsSaveListSettings.controller.php:127
-msgid "Url is in use"
+msgid "URL is in use"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/products/shopProductsSaveListSettings.controller.php:192
@@ -7508,7 +7504,7 @@ msgid "Force drop out-of-stock products to the bottom of all lists"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:114
-msgid "When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more."
+msgid "When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more. Product quantities in all stocks are taken into account."
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:118
@@ -9291,7 +9287,7 @@ msgid "Link"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:171
-msgid "Custom order email and SMS notifications can be setup on the <strong class=\"nowrap\">Settings > Notifications</strong> screen."
+msgid "Email and SMS notifications on order actions are configured in <a href=\"?action=settings#/notifications/\" class=\"nowrap\">Settings → Notifications</a> section."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsSearch.html:6
@@ -10534,7 +10530,7 @@ msgid "Multiple instances of every payment option with custom settings can be cr
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:71
-msgid "Limit this payment option only if one of the following shipping options is selected"
+msgid "Offer this payment method with the selected shipping methods"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:31
@@ -10706,7 +10702,7 @@ msgid "Hide out-of-stock products"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:117
-msgid "Out-of-stock products will remain published, but will be automatically hidden from all product lists on this storefront, e.g. product search results, category product filtering, and others."
+msgid "Out-of-stock products will remain published, but will be automatically hidden from all product lists on this storefront, e.g. product search results, category product filtering, and others. Product quantities in all stocks are taken into account."
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:120
@@ -10730,15 +10726,15 @@ msgid "Limits the maximum % of order amount that can be paid with bonus (i.e. ma
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:26
-msgid "Save detailed description on how discount was calculated:"
+msgid "How to save discount calculation description:"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:28
-msgid "For each product"
+msgid "for each product"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:30
-msgid "For the entire order"
+msgid "for entire order"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:32
@@ -11676,7 +11672,7 @@ msgid "Current order status"
 msgstr ""
 
 #: /wa-apps/shop/lib/workflow/templates/RefundAction.html:5
-msgid "Attention: money will be returned to customer via payment gate"
+msgid "Money will be returned to the customer via the payment gateway."
 msgstr ""
 
 #: /wa-apps/shop/lib/workflow/templates/RefundAction.html:8
@@ -11684,7 +11680,7 @@ msgid "Refund reason"
 msgstr ""
 
 #: /wa-apps/shop/lib/workflow/templates/RefundAction.html:8
-msgid "Customer decline order"
+msgid "Customer request"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/backend/BackendOrders.html:17
@@ -11767,4 +11763,7 @@ msgid "Old name"
 msgstr ""
 
 msgid "Current name"
+msgstr ""
+
+msgid "To change the date and time of delivery by courier, you must specify the date and time of delivery"
 msgstr ""

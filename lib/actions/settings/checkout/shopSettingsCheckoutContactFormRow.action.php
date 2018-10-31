@@ -49,6 +49,7 @@ class shopSettingsCheckoutContactFormRowAction extends waViewAction
                 'Country' => _w('Country'),
                 'Hidden' => _w('Hidden field'),
                 'Name' => _w('Full name'),
+                'Radio' => _w('Selectable (radio)'),
             );
         }
 

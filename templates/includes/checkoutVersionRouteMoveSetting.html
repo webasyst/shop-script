@@ -1,0 +1,14 @@
+{* This template included in /lib/config/site.php *}
+{* It transfers customization with a choice of checkout version in the route rule settings after the design theme selector *}
+{* Forgive me for this.. Please *}
+<style>
+    .checkout-2-background { background-color: #9cff9e; }
+</style>
+<script>
+    (function ($) {
+        var $version_field = $('input[name="params[checkout_version]"]').parents('.field'),
+            $theme_field = $('select[name="params[theme_mobile]"]').parents('.field');
+
+        $version_field.insertBefore($theme_field);
+    })(jQuery);
+</script>

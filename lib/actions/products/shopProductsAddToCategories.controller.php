@@ -22,8 +22,9 @@ class shopProductsAddToCategoriesController extends waJsonController
         if (!$this->getUser()->getRights('shop', 'setscategories')) {
             throw new waRightsException(_w('Access denied'));
         }
-        
+
         $category_ids = waRequest::post('category_id', array(), waRequest::TYPE_ARRAY_INT);
+        $product_ids = null;
 
         // create new category
         $new_category_id = null;
@@ -41,24 +42,56 @@ class shopProductsAddToCategoriesController extends waJsonController
         // add products to categories
         $hash = $this->getHash();
         if (!$hash) {
-            $product_ids = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
-            if (!$product_ids) {
-                return;
-            }
-            // add just selected products
-            $this->category_products_model->add($product_ids, $category_ids);
-        } else {
-            // add all products of collection with this hash
-            $collection = new shopProductsCollection($hash);
-            $offset = 0;
-            $count = 100;
-            $total_count = $collection->count();
-            while ($offset < $total_count) {
-                $ids = array_keys($collection->getProducts('*', $offset, $count));
-                $this->category_products_model->add($ids, $category_ids);
-                $offset += count($ids);
-            }
+            $products_id = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
+            $hash = 'id/'.join(',', $products_id);
         }
+
+        /**
+         * Adds a product to the category. Get data before changes
+         *
+         * @param int $new_category_id
+         * @param array $category_ids with $new_category_id
+         * @param string $hash
+         * @param array|string products_id
+         *
+         * @event products_set_categories.after
+         */
+        $params = array(
+            'new_category_id' => $new_category_id,
+            'category_ids'    => $category_ids,
+            'hash'            => $hash,
+            'products_id'     => $product_ids,
+        );
+        wa('shop')->event('products_set_categories.after', $params);
+
+        // add all products of collection with this hash
+        $collection = new shopProductsCollection($hash);
+        $offset = 0;
+        $count = 100;
+        $total_count = $collection->count();
+        while ($offset < $total_count) {
+            $product_ids = array_keys($collection->getProducts('*', $offset, $count));
+            $this->category_products_model->add($product_ids, $category_ids);
+            $offset += count($product_ids);
+        }
+
+        /**
+         * Adds a product to the category
+         *
+         * @param int $new_category_id
+         * @param array $category_ids with $new_category_id
+         * @param string $hash
+         * @param array|string products_id
+         *
+         * @event products_set_categories.before
+         */
+        $params = array(
+            'new_category_id' => $new_category_id,
+            'category_ids'    => $category_ids,
+            'hash'            => $hash,
+            'products_id'     => $product_ids,
+        );
+        wa('shop')->event('products_set_categories.before', $params);
 
         // form a response
         $categories = $this->category_model->getByField('id', $category_ids, 'id');

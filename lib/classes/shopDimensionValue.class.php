@@ -106,7 +106,8 @@ class shopDimensionValue implements ArrayAccess
         if ($this->value === null) {
             return '';
         } else {
-            return ($format === false) ? ($this->value.' '.$this->unit_name) : sprintf($format, $this->value, $this->unit_name);
+            $value = waLocale::format($this->value, false);
+            return ($format === false) ? ($value.' '.$this->unit_name) : sprintf($format, $value, $this->unit_name);
         }
     }
 

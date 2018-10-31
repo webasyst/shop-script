@@ -4,7 +4,9 @@ class shopProductsMassUpdateController extends waJsonController
 {
     public function execute()
     {
+        shopProductStocksLogModel::setContext(shopProductStocksLogModel::TYPE_PRODUCT);
         shopProductMassUpdate::update($this->getSkus(), $this->getProducts());
+        shopProductStocksLogModel::clearContext();
     }
 
     public function getSkus()

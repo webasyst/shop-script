@@ -2,6 +2,11 @@
 
     <h1>[`Stocks`]</h1>
 
+
+    <!-- plugin hook: 'backend_stocks.%plugin_id%.stocks' -->
+    {* @event backend_stocks.%plugin_id%.stocks *}
+    {foreach $backend_stocks_hook as $_}{$_.stocks|default:''}{/foreach}
+
     <div style="margin: 20px 0">
         <a href="javascript:void(0);" id="s-transfer-product" class="bold"><i class="icon16 move"></i> [`New transfer`]</a>
 

@@ -2,6 +2,11 @@
 
 <div id="{$container_id}" class="s-transfer-list-container">
 
+    <!-- plugin hook: 'backend_stocks.%plugin_id%.transfer_list' -->
+    {* @event backend_stocks.%plugin_id%.transfer_list *}
+    {foreach $backend_stocks_hook as $_}{$_.transfer_list|default:''}{/foreach}
+
+
 {function revert_order order=""}{if $order === 'asc' || !$order}desc{else}asc{/if}{/function}
 
 {function name="field_link" field_id="" field_name=""}

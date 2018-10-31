@@ -16,8 +16,8 @@ class shopTransferListAction extends waViewAction
             array(
                 'fields' => '*',
                 'offset' => $offset,
-                'limit' => $limit,
-                'order' => $sort . ' ' . $order,
+                'limit'  => $limit,
+                'order'  => $sort.' '.$order,
                 'filter' => $filter
             )
         );
@@ -27,17 +27,37 @@ class shopTransferListAction extends waViewAction
         $count = count($transfers);
         $this->count = $count + $offset;
 
-        $this->view->assign(array(
-            'transfers' => $transfers,
-            'disabled_lazyload' => $this->disabledLazyLoad(),
-            'sort' => $sort,
-            'order' => $order,
-            'offset' => $offset,
-            'limit' => $limit,
+        /**
+         * Show transfer list
+         *
+         * @param array $transfers
+         * @param string $order
+         * @param string $sort
+         * @param int $already_loaded_count
+         *
+         * @event backend_stocks.transfer_list
+         */
+        $params = array(
+            'transfers'            => $transfers,
+            'sort'                 => $sort,
+            'order'                => $order,
             'already_loaded_count' => $this->count,
-            'now_loaded_count' => $count,
-            'total_count' => $this->getTotalCount(),
-            'disabled_sort' => $this->disabledSort()
+        );
+
+        $backend_stocks_hook = wa('shop')->event('backend_stocks.transfer_list', $params);
+        $this->view->assign('backend_stocks_hook', $backend_stocks_hook);
+
+        $this->view->assign(array(
+            'transfers'            => $transfers,
+            'disabled_lazyload'    => $this->disabledLazyLoad(),
+            'sort'                 => $sort,
+            'order'                => $order,
+            'offset'               => $offset,
+            'limit'                => $limit,
+            'already_loaded_count' => $this->count,
+            'now_loaded_count'     => $count,
+            'total_count'          => $this->getTotalCount(),
+            'disabled_sort'        => $this->disabledSort()
         ));
     }
 
@@ -63,7 +83,7 @@ class shopTransferListAction extends waViewAction
 
     public function getOffset()
     {
-        return (int) $this->getParameter('offset');
+        return (int)$this->getParameter('offset');
     }
 
     public function getFilter()
@@ -77,7 +97,7 @@ class shopTransferListAction extends waViewAction
         if ($total_count === null) {
             $total_count = $this->getTransferModel()->getListCount();
         }
-        return (int) $total_count;
+        return (int)$total_count;
     }
 
     public function getDefaultLimit()
@@ -87,7 +107,7 @@ class shopTransferListAction extends waViewAction
 
     public function getLimit()
     {
-        return (int) $this->getParameter('limit', $this->getDefaultLimit());
+        return (int)$this->getParameter('limit', $this->getDefaultLimit());
     }
 
     public function getOrder()
@@ -99,7 +119,7 @@ class shopTransferListAction extends waViewAction
 
     public function disabledSort()
     {
-        return (int) $this->getParameter('disabled_sort');
+        return (int)$this->getParameter('disabled_sort');
     }
 
     public function getSort()

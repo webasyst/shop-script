@@ -4,6 +4,7 @@ class shopWorkflowAction extends waWorkflowAction
 {
     public $original = false;
     protected $state_id;
+    protected $extends;
     /**
      * @var shopOrderModel
      */
@@ -44,6 +45,9 @@ class shopWorkflowAction extends waWorkflowAction
         if (isset($options['state'])) {
             $this->state_id = $options['state'];
         }
+        if (isset($options['extends'])) {
+            $this->extends = $options['extends'];
+        }
 
         if (empty($this->options['log_record'])) {
             $this->options['log_record'] = $this->getName();
@@ -64,7 +68,6 @@ class shopWorkflowAction extends waWorkflowAction
 
     /**
      * @return string
-     * @param string[] $attrs
      */
     public function getButton()
     {
@@ -74,9 +77,10 @@ class shopWorkflowAction extends waWorkflowAction
         } else {
             $attrs = '';
         }
+        $description = htmlspecialchars($this->getOption('description'), ENT_QUOTES, 'utf-8');
         if ($this->getOption('position') || $this->getOption('top')) {
             return <<<HTML
-<a {$attrs} href="#" class="wf-action {$this->getOption('button_class')}" data-action-id="{$this->getId()}">
+<a {$attrs} href="#" class="wf-action {$this->getOption('button_class')}" data-action-id="{$this->getId()}" title="{$description}">
     <i class="icon16 {$this->getOption('icon')}"></i>{$name}
 </a>
 HTML;
@@ -103,7 +107,7 @@ HTML;
             );
             $class = implode(' ', array_filter($class));
             return <<<HTML
-<a href="#" {$attrs} class="{$class}" data-action-id="{$this->getId()}" style="{$style}">{$name}{$icons}</a>
+<a href="#" {$attrs} class="{$class}" data-action-id="{$this->getId()}" style="{$style}" title="{$description}">{$name}{$icons}</a>
 HTML;
         }
     }
@@ -373,7 +377,7 @@ HTML;
 
     /**
      * @param string $state
-     * @param array $order_id
+     * @param array|int $order_id
      * @param array $params
      * @return array
      */

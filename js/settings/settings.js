@@ -27,6 +27,8 @@ $.extend($.settings = $.settings || {}, {
         dispatch: null
     },
 
+    $container: null,
+
     ready: false,
     menu: null,
 
@@ -38,6 +40,7 @@ $.extend($.settings = $.settings || {}, {
         if (!this.ready) {
             this.ready = true;
             this.menu = $('#s-settings-menu');
+            this.$container = $("#s-settings-content");
 
             // Set up AJAX to never use cache
             $.ajaxSetup({
@@ -49,6 +52,7 @@ $.extend($.settings = $.settings || {}, {
                     $.settings.dispatch();
                 });
             }
+            var self = this;
             $.wa.errorHandler = function (xhr) {
                 if ((xhr.status === 403) || (xhr.status === 404)) {
                     var $text = $(xhr.responseText);
@@ -58,7 +62,7 @@ $.extend($.settings = $.settings || {}, {
                     } else {
                         $message.append($text.find(':not(style)'));
                     }
-                    $("#s-settings-content").empty().append($message).append('<div class="clear-both"></div>');
+                    self.$container.empty().append($message).append('<div class="clear-both"></div>');
                     return false;
                 }
                 return true;
@@ -93,7 +97,7 @@ $.extend($.settings = $.settings || {}, {
     },
 
     /** Change location hash without triggering dispatch */
-    forceHash: function(hash) {
+    forceHash: function (hash) {
         if (location.hash != hash) {
             this.skipDispatch++;
             $.wa.setHash(hash);
@@ -140,7 +144,7 @@ $.extend($.settings = $.settings || {}, {
         if (true === pre_load_result) {
             $.shop && $.shop.trace('$.settings.dispatch: PreLoad returned true, blur from previous page.');
             this.settingsBlur(this.path.section);
-            $('#s-settings-content').html(this.options.loading);
+            this.$container.html(this.options.loading);
             this.path.tail = path.tail;
             this.path.section = path.section || this.path.section;
             this.menu.find('a[href*="\\#\/' + this.path.section + '\/"]').parents('li').addClass('selected');
@@ -150,11 +154,10 @@ $.extend($.settings = $.settings || {}, {
         /* change settings section */
         if (load || (path.section != this.path.section)) {
             $.shop && $.shop.trace('$.settings.dispatch: PreLoad returned nothing. Load section HTML, then call settingsAction().');
-            var $content = $('#s-settings-content');
             this.settingsBlur(this.path.section, path);
             this.path.tail = null;
             if (!load) {
-                $content.html(this.options.loading);
+                this.$container.html(this.options.loading);
             }
 
             var self = this;
@@ -170,7 +173,7 @@ $.extend($.settings = $.settings || {}, {
             }
 
             $.shop && $.shop.trace('$.settings.dispatch: Load URL', [url, path.params]);
-            $content.load(url, function () {
+            this.$container.load(url, function () {
                 self.path.section = path.section || self.path.section;
                 self.menu.find('a[href*="\\#\/' + self.path.section + '\/"]').parents('li').addClass('selected');
                 self.settingsAction(path.section, path.tail);
@@ -215,7 +218,7 @@ $.extend($.settings = $.settings || {}, {
      */
     settingsOptions: function (options) {
         var section = this.path.dispatch.section || this.path.section;
-        $.shop && $.shop.trace('$.settings.settingsOptions', [section,options]);
+        $.shop && $.shop.trace('$.settings.settingsOptions', [section, options]);
         if (typeof(this[section + '_options']) == 'undefined') {
             this[section + '_options'] = {};
         }
@@ -238,7 +241,7 @@ $.extend($.settings = $.settings || {}, {
         if (section) {
             this.call(section + 'Blur', []);
         } else {
-            this.options.loading = $('#s-settings-content').html() || this.options.loading;
+            this.options.loading = this.$container.html() || this.options.loading;
         }
     },
 
@@ -286,16 +289,23 @@ $.extend($.settings = $.settings || {}, {
      * @param {Array=} args
      */
     call: function (name, args) {
-        var callable = (typeof(this[name]) == 'function');
-        var start = $.shop && $.shop.trace('$.settings.call', [name, args, callable]);
+
+        var method = name;
+        var matches = method.match(/^(\w+)&plugin=([a-z0-9_]+)(Action|Blur|)$/);
+        if (matches) {
+            method = 'plugin_' + matches[2] + matches[1].substr(0, 1).toUpperCase() + matches[1].substr(1) + matches[3];
+        }
+        var callable = (typeof(this[method]) == 'function');
+
+        var start = $.shop && $.shop.trace('$.settings.call', [method, name, args, callable,this]);
         var result = null;
         if (callable) {
             try {
-                result = this[name].apply(this, args);
+                result = this[method].apply(this, args);
             } catch (e) {
                 (($.shop && $.shop.error) || console.log)('Exception: ' + e.message, e);
             }
-            $.shop && $.shop.trace('$.settings.call complete', [name, $.shop.time.interval(start) + 's', args, result]);
+            $.shop && $.shop.trace('$.settings.call complete', [method, $.shop.time.interval(start) + 's', args, result]);
         }
         return result;
     },
@@ -319,7 +329,7 @@ $.extend($.settings = $.settings || {}, {
 
         // Load content
         var self = this;
-        $('#s-settings-content').load('?module=settings&action=taxes&id=' + id, function () {
+        this.$container.load('?module=settings&action=taxes&id=' + id, function () {
             self.settingsAction(self.path.section, tail);
         });
         return true;
@@ -337,14 +347,14 @@ $.extend($.settings = $.settings || {}, {
 
         // Load content
         var self = this;
-        $('#s-settings-content').load('?module=settings&action=followups&id=' + id, function () {
+        this.$container.load('?module=settings&action=followups&id=' + id, function () {
             self.settingsAction(self.path.section, tail);
         });
         return true;
     },
 
-    couriersPreLoad: function(id) {
-        $('#s-settings-content').load('?module=settings&action=couriers&id='+(id||''));
+    couriersPreLoad: function (id) {
+        this.$container.load('?module=settings&action=couriers&id=' + (id || ''));
         return true;
     },
 

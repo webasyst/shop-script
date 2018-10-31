@@ -106,6 +106,8 @@ class shopRounding
             }
             if (!isset($p['unconverted_currency'])) {
                 $p['unconverted_currency'] = $p['currency'];
+
+                //If there is no rounding value, we pass in the template design not rounded data
                 if (!empty($curs[$frontend_currency]['rounding'])) {
                     $p['currency'] = $frontend_currency;
                 }
@@ -122,7 +124,11 @@ class shopRounding
                                 $p[$k] = shop_currency($p['frontend_'.$k], $frontend_currency, $default_currency, null);
                             }
                         } else {
-                            $p['frontend_'.$k]= $p[$k] = shop_currency($p[$k], $frontend_currency, $frontend_currency, false);
+                            if ($k == 'price') {
+                                $p['frontend_'.$k]= $p[$k];
+                            } else {
+                                $p['frontend_'.$k]= $p[$k] = shop_currency($p[$k], $frontend_currency, $frontend_currency, false);
+                            }
                         }
                     }
                 }

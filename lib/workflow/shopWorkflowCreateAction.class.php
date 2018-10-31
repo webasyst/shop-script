@@ -218,7 +218,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                     $shipping_currency = $shipping_plugin->allowedCurrency();
                     $data['params']['shipping_currency'] = $shipping_currency;
                     if ($row = $rate_model->getById($shipping_currency)) {
-                        $data['params']['shipping_currency_rate'] = $row['rate'];
+                        $data['params']['shipping_currency_rate'] = str_replace(',', '.',$row['rate'] );
                     }
                 }
 

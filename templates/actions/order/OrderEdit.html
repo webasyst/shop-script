@@ -9,11 +9,11 @@
         <h2><a href="#" class="back">&larr; [`Back`]</a> <span>[`Customer`]</span></h2>
         <em class="errormsg s-customer-errors" style="font-size: 1.1em;"></em>
         {if empty($order.id) && !$new_order_for_client && $has_contacts_rights}
-            <input id="customer-autocomplete" type="search" class="search large long" placeholder="[`Type name, email or phone number`]">
+            <input id="customer-autocomplete" type="search" class="s-order-email-field search large long" placeholder="[`Type name, email or phone number`]">
         {/if}
     </div>
     <div class="block">
-        <div class="fields form width100px" id="s-order-edit-customer">
+        <div class="fields form width200px" id="s-order-edit-customer">
             <div class="field-group">
                 {if $form}
                     {$form->html()}
@@ -424,6 +424,17 @@
                     </td>
                 </tr>
 
+                <!-- tax -->
+                <tr class="white medium">
+                    <td class="min-width"></td>
+                    <td class="align-right medium" colspan="2">[`Tax`]</td>
+                    <td class="align-right medium nowrap">
+                        <span id="tax">{$order.tax|default:''}</span>
+                        <span class="currency">{$currency}</span>
+                    </td>
+                    <td></td>
+                </tr>
+
                 <!-- total -->
                 <tr class="white large">
                     <td class="min-width"></td>
@@ -445,12 +456,7 @@
                     </tr>
                 {/if}
                 <tr class="white large">
-                    <td colspan="3" class="align-right">
-                        {if !empty($taxes_count)}
-                        <em class="hint">[`Tax will be calculated after the order is saved.`]</em>
-                        {/if}
-                    </td>
-                    <td class="save align-right" colspan="2">
+                    <td class="save align-right" colspan="5">
                         <i class="icon16 loading"></i>
                         <input type="submit" class="button green large" value="[`Save order`]">
 

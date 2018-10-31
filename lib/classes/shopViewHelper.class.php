@@ -25,7 +25,8 @@ class shopViewHelper extends waAppViewHelper
      * @param string $hash selector hash
      * @param int $offset optional parameter
      * @param int $limit optional parameter
-     * @param array $options optional parameter product collection
+     * @param array $options optional parameter product collection. Here you can add sorting. $options['order_by'][field=> order]
+     * or many variants $options['order_by'][0][field=> order] etc
      *
      * If $limit is omitted but $offset is not than $offset is interpreted as 'limit' and method returns first 'limit' items
      * If $limit and $offset are omitted that method returns first 500 items
@@ -42,7 +43,40 @@ class shopViewHelper extends waAppViewHelper
             $options = $limit;
             $limit = null;
         }
+
+        $order_by = null;
+
+        if (!empty($options['order_by'])) {
+            $order_by = $options['order_by'];
+            unset($options['order_by']);
+        }
+
         $collection = new shopProductsCollection($hash, $options);
+
+        /**
+         * Output products in the smarty template. After the collection is initialized.
+         *
+         * @param object $collection shopProductsCollection
+         *
+         * @event view_products.before
+         */
+        $is_from_template = waConfig::get('is_template');
+        waConfig::set('is_template', null);
+        wa('shop')->event('view_products.before', $collection);
+        waConfig::set('is_template', $is_from_template);
+
+        if ($order_by && is_array($order_by)) {
+            if (isset($order_by[0])) {
+                foreach ($order_by as $order) {
+                    reset($order);
+                    $collection->orderBy(key($order), current($order));
+                }
+            } else {
+                reset($order_by);
+                $collection->orderBy(key($order_by), current($order_by));
+            }
+        }
+
         if (!$limit && $offset) {
             $limit = $offset;
             $offset = 0;
@@ -51,7 +85,23 @@ class shopViewHelper extends waAppViewHelper
             $offset = 0;
             $limit = 500;
         }
-        return $collection->getProducts(ifset($options, 'fields', '*'), $offset, $limit, true);
+
+        $products = $collection->getProducts(ifset($options, 'fields', '*'), $offset, $limit, true);
+
+        /**
+         * Output products in the smarty template. Result from the product collection
+         *
+         * @param array $products
+         *
+         * @event view_products.after
+         */
+        $is_from_template = waConfig::get('is_template');
+        waConfig::set('is_template', null);
+        wa('shop')->event('view_products.after', $products);
+        waConfig::set('is_template', $is_from_template);
+
+        return $products;
+
     }
 
     public function productsCount($hash = '')
@@ -308,13 +358,26 @@ SQL;
                 $result[$f['code']] = $f;
             }
         }
+
+        /**
+         * Output features in the smarty template.
+         *
+         * @param array $result features array
+         *
+         * @event view_features
+         */
+        $is_from_template = waConfig::get('is_template');
+        waConfig::set('is_template', null);
+        wa('shop')->event('view_features', $result);
+        waConfig::set('is_template', $is_from_template);
+
         return $result;
     }
 
     public function reviews($limit = 10)
     {
         $product_reviews_model = new shopProductReviewsModel();
-        return $product_reviews_model->getList('*,product,contact', array(
+        $reviews = $product_reviews_model->getList('*,product,contact', array(
             'where'  => array(
                 'review_id' => 0,
                 'status'    => shopProductReviewsModel::STATUS_PUBLISHED
@@ -322,6 +385,21 @@ SQL;
             'limit'  => $limit,
             'escape' => true
         ));
+
+
+        /**
+         * Output reviews in the smarty template.
+         *
+         * @param array $reviews
+         *
+         * @event view_reviews
+         */
+        $is_from_template = waConfig::get('is_template');
+        waConfig::set('is_template', null);
+        wa('shop')->event('view_reviews', $reviews);
+        waConfig::set('is_template', $is_from_template);
+
+        return $reviews;
     }
 
     public function customer()
@@ -434,7 +512,7 @@ SQL;
             'product_id'  => $product['id'],
             'filename'    => isset($product['image_filename']) ? $product['image_filename'] : null,
             'ext'         => $product['ext'],
-            'description' => !empty($product['image_description']) ? $product['image_description'] :(isset($product['name'])?$product['name']:null),
+            'description' => !empty($product['image_description']) ? $product['image_description'] : (isset($product['name']) ? $product['name'] : null),
         ), $size, $attributes);
     }
 
@@ -488,13 +566,74 @@ SQL;
         ), $size);
     }
 
+    /**
+     * @param array|string $image
+     * @param string $size
+     * @param bool $absolute
+     * @return string
+     */
     public function imgUrl($image, $size, $absolute = false)
     {
-        if (!$image || empty($image['id'])) {
-            return '';
+        $url = '';
+
+        if (is_string($image)) {
+            if (parse_url($image, PHP_URL_SCHEME)) {
+                //If is url set back
+                $url = $image;
+            } else {
+                $data_path = realpath(waConfig::get('wa_path_data').DIRECTORY_SEPARATOR.'public');
+                $root_path = wa()->getConfig()->getRootPath();
+
+                //Replace url separator to directory separator
+                $path = str_replace('/', DIRECTORY_SEPARATOR, $image);
+
+                //Check if this path start
+                if (substr($image, 0, 1) === DIRECTORY_SEPARATOR) {
+
+                    //If it doesn't start with root_path before adding it
+                    if (strpos($image, $root_path) !== 0) {
+                        $path = $root_path.$image;
+                    }
+                } else {
+                    //If relative reference, then do absolute
+                    $path = $root_path.DIRECTORY_SEPARATOR.$image;
+                }
+
+                $path = realpath($path);
+
+                //Check if the file is in the public folder
+                if (strpos($path, $data_path) === 0 && file_exists($path)) {
+                    $file_info = pathinfo($path);
+                    $thumb_path = $file_info['dirname'].'/'.$file_info['filename'].'.'.$size.'.'.$file_info['extension'];
+
+                    if (!file_exists($thumb_path)) {
+                        try {
+                            $thumb = shopImage::generateThumb($path, $size);
+                            $thumb->save($thumb_path);
+                        } catch (waException $e) {
+                            return '';
+                        }
+                    }
+
+                    $path = $thumb_path;
+                }
+
+                if (!$absolute) {
+                    $path = str_replace($root_path.DIRECTORY_SEPARATOR, '', $path);
+                    $path = wa()->getRootUrl().$path;
+                    if ($this->cdn) {
+                        $path = $this->cdn.$path;
+                    }
+                    $url = str_replace(DIRECTORY_SEPARATOR, '/', $path);
+                }
+            }
+        } elseif ($image && !empty($image['id'])) {
+            $url = $this->cdn.shopImage::getUrl($image, $size, $absolute && !$this->cdn);
         }
-        return $this->cdn.shopImage::getUrl($image, $size, $absolute && !$this->cdn);
+
+        return $url;
     }
+
 
     public function product($id)
     {
@@ -670,6 +809,26 @@ SQL;
                 $cats[$row['category_id']]['params'][$row['name']] = $row['value'];
             }
         }
+
+        $event_params = [
+            'categories' => &$cats,
+            'tree'       => $tree,
+        ];
+
+
+        /**
+         * Output categories in the smarty template. If the tree, then before formatting
+         *
+         * @param array $categories
+         * @param bool $tree
+         *
+         * @event view_categories
+         */
+        $is_from_template = waConfig::get('is_template');
+        waConfig::set('is_template', null);
+        wa('shop')->event('view_categories', $event_params);
+        waConfig::set('is_template', $is_from_template);
+
         if ($tree) {
             $stack = array();
             $result = array();
@@ -717,6 +876,18 @@ SQL;
         if (!empty($cache)) {
             $cache->set('tags', $tags, 7200);
         }
+
+        /**
+         * Output tags in the smarty template
+         *
+         * @param array $tags
+         * @event view_tags
+         */
+        $is_from_template = waConfig::get('is_template');
+        waConfig::set('is_template', null);
+        wa('shop')->event('view_tags', $tags);
+        waConfig::set('is_template', $is_from_template);
+
         return $tags;
     }
 
@@ -731,7 +902,12 @@ SQL;
         return shopHelper::encodeOrderId($id);
     }
 
-    public function icon16($url_or_class)
+    /**
+     * @param $url_or_class
+     * @param bool $is_url if need use relative URL or any other strange path
+     * @return string
+     */
+    public function icon16($url_or_class, $is_url = false)
     {
         // Hack to hide icon that is common for all customers
         $app_icon = '/wa-apps/shop/img/shop16.png';
@@ -741,7 +917,8 @@ SQL;
 
         $url_or_class = htmlspecialchars($url_or_class, ENT_QUOTES, 'utf-8');
 
-        if (substr($url_or_class, 0, 7) == 'http://') {
+        if ($is_url || substr($url_or_class, 0, 7) == 'http://' || substr($url_or_class, 0, 8) == 'https://'
+            || substr($url_or_class, 0, 2) == '//') {
             return '<i class="icon16" style="background-image:url('.$url_or_class.')"></i>';
         } else {
             return '<i class="icon16 '.$url_or_class.'"></i>';
@@ -837,7 +1014,7 @@ SQL;
             $domain = wa()->getRouting()->getDomain();
             if ($domain) {
                 $routing_url = wa()->getRouting()->getRootUrl();
-                $storefront = $domain . ($routing_url ? '/'.$routing_url : '');
+                $storefront = $domain.($routing_url ? '/'.$routing_url : '');
             }
             $promos = $promo_model->getByStorefront($storefront, $type_or_ids, true);
         }
@@ -847,7 +1024,27 @@ SQL;
         }
         unset($p);
 
+
+        /**
+         * Output promo in the smarty template
+         *
+         * @param array $promos
+         * @event view_promos
+         */
+        $is_from_template = waConfig::get('is_template');
+        waConfig::set('is_template', null);
+        wa('shop')->event('view_promos', $promos);
+        waConfig::set('is_template', $is_from_template);
+
         return $promos;
+    }
+
+    /**
+     * @return shopCheckoutViewHelper
+     */
+    public function checkout()
+    {
+        return new shopCheckoutViewHelper();
     }
 
     /**

@@ -74,6 +74,24 @@ class shopFrontendCompareAction extends waViewAction
             }
         }
 
+
+        /**
+         * Add html to compare
+         *
+         * @param array $products
+         * @param array $features
+         *
+         * @event frontend_compare
+         */
+
+        $params = array(
+            'features' => $features,
+            'products' => $products,
+        );
+
+        $frontend_compare = wa()->event('frontend_compare', $params);
+        $this->view->assign('frontend_compare', $frontend_compare);
+
         $this->view->assign('features', $features);
         $this->view->assign('products', $products);
 

@@ -100,7 +100,10 @@ class shopOrderModel extends waModel
                 SELECT $item_fields, id, order_id FROM `shop_order_items`
                 WHERE order_id IN ('".implode("','", array_keys($data))."')
                 ORDER BY order_id";
-            foreach ($this->query($sql) as $item) {
+            $items = $this->query($sql);
+            shopOrderItemsModel::sortItemsByGeneralSettings($items);
+
+            foreach ($items as $item) {
                 if ($order_id != $item['order_id']) {
                     $order_id = $item['order_id'];
                     unset($item['order_id']);

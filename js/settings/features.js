@@ -191,6 +191,7 @@ if (typeof($) != 'undefined') {
         },
 
         featuresInitList: function (type, lazy) {
+
             this.$features_list = $('#s-settings-features');
             var self = this;
             $.shop.trace('$.features.featuresInitList', [type, type === 0]);
@@ -203,6 +204,15 @@ if (typeof($) != 'undefined') {
             } else {
                 type = self.featuresHelper.type();
             }
+
+            // Add a hint about the prohibition of sorting in the list of all characteristics
+            if (type == '') {
+                this.$features_list.find('> tbody:first > tr:visible i.sort').attr('title', $_('Sorting in the common list is disabled. Drag-and-drop features into product types.'));
+                this.$features_list.find('> tbody:first > tr:visible i.sort').css('cursor', 'move');
+            }else{
+                this.$features_list.find('> tbody:first > tr:visible i.sort').removeAttr('title');
+            }
+
             if ((type !== 'empty') && (type !== '') && (type !== 0)) {
                 this.$features_list.sortable({
                     'distance': 5,
@@ -229,6 +239,7 @@ if (typeof($) != 'undefined') {
                     this.$features_list.sortable('destroy');
                     this.features_init.list_sortable = false;
                 }
+
             }
             if ((type === 'empty') || (type === '')) {
 
@@ -501,7 +512,7 @@ if (typeof($) != 'undefined') {
                 var $types = this.$features_types.find('> li.js-type-item:first, > li[data-type=""]:first').last();
 
                 if ($types.length) {
-                    if ($types.data('type')) {
+                    if ($types.attr('data-type')) {
                         hash += $types.data('type') + '/';
                     }
                 } else {
@@ -662,7 +673,7 @@ if (typeof($) != 'undefined') {
             });
             if (counter >= 0) {
                 this.featuresSort(type);
-                this.featuresFilterStop(true, type);
+                this.featuresFilterStop(false, type);
                 this.featuresHelper.featureCountByType(type);
                 $.shop.trace('$.settings.featuresFilter stop', [type, counter, selector]);
             } else {
@@ -812,50 +823,67 @@ if (typeof($) != 'undefined') {
                 onSubmit: function (d) {
                     var form = d.find('form');
                     var source = form.find(':input[name="source"]').val();
-                    $.post(form.attr('action'), form.serialize(), function (response) {
-                        try {
-                            if (response && (response.status == 'ok')) {
-                                $.shop.trace('response', [response, response.data]);
-                                var type = response.data;
-                                $.tmpl('feature-type', type).insertBefore(self.$features_types.find('> li:last'));
-                                var $type = self.$features_types.find('>  li[data-type="' + type.id + '"]');
-                                if (type.features) {
-                                    for (var id in type.features) {
-                                        var $feature_old = self.$features_list.find('> tbody:first > tr[data-feature="' + type.features[id]['id'] + '"]:first');
+                    var is_locked = false;
 
-                                        var $feature = $.tmpl('feature', {
-                                            'types': self.featuresHelper.types(),
-                                            'feature': type.features[id]
-                                        });
-                                        if ($feature_old.length) {
-                                            $feature_old.replaceWith($feature);
-                                        } else {
-                                            self.$features_list.find('> tbody:first').prepend($feature);
+                    if (!is_locked) {
+                        form.find(':submit').attr("disabled", true);
+                        is_locked = true;
+
+                        $.post(form.attr('action'), form.serialize(), function (response) {
+                            try {
+                                if (response && (response.status == 'ok')) {
+                                    $.shop.trace('response', [response, response.data]);
+                                    var type = response.data;
+                                    $.tmpl('feature-type', type).insertBefore(self.$features_types.find('> li:last'));
+                                    var $type = self.$features_types.find('>  li[data-type="' + type.id + '"]');
+                                    if (type.features) {
+                                        for (var id in type.features) {
+                                            var $feature_old = self.$features_list.find('> tbody:first > tr[data-feature="' + type.features[id]['id'] + '"]:first');
+
+                                            var $feature = $.tmpl('feature', {
+                                                'types': self.featuresHelper.types(),
+                                                'feature': type.features[id]
+                                            });
+                                            if ($feature_old.length) {
+                                                $feature_old.replaceWith($feature);
+                                            } else {
+                                                self.$features_list.find('> tbody:first').prepend($feature);
+                                            }
+                                            // self.featuresFeatureChange($feature, type.features[id]);
+                                            if (!self.featuresHelper.type()) {
+                                                $feature.find(' > td > .sort').hide()
+                                            }
                                         }
-                                        // self.featuresFeatureChange($feature, type.features[id]);
-                                        if (!self.featuresHelper.type()) {
-                                            $feature.find(' > td > .sort').hide()
-                                        }
+
+                                        self.featuresHelper.featureCountByType();
                                     }
-                                    self.featuresHelper.featureCountByType();
+
+                                    //Because i did not find where to install new types ¯\_(ツ)_/¯
+                                    $('#s-settings-features').find('tr[data-types~=0]').each(function (i, el) {
+                                        $(el).attr('data-types', $(el).attr('data-types') + ' ' + type.id);
+                                    });
+
+                                    self.featuresInitDroppable($type);
+                                    d.trigger('close');
+                                    window.location.hash = '#/features/' + type.id + '/';
+                                    if (source == 'template') {
+                                        //TODO use features list in response
+                                        //window.location.reload(true);
+                                    }
+                                } else {
+                                    //todo
+                                    // display error;
                                 }
-                                self.featuresInitDroppable($type);
+                            } catch (e) {
+                                $.shop.error(e);
                                 d.trigger('close');
-                                window.location.hash = '#/features/' + type.id + '/';
-                                if (source == 'template') {
-                                    //TODO use features list in response
-                                    //window.location.reload(true);
-                                }
-                            } else {
-                                //todo
-                                // display error;
                             }
-                        } catch (e) {
-                            $.shop.error(e);
-                            d.trigger('close');
-                        }
-                    }, 'json');
-                    return false;
+                        }, 'json').always(function () {
+                            is_locked = false;
+                            form.find(':submit').attr("disabled", false);
+                        });
+                        return false;
+                    }
                 }
             });
         },
@@ -1514,9 +1542,6 @@ if (typeof($) != 'undefined') {
                     // update internal sort data
                     // use code like SQL
                     var new_sort = parseInt(($after.data('sort') || {})[type]) || 0;
-                    if (new_sort) {
-                        ++new_sort;
-                    }
                     var current_sort = ($feature.data('sort') || {});
                     current_sort[type] = current_sort[type] || 0;
                     $.shop.trace('sort ' + id + '->' + after_id, [current_sort[type], new_sort]);

@@ -19,21 +19,21 @@ class shopSettingsOrderStateSaveController extends waJsonController
         }
         $this->save($data);
         $this->response = array(
-            'id' => $data['state']['id'],
+            'id'     => $data['state']['id'],
             'new_id' => !empty($data['state']['new_id']) ? $data['state']['new_id'] : null,
-            'add' => $add
+            'add'    => $add,
         );
     }
 
     public function save($data)
     {
-        $availabe_states = $this->getWorkflow()->getAvailableStates();
+        $available_states = $this->getWorkflow()->getAvailableStates();
 
         $id = $data['state']['id'];
         unset($data['state']['id']);
         $this->config['states'] = ifempty($this->config['states'], array());
 
-        if (!empty($data['state']['new_id']) && isset($availabe_states[$id]) && !$availabe_states[$id]['original']) {
+        if (!empty($data['state']['new_id']) && isset($available_states[$id]) && !$available_states[$id]['original']) {
             unset($this->config['states'][$id]);
             $id = $data['state']['new_id'];
         }
@@ -95,8 +95,7 @@ class shopSettingsOrderStateSaveController extends waJsonController
         $ids = !empty($this->config['new_actions']) ? array_keys($this->config['new_actions']) : array();
 
         if (!empty($data['edited_actions'])) {
-            foreach ($data['edited_actions'] as $action_id => $action)
-            {
+            foreach ($data['edited_actions'] as $action_id => $action) {
                 if (!$action_id) {
                     $this->errors['edited_actions'][$action_id] = _w('Empty action ID');
                 }
@@ -144,8 +143,8 @@ class shopSettingsOrderStateSaveController extends waJsonController
         }
 
         return array(
-            'state' => $state,
-            'new_actions' => $new_actions,
+            'state'          => $state,
+            'new_actions'    => $new_actions,
             'edited_actions' => $edited_actions,
             'action_options' => $this->getActionOptions(),
         );
@@ -157,19 +156,36 @@ class shopSettingsOrderStateSaveController extends waJsonController
         foreach ($this->getPostedActions('new_action') as $action) {
             if ($action['name']) {
                 $action_id = shopWorkflow::generateActionId($action['name']);
-                $action['classname'] = 'shopWorkflowAction';
                 $action['id'] = $action_id;
+                $action['classname'] = $this->getActionClassname($action);
                 $actions[$action_id] = $action;
             }
         }
         return $actions;
     }
 
+    protected function getActionClassname(&$action)
+    {
+        $classname = null;
+        if (!empty($action['extends'])) {
+            $extends = shopWorkflow::getExtendsActions();
+            if (isset($extends[$action['extends']])) {
+                $extend_action = $this->getWorkflow()->getActionById($action['extends']);
+                $classname = get_class($extend_action);
+            }
+        }
+        if (empty($classname)) {
+            $classname = 'shopWorkflowAction';
+            $action['extends'] = '';
+        }
+        return $classname;
+    }
+
     public function getActionOptions()
     {
         $result = array();
         $available_actions = $this->getWorkflow()->getAvailableActions();
-        foreach(waRequest::post('action_options', array(), 'array') as $action_id => $settings) {
+        foreach (waRequest::post('action_options', array(), 'array') as $action_id => $settings) {
             if (is_array($settings) && !empty($available_actions[$action_id])) {
                 $result[$action_id] = $settings;
             }
@@ -185,11 +201,14 @@ class shopSettingsOrderStateSaveController extends waJsonController
             if ($action['original']) {
                 unset($available_actions[$action_id]);
             }
+
             unset($available_actions[$action_id]['original']);
         }
         $edited_actions = array();
         foreach ($actions as $action_id => $action) {
             if (isset($available_actions[$action_id])) {
+                $action['classname'] = $this->getActionClassname($action);
+
                 foreach ($action as $key => $value) {
                     if ($key === 'options') {
                         if (!isset($available_actions[$action_id]['options'])) {
@@ -198,10 +217,11 @@ class shopSettingsOrderStateSaveController extends waJsonController
                         foreach ($value as $k => $v) {
                             $available_actions[$action_id]['options'][$k] = $v;
                         }
-                    } else if (!is_array($value) && isset($action[$key]) && $key !== 'checked') {
+                    } elseif (!is_array($value) && isset($action[$key]) && $key !== 'checked') {
                         $available_actions[$action_id][$key] = $value;
                     }
                 }
+
                 $edited_actions[$action_id] = $available_actions[$action_id];
             }
         }
@@ -212,13 +232,15 @@ class shopSettingsOrderStateSaveController extends waJsonController
     {
         $available_states = $this->getWorkflow()->getAvailableStates();
         $actions = array();
-        $names = waRequest::post($prefix . '_name', array());
-        $states = waRequest::post($prefix . '_state', array());
+        $names = waRequest::post($prefix.'_name', array());
+        $descriptions = waRequest::post($prefix.'_description', array());
+        $states = waRequest::post($prefix.'_state', array());
         $checked = waRequest::post($prefix, array());
-        $links = waRequest::post($prefix . '_link', array());
-        $border_colors = waRequest::post($prefix . '_border_color', array());
-        $icons = waRequest::post($prefix . '_icon', array());
-        foreach (waRequest::post($prefix . '_id', array()) as $k => $action_id) {
+        $links = waRequest::post($prefix.'_link', array());
+        $border_colors = waRequest::post($prefix.'_border_color', array());
+        $icons = waRequest::post($prefix.'_icon', array());
+        $extends = waRequest::post($prefix.'_extends', array());
+        foreach (waRequest::post($prefix.'_id', array()) as $k => $action_id) {
             if ($prefix === 'edit_action') {
                 $action_id = strtolower(trim($action_id));
             } else {
@@ -226,8 +248,8 @@ class shopSettingsOrderStateSaveController extends waJsonController
             }
             $name = trim($names[$k]);
             $actions[$action_id] = array(
-                'name' => $name,
-                'options' => array()
+                'name'    => $name,
+                'options' => array(),
             );
             if (isset($states[$k])) {
                 $state = trim($states[$k]);
@@ -242,14 +264,21 @@ class shopSettingsOrderStateSaveController extends waJsonController
             if (!empty($checked[$k])) {
                 $actions[$action_id]['checked'] = true;
             }
+            $actions[$action_id]['extends'] = ifset($extends, $k, null);
+
+            $options = &$actions[$action_id]['options'];
             if (!empty($links[$k])) {
-                $actions[$action_id]['options']['position'] = 'top';
-                $actions[$action_id]['options']['icon'] = ifset($icons[$k], '');
-            } else if (!empty($border_colors[$k])) {
-                $actions[$action_id]['options']['position'] = '';
-                $actions[$action_id]['options']['button_class'] = '';
-                $actions[$action_id]['options']['border_color'] = trim(trim($border_colors[$k], '#'));
+                $options['position'] = 'top';
+                $options['icon'] = ifset($icons[$k], '');
+            } elseif (!empty($border_colors[$k])) {
+                $options['position'] = '';
+                $options['button_class'] = '';
+                $options['border_color'] = trim(trim($border_colors[$k], '#'));
             }
+            if (isset($descriptions[$action_id])) {
+                $options['description'] = trim($descriptions[$action_id]);
+            }
+            unset($options);
         }
         return $actions;
     }
@@ -258,13 +287,14 @@ class shopSettingsOrderStateSaveController extends waJsonController
     {
         $name = waRequest::post('name', '', waRequest::TYPE_STRING_TRIM);
         $info = array(
-            'id' => waRequest::get('id', '', waRequest::TYPE_STRING_TRIM),
-            'name' => $name,
-            'options' => array(
+            'id'                => waRequest::get('id', '', waRequest::TYPE_STRING_TRIM),
+            'name'              => $name,
+            'options'           => array(
                 'style' => $this->getStyle(),
-                'icon'  => $this->getIcon()
+                'icon'  => $this->getIcon(),
             ),
-            'available_actions' => $this->getActions()
+            'payment_allowed'   => !!waRequest::post('payment_allowed'),
+            'available_actions' => $this->getActions(),
         );
         if (waRequest::post('new_id', '', waRequest::TYPE_STRING_TRIM)) {
             $info['new_id'] = waRequest::post('new_id', '', waRequest::TYPE_STRING_TRIM);

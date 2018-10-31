@@ -56,7 +56,7 @@ $.extend($.settings = $.settings || {}, {
             $.post("?module=settings&action=recommendationsSave&setting=upselling", $(this).serialize(), function (response) {
                 if (response.status == 'ok') {
                     elem.children('.field-settings').html('<p class="small">' + response.data.html +
-                        ' <a href="#" class="customize inline-link"><b><i>' + $_('Customize') + '</i></b></a>' + '</p>');
+                        ' <a href="javascript:void(0)" class="customize inline-link"><b><i>' + $_('Customize') + '</i></b></a>' + '</p>');
                     self.recommendations_options.data[response.data.type_id] = response.data.data;
                 }
             }, "json");
@@ -67,7 +67,7 @@ $.extend($.settings = $.settings || {}, {
         for (var i = 0; i < data.length; i++) {
             this.recommendationsRenderEditFeature(data[i], table, type_id);
         }
-        table.append('<tr class="white"><td colspan="4"><input type="submit" value="' + $_("Save") + '"></td></tr>');
+        table.append('<tr class="white"><td colspan="4"><input type="submit" class="button green" value="' + $_("Save") + '"></td></tr>');
     },
 
     recommendationsRenderEditFeature: function (data, table, type_id) {

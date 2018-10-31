@@ -35,12 +35,14 @@ class shopSettingsOrderStatesAction extends waViewAction
         //Assign temporary data
         $this->view->assign(array(
             'edit_actions_map' => $this->getEditActionsMap(),
-            'states'  => $states,
-            'actions' => $actions,
-            'info'    => $info,
-            'icons'   => (array) $this->getConfig()->getOption('order_state_icons'),
-            'action_icons' => (array) $this->getConfig()->getOption('order_action_icons'),
-            'buttons' => $buttons
+            'states'           => $states,
+            'actions'          => $actions,
+            'extend_actions'   => shopWorkflow::getExtendsActions(),
+            'info'             => $info,
+            'icons'            => (array)$this->getConfig()->getOption('order_state_icons'),
+            'action_icons'     => (array)$this->getConfig()->getOption('order_action_icons'),
+            'buttons'          => $buttons,
+
         ));
 
         //Restore workflow config from $this->config.
@@ -75,28 +77,31 @@ class shopSettingsOrderStatesAction extends waViewAction
         }
         $info = array();
         $workflow = new shopWorkflow();
+        /** @var shopWorkflowState $state */
         $state = $workflow->getStateById($id);
         $info['id'] = $state->id;
         $info['name'] = $state->getName();
         $info['options'] = $state->getOptions();
         $info['actions'] = array_keys($state->getActions(null, $state->id));
         $info['original'] = $state->original;
+        $info['payment_allowed'] = $state->paymentAllowed();
         return $info;
     }
 
     public function getDummyStateInfo()
     {
         return array(
-            'id' => 'new_state',
-            'name'  => _w('New State'),
-            'options' => array(
-                'icon' => 'icon16 ss new',
+            'id'              => 'new_state',
+            'name'            => _w('New State'),
+            'options'         => array(
+                'icon'  => 'icon16 ss new',
                 'style' => array(
-                    'color' => '#CCC'
+                    'color' => '#CCC',
                 ),
             ),
-            'original' => false,
-            'actions' => array()
+            'original'        => false,
+            'payment_allowed' => true,
+            'actions'         => array(),
         );
     }
 
@@ -120,11 +125,12 @@ class shopSettingsOrderStatesAction extends waViewAction
         $all_buttons = array('other' => array(), 'top' => array(), 'bottom' => array());
         foreach ($actions as $id => $a) {
             if (in_array($id, $info['actions'])) {
+                /** @var shopWorkflowAction $action */
                 $action = $workflow->getActionById($id);
                 if ($action) {
                     if ($action->getOption('top') || $action->getOption('position') == 'top') {
                         $all_buttons['top'][] = $action->getButton();
-                    } else if ($action->getOption('position') == 'bottom') {
+                    } elseif ($action->getOption('position') == 'bottom') {
                         $all_buttons['bottom'][] = $action->getButton();
                     } else {
                         $all_buttons['other'][] = $action->getButton();
@@ -150,5 +156,4 @@ class shopSettingsOrderStatesAction extends waViewAction
         }
         return $actions;
     }
-
 }

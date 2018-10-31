@@ -240,10 +240,13 @@
 </script>
 
 {* js templates block*}
-{foreach $smarty.capture as $template => $template_content}
-{if $template_content && (strpos($template, 'template-')===0)}
-    <script id="{$template}" type="text/html">
-        {$template_content|replace:'</':'<\/'}
-    </script>
+{if !empty($smarty.capture)}
+    {foreach $smarty.capture as $template => $template_content}
+        {if $template_content && (strpos($template, 'template-')===0)}
+            <script id="{$template}" type="text/html">
+                {$template_content|replace:'</':'<\/'}
+            </script>
+        {/if}
+    {/foreach}
 {/if}
-{/foreach}
+

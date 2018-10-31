@@ -246,17 +246,14 @@ $.extend($.settings = $.settings || {}, {
                     validateBoundary(other, other.attr('data-name'));
                 }
 
-                if (form.find('.error:first').length) {
-                    form.find('input[type=submit]').attr('disabled', true);
-                } else {
-                    form.find('input[type=submit]').attr('disabled', false);
-                }
             }, 450));
         });
 
         // Submit form via XHR
         form.submit(function () {
-            var form = $(this);
+            var form = $(this),
+                is_locked = false;
+
 
             // Add hidden inputs specifying position of stocks
             var ids_order = content.find('tr').map(function () {
@@ -284,21 +281,28 @@ $.extend($.settings = $.settings || {}, {
             });
 
             if (!form.find('.error:first').length) {
-                form.find(':submit').parent().append('<i class="icon16 loading"></i>');
-                $.post(form.attr('action'), form.serialize(), function (r) {
-                    if (r.status == 'ok') {
-                        $.storage.set('shop/settings/stock/just-saved', true);
-                        $.settings.dispatch('#/stock', true);
-                    } else {
-                        if (console) {
-                            console.error(r && r.errors ? r.errors : r);
+                if (!is_locked) {
+                    form.find(':submit').attr("disabled", true);
+                    is_locked = true;
+                    form.find(':submit').parent().append('<i class="icon16 loading"></i>');
+                    $.post(form.attr('action'), form.serialize(), function (r) {
+                        if (r.status == 'ok') {
+                            $.storage.set('shop/settings/stock/just-saved', true);
+                            $.settings.dispatch('#/stock', true);
+                        } else {
+                            if (console) {
+                                console.error(r && r.errors ? r.errors : r);
+                            }
                         }
-                    }
-                }, 'json').error(function (r) {
-                    if (console) {
-                        console.error(r && r.responseText ? r.responseText : r);
-                    }
-                });
+                    }, 'json').error(function (r) {
+                        if (console) {
+                            console.error(r && r.responseText ? r.responseText : r);
+                        }
+                    }).always(function () {
+                        is_locked = false;
+                        form.find(':submit').attr("disabled", false);
+                    });
+                }
             }
 
             return false;

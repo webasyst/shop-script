@@ -17,8 +17,17 @@ class shopFeatureGetInfoMethod extends shopApiMethod
             throw new waAPIException('invalid_param', 'Feature not found', 404);
         }
 
+
         if ($feature['selectable']) {
-            $feature['values'] = array_values($feature_model->getFeatureValues($feature));
+            $features = array_values($feature_model->getFeatureValues($feature));
+
+            foreach ($features as $f) {
+                if ($f instanceof shopColorValue) {
+                    $feature['values'][] = $f->getRaw();
+                } else {
+                    $feature['values'][] = $f;
+                }
+            }
             $feature['values']['_element'] = 'value';
         }
 

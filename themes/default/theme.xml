@@ -10,6 +10,8 @@
         </file>
         <file path="css/home.slider.css">
         </file>
+        <file path="css/order.css">
+        </file>
         <file path="default.shop.css">
         </file>
         <file path="default.shop.js">
@@ -155,6 +157,18 @@
             <description locale="ru_RU">JavaScript-код отзывов</description>
         </file>
     </files>
+    <about locale="en_US">
+        <![CDATA[
+<p><b>Default</b> is a universal adaptive design theme family for basic Webasyst apps: Site, Blog, Photos, Shop-Script, and others. The parent (main) theme of the family, which includes the basic set of CSS rules and the common layout template index.html, is the Default theme for Site app. All Default design themes used by other apps; e.g., Blog, Shop-Script, or Photos, utilize common CSS and index.html layout files provided by the main theme.</p>
+<p>Default design themes automatically enable appropriate CSS for a particular visitor's device. Supported devices and platforms are iOS and Android based smartphones, tablet computers such as iPad, common desktop computers, and laptops.</p>
+]]>
+    </about>
+    <about locale="ru_RU">
+        <![CDATA[
+<p>«<b>Дефолт</b>» — это универсальное семейство адаптивных тем дизайна для базовых приложений фреймворка Вебасист: «Сайт», «Блог», «Фото», Shop-Script и других. Родительской (основной) темой семейства, включающей в себя базовый набор CSS-стилей и общий макет дизайна index.html, является тема «Дефолт» для приложения «Сайт». Все темы дизайна «Дефолт» для других приложений («Блог», «Фото», Shop-Script и других) используют базовый CSS-код и файл index.html из родительской (основной) темы.</p>
+<p>Темы дизайна семейства «Дефолт» оптимизированы для всех современных браузеров, планшетных компьютеров и мобильных устройств на основе iOS и Android. CSS-стили подключаются в зависимости от разрешения и типа устройства, которым пользуется посетитель сайта.</p>
+]]>
+    </about>
     <settings>
 
         <setting var="divider_storefront" control_type="group_divider">
@@ -237,10 +251,10 @@
         </setting>
 
         <setting var="homepage_welcome_note" control_type="text">
-            <name locale="en_US">Welcome note (HTML)</name>
-            <name locale="ru_RU">Приветствие (HTML)</name>
             <value locale="ru_RU"><![CDATA[<b>Добро пожаловать!</b> Наш интернет-магазин предоставляет широкий ассортимент современной продукции и обеспечивает быструю недорогую доставку по всей территории России. Клиентская база постоянно растет и насчитывает уже более 5000 счастливых клиентов. Присоединяйтесь!]]></value>
             <value locale="en_US"><![CDATA[<b>Welcome!</b> We are proud to offer a wide variety of items for sale and to provide best-in-class online shopping experience. Our customer base has been continuously growing and currently counts over 5000 happy customers. Come join us!]]></value>
+            <name locale="en_US">Welcome note (HTML)</name>
+            <name locale="ru_RU">Приветствие (HTML)</name>
         </setting>
         <setting var="homepage_blogposts" control_type="checkbox">
             <value>1</value>
@@ -418,22 +432,14 @@
         <thumb>750</thumb>
         <thumb>970</thumb>
     </thumbs>
-    <about locale="en_US">
-<![CDATA[
-<p><b>Default</b> is a universal adaptive design theme family for basic Webasyst apps: Site, Blog, Photos, Shop-Script, and others. The parent (main) theme of the family, which includes the basic set of CSS rules and the common layout template index.html, is the Default theme for Site app. All Default design themes used by other apps; e.g., Blog, Shop-Script, or Photos, utilize common CSS and index.html layout files provided by the main theme.</p>
-<p>Default design themes automatically enable appropriate CSS for a particular visitor's device. Supported devices and platforms are iOS and Android based smartphones, tablet computers such as iPad, common desktop computers, and laptops.</p>
-]]>
-    </about>
-    <about locale="ru_RU">
-<![CDATA[
-<p>«<b>Дефолт</b>» — это универсальное семейство адаптивных тем дизайна для базовых приложений фреймворка Вебасист: «Сайт», «Блог», «Фото», Shop-Script и других. Родительской (основной) темой семейства, включающей в себя базовый набор CSS-стилей и общий макет дизайна index.html, является тема «Дефолт» для приложения «Сайт». Все темы дизайна «Дефолт» для других приложений («Блог», «Фото», Shop-Script и других) используют базовый CSS-код и файл index.html из родительской (основной) темы.</p>
-<p>Темы дизайна семейства «Дефолт» оптимизированы для всех современных браузеров, планшетных компьютеров и мобильных устройств на основе iOS и Android. CSS-стили подключаются в зависимости от разрешения и типа устройства, которым пользуется посетитель сайта.</p>
-]]>
-    </about>
     <locales>
         <locale>
             <msgid>E.g. %s</msgid>
             <msgstr locale="ru_RU">Например, %s</msgstr>
+        </locale>
+        <locale>
+            <msgid>Go to home page</msgid>
+            <msgstr locale="ru_RU">Перейти на главную страницу</msgstr>
         </locale>
     </locales>
 </theme>

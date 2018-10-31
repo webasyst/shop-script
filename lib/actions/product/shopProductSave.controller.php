@@ -22,6 +22,10 @@ class shopProductSaveController extends waJsonController
         }
 
         $data = waRequest::post('product');
+        if ($this->validate($data)) {
+            return;
+        };
+
         $id = (empty($data['id']) || !intval($data['id'])) ? null : $data['id'];
         if (!$id && isset($data['id'])) {
             unset($data['id']);
@@ -177,7 +181,7 @@ class shopProductSaveController extends waJsonController
 //                }
 
                 $forecast = $product->getNextForecast();
-                if ($forecast['date'] !== null && $forecast['days'] < shopProduct::MAX_FORECAST_DAYS ) {
+                if ($forecast['date'] !== null && $forecast['days'] < shopProduct::MAX_FORECAST_DAYS) {
                     $this->response['raw']['runout_str'] = sprintf(
                         _w('Based on your average monthly sales volume for %s during last three months (%d units per month), you will run out of this product in <strong>%d days</strong> (on %s).'),
                         htmlspecialchars($product->name), $forecast['sold_rounded'], $forecast['days'], wa_date("humandate", $forecast['date'])
@@ -235,8 +239,8 @@ class shopProductSaveController extends waJsonController
             $sku['price_loc'] = (string)((float)$sku['price']);
             $sku['price_str'] = wa_currency($sku['price'], $currency);
             $sku['price_html'] = wa_currency_html($sku['price'], $currency);
-            $sku['compare_price_loc'] = (string) ((float)$sku['compare_price']);
-            $sku['purchase_price_loc'] = (string) ((float)$sku['purchase_price']);
+            $sku['compare_price_loc'] = (string)((float)$sku['compare_price']);
+            $sku['purchase_price_loc'] = (string)((float)$sku['purchase_price']);
             $sku['stock_icon'] = array();
             $sku['stock_icon'][0] = shopHelper::getStockCountIcon(ifset($sku['count']));
             if (!empty($sku['stock'])) {
@@ -328,4 +332,15 @@ class shopProductSaveController extends waJsonController
         );
     }
 
+
+    protected function validate($data)
+    {
+        $sku_type = ifset($data, 'sku_type', 0);
+
+        if ($sku_type === 1 && empty($data['skus'])) {
+            $this->errors[] = _wp('Select parameters to be available to customers for ordering this product in the storefront.');
+        }
+
+        return $this->errors;
+    }
 }

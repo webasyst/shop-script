@@ -6,6 +6,6 @@ class shopSettingsGeneralGetGravatarController extends waJsonController
     {
         $email = waRequest::get('email');
         $default = waRequest::get('default');
-        $this->response = shopHelper::getGravatar($email, 50, $default).'&f=y';
+        $this->response = shopHelper::getGravatar($email, 50, $default);
     }
 }

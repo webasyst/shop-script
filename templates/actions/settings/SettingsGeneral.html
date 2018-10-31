@@ -10,37 +10,10 @@
                     </div>
                 </div>
                 <div class="field">
-                    <div class="name">[`Phone number and work hours`]</div>
+                    <div class="name">[`Phone number`]</div>
                     <div class="value">
                         <input type="text" name="phone" value="{$phone|escape}" placeholder="[`+1 212-555-1312`]"><br />
                         <span class="hint">[`Phone number is published in the storefront and included in email notification`]</span>
-                    </div>
-                    <div class="value no-shift">
-                        <label><input type="radio" name="workhours_type" value="0" {if $workhours === ''}checked{/if}> [`Always open (24/7)`]</label>
-                    </div>
-                    <div class="value no-shift">
-                        <label><input type="radio" name="workhours_type" value="1" {if is_array($workhours)}checked{/if}> [`Define work hours`]</label>
-                    </div>
-                    <div id="workhours-div"{if !is_array($workhours)} style="display:none"{/if}>
-                        <div class="value">
-                            <ul class="menu-h s-workhours">
-                                <li><label><input value="1" type="checkbox" name="workhours_days[]" {if $workhours && in_array(1, $workhours.days)}checked="checked"{/if}> [s`Mon`]</label></li>
-                                <li><label><input value="2" type="checkbox" name="workhours_days[]" {if $workhours && in_array(2, $workhours.days)}checked="checked"{/if}> [s`Tue`]</label></li>
-                                <li><label><input value="3" type="checkbox" name="workhours_days[]" {if $workhours && in_array(3, $workhours.days)}checked="checked"{/if}> [s`Wed`]</label></li>
-                                <li><label><input value="4" type="checkbox" name="workhours_days[]" {if $workhours && in_array(4, $workhours.days)}checked="checked"{/if}> [s`Thu`]</label></li>
-                                <li><label><input value="5" type="checkbox" name="workhours_days[]" {if $workhours && in_array(5, $workhours.days)}checked="checked"{/if}> [s`Fri`]</label></li>
-                                <li><label><input value="6" type="checkbox" name="workhours_days[]" {if $workhours && in_array(6, $workhours.days)}checked="checked"{/if}> [s`Sat`]</label></li>
-                                <li><label><input value="0" type="checkbox" name="workhours_days[]" {if $workhours && in_array(0, $workhours.days)}checked="checked"{/if}> [s`Sun`]</label></li>
-                            </ul>
-                        </div>
-                        <div class="value">
-                            <input type="text" class="short" name="workhours_from" placeholder="[`9:00 am`]" {if $workhours}value="{$workhours.from|escape}"{/if}>
-                            &mdash;
-                            <input type="text" class="short" name="workhours_to" placeholder="[`5:00 pm`]" {if $workhours}value="{$workhours.to|escape}"{/if}>
-                        </div>
-                    </div>
-                    <div class="value">
-                        <span class="hint">[`Work hours are displayed in the storefront and help your customers to know which is the best time to call you`]</span>
                     </div>
                 </div>
                 <div class="field">
@@ -92,6 +65,15 @@
                     </div>
                 </div>
                 <div class="field">
+                    <div class="name">[`Sort order items`]</div>
+                    {foreach $sort_order_items_variants as $sort_variant => $variant_data}
+                        <div class="value no-shift">
+                            <input type="radio" name="sort_order_items" value="{$sort_variant}" {if $sort_variant == $sort_order_items}checked{/if}> {$variant_data.name|default:''}
+                            <br>
+                        </div>
+                    {/foreach}
+                </div>
+                <div class="field">
                     <div class="name">[`Gravatar`]</div>
                     <div class="value no-shift">
                         <label>
@@ -111,11 +93,151 @@
                                 <option value="wavatar" {if $gravatar_default == 'wavatar'}selected="selected"{/if}>[`generated faces with differing features and backgrounds`]</option>
                                 <option value="retro" {if $gravatar_default == 'retro'}selected="selected"{/if}>[`awesome generated, 8-bit arcade-style pixelated faces`]</option>
                             </select>
-                            <img id="s-settings-general-gravatar" class="userpic" {if $saved}src="{shopHelper::getGravatar($wa->user('email', 'default'), 50, $gravatar_default)}"{/if} style='width: 50px; {if !$saved}display:none;{else}display:block;{/if} margin-top: 10px;'>
+                            <img id="s-settings-general-gravatar" class="userpic" src="{shopHelper::getGravatar($wa->user('email', 'default'), 50, $gravatar_default)}" style="display: block; width: 50px; margin-top: 10px;">
                         </label>
                     </div>
                 </div>
+
+                {* Validation required fields *}
+                <div class="field">
+                    <div class="name">[`Required fields validation`]</div>
+                    <div class="value s-ibutton-checkbox no-shift">
+                        <ul class="menu-h">
+                            <li><span {if empty($disable_backend_customer_form_validation)} class="gray"{/if} id="s-toggle-backend-validation-disabled-label">[`Disabled`]</span></li>
+                            <li>
+                                <input type="checkbox" id="s-toggle-backend-validation-status" name="disable_backend_customer_form_validation" value="1"{if empty($disable_backend_customer_form_validation)} checked{/if}>
+                            </li>
+                            <li><span id="s-toggle-backend-validation-enabled-label" {if !empty($disable_backend_customer_form_validation)} class="gray"{/if}>[`Enabled`]</span></li>
+                        </ul>
+                    </div>
+                    <div class="value description"{if empty($disable_backend_customer_form_validation)} style="display:none"{/if}>
+                        <!-- enabled -->
+                        <p class="small">[`When a new order is created via backend manually, contact info form will not be validated. Fields which are necessary to fill in when order is placed in the storefront, can be left blank when order is created via backend.`]</p>
+                    </div>
+                    <div class="value description"{if !empty($disable_backend_customer_form_validation)} style="display:none"{/if}>
+                        <!-- disabled -->
+                        <p class="small">[`When a new order is created via backend manually, contact info form will be validated according the Contact info form setup defined for the storefront (above). All required fields will be necessary to fill in.`]</p>
+                    </div>
+                </div>
+
+                {* Anti-spam *}
+                <div class="field">
+                    <div class="name">[`Checkout anti-spam filter`]</div>
+                    <div class="value s-ibutton-checkbox no-shift">
+                        <ul class="menu-h">
+                            <li><span {if !empty($checkout_antispam)} class="gray"{/if} id="s-toggle-checkout-antispam-disabled-label">[`Disabled`]</span></li>
+                            <li>
+                                <input type="checkbox" id="s-toggle-checkout-antispam-status" name="antispam[enabled]" value="1"{if !empty($checkout_antispam)} checked{/if}>
+                            </li>
+                            <li><span id="s-toggle-checkout-antispam-enabled-label" {if !!empty($checkout_antispam)} class="gray"{/if}>[`Enabled`]</span></li>
+                        </ul>
+                    </div>
+                    <div class="value description antispam-enabled"{if empty($checkout_antispam)} style="display:none"{/if}>
+                        <!-- enabled -->
+                        <p class="small">[`Checkout anti-spam filtering is seamless for real customers and will automatically reject spammy orders placed by robots.`]</p>
+
+                        <div class="fields form width100px">
+                            <div class="field">
+                                <div class="name">[`Alerts on rejected checkout attempts`]</div>
+                                <div class="value">
+                                    <input name="antispam[email]" type="email" placeholder="your@email.here" value="{$checkout_antispam_email|escape}" class="long">
+                                </div>
+                                <div class="value">
+                                    <span class="hint">[`Enable alerts on spammy checkout attempts to make sure none of real orders were rejected by the anti-spam filter.`]</span>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name">[`Captcha`]</div>
+                                <div class="value no-shift">
+                                    <label><input name="antispam[captcha]" value="1" type="checkbox"{if $checkout_antispam_captcha} checked{/if}> [`Enable captcha for checkout (not required)`]</label>
+                                </div>
+                                <div class="value">
+                                    <span class="hint">[`Optional. Enable checkout captcha when seamless anti-spam protection is not enough.`]</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="clear-both"></div>
+                    </div>
+                    <div class="value description antispam-disabled"{if !empty($checkout_antispam)} style="display:none"{/if}>
+                        <!-- disabled -->
+                        <p class="hint">[`If your store is under spammers attack and you receive lots of fraudulent orders placed by robots, protect the checkout routine with seamless anti-spam filtering. This will automatically filter all spam and save genuine orders only.`]</p>
+                    </div>
+                </div>
+
+                {* Web push *}
+                {$_wp_domain = $web_push->getDomain()}
+                {$_wp_manifest = $web_push->getManifest()}
+                {$_wp_is_active = $web_push->isActive()}
+                {$_wp_is_allowed = $web_push->isAllowed()}
+                <div class="field">
+                    <div class="name">[`Web push notifications`]</div>
+                    <div class="value">
+                        <div class="name">{waIdna::dec($_wp_domain)}</div>
+                        <div class="value s-ibutton-checkbox no-shift">
+                            {if !$web_push->isBrowserSupported()}
+                                <div class="block not-padded">
+                                    <p>
+                                        <i class="icon16 exclamation"></i>
+                                        [`Your browser doesn't support web push technology.`]
+                                        <br>
+                                        [`However, you can configure web push notifications so that users with supported browsers can receive them.`]
+                                        <br>
+                                        [`Check <a target="_blank" href="https://documentation.onesignal.com/docs/website-sdk-overview">web push documentation</a> for the list of supported browsers.`]
+                                    </p>
+                                </div>
+                            {/if}
+
+                            {if !$_wp_is_allowed}
+                                <i class="icon10 exclamation"></i> [`This domain does not support push notifications. Ensure that an SSL certificate is installed for the domain name.`]
+                            {else}
+                                <span {if !$_wp_is_active} class="gray"{/if} id="s-toggle-web-push-disabled-label">[`Disabled`]</span>
+                                <div style="display: inline-block; margin: 0 10px;">
+                                    <input type="checkbox" id="s-toggle-web-push-active" name="web_push_settings[active]" value="1"{if $_wp_is_active} checked="checked"{/if}>
+                                </div>
+                                <span id="s-toggle-web-push-enabled-label" {if $_wp_is_active} class="gray"{/if}>[`Enabled`]</span>
+                            {/if}
+
+                        </div>
+
+                        {if $_wp_is_allowed}
+                            <div id="s-web-push-enabled-block" class="value s-web-push-settings"{if !$_wp_is_active} style="display: none"{/if}>
+                                <p class="small">{sprintf('[`User manual on setting up web push notifications: <a href="%s" target="_blank">%s</a>.`]','[`http://www.shop-script.com/help/13536/push-notifications/`]','[`http://www.shop-script.com/help/13536/push-notifications/`]')}</p>
+                                <div class="fields form">
+                                    <div class="field">
+                                        <div class="name">[`Short company name`]</div>
+                                        <div class="value">
+                                            <input type="text" name="web_push_settings[manifest][short_name]" value="{$_wp_manifest.short_name|default:''}">
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <div class="name">[`Safari Web ID`]</div>
+                                        <div class="value">
+                                            <input type="text" name="web_push_settings[safari_web_id]" value="{$web_push->getSafariWebId()}">
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <div class="name">[`OneSignal App ID`]</div>
+                                        <div class="value">
+                                            <input type="text" name="web_push_settings[app_id]" value="{$web_push->getAppId()}">
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <div class="name">[`REST API Key`]</div>
+                                        <div class="value">
+                                            <input type="text" name="web_push_settings[rest_api_key]" value="{$web_push->getRestApiKey()}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="s-web-push-disabled-block" class="value"{if $_wp_is_active} style="display: none"{/if}>
+                                <p class="hint">[`Enable web push notifications for your browser to get notified on new orders on your computer screen.`]</p>
+                            </div>
+                        {/if}
+                    </div>
+                </div>
             </div>
+
             <div class="field-group">
                 <div class="field">
                     <div class="name">[`Reviews`]</div>
@@ -171,26 +293,33 @@
                     </div>
                 </div>
             </div>
+
             <div class="field-group">
                 <div class="field s-captcha">
                     <div class="name">[`Captcha`]</div>
                     <div class="value no-shift">
+                        {if !empty($wa_settings)}
+                            <span class="s-auth-captcha-text"><a href="{$wa_backend_url}webasyst/settings/captcha/">[`Select Webasyst default captcha or Google reCAPTCHA`]</a></span>
+                        {else}
+                            [`To select an captcha engine, you need access to “Settings” app‘s.`]
+                        {/if}
                         <label>
-                            <span class="s-auth-captcha-text"><a href="{$wa_backend_url}site/#/system-settings/captcha/">[`Select Webasyst default captcha or Google reCAPTCHA`]</a></span>
+
                         </label>
                     </div>
                 </div>
                 <div class="field">
                     <div class="name">[`Maps`]</div>
                     <div class="value no-shift">
-                        {if !empty($installer)}
-                        {$wa_backend_url|cat:'installer/?module=settings'|string_format:'[`Select an online map engine in Installer app‘s “<a href="%s">Settings</a>” screen.`]'}
+                        {if !empty($wa_settings)}
+                            {$wa_backend_url|cat:'webasyst/settings/maps/'|string_format:'[`Select an online map engine in “<a href=\"%s\">Settings</a>” app‘s.`]'}
                         {else}
-                        [`To select an online map engine, you need access to Installer app‘s “Settings” screen.`]
+                            [`To select an online map engine, you need access to “Settings” app‘s.`]
                         {/if}
                     </div>
                 </div>
             </div>
+
             <div class="field-group">
                 <div class="field">
                     <div class="name">[`SMS`]</div>
@@ -261,6 +390,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="field-group">
                 <div class="field">
                     <div class="name">[`Shop-Script version`]</div>
@@ -269,6 +399,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="field-group">
                 <div class="field">
                     <div class="value submit">
@@ -338,14 +469,55 @@
 
 
     form.find('[name="gravatar_default"]').change(function () {
+        var gravatar_default = $(this).val();
         $.get('?module=settings&action=generalGetGravatar', {
             'email': '{$wa->user('email', 'default')}',
-            'default': form.find('[name="gravatar_default"]').val()
+            'default': gravatar_default
             },
             function(r) {
-                $('#s-settings-general-gravatar').css('display', 'block').attr('src', r.data);
+                $('#s-settings-general-gravatar').attr('src', r.data);
             }, 'json'
         );
+    });
+
+    $('#s-toggle-backend-validation-status').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change(function() {
+        var self = $(this);
+        self.closest('.value').siblings('.value.description').toggle();
+        if (this.checked) {
+            $('#s-toggle-backend-validation-disabled-label').addClass('gray');
+            $('#s-toggle-backend-validation-enabled-label').removeClass('gray');
+        } else {
+            $('#s-toggle-backend-validation-disabled-label').removeClass('gray');
+            $('#s-toggle-backend-validation-enabled-label').addClass('gray');
+        }
+    });
+
+    $('#s-toggle-checkout-antispam-status').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change(function() {
+        if (this.checked) {
+            $('#s-toggle-checkout-antispam-disabled-label').addClass('gray');
+            $('#s-toggle-checkout-antispam-enabled-label').removeClass('gray');
+            $('.antispam-enabled').show();
+            $('.antispam-disabled').hide();
+        } else {
+            $('#s-toggle-checkout-antispam-disabled-label').removeClass('gray');
+            $('#s-toggle-checkout-antispam-enabled-label').addClass('gray');
+            $('.antispam-enabled').hide();
+            $('.antispam-disabled').show();
+        }
+    });
+
+    $('#s-toggle-web-push-active').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change('change', function() {
+        if (this.checked) {
+            $('#s-toggle-web-push-disabled-label').addClass('gray');
+            $('#s-toggle-web-push-enabled-label').removeClass('gray');
+            $('#s-web-push-disabled-block').hide();
+            $('#s-web-push-enabled-block').show();
+        } else {
+            $('#s-toggle-web-push-disabled-label').removeClass('gray');
+            $('#s-toggle-web-push-enabled-label').addClass('gray');
+            $('#s-web-push-enabled-block').hide();
+            $('#s-web-push-disabled-block').show();
+        }
     });
 
     //

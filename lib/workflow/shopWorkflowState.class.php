@@ -8,6 +8,7 @@ class shopWorkflowState extends waWorkflowState
     protected $style_html;
     protected $frontend_style_html;
     protected $available_actions = array();
+    protected $payment_allowed = true;
     public $original = false;
 
     /**
@@ -23,6 +24,9 @@ class shopWorkflowState extends waWorkflowState
         }
         if (isset($options['available_actions'])) {
             $this->available_actions = $options['available_actions'];
+        }
+        if (isset($options['payment_allowed'])) {
+            $this->payment_allowed = !!$options['payment_allowed'];
         }
     }
 
@@ -86,5 +90,19 @@ class shopWorkflowState extends waWorkflowState
             $this->style_html = $style_html;
         }
         return $this->style_html;
+    }
+
+    public function paymentAllowed()
+    {
+        $disabled_states = array(
+            'deleted',
+            'refunded',
+            'completed',
+            'paid',
+        );
+        if (in_array($this->id, $disabled_states, true)) {
+            return null;
+        }
+        return $this->payment_allowed;
     }
 }

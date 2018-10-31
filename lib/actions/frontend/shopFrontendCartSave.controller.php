@@ -65,7 +65,7 @@ class shopFrontendCartSaveController extends waJsonController
         $this->response['total'] = $is_html ? shop_currency_html($total, true) : shop_currency($total, true);
         $this->response['discount'] = $is_html ? shop_currency_html($discount, true) : shop_currency($discount, true);
         $this->response['discount_numeric'] = $discount;
-        $discount_coupon = ifset($order['params']['coupon_discount'], 0);
+        $discount_coupon = ifset($order, 'params', 'coupon_discount', 0);
         $this->response['discount_coupon'] = $is_html ? shop_currency_html($discount_coupon, true) : shop_currency($discount_coupon, true);
         $this->response['count'] = $cart->count();
 
@@ -89,39 +89,5 @@ class shopFrontendCartSaveController extends waJsonController
             $affiliate_discount = shopFrontendCartAction::getAffiliateDiscount($affiliate_bonus, $order);
             $this->response['affiliate_discount'] = $is_html ? shop_currency_html($affiliate_discount, true) : shop_currency($affiliate_discount, true);
         }
-    }
-
-    public function getFullPrice($item)
-    {
-    }
-
-    public function getServices($product_id, $sku_id)
-    {
-        $product_model = new shopProductModel();
-        $product = $product_model->getById($product_id);
-
-        $type_service_model = new shopTypeServicesModel();
-        $service_ids = $type_service_model->getServiceIds($product['type_id']);
-
-        $sql = "SELECT v.*, ps.price p_price, ps.status, ps.sku_id, s.currency FROM shop_service_variants v
-                LEFT JOIN shop_product_services ps ON v.id = ps.service_variant_id AND ps.product_id = i:product_id
-                JOIN shop_service s ON v.service_id = s.id
-                WHERE ".($service_ids ? "v.service_id IN (i:service_ids) OR ": '')."
-                ps.product_id = i:product_id OR ps.sku_id = i:sku_id
-                ORDER BY ps.sku_id";
-
-        $product_services_model = new shopProductServicesModel();
-        $rows = $product_services_model->query($sql, array(
-            'service_ids' => $service_ids, 'product_id' => $product_id, 'sku_id' => $sku_id))->fetchAll();
-
-        $services = array();
-        foreach ($rows as $row) {
-            $services[$row['service_id']][$row['id']] = array(
-                'name' => $row['name'],
-                'price' => $row['p_price'] ? $row['p_price'] : $row['price'],
-                'currency' => $row['currency']
-            );
-        }
-        return $services;
     }
 }

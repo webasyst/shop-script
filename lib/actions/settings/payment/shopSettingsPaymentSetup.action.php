@@ -10,19 +10,30 @@ class shopSettingsPaymentSetupAction extends waViewAction
 
         $this->view->assign('plugin_id', $plugin_id = waRequest::get('plugin_id'));
         try {
+            $plugin = shopPayment::getPluginInfo($plugin_id);
+            $instance = shopPayment::getPlugin($plugin['plugin'], $plugin_id);
 
-            $this->view->assign('plugin', $info = shopPayment::getPluginInfo($plugin_id));
-
-            $plugin = shopPayment::getPlugin($info['plugin'], $plugin_id);
             $params = array(
                 'namespace' => "payment[settings]",
                 'value'     => waRequest::post('shipping[settings]'),
             );
-            $this->view->assign('settings_html', $plugin->getSettingsHTML($params));
-            $this->view->assign('guide_html', $plugin->getGuide($params));
+
+            $settings_html = $instance->getSettingsHTML($params);
+            $guide_html = $instance->getGuide($params);
+
+            $shipping_types = shopShipping::getShippingTypes();
 
             $model = new shopPluginModel();
-            $this->view->assign('shipping', $model->listPlugins(shopPluginModel::TYPE_SHIPPING, array('payment' => $plugin_id, 'all' => true)));
+
+            $options = array(
+                'payment' => $plugin_id, // get available flag
+                'all'     => true,       // get all instances of shipping plugins
+                'info'    => true,       // fill plugins info
+            );
+
+            $shipping = $model->listPlugins(shopPluginModel::TYPE_SHIPPING, $options);
+
+            $this->view->assign(compact('plugin', 'shipping_types', 'shipping', 'settings_html', 'guide_html'));
         } catch (waException $ex) {
             $this->view->assign('error', $ex->getMessage());
         }

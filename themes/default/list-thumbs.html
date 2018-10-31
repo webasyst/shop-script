@@ -1,3 +1,8 @@
+{$_cart_url = $wa->getUrl('shop/frontend/cart')}
+{if $wa->param('checkout_version') == 2}
+    {$_cart_url = $wa->getUrl('shop/frontend/order')}
+{/if}
+
 <!-- products thumbnail list view -->
 
 {if !empty($sorting)}
@@ -84,7 +89,7 @@
                     <input type="submit" value="{$add2cart_label}">
                     <i class="adding2cart"></i>
                     {if !empty($theme_settings.compare_products)}<a data-product="{$p.id}" class="compare" href="#" title="[`Compare`]"><i class="icon16 compare compare-from-list{if $wa->shop->inComparison($p.id)} active{/if}"></i></a>{/if}
-                    <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $p.name, $wa->getUrl('shop/frontend/cart'))}</span>
+                    <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $p.name, $_cart_url)}</span>
                 </form>
                 <link itemprop="availability" href="http://schema.org/InStock" />
             {else}

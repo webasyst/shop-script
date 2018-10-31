@@ -26,6 +26,10 @@ foreach (shopHelper::getStocks() as $stock_id => $s) {
     }
 }
 
+$view = wa()->getView();
+$template = wa()->getAppPath('templates/includes/checkoutVersionRouteMoveSetting.html', 'shop');
+$checkout_version_move_setting = $view->fetch($template);
+
 return array(
     'params' => array(
         _w('Homepage'),
@@ -79,10 +83,10 @@ return array(
                 ),
                 0 => array(
                     'name'        => _w('Mixed'),
-                    'description' => _w('<br>Product URLs: /<strong>product-name/</strong><br>Category URLs: /category/<strong>category-name/subcategory-name/subcategory-name/...</strong>'),
+                    'description' => _w('<br>Product URLs: /<strong>product-name/</strong><br>Category URLs: /category/<strong>category-name/subcategory-name/subcategory-name/</strong>'),
                 ),
                 1 => array(
-                    'name'        => _w('Plain').' (WebAsyst Shop-Script)',
+                    'name'        => _w('Plain'),
                     'description' => _w('<br>Product URLs: /product/<strong>product-name/</strong><br>Category URLs: /category/<strong>category-name/</strong>'),
                 ),
 
@@ -136,11 +140,11 @@ return array(
 
                 1 => array(
                     'name'        => _w('Force drop out-of-stock products to the bottom of all lists'),
-                    'description' => _w('When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more.'),
+                    'description' => _w('When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more. Product quantities in all stocks are taken into account.'),
                 ),
                 2 => array(
                     'name'        => _w('Hide out-of-stock products'),
-                    'description' => _w('Out-of-stock products will remain published, but will be automatically hidden from all product lists on this storefront, e.g. product search results, category product filtering, and others.')
+                    'description' => _w('Out-of-stock products will remain published, but will be automatically hidden from all product lists on this storefront, e.g. product search results, category product filtering, and others. Product quantities in all stocks are taken into account.')
                 ),
                 0 => array(
                     'name'        => _w('Display as is'),
@@ -182,8 +186,27 @@ return array(
         'ssl'               => array(
             'name'        => _w('Use HTTPS for checkout and personal accounts'),
             'description' => _w('Automatically redirect to secure https:// mode for checkout (/checkout/) and personal account (/my/) pages of your online storefront. Make sure you have valid SSL certificate installed for this domain name before enabling this option.'),
-            'type'        => 'checkbox'
-        )
+            'type'        => 'checkbox',
+        ),
+        'checkout_storefront_id' => array(
+            'type' => 'hidden',
+        ),
+        'checkout_version' => array(
+            'name'  => _w('Вид оформления заказа'), // TODO: LOCALE THIS !!!
+            'type'  => 'radio_select',
+            'items' => array(
+                2 => array(
+                    'name'        => '<span class="checkout-2-background">'._w('Оформление заказа в корзине').'</span> — '._w('поддерживается не всеми темами, проверьте в описании темы или в настройках оформления заказа, после выбора этого вида'),
+                    'description' => '<br>'.sprintf(_w('В случае, если ваша тема не поддерживает "оформление заказа в корзине", для страницы оформления будет включен стандартный дизайн темы "Дефолт". <a href="%s">Настройте</a> <i class="icon16 new-window"></i>оформление заказа в корзине'), wa()->getAppUrl('shop/?action=settings#/checkout')) . '<br><br>',// TODO: Locale !!!
+                ),
+                1 => array(
+                    'name'        => _w('Пошаговое оформление заказа'),
+                    'description' => '<br>'.sprintf(_w('<a href="%s">Настройте</a> <i class="icon16 new-window"></i>пошаговое оформление заказа'), wa()->getAppUrl('shop/?action=settings#/checkout')) . $checkout_version_move_setting, // TODO: Locale !!!
+                ),
+            ),
+            'default' => 1,
+            'original_name' => true,
+        ),
     ),
 
     'vars' => array(

@@ -394,12 +394,16 @@ HTML;
 
         if ($apply) {
             $cm->useOne($coupon['id']);
-            if (empty($order['params'])) {
-                $order['params'] = array();
-            }
-            $order['params']['coupon_id'] = $coupon['id'];
         }
+
+        if (empty($order['params'])) {
+            $order['params'] = array();
+        }
+        $order['params']['coupon_id'] = $coupon['id'];
         $order['params']['coupon_discount'] = $discount;
+        if ($coupon['type'] == '$FS') {
+            $order['params']['coupon_free_shipping'] = 1;
+        }
 
         return $result;
     }

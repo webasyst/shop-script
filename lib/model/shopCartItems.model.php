@@ -239,7 +239,7 @@ SQL;
         if (!$code) {
             return array();
         }
-        $sql = "SELECT * FROM ".$this->table." WHERE code = s:0 ORDER BY parent_id";
+        $sql = "SELECT * FROM ".$this->table." WHERE code = s:0 ORDER BY id, parent_id";
         $items = $this->query($sql, $code)->fetchAll('id');
 
         $obsolete = array();
@@ -347,7 +347,7 @@ SQL;
                     $item['price'] = $sku['price'];
                     $item['name'] = $item['product']['name'];
                     $item['sku_file_name'] = $sku['file_name'];
-                    if ($item['sku_name']) {
+                    if ($item['sku_name'] !== null) {
                         $item['name'] .= ' ('.$item['sku_name'].')';
                     }
                     // Fix for purchase price when rounding is enabled
@@ -429,6 +429,7 @@ SQL;
             }
             $items = $result;
         }
+
         return $items;
     }
 
@@ -489,9 +490,24 @@ SQL;
      */
     public function getNotAvailableProducts($code, $check_count)
     {
+        return array_filter(
+            $this->checkAvailability($code, $check_count),
+            function ($item) {
+                return !$item['can_be_ordered'];
+            }
+        );
+    }
+
+    /**
+     * @param string $code
+     * @param bool|int|string $check_count bool or stock_id or 'v<virtualstock_id>'
+     * @return array
+     */
+    public function checkAvailability($code, $check_count)
+    {
         $count_join = '';
-        $count_condition = '';
-        $count_field = 's.count';
+        $count_field = 'NULL';
+        $can_be_ordered_field = 's.available > 0';
         if ($check_count) {
             if (is_string($check_count) && $check_count{0} == 'v') {
                 // Virtual stock id: check against sum of several stock counts
@@ -521,14 +537,26 @@ SQL;
                 $count_field = "ps.count";
                 $count_join = "LEFT JOIN shop_product_stocks AS ps
                                    ON ps.sku_id = ci.sku_id AND ps.stock_id = '{$check_count}'";
+
+               //
+               // There's a catch.
+               // In case product does not use stocks, actual counts are stored in `product_skus.count`.
+               // This function currently does not check for that. This may or may not be good,
+               // but currently is not considered a bug. Storefront limited by main stock
+               // should not list products that does not use stocks.
+               // See also shopProductsCollection->countOfSelectedStocks()
+               //
+
             } else {
                 // No stock specified; check against total count of the SKU
                 $count_field = 's.count';
             }
-            $count_condition = "OR ({$count_field} IS NOT NULL AND ci.quantity > {$count_field})";
+            $can_be_ordered_field = "(s.available > 0 AND ({$count_field} IS NULL OR ci.quantity <= {$count_field}))";
         }
 
-        $sql = "SELECT ci.id, p.name, s.name AS sku_name, s.available, {$count_field} AS `count`
+        $sql = "SELECT ci.id, p.name, s.name AS sku_name, s.available,
+                    {$can_be_ordered_field} as `can_be_ordered`,
+                    {$count_field} AS `count`
                 FROM {$this->table} AS ci
                     JOIN shop_product AS p
                         ON ci.product_id = p.id
@@ -536,9 +564,8 @@ SQL;
                         ON ci.sku_id = s.id
                     {$count_join}
                 WHERE ci.type = 'product'
-                    AND ci.code = s:code
-                    AND (s.available = 0 {$count_condition})";
-        return $this->query($sql, array('code' => $code))->fetchAll();
+                    AND ci.code = s:code";
+        return $this->query($sql, array('code' => $code))->fetchAll('id');
     }
 
     public function deleteByProducts($product_ids)

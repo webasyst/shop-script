@@ -104,11 +104,26 @@ class shopPayment extends waAppPayment
 
     private static function getPluginData($id)
     {
-        return self::pluginModel()->getPlugin($id, shopPluginModel::TYPE_PAYMENT);
+        $data = self::pluginModel()->getPlugin($id, shopPluginModel::TYPE_PAYMENT);
+        self::fillDefaultData($data);
+
+        return $data;
+    }
+
+    public static function fillDefaultData(&$data)
+    {
+        if (!isset($data['options']['shipping_type'])) {
+            $shipping_types = shopShipping::getShippingTypes();
+            $shipping_types = array_keys($shipping_types);
+            $data['options']['shipping_type'] = array_combine($shipping_types, $shipping_types);
+        }
     }
 
     public static function savePlugin($plugin)
     {
+        if (waConfig::get('is_template')) {
+            throw new waException('access from template is not allowed');
+        }
         $default = array(
             'status' => 0,
         );
@@ -128,7 +143,8 @@ class shopPayment extends waAppPayment
             ifset($plugin['shipping'], array());
             $plugins = $model->listPlugins(shopPluginModel::TYPE_SHIPPING, array('all' => true,));
             $app_settings = new waAppSettingsModel();
-            $settings = json_decode($app_settings->get('shop', 'shipping_payment_disabled', '{}'), true);
+            $json = $app_settings->get('shop', 'shipping_payment_disabled', '{}');
+            $settings = json_decode($json, true);
             if (empty($settings) || !is_array($settings)) {
                 $settings = array();
             }
@@ -681,6 +697,7 @@ class shopPayment extends waAppPayment
             $workflow = new shopWorkflow();
             $workflow->getActionById('refund')->run($transaction_data['order_id']);
         }
+
         return $result;
     }
 
@@ -725,6 +742,7 @@ class shopPayment extends waAppPayment
                 $workflow->getActionById('process')->run($transaction_data['order_id']);
             }
         }
+
         return $result;
     }
 
@@ -763,5 +781,29 @@ class shopPayment extends waAppPayment
     public function callbackNotifyHandler($transaction_data)
     {
         return $this->callbackAction($transaction_data);
+    }
+
+    /**
+     * @param $order_id
+     * @param int|string|waPayment $plugin
+     * @return null|false|array last transaction
+     */
+    public static function isRefundAvailable($order_id, &$plugin = null)
+    {
+        #get payment plugin instance
+        if ($plugin && !($plugin instanceof waPayment)) {
+            try {
+                if (is_int($plugin)) {
+                    $plugin = shopPayment::getPlugin(null, $plugin);
+                } else {
+                    $plugin = shopPayment::getPlugin($plugin);
+                }
+            } catch (waException $ex) {
+                $plugin = null;
+            }
+        }
+
+        # if refund is supported by payment plugin
+        return $plugin ? $plugin->isRefundAvailable($order_id) : null;
     }
 }

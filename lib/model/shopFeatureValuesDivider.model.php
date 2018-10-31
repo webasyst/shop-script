@@ -29,9 +29,11 @@ class shopFeatureValuesDividerModel extends shopFeatureValuesModel
         $values = array();
         switch ($field) {
             case 'id':
+                $raw_values = array();
                 foreach ((array)$value as $id) {
-                    $values[$id] = $this->getValue($this->parseValue(null, null));
+                    $raw_values[$id] = $this->getValue($this->parseValue(null, null));
                 }
+                $values[0] = $raw_values;
                 break;
             case 'feature_id':
                 $raw_values = array(

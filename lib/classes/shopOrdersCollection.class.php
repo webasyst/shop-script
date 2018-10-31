@@ -248,6 +248,15 @@ class shopOrdersCollection
     public function getSQL()
     {
         $this->prepare();
+
+        /**
+         * Orders collection after prepare
+         *
+         * @event orders_collection.prepared
+         * @param shopOrdersCollection $this
+         */
+        wa()->event('orders_collection.prepared', $this);
+
         $sql = "\nFROM shop_order o";
 
         if ($this->joins) {
@@ -523,14 +532,23 @@ class shopOrdersCollection
 
         if (isset($postprocess_fields['items'])) {
             $default_values['items'] = array();
+
             $rows = self::getModel('items')->getByField('order_id', $ids, true);
+
             foreach ($rows as $row) {
                 if ($escape) {
                     $row['name'] = htmlspecialchars($row['name'], ENT_COMPAT, 'utf-8');
                 }
                 $data[$row['order_id']]['items'][] = $row;
             }
+
+            foreach ($data as $id => $order) {
+                if (isset($order['items'])) {
+                    shopOrderItemsModel::sortItemsByGeneralSettings($data[$id]['items']);
+                }
+            }
         }
+
         if (isset($postprocess_fields['items']) && isset($postprocess_fields['products'])) {
             $product_ids = array();
             foreach ($data as $o) {

@@ -216,49 +216,81 @@
                     type = splited[0];
                     parent_id = splited[1];
                 }
-                $.product_sidebar.createListDialog(type, parent_id, function (new_item, type) {
-                    var ctnr = $('#s-' + type + '-list');
-                    var list = ctnr.find('ul:first');
-                    if (!list.length) {
-                        ctnr.prepend(
-                            '<ul class="menu-v with-icons"><li class="drag-newposition" data-type="' + type + '"></li></ul>'
-                        );
-                        ctnr.find('.drag-newposition').mouseover();  // init droppable
-                        list = ctnr.find('ul:first');
-                    }
 
-                    var parent_id = parseInt(new_item.parent_id, 10) || 0;
-                    var handler = $.categories_tree.getHandlerByCategoryId(parent_id);
+                if (type === 'category') {
+                    shopDialogProductsCategory.staticDialog($.product_list.collection_hash[1], parent_id, 'new');
+                } else {
+                    shopDialogProductsSet.staticDialog($.product_list.collection_hash[1], 'new');
+                }
 
-                    var add = function () {
-                        if (parent_id) {
-                            var parent = list.find('#' + type + '-' + new_item.parent_id);
-                            if (!parent.find('>.collapse-handler-ajax').length) {
-                                parent.append('<ul class="menu-v with-icons dr"><li class="drag-newposition" data-type="' + type + '"></li></ul>');
-                                parent.find('.drag-newposition').mouseover(); // init droppable
-                                parent.find('>a').before(
-                                    '<i class="icon16 darr overhanging collapse-handler-ajax" id="' +
-                                    type + '-' + parent_id + '-handler' +
-                                    '"></i>'
-                                );
-                                $.categories_tree.setExpanded(parent_id);
-                            }
-                            list = parent.find('ul:first');
-                        }
-                        list.trigger('add', [new_item, type]);
-                    };
-
-                    if (type == 'category') {
-                        $.categories_tree.expand(handler, function () {
-                            add();
-                        });
-                    } else {
-                        add();
-                    }
-
-                });
                 return false;
             });
+        },
+
+        updateItemInCategoryList: function(r, hash) {
+
+            var li = $('#category-' + r.data.id);
+
+            li.find('.name:first').html(r.data.name);
+
+            if ($.isArray(r.data.routes) && r.data.routes.length) {
+                li.find('.routes:first').html(' ' + r.data.routes.join(' '));
+            } else {
+                li.find('.routes:first').html(' ');
+            }
+
+            if (r.data.status == '0') {
+                li.children('a').addClass('gray');
+            } else if (r.data.status == '1') {
+                li.children('a').removeClass('gray');
+            }
+            li.find('.id:first').html(r.data.id);
+            li.attr('id', 'category-' + r.data.id);
+            li.find('a').attr('href', hash);
+
+            return null;
+        },
+
+        createNewElementInList: function (new_item, type) {
+            var ctnr = $('#s-' + type + '-list');
+            var list = ctnr.find('ul:first');
+            if (!list.length) {
+                ctnr.prepend(
+                    '<ul class="menu-v with-icons"><li class="drag-newposition" data-type="' + type + '"></li></ul>'
+                );
+                ctnr.find('.drag-newposition').mouseover();  // init droppable
+                list = ctnr.find('ul:first');
+            }
+
+            var parent_id = parseInt(new_item.parent_id, 10) || 0;
+            var handler = $.categories_tree.getHandlerByCategoryId(parent_id);
+
+            var add = function () {
+                if (parent_id) {
+                    var parent = list.find('#' + type + '-' + new_item.parent_id);
+                    if (!parent.find('>.collapse-handler-ajax').length) {
+                        parent.append('<ul class="menu-v with-icons dr"><li class="drag-newposition" data-type="' + type + '"></li></ul>');
+                        parent.find('.drag-newposition').mouseover(); // init droppable
+                        parent.find('>a').before(
+                            '<i class="icon16 darr overhanging collapse-handler-ajax" id="' +
+                            type + '-' + parent_id + '-handler' +
+                            '"></i>'
+                        );
+                        $.categories_tree.setExpanded(parent_id);
+                    }
+                    list = parent.find('ul:first');
+                }
+                list.trigger('add', [new_item, type]);
+            };
+
+            if (type == 'category') {
+                $.categories_tree.expand(handler, function () {
+                    add();
+                });
+            } else {
+                add();
+            }
+
         },
 
         sortCategoryDialog: function () {
@@ -270,69 +302,6 @@
 
                 }
             });
-        },
-
-        createListDialog: function (type, parent_id, onCreate) {
-            var showDialog = function () {
-
-                // remove conflict dialog
-                var conflict_dialog = $('#s-product-list-settings-dialog');
-                if (conflict_dialog.length) {
-                    conflict_dialog.parent().remove();
-                    conflict_dialog.remove();
-                }
-
-                $('#s-product-list-create-dialog').waDialog({
-                    esc: false,
-                    disableButtonsOnSubmit: true,
-                    onLoad: function (d) {
-                        if ($('#s-category-description-content').length) {
-                            $.product_sidebar.initCategoryDescriptionWysiwyg($(this));
-                        }
-                        setTimeout(function () {
-                            $("#s-c-product-list-name").focus();
-                        }, 50);
-                    },
-                    onSubmit: function (d) {
-                        var form = $(this);
-                        var success = function (r) {
-                            if (typeof onCreate === 'function') {
-                                onCreate(r.data, type);
-                            }
-                            location.href = '#/products/' + type + '_id=' + r.data.id;
-                            d.trigger('close');
-                        };
-                        var error = function (r) {
-                            if (r && r.errors) {
-                                var errors = r.errors;
-                                for (var name in errors) {
-                                    d.find('input[name=' + name + ']').addClass('error').parent().find('.errormsg').text(errors[name]);
-                                }
-                                return false;
-                            }
-                        };
-
-                        if ($('#s-category-description-content').length) {
-                            $('#s-category-description-content').waEditor('sync');
-                        }
-
-                        if (form.find('input:file').length) {
-                            $.products._iframePost(form, success, error);
-                        } else {
-                            $.shop.jsonPost(form.attr('action'), form.serialize(), success, error);
-                            return false;
-                        }
-                    }
-                });
-            };
-            var d = $('#s-product-list-create-dialog');
-            var p;
-            if (!d.length) {
-                p = $('<div></div>').appendTo('body');
-            } else {
-                p = d.parent();
-            }
-            p.load('?module=dialog&action=productListCreate&type=' + type + '&parent_id=' + parent_id, showDialog);
         },
 
         initCategoryDescriptionWysiwyg: function (d) {
@@ -350,6 +319,5 @@
                 uploadFields: d.data('uploadFields')
             });
         }
-
     };
 })(jQuery);

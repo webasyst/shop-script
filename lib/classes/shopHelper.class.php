@@ -141,201 +141,355 @@ class shopHelper
      */
     public static function getShippingMethods($address = null, $items = array(), $params = array())
     {
-        $plugin_model = new shopPluginModel();
-        $options = array();
-        if (!empty($params[shopPluginModel::TYPE_SHIPPING])) {
-            $options = (array)$params[shopPluginModel::TYPE_SHIPPING];
-        }
-        if (!empty($params[shopPluginModel::TYPE_PAYMENT])) {
-            $options[shopPluginModel::TYPE_PAYMENT] = $params[shopPluginModel::TYPE_PAYMENT];
-        }
-        $methods = $plugin_model->listPlugins(shopPluginModel::TYPE_SHIPPING, $options);
-        if ($address !== null) {
-            $config = wa('shop')->getConfig();
-            /** @var $config shopConfig */
-            $result = array();
-            $currency = isset($params['currency']) ? $params['currency'] : $config->getCurrency();
-            $params['allow_external_for'] = (array)ifempty($params['allow_external_for'], array());
-            $dimensions = shopDimension::getInstance();
-
-            foreach ($methods as $m) {
-
-                if ($m['available']) {
-                    $method_id = $m['id'];
-                    $plugin = shopShipping::getPlugin($m['plugin'], $method_id);
-                    $plugin_info = $plugin->info($m['plugin']);
-                    $plugin_currency = (array)$plugin->allowedCurrency();
-
-                    if ($plugin_currency != $currency) {
-                        if (!$config->getCurrencies($plugin_currency)) {
-                            $result[$method_id] = array(
-                                'plugin'   => $m['plugin'],
-                                'logo'     => $m['logo'],
-                                'icon'     => $plugin_info['icon'],
-                                'img'      => $plugin_info['img'],
-                                'name'     => $m['name'],
-                                'error'    => sprintf(
-                                    _w('Shipping rate was not calculated because required currency %s is not defined in your store settings.'),
-                                    implode(', ', $plugin_currency)
-                                ),
-                                'rate'     => '',
-                                'currency' => $currency,
-                                'external' => !empty($plugin_info['external']),
-                            );
-                            continue;
-                        }
-                    }
-
-                    if (!empty($params['no_external']) && !empty($plugin_info['external']) && !in_array($method_id, $params['allow_external_for'])) {
-                        $rates = '';
-                        if ($address && !$plugin->isAllowedAddress($address)) {
-                            continue;
-                        }
-
-                    } else {
-                        $shipping_params = array();
-
-                        $total = null;
-                        if (isset($params['total_price'])) {
-                            if (!in_array($currency, $plugin_currency)) {
-                                $total = shop_currency($params['total_price'], $currency, reset($plugin_currency), false);
-                            } else {
-                                $total = $params['total_price'];
-                            }
-                        } else {
-                            foreach ($items as $item) {
-                                if (!empty($item['price'])) {
-                                    $total += $item['price'] * (isset($item['quantity']) ? $item['quantity'] : 1);
-                                }
-                                if ($total && !in_array($currency, $plugin_currency)) {
-                                    $total = shop_currency($total, $currency, reset($plugin_currency), false);
-                                }
-                            }
-                        }
-                        $weight_unit = $plugin->allowedWeightUnit();
-                        foreach ($items as & $item) {
-                            if (!empty($item['weight'])) {
-                                if (empty($item['original_weight'])) {
-                                    $item['original_weight'] = $item['weight'];
-                                }
-                                $item['weight'] = $dimensions->convert($item['original_weight'], 'weight', $weight_unit);
-                            }
-                        }
-                        unset($item);
-
-                        if ($total) {
-                            $shipping_params['total_price'] = $total;
-                        }
-                        if (!empty($params['shipping_params'][$method_id])) {
-                            $shipping_params['shipping_params'] = $params['shipping_params'][$method_id];
-                        }
-
-                        $rates = $plugin->getRates($items, $address ? $address : array(), $shipping_params);
-                    }
-
-                    if (is_array($rates)) {
-                        $key = null;
-                        foreach ($rates as $rate_id => $info) {
-                            if (is_array($info)) {
-                                $key = $method_id.'.'.$rate_id;
-                                $rate = is_array($info['rate']) ? max($info['rate']) : $info['rate'];
-                                if ($rate !== null) {
-                                    $rate = shop_currency($rate, reset($plugin_currency), $currency, false);
-                                }
-                                $result[$key] = array(
-                                    'plugin'   => $m['plugin'],
-                                    'logo'     => $m['logo'],
-                                    'icon'     => $plugin_info['icon'],
-                                    'img'      => $plugin_info['img'],
-                                    'name'     => $m['name'].(!empty($info['name']) ? ' ('.$info['name'].')' : ''),
-                                    'rate'     => (float)$rate,
-                                    'currency' => $currency,
-                                    'external' => !empty($plugin_info['external']),
-                                );
-
-                                if ($rate === null) {
-                                    $result[$key]['error'] = ifset($info, 'comment', _w('Shipping option not specified'));
-                                    unset($info['comment']);
-                                }
-
-                                foreach (array('est_delivery', 'comment', 'custom_data') as $field) {
-                                    if (isset($info[$field]) && !is_null($info[$field])) {
-                                        $result[$key][$field] = $info[$field];
-                                    }
-                                }
-                            }
-                        }
-
-                        if ($key && !empty($params['custom_html']) && $plugin->getProperties('backend_custom_fields')) {
-                            $order = new waOrder(
-                                array(
-                                    'contact_id'       => null,
-                                    'contact'          => null,
-                                    'items'            => $items,
-                                    'shipping_address' => $address,
-                                    'shipping_params'  => ifset($params['shipping_params'][$method_id]),
-                                )
-                            );
-                            $custom_fields = $plugin->customFields($order);
-                            if ($custom_fields) {
-                                $control_params = array();
-                                $control_params['namespace'] = 'shipping_'.$m['id'];
-                                $control_params['title_wrapper'] = '%s';
-                                $control_params['description_wrapper'] = '<br><span class="hint">%s</span>';
-                                $control_params['control_wrapper'] = '<div class="field"><div class="name">%s</div><div class="value">%s %s</div></div>';
-                                $control_params['control_separator'] = '</div><div class="value">';
-
-                                $controls = array();
-                                foreach ($custom_fields as $name => $row) {
-                                    $row = array_merge($row, $control_params);
-                                    if (!empty($order_params['shipping_id']) && ($m['id'] == $order_params['shipping_id']) && isset($order_params['shipping_params_'.$name])) {
-                                        $row['value'] = $order_params['shipping_params_'.$name];
-                                    }
-                                    if (!empty($row['control_type'])) {
-                                        $controls[$name] = waHtmlControl::getControl($row['control_type'], $name, $row);
-                                    }
-                                }
-                                if ($controls) {
-                                    $custom_html = '';
-                                    foreach ($controls as $c) {
-                                        $custom_html .= $c;
-                                    }
-                                    $result[$key]['custom_html'] = $custom_html;
-                                }
-                            }
-                        }
-
-                    } elseif (is_string($rates)) {
-                        $result[$m['id']] = array(
-                            'plugin'   => $m['plugin'],
-                            'logo'     => $m['logo'],
-                            'icon'     => $plugin_info['icon'],
-                            'img'      => $plugin_info['img'],
-                            'name'     => $m['name'],
-                            'error'    => $rates,
-                            'rate'     => '',
-                            'currency' => $currency,
-                            'external' => !empty($plugin_info['external']),
-                        );
-                    } elseif (($rates === false) && in_array($m['id'], $params['allow_external_for'])) {
-                        $result[$method_id] = array(
-                            'plugin'   => $m['plugin'],
-                            'logo'     => $m['logo'],
-                            'icon'     => $plugin_info['icon'],
-                            'img'      => $plugin_info['img'],
-                            'name'     => $m['name'],
-                            'error'    => _w('Not available'),
-                            'rate'     => '',
-                            'external' => !empty($plugin_info['external']),
-                        );
-                    }
-                }
-            }
-            return $result;
+        if (isset($params['__methods'])) {
+            // Unit tests use this to inject stub plugins into this method
+            $methods = $params['__methods'];
+            unset($params['__methods']);
         } else {
+            $plugin_model = new shopPluginModel();
+            $options = array();
+            if (!empty($params[shopPluginModel::TYPE_SHIPPING])) {
+                $options = (array)$params[shopPluginModel::TYPE_SHIPPING];
+            }
+            if (!empty($params[shopPluginModel::TYPE_PAYMENT])) {
+                $options[shopPluginModel::TYPE_PAYMENT] = $params[shopPluginModel::TYPE_PAYMENT];
+            }
+            if (isset($params['customer_type'])) {
+                $options['customer_type'] = $params['customer_type'];
+            }
+            $methods = $plugin_model->listPlugins(shopPluginModel::TYPE_SHIPPING, $options);
+        }
+
+        if ($address === null) {
             // !!! TODO: filter not-available methods?..
             return $methods;
         }
+
+        /** @var $config shopConfig */
+        $config = wa('shop')->getConfig();
+        $params['currency'] = isset($params['currency']) ? $params['currency'] : $config->getCurrency();
+        $params['allow_external_for'] = (array)ifempty($params['allow_external_for'], array());
+
+        waNet::multiQuery(
+            'shop.shipping',
+            [
+                'timeout' => ifset($params, 'timeout', 10),
+            ]
+        );
+
+        shopShipping::extendItems($items);
+
+        $result = array();
+        foreach ($methods as &$m) {
+            if (!$m['available']) {
+                continue;
+            }
+
+            $method_id = $m['id'];
+            if (isset($m['__instance'])) {
+                // Unit tests use this to inject stub plugins into this method
+                $plugin = $m['__instance'];
+            } else {
+                $plugin = shopShipping::getPlugin($m['plugin'], $method_id);
+            }
+            if (isset($m['__plugin_info'])) {
+                $plugin_info = $m['__plugin_info'];
+            } else {
+                $plugin_info = $plugin->info($m['plugin']);
+            }
+
+            if (!empty($params['filter'])) {
+                $matched = true;
+                foreach ($params['filter'] as $property => $value) {
+                    if ($value === null) {
+                        if (isset($plugin_info[$property])) {
+                            $matched = false;
+                            break;
+                        }
+                    } elseif (!isset($plugin_info[$property])) {
+                        $matched = false;
+                        break;
+                    } else {
+                        if (is_array($value)) {
+                            if (!in_array($plugin_info[$property], $value)) {
+                                $matched = false;
+                                break;
+                            }
+                        } elseif ($value != $plugin_info[$property]) {
+                            $matched = false;
+                            break;
+                        }
+                    }
+                }
+                if (!$matched) {
+                    continue;
+                }
+            }
+
+            $plugin_currency = (array)$plugin->allowedCurrency();
+
+            #check plugin currency;
+            if ($plugin_currency != $params['currency']) {
+                if (!$config->getCurrencies($plugin_currency)) {
+                    $result[$method_id] = array(
+                        'plugin'      => $m['plugin'],
+                        'plugin_name' => $plugin_info['name'],
+                        'logo'        => $m['logo'],
+                        'icon'        => $plugin_info['icon'],
+                        'img'         => $plugin_info['img'],
+                        'name'        => $m['name'],
+                        'error'       => sprintf(
+                            _w('Shipping rate was not calculated because required currency %s is not defined in your store settings.'),
+                            implode(', ', $plugin_currency)
+                        ),
+                        'rate'        => '',
+                        'currency'    => $params['currency'],
+                        'external'    => !empty($plugin_info['external']),
+                    );
+                    continue;
+                }
+            }
+
+            # check allowed address
+            if ($address && !$plugin->isAllowedAddress($address)) {
+                continue;
+            }
+
+            $m['__instance'] = $plugin;
+            $m['__plugin_info'] = $plugin_info;
+
+            if (!empty($params['no_external'])
+                && !empty($plugin_info['external'])
+                && !in_array($method_id, $params['allow_external_for'])
+            ) {
+                $m['__rates'] = '';
+
+            } else {
+                $shipping_params = array();
+
+                $total = self::getShippingItemsTotal($items, $plugin_currency, $params);
+
+                # convert dimensions
+                self::convertShippingItemsDimensions($items, $plugin);
+
+                if ($total) {
+                    $shipping_params['total_price'] = $total;
+                }
+                if (!empty($params['shipping_params'][$method_id])) {
+                    $shipping_params['shipping_params'] = $params['shipping_params'][$method_id];
+                }
+
+                if (!empty($params['departure_datetime'])) {
+                    $shipping_params['departure_datetime'] = $params['departure_datetime'];
+                }
+
+                $m['__rates'] = $plugin->getRates($items, $address ? $address : array(), $shipping_params);
+            }
+
+        }
+        unset($m);
+
+        waNet::multiQuery('shop.shipping');
+
+        $data_fields = array(
+            'type',
+            'est_delivery',
+            'comment',
+            'custom_data',
+            'delivery_date',
+        );
+
+        foreach ($methods as $m) {
+            if (isset($m['__rates'])) {
+                $rates = $m['__rates'];
+                $method_id = $m['id'];
+                $plugin_info = $m['__plugin_info'];
+
+                /** @var waShipping $plugin */
+                $plugin = $m['__instance'];
+
+                if ($rates && ($rates instanceof waShipping)) {
+                    $rates = $rates->getPromise();
+                }
+                if (is_array($rates)) {
+                    $key = null;
+                    foreach ($rates as $rate_id => $info) {
+                        if (is_array($info)) {
+                            $key = $method_id.'.'.$rate_id;
+                            if (empty($params['raw_rate'])) {
+                                $rate = is_array($info['rate']) ? max($info['rate']) : $info['rate'];
+                                if ($rate !== null) {
+                                    $rate = (float)shop_currency($rate, reset($plugin_currency), $params['currency'], false);
+                                }
+                            } else {
+                                $rate = $info['rate'];
+                            }
+                            $result[$key] = array(
+                                'plugin'      => $m['plugin'],
+                                'plugin_name' => $plugin_info['name'],
+                                'logo'        => $m['logo'],
+                                'icon'        => $plugin_info['icon'],
+                                'img'         => $plugin_info['img'],
+                                'name'        => $m['name'].(!empty($info['name']) ? ' ('.$info['name'].')' : ''),
+                                'rate'        => $rate,
+                                'currency'    => $params['currency'],
+                                'external'    => !empty($plugin_info['external']),
+                                'type'        => ifset($plugin_info, 'type', null),
+                            );
+
+                            if ($rate === null) {
+                                $result[$key]['error'] = ifset($info, 'comment', _w('Shipping option not specified'));
+                                unset($info['comment']);
+                            }
+
+                            foreach ($data_fields as $field) {
+                                if (isset($info[$field]) && !is_null($info[$field])) {
+                                    $result[$key][$field] = $info[$field];
+                                }
+                            }
+                        }
+                    }
+
+                    if ($key && !empty($params['custom_html']) && $plugin->getProperties('backend_custom_fields')) {
+                        $order = new waOrder(
+                            array(
+                                'contact_id'       => null,
+                                'contact'          => null,
+                                'items'            => $items,
+                                'shipping_address' => $address,
+                                'shipping_params'  => ifset($params['shipping_params'][$method_id]),
+                            )
+                        );
+                        $custom_fields = $plugin->customFields($order);
+                        if ($custom_fields) {
+                            $control_params = array();
+                            $control_params['namespace'] = 'shipping_'.$m['id'];
+                            $control_params['title_wrapper'] = '%s';
+                            $control_params['description_wrapper'] = '<br><span class="hint">%s</span>';
+                            $control_params['control_wrapper'] = '<div class="field"><div class="name">%s</div><div class="value">%s %s</div></div>';
+                            $control_params['control_separator'] = '</div><div class="value">';
+
+                            $controls = array();
+                            foreach ($custom_fields as $name => $row) {
+                                $row = array_merge($row, $control_params);
+                                if (!empty($order_params['shipping_id']) && ($m['id'] == $order_params['shipping_id']) && isset($order_params['shipping_params_'.$name])) {
+                                    $row['value'] = $order_params['shipping_params_'.$name];
+                                }
+                                if (!empty($row['control_type'])) {
+                                    $controls[$name] = waHtmlControl::getControl($row['control_type'], $name, $row);
+                                }
+                            }
+                            if ($controls) {
+                                $custom_html = '';
+                                foreach ($controls as $c) {
+                                    $custom_html .= $c;
+                                }
+                                $result[$key]['custom_html'] = $custom_html;
+                            }
+                        }
+                    }
+
+                } elseif (is_string($rates)) {
+                    $result[$m['id']] = array(
+                        'plugin'      => $m['plugin'],
+                        'plugin_name' => $plugin_info['name'],
+                        'logo'        => $m['logo'],
+                        'icon'        => $plugin_info['icon'],
+                        'img'         => $plugin_info['img'],
+                        'name'        => $m['name'],
+                        'error'       => $rates,
+                        'rate'        => '',
+                        'currency'    => $params['currency'],
+                        'external'    => !empty($plugin_info['external']),
+                    );
+                } elseif (($rates === false) && in_array($m['id'], $params['allow_external_for'])) {
+                    $result[$method_id] = array(
+                        'plugin'      => $m['plugin'],
+                        'plugin_name' => $plugin_info['name'],
+                        'logo'        => $m['logo'],
+                        'icon'        => $plugin_info['icon'],
+                        'img'         => $plugin_info['img'],
+                        'name'        => $m['name'],
+                        'error'       => _w('Not available'),
+                        'rate'        => '',
+                        'external'    => !empty($plugin_info['external']),
+                    );
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    private static function getShippingItemsTotal($items, $plugin_currency, $params)
+    {
+        $total = null;
+        if (isset($params['total_price'])) {
+            if (!in_array($params['currency'], $plugin_currency)) {
+                $total = shop_currency($params['total_price'], $params['currency'], reset($plugin_currency), false);
+            } else {
+                $total = $params['total_price'];
+            }
+        } else {
+            foreach ($items as $item) {
+                if (!empty($item['price'])) {
+                    $total += $item['price'] * (isset($item['quantity']) ? $item['quantity'] : 1);
+                }
+                if ($total && !in_array($params['currency'], $plugin_currency)) {
+                    $total = shop_currency($total, $params['currency'], reset($plugin_currency), false);
+                }
+            }
+        }
+
+        return $total;
+    }
+
+    /**
+     * @param $items
+     * @param waShipping $plugin
+     */
+    private static function convertShippingItemsDimensions(&$items, $plugin)
+    {
+        $dimension_fields = array();
+
+        $dimensions = shopDimension::getInstance();
+
+        if ($weight_unit = $plugin->allowedWeightUnit()) {
+            $dimension_fields['weight'] = array(
+                'type' => 'weight',
+                'unit' => $weight_unit,
+            );
+            unset($weight_unit);
+        }
+
+        if ($linear_unit = $plugin->allowedLinearUnit()) {
+            $dimension_fields['height'] = array(
+                'type' => 'length',
+                'unit' => $linear_unit,
+            );
+            $dimension_fields['length'] = array(
+                'type' => 'length',
+                'unit' => $linear_unit,
+            );
+            $dimension_fields['width'] = array(
+                'type' => 'length',
+                'unit' => $linear_unit,
+            );
+            unset($linear_unit);
+        }
+
+        foreach ($items as &$item) {
+            foreach ($dimension_fields as $field => $unit) {
+                if (!empty($item[$field])) {
+                    $original_field = 'original_'.$field;
+                    if (empty($item[$original_field])) {
+                        $item[$original_field] = $item[$field];
+                    }
+                    $item[$field] = $dimensions->convert($item[$original_field], $unit['type'], $unit['unit']);
+                }
+            }
+        }
+        unset($item);
     }
 
     /**
@@ -403,13 +557,16 @@ class shopHelper
         if ($default == 'custom') {
             // Note that we cannot use @2x versions here since Gravatar
             // removes the @ symbol (even escaped) from the URL before redirect.
-            $default = wa()->getRootUrl(true).'wa-content/img/userpic'.$size.'.jpg';
+            $url = wa()->getRootUrl(true).'wa-content/img/userpic'.$size.'.jpg';
             if (!file_exists($default)) {
-                $default = wa()->getRootUrl(true).'wa-content/img/userpic50.jpg';
+                $url = wa()->getRootUrl(true).'wa-content/img/userpic50.jpg';
             }
             $default = urlencode($default);
         }
-        $url = '//www.gravatar.com/avatar/'.md5(strtolower(trim($email)))."?size=$size&default=$default";
+
+        if ($default !== 'custom') {
+            $url = '//www.gravatar.com/avatar/'.md5(strtolower(trim($email)))."?size=$size&default=$default";
+        }
         if ($full_protocol) {
             $url = 'http'.(waRequest::isHttps() ? 's' : '').':'.$url;
         }
@@ -495,6 +652,8 @@ class shopHelper
     /**
      * Returns shipping date set for an order and saved in its params.
      * @example list($shipping_date, $shipping_time_start, $shipping_time_end) = shopHelper::getOrderShippingInterval($order_params);
+     * @param array $order_params
+     * @return array
      */
     public static function getOrderShippingInterval($order_params)
     {
@@ -598,7 +757,9 @@ class shopHelper
      */
     public static function encodeOrderId($id)
     {
-        return str_replace('{$order.id}', $id, wa('shop')->getConfig()->getOrderFormat());
+        /** @var shopConfig $config */
+        $config = wa('shop')->getConfig();
+        return str_replace('{$order.id}', $id, $config->getOrderFormat());
     }
 
     /**
@@ -609,7 +770,9 @@ class shopHelper
      */
     public static function decodeOrderId($id)
     {
-        $format = wa('shop')->getConfig()->getOrderFormat();
+        /** @var shopConfig $config */
+        $config = wa('shop')->getConfig();
+        $format = $config->getOrderFormat();
         $format = '/^'.str_replace('\{\$order\.id\}', '(\d+)', preg_quote($format, '/')).'$/';
         if (preg_match($format, $id, $m)) {
             return $m[1];
@@ -772,6 +935,7 @@ class shopHelper
      *
      * @param int|waContact|null $id Optional id of contact or contact object whose data must be pre-filled in contact form.
      * @param bool $ensure_address Whether address fields must be included regardless of store's contact fields settings.
+     * @param bool $checkout
      * @return waContactForm|shopContactForm
      */
     public static function getCustomerForm($id = null, $ensure_address = false, $checkout = false)
@@ -786,9 +950,12 @@ class shopHelper
             $contact && $contact->getName(); // make sure contact exists; throws exception otherwise
         }
 
-        $settings = wa('shop')->getConfig()->getCheckoutSettings();
+        /** @var shopConfig $config */
+        $config = wa('shop')->getConfig();
+
+        $settings = $config->getCheckoutSettings();
         if (!isset($settings['contactinfo'])) {
-            $settings = wa('shop')->getConfig()->getCheckoutSettings(true);
+            $settings = $config->getCheckoutSettings(true);
         }
 
         $fields_config = ifset($settings['contactinfo']['fields'], array());
@@ -826,7 +993,7 @@ class shopHelper
         foreach (array('address', 'address.shipping', 'address.billing') as $fid) {
             if (isset($fields_config[$fid]) && !empty($fields_config[$fid]['fields']['country'])) {
                 if (!isset($fields_config[$fid]['fields']['country']['value'])) {
-                    $fields_config[$fid]['fields']['country']['value'] = wa('shop')->getConfig()->getGeneralSettings('country');
+                    $fields_config[$fid]['fields']['country']['value'] = $config->getGeneralSettings('country');
                 }
             }
         }
@@ -919,6 +1086,7 @@ class shopHelper
     /**
      * @param $url
      * @param waModel $context
+     * @param int $counter
      * @param int $length
      * @param string $field
      * @return string
@@ -1027,10 +1195,13 @@ SQL;
         $sql .= ' LIMIT 1';
 
         if ($row = $notification_model->query($sql, compact('source'))->fetchRow()) {
-            $store_email = $row['value'];
+            $store_email = ifset($row, 'value', '');
         }
         if (empty($store_email)) {
-            $store_email = wa('shop')->getConfig()->getGeneralSettings('email');
+
+            /** @var shopConfig $config */
+            $config = wa('shop')->getConfig();
+            $store_email = $config->getGeneralSettings('email');
         }
         return $store_email;
     }
@@ -1060,6 +1231,27 @@ SQL;
         return $storefronts;
     }
 
+    public static function getStorefrontCheckoutHash($storefront)
+    {
+        $storefronts = shopHelper::getStorefronts(true);
+
+        $hash = false;
+        foreach ($storefronts as $route) {
+            if ($route['url'] === $storefront) {
+                $checkout_version = ifset($route, 'route', 'checkout_version', false);
+                if ($checkout_version == 2) {
+                    $hash = ifset($route, 'route','checkout_storefront_id', false);
+                    if ($hash === false) {
+                        throw new waException('Storefront id not found in config');
+                    }
+                }
+                break;
+            }
+        }
+
+        return $hash;
+    }
+
     public static function generateSignupUrl($customer, $order_storefront)
     {
         $signup_url = '';
@@ -1068,7 +1260,10 @@ SQL;
         } elseif (!($customer instanceof waContact)) {
             $customer = new shopCustomer(0);
         }
-        $guest_checkout = wa('shop')->getConfig()->getGeneralSettings('guest_checkout');
+
+        /** @var shopConfig $config */
+        $config = wa('shop')->getConfig();
+        $guest_checkout = $config->getGeneralSettings('guest_checkout');
         if ($guest_checkout === 'merge_email' && strlen($customer['password']) <= 0 && $customer['is_user'] >= 0) {
             $order_domain = self::getDomainByStorefront($order_storefront);
             $auth = wa()->getAuthConfig();
@@ -1314,7 +1509,7 @@ SQL;
                 'type'           => ifset($item['type'], 'product'),
                 'product_id'     => ifset($item['product_id']),
                 'weight'         => (float)ifset($item['weight']),
-                'weight_unit'    => (float)$options['weight'],
+                'weight_unit'    => (string)$options['weight'],
                 'total_discount' => (float)$item['total_discount'],
                 'discount'       => (float)($item['quantity'] ? ($item['total_discount'] / $item['quantity']) : 0.0),
             );
@@ -1415,7 +1610,7 @@ SQL;
             $items_total_discount = self::workupValue($items_total_discount, 'price', $order['currency'], $order['currency']);
             if ($order['discount'] != $items_total_discount) {
                 $discount = $order['discount'];// - $items_total_discount;
-                $discount_rate = min(1.0, ($discount / $items_total));
+                $discount_rate = ($items_total > 0) ? min(1.0, ($discount / $items_total)) : 0;
                 $n = count($order['items']);
 
                 $_delta = $order['discount'] - $items_total_discount;
@@ -1522,6 +1717,10 @@ SQL;
 
         if (!empty($options['weight'])) {
             $order_data['weight_unit'] = $options['weight'];
+        }
+
+        if (!empty($options['dimensions'])) {
+            $order_data['dimensions_unit'] = $options['dimensions'];
         }
 
         if (in_array($tax_included, array(true, false), true)) {

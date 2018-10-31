@@ -1,3 +1,8 @@
+{$_cart_url = $wa->getUrl('shop/frontend/cart')}
+{if $wa->param('checkout_version') == 2}
+    {$_cart_url = $wa->getUrl('shop/frontend/order')}
+{/if}
+
 <!-- products mini thumbnail list view: related products, etc. -->
 <ul class="thumbs product-list mini{if !empty($ulclass)} {$ulclass}{/if}">
 {foreach $products as $p}
@@ -27,7 +32,7 @@
                         <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
                         <input type="button" data-product_id="{$p.id}" data-url="{$wa->getUrl('shop/frontendCart/add')}" value="[`Add to cart`]">
                         <i class="adding2cart"></i>
-                        <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $p.name, $wa->getUrl('shop/frontend/cart'))}</span>
+                        <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $p.name, $_cart_url)}</span>
                     </div>
                 {else}
                     <form class="purchase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if} method="post" action="{$wa->getUrl('shop/frontendCart/add')}">
@@ -37,7 +42,7 @@
                         <input type="hidden" name="product_id" value="{$p.id}">
                         <input type="submit" value="[`Add to cart`]">
                         <i class="adding2cart"></i>
-                        <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $p.name, $wa->getUrl('shop/frontend/cart'))}</span>
+                        <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $p.name, $_cart_url)}</span>
                     </form>
                 {/if}
                 <link itemprop="availability" href="http://schema.org/InStock" />

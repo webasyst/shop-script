@@ -207,6 +207,9 @@
                 this.prevHash = this.hash;
             }
             this.hash = hash;
+            var e = new $.Event('wa_before_dispatched');
+            $(window).trigger(e);
+
             if (hash) {
                 hash = hash.split('/');
                 if (hash[0]) {

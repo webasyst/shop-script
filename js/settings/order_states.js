@@ -74,6 +74,19 @@ $.extend($.settings || {}, {
             return false;
         });
 
+        // Hide/Show the sort icon if the action is disabled/enabled
+        $('.s-order-action input[type="checkbox"]').on('click', function() {
+            var elem = $(this);
+
+            if (elem.is(':checked')) {
+                elem.closest('.s-order-action').removeClass('unsortable');
+                elem.closest('.s-order-action').find('.sort').show();
+            }else{
+                elem.closest('.s-order-action').addClass('unsortable');
+                elem.closest('.s-order-action').find('.sort').hide();
+            }
+        });
+
         // Link to add new action
         $('#s-add-action').unbind('click').bind('click', function() {
             var $template = $('.s-new-action');
@@ -109,7 +122,7 @@ $.extend($.settings || {}, {
                 return false;
             }
 
-            if(action_id !='message') {
+            if (action_id != 'message') {
 
                 // Render action settings form
                 var $template = $('.s-new-action');
@@ -127,10 +140,11 @@ $.extend($.settings || {}, {
                     if (match) {
                         item.attr('name', match[1].replace('new_action', 'edit_action') + '[' + action_id + ']');
                         var type = match[1].replace('new_action_', '');
+                        var value = $block.data(type);
                         if (item.is(':radio')) {
-                            item.attr('checked', item.val() == $block.data(type));
+                            item.attr('checked', item.val() == value);
                         } else {
-                            item.val($block.data(type));
+                            item.val(value);
                         }
                     }
                 });
@@ -210,7 +224,9 @@ $.extend($.settings || {}, {
         orderActionsSortableInit();
 
         // Form submit handler
-        var $form = $('#s-save-order-state');
+        var $form = $('#s-save-order-state'),
+            is_locked = false;
+
         var formSerialize = function () {
             var data = $form.serializeArray();
             var icon = $('.s-icons .selected i');
@@ -225,54 +241,69 @@ $.extend($.settings || {}, {
 
             var data = formSerialize();
 
-            // send post
-            showLoadingIcon();
-            $.shop.jsonPost($form.attr('action'), data,
-                function(r) {
-                    clearErrors();
+            if (!is_locked) {
+                // Disable submit button
+                $('#s-settings-order-states-submit').attr("disabled", true);
+                is_locked = true;
 
-                    // One-time callback after URL-hash-based dispatching.
-                    $(document).one('order_states_init', showSuccessIcon);
-
-                    if (r.data.add) {
-                        $.settings.dispatch('#/orderStates/'+r.data.id+'/',  true);
-                    } else if (r.data.new_id) {
-                        $.settings.dispatch('#/orderStates/'+r.data.new_id+'/',  true);
-                    } else {
-                        $.settings.redispatch();
-                    }
-                },
-                function(r) {
-                    if (r && r.errors) {
+                // send post
+                showLoadingIcon();
+                $.shop.jsonPost($form.attr('action'), data,
+                    function (r) {
                         clearErrors();
 
-                        // State-related errors
-                        if (!$.isEmptyObject(r.errors.state)) {
-                            for (var name in r.errors.state) {
-                                var input = $form.find('input[name='+name+']');
-                                input.addClass('error').after('<em class="errormsg">'+r.errors.state[name]+'</em>');
-                            }
+                        // One-time callback after URL-hash-based dispatching.
+                        $(document).one('order_states_init', showSuccessIcon);
+
+                        if (r.data.add) {
+                            $.settings.dispatch('#/orderStates/' + r.data.id + '/', true);
+                        } else if (r.data.new_id) {
+                            $.settings.dispatch('#/orderStates/' + r.data.new_id + '/', true);
+                        } else {
+                            $.settings.redispatch();
                         }
 
-                        // Action-related errors
-                        if (!$.isEmptyObject(r.errors.actions)) {
+                        // Enable submit button
+                        $('#s-settings-order-states-submit').attr("disabled", false);
+                        is_locked = false;
+                    },
+                    function (r) {
+                        if (r && r.errors) {
+                            clearErrors();
 
-                            // Mark inputs with action id to simplify filtering
-                            $form.find('input[name^=new_action_id]').each(function() {
-                                var input = $(this);
-                                input.attr('data-action-id', input.val().toLowerCase());
-                            });
-
-                            // Highlight fields with errors
-                            for (var id in r.errors.actions) {
-                                var input = $form.find('input[name^=new_action_id][data-action-id='+id+']');
-                                input.parent().find('input').addClass('error');
-                                input.after('<em class="errormsg">'+r.errors.actions[id]+'</em>');
+                            // State-related errors
+                            if (!$.isEmptyObject(r.errors.state)) {
+                                for (var name in r.errors.state) {
+                                    var input = $form.find('input[name=' + name + ']');
+                                    input.addClass('error').after('<em class="errormsg">' + r.errors.state[name] + '</em>');
+                                }
                             }
+
+                            // Action-related errors
+                            if (!$.isEmptyObject(r.errors.actions)) {
+
+                                // Mark inputs with action id to simplify filtering
+                                $form.find('input[name^=new_action_id]').each(function () {
+                                    var input = $(this);
+                                    input.attr('data-action-id', input.val().toLowerCase());
+                                });
+
+                                // Highlight fields with errors
+                                for (var id in r.errors.actions) {
+                                    var input = $form.find('input[name^=new_action_id][data-action-id=' + id + ']');
+                                    input.parent().find('input').addClass('error');
+                                    input.after('<em class="errormsg">' + r.errors.actions[id] + '</em>');
+                                }
+                            }
+
+                            // Enable submit button
+                            $('#s-settings-order-states-submit').attr("disabled", false);
+                            is_locked = false;
+                            showErrorIcon();
                         }
                     }
-                }
-            );
+                );
+            }
 
             return false;
 
@@ -281,9 +312,19 @@ $.extend($.settings || {}, {
                 $form.find('.errormsg').remove();
             }
 
+            function showErrorIcon() {
+                var $p = $('#s-settings-order-states-submit').parent();
+                var $icon = $p.find('i.no').show();
+
+                $p.find('i.loading').hide();
+                setTimeout(function () {
+                    $icon.hide();
+                }, 3000);
+            }
+
             function showSuccessIcon() {
                 var $icon = $('#s-settings-order-states-submit').parent().find('i.yes').show();
-                setTimeout(function() {
+                setTimeout(function () {
                     $icon.hide();
                 }, 3000);
             }
@@ -292,6 +333,7 @@ $.extend($.settings || {}, {
                 var $p = $('#s-settings-order-states-submit').parent();
                 $p.find('i.loading').show();
                 $p.find('i.yes').hide();
+                $p.find('i.no').hide();
             }
         }); // end of form submit handler
 
@@ -321,7 +363,7 @@ $.extend($.settings || {}, {
         // init buttons preview
         (function () {
 
-            $('.s-settings-form .wf-action').click(function (e) {
+            $('.s-settings-form').on('click', '.wf-action, .show-alert', function (e) {
                 e.preventDefault();
                 alert($_('This is a preview of actions available for orders in this state'));
             });
@@ -444,14 +486,20 @@ $.extend($.settings || {}, {
             var $block = $('.s-order-allowed-actions');
             $block.sortable({
                 distance: 5,
-                helper: 'clone',
-                items: '.s-order-action',
+                items: '.s-order-action:not(.unsortable)',
                 opacity: 0.75,
                 tolerance: 'pointer',
+                start: function (event, ui) {
+                    $block.sortable("refresh");
+                    $block.sortable({
+                        cancel: ".unsortable"
+                    });
+                },
                 update: function (event, ui) {
                     $block.trigger('change');
                 }
             });
+
         }
 
     } // end of orderStatesInit()

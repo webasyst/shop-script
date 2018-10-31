@@ -34,7 +34,7 @@ class shopFrontendCartAction extends shopFrontendAction
         $cart_model = new shopCartItemsModel();
         //$items = $cart_model->where('code= ?', $code)->order('parent_id')->fetchAll('id');
         $items = $cart->items(false);
-
+        shopOrderItemsModel::sortItemsByGeneralSettings($items);
         $total = $cart->total(false);
         $order = array(
             'currency' => wa()->getConfig()->getCurrency(false),

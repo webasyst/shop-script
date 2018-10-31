@@ -54,6 +54,20 @@ class shopReviewsAction extends waViewAction
             }
         }
 
+        /**
+         * Show reviews
+         *
+         * @param array &$reviews
+         *
+         * @event products_reviews
+         */
+
+        $params = array(
+            'reviews' => &$reviews,
+        );
+        $products_reviews_hook = wa('shop')->event('products_reviews', $params);
+        $this->view->assign('products_reviews_hook', $products_reviews_hook);
+
         $this->view->assign(array(
             'total_count' => $total_count ? $total_count : $product_reivews_model->countAll(),
             'count' => count($reviews),

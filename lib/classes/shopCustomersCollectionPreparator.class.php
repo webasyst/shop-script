@@ -17,10 +17,15 @@ class shopCustomersCollectionPreparator
      */
     protected $collection;
 
-    public function __construct(waContactsCollection $collection, $options = array()) {
+    public function __construct(waContactsCollection $collection, $options = array())
+    {
         $this->collection = $collection;
         $this->customer_table_alias = $this->addJoinOnce('shop_customer');
-        $this->order_table_alias = $this->addJoinOnce('shop_order', $this->customer_table_alias.'.last_order_id = :table.id');
+        $this->order_table_alias = $this->addJoinOnce([
+            'table' => 'shop_order',
+            'on'    => $this->customer_table_alias.'.last_order_id = :table.id',
+            'type'  => 'LEFT'
+        ]);
         $this->options = $options;
     }
 
@@ -36,14 +41,20 @@ class shopCustomersCollectionPreparator
 
     protected function addJoinOnce($table, $on = null, $where = null, $options = array())
     {
-        if (empty($this->join_table_aliases[$table])) {
+        if (is_array($table)) {
+            $table_name = ifset($table, 'table', null);
+        } else {
+            $table_name = $table;
+        }
+
+        if (empty($this->join_table_aliases[$table_name])) {
             return $this->addJoin($table, $on, $where, $options);
-        } else if (!empty($this->join_table_aliases[$table])) {
-            return $this->join_table_aliases[$table][0];
+        } else if (!empty($this->join_table_aliases[$table_name])) {
+            return $this->join_table_aliases[$table_name][0];
         }
     }
 
-    protected  function addLeftJoinOnce($table, $on = null, $where = null, $options = array())
+    protected function addLeftJoinOnce($table, $on = null, $where = null, $options = array())
     {
         if (empty($this->left_join_table_aliases[$table])) {
             return $this->addLeftJoin($table, $on, $where, $options);
@@ -54,10 +65,17 @@ class shopCustomersCollectionPreparator
 
     protected  function addJoin($table, $on = null, $where = null, $options = array()) {
         $alias = $this->collection->addJoin($table, $on, $where, $options);
-        $this->join_table_index[$table] = ifset($this->join_table_index[$table], 0);
-        $this->join_table_index[$table] += 1;
-        $this->join_table_aliases[$table] = ifset($this->join_table_aliases[$table], array());
-        $this->join_table_aliases[$table][] = $alias;
+
+        if (is_array($table)) {
+            $table_name = ifset($table, 'table', null);
+        } else {
+            $table_name = $table;
+        }
+
+        $this->join_table_index[$table_name] = ifset($this->join_table_index[$table_name], 0);
+        $this->join_table_index[$table_name] += 1;
+        $this->join_table_aliases[$table_name] = ifset($this->join_table_aliases[$table_name], array());
+        $this->join_table_aliases[$table_name][] = $alias;
         return $alias;
     }
 

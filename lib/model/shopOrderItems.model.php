@@ -4,6 +4,8 @@
  * Note: all prices in this table (price and purchase_price)
  * are stored in shop_order.currency, not the default shop currency.
  * shop_order.rate contains the currency rate valid at the time of the order.
+ *
+ * PHPUnit : wa-apps/shop/model/order/shopOrderItemsModelTest.php
  */
 class shopOrderItemsModel extends waModel implements shopOrderStorageInterface
 {
@@ -102,7 +104,13 @@ SQL;
             $order = $this->getOrder($order);
         }
         $items = $this->getRawItems($order_id);
-        return $extend ? $this->extendItems($items, $order) : $items;
+        shopOrderItemsModel::sortItemsByGeneralSettings($items);
+
+        if ($extend) {
+            $items = $this->extendItems($items, $order);
+        }
+
+        return $items;
     }
 
     /**
@@ -204,8 +212,8 @@ SQL;
                 $image = $shop_product_images->getById($product['skus'][$sku_id]['image_id']);
                 $product = array_merge($product, array(
                     'image_filename' => $image['filename'],
-                    'ext' =>$image['ext'],
-                    'image_id' => $image['id'],
+                    'ext'            => $image['ext'],
+                    'image_id'       => $image['id'],
                 ));
             }
         }
@@ -796,5 +804,83 @@ SQL;
         $options = $order->options('items');
         $data = $this->getItems($order, !empty($options['extend']));
         return $data;
+    }
+
+    protected static function sortOrderItems($items, $type)
+    {
+        $tmp_services = $new_items = [];
+
+        if ($type != 'user_cart') {
+            foreach ($items as $i_key => $item) {
+                if (isset($item['type']) && $item['type'] == 'service') {
+                    $tmp_services[$item['parent_id']][$i_key] = $item;
+                    unset($items[$i_key]);
+                }
+            }
+
+            if ($type === 'sku_name') {
+                uasort($items, array('shopOrderItemsModel', 'sortOrderItemsBySkuName'));
+            }
+            if ($type === 'sku_code') {
+                uasort($items, array('shopOrderItemsModel', 'sortOrderItemsBySkuCode'));
+            }
+
+            foreach ($items as $p_key => $product) {
+                $new_items[$p_key] = $product;
+                $product_id = ifset($product, 'id', null);
+                $tmp_item_services = ifset($tmp_services, $product_id, []);
+                if (!empty($tmp_item_services)) {
+                    foreach ($tmp_item_services as $s_key => $service) {
+                        $new_items[$s_key] = $service;
+                    }
+                }
+            }
+        } else {
+            $new_items = $items;
+        }
+
+        return $new_items;
+    }
+
+
+    public static function sortItemsByGeneralSettings(&$items)
+    {
+        $sort_order_items = wa()->getSetting('sort_order_items', '', 'shop');
+
+        $sorted_items = self::sortOrderItems($items, $sort_order_items);
+
+        if (waSystemConfig::isDebug() && defined('SHOP_ORDER_ITEMS_SORT_LOG')) {
+            waLog::log("\nSTART IN \n".var_export($items, true)."\n OUT \n".var_export($sorted_items, true)."\n END", 'shop/sort_order_items.log');
+        }
+
+        $items = $sorted_items;
+    }
+
+    public static function sortOrderItemsBySkuName($a_arr, $b_arr)
+    {
+        $a_name = mb_strtolower(ifset($a_arr, 'name', ''));
+        $b_name = mb_strtolower(ifset($b_arr, 'name', ''));
+
+        return strncasecmp($a_name, $b_name, 255);
+    }
+
+    public static function sortOrderItemsBySkuCode($a_arr, $b_arr)
+    {
+        $a_sku_code = mb_strtolower(ifset($a_arr, 'sku_code', ''));
+        $b_sku_code = mb_strtolower(ifset($b_arr, 'sku_code', ''));
+        $a_name = mb_strtolower(ifset($a_arr, 'name', ''));
+        $b_name = mb_strtolower(ifset($b_arr, 'name', ''));
+
+        if (strlen($a_sku_code) && strlen($b_sku_code) === 0) {
+            return -1;
+        } elseif (strlen($a_sku_code) === 0 && strlen($b_sku_code)) {
+            return 1;
+        } else {
+            $result = strcmp($a_sku_code, $b_sku_code);
+            if ($result === 0) {
+                $result = strcmp($a_name, $b_name);
+            }
+            return $result;
+        }
     }
 }

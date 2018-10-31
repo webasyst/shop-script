@@ -167,7 +167,7 @@
 <!-- {capture name="edit-feature-template-js"}{literal} edit feature jquery template -->
                 <tr data-types="${feature.types.sort().join(" ")}" class="js-inline-edit" data-feature="${feature.id}" data-multiple="${feature.multiple}" data-selectable="${feature.selectable}" data-type="${feature.type}" {{if (feature.type=='divider')}} class="gray"{{/if}}>
                     <td class="min-width"><i class="icon16 sort"></i></td>
-                    <td><input type="text" name="feature[${feature.id}][name]" value="${feature.name}"><br>
+                    <td><input type="text" name="feature[${feature.id}][name]" class="s-settings-edit-value" value="${feature.name}"><br>
                     {{if feature.id>0}}
                     <span class="js-feature-code hint">${feature.code}<a href="#/features/feature/code/edit/${feature.id}/" class="js-action" style="display: inline;"><i class="icon10 edit"></i></a></span>
                     {{/if}}
@@ -177,6 +177,16 @@
                         <input type="checkbox" name="feature[${feature.id}][status_private]" value="1"{{if feature.status != 'public'}} checked{{/if}}>
                         [`Only visible in backend`]
                     </label>
+
+                    {{if feature.id > 0}}
+                    <ul class="menu-v compact with-icons small">
+                        <li class="s-settings-change-type">
+                            <a href="#/features/feature/type/${feature.id}/" class="js-action">
+                                <i class="icon10 settings"></i>[`Change this feature type`]
+                            </a>
+                        </li>
+                    </ul>
+                    {{/if}}
 
                     </td>
                     <td>
@@ -206,13 +216,13 @@ action=''
 <li data-value-id="${id}">
     <i class="icon16 sort"></i>
 
-    <input name="feature[${feature.id}][values][${id}][value]" type="text" value="${$.settings.featuresHelper.value(feature_value,"value")}" placeholder="[`color name`]" {{if feature_value.error}} class="error" title="${feature_value.error.message}" data-original-id="${feature_value.error.original_id}"{{/if}}>
+    <input name="feature[${feature.id}][values][${id}][value]" type="text" class="s-settings-edit-value" value="${$.settings.featuresHelper.value(feature_value,"value")}" placeholder="[`color name`]" {{if feature_value.error}} class="error" title="${feature_value.error.message}" data-original-id="${feature_value.error.original_id}"{{/if}}>
 
     <a href="#/features/feature/value/color/${feature.id}/${id}/" class="js-action" style="display: inline;padding-left: 20px;">
         <i class="icon16 color" style="background: ${$.settings.featuresHelper.value(feature_value,"color")}"></i>
     </a>
 
-    #<input name="feature[${feature.id}][values][${id}][code]" type="text" value="${$.settings.featuresHelper.value(feature_value,"hex")}" placeholder="FFFFFF">
+    #<input name="feature[${feature.id}][values][${id}][code]" type="text" class="short" value="${$.settings.featuresHelper.value(feature_value,"hex")}" placeholder="FFFFFF">
     <a href="#/features/feature/value/delete/${feature.id}/${id}/" class="js-action" style="display: inline;">
         <i class="icon10 delete no-overhanging"></i>
     </a>
@@ -228,7 +238,7 @@ action=''
 <li data-value-id="${id}">
 <i class="icon16 sort"></i>
 
-<input type="text" name="feature[${feature.id}][values][${id}][value]" value="${$.settings.featuresHelper.value(feature_value,"value")}"{{if feature_value.error}} class="error" title="${feature_value.error.message}" data-original-id="${feature_value.error.original_id}"{{/if}}>
+<input type="text" class="s-settings-edit-value" name="feature[${feature.id}][values][${id}][value]" value="${$.settings.featuresHelper.value(feature_value,"value")}"{{if feature_value.error}} class="error" title="${feature_value.error.message}" data-original-id="${feature_value.error.original_id}"{{/if}}>
 {/literal}
 {$units = shopDimension::getUnits($code)}
 {if $units}{literal}
@@ -254,7 +264,7 @@ action=''
 
                                 <li data-value-id="${id}">
                                     <i class="icon16 sort"></i>
-                                    <input type="text" name="feature[${feature.id}][values][${id}]" value="{{if typeof(feature_value) == 'object'}}${feature_value.value}{{else}}${feature_value}{{/if}}"{{if feature_value.error}} class="error" title="${feature_value.error.message}" data-original-id="${feature_value.error.original_id}"{{/if}}>
+                                    <input type="text" class="s-settings-edit-value" name="feature[${feature.id}][values][${id}]" value="{{if typeof(feature_value) == 'object'}}${feature_value.value}{{else}}${feature_value}{{/if}}"{{if feature_value.error}} class="error" title="${feature_value.error.message}" data-original-id="${feature_value.error.original_id}"{{/if}}>
                                     <a href="#/features/feature/value/delete/${feature.id}/${id}/" class="js-action" style="display: inline;">
                                         <i class="icon10 delete no-overhanging"></i>
                                     </a>
@@ -269,19 +279,11 @@ action=''
                                 </li>
                             </ul>
                         </div>
-
-                        {{if feature.id > 0}}
-                        <ul class="menu-v compact with-icons small">
-                            <li>
-                                <a href="#/features/feature/type/${feature.id}/" class="js-action">
-                                    <i class="icon10 settings"></i>[`Change this feature type`]
-                                </a>
-                            </li>
-                        </ul>
-                        {{/if}}
-
+                        <div class="s-settings-save-block">
+                            <a href="#/features/feature/save/${feature.id}/" class="js-action inline button green">[`Save`]</a>
+                        </div>
                     </td>
-                    <td>
+                    <td colspan="2">
                         <ul class="menu-v compact collapsible small s-feature-values js-types" style="max-height: 500px;overflow-y: auto;overflow-x: hidden;">
                             <li data-type="0">
                                 <label>
@@ -299,14 +301,6 @@ action=''
                             <!-- {/literal}{/capture}{$smarty.capture["edit-feature-type-template-js"]}{literal} -->
                             {{/each}}
                         </ul>
-                    </td>
-                    <td class="align-center">
-
-                        <a href="#/features/feature/save/${feature.id}/" class="js-action inline button green">[`Save`]</a>
-
-                        </li>
-
-                        <br>
                     </td>
                 </tr>
 <!-- {/literal}{/capture} placeholder -->

@@ -21,7 +21,7 @@ class shopCustomersListAction extends waViewAction
         $hash = $this->getHash();
 
         $collection = $this->getCollection($hash, $order);
-        $customers = $collection->getCustomers('*,order.create_datetime AS  last_order_datetime', $offset, $limit);
+        $customers = $collection->getCustomers('*,order.create_datetime AS last_order_datetime', $offset, $limit);
         $this->workupList($customers);
 
         $total_count = $this->getTotalCount($collection);
@@ -39,22 +39,22 @@ class shopCustomersListAction extends waViewAction
         ));
 
         $this->view->assign(array(
-            'cols' => $this->getCols(),
-            'title' => $title,
-            'count' => $count,
-            'offset' => $offset,
-            'order' => $this->getOrder(false),
-            'total_count' => $total_count,
-            'customers' => $customers,
-            'hash_start' => $this->getHashStart(),
-            'category_id' => $this->getCategoryId(),
-            'query' => $this->getQuery(true),
-            'is_admin' => wa()->getUser()->isAdmin(),
-            'icons' => wa()->getConfig()->getOption('customers_filter_icons'),
-            'filter' => $filter,
-            'filter_id' => $filter_id,
-            'groups' => $this->getGroups(),
-            'in_lazy_process' => waRequest::get('lazy', false),     // is now lazy loading?
+            'cols'             => $this->getCols(),
+            'title'            => $title,
+            'count'            => $count,
+            'offset'           => $offset,
+            'order'            => $this->getOrder(false),
+            'total_count'      => $total_count,
+            'customers'        => $customers,
+            'hash_start'       => $this->getHashStart(),
+            'category_id'      => $this->getCategoryId(),
+            'query'            => $this->getQuery(true),
+            'is_admin'         => wa()->getUser()->isAdmin(),
+            'icons'            => wa()->getConfig()->getOption('customers_filter_icons'),
+            'filter'           => $filter,
+            'filter_id'        => $filter_id,
+            'groups'           => $this->getGroups(),
+            'in_lazy_process'  => waRequest::get('lazy', false),     // is now lazy loading?
             'lazy_loading_url' => $this->getLazyLoadingUrl()
         ));
 
@@ -73,15 +73,26 @@ class shopCustomersListAction extends waViewAction
         $filter_id = $this->getFilterId();
         $category_id = $this->getCategoryId();
         $search = $this->getQuery();
+        $type = $this->getType();
+
         $hash = 'all';
         if ($category_id) {
-            $hash = 'category/' . $category_id;
-        } else if ($search) {
-            $hash = 'search/' . $search;
-        } else if ($filter_id) {
-            $hash = 'filter/' . $filter_id;
+            $hash = 'category/'.$category_id;
+        } elseif ($search) {
+            $hash = 'search/'.$search;
+        } elseif ($filter_id) {
+            $hash = 'filter/'.$filter_id;
+        } elseif ($type) {
+            $hash = 'clients';
         }
+
         return $hash;
+    }
+
+    public function getType()
+    {
+        $type = waRequest::request('type', null, waRequest::TYPE_STRING);
+        return $type;
     }
 
     public function getQuery($prepare_for_view = false)
@@ -107,8 +118,10 @@ class shopCustomersListAction extends waViewAction
     {
         if ($this->getQuery()) {
             return '#/search/'.urlencode($this->getQuery()).'/';
-        } else if ($this->getCategoryId()) {
+        } elseif ($this->getCategoryId()) {
             return '#/category/'.$this->getCategoryId().'/';
+        } elseif ($this->getType()) {
+            return '#/clients/';
         } else {
             return '#/all/';
         }
@@ -125,17 +138,23 @@ class shopCustomersListAction extends waViewAction
         $filter_id = $this->getFilterId();
         $category_id = $this->getCategoryId();
         $query = $this->getQuery(true);
+        $type = $this->getType();
+
         if ($filter_id) {
-            $hash[] = 'filter_id=' . $filter_id;
+            $hash[] = 'filter_id='.$filter_id;
         }
         if ($category_id) {
-            $hash[] = 'category=' . $category_id;
+            $hash[] = 'category='.$category_id;
         }
         if ($query) {
-            $hash[] = 'search=' . $query;
+            $hash[] = 'search='.$query;
         }
+        if ($type) {
+            $hash[] = 'type='.$type;
+        }
+
         $order = $this->getOrder(false);
-        return '?module=customers&action=list' . ($hash ? '&'.implode('&', $hash) : '') . '&order=' . $order;
+        return '?module=customers&action=list'.($hash ? '&'.implode('&', $hash) : '').'&order='.$order;
     }
 
     public function getLimit()
@@ -149,18 +168,18 @@ class shopCustomersListAction extends waViewAction
 
         if ($for_collection) {
             $possible_orders = array(
-                'name' => 'name',
-                '!name' => 'name DESC',
-                'total_spent' => 'total_spent',
-                '!total_spent' => 'total_spent DESC',
-                'affiliate_bonus' => 'affiliate_bonus',
-                '!affiliate_bonus' => 'affiliate_bonus DESC',
-                'number_of_orders' => 'number_of_orders',
+                'name'              => 'name',
+                '!name'             => 'name DESC',
+                'total_spent'       => 'total_spent',
+                '!total_spent'      => 'total_spent DESC',
+                'affiliate_bonus'   => 'affiliate_bonus',
+                '!affiliate_bonus'  => 'affiliate_bonus DESC',
+                'number_of_orders'  => 'number_of_orders',
                 '!number_of_orders' => 'number_of_orders DESC',
-                'last_order' => 'last_order_id',
-                '!last_order' => 'last_order_id DESC',
-                'registered' => 'create_datetime',
-                '!registered' => 'create_datetime DESC',
+                'last_order'        => 'last_order_id',
+                '!last_order'       => 'last_order_id DESC',
+                'registered'        => 'create_datetime',
+                '!registered'       => 'create_datetime DESC',
             );
             if (isset($possible_orders[$order])) {
                 $order = explode(' ', $possible_orders[$order]);
@@ -184,14 +203,14 @@ class shopCustomersListAction extends waViewAction
     protected function workupList(&$customers)
     {
         $config = $this->getConfig();
-        $use_gravatar     = $config->getGeneralSettings('use_gravatar');
+        $use_gravatar = $config->getGeneralSettings('use_gravatar');
         $gravatar_default = $config->getGeneralSettings('gravatar_default');
 
         $countries = array();
 
         foreach ($customers as &$c) {
             $c['email'] = !empty($c['email']) ? reset($c['email']) : null;
-            $c['affiliate_bonus'] = (float) $c['affiliate_bonus'];
+            $c['affiliate_bonus'] = (float)$c['affiliate_bonus'];
             if (!$c['photo'] && $use_gravatar) {
                 $c['photo'] = shopHelper::getGravatar(!empty($c['email']) ? $c['email'] : '', 50, $gravatar_default);
             } else {
@@ -208,7 +227,7 @@ class shopCustomersListAction extends waViewAction
         // Add region names to addresses
         if ($countries) {
             $rm = new waRegionModel();
-            foreach($rm->where('country_iso3 IN (?)', array_keys($countries))->query() as $row) {
+            foreach ($rm->where('country_iso3 IN (?)', array_keys($countries))->query() as $row) {
                 $countries[$row['country_iso3']][$row['code']] = $row['name'];
             }
             foreach ($customers as &$c) {
@@ -227,8 +246,8 @@ class shopCustomersListAction extends waViewAction
         $categories = $this->getCategories();
         if ($customers) {
             $ccsm = new waContactCategoriesModel();
-            foreach($ccsm->getContactsCategories(array_keys($customers)) as $c_id => $list) {
-                foreach($list as $cat_id) {
+            foreach ($ccsm->getContactsCategories(array_keys($customers)) as $c_id => $list) {
+                foreach ($list as $cat_id) {
                     if (!empty($categories[$cat_id])) {
                         $customers[$c_id]['categories'][$cat_id] = $categories[$cat_id];
                     }
@@ -249,12 +268,12 @@ class shopCustomersListAction extends waViewAction
     public function getCols()
     {
         return array(
-            'name' => _w('Customer name'),
-            'total_spent' => _w('Total spent'),
-            'affiliate_bonus' => _w('Affiliate bonus'),
+            'name'             => _w('Customer name'),
+            'total_spent'      => _w('Total spent'),
+            'affiliate_bonus'  => _w('Affiliate bonus'),
             'number_of_orders' => _w('Number of orders'),
-            'last_order' => _w('Last order'),
-            'registered' => _w('Registered'),
+            'last_order'       => _w('Last order'),
+            'registered'       => _w('Registered'),
         );
     }
 
@@ -281,19 +300,19 @@ class shopCustomersListAction extends waViewAction
         $hash[1] = ifset($hash[1], '');
 
         $ops = '\\\$=|\^=|\*=|==|!=|>=|<=|=|>|<|@=';
-        foreach(array(
-            'email',
-            'phone',
-            'email\|name',
-            'name\|email'
-        ) as $h) {
+        foreach (array(
+                     'email',
+                     'phone',
+                     'email\|name',
+                     'name\|email'
+                 ) as $h) {
             if (preg_match("/^({$h})({$ops})[^&]+$/uis", $hash[1])) {
                 return preg_replace("/{$h}({$ops})/", '', $hash[1]);
             }
         }
         if ($hash[0] === 'filter') {
             return $col_title;
-        } else if ($hash[0] === 'category') {
+        } elseif ($hash[0] === 'category') {
             return $col_title;
         }
 

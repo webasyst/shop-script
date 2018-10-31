@@ -9,6 +9,25 @@ class shopStocksAction extends waViewAction
 
         $transfers = $this->getTransfers();
 
+
+        /**
+         * Show stocks and transfers
+         *
+         * @param string $tab
+         * @param string $content Html. Result from shopStocksBalanceAction
+         * @param array $transfers  Html result from shopTransferListAction and other info from transfers
+         *
+         * @event backend_stocks.stocks
+         */
+        $params = array(
+            'tab' => $tab,
+            'content' => $content,
+            'transfers' => $transfers
+        );
+
+        $backend_stocks_hook = wa('shop')->event('backend_stocks.stocks', $params);
+        $this->view->assign('backend_stocks_hook', $backend_stocks_hook);
+
         $this->view->assign(array(
             'tab' => $tab,
             'content' => $content,
