@@ -174,16 +174,16 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
         }
 
         return array(
-            'data' => $data,
-            'result' => $this->addRenderedHtml([
-                'shipping_address_fields' => $address_fields,
+            'data'         => $data,
+            'result'       => $this->addRenderedHtml([
+                'shipping_address_fields'       => $address_fields,
                 'shipping_address_fields_order' => array_keys($address_fields),
-                'plugin_custom_fields' => $plugin_custom_fields,
-                'plugin_custom_fields_order' => array_keys($plugin_custom_fields),
-                'preliminary_shipping_rate' => $selected_variant,
-                'shipping_rate' => $updated_selected_variant,
+                'plugin_custom_fields'          => $plugin_custom_fields,
+                'plugin_custom_fields_order'    => array_keys($plugin_custom_fields),
+                'preliminary_shipping_rate'     => $selected_variant,
+                'shipping_rate'                 => $updated_selected_variant,
             ], $data, $errors),
-            'errors' => $errors,
+            'errors'       => $errors,
             'can_continue' => true,
         );
     }

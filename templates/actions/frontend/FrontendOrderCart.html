@@ -1,13 +1,13 @@
 {$_config = $config.cart}
 
 {$_locales = [
-    "product_delete" => _w('Remove product from cart'),
+    "product_delete" => _w('Delete product from the cart'),
     "quantity_empty" => _w("Out of stock"),
-    "quantity_limit" => _w("Больше нет на складе"),
-    "quantity_delete" => _w('Remove product from cart'),
+    "quantity_limit" => _w("No more items in stock"),
+    "quantity_delete" => _w('Delete product from the cart'),
     "quantity_decrease" => _w('Reduce quantity'),
     "quantity_increase" => _w('Increase quantity'),
-    "quantity_stock_error" => _w("In stock only %s unit. Reduce the quantity or remove the product")
+    "quantity_stock_error" => _w("Only %s units available in stock. Please reduce the quantity or delete this product from the cart.")
 ]}
 
 {function name="_renderError" _text=""}
@@ -82,7 +82,7 @@
                                             {/if}
 
                                             {if !empty($_item.weight_html)}
-                                                <span class="wa-weight" title={_w('Weight of one item')|json_encode}>{$_item.weight_html}</span>
+                                                <span class="wa-weight" title={_w('One item’s weight')|json_encode}>{$_item.weight_html}</span>
                                             {/if}
 
                                             <span class="wa-actions">
@@ -260,7 +260,7 @@
                                 <button class="wa-button gray js-use-coupon">[`Activate`]</button>
                             </div>
                             <div class="wa-active-state">
-                                <span class="wa-text"><i class="wa-icon yes size-13"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#yes"></use></svg></i>&nbsp;[`Coupon used`]</span>
+                                <span class="wa-text"><i class="wa-icon yes size-13"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#yes"></use></svg></i>&nbsp;[`Coupon applied`]</span>
                                 <button class="wa-button transparent js-cancel-coupon">[`Undo`]</button>
                             </div>
 
@@ -355,7 +355,7 @@
                             </div>
                             {*affiliate*}
                             <div class="wa-price-discount" id="wa-cart-discount-affiliate" style="{if empty($affiliate.use_affiliate)}display: none;{/if}">
-                                [`Affiliate discount`]
+                                [`Affiliate bonus discount`]
                                 <span class="wa-discount js-price">{if !empty($affiliate.use_affiliate)}
                                     {shop_currency(shopAffiliate::convertBonus($affiliate.used_affiliate_bonus), [
                                         'extended_format' => '%t{h}'
@@ -376,7 +376,7 @@
                         </div>
                     </div>
 
-                    <div class="wa-weight-section" id="wa-cart-weight" style="{if empty($cart.total_weight_html) || empty($cart.count_html)}display: none;{/if}">{if !empty($cart.total_weight_html) && !empty($cart.count_html)}{sprintf('%s with total weight %s', "<span class=\"wa-count\">{$cart.count_html}</span>", "<span class=\"wa-weight\">{$cart.total_weight_html}</span>")}{/if}</div>
+                    <div class="wa-weight-section" id="wa-cart-weight" style="{if empty($cart.total_weight_html) || empty($cart.count_html)}display: none;{/if}">{if !empty($cart.total_weight_html) && !empty($cart.count_html)}{sprintf('[`%s with total weight %s`]', "<span class=\"wa-count\">{$cart.count_html}</span>", "<span class=\"wa-weight\">{$cart.total_weight_html}</span>")}{/if}</div>
 
                 </div>
             </div>
@@ -531,7 +531,7 @@
                             quantity_increase: {$_locales["quantity_increase"]|json_encode},
                             quantity_stock_error: {$_locales["quantity_stock_error"]|json_encode},
 
-                            weight_total: {sprintf('%s with total weight %s', "<span class=\"wa-count\">%s</span>", "<span class=\"wa-weight\">%s</span>")|json_encode},
+                            weight_total: {sprintf('[`%s with total weight %s`]', "<span class=\"wa-count\">%s</span>", "<span class=\"wa-weight\">%s</span>")|json_encode},
                             affiliate_bonus: {_w('This order will add <strong>+%s bonuses</strong> to  your account, which you will be able to spend on getting additional discounts later.')|json_encode}
                         }
                     });

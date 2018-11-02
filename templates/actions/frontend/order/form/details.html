@@ -142,7 +142,7 @@
                         <div class="wa-table">
                             <div class="wa-row">
                                 <div class="wa-cell wa-cell-name">
-                                    <div class="wa-name">[`Стоимость`]</div>
+                                    <div class="wa-name">[`Shipping cost`]</div>
                                 </div>
                                 <div class="wa-cell wa-cell-value">
                                     <span class="wa-delivery-price">{shop_currency($details.shipping_rate.rate, ['in_currency' => $details.shipping_rate.currency,'extended_format' => '%t{h}'])}</span>
@@ -151,7 +151,7 @@
 
                             <div class="wa-row">
                                 <div class="wa-cell wa-cell-name">
-                                    <div class="wa-name">[`Срок доставки`]</div>
+                                    <div class="wa-name">[`Estimated shipping time`]</div>
                                 </div>
                                 <div class="wa-cell wa-cell-value">
                                     {$details.shipping_rate.est_delivery|default:"—"|escape}
@@ -161,7 +161,7 @@
                             {if !empty($_storage_days)}
                                 <div class="wa-row">
                                     <div class="wa-cell wa-cell-name">
-                                        <div class="wa-name">[`Срок хранения заказа`]</div>
+                                        <div class="wa-name">[`Order storage time`]</div>
                                     </div>
                                     <div class="wa-cell wa-cell-value">
                                         {_w('%d day', '%d days', $_storage_days)}
@@ -172,25 +172,27 @@
                             {if !empty($_address)}
                                 <div class="wa-row">
                                     <div class="wa-cell wa-cell-name">
-                                        <div class="wa-name">[`Адрес`]</div>
+                                        <div class="wa-name">[`Address`]</div>
                                     </div>
                                     <div class="wa-cell wa-cell-value">{$_address|escape}</div>
                                 </div>
                             {/if}
 
-                            <div class="wa-row">
-                                <div class="wa-cell wa-cell-name">
-                                    <div class="wa-name">[`Служба доставки`]</div>
+                            {if !empty($details.shipping_rate.service)}
+                                <div class="wa-row">
+                                    <div class="wa-cell wa-cell-name">
+                                        <div class="wa-name">[`Shipping service`]</div>
+                                    </div>
+                                    <div class="wa-cell wa-cell-value">
+                                        {$details.shipping_rate.service|escape}
+                                    </div>
                                 </div>
-                                <div class="wa-cell wa-cell-value">
-                                    {$details.shipping_rate.plugin_name|default:"—"|escape}
-                                </div>
-                            </div>
+                            {/if}
                         </div>
 
                         {if !empty($details.shipping_rate.pickup_schedule.days)}
                             <div class="wa-line wa-schedule-wrapper">
-                                <div class="wa-label">[`Часы работы`]:</div>
+                                <div class="wa-label">[`Business hours`]:</div>
                                 <div class="wa-value">
                                     {foreach $details.shipping_rate.pickup_schedule.days as $_day}
                                         <div class="wa-day-wrapper">
@@ -199,7 +201,7 @@
                                                 {if !empty($_day.works)}
                                                     <div class="wa-time">{$_day.time_start|escape}–{$_day.time_end|escape}</div>
                                                 {else}
-                                                    <div class="wa-text">[`выходной`]</div>
+                                                    <div class="wa-text">[`day off`]</div>
                                                 {/if}
                                             </div>
                                         </div>
@@ -210,14 +212,14 @@
 
                         {if !empty($_way)}
                             <div class="wa-line wa-comment-item">
-                                <div class="wa-label">[`Как добраться`]:</div>
+                                <div class="wa-label">[`How to reach`]:</div>
                                 <div class="wa-value">{$_way|escape}</div>
                             </div>
                         {/if}
 
                         {if !empty($_additional)}
                             <div class="wa-line wa-additional-item">
-                                <div class="wa-label">[`Дополнительно`]:</div>
+                                <div class="wa-label">[`More details`]:</div>
                                 <div class="wa-value">{$_additional|escape}</div>
                             </div>
                         {/if}

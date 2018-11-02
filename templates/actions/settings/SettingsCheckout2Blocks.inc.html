@@ -61,7 +61,7 @@
             <td>
                 <i class="icon16 sort"></i>
                 <label>
-                    <input type="checkbox" data-name="used"{if $_field.used} checked{/if} title="[`Использовать поле`]" />
+                    <input type="checkbox" data-name="used"{if $_field.used} checked{/if} title="[`Use field`]" />
                     {$_f->getName(null, true)}
                     <i class="hint">{$_field_id} — {fieldLocalizedType field=$_f}</i>
                 </label>
@@ -70,14 +70,14 @@
             <td>
                 <label>
                     <input type="checkbox" data-name="required"{if $_field.required} checked{/if} />
-                    <i class="small">[`Обязательное`]</i>
+                    <i class="small">[`Required`]</i>
                 </label>
             </td>
             {* Width *}
             <td class="js-field-width">
                 {if !empty($_format_f.type) && $_format_f.type == 'input'}
                     <label>
-                        <i class="small">[`Ширина поля`]</i>
+                        <i class="small">[`Field width`]</i>
                         <select data-name="width">
                             {foreach $field_width_variants as $_id => $_variant}
                                 <option value="{$_id|escape}"{if $_field.width === $_id} selected{/if}>{$_variant.name|escape}</option>
@@ -95,25 +95,25 @@
     {* Sort / used *}
     <td style="min-width: 38px; width: 38px;">
         <i class="icon16 sort"></i>
-        <input type="checkbox" data-name="enabled"{if $_location.enabled|default:false} checked{/if} title="[`Использовать локацию`]" />
+        <input type="checkbox" data-name="enabled"{if $_location.enabled|default:false} checked{/if} title="[`Use location`]" />
     </td>
     {* Name *}
-    <td title="[`Название локации`]">
+    <td title="[`Location name`]">
         <span class="js-preview">{$_location.name|default:null|escape}</span>
-        <input class="s-input-narrow js-editor" type="text" autocomplete="off" data-name="name" value="{$_location.name|default:null|escape}" placeholder="[`Название локации`]" style="display: none;" />
+        <input class="s-input-narrow js-editor" type="text" autocomplete="off" data-name="name" value="{$_location.name|default:null|escape}" placeholder="[`Location name`]" style="display: none;" />
     </td>
     {* Country *}
-    <td title="[`Страна`]">
+    <td title="[`Country`]">
         <span class="js-preview">{$countries[$_location.country|default:null].name|default:null|escape}</span>
         <select class="js-location-country js-editor" data-name="country" style="display: none;">
-            <option value="">[`Выбрать страну`]</option>
+            <option value="">[`Select a country`]</option>
             {foreach $countries as $_country_id => $_country}
                 <option value="{$_country_id|escape}" title="{$_country.name|escape}"{if $_location.country|default:null === $_country_id} selected{/if}>{$_country.name|escape|truncate:17:'...'}</option>
             {/foreach}
         </select>
     </td>
     {* Region *}
-    <td title="[`Регион`]">
+    <td title="[`Region`]">
         <span class="js-preview">
             {if isset($_location.region)}
                 {foreach $regions as $_region}
@@ -124,28 +124,28 @@
             {/if}
         </span>
         <select class="js-location-region js-editor" data-name="region" style="display: none;">
-            <option value="">[`Выбрать регион`]</option>
+            <option value="">[`Select a region`]</option>
             {foreach $regions as $_region}
                 <option value="{$_region.code|escape}" title="{$_region.name|escape}" data-country="{$_region.country_iso3|escape}"{if $_location.country|default:null == $_region.country_iso3 && $_location.region|default:null === $_region.code} selected{/if}>{$_region.name|escape|truncate:17:'...'}</option>
             {/foreach}
         </select>
     </td>
     {* City *}
-    <td title="[`Населённый пункт`]">
+    <td title="[`Locality`]">
         <span class="js-preview">{$_location.city|default:null|escape}</span>
-        <input class="s-input-narrow js-location-city js-editor" type="text" data-name="city" value="{$_location.city|default:null|escape}" autocomplete="off" placeholder="[`Населённый пункт`]" style="display: none;" />
+        <input class="s-input-narrow js-location-city js-editor" type="text" data-name="city" value="{$_location.city|default:null|escape}" autocomplete="off" placeholder="[`Locality`]" style="display: none;" />
     </td>
     {* Edit / Remove *}
     <td class="align-right">
-        <i class="icon16 edit js-edit-location" title="[`Редактировать`]"></i>
-        <i class="icon16 no js-delete-location" title="[`Удалить`]"></i>
+        <i class="icon16 edit js-edit-location" title="[`Edit`]"></i>
+        <i class="icon16 no js-delete-location" title="[`Delete`]"></i>
     </td>
 </tr>
 {/function}
 
 {function renderOrderNoLocations}
 <tr class="js-no-locations no-border">
-    <td style="text-align: center;">[`Нет добавленных локаций`]</td>
+    <td style="text-align: center;">[`No locations added`]</td>
 </tr>
 {/function}
 
@@ -156,7 +156,7 @@
     <div class="fields js-block-wrapper" data-block="design">
         {* Default design style *}
         <div class="field">
-            <div class="name">[`Включить стандартный стиль дизайна`]</div>
+            <div class="name">[`Enable default design`]</div>
             <div class="value">
                 <input type="hidden" name="data[design][custom]" value="0">
                 <input class="js-design-toggle" type="checkbox" name="data[design][custom]" value="1"{if $settings.custom} checked{/if}>
@@ -166,7 +166,7 @@
                 {$_logo = $settings.logo|default:null|escape}
                 <div class="field">
                     <div class="name">
-                        <label for="design_logo">[`Логотип`]</label>
+                        <label for="design_logo">[`Logo`]</label>
                     </div>
                     <div class="value input js-logo-wrapper">
                         <input type="file" class="js-design-logo" data-block-name="design-logo" />
@@ -176,7 +176,7 @@
                             <div>
                                 <img class="s-design-logo-preview transparent-sprite js-design-logo-preview" src="{if $_logo}{$logo_url|escape}/{$_logo}{/if}">
                             </div>
-                            <a href="javascript:void(0);" class="inline-link hint js-delete-design-logo"><b><i>[`Удалить логотип`]</i></b></a>
+                            <a href="javascript:void(0);" class="inline-link hint js-delete-design-logo"><b><i>[`Delete logo`]</i></b></a>
                         </div>
                     </div>
                 </div>
@@ -184,7 +184,7 @@
                 {* Business scope *}
                 <div class="field">
                     <div class="name">
-                        <label for="design_business_scope">[`Сфера деятельности`]</label>
+                        <label for="design_business_scope">[`Business scope`]</label>
                     </div>
                     <div class="value input">
                         <input id="design_business_scope" type="text" name="data[design][business_scope]" value="{$settings.business_scope|escape}" autocomplete="off" />
@@ -204,7 +204,7 @@
                 {* Phone hint *}
                 <div class="field">
                     <div class="name">
-                        <label for="design_phone_hint">[`Подпись под телефоном`]</label>
+                        <label for="design_phone_hint">[`Phone number hint`]</label>
                     </div>
                     <div class="value input">
                         <input id="design_phone_hint" type="text" name="data[design][phone_hint]" value="{$settings.phone_hint|escape}" autocomplete="off" />
@@ -224,7 +224,7 @@
                 {* Working hours *}
                 <div class="field">
                     <div class="name">
-                        <label for="design_working_hours">[`Часы`]</label>
+                        <label for="design_working_hours">[`Business hours`]</label>
                     </div>
                     <div class="value input">
                         <input id="design_working_hours" type="text" name="data[design][working_hours]" value="{$settings.working_hours|escape}" autocomplete="off" />
@@ -234,7 +234,7 @@
                 {* Order background *}
                 <div class="field">
                     <div class="name">
-                        <label for="design_order_background">[`Цвет фона заказа`]</label>
+                        <label for="design_order_background">[`Checkout page background color`]</label>
                     </div>
                     <div class="value input">
                         <input id="design_order_background" class="s-color-input js-color-input" type="text" name="data[design][order_background]" value="{$settings.order_background|escape}" autocomplete="off" />
@@ -244,22 +244,22 @@
                 {* Layout background *}
                 <div class="field">
                     <div class="name">
-                        <label for="design_layout_background">[`Цвет фона слоя`]</label>
+                        <label for="design_layout_background">[`Layer background color`]</label>
                     </div>
                     <div class="value input">
                         <input id="design_layout_background" class="s-color-input js-color-input" type="text" name="data[design][layout_background]" value="{$settings.layout_background|escape}" autocomplete="off" />
                     </div>
                 </div>
 
-                {* Сustom css *}
+                {* Custom css *}
                 <div class="field">
                     <div class="name">
-                        <label for="design_custom_css">[`Свой CSS-стиль`]</label>
+                        <label for="design_custom_css">[`Custom CSS styles`]</label>
                     </div>
                     <div class="value">
                         <textarea id="design_custom_css" name="data[design][custom_css]">{$settings.custom_css|escape}</textarea>
                         <div class="hint" style="margin-top: 10px;">
-                            [`Введённый CSS-код будет помещён в тег &lt;script> ... &lt;/script> внутри блока &lt;head> только на странице оформления заказа.`]
+                            [`Entered CSS code will be added inside <code>&lt;script&gt; ... &lt;/script&gt;</code> tags in <code>&lt;head&gt;</code> block only on checkout page.`]
                         </div>
                     </div>
                 </div>
@@ -274,7 +274,7 @@
 <div class="s-checkout-field-group field-group">
     {* Block name *}
     <div class="field">
-        <div class="name">[`Название блока`]</div>
+        <div class="name">[`Block name`]</div>
         <div class="value input">
             <input type="text" name="data[cart][block_name]" value="{$settings.block_name|escape}" autocomplete="off" />
         </div>
@@ -282,7 +282,7 @@
 
     {* Empty cart text *}
     <div class="field">
-        <div class="name">[`Текст для пустой корзины`]</div>
+        <div class="name">[`Empty cart text`]</div>
         <div class="value input">
             <input type="text" name="data[cart][empty_text]" value="{$settings.empty_text|escape}" autocomplete="off" />
         </div>
@@ -292,21 +292,21 @@
     {*
     Will be used in the next versions of the Shop
     <div class="field">
-        <div class="name">[`Смена артикула`]</div>
+        <div class="name">[`SKU selection`]</div>
         <div class="value">
             <label>
                 <input type="hidden" name="data[cart][article_change]" value="0" />
                 <input type="checkbox" name="data[cart][article_change]"{if $settings.article_change} checked{/if} />
-                Разрешить покупателям изменять артикул у товара в корзине
+                [`Allow customers to select other product SKUs in the shopping cart`]
             </label>
-            <div class="hint block-padded">[`Чаще всего используется для изменения свойства товара, например, цвета или размера`]</div>
+            <div class="hint block-padded">[`Mainly used to change product properties such color or size`]</div>
         </div>
     </div>
     *}
 
     {* Item discount *}
     <div class="field">
-        <div class="name">[`Вид скидки по каждой позиции`]</div>
+        <div class="name">[`Discout information per product`]</div>
         <div class="value radio">
             {foreach $cart_discount_item_variants as $_id => $_variant}
                 <div class="s-checkout-radio-variant">
@@ -321,7 +321,7 @@
 
     {* General discount *}
     <div class="field">
-        <div class="name">[`Вид итоговой скидки`]</div>
+        <div class="name">[`Total discount information`]</div>
         <div class="value radio">
             {foreach $cart_discount_general_variants as $_id => $_variant}
                 <div class="s-checkout-radio-variant">
@@ -343,7 +343,7 @@
     {* Block name *}
     <div class="field">
         <div class="name">
-            <label for="order_block_name">[`Название блока`]</label>
+            <label for="order_block_name">[`Block name`]</label>
         </div>
         <div class="value input">
             <input id="order_block_name" type="text" name="data[order][block_name]" autocomplete="off" value="{$settings.block_name|escape}" />
@@ -353,7 +353,7 @@
     {* Schedule mode *}
     {$_schedule = $checkout_config.schedule}
     <div class="field">
-        <div class="name s-table-field-name bold">[`Режим работы магазина`]</div>
+        <div class="name s-table-field-name bold">[`Store working schedule`]</div>
         <div class="value s-table-field-value radio js-schedule-block">
             {foreach $schedule_mode_variants as $_id => $_variant}
                 <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
@@ -362,7 +362,7 @@
                         {$_variant.name|escape}
                     </label>
                     <div class="s-variant-params block-padded js-variant-params">
-                        <div class="hint" style="margin: 10px 0;">{$_variant.description|escape}</div>
+                        <div class="hint" style="margin: 10px 0;">{$_variant.description}</div>
                         {* CUSTOM MODE PARAMS *}
                         {if shopCheckoutConfig::SCHEDULE_MODE_CUSTOM === $_id}
                             <div class="s-settings-schedule-content js-custom-schedule"{if $_schedule.mode !== shopCheckoutConfig::SCHEDULE_MODE_CUSTOM} style="display: none;" {/if}>
@@ -381,15 +381,15 @@
 
                             <div class="field-group">
                                 <div class="field">
-                                    <div class="name s-table-field-name">[`Время приёма и обработки заказов`]</div>
+                                    <div class="name s-table-field-name">[`Order processing schedule`]</div>
                                     <div class="value  s-table-field-value js-week-wrapper">
                                         <table class="zebra s-week" data-block-name="week" style="max-width: 600px; border: 1px solid #fff;">
                                             <thead class="header">
                                             <tr>
-                                                <th>[`День недели`]</th>
-                                                <th>[`Рабочий`]</th>
-                                                <th>[`График работы`]</th>
-                                                <th>[`Обрабатывать заказы`]</th>
+                                                <th>[`Day of the week`]</th>
+                                                <th>[`Open`]</th>
+                                                <th>[`Business hours`]</th>
+                                                <th>[`New orders for processing`]</th>
                                             </tr>
                                             </thead>
                                             <tbody>
@@ -413,8 +413,9 @@
                                             </tbody>
                                         </table>
 
-                                        <div class="hint" style="margin: 10px 0 5px; max-width: 570px;">[`Значение полей "График работы" и "Обрабатывать заказы до" могут быть использованы при расчёте срока доставки.`]</div>
-                                        <div class="hint">[`todo: Используется по умолчанию для всех витрин магазина`]</div>
+                                        <div class="hint" style="margin: 10px 0 0; max-width: 570px;">{sprintf('[`Values of “%s” and “%s” fields can be used to calculate the shipping terms.`]', '[`Working hours`]', '[`New orders for processing`]')}</div>
+                                        <div class="hint" style="margin: 10px 0 0; max-width: 570px;">{sprintf('[`Values in “%s” column denote the last hour of a workday before which orders are accepted for processing on the same day. Orders accepted after that hour are processed on the next workday.`]', '[`New orders for processing`]')}</div>
+                                        <div class="hint" style="margin: 10px 0 0; max-width: 570px;">[`The setting is used by default in all storefronts.`]</div>
                                     </div>
                                 </div>
                             </div>
@@ -422,12 +423,12 @@
                             <div class="field-group">
                                 <div class="field">
                                     <div class="name">
-                                        <label for="processing_time">[`Время на обработку заказа (рабочие часы)`]</label>
+                                        <label for="processing_time">[`Business hours required to process an order`]</label>
                                     </div>
                                     <div class="value">
                                         <input id="processing_time" class="s-time" type="text" autocomplete="off" name="data[schedule][processing_time]" value="{$_schedule.processing_time|default:0|escape}" />
 
-                                        <div class="hint" style="margin: 10px 0 5px; max-width: 570px;">[`Используется для расчёта срока доставки. Указанное время прибавится ко времени, когда был оформлен заказ или учтётся при переносе обработки заказа на другой день, когда заказ был оформлен впритык или после времени, до которого обрабатываются заказы.`]</div>
+                                        <div class="hint" style="margin: 10px 0 5px; max-width: 570px;">[`Is used to calculate order shipping terms. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later.`]</div>
                                     </div>
                                 </div>
                             </div>
@@ -436,12 +437,12 @@
                                 <div class="field">
                                     <div class="name s-table-field-name">[`Extra workdays`]</div>
                                     <div class="value s-table-field-value js-extra-workdays-wrapper">
-                                        <table class="zebra" style="max-width: 475px;">
+                                        <table class="zebra" style="max-width: 494px;">
                                             <thead class="header"{if empty($_schedule.extra_workdays)} style="display: none;"{/if}>
                                             <tr>
-                                                <th>[`Дата`]</th>
-                                                <th>[`График работы`]</th>
-                                                <th>[`Обрабатывать заказы`]</th>
+                                                <th>[`Date`]</th>
+                                                <th>[`Business hours`]</th>
+                                                <th>[`New orders for processing`]</th>
                                                 <th></th>
                                             </tr>
                                             </thead>
@@ -487,10 +488,11 @@
 
     {* Checkout mode *}
     <div class="field">
-        <div class="name s-table-field-name bold">[`Режим оформления заказа`]</div>
+        <div class="name s-table-field-name bold">[`Checkout type`]</div>
         <div class="value s-table-field-value radio js-order-mode-wrapper">
             {foreach $order_mode_variants as $_id => $_variant}
-                <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
+                {* TODO: Remove this if in 8.1 !!! *}
+                <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}"{if $_id === shopCheckoutConfig::ORDER_MODE_TYPE_MINIMUM} style="display: none;"{/if}>
                     <label>
                         <input class="js-order-mode-variant" type="radio" name="data[order][mode]" value="{$_id|escape}"{if $settings.mode === $_id} checked{/if} />
                         {$_variant.name|escape}
@@ -501,12 +503,12 @@
                         {if shopCheckoutConfig::ORDER_MODE_TYPE_DEFAULT === $_id}
                             {* Fixed delivery area *}
                             <div class="field">
-                                <div class="name">[`Ограничить область доставки`]</div>
+                                <div class="name">[`Limit shipping area`]</div>
                                 <div class="value">
                                     <label>
-                                        [`Страна`]
+                                        [`Country`]
                                         <select name="data[order][fixed_delivery_area][country]" class="js-fix-delivery-country">
-                                            <option value="">[`Выберите страну`]</option>
+                                            <option value="">[`Select a country`]</option>
                                             {foreach $countries as $_country_id => $_country}
                                                 <option value="{$_country_id}" title="{$_country.name|escape}"{if $settings.fixed_delivery_area.country === $_country_id} selected{/if}>{$_country.name|escape|truncate:27:'...'}</option>
                                             {/foreach}
@@ -515,9 +517,9 @@
                                 </div>
                                 <div class="value">
                                     <label>
-                                        [`Регион`]
+                                        [`Regions`]
                                         <select name="data[order][fixed_delivery_area][region]" class="js-fix-delivery-region">
-                                            <option value="">[`Выберите регион`]</option>
+                                            <option value="">[`Select a region`]</option>
                                             {foreach $regions as $_region}
                                                 <option value="{$_region.code|escape}" title="{$_region.name|escape}" data-country="{$_region.country_iso3|escape}"{if $settings.fixed_delivery_area.country == $_region.country_iso3 && $settings.fixed_delivery_area.region === $_region.code} selected{/if}>{$_region.name|escape|truncate:30:'...'}</option>
                                             {/foreach}
@@ -526,29 +528,31 @@
                                 </div>
                                 <div class="value">
                                     <label>
-                                        [`Населённый пункт`]
+                                        [`Locality`]
                                         <input name="data[order][fixed_delivery_area][city]" class="js-fix-delivery-city" type="text" value="{$settings.fixed_delivery_area.city|escape}" autocomplete="off" />
                                     </label>
                                     <div class="hint" style="margin-top: 10px;">
-                                        [`Укажите один или несколько населённых пунктов через запятую. Если это поле заполнено, то в минимальном режиме не будет доступен список областей доставки.`]
+                                        [`Separate locality names with a comma. With this field completed, the list of shipping areas in the minimal mode will be unavailable.`]
                                     </div>
                                 </div>
                             </div>
 
                             {* Shop map *}
+                            {*
                             <div class="field">
-                                <div class="name">[`Показывать карту выбора пункта самовывоза`]</div>
+                                <div class="name">[`Show pickup points map`]</div>
                                 <div class="value radio">
                                     {foreach $order_show_pickuppoint_map_variants as $_map_variant_id => $_map_variant}
                                         <div class="s-checkout-radio-variant js-variant" data-id="{$_map_variant_id|escape}">
                                             <label>
-                                                <input class="js-order-without-auth-variant" type="radio" name="data[order][show_pickuppoint_map]" value="{$_map_variant_id|escape}"{if $settings.show_pickuppoint_map === $_map_variant_id} checked{/if} />
+                                                <input type="radio" name="data[order][show_pickuppoint_map]" value="{$_map_variant_id|escape}"{if $settings.show_pickuppoint_map === $_map_variant_id} checked{/if} />
                                                 {$_map_variant.name|escape}
                                             </label>
                                         </div>
                                     {/foreach}
                                 </div>
                             </div>
+                            *}
 
                         {* MINIMAL MODE PARAMS *}
                         {else}
@@ -564,7 +568,7 @@
                             <div style="margin-top: 10px;">
                                 <a href="javascript:void(0);" class="inline-link js-add-location">
                                     <i class="icon16 add"></i>
-                                    <b><i>[`Добавить локацию`]</i></b>
+                                    <b><i>[`Add location`]</i></b>
                                 </a>
                             </div>
                         {/if}
@@ -582,7 +586,7 @@
     {* Block name *}
     <div class="field">
         <div class="name">
-            <label for="customer_block_name">[`Название блока`]</label>
+            <label for="customer_block_name">[`Block name`]</label>
         </div>
         <div class="value input">
             <input id="customer_block_name" type="text" name="data[customer][block_name]" autocomplete="off" value="{$settings.block_name|escape}" />
@@ -592,7 +596,7 @@
     {* Offer login *}
     <div class="field">
         <div class="name">
-            <label for="customer_offer_login">[`Текст предложения авторизоваться в подсказке`]</label>
+            <label for="customer_offer_login">[`Login offer text`]</label>
         </div>
         <div class="value">
             <textarea id="customer_offer_login" name="data[customer][offer_login]">{$settings.offer_login|escape}</textarea>
@@ -602,7 +606,7 @@
     {* Offer login *}
     <div class="field">
         <div class="name">
-            <label for="customer_offer_logout">[`Текст предложения выйти в подсказке`]</label>
+            <label for="customer_offer_logout">[`Logout offer text`]</label>
         </div>
         <div class="value">
             <textarea id="customer_offer_logout" name="data[customer][offer_logout]">{$settings.offer_logout|escape}</textarea>
@@ -611,7 +615,7 @@
 
     {* Customer type *}
     <div class="field">
-        <div class="name s-table-field-name bold">[`Тип покупателя`]</div>
+        <div class="name s-table-field-name bold">[`Customer type`]</div>
         <div class="value s-table-field-value radio js-customer-type-wrapper">
             {foreach $customer_type_variants as $_id => $_variant}
                 <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
@@ -626,7 +630,7 @@
             <div class="js-person-company-settings">
                 <div class="field">
                     <div class="name">
-                        <label for="customer_person_mode_name">[`Название режима для персон`]</label>
+                        <label for="customer_person_mode_name">[`Person mode name`]</label>
                     </div>
                     <div class="value input">
                         <input type="text" id="customer_person_mode_name" name="data[customer][person_mode_name]" value="{$settings.person_mode_name|escape}" autocomplete="off" />
@@ -634,7 +638,7 @@
                 </div>
                 <div class="field">
                     <div class="name">
-                        <label for="customer_company_mode_name">[`Название режима для компаний`]</label>
+                        <label for="customer_company_mode_name">[`Company mode name`]</label>
                     </div>
                     <div class="value input">
                         <input type="text" id="customer_company_mode_name" name="data[customer][company_mode_name]" value="{$settings.company_mode_name|escape}" autocomplete="off" />
@@ -645,7 +649,7 @@
             <div class="js-company-settings">
                 <div class="field">
                     <div class="name">
-                        <label for="customer_company_hint">[`Текст подсказки для компаний`]</label>
+                        <label for="customer_company_hint">[`Hint text for companies`]</label>
                     </div>
                     <div class="value">
                         <textarea id="customer_company_hint" name="data[customer][company_hint]">{$settings.company_hint|escape}</textarea>
@@ -653,7 +657,7 @@
                 </div>
                 <div class="field">
                     <div class="name">
-                        <label for="customer_company_terms">[`Текст условий работы с компаниями`]</label>
+                        <label for="customer_company_terms">[`Companies service terms text`]</label>
                     </div>
                     <div class="value">
                         <textarea id="customer_company_terms" name="data[customer][company_terms]">{$settings.company_terms|escape}</textarea>
@@ -662,7 +666,7 @@
             </div>
 
             <div class="js-fields-editor" style="margin: 10px 0 20px 0;" data-type="person">
-                <div class="hint js-contact-type" style="margin: 10px 0;">[`Персоны:`]</div>
+                <div class="hint js-contact-type" style="margin: 10px 0;">[`Persons:`]</div>
                 <table class="zebra s-sort-table js-sort-table">
                     <tbody>
                         {renderContactFieldsEditor _fields=$settings.fields_person}
@@ -670,11 +674,11 @@
                 </table>
                 <div class="hint" style="margin: 10px 0;">
                     <i class="icon10 edit"></i>
-                    {sprintf(_w('<a href="%s" target="_blank">Редактировать контактные поля</a> <i class="icon10 new-window"></i> в приложении "Настройки".'), "`$wa_backend_url`webasyst/settings/field/")}
+                    {sprintf(_w('<a href="%s" target="_blank">Edit contact fields</a> <i class="icon10 new-window"></i> in Settings app.'), "`$wa_backend_url`webasyst/settings/field/")}
                 </div>
             </div>
             <div class="js-fields-editor" style="margin: 10px 0 20px 0;" data-type="company">
-                <div class="hint js-contact-type" style="margin: 10px 0;">[`Компании:`]</div>
+                <div class="hint js-contact-type" style="margin: 10px 0;">[`Companies:`]</div>
                 <table class="zebra s-sort-table js-sort-table">
                     <tbody>
                         {renderContactFieldsEditor _fields=$settings.fields_company}
@@ -682,7 +686,7 @@
                 </table>
                 <div class="hint" style="margin: 10px 0;">
                     <i class="icon10 edit"></i>
-                    {sprintf(_w('<a href="%s" target="_blank">Редактировать контактные поля</a> <i class="icon10 new-window"></i> в приложении "Настройки".'), "`$wa_backend_url`webasyst/settings/field/")}
+                    {sprintf(_w('<a href="%s" target="_blank">Edit contact fields</a> <i class="icon10 new-window"></i> in Settings app.'), "`$wa_backend_url`webasyst/settings/field/")}
                 </div>
             </div>
         </div>
@@ -692,7 +696,7 @@
     <div class="field">
         <div class="name">
             <label for="shipping_service_agreement">
-                [`Обработка персональных данных`]
+                [`Personal data processing`]
             </label>
         </div>
         <div class="value radio js-customer-service-agreement-wrapper">
@@ -720,11 +724,11 @@
 {* Shipping block *}
 {function shipping_block settings=[]}
     <div class="s-checkout-field-group field-group">
-        <div style="margin-top: 10px;">{sprintf(_w('Способы доставки добавляются и настраиваются в разделе настрок <a href="%s">доставки</a>.'), '?action=settings#/shipping/')}</div>
+        <div style="margin-top: 10px;">{sprintf(_w('<a href="%s">Add and configure shipping methods</a>.'), '?action=settings#/shipping/')}</div>
         {* Block name *}
         <div class="field">
             <div class="name">
-                <label for="shipping_block_name">[`Название блока`]</label>
+                <label for="shipping_block_name">[`Block name`]</label>
             </div>
             <div class="value input">
                 <input id="shipping_block_name" type="text" name="data[shipping][block_name]" autocomplete="off" value="{$settings.block_name|escape}" />
@@ -734,21 +738,21 @@
         {* Ask zip *}
         <div class="field">
             <div class="name">
-                [`Почтовый индекс`]
+                [`ZIP code`]
             </div>
             <div class="value">
                 <label>
                     <input type="hidden" name="data[shipping][ask_zip]" value="0" />
                     <input class="js-shipping-ask-zip" type="checkbox" name="data[shipping][ask_zip]"{if $settings.ask_zip} checked{/if} />
-                    [`Спрашивать индекс вместе с городом`]
+                    [`Request ZIP code with the city name`]
                 </label>
             </div>
         </div>
 
-        {* Сourier name *}
+        {* Courier name *}
         <div class="field">
             <div class="name">
-                <label for="shipping_courier_name">[`Название типа доставки Курьер`]</label>
+                <label for="shipping_courier_name">[`“Courier” shipping type title`]</label>
             </div>
             <div class="value input">
                 <input id="shipping_courier_name" type="text" name="data[shipping][courier_name]" autocomplete="off" value="{$settings.courier_name|escape}" />
@@ -758,7 +762,7 @@
         {* Pickuppoint name *}
         <div class="field">
             <div class="name">
-                <label for="shipping_pickuppoint_name">[`Название типа доставки Самовывоз`]</label>
+                <label for="shipping_pickuppoint_name">[`“Pickup” shipping type title`]</label>
             </div>
             <div class="value input">
                 <input id="shipping_pickuppoint_name" type="text" name="data[shipping][pickuppoint_name]" autocomplete="off" value="{$settings.pickuppoint_name|escape}" />
@@ -768,7 +772,7 @@
         {* Post name *}
         <div class="field">
             <div class="name">
-                <label for="shipping_post_name">[`Название типа доставки Почта`]</label>
+                <label for="shipping_post_name">[`“Post” shipping type title`]</label>
             </div>
             <div class="value input">
                 <input id="shipping_post_name" type="text" name="data[shipping][post_name]" autocomplete="off" value="{$settings.post_name|escape}" />
@@ -777,7 +781,7 @@
 
         {* Adress fields *}
         <div class="field">
-            <div class="name s-table-field-name">[`Поля адреса`]</div>
+            <div class="name s-table-field-name">[`Address fields`]</div>
             <div class="value s-table-field-value js-fields-editor" data-type="address">
                 <table class="zebra s-sort-table js-sort-table">
                     <tbody>
@@ -786,7 +790,7 @@
                             <td>
                                 <i style="display: inline-block; width: 16px; height: 16px; margin: -0.1em 0.25em 0 0;"></i>
                                 <label>
-                                    <input type="checkbox" title="[`Использовать поле`]" checked disabled>
+                                    <input type="checkbox" title="[`Use field`]" checked disabled>
                                     [`Country`]
                                     <i class="hint">[`country`] — [`Text (input)`]</i>
                                 </label>
@@ -794,7 +798,7 @@
                             <td>
                                 <label>
                                     <input type="checkbox" checked disabled>
-                                    <i class="small">[`Обязательное`]</i>
+                                    <i class="small">[`Required`]</i>
                                 </label>
                             </td>
                             <td>
@@ -804,7 +808,7 @@
                             <td>
                                 <i style="display: inline-block; width: 16px; height: 16px; margin: -0.1em 0.25em 0 0;"></i>
                                 <label>
-                                    <input type="checkbox" title="[`Использовать поле`]" checked disabled>
+                                    <input type="checkbox" title="[`Use field`]" checked disabled>
                                     [`Region`]
                                     <i class="hint">[`region`] — [`Text (input)`]</i>
                                 </label>
@@ -812,7 +816,7 @@
                             <td>
                                 <label>
                                     <input type="checkbox" checked disabled>
-                                    <i class="small">[`Обязательное`]</i>
+                                    <i class="small">[`Required`]</i>
                                 </label>
                             </td>
                             <td>
@@ -822,7 +826,7 @@
                             <td>
                                 <i style="display: inline-block; width: 16px; height: 16px; margin: -0.1em 0.25em 0 0;"></i>
                                 <label>
-                                    <input type="checkbox" title="[`Использовать поле`]" checked disabled>
+                                    <input type="checkbox" title="[`Use field`]" checked disabled>
                                     [`City`]
                                     <i class="hint">[`city`] — [`Text (input)`]</i>
                                 </label>
@@ -830,7 +834,7 @@
                             <td>
                                 <label>
                                     <input type="checkbox" checked disabled>
-                                    <i class="small">[`Обязательное`]</i>
+                                    <i class="small">[`Required`]</i>
                                 </label>
                             </td>
                             <td>
@@ -841,7 +845,7 @@
                 </table>
                 <div class="hint" style="margin-top: 10px;">
                     <i class="icon10 edit"></i>
-                    {sprintf(_w('<a href="%s" target="_blank">Редактировать адресные поля</a> <i class="icon10 new-window"></i> в приложении "Настройки".'), "`$wa_backend_url`webasyst/settings/field/")}
+                    {sprintf(_w('<a href="%s" target="_blank">Edit address fields</a> <i class="icon10 new-window"></i> in Settings app.'), "`$wa_backend_url`webasyst/settings/field/")}
                 </div>
             </div>
         </div>
@@ -850,14 +854,14 @@
         <div class="field">
             <div class="name">
                 <label for="shipping_service_agreement">
-                    [`Обработка персональных данных`]
+                    [`Personal data processing`]
                 </label>
             </div>
             <div class="value js-shipping-service-agreement-wrapper">
                 <label>
                     <input type="hidden" name="data[shipping][service_agreement]" value="0" />
                     <input class="js-shipping-service-agreement" id="shipping_service_agreement" type="checkbox" name="data[shipping][service_agreement]"{if $settings.service_agreement} checked{/if} />
-                    [`Показывать уведомление`]
+                    [`Show notice`]
                 </label>
                 <textarea class="block-padded js-shipping-service-agreement-hint"{if !$settings.service_agreement} style="display: none;"{/if} name="data[shipping][service_agreement_hint]">{$settings.service_agreement_hint|escape}</textarea>
             </div>
@@ -866,13 +870,13 @@
         {* Plugin timeout *}
         <div class="field">
             <div class="name">
-                <label for="shipping_plugin_timeout">[`Время ожидания ответов от плагинов доставки`]</label>
+                <label for="shipping_plugin_timeout">[`Shipping plugins response waiting time`]</label>
             </div>
             <div class="value input">
                 <input id="shipping_plugin_timeout" class="s-input-seconds" type="text" name="data[shipping][plugin_timeout]" autocomplete="off" value="{$settings.plugin_timeout|escape}" />
-                <label for="shipping_plugin_timeout">[`сек`]</label>
+                <label for="shipping_plugin_timeout">[`sec`]</label>
                 <div class="hint" style="margin-top: 10px;">
-                    [`Не будут приниматья варианты доставки от плагинов, которые дольше этого интервала обрабатывают запросы через внешние API к сервисам служб доставки`]
+                    [`Shipping options provided by plugins which process external requests longer than specified will not be available for choice.`]
                 </div>
             </div>
         </div>
@@ -882,11 +886,11 @@
 {* Payment block *}
 {function payment_block settings=[]}
 <div class="s-checkout-field-group field-group">
-    <div style="margin-top: 10px;">{sprintf(_w('Способы оплаты добавляются и настраиваются в разделе настрок <a href="%s">оплаты</a>.'), '?action=settings#/payment/')}</div>
+    <div style="margin-top: 10px;">{sprintf(_w('<a href="%s">Add and configure payment methods</a>.'), '?action=settings#/payment/')}</div>
     {* Block name *}
     <div class="field">
         <div class="name">
-            <label for="payment_block_name">[`Название блока`]</label>
+            <label for="payment_block_name">[`Block name`]</label>
         </div>
         <div class="value input">
             <input id="payment_block_name" type="text" name="data[payment][block_name]" autocomplete="off" value="{$settings.block_name|escape}" />
@@ -901,13 +905,13 @@
     {* Order comment *}
     <div class="field">
         <div class="name">
-            <label for="confirmation_order_comment">[`Комментарий к заказу`]</label>
+            <label for="confirmation_order_comment">[`Comment to the order`]</label>
         </div>
         <div class="value">
             <label>
                 <input type="hidden" name="data[confirmation][order_comment]" value="0" />
                 <input id="confirmation_order_comment" type="checkbox" name="data[confirmation][order_comment]"{if $settings.order_comment} checked{/if} />
-                Разрешить покупателям оставлять дополнительый комментарий к заказу
+                [`Allow customers to leave an additional comment to an order`]
             </label>
         </div>
     </div>
@@ -915,14 +919,14 @@
     {* Terms *}
     <div class="field">
         <div class="name">
-            <label for="confirmation_terms">[`Условия предоставления услуг`]</label>
+            <label for="confirmation_terms">[`Terms of service`]</label>
             <div class="hint">HTML</div>
         </div>
         <div class="value js-confirmation-terms-wrapper">
             <label>
                 <input type="hidden" name="data[confirmation][terms]" value="0" />
                 <input id="confirmation_terms" class="js-confirmation-terms" type="checkbox" name="data[confirmation][terms]"{if $settings.terms} checked{/if} />
-                Показывать
+                [`Show`]
             </label>
             <div class="js-confirmation-terms-text-wrapper"{if !$settings.terms} style="display: none;"{/if}>
                 <div>
@@ -932,8 +936,8 @@
                     <a href="javascript:void(0);" class="js-confirmation-terms-generate hint inline-link block-padded"><b><i>[`Generate sample policy`]</i></b></a>
                 </div>
                 <div class="hint block-padded">
-                    [`Если вы хотите, чтобы покупателям предлагалось ознакомиться и согласиться с условиями предоставления услуг, возврата денежных средств или иною юридической информацией во время оформления заказа, введите соответствующий текст в текстовом поле.`]
-                    [`После этого на шаге подтверждения заказа появится флажок для подтверждения согласия и ссылка для просмотра условий.`]
+                    [`Enter your terms of service, refund conditions, and other legal information for customers to read and to agree to during checkout.`]
+                    [`If this field is completed, customers will see a link to the conditions and a checkbox to confirm their consent before checkout completion.`]
                 </div>
             </div>
         </div>
@@ -941,11 +945,12 @@
 
     {* Order without auth *}
     <div class="field">
-        <div class="name">[`Заказ без авторизации с существующими контактами`]</div>
+        <div class="name">[`Unauthorized checkout with existing customer profiles`]</div>
         <div class="value radio js-order-without-auth-wrapper">
             <input type="hidden" name="data[confirmation][auth_with_code]" value="0" />
             {foreach $confirmation_order_without_auth_variants as $_id => $_variant}
-                <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
+                {* TODO: Remove this if in 8.1 !!! *}
+                <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}"{if $_id == shopCheckoutConfig::ORDER_WITHOUT_AUTH_CONFIRM} style="display: none;"{/if}>
                     <label>
                         <input class="js-order-without-auth-variant" type="radio" name="data[confirmation][order_without_auth]" value="{$_id|escape}"{if $settings.order_without_auth === $_id} checked{/if} />
                         {$_variant.name|escape}
@@ -957,14 +962,14 @@
             <div class="s-auth-with-code js-auth-with-code">
                 <label>
                     <input type="checkbox" name="data[confirmation][auth_with_code]"{if $settings.auth_with_code} checked{/if}/>
-                    [`Попросить авторизоваться с использованием проверочного кода`]
+                    [`Ask to log in with a confirmation code`]
                 </label>
             </div>
             *}
             <div class="hint block-padded js-auth-with-code-hint">
-                [`Для подтверждения будет отправлен проверочный код на email или телефон покупателя.`]
-                [`Подтверждение можно пропустить и отпарвить заказ, но тогда данные существующего контакта будут обновлены данными покупателя, который не подтвержил свой email или телефон.`]
-                [`При успешном подтверждении пользователь будет авторизован и сможет зайти в личный кабенет.`]
+                [`A login confirmation code will be sent to a customer’s email address or phone.`]
+                [`Подтверждение можно пропустить и отпарвить заказ, но тогда данные существующего контакта будут обновлены данными покупателя, который не подтвержил свой email или телефон.`] {* TODO: локализовать, когда пойму смысл этого *}
+                [`Upon confirmation, a customer will be authorized and will have access to their online account.`]
             </div>
         </div>
     </div>
@@ -972,13 +977,13 @@
     {* Recode timeout *}
     <div class="field">
         <div class="name">
-            <label for="confirmation_recode_timeout">[`Повторно запросить код можно через`]</label>
+            <label for="confirmation_recode_timeout">[`You can request a code again in`]</label>
         </div>
         <div class="value input">
             <input id="confirmation_recode_timeout" class="s-input-seconds" type="text" name="data[confirmation][recode_timeout]" autocomplete="off" value="{$settings.recode_timeout|escape}" />
-            <label for="confirmation_recode_timeout">[`сек`]</label>
+            <label for="confirmation_recode_timeout">[`sec`]</label>
             <div class="hint" style="margin-top: 10px;">
-                [`По исечении этого времени покупатель сможет повторно запросить код подтверждения через email или SMS при авторизации в момент подтверждения заказа.`]
+                [`After this timeout, a customer will be able to re-request a confirmation code by email or SMS when logging in to confirm checkout completion.`]
             </div>
         </div>
     </div>
@@ -986,7 +991,7 @@
     {* Thank you header *}
     <div class="field">
         <div class="name">
-            <label for="confirmation_thankyou_header">[`Заголовок страницы "Спасибо"`]</label>
+            <label for="confirmation_thankyou_header">[`“Thank you” page title`]</label>
         </div>
         <div class="value">
             <input id="confirmation_thankyou_header" type="text" name="data[confirmation][thankyou_header]" autocomplete="off" value="{$settings.thankyou_header|escape}" />
@@ -996,7 +1001,7 @@
     {* Thank you header *}
     <div class="field">
         <div class="name">
-            <label for="confirmation_thankyou_content">[`Текст страницы "Спасибо"`]</label>
+            <label for="confirmation_thankyou_content">[`“Thank you” page text`]</label>
             <div class="hint">HTML</div>
         </div>
         <div class="value">

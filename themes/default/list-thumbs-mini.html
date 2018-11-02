@@ -1,7 +1,4 @@
-{$_cart_url = $wa->getUrl('shop/frontend/cart')}
-{if $wa->param('checkout_version') == 2}
-    {$_cart_url = $wa->getUrl('shop/frontend/order')}
-{/if}
+{$_cart_url = $wa->shop->checkout()->cartUrl()}
 
 <!-- products mini thumbnail list view: related products, etc. -->
 <ul class="thumbs product-list mini{if !empty($ulclass)} {$ulclass}{/if}">

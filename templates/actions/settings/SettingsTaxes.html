@@ -132,11 +132,11 @@
                     </div>
                     <div class="value no-shift">
 
-                        <p>[`If your jurisdiction require you to charge additional county taxes, define taxing rules by zip (postal) code. Use asteryx (*) for wildcard. For example, mask 12* is applicable for all zip codes with 12 as first two symbols, e.g. 12365, 12963, 12AB7, 12 QN93 and so on (wildcard is ok for both letters and numbers). Zip code rules are processed one by one in the given order. Applied is the first rule matching the user zip code (only one matching rule is applied at a time). County tax rules are of a higher priority than state tax rules (if matched, county tax rate replaces the state tax rule when calculated during the checkout), which means that combined county rates must be provided.`]</p>
+                        <p>[`If your jurisdiction require you to charge additional county taxes, define taxing rules by ZIP (postal) code. Use asteryx (*) for wildcard. For example, mask 12* is applicable for all ZIP codes with 12 as first two symbols, e.g. 12365, 12963, 12AB7, 12 QN93 and so on (wildcard is ok for both letters and numbers). ZIP code rules are processed one by one in the given order. Applied is the first rule matching the user ZIP code (only one matching rule is applied at a time). County tax rules are of a higher priority than state tax rules (if matched, county tax rate replaces the state tax rule when calculated during the checkout), which means that combined county rates must be provided.`]</p>
 
                         <table id="s-tax-zip-codes-table" class="zebra"><thead>
                             <tr>
-                                <th colspan="2" class="nowrap">[`Zip code mask`]</th>
+                                <th colspan="2" class="nowrap">[`ZIP code mask`]</th>
                                 <th>[`Rate`]</th>
                                 <th class="min-width"></th>
                             </tr>
@@ -163,7 +163,7 @@
                             {* Template row to add new regions. 'template' class will be replaced with 'zip-row' *}
                             <tr class="just-added hidden highlighted white template">
                                 <td class="min-width"><i class="icon16 sort"></i></td>
-                                <td><input type="text" name="tax_zip_codes[]" value="" placeholder="[`Zip code mask`]"></td>
+                                <td><input type="text" name="tax_zip_codes[]" value="" placeholder="[`ZIP code mask`]"></td>
                                 <td>
                                     <input type="text" name="tax_zip_rates[]" class="short numerical" value="" placeholder="0">%
                                 </td>
@@ -172,7 +172,7 @@
 
                             <tr class="buttons">
                                 <td class="min-width"></td>
-                                <td colspan="3"><a href="javascript:void(0)" id="s-add-zip-code-link" class="inline-link"><i class="icon16 add"></i><b><i>[`Add zip`]</i></b></a></td>
+                                <td colspan="3"><a href="javascript:void(0)" id="s-add-zip-code-link" class="inline-link"><i class="icon16 add"></i><b><i>[`Add ZIP`]</i></b></a></td>
                             </tr>
                         </tbody></table>
                     </div>

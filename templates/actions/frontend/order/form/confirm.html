@@ -1,6 +1,7 @@
 {strip}
 
 {$_config = $config["confirmation"]}
+{$_locked = !empty($_confirm_locked)}
 
 {$_errors = []}
 {if !empty($error_step_id) && $error_step_id === "confirm"}{$_errors = $errors}{/if}
@@ -10,16 +11,16 @@
     <div class="wa-section-body">
         <form>
             <div class="wa-flex-wrapper">
-                {if !empty($_config["order_comment"])}
-                    <div class="wa-comment-section">
+                {if empty($_locked) && !empty($_config["order_comment"])}
+                    <div class="wa-comment-section {if !empty($confirm.comment)}is-opened{/if}">
                         <div class="wa-visible">
                             <span class="wa-link js-open-section">
-                                [`Комментарий к заказу`]&nbsp;&nbsp;<i class="wa-icon arrow-bottom size-8"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#arrow-bottom"></use></svg></i>
+                                [`Comment to the order`]&nbsp;&nbsp;<i class="wa-icon arrow-bottom size-8"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#arrow-bottom"></use></svg></i>
                             </span>
                         </div>
                         <div class="wa-hidden">
                             <div class="wa-field-wrapper full-line">
-                                <textarea class="wa-textarea js-order-comment-field" name="confirm[comment]"></textarea>
+                                <textarea class="wa-textarea js-order-comment-field" name="confirm[comment]">{$confirm.comment|default:""|escape}</textarea>
                             </div>
                         </div>
                     </div>
@@ -28,7 +29,7 @@
                 <div class="wa-total-section">
                     {* SUBTOTAL *}
                     <div class="wa-item">
-                        <div class="wa-name">[`Стоимость товаров`]</div>
+                        <div class="wa-name">[`Items cost`]</div>
                         <div class="wa-value">
                             <span class="wa-price">{shop_currency($confirm.subtotal, ['in_currency' => true, 'extended_format' => '%t{h}'])}</span>
                         </div>
@@ -36,7 +37,7 @@
 
                     {* DISCOUNT *}
                     <div class="wa-item">
-                        <div class="wa-name">[`Скидка`]</div>
+                        <div class="wa-name">[`Discount`]</div>
                         <div class="wa-value">
                             <span class="wa-price">{shop_currency($confirm.discount, ['in_currency' => true, 'extended_format' => '%t{h}'])}</span>
                         </div>
@@ -45,7 +46,7 @@
                     {* TAX *}
                     {if !empty($confirm.tax)}
                         <div class="wa-item">
-                            <div class="wa-name">[`Налог`]</div>
+                            <div class="wa-name">[`Tax`]</div>
                             <div class="wa-value">
                                 <span class="wa-price">{shop_currency($confirm.tax, ['in_currency' => true, 'extended_format' => '%t{h}'])}</span>
                             </div>
@@ -54,19 +55,19 @@
 
                     {* DELIVERY *}
                     <div class="wa-item">
-                        <div class="wa-name">[`Стоимость доставки`]</div>
+                        <div class="wa-name">[`Shipping cost`]</div>
                         <div class="wa-value">
                             {if !empty($confirm.shipping)}
                                 <span class="wa-price">{shop_currency($confirm.shipping, ['in_currency' => true, 'extended_format' => '%t{h}'])}</span>
                             {else}
-                                [`не выбрано`]
+                                [`not selected`]
                             {/if}
                         </div>
                     </div>
 
                     {* TOTAL *}
                     <div class="wa-item wa-item-total">
-                        <div class="wa-name">{if !empty($confirm.shipping)}[`Итого`]{else}[`Итого без учета доставки`]{/if}</div>
+                        <div class="wa-name">{if !empty($confirm.shipping)}[`Total`]{else}[`Total less shipping cost`]{/if}</div>
                         <div class="wa-value">
                             <span class="wa-price">{shop_currency($confirm.total, ['in_currency' => true, 'extended_format' => '%t{h}'])}</span>
                         </div>
@@ -74,13 +75,13 @@
                 </div>
 
                 <div class="wa-actions-section">
-                    {if !empty($_config["terms"])}
+                    {if empty($_locked) && !empty($_config["terms"])}
                         <div class="wa-terms-section">
                             <div class="wa-field-wrapper is-agreement-field full-line">
                                 <label class="wa-checkbox-wrapper">
                                     <input class="wa-checkbox" type="checkbox" name="confirm[terms]" value="1" checked required>
                                     <span class="wa-text">
-                                        принять наши <a class="js-show-terms-dialog" href="javascript:void(0);">условия предоставления услуг</a>
+                                        [`accept our <a class="js-show-terms-dialog" href="javascript:void(0);">terms of service</a>`]
                                     </span>
                                 </label>
                             </div>
@@ -94,7 +95,7 @@
                         {/if}
                     {/if}
 
-                    <button class="wa-button wa-submit-button js-submit-order-button">[`Подтвердить заказ`]</button>
+                    <button class="wa-button wa-submit-button js-submit-order-button" {if !empty($_locked)}disabled{/if}>[`Confirm order`]</button>
                 </div>
             </div>
         </form>

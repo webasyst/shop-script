@@ -74,11 +74,12 @@ class shopSettingsShippingAction extends waViewAction
 
             ),
             'dimensions'                => array(
-                'name'     => _w('Product dimensions (value × value × value)'),
-                'features' => array(
+                'name'        => _w('Product dimensions (value × value × value)'),
+                'description' => _w('Select a common product feature containing 3 dimension values to avoid selecting separate features for individual dimensions below.'),
+                'features'    => array(
                     '3d.dimension.length',
                 ),
-                'states'   => array(
+                'states'      => array(
                     'valid'   => sprintf(
                         '<i class="icon16 yes"></i>%s',
                         _w('Product dimensions are passed on to shipping plugins.')
@@ -88,26 +89,27 @@ class shopSettingsShippingAction extends waViewAction
                         _w('Passing of product dimensions on to shipping plugins is not set up.')
                     ),
                 ),
-                'state'    => 'invalid',
+                'state'       => 'invalid',
 
             ),
             'height'                    => array(
-                'name'     => _w('Height'),
+                'name'     => _w('Product height'),
                 'features' => array(
                     'dimension.length',
                 ),
 
             ),
             'width'                     => array(
-                'name'     => _w('Width'),
+                'name'     => _w('Product width'),
                 'features' => array(
                     'dimension.length',
                 ),
 
             ),
             'length'                    => array(
-                'name'     => _w('Length'),
-                'features' => array(
+                'name'        => _w('Product length'),
+                'description' => _w('Select separate product features for individual product dimensions if you have not selected a common dimensions feature above.'),
+                'features'    => array(
                     'dimension.length',
                 ),
 

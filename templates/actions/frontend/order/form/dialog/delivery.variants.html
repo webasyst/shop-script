@@ -4,7 +4,7 @@
     <div class="wa-dialog-background"></div>
     <div class="wa-dialog-body">
         <header class="wa-dialog-header">
-            <div class="wa-header">[`Выбор варианта для доставки`]</div>
+            <div class="wa-header">[`Shipping option selection`]</div>
             <span class="wa-close-wrapper js-close-dialog">
                 <i class="wa-icon delete size-10"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#delete"></use></svg></i>
             </span>
@@ -12,7 +12,7 @@
         <div class="wa-dialog-content">
 
             <div class="wa-delivery-variants-section">
-                <div class="wa-section-header">[`Фильтр`]</div>
+                <div class="wa-section-header">[`Filter`]</div>
                 {if !empty($_variants_html)}{$_variants_html|join:""}{/if}
             </div>
 

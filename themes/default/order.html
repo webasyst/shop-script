@@ -1,87 +1,17 @@
 {$_show_cart = true}
 {$_cart_count = $wa->shop->cart->count()}
 
-{* todo: get order details *}
-{$_order_id = $wa->get("order_id")}
-
-<style>#header-container { display: none; }</style>
-
 <style>
-    .s-cart-success-wrapper,
-    .s-cart-empty-wrapper {
-        margin: 100px 0;
-        text-align: center;
-    }
-    .s-cart-success-wrapper .s-image-wrapper,
-    .s-cart-empty-wrapper .s-image-wrapper {
-        margin: 0 0 20px;
-    }
-    .s-cart-success-wrapper .s-image-wrapper img,
-    .s-cart-empty-wrapper .s-image-wrapper img {
-        vertical-align: top;
-        width: 100%;
-        max-height: 160px;
-    }
-    .s-cart-success-wrapper .s-header,
-    .s-cart-empty-wrapper .s-header {
-        margin: 0;
-        font-size: 36px;
-        line-height: 1.472222222222222em;
-        font-weight: bold;
-        color: #000;
-    }
-    .s-cart-success-wrapper .s-description,
-    .s-cart-empty-wrapper .s-description {
-        margin: 20px 0 0;
-    }
-    .s-cart-success-wrapper .s-plugin-wrapper,
-    .s-cart-empty-wrapper .s-plugin-wrapper {
-        margin: 30px 0 0;
-    }
-    .s-cart-success-wrapper .s-payment-success,
-    .s-cart-empty-wrapper .s-payment-success {
-        margin: 30px 0 0;
-    }
-    .s-cart-success-wrapper .s-actions-wrapper,
-    .s-cart-empty-wrapper .s-actions-wrapper {
-        margin: 30px 0 0;
-        color: #006bd8;
-    }
+    #header-container { display: none; }
+    .s-cart-empty-wrapper { margin: 100px 0; text-align: center; }
+    .s-cart-empty-wrapper .s-image-wrapper { margin: 0 0 20px; }
+    .s-cart-empty-wrapper .s-image-wrapper img { vertical-align: top; width: 100%; max-height: 160px; }
+    .s-cart-empty-wrapper .s-description { margin: 20px 0 0; }
+    .s-cart-empty-wrapper .s-actions-wrapper { margin: 30px 0 0; color: #006bd8; }
 </style>
 
-{*SUCCESS*}
-{if !empty($_order_id)}
-    <div class="s-cart-success-wrapper">
-        <div class="s-image-wrapper">
-            <img src="{$wa_theme_url}img/svg/order/cart_success.svg" alt="[`Your shopping cart is empty.`]">
-        </div>
-
-        <h2 class="s-header">{$config.confirmation.thankyou_header|default:"[`Заказ оформлен. Спасибо!`]"|escape}</h2>
-
-        {if !empty($config.confirmation.thankyou_content)}
-            <div class="s-description">{$config.confirmation.thankyou_content|replace:'$order_id':$_order_id|escape}</div>
-        {/if}
-
-        {if !empty($payment)}
-            <div class="s-plugin-wrapper">{$payment}</div>
-        {/if}
-
-        {if !empty($payment_success)}
-            <div class="s-payment-success highlighted">[`Your payment has been successfully accepted. We will process your order and contact you shortly.`]</div>
-        {/if}
-
-        <p class="s-actions-wrapper">
-            <a href="{$wa_app_url}">[`Go to home page`]</a>
-        </p>
-
-        {if !empty($frontend_checkout)}
-            {* @event frontend_checkout.%plugin_id% *}
-            {foreach $frontend_checkout as $_}{$_}{/foreach}
-        {/if}
-    </div>
-
 {*EMPTY*}
-{elseif empty($_cart_count)}
+{if empty($_cart_count)}
     <div class="s-cart-empty-wrapper">
         <div class="s-image-wrapper">
             <img src="{$wa_theme_url}img/svg/order/cart_empty.svg" alt="[`Your shopping cart is empty.`]">

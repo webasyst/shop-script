@@ -168,7 +168,7 @@ class shopOrderEditAction extends waViewAction
             'allow_external_for' => $allow_external_for,
             'shipping_params'    => array(),
             'custom_html'        => true,
-            'departure_datetime' => shopDepartureTimeFacade::getDepartureByStorefront(ifset($order, 'params', 'storefront', null)),
+            'departure_datetime' => shopDepartureDateTimeFacade::getDeparture(null, ifset($order, 'params', 'storefront', null)),
         );
 
         if ($shipping_id && !empty($order['params'])) {

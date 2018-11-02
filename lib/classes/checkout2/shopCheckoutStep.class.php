@@ -214,13 +214,13 @@ abstract class shopCheckoutStep
 
             // Plugins are allowed to do pretty much anything they want
             wa('shop')->event('checkout_before_'.$step_id, ref(array(
-                'step_id' => $step_id,
+                'step_id'       => $step_id,
 
-                'result' => &$result,
-                'data' => &$data,
+                'result'        => &$result,
+                'data'          => &$data,
 
                 'error_step_id' => &$error_step_id,
-                'errors' => &$errors,
+                'errors'        => &$errors,
             )));
 
             //
@@ -235,14 +235,14 @@ abstract class shopCheckoutStep
 
             // More love for plugins
             wa('shop')->event('checkout_prepared_'.$step_id, ref(array(
-                'step_id' => $step_id,
+                'step_id'        => $step_id,
 
                 'prepare_result' => &$prepare_result,
-                'result' => &$result,
-                'data' => &$data,
+                'result'         => &$result,
+                'data'           => &$data,
 
-                'error_step_id' => &$error_step_id,
-                'errors' => &$errors,
+                'error_step_id'  => &$error_step_id,
+                'errors'         => &$errors,
             )));
 
             $result[$step_id] = ifset($prepare_result, 'result', array());

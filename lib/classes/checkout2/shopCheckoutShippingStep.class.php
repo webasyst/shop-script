@@ -25,7 +25,7 @@ class shopCheckoutShippingStep extends shopCheckoutStep
 
         if (empty($address['country']) || empty($address['region']) || empty($address['city'])) {
             // This can not happen. It means previous step did not properly validate shipping region selection,
-            // or a plugin interfered and broke things, or some other terrible stuff occured. Like, Godzilla. Blame Godzilla.
+            // or a plugin interfered and broke things, or some other terrible stuff occurred. Like, Godzilla. Blame Godzilla.
             $errors = [
                 'general_error' => 'Unable to prepare list of shipping options because shipping region is not properly selected.',
             ];
@@ -51,8 +51,9 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         // Fetch list of shipping plugins enabled for current storefront
         // Ask them to provide shipping variants using $address given
         $services_flat = array();
-        foreach ($config->getShippingRates($address, $items, $customer_type) as $id => $rate) {
-            if (isset($rate['rate']) && isset($rate['type'])) {
+        $rates = $config->getShippingRates($address, $items, $customer_type);
+        foreach ($rates as $id => $rate) {
+            if (isset($rate['type'])) {
                 $services_flat[$id] = $rate;
             }
         }
@@ -74,43 +75,43 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         //
         $shipping_types = [
             'pickup' => [
-                'id' => 'pickup',
+                'id'          => 'pickup',
                 'is_selected' => false,
-                'name' => $config['shipping']['pickuppoint_name'],
-                'rate_min' => null, // null|number
-                'rate_max' => null, // null|number
-                'currency' => $data['order']['currency'],
-                'date_min' => null, // null|'Y-m-d H:i:s'
-                'date_max' => null, // null|'Y-m-d H:i:s'
+                'name'        => $config['shipping']['pickuppoint_name'],
+                'rate_min'    => null, // null|number
+                'rate_max'    => null, // null|number
+                'currency'    => $data['order']['currency'],
+                'date_min'    => null, // null|'Y-m-d H:i:s'
+                'date_max'    => null, // null|'Y-m-d H:i:s'
                 'date_min_ts' => null, // null|int
                 'date_max_ts' => null, // null|int
-                'variants' => [],
+                'variants'    => [],
             ],
             'todoor' => [
-                'id' => 'todoor',
+                'id'          => 'todoor',
                 'is_selected' => false,
-                'name' => $config['shipping']['courier_name'],
-                'rate_min' => null,
-                'rate_max' => null,
-                'currency' => $data['order']['currency'],
-                'date_min' => null,
-                'date_max' => null,
+                'name'        => $config['shipping']['courier_name'],
+                'rate_min'    => null,
+                'rate_max'    => null,
+                'currency'    => $data['order']['currency'],
+                'date_min'    => null,
+                'date_max'    => null,
                 'date_min_ts' => null,
                 'date_max_ts' => null,
-                'variants' => [],
+                'variants'    => [],
             ],
-            'post' => [
-                'id' => 'post',
+            'post'   => [
+                'id'          => 'post',
                 'is_selected' => false,
-                'name' => $config['shipping']['post_name'],
-                'rate_min' => null,
-                'rate_max' => null,
-                'currency' => $data['order']['currency'],
-                'date_min' => null,
-                'date_max' => null,
+                'name'        => $config['shipping']['post_name'],
+                'rate_min'    => null,
+                'rate_max'    => null,
+                'currency'    => $data['order']['currency'],
+                'date_min'    => null,
+                'date_max'    => null,
                 'date_min_ts' => null,
                 'date_max_ts' => null,
-                'variants' => [],
+                'variants'    => [],
             ],
         ];
 
@@ -200,9 +201,9 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         }
 
         $result = $this->addRenderedHtml([
-            'selected_type_id' => $selected_type_id,
+            'selected_type_id'    => $selected_type_id,
             'selected_variant_id' => $selected_variant_id,
-            'types' => $shipping_types,
+            'types'               => $shipping_types,
         ], $data, $errors);
 
         if ($data['origin'] !== 'form' && 'only' === ifset($data, 'input', 'shipping', 'html', null)) {
@@ -280,7 +281,7 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         $days = [];
         $weekday_names_full = waDateTime::getWeekdayNames();
         $weekday_names_short = waDateTime::getWeekdayNames('ucfirst', 'short');
-        foreach($schedule['weekdays'] as $d) {
+        foreach ($schedule['weekdays'] as $d) {
             list($date, $time_start) = explode(' ', $d['start_work']);
             list($_, $time_end) = explode(' ', $d['end_work']);
             $weekday_id = date('N', strtotime($d['start_work']));
@@ -296,19 +297,19 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             $date_formatted = trim(str_replace(date('Y'), '', $date_formatted));
 
             $days[] = [
-                'date' => $date,
-                'works' => $d['type'] == 'workday',
+                'date'           => $date,
+                'works'          => $d['type'] == 'workday',
                 'date_formatted' => $date_formatted,
-                'time_start' => $time_start,
-                'time_end' => $time_end,
-                'weekday_full' => $weekday_names_full[$weekday_id],
-                'weekday_short' => $weekday_names_short[$weekday_id],
+                'time_start'     => $time_start,
+                'time_end'       => $time_end,
+                'weekday_full'   => $weekday_names_full[$weekday_id],
+                'weekday_short'  => $weekday_names_short[$weekday_id],
             ];
         }
         return [
-            'timezone' => $timezone,
+            'timezone'      => $timezone,
             'timezone_text' => $timezone_html,
-            'days' => $days,
+            'days'          => $days,
         ];
     }
 

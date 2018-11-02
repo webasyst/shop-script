@@ -41,6 +41,9 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
             }
         }
 
+        $result['comment'] = ifset($data, 'input', 'confirm', 'comment', '');
+        $result['terms'] = ifset($data, 'input', 'confirm', 'terms', '');
+
         // Render template in case process() won't have a chance to do that
         if (!empty($data['error_step_id'])) {
             $result = $this->addRenderedHtml($result, $data, $errors);

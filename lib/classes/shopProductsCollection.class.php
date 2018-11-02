@@ -283,12 +283,12 @@ class shopProductsCollection
         // Filter SKUs by price
         $price_filter = array();
         if (isset($data['price_min']) && $data['price_min'] !== '') {
-            $price_min = str_replace(',','.',$data['price_min']);
+            $price_min = str_replace(',', '.', $data['price_min']);
             $this->where[] = 'p.max_price >= '.$this->toFloat(shop_currency($price_min, true, $config->getCurrency(true), false));
             $price_filter['price_min'] = ' >= '.$this->toFloat(shop_currency($price_min, true, $config->getCurrency(true), false));
         }
         if (isset($data['price_max']) && $data['price_max'] !== '') {
-            $price_max = str_replace(',','.',$data['price_max']);
+            $price_max = str_replace(',', '.', $data['price_max']);
             $this->where[] = 'p.min_price <= '.$this->toFloat(shop_currency($price_max, true, $config->getCurrency(true), false));
             $price_filter['price_max'] = ' <='.$this->toFloat(shop_currency($price_max, true, $config->getCurrency(true), false));
         }
@@ -983,7 +983,7 @@ SQL;
                             $value_id = implode(', ', $value_id);
                         } else {
                             $values_model = $feature_model->getValuesModel($feature['type']);
-                            $value_id = (int) $values_model->getValueId($feature['id'], $parts[2]);
+                            $value_id = (int)$values_model->getValueId($feature['id'], $parts[2]);
                             $values_id = [$value_id];
                         }
 
@@ -1018,12 +1018,13 @@ SQL;
                     }
 
                     $where = ['feature_id = i:feature_id'];
-                    $where_placeholder =  ['feature_id' => $feature['id']];
+                    $where_placeholder = ['feature_id' => $feature['id']];
                     if ($end) {
-                        $where[] = 'end <= i:end';
+                        $where[] = 'end_base_unit <= i:end';
                         $where_placeholder['end'] = max($end);
-                    } else {
-                        $where[] = 'begin >= i:begin';
+                    }
+                    if ($begin) {
+                        $where[] = 'begin_base_unit >= i:begin';
                         $where_placeholder['begin'] = min($begin);
                     }
                     $where = join(' AND ', $where);
@@ -1133,9 +1134,19 @@ SQL;
         }
 
         $virtual_fields = array(
-            'images', 'images2x', 'image', 'image_crop_small', 'image_count',
-            'frontend_url', 'sales_30days', 'stock_worth', 'stock_counts',
-            'sku', 'skus_filtered', 'skus', 'skus_image',
+            'images',
+            'images2x',
+            'image',
+            'image_crop_small',
+            'image_count',
+            'frontend_url',
+            'sales_30days',
+            'stock_worth',
+            'stock_counts',
+            'sku',
+            'skus_filtered',
+            'skus',
+            'skus_image',
         );
         // Add required fields to select and delete fields for getting data after query
         foreach ($fields as $i => $f) {
@@ -1406,7 +1417,7 @@ SQL;
 
         $distinct = $this->joins && !$this->group_by ? 'DISTINCT ' : '';
 
-        $sql = "SELECT " . $distinct . $this->getFields($fields) . "\n";
+        $sql = "SELECT ".$distinct.$this->getFields($fields)."\n";
         $sql .= $from_and_where;
         $sql .= $this->_getGroupBy();
         if ($this->having) {
@@ -1758,7 +1769,7 @@ SQL;
                         // Build a list of conditions like:
                         // feature_id=? AND feature_value_id IN (?)
                         $feature_conditions = array();
-                        foreach($this->filtered_by_features as $feature_id => $values) {
+                        foreach ($this->filtered_by_features as $feature_id => $values) {
                             if (!$feature_id || !$values) {
                                 $feature_conditions = null;
                                 break;
@@ -1774,7 +1785,7 @@ SQL;
                                     FROM shop_product_features
                                     WHERE product_id IN (".join(',', array_keys($products)).")
                                         AND (".join("\n\tOR ", $feature_conditions).")";
-                            foreach($this->getModel()->query($sql) as $row) {
+                            foreach ($this->getModel()->query($sql) as $row) {
                                 if (!empty($row['sku_id'])) {
                                     if (!empty($skus[$row['sku_id']])) {
                                         // A single sku matches the filter by a single feature
@@ -1788,7 +1799,7 @@ SQL;
 
                             // Remove SKUs that do not match all the conditions
                             $match_count_needed = count($feature_conditions);
-                            foreach($skus as $sku_id => $sku) {
+                            foreach ($skus as $sku_id => $sku) {
                                 $match_count = 0;
                                 if (isset($sku['matches_feature'])) {
                                     $match_count += count($sku['matches_feature']);
@@ -2100,8 +2111,8 @@ SQL;
                 unset($p, $s);
 
                 $ignore_stock_count = wa('shop')->getSetting('ignore_stock_count');
-                foreach($products as $product_id => $product) {
-                    foreach(ifset($product, 'skus', array()) as $sku_id => $sku) {
+                foreach ($products as $product_id => $product) {
+                    foreach (ifset($product, 'skus', array()) as $sku_id => $sku) {
                         if (!is_array($sku)) {
                             continue; // being paranoid
                         }

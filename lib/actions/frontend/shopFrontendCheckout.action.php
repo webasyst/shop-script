@@ -156,6 +156,23 @@ class shopFrontendCheckoutAction extends waViewAction
         if (isset($payment)) {
             $this->view->assign('payment', $payment);
         }
+
+        // Header and message depend on current used checkout version
+        $route = wa()->getRouting()->getRoute();
+        $this->view->assign('my_order_url', wa()->getRouteUrl('shop/frontend/myOrder', ['id' => $order['_id']]));
+        if (2 == ifset($route, 'checkout_version', null)) {
+            $checkout_config = new shopCheckoutConfig(ifset($route, 'checkout_storefront_id', null));
+            $this->view->assign([
+                'thankyou_header' => $checkout_config['confirmation']['thankyou_header'],
+                'thankyou_content' => $checkout_config['confirmation']['thankyou_content'],
+            ]);
+        } else {
+            $this->view->assign([
+                'thankyou_header' =>_w('Thank you!'),
+                'thankyou_content' => _w('We successfully accepted your order, and will contact you asap.')." "._w('Your order number is ').'$order_id',
+            ]);
+        }
+
     }
 
     protected function addGoogleAnalytics($order, $order_id)

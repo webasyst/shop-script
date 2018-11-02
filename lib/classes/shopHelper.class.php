@@ -31,6 +31,7 @@ class shopHelper
                 $icon = "<i class='icon{$size} {$icon}{$class}'></i>";
             }
         }
+
         return $icon;
     }
 
@@ -93,6 +94,7 @@ class shopHelper
                 }
             }
         }
+
         return $methods;
     }
 
@@ -123,6 +125,7 @@ class shopHelper
                 }
             }
         }
+
         return $result;
     }
 
@@ -232,19 +235,20 @@ class shopHelper
             if ($plugin_currency != $params['currency']) {
                 if (!$config->getCurrencies($plugin_currency)) {
                     $result[$method_id] = array(
-                        'plugin'      => $m['plugin'],
-                        'plugin_name' => $plugin_info['name'],
-                        'logo'        => $m['logo'],
-                        'icon'        => $plugin_info['icon'],
-                        'img'         => $plugin_info['img'],
-                        'name'        => $m['name'],
-                        'error'       => sprintf(
+                        'plugin'               => $m['plugin'],
+                        'plugin_original_name' => $plugin_info['name'],
+                        'plugin_name'          => $m['name'],
+                        'logo'                 => $m['logo'],
+                        'icon'                 => $plugin_info['icon'],
+                        'img'                  => $plugin_info['img'],
+                        'name'                 => $m['name'],
+                        'error'                => sprintf(
                             _w('Shipping rate was not calculated because required currency %s is not defined in your store settings.'),
                             implode(', ', $plugin_currency)
                         ),
-                        'rate'        => '',
-                        'currency'    => $params['currency'],
-                        'external'    => !empty($plugin_info['external']),
+                        'rate'                 => false,
+                        'currency'             => $params['currency'],
+                        'external'             => !empty($plugin_info['external']),
                     );
                     continue;
                 }
@@ -324,17 +328,31 @@ class shopHelper
                             } else {
                                 $rate = $info['rate'];
                             }
+                            if (!empty($params['filter']['services_by_type'])) {
+                                $rate_name = empty($info['name']) ? $m['name'] : $info['name'];
+                                if (isset($info['service'])
+                                    && ($length = strlen($info['service']))
+                                    && (strpos($rate_name, $info['service']) === 0)
+                                ) {
+                                    $rate_name = preg_replace('@^[\s:\.,]+@', '', substr($rate_name, $length));
+                                }
+                            } else {
+                                $rate_name = $m['name'].(!empty($info['name']) ? ' ('.$info['name'].')' : '');
+                            }
+
                             $result[$key] = array(
-                                'plugin'      => $m['plugin'],
-                                'plugin_name' => $plugin_info['name'],
-                                'logo'        => $m['logo'],
-                                'icon'        => $plugin_info['icon'],
-                                'img'         => $plugin_info['img'],
-                                'name'        => $m['name'].(!empty($info['name']) ? ' ('.$info['name'].')' : ''),
-                                'rate'        => $rate,
-                                'currency'    => $params['currency'],
-                                'external'    => !empty($plugin_info['external']),
-                                'type'        => ifset($plugin_info, 'type', null),
+                                'plugin'               => $m['plugin'],
+                                'plugin_original_name' => $plugin_info['name'],
+                                'plugin_name'          => $m['name'],
+                                'logo'                 => $m['logo'],
+                                'icon'                 => $plugin_info['icon'],
+                                'img'                  => $plugin_info['img'],
+                                'name'                 => $rate_name,
+                                'service'              => ifset($info, 'service', (count($rates) > 1) || ($rate_name != $m['name']) ? $m['name'] : ''),
+                                'rate'                 => $rate,
+                                'currency'             => $params['currency'],
+                                'external'             => !empty($plugin_info['external']),
+                                'type'                 => ifset($plugin_info, 'type', null),
                             );
 
                             if ($rate === null) {
@@ -391,28 +409,30 @@ class shopHelper
 
                 } elseif (is_string($rates)) {
                     $result[$m['id']] = array(
-                        'plugin'      => $m['plugin'],
-                        'plugin_name' => $plugin_info['name'],
-                        'logo'        => $m['logo'],
-                        'icon'        => $plugin_info['icon'],
-                        'img'         => $plugin_info['img'],
-                        'name'        => $m['name'],
-                        'error'       => $rates,
-                        'rate'        => '',
-                        'currency'    => $params['currency'],
-                        'external'    => !empty($plugin_info['external']),
+                        'plugin'               => $m['plugin'],
+                        'plugin_original_name' => $plugin_info['name'],
+                        'plugin_name'          => $m['name'],
+                        'logo'                 => $m['logo'],
+                        'icon'                 => $plugin_info['icon'],
+                        'img'                  => $plugin_info['img'],
+                        'name'                 => $m['name'],
+                        'error'                => $rates,
+                        'rate'                 => false,
+                        'currency'             => $params['currency'],
+                        'external'             => !empty($plugin_info['external']),
                     );
                 } elseif (($rates === false) && in_array($m['id'], $params['allow_external_for'])) {
                     $result[$method_id] = array(
-                        'plugin'      => $m['plugin'],
-                        'plugin_name' => $plugin_info['name'],
-                        'logo'        => $m['logo'],
-                        'icon'        => $plugin_info['icon'],
-                        'img'         => $plugin_info['img'],
-                        'name'        => $m['name'],
-                        'error'       => _w('Not available'),
-                        'rate'        => '',
-                        'external'    => !empty($plugin_info['external']),
+                        'plugin'               => $m['plugin'],
+                        'plugin_original_name' => $plugin_info['name'],
+                        'plugin_name'          => $m['name'],
+                        'logo'                 => $m['logo'],
+                        'icon'                 => $plugin_info['icon'],
+                        'img'                  => $plugin_info['img'],
+                        'name'                 => $m['name'],
+                        'error'                => _w('Not available'),
+                        'rate'                 => false,
+                        'external'             => !empty($plugin_info['external']),
                     );
                 }
             }
@@ -522,6 +542,7 @@ class shopHelper
         if (isset(self::$badges[$code])) {
             return self::$badges[$code]['code'];
         }
+
         return $code;
     }
 
@@ -539,6 +560,7 @@ class shopHelper
         if (shopProductImagesModel::isCustomBadgeType($image['badge_type'])) {
             return isset($image['badge_code']) ? $image['badge_code'] : '';
         }
+
         return shopProductImagesModel::getBadgeCode($image['badge_type']);
     }
 
@@ -570,6 +592,7 @@ class shopHelper
         if ($full_protocol) {
             $url = 'http'.(waRequest::isHttps() ? 's' : '').':'.$url;
         }
+
         return $url;
     }
 
@@ -645,6 +668,7 @@ class shopHelper
 
         if ($single) {
             $orders = $orders[0];
+
             return $orders;
         }
     }
@@ -666,6 +690,7 @@ class shopHelper
             $shipping_time_start = preg_replace('~(\d\d:\d\d):\d\d~', '$1', $shipping_time_start);
             $shipping_time_end = preg_replace('~(\d\d:\d\d):\d\d~', '$1', $shipping_time_end);
         }
+
         return array($shipping_date, $shipping_time_start, $shipping_time_end);
     }
 
@@ -705,6 +730,7 @@ class shopHelper
             foreach ($contact_fields->getFields() as $k => $v) {
                 $address[$k] = ifset($order_params[$addr_type.'_address.'.$k]);
             }
+
             return $address;
         } else {
             throw new waException('Contact fields "address" is disabled');
@@ -744,8 +770,10 @@ class shopHelper
                     $address_f[$k] = $address[$k];
                 }
             }
+
             return implode(', ', $address_f);
         }
+
         return implode(', ', $address);
     }
 
@@ -759,6 +787,7 @@ class shopHelper
     {
         /** @var shopConfig $config */
         $config = wa('shop')->getConfig();
+
         return str_replace('{$order.id}', $id, $config->getOrderFormat());
     }
 
@@ -777,6 +806,7 @@ class shopHelper
         if (preg_match($format, $id, $m)) {
             return $m[1];
         }
+
         return '';
     }
 
@@ -879,6 +909,7 @@ class shopHelper
                 $result[$s['id']] = null;
             }
         }
+
         return $result;
     }
 
@@ -927,6 +958,7 @@ class shopHelper
                 $icon .= "<span class='small s-stock-left-text $warn'>"._w('%d left', '%d left', $count)."</span>";
             }
         }
+
         return $icon;
     }
 
@@ -1017,6 +1049,7 @@ class shopHelper
         if ($contact) {
             $form->setValue($contact);
         }
+
         return $form;
     }
 
@@ -1039,6 +1072,7 @@ class shopHelper
         if ($strict && !strlen($str)) {
             $str = date('Ymd');
         }
+
         return strtolower($str);
     }
 
@@ -1080,6 +1114,7 @@ class shopHelper
             }
             $html .= '"></i>';
         }
+
         return $html;
     }
 
@@ -1203,6 +1238,7 @@ SQL;
             $config = wa('shop')->getConfig();
             $store_email = $config->getGeneralSettings('email');
         }
+
         return $store_email;
     }
 
@@ -1228,6 +1264,7 @@ SQL;
                 }
             }
         }
+
         return $storefronts;
     }
 
@@ -1240,7 +1277,7 @@ SQL;
             if ($route['url'] === $storefront) {
                 $checkout_version = ifset($route, 'route', 'checkout_version', false);
                 if ($checkout_version == 2) {
-                    $hash = ifset($route, 'route','checkout_storefront_id', false);
+                    $hash = ifset($route, 'route', 'checkout_storefront_id', false);
                     if ($hash === false) {
                         throw new waException('Storefront id not found in config');
                     }
@@ -1281,6 +1318,7 @@ SQL;
                 $signup_url .= "prefilling={$hash}";
             }
         }
+
         return $signup_url;
     }
 
@@ -1294,6 +1332,7 @@ SQL;
                 break;
             }
         }
+
         return $domain;
     }
 
@@ -1307,6 +1346,7 @@ SQL;
         $found_products = $col->getProducts('id,name', 0, 1);
         $found_product = reset($found_products);
         $template = _w('The URL <strong>:url</strong> is already in use by another product (<a href="?action=products#/product/:another_product_id/" target="_blank" class="bold">:another_product_name</a>). You may still save this product with the same URL, but the storefront will display only one (any) product by this URL.');
+
         return str_replace(
             array(':url', ':another_product_id', ':another_product_name'),
             array($product['url'], $found_product['id'], htmlspecialchars($found_product['name'])),
@@ -1338,6 +1378,7 @@ SQL;
             $json_without_bigints = preg_replace('/(:|,|\[|^)\s*(-?\d{'.$max_int_length.',})/', '$1"$2"', $input);
             $obj = json_decode($json_without_bigints, $assoc);
         }
+
         return $obj;
 
     }
@@ -1441,6 +1482,7 @@ SQL;
                 }
                 break;
         }
+
         return $value;
     }
 
@@ -1516,6 +1558,7 @@ SQL;
 
 
         }
+
         return array_values($items);
     }
 

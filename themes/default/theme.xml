@@ -16,6 +16,10 @@
         </file>
         <file path="default.shop.js">
         </file>
+        <file path="css/order.css">
+        </file>
+        <file path="js/order.js">
+        </file>
         <file path="head.html">
             <description locale="en_US">Shop-Script's &lt;head&gt; instructions</description>
             <description locale="en_US">Блок &lt;head&gt; приложения Shop-Script</description>
@@ -125,6 +129,10 @@
         <file path="my.order.html">
             <description locale="en_US">Customer account interface: single order information</description>
             <description locale="ru_RU">Личный кабинет покупателя: информация о заказе</description>
+        </file>
+        <file path="order.html">
+            <description locale="en_US">Single page ordering</description>
+            <description locale="ru_RU">Одностраничное оформление заказа</description>
         </file>
         <file path="home.html">
             <description locale="en_US">Storefront homepage</description>

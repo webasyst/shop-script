@@ -317,15 +317,17 @@
             function onChange($field) {
                 clearTimeout(key_timer);
 
-                var $field_wrapper = $field.closest(".wa-field-wrapper"),
-                    error = that.scope.validate($field_wrapper, true);
+                that.scope.trigger("region_change");
 
-                if (!error.length) {
-                    var errors = that.scope.validate(that.$wrapper);
-                    if (!errors.length) {
-                        that.scope.trigger("region_change");
-                    }
-                }
+                // var $field_wrapper = $field.closest(".wa-field-wrapper"),
+                //     error = that.scope.validate($field_wrapper, true);
+                //
+                // if (!error.length) {
+                //     var errors = that.scope.validate(that.$wrapper);
+                //     if (!errors.length) {
+                //         that.scope.trigger("region_change");
+                //     }
+                // }
             }
         };
 
@@ -1155,8 +1157,12 @@
                     render_errors: true
                 }).then( function(api) {
                     if (api.order_id) {
-                        location.href = location.origin + location.pathname + "?order_id=" + api.order_id;
-
+                        that.scope.trigger("created", api);
+                        try {
+                            location.href = that.scope.urls.success;
+                        } catch (e) {
+                            that.scope.DEBUG(e.message, "error");
+                        }
                     } else {
                         var errors = that.scope.renderErrors(api);
                         if (errors.length) {
@@ -1261,7 +1267,7 @@
 
             function onRegionChange() {
                 var data = that.getFormData({
-                    sections: ["auth", "region"]
+                    sections: ["auth", "region", "confirm"]
                 });
 
                 that.update({

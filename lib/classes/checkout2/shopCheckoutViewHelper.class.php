@@ -14,7 +14,9 @@ class shopCheckoutViewHelper
     {
         $template_path = wa()->getAppPath('templates/actions/frontend/FrontendOrderCart.html', 'shop');
         return $this->renderTemplate($template_path, $this->cartVars() + array(
-            'options' => $opts,
+            'options' => $opts + [
+                'adaptive' => true,
+            ],
         ));
     }
 
@@ -539,5 +541,72 @@ class shopCheckoutViewHelper
         $view->clearAllAssign();
         $view->assign($old_vars);
         return $html;
+    }
+
+    /**
+     * Returns url to storefront checkout
+     * @param bool $absolute
+     * @return string
+     *
+     * NEW CHECKOUT: /shop/order/
+     * OLD CHECKOUT: /shop/checkout/
+     */
+    public function url($absolute = false)
+    {
+        $route = wa()->getRouting()->getRoute();
+        $app = ifset($route, 'app', null);
+        if ($app !== 'shop') {
+            $route = $this->getStorefrontRoute();
+        }
+
+        $checkout_version = ifset($route, 'checkout_version', 1);
+
+        if ($checkout_version == 2) {
+            return wa()->getRouteUrl('shop/frontend/order', [], $absolute);
+        }
+
+        return wa()->getRouteUrl('shop/frontend/checkout', [], $absolute);
+    }
+
+    /**
+     * Returns url to storefront cart
+     * @param bool $absolute
+     * @return string
+     *
+     * NEW CHECKOUT: /shop/order/
+     * OLD CHECKOUT: /shop/cart/
+     */
+    public function cartUrl($absolute = false)
+    {
+        $route = wa()->getRouting()->getRoute();
+        $app = ifset($route, 'app', null);
+        if ($app !== 'shop') {
+            $route = $this->getStorefrontRoute();
+        }
+
+        $checkout_version = ifset($route, 'checkout_version', 1);
+
+        if ($checkout_version == 2) {
+            return wa()->getRouteUrl('shop/frontend/order', [], $absolute);
+        }
+
+        return wa()->getRouteUrl('shop/frontend/cart', [], $absolute);
+    }
+
+    /**
+     * Returns the rule from routing to storefront
+     * @return null|array
+     */
+    protected function getStorefrontRoute()
+    {
+        $storefronts = shopHelper::getStorefronts(true);
+        $shop_url = preg_replace('~^https?://~', '', wa()->getRouteUrl('shop/frontend', [], true));
+        foreach ($storefronts as $storefront) {
+            if (isset($storefront['route']) && isset($storefront['url']) && $storefront['url'] == $shop_url) {
+                return $storefront['route'];
+            }
+        }
+
+        return null;
     }
 }

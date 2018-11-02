@@ -15,7 +15,7 @@
         {if !empty($shipping.types)}
             {* TYPES *}
             <div class="wa-delivery-types-section" id="js-delivery-types-section">
-                <div class="wa-header">[`Типы доставки`]</div>
+                <div class="wa-header">[`Shipping methods`]</div>
 
                 <div class="wa-types-list">
                     {foreach $_types_sort as $_type_id}
@@ -74,14 +74,14 @@
 
                 {* VARIANTS *}
                 <div class="wa-delivery-variants-section" id="js-delivery-variants-section">
-                    <div class="wa-header">[`Варианты доставки`]</div>
+                    <div class="wa-header">[`Shipping options`]</div>
 
                     <div class="wa-dropdown full-line js-variants-select">
                         <div class="wa-dropdown-toggle">
                             {if !empty($_active_variant)}
                                 {$_active_variant.name|escape}
                             {else}
-                                [`Выберите вариант доставки`]
+                                [`Select a shipping option`]
                             {/if}
                         </div>
                         <div class="wa-dropdown-area">
@@ -113,8 +113,8 @@
                                                 <span class="wa-date">{$_date}</span>
                                             {/if}
 
-                                            {if !empty($_variant.plugin_name)}
-                                                <span class="wa-service">{$_variant.plugin_name|escape}</span>
+                                            {if !empty($_variant.service)}
+                                                <span class="wa-service">{$_variant.service|escape}</span>
                                             {/if}
                                         </div>
                                     </div>
@@ -127,12 +127,12 @@
                 </div>
             {else}
                 {if !empty($_active_variant)}
-                    {$_error_text = "[`Для указанного вами местоположения нет доступных вариантов доставки.`]<br>[`Попробуйте проверить поля местоположения или свяжитесь с нами.`]"}
+                    {$_error_text = "[`There are no shipping options available for specified location.`]<br>[`Please check values in location fields or contact us.`]"}
                 {/if}
             {/if}
 
         {else}
-            {$_error_text = "[`Для указанного вами местоположения нет доступных вариантов доставки.`]<br>[`Попробуйте проверить поля местоположения или свяжитесь с нами.`]"}
+            {$_error_text = "[`There are no shipping options available for specified location.`]<br>[`Please check values in location fields or contact us.`]"}
         {/if}
 
         {if !empty($_error_text)}

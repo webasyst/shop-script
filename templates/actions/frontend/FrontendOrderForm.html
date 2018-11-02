@@ -1,3 +1,7 @@
+{strip}
+
+{$wa->globals("wa_order_form", [])}
+
 <div class="wa-order-form-wrapper is-not-ready" id="wa-order-form-wrapper" style="visibility: hidden;">
     <script>
         ( function($) {
@@ -9,7 +13,13 @@
 
         {include file="./order/form/auth.html" inline}
 
-        {include file="./order/form/region.html" inline}
+        {$_hide_region = false}
+        {$_form_globals = $wa->globals("wa_order_form")}
+        {if !empty($_form_globals["auth"]["locked"])}
+            {$_hide_region = true}
+        {/if}
+
+        {include file="./order/form/region.html" _hide_region=$_hide_region inline}
 
         {include file="./order/form/shipping.html" inline}
 
@@ -17,7 +27,13 @@
 
         {include file="./order/form/payment.html" inline}
 
-        {include file="./order/form/confirm.html" inline}
+        {$_confirm_locked = false}
+        {$_form_globals = $wa->globals("wa_order_form")}
+        {if !empty($_form_globals["auth"]["locked"])}
+            {$_confirm_locked = true}
+        {/if}
+
+        {include file="./order/form/confirm.html" _confirm_locked=$_confirm_locked inline}
 
     </div>
 
@@ -85,7 +101,7 @@
 
                     return deferred.promise();
 
-                    //
+                    /**/
 
                     function loadCSS(source) {
                         var $link = $("#" + source.id);
@@ -159,11 +175,12 @@
                     $wrapper: $("#wa-order-form-wrapper"),
                     outer_options: {$options|json_encode},
                     locales: {
-                        invalid: {_w("Ошибка валидации")|json_encode},
-                        required: {_w("Обязательное поле")|json_encode}
+                        invalid: {_w("Validation error")|json_encode},
+                        required: {_w("Required field")|json_encode}
                     },
                     urls: {
                         "calculate": {$wa->getUrl('shop/frontendOrder/calculate')|json_encode},
+                        "success": {$wa->getUrl('shop/frontend/checkout', ['step'=>'success'])|json_encode},
                         "create": {$wa->getUrl('shop/frontendOrder/create')|json_encode}
                     }
                 });
@@ -171,3 +188,5 @@
         })(jQuery);
     </script>
 </div>
+
+{/strip}

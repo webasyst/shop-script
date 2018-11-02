@@ -446,10 +446,13 @@ class shopFrontendOrderCartActions extends waJsonActions
     protected function getOpts()
     {
         $opts = waRequest::post('opts', array(), 'array');
-        $opts = array_intersect_key($opts, array(
+        $opts = array_intersect_key($opts, [
             'wrapper' => 1,
+            'adaptive' => 1,
             'DEBUG' => 1,
-        ));
+        ]) + [
+            'adaptive' => true,
+        ];
         if (isset($opts['wrapper'])) {
             $opts['wrapper'] = htmlspecialchars($opts['wrapper']);
         }

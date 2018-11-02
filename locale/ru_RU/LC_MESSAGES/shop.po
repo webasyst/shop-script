@@ -382,7 +382,7 @@ msgid "Will be displayed in the storefront as in the checkout navigation"
 msgstr "Отображается на витрине в блоке навигации оформления заказа"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:175
-msgid "Shipping options"
+msgid "Shipping methods"
 msgstr "Способы доставки"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:177
@@ -505,7 +505,7 @@ msgid "State"
 msgstr "Штат"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:663
-msgid "Zip code"
+msgid "ZIP code"
 msgstr "Почтовый индекс"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:664
@@ -919,11 +919,11 @@ msgid "County taxes"
 msgstr "Местные налоги"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:132
-msgid "If your jurisdiction require you to charge additional county taxes, define taxing rules by zip (postal) code. Use asteryx (*) for wildcard. For example, mask 12* is applicable for all zip codes with 12 as first two symbols, e.g. 12365, 12963, 12AB7, 12 QN93 and so on (wildcard is ok for both letters and numbers). Zip code rules are processed one by one in the given order. Applied is the first rule matching the user zip code (only one matching rule is applied at a time). County tax rules are of a higher priority than state tax rules (if matched, county tax rate replaces the state tax rule when calculated during the checkout), which means that combined county rates must be provided."
+msgid "If your jurisdiction require you to charge additional county taxes, define taxing rules by ZIP (postal) code. Use asteryx (*) for wildcard. For example, mask 12* is applicable for all ZIP codes with 12 as first two symbols, e.g. 12365, 12963, 12AB7, 12 QN93 and so on (wildcard is ok for both letters and numbers). ZIP code rules are processed one by one in the given order. Applied is the first rule matching the user ZIP code (only one matching rule is applied at a time). County tax rules are of a higher priority than state tax rules (if matched, county tax rate replaces the state tax rule when calculated during the checkout), which means that combined county rates must be provided."
 msgstr "Если ваше законодательство требует взимания дополнительных местных налогов, добавьте налоговые ставки для отдельных почтовых индексов. В качестве маски используйте символ звездочки (*). Например, маска 12* обозначает все почтовые индексы, начинающиеся с цифр 12: 123654, 12963, 12AB7, 12 QN93 и т. д. (маска действует для цифр и букв). Правила для почтовых индексов обрабатываются в заданном порядке. Применяется первое правило, соответствующее почтовому индексу покупателя (применяется только одно, первое, правило). Правила расчета местных налогов имеют более высокий приоритет, чем правила налогов регионов (в случае срабатывания обоих правил местный налог используется вместо налога региона во время оформления заказа); это означает, что следует указывать объединенные местные налоговые ставки."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:163
-msgid "Zip code mask"
+msgid "ZIP code mask"
 msgstr "Маска почтового индекса"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:144
@@ -931,7 +931,7 @@ msgid "No county taxes are defined."
 msgstr "Местные налоги не определены."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:172
-msgid "Add zip"
+msgid "Add ZIP"
 msgstr "Добавить почтовый индекс"
 
 #: /wa-apps/shop/templates/actions/backend/BackendSettings.html:72
@@ -1051,12 +1051,15 @@ msgid "Max"
 msgstr "Макс."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:76
-msgid "Width"
-msgstr "Ширина"
+msgid "Product width"
+msgstr "Ширина товара"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:76
-msgid "Height"
-msgstr "Высота"
+msgid "Product height"
+msgstr "Высота товара"
+
+msgid "Product length"
+msgstr "Длина товара"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:64
 msgid "auto"
@@ -4408,10 +4411,6 @@ msgstr "Ключевые слова"
 #: /wa-apps/shop/templates/actions/backend/BackendReports.html:122
 msgid "Countries & regions"
 msgstr "Страны и регионы"
-
-#: /wa-apps/shop/templates/actions/backend/BackendReports.html:123
-msgid "Shipping types"
-msgstr "Способы доставки"
 
 #: /wa-apps/shop/templates/actions/backend/BackendReports.html:124
 msgid "Payment types"
@@ -10940,7 +10939,7 @@ msgstr "Чтобы редактировать страны и регионы, в
 msgid "You can set up a directory of countries and regions in “<a href=\"%s\">Settings</a>” app‘s."
 msgstr "Настроить справочник стран и регионов можно в приложении «<a href=\"%s\">Настройки</a>»."
 
-msgid "Operation mode"
+msgid "Working schedule"
 msgstr "Режим работы"
 
 msgid "Timezone"
@@ -11043,16 +11042,16 @@ msgid "Product dimensions (value × value × value)"
 msgstr "Размеры товара (значение × значение × значение)"
 
 msgid "Order dimensions calculation plugin"
-msgstr "Плагин расчета размеров отправления"
+msgstr "Плагин расчета размеров заказа"
 
 msgid "Order dimensions calculation is set up."
 msgstr "Расчет размеров отправления настроен."
 
 msgid "Order dimensions calculation is not set up."
-msgstr "Расчет размеров отправления не настроен."
+msgstr "Расчет размеров заказа не настроен."
 
 msgid "Install an order dimensions calculation plugin."
-msgstr "Установите плагин для расчета размеров отправления."
+msgstr "Установите плагин для расчета размеров заказа."
 
 msgid "Do not calculate order dimensions"
 msgstr "Не расчитывать общие размеры отправления"
@@ -11075,7 +11074,7 @@ msgstr "День недели"
 msgid "Open"
 msgstr "Рабочий"
 
-msgid "Working hours"
+msgid "Business hours"
 msgstr "Часы работы"
 
 msgid "New orders for processing"
@@ -11087,7 +11086,7 @@ msgstr "Значения полей «%s» и «%s» могут быть исп�
 msgid "The setting is used by default in all storefronts."
 msgstr "Настройка используется по умолчанию на всех витринах магазина."
 
-msgid "Working hours required to process an order"
+msgid "Business hours required to process an order"
 msgstr "Количество рабочих часов на обработку заказа"
 
 msgid "Is used to calculate order shipping terms. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later."
@@ -11095,3 +11094,408 @@ msgstr "Используется для расчета сроков достав
 
 msgid "Values in “%s” column denote the last hour of a workday before which orders are accepted for processing on the same day. Orders accepted after that hour are processed on the next workday."
 msgstr "Значения в столбце «%s» обозначают последний час рабочего дня, до которого заказы принимаются для обработки в течение дня. Заказы, оформленные после указанного часа, обрабатываются на следующий день."
+
+msgid "<span class=\"s-checkout-2-label\">In-cart checkout</span> setting for <i class=\"icon16 status-green\"></i><span class=\"gray\">%s/%s</span>"
+msgstr "Настройка <span class=\"s-checkout-2-label\">Оформления заказа в корзине</span> на <i class=\"icon16 status-green\"></i><span class=\"gray\">%s/%s</span>"
+
+msgid "Checkout page demo"
+msgstr "Демо страницы оформления заказа"
+
+msgid "Use field"
+msgstr "Использовать поле"
+
+msgid "Field width"
+msgstr "Ширина поля"
+
+msgid "Enable default design"
+msgstr "Включить стандартный стиль дизайна"
+
+msgid "Logo"
+msgstr "Логотип"
+
+msgid "Delete logo"
+msgstr "Удалить логотип"
+
+msgid "Business scope"
+msgstr "Сфера деятельности"
+
+msgid "Phone number hint"
+msgstr "Подпись под номером телефона"
+
+msgid "Checkout page background color"
+msgstr "Цвет фона страницы оформления заказа"
+
+msgid "Layer background color"
+msgstr "Цвет фона слоя"
+
+msgid "Custom CSS styles"
+msgstr "Свои CSS-стили"
+
+msgid "Entered CSS code will be added inside <code>&lt;script&gt; ... &lt;/script&gt;</code> tags in <code>&lt;head&gt;</code> block only on checkout page."
+msgstr "Введенный CSS-код будет помещен внутри тега <code>&lt;script&gt; ... &lt;/script&gt;</code> в блоке <code>&lt;head&gt;</code> только на странице оформления заказа."
+
+msgid "Block name"
+msgstr "Название блока"
+
+msgid "Empty cart text"
+msgstr "Текст для пустой корзины"
+
+msgid "SKU selection"
+msgstr "Смена артикула"
+
+msgid "Allow customers to select other product SKUs in the shopping cart"
+msgstr "Разрешить покупателям выбирать другой артикул товара в корзине"
+
+msgid "Mainly used to change product properties such color or size"
+msgstr "Чаще всего используется для изменения свойства товара, например, цвета или размера"
+
+msgid "Discout information per product"
+msgstr "Отображение скидки на каждый товар"
+
+msgid "Total discount information"
+msgstr "Отображение итоговой скидки"
+
+msgid "Store working schedule"
+msgstr "Режим работы магазина"
+
+msgid "Checkout type"
+msgstr "Тип оформления заказа"
+
+msgid "Limit shipping area"
+msgstr "Ограничить область доставки"
+
+msgid "Select a region"
+msgstr "Выберите регион"
+
+msgid "Locality"
+msgstr "Населенный пункт"
+
+msgid "Separate locality names with a comma. With this field completed, the list of shipping areas in the minimal mode will be unavailable."
+msgstr "Перечислите населенные пункты через запятую. Если это поле заполнено, то в минимальном режиме список областей доставки будет недоступен."
+
+msgid "Show pickup points map"
+msgstr "Показывать карту выбора пунктов самовывоза"
+
+msgid "Login offer text"
+msgstr "Текст предложения войти"
+
+msgid "Logout offer text"
+msgstr "Текст предложения выйти из аккаунта"
+
+msgid "Customer type"
+msgstr "Тип покупателя"
+
+msgid "Person mode name"
+msgstr "Название режима для персон"
+
+msgid "Company mode name"
+msgstr "Название режима для компаний"
+
+msgid "Hint text for companies"
+msgstr "Текст подсказки для компаний"
+
+msgid "Companies service terms text"
+msgstr "Текст условий работы с компаниями"
+
+msgid "Persons:"
+msgstr "Персоны:"
+
+msgid "<a href=\"%s\" target=\"_blank\">Edit contact fields</a> <i class=\"icon10 new-window\"></i> in Settings app."
+msgstr "<a href=\"%s\" target=\"_blank\">Редактировать контактные поля</a> <i class=\"icon10 new-window\"></i> в приложении «Настройки»."
+
+msgid "Companies:"
+msgstr "Компании:"
+
+msgid "<a href=\"%s\">Add and configure shipping methods</a>."
+msgstr "<a href=\"%s\">Добавить и настроить способы доставки</a>."
+
+msgid "Request ZIP code with the city name"
+msgstr "Запрашивать индекс вместе с городом"
+
+msgid "“Courier” shipping type title"
+msgstr "Название для типа доставки «Курьер»"
+
+msgid "“Pickup” shipping type title"
+msgstr "Название для типа доставки «Самовывоз»"
+
+msgid "“Post” shipping type title"
+msgstr "Название для типа доставки «Почта»"
+
+msgid "<a href=\"%s\" target=\"_blank\">Edit address fields</a> <i class=\"icon10 new-window\"></i> in Settings app."
+msgstr "<a href=\"%s\" target=\"_blank\">Редактировать поля адреса</a> <i class=\"icon10 new-window\"></i> в приложении «Настройки»."
+
+msgid "Shipping plugins response waiting time"
+msgstr "Время ожидания ответа от плагинов доставки"
+
+msgid "Shipping options provided by plugins which process external requests longer than specified will not be available for choice."
+msgstr "Варианты доставки плагинов, которые обрабатывают запросы к сторонним сервисам дольше указанного времени, будут недоступны для выбора."
+
+msgid "<a href=\"%s\">Add and configure payment methods</a>."
+msgstr "<a href=\"%s\">Добавить и настроить способы оплаты</a>."
+
+msgid "Allow customers to leave an additional comment to an order"
+msgstr "Разрешить покупателям оставлять дополнительный комментарий к заказу"
+
+msgid "Show"
+msgstr "Показывать"
+
+msgid "Enter your terms of service, refund conditions, and other legal information for customers to read and to agree to during checkout."
+msgstr "Введите текст условий предоставления услуг, возврата денежных средств или иной юридической информацией, с которыми покупатели должны ознакомиться и согласиться во время оформления заказа."
+
+msgid "If this field is completed, customers will see a link to the conditions and a checkbox to confirm their consent before checkout completion."
+msgstr "Если это поле заполнено, то при подтверждении заказа покупатели увидят ссылку на текст условий и флажок, чтобы подтвердить свое согласие с ними."
+
+msgid "Unauthorized checkout with existing customer profiles"
+msgstr "Заказ без авторизации с существующими профилями покупателя"
+
+msgid "Ask to log in with a confirmation code"
+msgstr "Попросить войти с использованием проверочного кода"
+
+msgid "A login confirmation code will be sent to a customer’s email address or phone."
+msgstr "Проверочный код для подтверждения входа будет отправлен на email-адрес или телефон покупателя."
+
+msgid "Upon confirmation, a customer will be authorized and will have access to their online account."
+msgstr "После подтверждения покупатель будет авторизован и сможет войти в личный кабинет."
+
+msgid "You can request a code again in"
+msgstr "Повторно запросить код можно через"
+
+msgid "After this timeout, a customer will be able to re-request a confirmation code by email or SMS when logging in to confirm checkout completion."
+msgstr "По истечении этого времени покупатель сможет повторно запросить код подтверждения по email или SMS при авторизации в момент подтверждения заказа."
+
+msgid "“Thank you” page title"
+msgstr "Заголовок страницы «Спасибо»"
+
+msgid "“Thank you” page text"
+msgstr "Текст страницы «Спасибо»"
+
+msgid "Use location"
+msgstr "Использовать локацию"
+
+msgid "Location name"
+msgstr "Название локации"
+
+msgid "No locations added"
+msgstr "Нет добавленных локаций"
+
+msgid "Add location"
+msgstr "Добавить локацию"
+
+msgid "Mini"
+msgstr "Мини"
+
+msgid "Narrow"
+msgstr "Узкая"
+
+msgid "Medium"
+msgstr "Средняя"
+
+msgid "Discount amount"
+msgstr "Сумма скидки"
+
+msgid "Large"
+msgstr "Большая"
+
+msgid "Compare at price without discount"
+msgstr "Зачеркнутая цена без учета скидки"
+
+msgid "Only common amount"
+msgstr "Только общая сумма"
+
+msgid "Breakdown per discount types"
+msgstr "Разделение суммы по видам скидки"
+
+msgid "Default"
+msgstr "Обычный"
+
+msgid "No fixed list of shipping areas. Available shipping options are grouped by type—“Courier”, “Pickup”, “Post”. One can select a pickup point on a map."
+msgstr "Нет фиксированного списка областей доставки. Доступные варианты доставки сгруппированы по типам: «Курьер», «Самовывоз», «Почта». Можно выбрать пункт самовывоза на карте."
+
+msgid "Minimal"
+msgstr "Минимальный"
+
+msgid "Fixed list of shipping areas. Available shipping options are not grouped by type—“Courier”, “Pickup”, “Post”. There is no option to select a pickup point on a map."
+msgstr "Фиксированный список областей доставки. Доступные варианты доставки показаны общим списком без группировки по типам: «Курьер», «Самовывоз», «Почта». Нет возможности выбрать пункт самовывоза на карте."
+
+msgid "Always show"
+msgstr "Всегда показывать"
+
+msgid "Except for mobile devices"
+msgstr "Кроме мобильных устройств"
+
+msgid "Never show"
+msgstr "Никогда не показывать"
+
+msgid "Persons &amp; companies"
+msgstr "Персоны и компании"
+
+msgid "By submitting this form I agree to <a href=\"---INSERT A LINK HERE!---\" target=\"_blank\">personal data protection policy</a>"
+msgstr "Нажимая на кнопку подтверждения, я принимаю условия <a href=\"---ВСТАВЬТЕ СЮДА ССЫЛКУ НА ДОКУМЕНТ!---\" target=\"_blank\">политики обработки персональных данных</a>"
+
+msgid "I agree to <a href=\"---INSERT A LINK HERE!---\" target=\"_blank\">personal data protection policy</a>"
+msgstr "Я принимаю условия <a href=\"---ВСТАВЬТЕ СЮДА ССЫЛКУ НА ДОКУМЕНТ!---\" target=\"_blank\">политики обработки персональных данных</a>"
+
+msgid "Unauthorized customer can place orders, and each order will create a new customer profile"
+msgstr "Неавторизованный покупатель может оформлять заказы, и для каждого заказа будут создаваться новые профили покупателя"
+
+msgid "Unauthorized customer can place orders, and they will be connected with an existing customer profile"
+msgstr "Неавторизованный покупатель может оформлять заказы, и они будут прикрепляться к существующему профилю покупателя"
+
+msgid "Checkout is not allowed without email address or phone number confirmation"
+msgstr "Нельзя оформить заказ без подтверждения email-адреса или номера телефона"
+
+msgid "Common working schedule"
+msgstr "Общий режим работы"
+
+msgid "Section “<a href=\"?action=settings#/schedule/\">%s</a>” settings are used"
+msgstr "Используются настройки раздела «<a href=\"?action=settings#/schedule/\">%s</a>»"
+
+msgid "Custom working schedule for this storefront"
+msgstr "Индивидуальный режим работы для этой витрины"
+
+msgid "Select if your online store has several storefronts with different working schedules"
+msgstr "Используйте, если у вашего интернет-магазина несколько витрин с разными режимами работы"
+
+msgid "Empty cart"
+msgstr "Очистка корзины"
+
+msgid "Delete all products from the cart?"
+msgstr "Удалить все товары из корзины?"
+
+msgid "Don’t delete"
+msgstr "Не удалять"
+
+msgid "Delete product from the cart?"
+msgstr "Удалить товар из корзины?"
+
+msgid "Shipping option selection"
+msgstr "Выбор варианта для доставки"
+
+msgid "You are authorized as a company, and orders can be placed only by persons. Please %slog out%s of your account to check out as a person."
+msgstr "Вы авторизованы как юридическое лицо, но заказ могут оформить только физические лица. %sВыйдите%s из своего аккаунта, чтобы оформить заказ как физическое лицо."
+
+msgid "You are authorized as a person, and orders can be placed only by companies. Please %slog out%s of your account to check out as a company."
+msgstr "Вы авторизованы как физическое лицо, но заказ могут оформить только юридические лица. %sВыйдите%s из своего аккаунта, чтобы оформить заказ как юридическое лицо."
+
+msgid "Log in"
+msgstr "Войти"
+
+msgid "Items cost"
+msgstr "Стоимость товаров"
+
+msgid "Shipping cost"
+msgstr "Стоимость доставки"
+
+msgid "not selected"
+msgstr "не выбрано"
+
+msgid "Total less shipping cost"
+msgstr "Итого без учета доставки"
+
+msgid "accept our <a class=\"js-show-terms-dialog\" href=\"javascript:void(0);\">terms of service</a>"
+msgstr "принять наши <a class=\"js-show-terms-dialog\" href=\"javascript:void(0);\">условия предоставления услуг</a>"
+
+msgid "Confirm order"
+msgstr "Подтвердить заказ"
+
+msgid "Estimated shipping time"
+msgstr "Срок доставки"
+
+msgid "Order storage time"
+msgstr "Срок хранения заказа"
+
+msgid "Shipping service"
+msgstr "Служба доставки"
+
+msgid "day off"
+msgstr "выходной"
+
+msgid "How to reach"
+msgstr "Как добраться"
+
+msgid "More details"
+msgstr "Дополнительно"
+
+msgid "Required field"
+msgstr "Обязательное поле"
+
+msgid "To view shipping cost and estimated shipping time, please complete fields with an asterisk"
+msgstr "Для расчета стоимости и срока доставки заполните поля со звездочкой"
+
+msgid "Select a city"
+msgstr "Выберите город"
+
+msgid "No name"
+msgstr "Нет названия"
+
+msgid "Shipping types"
+msgstr "Типы доставки"
+
+msgid "Shipping options"
+msgstr "Варианты доставки"
+
+msgid "Select a shipping option"
+msgstr "Выберите вариант доставки"
+
+msgid "There are no shipping options available for specified location."
+msgstr "Для указанного вами местоположения нет доступных вариантов доставки."
+
+msgid "Please check values in location fields or contact us."
+msgstr "Проверьте значения в полях местоположения или свяжитесь с нами."
+
+msgid "Select a common product feature containing 3 dimension values to avoid selecting separate features for individual dimensions below."
+msgstr "Выберите общую характеристику с 3 размерами товара, чтобы не выбирать ниже несколько отдельных характеристик для каждого из размеров."
+
+msgid "Select separate product features for individual product dimensions if you have not selected a common dimensions feature above."
+msgstr "Выберите отдельные характеристики для каждого из размеров товара, если вы не выбрали выше общую характеристику со всеми размерами."
+
+msgid "Delete product from the cart"
+msgstr "Удалить товар из корзины"
+
+msgid "No more items in stock"
+msgstr "Больше нет на складе"
+
+msgid "Reduce quantity"
+msgstr "Уменьшить количество"
+
+msgid "Increase quantity"
+msgstr "Увеличить количество"
+
+msgid "Only %s units available in stock. Please reduce the quantity or delete this product from the cart."
+msgstr "На складе есть только %s штук. Уменьшите количество или удалите этот товар из корзины."
+
+msgid "One item’s weight"
+msgstr "Вес одной штуки"
+
+msgid "Coupon code is empty"
+msgstr "Пустой код купона"
+
+msgid "Activate"
+msgstr "Активировать"
+
+msgid "Coupon applied"
+msgstr "Купон применен"
+
+msgid "Undo"
+msgstr "Отменить"
+
+msgid "Bonus used"
+msgstr "Бонусные баллы использованы"
+
+msgid "Total discount"
+msgstr "Общая скидка"
+
+msgid "Coupon discount"
+msgstr "Скидка по купону"
+
+msgid "Affiliate bonus discount"
+msgstr "Скидка по бонусным баллам"
+
+msgid "Validation error"
+msgstr "Ошибка валидации"
+
+msgid "Set up validation of required fields in backend, order spam filter, and web push notifications in “<a href=\"%s\">General settings</a>” section."
+msgstr "Настройте проверку обязательных полей в бекенде, антиспам-фильтр для заказов и push-уведомления в разделе «<a href=\"%s\">Общие настройки</a>»."
+
+msgid "%s with total weight %s"
+msgstr "%s с общим весом %s"

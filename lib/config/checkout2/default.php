@@ -73,6 +73,6 @@ return array(
         'auth_with_code'     => true,
         'recode_timeout'     => 60, // In seconds
         'thankyou_header'    => _w('Заказ оформлен. Спасибо!'),
-        'thankyou_content'   => _w('Мы свяжемся с вами в ближайшее время. Номер вашего заказа #$order_id.'),
+        'thankyou_content'   => _w('Мы свяжемся с вами в ближайшее время. Номер вашего заказа $order_id.'),
     ),
 );

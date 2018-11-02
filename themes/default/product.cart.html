@@ -1,7 +1,4 @@
-{$_cart_url = $wa->getUrl('shop/frontend/cart')}
-{if $wa->param('checkout_version') == 2}
-    {$_cart_url = $wa->getUrl('shop/frontend/order')}
-{/if}
+{$_cart_url = $wa->shop->checkout()->cartUrl()}
 
 <form id="cart-form{if $wa->get('cart')}-dialog{/if}" method="post" action="{$wa->getUrl('/frontendCart/add')}">
 

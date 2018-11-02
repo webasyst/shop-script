@@ -483,6 +483,8 @@ input.error, textarea.error { border: 2px solid red; }
 .checkout .wa-form .wa-field.wa-field-address p { margin: 0; }
 .checkout .wa-form .wa-field.wa-field-address .wa-field-address-zip input { min-width: 100px; width: 20%; }
 
+#checkout-contact-form input[type="checkbox"] { margin: 0; transform: translate(0, 5px); }
+
 
 /* Dialogs
 ---------- */

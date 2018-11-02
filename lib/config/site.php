@@ -260,6 +260,12 @@ return array(
                 '...' => _w('Available vars are listed in the cheat sheet for product.html template')
             )
         ),
+        'order.html'       => array(
+            '$wa->shop->checkout()->cart(<em>$opts</em>)'            => _w('Returns HTML rendering cart block for new one-page checkout'),
+            '$wa->shop->checkout()->cartVars(<em>$clear_cache</em>)' => _w('Returns variables that $wa->shop->checkout()->cart() assigns to its template'),
+            '$wa->shop->checkout()->form(<em>$opts</em>)'            => _w('Returns HTML rendering form block for new one-page checkout'),
+            '$wa->shop->checkout()->formVars(<em>$clear_cache</em>)' => _w('Returns variables that $wa->shop->checkout()->form() assigns to its template'),
+        ),
         'my.order.html'    => array(
             '$order'                                                   => _w('An array containing information about the order'),
             '$order.id'                                                => _w('Order ID'),
@@ -325,6 +331,8 @@ return array(
 
         ),
         '$wa'              => array(
+            '$wa->shop->checkout()->url(<em>$absolute</em>)'                                                          => _w('Returns url to checkout page'),
+            '$wa->shop->checkout()->cartUrl(<em>$absolute</em>)'                                                      => _w('Returns url to cart page'),
             '$wa->shop->badgeHtml(<em>$product.code</em>)'                                                            => _w('Displays badge of the specified product (<em>$product</em> object)'),
             '$wa->shop->cart()'                                                                                       => _w('Returns current cart object'),
             '$wa->shop->categories(<em>$id, $depth, $tree, $params, $route</em>)'                                     => _w('Returns array of visible subcategories of specified parent category.<br><strong>$id</strong> (default: <em>0</em>): ID of parent category whose subcategories must be returned. By default, categories starting from top level are returned.<br><strong>$depth</strong> (default: <em>null</em>): depth of subcategory tree. By default, entire category tree is returned.<br><strong>$tree</strong> (default: <em>false</em>): flag requiring to return categories as a tree (<em>true</em>) or a flat array (<em>false</em>).<br><strong>$params</strong> (default: <em>false</em>): flag requiring to return categories with their extra parameters. By default, categories are returned without extra parameters.<br><strong>$route</strong> (default: <em>null</em>): array of route parameters of the storefront for which visible categories must be returned. By default, returned categories are not necessarily limited to certain storefronts.'),

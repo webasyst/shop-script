@@ -16,7 +16,7 @@ class shopOrderSaveController extends waJsonController
                 'payment_id'         => waRequest::post('payment_id', null),
                 'storefront'         => $storefront,
                 'referer_host'       => waRequest::post('customer_source', null, waRequest::TYPE_STRING_TRIM),
-                'departure_datetime' => shopDepartureTimeFacade::getDepartureByStorefront($storefront),
+                'departure_datetime' => shopDepartureDateTimeFacade::getDeparture(null, $storefront),
             ),
             'comment'              => waRequest::post('comment', null, waRequest::TYPE_STRING_TRIM),
             'shipping'             => waRequest::post('shipping', 0),

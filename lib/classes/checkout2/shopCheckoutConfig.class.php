@@ -173,112 +173,102 @@ class shopCheckoutConfig implements ArrayAccess
 
     public function getFieldWidthVariants()
     {
-        //todo: Locale it !!!
         return [
             self::FIELD_WIDTH_MINI    => [
-                'name' => _w('Мини'),
+                'name' => _w('Mini'),
             ],
             self::FIELD_WIDTH_SMALL  => [
-                'name' => _w('Узкая'),
+                'name' => _w('Narrow'),
             ],
             self::FIELD_WIDTH_MEDIUM => [
-                'name' => _w('Средняя'),
+                'name' => _w('Medium'),
             ],
             self::FIELD_WIDTH_LARGE   => [
-                'name' => _w('Большая'),
+                'name' => _w('Large'),
             ],
         ];
     }
 
     public function getCartDiscountItemVariants()
     {
-        // TODO: Locale it !!!
         return [
             self::DISCOUNT_ITEM_TYPE_AMOUNT    => [
-                'name' => _w('Сумма скидки'),
+                'name' => _w('Discount amount'),
             ],
             self::DISCOUNT_ITEM_TYPE_STRIKEOUT => [
-                'name' => _w('Зачёркнутая цена без учёта скидки'),
+                'name' => _w('Compare at price without discount'),
             ],
         ];
     }
 
     public function getCartDiscountGeneralVariants()
     {
-        // TODO: Locale it !!!
         return [
             self::DISCOUNT_GENERAL_TYPE_AMOUNT     => [
-                'name' => _w('Только одна общая сумма'),
+                'name' => _w('Only common amount'),
             ],
             self::DISCOUNT_GENERAL_TYPE_SEPARATION => [
-                'name' => _w('Разделение суммы по видам скидки'),
+                'name' => _w('Breakdown per discount types'),
             ],
         ];
     }
 
     public function getOrderModeVariants()
     {
-        // TODO: Locale it !!!
         return [
             self::ORDER_MODE_TYPE_DEFAULT => [
-                'name'        => _w('Обычный'),
-                'description' => _w('Нет фиксированного списка области доставки. Доступные варианты доставки от всех плагинов сгруппированы по типам (Курьер, Самовывоз и Почта), есть возможность выбрать пункт самовывоза любой службы на карте.'),
+                'name'        => _w('Default'),
+                'description' => _w('No fixed list of shipping areas. Available shipping options are grouped by type—“Courier”, “Pickup”, “Post”. One can select a pickup point on a map.'),
             ],
-            /*
-             * TODO !!!
             self::ORDER_MODE_TYPE_MINIMUM => [
-                'name'        => _w('Минимальный'),
-                'description' => _w('Фиксированный список областей доставки. Доступные варианты доставки от всех плагинов выводятся общим списком без группировки на типы (Курьер, Самовывоз и Почта) и без возможности выбрать пункт самовывоза на карте.'),
+                'name'        => _w('Minimal'),
+                'description' => _w('Fixed list of shipping areas. Available shipping options are not grouped by type—“Courier”, “Pickup”, “Post”. There is no option to select a pickup point on a map.'),
             ],
-            */
         ];
     }
 
     public function getOrderShowPickuppointMapVariants()
     {
-        // TODO: Locale it !!!
         return [
             self::PICKUPPOINT_MAP_TYPE_ALWAYS         => [
-                'name' => _w('Всегда'),
+                'name' => _w('Always show'),
             ],
             self::PICKUPPOINT_MAP_TYPE_EXCEPT_GADGETS => [
-                'name' => _w('Всегда, кроме мобильных'),
+                'name' => _w('Except for mobile devices'),
             ],
             self::PICKUPPOINT_MAP_TYPE_NEVER          => [
-                'name' => _w('Никогда'),
+                'name' => _w('Never show'),
             ],
         ];
     }
 
     public function getCustomerTypeVariants()
     {
-        // TODO: Locale it !!!
         return [
             self::CUSTOMER_TYPE_PERSON             => [
-                'name' => _w('Персоны (физические лица)'),
+                'name' => _w('Persons'),
             ],
             self::CUSTOMER_TYPE_COMPANY            => [
-                'name' => _w('Компании (юридические лица)'),
+                'name' => _w('Companies'),
             ],
             self::CUSTOMER_TYPE_PERSON_AND_COMPANY => [
-                'name' => _w('Персоны и компании'),
+                'name' => _w('Persons &amp; companies'),
             ],
         ];
     }
 
     public function getCustomerServiceAgreementVariants()
     {
-        // TODO: Locale it !!!
         return [
             self::CUSTOMER_SERVICE_AGREEMENT_TYPE_NO       => [
-                'name' => _w('Не требовать согласия с политикой обработки данных'),
+                'name' => _w('Do not require consent to personal data protection policy'),
             ],
             self::CUSTOMER_SERVICE_AGREEMENT_TYPE_NOTICE   => [
-                'name'         => _w('Подсказывать только подсказку со ссылкой на политику'),
+                'name'         => _w('Show only notice and link to policy'),
                 'default_text' => _w('By submitting this form I agree to <a href="---INSERT A LINK HERE!---" target="_blank">personal data protection policy</a>'),
             ],
             self::CUSTOMER_SERVICE_AGREEMENT_TYPE_CHECKBOX => [
-                'name'         => _w('Предлагать включить обязательный флажок с подсказкой и ссылкой'),
+                'name'         => _w('Show mandatory checkbox, notice, and link'),
                 'default_text' => _w('I agree to <a href="---INSERT A LINK HERE!---" target="_blank">personal data protection policy</a>'),
             ],
         ];
@@ -286,34 +276,29 @@ class shopCheckoutConfig implements ArrayAccess
 
     public function getConfirmationOrderWithoutAuthVariants()
     {
-        // TODO: Locale it !!!
         return [
             self::ORDER_WITHOUT_AUTH_CREATE   => [
-                'name' => _w('Можно отправить заказ и будет создан новый контакт для каждого неавторизованного покупателя'),
+                'name' => _w('Unauthorized customer can place orders, and each order will create a new customer profile'),
             ],
             self::ORDER_WITHOUT_AUTH_EXISTING => [
-                'name' => _w('Можно отправить заказ и прикрепить заказ к существующему контаку покупателя'),
+                'name' => _w('Unauthorized customer can place orders, and they will be connected with an existing customer profile'),
             ],
-            /*
-             * TODO !!!
             self::ORDER_WITHOUT_AUTH_CONFIRM  => [
-                'name' => _w('Нельзя отправить заказ без подтверждения email или телефона'),
+                'name' => _w('Checkout is not allowed without email address or phone number confirmation'),
             ],
-            */
         ];
     }
 
     public function getScheduleModeVariants()
     {
-        // TODO: Locale it !!!
         return [
             self::SCHEDULE_MODE_DEFAULT => [
-                'name'        => _w('Общий режим работы'),
-                'description' => _w('Используются настройки раздела "<a href="?action=settings#/schedule/">Режим работы</a>"'),
+                'name'        => _w('Common working schedule'),
+                'description' => sprintf(_w('Section “<a href="?action=settings#/schedule/">%s</a>” settings are used'), _w('Working schedule')),
             ],
             self::SCHEDULE_MODE_CUSTOM  => [
-                'name'        => _w('Индивидуальный для этой витрины режим работы'),
-                'description' => _w('Используйте, если у вашего интернет-магазина две и более витрины с разным режимом работы.'),
+                'name'        => _w('Custom working schedule for this storefront'),
+                'description' => _w('Select if your online store has several storefronts with different working schedules'),
             ],
         ];
     }
@@ -370,7 +355,7 @@ class shopCheckoutConfig implements ArrayAccess
             'filter'             => [
                 'services_by_type' => true,
             ],
-            'departure_datetime' => shopDepartureTimeFacade::getDeparture($this['schedule']),
+            'departure_datetime' => shopDepartureDateTimeFacade::getDeparture($this['schedule']),
             'customer_type'      => $customer_type == self::CUSTOMER_TYPE_PERSON_AND_COMPANY ? '' : $customer_type,
         ];
 
@@ -389,8 +374,12 @@ class shopCheckoutConfig implements ArrayAccess
         $result = $this->getShippingMethods($address, $items, $params);
         foreach ($result as $r_id => &$r) {
             $r['variant_id'] = $r_id;
-            if (!$single_plugin_params && isset($r['error'])) {
-                unset($result[$r_id]);
+            if (!array_key_exists('rate', $r) || $r['rate'] === false) {
+                if ($single_plugin_params) {
+                    $r['rate'] = null;
+                } else {
+                    unset($result[$r_id]);
+                }
             }
         }
         unset($r);

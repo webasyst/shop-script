@@ -9,18 +9,53 @@
  * @property array extra_weekends
  * @property array week
  *
- * @see Test tests/wa-apps/shop/classes/checkout2/shopDepartureTimeFacadeTest.php
+ * @see Test tests/wa-apps/shop/classes/checkout2/shopDepartureDateTimeFacadeTest.php
  */
-class shopDepartureTimeFacade
+class shopDepartureDateTimeFacade
 {
     protected $schedule = [];
     protected $days = null;
 
-    public function __construct($schedule = null)
+    /**
+     * shopDepartureDateTimeFacade constructor.
+     * @param array $schedule
+     * @param string $storefront
+     * @throws waException
+     */
+    public function __construct($schedule = [], $storefront = '')
     {
-        if (!$schedule) {
-            $schedule = wa('shop', 1)->getConfig() > getSchedule();
+        $hash = null;
+
+        if (!$schedule && $storefront) {
+            $hash = shopHelper::getStorefrontCheckoutHash($storefront);
+
+            if ($hash) {
+                $config = new shopCheckoutConfig($hash);
+                $schedule = $config['schedule'];
+            }
         }
+
+        if (!$schedule) {
+            $schedule = wa('shop', 1)->getConfig()->getSchedule();
+        }
+
+        $params = [
+            'hash'       => $hash,
+            'storefront' => $storefront,
+            'schedule'   => &$schedule,
+        ];
+
+        /**
+         * @event departure_datetime.before
+         * @param array $params
+         * @param array [string] $params['hash']
+         * @param array [string] $params['storefront']
+         * @param array [array] $params['schedule']
+         *
+         * @return bool
+         */
+        wa('shop')->event('departure_datetime.before', $params);
+
         $this->schedule = $schedule;
     }
 
@@ -335,38 +370,13 @@ class shopDepartureTimeFacade
     /**
      * Quick class call
      * @param $schedule
+     * @param null $storefront
      * @return int
      */
-    public static function getDeparture($schedule)
+    public static function getDeparture($schedule = null, $storefront = null)
     {
-        $departure = new shopDepartureTimeFacade($schedule);
+        $departure = new shopDepartureDateTimeFacade($schedule, $storefront);
         return $departure->getDepartureDateTime();
     }
 
-    /**
-     *
-     * @param null $storefront
-     * @return int
-     * @throws waException
-     */
-    public static function getDepartureByStorefront($storefront = null)
-    {
-        $hash = false;
-        $schedule = null;
-
-        if ($storefront) {
-            $hash = shopHelper::getStorefrontCheckoutHash($storefront);
-        }
-
-        if ($hash) {
-            $config = new shopCheckoutConfig($hash);
-            $schedule = $config['schedule'];
-        }
-
-        $departure = new shopDepartureTimeFacade($schedule);
-        $departure_datetime = $departure->getDepartureDateTime();
-
-        return $departure_datetime;
-    }
-    
 }

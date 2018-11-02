@@ -11,8 +11,7 @@
         <form action="?module=SettingsCheckout2Save">
             <div class="block double-padded">
                 <h1>
-                    [`Настройка <span class="s-checkout-2-label">"Оформления заказа в корзине"</span> на`]
-                    <i class="icon16 status-green"></i><span class="gray">{$route.domain}/{$route.url|default:null|escape}</span>
+                    {sprintf('[`<span class="s-checkout-2-label">In-cart checkout</span> setting for <i class="icon16 status-green"></i><span class="gray">%s/%s</span>`]', {$route.domain}, {$route.url|default:null|escape})}
                 </h1>
 
                 {* DESIGN SETTINGS *}
@@ -20,7 +19,7 @@
                 {design_block settings=$checkout_config.design}
                 *}
 
-                {*<div><a href="#">[`Демо страницы оформления заказа`]</a> <i class="icon16 new-window"></i></div>*}
+                {*<div><a href="#">[`Checkout page demo`]</a> <i class="icon16 new-window"></i></div>*}
 
                 <table class="s-big-table js-big-table" style="width: 100%; margin: 20px 0;">
                     <tbody>
@@ -34,7 +33,7 @@
                                         <b><i>[`Settings`]</i></b>
                                     </a>
                                 </div>
-                                <h3 class="name">[`Корзина`]</h3>
+                                <h3 class="name">[`Cart`]</h3>
                                 <div class="js-block-content" style="display: none;">
                                     {cart_block settings=$checkout_config.cart}
                                 </div>
@@ -51,7 +50,7 @@
                                         <b><i>[`Settings`]</i></b>
                                     </a>
                                 </div>
-                                <h3 class="name">[`Оформление`]</h3>
+                                <h3 class="name">[`Appearance`]</h3>
                                 <div class="js-block-content" style="display: none;">
                                     {order_block settings=$checkout_config.order}
                                 </div>
@@ -68,7 +67,7 @@
                                         <b><i>[`Settings`]</i></b>
                                     </a>
                                 </div>
-                                <h3 class="name">[`Покупатель`]</h3>
+                                <h3 class="name">[`Customer`]</h3>
                                 <div class="js-block-content" style="display: none;">
                                     {customer_block settings=$checkout_config.customer}
                                 </div>
@@ -83,7 +82,7 @@
                                     <div class="s-toggle-wrapper js-block-toggle-wrapper">
                                         <input id="shipping_used" name="data[shipping][used]" class="ibutton js-toggle" type="checkbox"{if $checkout_config.shipping.used} checked="checked"{/if}>
                                         <label for="shipping_used">
-                                            <span class="s-toggle-status js-toggle-status{if !$checkout_config.shipping.used} disabled{/if}">{if $checkout_config.shipping.used}[`Включено`]{else}[`Выключено`]{/if}</span>
+                                            <span class="s-toggle-status js-toggle-status{if !$checkout_config.shipping.used} disabled{/if}">{if $checkout_config.shipping.used}[`Enabled`]{else}[`Disabled`]{/if}</span>
                                         </label>
                                     </div>
                                     <a href="javascript:void(0);" class="inline-link s-settings-link js-settings-link"{if !$checkout_config.shipping.used} style="display: none;"{/if}>
@@ -91,7 +90,7 @@
                                         <b><i>[`Settings`]</i></b>
                                     </a>
                                 </div>
-                                <h3 class="name">[`Доставка`]</h3>
+                                <h3 class="name">[`Shipping`]</h3>
                                 <div class="js-block-content" style="display: none;">
                                     {shipping_block settings=$checkout_config.shipping}
                                 </div>
@@ -106,7 +105,7 @@
                                     <div class="s-toggle-wrapper js-block-toggle-wrapper">
                                         <input id="payment_used" name="data[payment][used]" class="ibutton js-toggle" type="checkbox"{if $checkout_config.payment.used} checked="checked"{/if}>
                                         <label for="payment_used">
-                                            <span class="s-toggle-status js-toggle-status{if !$checkout_config.payment.used} disabled{/if}">{if $checkout_config.payment.used}[`Включено`]{else}[`Выключено`]{/if}</span>
+                                            <span class="s-toggle-status js-toggle-status{if !$checkout_config.payment.used} disabled{/if}">{if $checkout_config.payment.used}[`Enabled`]{else}[`Disabled`]{/if}</span>
                                         </label>
                                     </div>
                                     <a href="javascript:void(0);" class="inline-link s-settings-link js-settings-link"{if !$checkout_config.payment.used} style="display: none;"{/if}>
@@ -114,7 +113,7 @@
                                         <b><i>[`Settings`]</i></b>
                                     </a>
                                 </div>
-                                <h3 class="name">[`Оплата`]</h3>
+                                <h3 class="name">[`Payment`]</h3>
                                 <div class="js-block-content" style="display: none;">
                                     {payment_block settings=$checkout_config.payment}
                                 </div>
@@ -131,7 +130,7 @@
                                         <b><i>[`Settings`]</i></b>
                                     </a>
                                 </div>
-                                <h3 class="name">[`Подтверждение`]</h3>
+                                <h3 class="name">[`Confirmation`]</h3>
                                 <div class="js-block-content" style="display: none;">
                                     {confirmation_block settings=$checkout_config.confirmation}
                                 </div>
@@ -178,8 +177,8 @@
             demo_terms: {$demo_terms|json_encode},
             date_format: {waDateTime::getFormatJs('date')|json_encode},
             locale: {
-                enabled: {json_encode(_w('Включено'))},
-                disabled: {json_encode(_w('Выключено'))}
+                enabled: {json_encode(_w('Enabled'))},
+                disabled: {json_encode(_w('Disabled'))}
             }
         });
     })(jQuery);
