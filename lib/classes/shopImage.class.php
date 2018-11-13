@@ -162,7 +162,7 @@ class shopImage
          * NOTICE: result depends on plugins order (can rearrange it at plugins screen)
          * @event image_generate_thumb
          */
-        $results = wa()->event('image_generate_thumb', $params);
+        $results = wa('shop')->event('image_generate_thumb', $params);
 
         $skip = false;
 

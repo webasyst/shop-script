@@ -33,7 +33,7 @@
             {/if}
             <div class="value no-shift s-ibutton-checkbox">
                 <label>
-                    <input type="checkbox" name="{$input_var}[public][]" value="{if !empty($stock.id)}{$stock.id}{/if}" class="i-button-mini is-public-checkbox"{if empty($stock.id) || !empty($stock.public)} checked{/if}{$disabled}>
+                    <input type="checkbox" name="{$input_var}[public][]" value="{if !empty($stock.id)}{$stock.id}{else}1{/if}" class="i-button-mini is-public-checkbox"{if empty($stock.id) || !empty($stock.public)} checked{/if}{$disabled}>
                     [`Visible to customers`]
                 </label>
             </div>

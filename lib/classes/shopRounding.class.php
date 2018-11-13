@@ -94,6 +94,12 @@ class shopRounding
         $default_currency = $config->getCurrency(true);
         $frontend_currency = $config->getCurrency(false);
 
+        // All these fields are stored in shop PRIMARY currency - $default_currency
+        // They must remain so - they are converted by design theme to $frontend_currency.
+        // But! Theme does not know anything about rounding (for legacy reasons).
+        // To apply rounding here, we must convert each field from $default_currency to $frontend_currency,
+        // then apply rounding, then convert back from $frontend_currency to $default_currency.
+
         $rounding = array(
             'price',
             'min_price',
@@ -107,7 +113,8 @@ class shopRounding
             if (!isset($p['unconverted_currency'])) {
                 $p['unconverted_currency'] = $p['currency'];
 
-                //If there is no rounding value, we pass in the template design not rounded data
+                // If rounding is disabled for currency, we pass to template unmodified currency.
+                // If rouding is enabled, product currency is converted to frontend currency.
                 if (!empty($curs[$frontend_currency]['rounding'])) {
                     $p['currency'] = $frontend_currency;
                 }
@@ -122,12 +129,6 @@ class shopRounding
                             if (!empty($curs[$frontend_currency]['rounding'])) {
                                 $p['frontend_'.$k] = shopRounding::roundCurrency($p['frontend_'.$k], $frontend_currency);
                                 $p[$k] = shop_currency($p['frontend_'.$k], $frontend_currency, $default_currency, null);
-                            }
-                        } else {
-                            if ($k == 'price') {
-                                $p['frontend_'.$k]= $p[$k];
-                            } else {
-                                $p['frontend_'.$k]= $p[$k] = shop_currency($p[$k], $frontend_currency, $frontend_currency, false);
                             }
                         }
                     }
@@ -170,8 +171,8 @@ class shopRounding
         $primary_currency = $config->getCurrency(true);
         $frontend_currency = $config->getCurrency(false);
         foreach ($skus as &$sku) {
-            $product = ifset($products[$sku['product_id']]);
-            $product_currency = ifset($product['unconverted_currency'], ifset($product['currency']));
+            $product = ifset($products, $sku['product_id'], null);
+            $product_currency = ifset($product, 'unconverted_currency', ifset($product, 'currency', null));
             if (!$product_currency || !isset($curs[$product_currency]) || isset($sku['unconverted_currency'])) {
                 continue;
             }
@@ -182,6 +183,7 @@ class shopRounding
                 $sku['currency'] = $frontend_currency;
             }
 
+            // price and compare_price are stored in shop_product.currency (unconverted currency) - $product_currency
             foreach (array('price', 'compare_price') as $k) {
                 if (!isset($sku[$k])) {
                     continue; // does not break on partly loaded data
@@ -190,7 +192,7 @@ class shopRounding
                 $sku['frontend_'.$k] = $sku[$k];
                 $sku['unconverted_'.$k] = $sku[$k];
                 if ($sku[$k] > 0 && !empty($curs[$product_currency])) {
-                    $sku['frontend_'.$k] = shop_currency($sku[$k], $product_currency, $frontend_currency, false);
+                    $sku['frontend_'.$k] = shop_currency($sku[$k], $product_currency, $frontend_currency, null);
                     if ($convert_currency) {
                         $sku[$k] = $sku['frontend_'.$k] = shopRounding::roundCurrency($sku['frontend_'.$k], $frontend_currency);
                     } else {
@@ -199,8 +201,10 @@ class shopRounding
                 }
             }
 
+            // primary_price is stored in shop primary currency - $primary_currency
+            // We must not round this value because it gets converted back in theme.
             if ($convert_currency && isset($sku['primary_price'])) {
-                $sku['primary_price'] = shop_currency($sku['frontend_price'], $frontend_currency, $primary_currency, false);
+                $sku['primary_price'] = shop_currency($sku['frontend_price'], $frontend_currency, $primary_currency, null);
             }
         }
         unset($sku);
@@ -208,7 +212,7 @@ class shopRounding
 
     public static function isEnabled()
     {
-        // Rounding is always enabled now, but used to be disabled in the past.
+        // Rounding is always enabled now, but could have been possibly disabled in the past.
         return true;
     }
 
@@ -233,14 +237,13 @@ class shopRounding
                 if (!empty($curs[$frontend_currency]['rounding'])) {
                     $s['currency'] = $frontend_currency;
                 }
+                // shop_service.price is stored in shop primary currency - $default_currency
                 if ($s['price'] && $s['unconverted_currency'] != $frontend_currency) {
-                    $s['frontend_price'] = shop_currency($s['price'], $default_currency, $frontend_currency, false);
+                    $s['frontend_price'] = shop_currency($s['price'], $default_currency, $frontend_currency, null);
                     if (!empty($curs[$frontend_currency]['rounding'])) {
                         $s['frontend_price'] = shopRounding::roundCurrency($s['frontend_price'], $frontend_currency);
-                        $s['price'] = shop_currency($s['frontend_price'], $frontend_currency, $default_currency, false);
+                        $s['price'] = shop_currency($s['frontend_price'], $frontend_currency, $default_currency, null);
                     }
-                } else {
-                    $s['price'] = shop_currency($s['frontend_price'], $frontend_currency, $frontend_currency, false);
                 }
             }
 
@@ -292,15 +295,15 @@ class shopRounding
                 $v['currency'] = $frontend_currency;
             }
 
+            // shop_service_variant.primary_price is stored in shop primary currency
+            // shop_service_variant.price is in shop_service.currency
             $v['frontend_price'] = $v['unconverted_price'] = $v['price'];
             if ($v['price'] > 0) {
                 if (($service_currency != $frontend_currency) || $round_services) {
-                    $v['frontend_price'] = shop_currency($v['price'], $service_currency, $frontend_currency, false);
+                    $v['frontend_price'] = shop_currency($v['price'], $service_currency, $frontend_currency, null);
                     if (!empty($curs[$frontend_currency]['rounding'])) {
                         $v['price'] = $v['frontend_price'] = shopRounding::roundCurrency($v['frontend_price'], $frontend_currency);
                     }
-                } else {
-                    $v['price'] = shop_currency($v['price'], $frontend_currency, $frontend_currency, false);
                 }
             }
         }

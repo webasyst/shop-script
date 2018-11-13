@@ -39,15 +39,25 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
                     ];
                 }
             }
+
+            // Validate cart against stock counts
+            $cart_is_ok = !array_filter($this->getCartItems(), function($item) {
+                return isset($item['error']);
+            });
+            if (!$cart_is_ok) {
+                $errors[] = [
+                    'id' => 'cart_invalid',
+                    'text' => _w('Some items in your order are not available. Please remove them from your cart.'),
+                    'section' => 'cart',
+                ];
+            }
         }
 
         $result['comment'] = ifset($data, 'input', 'confirm', 'comment', '');
         $result['terms'] = ifset($data, 'input', 'confirm', 'terms', '');
 
         // Render template in case process() won't have a chance to do that
-        if (!empty($data['error_step_id'])) {
-            $result = $this->addRenderedHtml($result, $data, $errors);
-        }
+        $result = $this->addRenderedHtml($result, $data, $errors);
 
         return array(
             'result' => $result,
@@ -56,19 +66,9 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
         );
     }
 
-    public function process($data, $prepare_result)
-    {
-        return array(
-            'data' => $data,
-            'result' => [],
-            'errors' => [],
-            'can_continue' => true,
-        );
-    }
-
     public function getTemplatePath()
     {
-        return wa()->getAppPath('templates/actions/frontend/order/form/confirm.html', 'shop');
+        return 'confirm.html';
     }
 
     protected function getCurrencyInfo($currency, $locale = null)
@@ -91,5 +91,12 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
             'rounding' => $currency_info['rounding'],
             'round_up_only' => $currency_info['round_up_only'],
         ];
+    }
+
+    protected function getCartItems()
+    {
+        // This is global and should be overriden in subclasses
+        $cart_vars = (new shopCheckoutViewHelper())->cartVars();
+        return ifset($cart_vars, 'cart', 'items', []);
     }
 }

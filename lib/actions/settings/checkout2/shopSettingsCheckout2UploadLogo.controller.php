@@ -11,7 +11,7 @@ class shopSettingsCheckout2UploadLogoController extends waJsonController
 
         $file = waRequest::file('logo');
         if (!$file->uploaded()) {
-            return $this->insertError(_w('Error loading image.'));
+            return $this->insertError(_w('Image uploading error'));
         }
 
         if (preg_match('~\.(jpe?g|png|gif|svg)$~i', $file->name, $matches)) {

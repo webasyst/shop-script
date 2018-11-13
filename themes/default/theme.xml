@@ -304,46 +304,67 @@
             <name locale="en_US">Root product categories in the homepage sidebar</name>
             <name locale="ru_RU">Корневые категории в боковой панели</name>
         </setting>
-        <setting var="homepage_bullet_title_1" control_type="text">
-            <value locale="en_US">Faster delivery</value>
-            <value locale="ru_RU">Доставка по России</value>
-            <name locale="en_US">Info block #1</name>
-            <name locale="ru_RU">Инфоблок №1</name>
-        </setting>
-        <setting var="homepage_bullet_body_1" control_type="text">
-            <value locale="en_US">We offer domestic and international shipping via all major shipping carriers.</value>
-            <value locale="ru_RU">Мы доставим ваш заказ курьером по Москве и Петербургу или службой экспресс-доставки по всей России.</value>
-            <name locale="en_US">Info block #1 content</name>
-            <name locale="ru_RU">Текст в инфоблоке №1</name>
-        </setting>
-        <setting var="homepage_bullet_title_2" control_type="text">
-            <value locale="en_US">Secure payment</value>
-            <value locale="ru_RU">Оплата онлайн</value>
-            <name locale="en_US">Info block #2</name>
-            <name locale="ru_RU">Инфоблок №2</name>
-        </setting>
-        <setting var="homepage_bullet_body_2" control_type="text">
-            <value locale="en_US">We accept all major credit cards and PayPal payments. All orders are paid online.</value>
-            <value locale="ru_RU">Оплатите заказ банковской картой, наличными в ближайшем платежном терминале или наличными.</value>
-            <name locale="en_US">Info block #2 content</name>
-            <name locale="ru_RU">Текст в инфоблоке №2</name>
-        </setting>
-        <setting var="homepage_bullet_title_3" control_type="text">
-            <value locale="en_US">Contact us</value>
-            <value locale="ru_RU">Магазин в Москве</value>
-            <name locale="en_US">Info block #3</name>
-            <name locale="ru_RU">Инфоблок №3</name>
-        </setting>
-        <setting var="homepage_bullet_body_3" control_type="text">
-            <value locale="en_US">If you are in SF or LA, you may pick up an order in one of our stores. Give us a call!</value>
-            <value locale="ru_RU">Будем рады видеть вас в нашем магазине по адресу г. Москва, ул. Крымский Вал, д. 3, стр. 2.</value>
-            <name locale="en_US">Info block #3 content</name>
-            <name locale="ru_RU">Текст в инфоблоке №3</name>
-        </setting>
         <setting var="language_toggle" control_type="checkbox">
             <value></value>
             <name locale="en_US">Show language selector in footer</name>
             <name locale="ru_RU">Показывать переключатель языка внизу страницы</name>
+        </setting>
+
+
+        <setting var="divider_storefront_infoblock_1" control_type="group_divider">
+            <value>divider_storefront_sidebar/divider_storefront_infoblock_1</value>
+            <name locale="en_US">Info block #1</name>
+            <name locale="ru_RU">Инфоблок №1</name>
+        </setting>
+        <setting var="homepage_bullet_title_1" control_type="text">
+            <value locale="en_US">Faster delivery</value>
+            <value locale="ru_RU">Доставка по России</value>
+            <name locale="en_US">Title</name>
+            <name locale="ru_RU">Заголовок</name>
+        </setting>
+        <setting var="homepage_bullet_body_1" control_type="text">
+            <value locale="en_US">We offer domestic and international shipping via all major shipping carriers.</value>
+            <value locale="ru_RU">Мы доставим ваш заказ курьером по Москве и Петербургу или службой экспресс-доставки по всей России.</value>
+            <name locale="en_US">Block content</name>
+            <name locale="ru_RU">Текст блока</name>
+        </setting>
+
+
+        <setting var="divider_storefront_infoblock_2" control_type="group_divider">
+            <value>divider_storefront_sidebar/divider_storefront_infoblock_2</value>
+            <name locale="en_US">Info block #2</name>
+            <name locale="ru_RU">Инфоблок №2</name>
+        </setting>
+        <setting var="homepage_bullet_title_2" control_type="text">
+            <value locale="en_US">Secure payment</value>
+            <value locale="ru_RU">Оплата онлайн</value>
+            <name locale="en_US">Title</name>
+            <name locale="ru_RU">Заголовок</name>
+        </setting>
+        <setting var="homepage_bullet_body_2" control_type="text">
+            <value locale="en_US">We accept all major credit cards and PayPal payments. All orders are paid online.</value>
+            <value locale="ru_RU">Оплатите заказ банковской картой, наличными в ближайшем платежном терминале или наличными.</value>
+            <name locale="en_US">Block content</name>
+            <name locale="ru_RU">Текст блока</name>
+        </setting>
+
+
+        <setting var="divider_storefront_infoblock_3" control_type="group_divider">
+            <value>divider_storefront_sidebar/divider_storefront_infoblock_3</value>
+            <name locale="en_US">Info block #3</name>
+            <name locale="ru_RU">Инфоблок №3</name>
+        </setting>
+        <setting var="homepage_bullet_title_3" control_type="text">
+            <value locale="en_US">Contact us</value>
+            <value locale="ru_RU">Магазин в Москве</value>
+            <name locale="en_US">Title</name>
+            <name locale="ru_RU">Заголовок</name>
+        </setting>
+        <setting var="homepage_bullet_body_3" control_type="text">
+            <value locale="en_US">If you are in SF or LA, you may pick up an order in one of our stores. Give us a call!</value>
+            <value locale="ru_RU">Будем рады видеть вас в нашем магазине по адресу г. Москва, ул. Крымский Вал, д. 3, стр. 2.</value>
+            <name locale="en_US">Block content</name>
+            <name locale="ru_RU">Текст блока</name>
         </setting>
 
         <setting var="divider_shop" control_type="group_divider">

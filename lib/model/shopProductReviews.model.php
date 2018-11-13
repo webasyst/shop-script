@@ -480,13 +480,13 @@ class shopProductReviewsModel extends waNestedSetModel
                 $review['site'] = "http://" . $review['site'];
             }
             if (empty($review['name']) || mb_strlen($review['name']) == 0 ) {
-                $errors['name'] = _w('Name can not be left blank');
+                $errors['name'] = _w('Name cannot be left blank');
             }
             if (mb_strlen($review['name']) > 255) {
                 $errors['name'] = _w('Name length should not exceed 255 symbols');
             }
             if (empty($review['email']) || mb_strlen($review['email']) == 0) {
-                $errors['email'] = _w('Email can not be left blank');
+                $errors['email'] = _w('Email cannot be left blank');
             }
             $validator = new waEmailValidator();
             if (!$validator->isValid($review['email'])) {
@@ -500,11 +500,11 @@ class shopProductReviewsModel extends waNestedSetModel
 
         if (empty($review['parent_id'])) {    // review to product
             if (empty($review['title'])) {
-                $errors['title'] = _w('Review title can not be left blank');
+                $errors['title'] = _w('Review title cannot be left blank');
             }
         } else {                            // comment ot review
             if (empty($review['text'])) {
-                $errors['text'] = _w('Review text can not be left blank');
+                $errors['text'] = _w('Review text cannot be left blank');
             }
         }
 

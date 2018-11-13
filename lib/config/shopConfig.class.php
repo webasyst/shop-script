@@ -129,7 +129,7 @@ class shopConfig extends waAppConfig
                 if ($routing_rules) {
                     $plugin = str_replace('-plugin', '', $plugin_id);
                     if ($plugin == $plugin_id) {
-                        // apps can not add routes to other apps
+                        // apps cannot add routes to other apps
                         continue;
                     }
                     foreach ($routing_rules as $url => & $route) {
@@ -228,37 +228,8 @@ class shopConfig extends waAppConfig
                      ) as $k => $value) {
                 $settings[$k] = isset($all_settings[$k]) ? $all_settings[$k] : $value;
             }
-            if (isset($all_settings['workhours'])) {
-                if ($all_settings['workhours']) {
-                    $workhours = json_decode($all_settings['workhours'], true);
-                    $settings['workhours'] = array(
-                        'hours_from'   => $workhours['from'],
-                        'hours_to'     => $workhours['to'],
-                        'days'         => array(),
-                        'days_from_to' => '',
-                    );
-                    $strings = array(
-                        _ws('Sun'),
-                        _ws('Mon'),
-                        _ws('Tue'),
-                        _ws('Wed'),
-                        _ws('Thu'),
-                        _ws('Fri'),
-                        _ws('Sat'),
-                    );
-                    if ($workhours['days']) {
-                        foreach ($workhours['days'] as $d) {
-                            $settings['workhours']['days'][$d] = $strings[$d];
-                        }
 
-                        $settings['workhours']['days_from_to'] = self::getDaysFromTo($workhours['days'], $strings);
-                    }
-                } else {
-                    $settings['workhours'] = $all_settings['workhours'];
-                }
-            } else {
-                $settings['workhours'] = null;
-            }
+            $settings['workhours'] = $this->prepareWorkHours();
         }
         if ($field) {
             if (isset($settings[$field])) {
@@ -269,6 +240,57 @@ class shopConfig extends waAppConfig
         } else {
             return $settings;
         }
+    }
+
+    /**
+     * This method is required for backward compatibility.
+     * Prior to version 8.0, the shop work schedule was stored in a different format.
+     * This method will try to collect the new schedule in the old format.
+     * Someday we will try to get rid of it. But not today.
+     * If the developer of design theme reads this, we advise him to use the smarty-helper $wa->shop->schedule()
+     * Setting $wa->shop->settings('workhours') is deprecated.
+     * @return array
+     * @deprecated
+     * */
+    protected function prepareWorkHours()
+    {
+        $workhours = array(
+            'hours_from'   => null,
+            'hours_to'     => null,
+            'days'         => array(),
+            'days_from_to' => '',
+        );
+
+        $strings = array(
+            _ws('Sun'),
+            _ws('Mon'),
+            _ws('Tue'),
+            _ws('Wed'),
+            _ws('Thu'),
+            _ws('Fri'),
+            _ws('Sat'),
+        );
+
+        $schedule = $this->getStorefrontSchedule();
+
+        $schedule['week'][0] = $schedule['week'][7];
+        unset($schedule['week'][7]);
+
+        foreach ($schedule['week'] as $day_id => $day) {
+            // Get all work days
+            if ($day['work']) {
+                $workhours['days'][$day_id] = $strings[$day_id];
+            }
+            // Set the opening hours of the first working day
+            if (!$workhours['hours_from'] && $day['work']) {
+                $workhours['hours_from'] = $day['start_work'];
+                $workhours['hours_to'] = $day['end_work'];
+            }
+        }
+
+        $workhours['days_from_to'] = self::getDaysFromTo($workhours['days'], $strings);
+
+        return $workhours;
     }
 
     /** Helper for getGeneralSettings(). Builds a human-readable string describing work days of a shop. */
@@ -400,10 +422,10 @@ class shopConfig extends waAppConfig
             $steps = $all_steps;
         }
         $plugin_model = new shopPluginModel();
-        if (!$plugin_model->countByField('type', 'shipping') && isset($steps['shipping'])) {
+        if (!$plugin_model->listPlugins(shopCheckout::STEP_SHIPPING) && isset($steps['shipping'])) {
             unset($steps[shopCheckout::STEP_SHIPPING]);
         }
-        if (!$plugin_model->countByField('type', 'payment') && isset($steps['payment'])) {
+        if (!$plugin_model->listPlugins(shopCheckout::STEP_PAYMENT) && isset($steps['payment'])) {
             unset($steps[shopCheckout::STEP_PAYMENT]);
         }
         reset($steps);
@@ -579,6 +601,42 @@ class shopConfig extends waAppConfig
         $schedule['extra_weekends'] = array_unique($weekends);
 
         return $schedule;
+    }
+
+    public function getStorefrontSchedule()
+    {
+        $route = wa()->getRouting()->getRoute();
+        $app = ifset($route, 'app', null);
+        if ($app !== 'shop') {
+            $route = $this->getStorefrontRoute();
+        }
+
+        $checkout_version = ifset($route, 'checkout_version', 1);
+        $storefront_id = ifset($route, 'checkout_storefront_id', null);
+
+        if ($checkout_version == 2 && $storefront_id) {
+            $checkout_config = new shopCheckoutConfig($storefront_id);
+            return $checkout_config['schedule'];
+        }
+
+        return $this->getSchedule();
+    }
+
+    /**
+     * Returns the rule from routing to storefront
+     * @return null|array
+     */
+    public function getStorefrontRoute()
+    {
+        $storefronts = shopHelper::getStorefronts(true);
+        $shop_url = preg_replace('~^https?://~', '', wa()->getRouteUrl('shop/frontend', [], true));
+        foreach ($storefronts as $storefront) {
+            if (isset($storefront['route']) && isset($storefront['url']) && $storefront['url'] == $shop_url) {
+                return $storefront['route'];
+            }
+        }
+
+        return null;
     }
 
     public function explainLogs($logs)

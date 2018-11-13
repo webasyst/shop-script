@@ -322,8 +322,8 @@ msgid "Shipping & Contacts"
 msgstr "Доставка и контакты"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:21
-msgid "Some shipping options require to know the destination address. If shipping step is before the contact info step (i.e. customer didn't input the address yet), certain shipping options may not calculate shipping rates properly."
-msgstr "Для работы некоторых модулей доставки необходимо знать адрес назначения. Если выбор способа доставки предлагается до ввода контактных данных (т. е. если покупатель еще не указал свой адрес), некоторые модули могут неправильно рассчитывать стоимость доставки."
+msgid "Some shipping options require to know the destination address. If the shipping step is before the contact info step (i.e. customer hasn’t input the address yet), certain shipping options may not calculate shipping rates properly."
+msgstr "Для работы некоторых способов доставки необходимо знать адрес назначения. Если выбор способа доставки предлагается до ввода контактных данных (т. е. если покупатель еще не указал свой адрес), некоторые плагины могут неправильно рассчитывать стоимость доставки."
 
 #: /wa-apps/shop/lib/config/data/checkout.php:16
 msgid "Confirmation"
@@ -496,10 +496,6 @@ msgstr "Добавить правило"
 msgid "IF"
 msgstr "ЕСЛИ"
 
-#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:659
-msgid "doesn't matter"
-msgstr "неважно"
-
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:662
 msgid "State"
 msgstr "Штат"
@@ -539,10 +535,6 @@ msgstr "ИНАЧЕ"
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:697
 msgid "If none of listed rules are in place"
 msgstr "Если ни одно из правил не сработало"
-
-#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:702
-msgid "Don't display this field"
-msgstr "Не отображать это поле"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:708
 msgid "Display a regular text input field"
@@ -642,10 +634,6 @@ msgstr "Название магазина"
 msgid "Primary email"
 msgstr "Основной email-адрес"
 
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:17
-msgid "Primary email address is used as a reply-to address in email notifications sent to your customers"
-msgstr "Основной email-адрес; используется в качестве адреса отправителя для уведомлений, отправляемых магазином."
-
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:21
 msgid "Phone number"
 msgstr "Телефон"
@@ -725,10 +713,6 @@ msgstr "Назначение"
 #: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:142
 msgid "Automatically assign all orders set to %s state to"
 msgstr "Автоматически назначать ответственным за все заказы в статусе %s"
-
-#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:144
-msgid "Don't change the assignment"
-msgstr "Не менять назначение"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:145
 msgid "Whoever is more free (has less orders)"
@@ -871,7 +855,7 @@ msgid "Address"
 msgstr "Адрес"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:67
-msgid "Calculate taxes based on customer's"
+msgid "Calculate taxes based on customer’s"
 msgstr "Вычислять налоги на основании"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:129
@@ -1015,7 +999,7 @@ msgid "Convert prices"
 msgstr "Конвертировать цены"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:140
-msgid "Don't convert, leave all product prices as is"
+msgid "Don’t convert, leave all product prices as is"
 msgstr "Не конвертировать, оставить все цены без изменений"
 
 #: /wa-apps/shop/lib/actions/settings/discount/shopSettingsDiscounts.action.php:38
@@ -1370,10 +1354,6 @@ msgstr "из %d"
 #: /wa-apps/shop/templates/actions/order/Order.html:13
 msgid "Back"
 msgstr "Назад"
-
-#: /wa-apps/shop/templates/actions/orders/OrdersAdd.html:9
-msgid "Customer's email or phone number"
-msgstr "Email-адрес или номер телефона покупателя"
 
 #: /wa-apps/shop/templates/actions/orders/OrdersAdd.html:10
 msgid "Search"
@@ -1889,8 +1869,8 @@ msgid "Set ID is used in the code for embedding product set into frontend design
 msgstr "ID используется для встраивания списка товаров в шаблоны витрины и отдельные страницы."
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductSetSettings.html:14
-msgid "Updating set ID <em>will not</em> automatically update templates and pages that this code is embedded into, so be sure to update those manually if you change the ID."
-msgstr "Изменение ID списка автоматически <em>НЕ</em> обновит шаблоны и страницы, в исходном коде которых используется этот ID. Поэтому после изменения ID следует вручную обновить соответствующие шаблоны и страницы."
+msgid "Changing the set ID <em>will not</em> automatically update templates and pages in which this code is embedded, so be sure to update them if you change the ID."
+msgstr "Изменение ID списка автоматически <em>не</em> обновит шаблоны и страницы, в исходном коде которых он используется. Поэтому после изменения ID нужно обновить соответствующие шаблоны и страницы."
 
 #: /wa-apps/shop/templates/actions/products/Products.html:241
 msgid "It is highly advisable to keep product sets with IDs <strong>promo</strong> and <strong>bestsellers</strong>, as these set IDs are used by most Shop-Script frontend design themes."
@@ -1929,7 +1909,7 @@ msgid "Change product type"
 msgstr "Изменить тип товара"
 
 #: /wa-apps/shop/templates/actions/dialog/DialogTypes.html:8
-msgid "Changing product type may affect products' publication status and access settings."
+msgid "Changing product type may affect products’ publication status and access settings."
 msgstr "Изменение типа товара может изменить статус публикации и права доступа к этому товару."
 
 #: /wa-apps/shop/templates/actions/backend/BackendProducts.html:151
@@ -1977,7 +1957,7 @@ msgid "Delete currency"
 msgstr "Удалить валюту"
 
 #: /wa-apps/shop/templates/actions/dialog/DialogCurrencyDelete.html:22
-msgid "You don't have products priced in this currency. The currency can be safely deleted."
+msgid "You don’t have products priced in this currency. The currency can be safely deleted."
 msgstr "Товары с ценой, указанной в этой валюте, отсутствуют. Эту валюту можно удалить."
 
 #: /wa-apps/shop/templates/actions/customers/CustomersSidebar.html:18
@@ -2001,7 +1981,7 @@ msgid "Custom parameters"
 msgstr "Дополнительные параметры"
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:96
-msgid "Optional set of custom <em>key=value</em> parameters which can be used within a frontend's theme template as <em>&#123;$category.params.key&#125;</em>. Each key=value pair should be on a separate line."
+msgid "Optional set of custom <em>key=value</em> parameters which can be used in frontend theme templates as <em>&#123;$category.params.key&#125;</em>. Each key=value pair must be on a separate line."
 msgstr "Необязательный набор дополнительных параметров <em>key=value</em> (используются в шаблоне общедоступной части в виде <em>&#123;$category.params.key&#125;</em>). Каждую пару key=value указывайте с новой строки."
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:118
@@ -2013,7 +1993,7 @@ msgid "is greater or equal"
 msgstr "больше или равно"
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:123
-msgid "is lesser or equal"
+msgid "is less or equal"
 msgstr "меньше или равно"
 
 #: /wa-apps/shop/templates/actions/products/Products.html:62
@@ -2081,7 +2061,7 @@ msgid "New service"
 msgstr "Новая услуга"
 
 #: /wa-apps/shop/templates/actions/services/Services.html:18
-msgid "Services allow you to add customization options for products and SKUs, e.g. custom packaging, extended warranty, engraving. Services are great for increasing your online store's average order value."
+msgid "Services allow you to add customization options for products and SKUs; e.g., custom packaging, extended warranty, engraving. Services are great for increasing your online store’s average order value."
 msgstr "Услуги позволяют добавлять индивидуальные свойства к товарам и артикулам, например, индивидуальную упаковку, расширенную гарантию, именную гравировку. Услуги удобно использовать для повышения средней стоимости заказов в вашем магазине."
 
 #: /wa-apps/shop/templates/actions/services/Services.html:29
@@ -2184,10 +2164,6 @@ msgstr "Типы товаров"
 msgid "Welcome to Shop-Script!"
 msgstr "Добро пожаловать в Shop-Script!"
 
-#: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:4
-msgid "Using the quick-start form below you can easily prepare an initial setup of your online store depending on your region and what you are going to sell online. This won't add your stuff to your store automatically, but will prepare configuration lists such as currencies and taxes rates, so you don't add such data manually."
-msgstr "С помощью формы быстрого старта вы можете легко подготовить начальную конфигурацию для вашего интернет-магазина в зависимости от вашего региона и типа товаров, которые вы собираетесь продавать. Ваши товары не будут автоматически добавлены в интернет-магазин, однако будут сохранены некоторые полезные настройки (например, валюты и налоги), чтобы вам не пришлось делать этого вручную."
-
 msgid "Shop Settings"
 msgstr "Настройки Магазина"
 
@@ -2230,17 +2206,9 @@ msgstr "Никакие региональные данные добавлены 
 msgid "Select product types which you are going to sell online. Product types will automatically add a set of product custom features to your store, and will then allow you to manage product access level and publication based on product types."
 msgstr "Выберите типы товаров, которые вы собираетесь продавать. Вместе с типами товаров автоматически добавится список полезных характеристик товаров в ваш интернет-магазин; они также позволят вам удобно настраивать доступ нескольким администраторам магазина к отдельным группам товаров и регулировать перечень товаров, видимых на витрине магазина."
 
-#: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:46
-msgid "If you don't see your product type here, you will be able to add it later."
-msgstr "Если в этом списке нет нужного вам типа товаров, вы сможете добавить его позднее."
-
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:52
 msgid "Import"
 msgstr "Импорт"
-
-#: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:56
-msgid "Don't import anything, start from scratch"
-msgstr "Ничего не импортировать, начать с чистого листа"
 
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:63
 msgid "Add few demo products"
@@ -2355,7 +2323,7 @@ msgid "Delete list"
 msgstr "Удалить список"
 
 #: /wa-apps/shop/templates/actions/products/Products.html:227
-msgid "Don't delete products"
+msgid "Don’t delete products"
 msgstr "Не удалять товары"
 
 #: /wa-apps/shop/templates/actions/products/Products.html:227
@@ -2714,7 +2682,7 @@ msgid "Unknown image"
 msgstr "Неизвестное изображение"
 
 #: /wa-apps/shop/lib/actions/product/shopProductDeleteImage.controller.php:14
-msgid "Coudn't delete image"
+msgid "Coudn’t delete image"
 msgstr "Не удалось удалить изображение"
 
 #: /wa-apps/shop/lib/actions/product/shopProductImageRotate.controller.php:74
@@ -2758,8 +2726,8 @@ msgid "Unknown page"
 msgstr "Неизвестная страница"
 
 #: /wa-apps/shop/lib/actions/product/shopProductPageMove.controller.php:14
-msgid "Page couldn't be inserted before itself"
-msgstr "Страницу нельзя поместить перед собой"
+msgid "Page couldn’t be inserted before itself."
+msgstr "Страницу нельзя поместить перед собой."
 
 #: /wa-apps/shop/lib/actions/product/shopProductDownloadImage.controller.php:20
 msgid "Image not found"
@@ -3101,7 +3069,7 @@ msgid "%s entry not found"
 msgstr "Запись %s не найдена"
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:171
-msgid "Name can not be left blank"
+msgid "Name cannot be left blank"
 msgstr "Введите имя"
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:174
@@ -3109,7 +3077,7 @@ msgid "Name length should not exceed 255 symbols"
 msgstr "Имя не может быть длиннее 255 символов"
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:177
-msgid "Email can not be left blank"
+msgid "Email cannot be left blank"
 msgstr "Введите email-адрес"
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:181
@@ -3125,7 +3093,7 @@ msgid "Invalid captcha code"
 msgstr "Капча введена неверно"
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:193
-msgid "Review text can not be left blank"
+msgid "Review text cannot be left blank"
 msgstr "Введите текст отзыва"
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:196
@@ -3452,7 +3420,7 @@ msgid "Optional comments"
 msgstr "Комментарий (не обязательно)"
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:248
-msgid "Review title can not be left blank"
+msgid "Review title cannot be left blank"
 msgstr "Заголовок отзыва должен быть заполнен"
 
 #: /wa-apps/shop/themes/default/checkout.confirmation.html:1
@@ -3511,7 +3479,7 @@ msgstr "Ваш заказ успешно оформлен. Мы свяжемся
 
 #: /wa-apps/shop/themes/default/checkout.success.html:4
 msgid "Your order number is "
-msgstr "Номер вашего заказа"
+msgstr "Номер вашего заказа "
 
 #: /wa-apps/shop/themes/default/checkout.success.html:9
 msgid "Back to the store"
@@ -3656,12 +3624,8 @@ msgid "Please add at least one stock in your store settings."
 msgstr "Добавьте хотя бы один склад в настройках магазина, чтобы этот раздел заработал."
 
 #: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateSave.controller.php:43
-msgid "State name can not be empty"
+msgid "State name cannot be empty"
 msgstr "Введите название статуса"
-
-#: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateSave.controller.php:46
-msgid "State id can not be empty"
-msgstr "Введите ID статуса"
 
 #: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateSave.controller.php:52
 msgid "Same state ID already exists"
@@ -4393,7 +4357,7 @@ msgstr[2] "Осталось %d"
 msgid "Order states"
 msgstr "Статусы заказов"
 
-msgid "Only paid and complete orders are shown in reports. If you don't see a particular order in reports, make sure to click <strong>Pay</strong> or <strong>Complete</strong> button on the order info page. Clicking either of these buttons will add a big PAID stamp for this order and make the order counted in your sales reports."
+msgid "Only paid and completed orders are shown in reports. If you cannot see a particular order in reports, make sure to click <strong>Pay</strong> or <strong>Complete</strong> button on the order-viewing page. Clicking either of these buttons will add a big “PAID” stamp to an order and will make it counted in your sales reports."
 msgstr "В отчетах о продажах показываются только оплаченные и выполненные заказы. Если заказ оформлен, но вы не видите его в отчетах, вероятно, что к нему еще не было применено действие «Оплачен» или «Выполнен». Нажмите на соответствующую кнопку на странице заказа, и тогда он будет помечен печатью «ОПЛАЧЕН» и станет учитываться при построении отчетов о продажах."
 
 #: /wa-apps/shop/templates/actions/backend/BackendReports.html:117
@@ -4784,8 +4748,8 @@ msgid "Enter Sender ID to use with this SMS gateway (Sender ID is either your ph
 msgstr "Введите идентификатор отправителя для использования данного SMS-шлюза — ваш номер телефона либо текстовую строку длиной до 11 символов. Для использования идентификатора по умолчанию, выданного вашим SMS-шлюзом, введите звездочку (*)."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:124
-msgid "Once gateway is setup, add new and edit existing SMS notifications using the <a href=\"%s\">Notifications</a> settings screen."
-msgstr "После настройки SMS-шлюза можно добавлять и редактировать SMS-уведомления в разделе настроек «<a href=\"%s\">Уведомления</a>»."
+msgid "Once connection is set up, add and edit SMS notifications in “<a href=\"%s\">Notifications</a>” settings screen."
+msgstr "После настройки подключения можно добавлять и редактировать SMS-уведомления в разделе «<a href=\"%s\">Уведомления</a>»."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:129
 msgid "To enable SMS message sending, install and configure sending module for your preferred SMS gateway.<br /> Browse for SMS gateway modules <a href=\"%s\">in the Installer app</a>."
@@ -5404,7 +5368,7 @@ msgid "Empty secondary CSV column"
 msgstr "Пустой вторичный столбец"
 
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:97
-msgid "Error file upload"
+msgid "File uploading error"
 msgstr "Ошибка загрузки файла"
 
 #: /wa-apps/shop/lib/classes/shopCsvReader.class.php:487
@@ -5502,7 +5466,7 @@ msgid "To activate this mode, this particular product must be assigned a product
 msgstr "Чтобы включить этот режим продажи для данного товара, необходимо отнести его к типу товаров с хотя бы одной характеристикой, предполагающей <strong>выбор</strong> из заданных вариантов (список типов товаров и характеристик настраивается в разделе <em>Настройки &rarr; Типы товаров и характеристики</em>)."
 
 #: /wa-apps/shop/templates/actions/product/Product.html:823
-msgid "Optional set of custom <em>key=value</em> parameters which can be used within a frontend's theme template as <em>&#123;$product.params.key&#125;</em>. Each key=value pair should be on a separate line."
+msgid "Optional set of custom <em>key=value</em> parameters which can be used in frontend theme templates as <em>&#123;$product.params.key&#125;</em>. Each key=value pair must be on a separate line."
 msgstr "Необязательный набор дополнительных параметров <em>key=value</em> (используются в шаблоне общедоступной части в виде <em>&#123;$product.params.key&#125;</em>). Каждую пару key=value указывайте с новой строки."
 
 #: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateSave.controller.php:45
@@ -5654,6 +5618,9 @@ msgstr "Форма ввода адреса плательщика"
 msgid "This will permanently delete this shipping option. Are you sure?"
 msgstr "Этот способ доставки будет полностью удален. Продолжить?"
 
+msgid "Create a copy"
+msgstr "Создать копию"
+
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:85
 msgid "Terms of service"
 msgstr "Условия предоставления услуг"
@@ -5687,7 +5654,7 @@ msgid "This will permanently delete this payment option. Are you sure?"
 msgstr "Этот способ оплаты будет полностью удален. Продолжить?"
 
 #: /wa-apps/shop/themes/default/checkout.payment.html:18
-msgid "Oops! We are sorry, but <strong>we can not offer any payment option for your order</strong>. Checkout can not be completed."
+msgid "Oops! We are sorry, but <strong>we cannot offer any payment option for your order</strong>. Checkout cannot be completed."
 msgstr "Извините, заказ не может быть оформлен — мы <strong>не можем предложить ни одного способа оплаты для вашего заказа</strong>."
 
 #: /wa-apps/shop/themes/default/checkout.shipping.html:54
@@ -6016,7 +5983,7 @@ msgstr "простая фигурка человека на сером фоне 
 msgid "a geometric pattern based on an email hash"
 msgstr "геометрический рисунок, генерируемый на основе email-адреса"
 
-msgid "a generated 'monster' with different colors, faces, etc"
+msgid "a generated “monster” with different colors, faces, etc."
 msgstr "автоматически сгенерированная фигурка монстра"
 
 msgid "generated faces with differing features and backgrounds"
@@ -6068,7 +6035,7 @@ msgstr "Поиск товаров"
 
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:87
 msgid "Next step"
-msgstr "Cледующий шаг"
+msgstr "Следующий шаг"
 
 #: /wa-apps/shop/templates/actions/coupons/CouponsEditor.html:223
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscountsCustomerTotal.html:107
@@ -6094,7 +6061,7 @@ msgstr "Экспорт дополнительных полей"
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:229
 msgid "Profile settings will be automatically saved and applied to all future data exports."
-msgstr "При выполнении экспорта изменения в настройках профиля будут сохранены и автоматически применены к последующим экспортам."
+msgstr "При выполнении экспорта изменения в настройках профиля будут сохранены и автоматически применены к последующим сессиям экспорта."
 
 #: /wa-apps/shop/templates/actions/dialog/DialogAssignTags.html:27
 #: /wa-apps/shop/templates/actions/product/Product.html:868
@@ -6318,7 +6285,7 @@ msgid "Automatically create thumbnails of predefined custom sizes (enable this i
 msgstr "Сразу создавать эскизы изображений предопределенных размеров (включите, если создание эскизов «на лету» запрещено или если вы уверены в том, что список предопределенных размеров заполнен согласно требованиям темы дизайна вашего интернет-магазина; если вы не уверены, рекомендуется оставить эту настройку выключенной)."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:192
-msgid "Please don't close your browser window until re-generation is over."
+msgid "Please don’t close your browser window until re-generation is over."
 msgstr "Пожалуйста, не закрывайте окно браузера, пока процесс не будет завершен."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:205
@@ -6438,7 +6405,7 @@ msgid "Depending on the number of products, this operation may take from few sec
 msgstr "В зависимости от количества товаров в вашем интернет-магазине процесс может занять от нескольких секунд до нескольких минут или даже часов в случае очень большого количества товаров."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsSearch.html:102
-msgid "Please don't close your browser window until the entire process is finished."
+msgid "Please don’t close your browser window until the process is completed."
 msgstr "Пожалуйста, не закрывайте окно браузера, пока процесс переиндексации не будет завершен."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsSearch.html:114
@@ -6876,7 +6843,7 @@ msgstr "Подробное описание опубликовано <a href=\"%
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:133
 msgid "http://www.shop-script.com/help/1061/shop-script-5-sms-setup/"
-msgstr "http://www.shop-script.ru/help/17/shop-script-5-sms-setup/"
+msgstr "https://support.webasyst.ru/shop-script/17/shop-script-5-sms-setup/"
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.export.html:69
 msgid "Certain symbols (such as %s) may be ommitted when exporting with the selected encoding. Consider using UTF-8 encoding for safe export and import."
@@ -7022,7 +6989,7 @@ msgid "Shop by category"
 msgstr "Каталог товаров"
 
 #: /wa-apps/shop/templates/actions-mobile/orders/Orders.html:8
-msgid "You don't have enough access permissions to view order list."
+msgid "You don’t have enough access rights to view the order list."
 msgstr "У вас недостаточно прав для просмотра списка заказов."
 
 #: /wa-apps/shop/templates/actions/plugins/Plugins.html:45
@@ -7487,7 +7454,7 @@ msgid "Manually edited discount. Click to apply automatically calculated discoun
 msgstr "Скидка указана вручную. Нажмите, чтобы применить автоматически рассчитанное значение."
 
 msgid "Automatically calculate discount according to rules set up in store and plugin settings"
-msgstr "Автоматически рассчитать скидку в соотствии с правилами в настройках магазина и плагинов"
+msgstr "Автоматически рассчитать скидку в соответствии с правилами в настройках магазина и плагинов"
 
 msgid "Manually edit automatically calculated discount"
 msgstr "Вручную исправьте автоматически рассчитанную скидку"
@@ -7756,6 +7723,9 @@ msgstr "Артикул"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:669
 msgid "items"
+msgstr "шт."
+
+msgid "item"
 msgstr "шт."
 
 #: /wa-apps/shop/templates/actions/product/Product.html:695
@@ -8482,7 +8452,7 @@ msgid "The results of A/B test will be available on the main sales reports page 
 msgstr "Результаты A/B-теста будут доступны в основном отчете о продажах сразу же после того, как будет оплачен хотя бы один заказ, оформленный после размещения кода теста."
 
 #: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:137
-msgid "This will delete the entire A/B test and all it's results without the ability to restore this data. Delete?"
+msgid "This A/B test and its results will be deleted without a recovery option. Delete?"
 msgstr "A/B-тест и его результаты будут удалены без возможности восстановления. Удалить?"
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:11
@@ -8606,12 +8576,15 @@ msgid "Guest checkout"
 msgstr "Заказ без авторизации"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:92
-msgid "Create new customer record for every guest order"
-msgstr "Создавать новый контакт для каждого неавторизованного покупателя"
+msgid "Create new customer profile for every guest order"
+msgstr "Создавать новый профиль покупателя для каждого заказа"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:98
-msgid "Automatically add order to existing customer record if same email address were entered"
-msgstr "Прикреплять заказ к существующему покупателю в случае совпадения email-адреса"
+msgid "Add an order to existing customer profile with the same phone number or email address"
+msgstr "Прикреплять заказ к существующему покупателю с таким же номером телефона или email-адресом"
+
+msgid "Add an order to existing customer profile with the same email address"
+msgstr "Прикреплять заказ к существующему покупателю с таким же email-адресом"
 
 #: /wa-apps/shop/themes/default/checkout.error.html:2
 msgid "Oops!"
@@ -8758,7 +8731,7 @@ msgid "There are products that belong to this product type. To delete this produ
 msgstr "В магазине существуют товары данного типа. Чтобы удалить этот тип товаров, необходимо либо удалить все эти товары, либо сменить их тип на любой другой."
 
 #: /wa-apps/shop/lib/actions/settings/features/shopSettingsFeaturesTypeDelete.controller.php:19
-msgid "Can not delete product type. At least one product type must remain."
+msgid "Cannot delete product type. At least one product type must remain."
 msgstr "Тип товаров не удален. В магазине должен остаться хотя бы один тип товаров."
 
 #: /wa-apps/shop/templates/actions/promos/PromosEditor.html:45
@@ -8976,12 +8949,12 @@ msgid "Welcome tutorial"
 msgstr "Помощник настройки магазина"
 
 #: /wa-apps/shop/lib/actions/customers/shopCustomersFilterDelete.controller.php:10
-msgid "Couldn't delete filter"
-msgstr "Ошибка удаления фильтра"
+msgid "Filter cannot be deleted."
+msgstr "Ошибка удаления фильтра."
 
 #: /wa-apps/shop/lib/actions/customers/shopCustomersFilterSave.controller.php:11
-msgid "Filter couldn't be saved"
-msgstr "Фильтр не может быть сохранен"
+msgid "Filter cannot be saved."
+msgstr "Фильтр не может быть сохранен."
 
 #: /wa-apps/shop/lib/actions/customers/shopCustomersSearchForm.action.php:115
 msgid "Any discount coupon"
@@ -9223,7 +9196,7 @@ msgid "Product subpages are great for publishing product extra information such 
 msgstr "Подстраницы позволяют дополнить информацию о товаре сопутствующим материалом, таким как руководства, фотографии, обзоры и т. п."
 
 #: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:56
-msgid "Weight value will be used to calculating order shipping costs."
+msgid "Weight value will be used to calculate order shipping cost."
 msgstr "Значение поля «Вес» используется для расчета стоимости доставки."
 
 #: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:121
@@ -9405,11 +9378,11 @@ msgid "Store working days, e.g. Sun, Mon, Wed—Fri"
 msgstr "Дни работы магазина, например, Пн—Пт"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:354
-msgid "Start of store working hours, e.g. 9:00 am"
+msgid "Start of store’s business hours; e.g., 9:00 am"
 msgstr "Начало рабочего дня, например, 10:00"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:362
-msgid "End of store working hours, e.g. 5:00 pm"
+msgid "End of store’s business hours; e.g., 5:00 pm"
 msgstr "Конец рабочего дня, например, 19:00"
 
 #: /wa-apps/shop/themes/default/header.html:43
@@ -9422,11 +9395,11 @@ msgstr "Анти-спам"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:164
 msgid "Checkout anti-spam filter"
-msgstr "Анти-спам фильтр для заказов"
+msgstr "Антиспам-фильтр для заказов"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:176
 msgid "Checkout anti-spam filtering is seamless for real customers and will automatically reject spammy orders placed by robots."
-msgstr "Анти-спам фильтр для заказов работает незаметно для реальных покупателей и автоматически отвергает все заказы, оформленные ботами."
+msgstr "Антиспам-фильтр для заказов работает незаметно для реальных покупателей и автоматически отвергает все заказы, оформленные ботами."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:180
 msgid "Alerts on rejected checkout attempts"
@@ -9451,7 +9424,7 @@ msgstr "Капча (ввод кода на изображении) — допо�
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:206
 msgid "If your store is under spammers attack and you receive lots of fraudulent orders placed by robots, protect the checkout routine with seamless anti-spam filtering. This will automatically filter all spam and save genuine orders only."
-msgstr "Если вы получаете поток заказов, и ни один из них не подтверждается, значит заказы оформляют не реальные покупатели, а роботы. Ваш магазин под атакой спамеров. Включите анти-спам фильтр, чтобы автоматически отфильтровать поток реальных заказов от спама."
+msgstr "Если вы получаете поток заказов, и ни один из них не подтверждается, значит заказы оформляют не реальные покупатели, а роботы. Ваш магазин под атакой спамеров. Включите антиспам-фильтр, чтобы автоматически отфильтровать поток реальных заказов от спама."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:146
 msgid "Webasyst Captcha"
@@ -9505,7 +9478,7 @@ msgstr "Использовать автоматическую подгрузку
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:249
 msgid "Products will be loaded automatically when you scroll the page in “Products” section in backend. If you need pagination, disable this setting."
-msgstr "Товары в разделе «Товары» будут подгружаться автоматически при прокручивании страницы. Если нужно использовать постраничную нацигацию, выключите эту настройку."
+msgstr "Товары в разделе «Товары» будут подгружаться автоматически при прокручивании страницы. Если нужно использовать постраничную навигацию, выключите эту настройку."
 
 #: /wa-apps/shop/lib/config/site.php:116
 msgid "Hide out-of-stock products"
@@ -9901,7 +9874,7 @@ msgid "All public stocks"
 msgstr "Все склады, видимые покупателям"
 
 #: /wa-apps/shop/lib/workflow/shopWorkflowEditAction.class.php:134
-msgid "Editing this order will mark this order as settled and will re-calculate it's current amount (%s) based on the order content your enter. Are you sure you want to settle this order and reset the order amount?"
+msgid "Editing this order will mark it as settled and will re-calculate its current amount (%s) based on the changed order content. Are you sure you want to settle this order and to reset the order amount?"
 msgstr ""
 "Редактирование автоматически снимет статус подвешенного заказа и приведет к автоматическому пересчету общей суммы заказа (%s) согласно товарам, которые вы добавите в заказ.\n"
 "Продолжить?"
@@ -10500,15 +10473,11 @@ msgstr "Получение автоматического запроса от п
 msgid "Execution of “Paid” action manually in backend or automatically by a callback from a payment gateway."
 msgstr "Выполнение действия «Оплачен» в бекенде магазина либо в результате автоматического запроса (callback) платежной системы."
 
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:175
-msgid "Select an online map engine in “<a href=\"%s\">Settings</a>” app‘s."
-msgstr "Выберите тип онлайн-карт в приложении «<a href=\"%s\">Настройки</a>»."
-
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:177
-msgid "To select an online map engine, you need access to “Settings” app‘s."
+msgid "To select an online map engine, you need access to Settings app."
 msgstr "Для выбора типа онлайн-карт необходим доступ к приложению «Настройки»."
 
-msgid "To select an captcha engine, you need access to “Settings” app‘s."
+msgid "To select a captcha engine, you need access to Settings app."
 msgstr "Для выбора типа капчи необходим доступ к приложению «Настройки»."
 
 msgid "Only couriers for storefront %s are shown."
@@ -11054,10 +11023,10 @@ msgid "Install an order dimensions calculation plugin."
 msgstr "Установите плагин для расчета размеров заказа."
 
 msgid "Do not calculate order dimensions"
-msgstr "Не расчитывать общие размеры отправления"
+msgstr "Не рассчитывать общие размеры отправления"
 
 msgid "If no plugin is selected, then order dimensions are calculated by shipping plugins."
-msgstr "Если плагин не будет выбран, то общие размеры будут расчитаны плагином доставки."
+msgstr "Если плагин не будет выбран, то общие размеры будут рассчитаны плагином доставки."
 
 msgid "Select a feature"
 msgstr "Выберите характеристику"
@@ -11080,7 +11049,7 @@ msgstr "Часы работы"
 msgid "New orders for processing"
 msgstr "Заказы в обработку"
 
-msgid "Values of “%s” and “%s” fields can be used to calculate the shipping terms."
+msgid "Values of “%s” and “%s” fields can be used to calculate the estimated shipping time."
 msgstr "Значения полей «%s» и «%s» могут быть использованы для расчета сроков доставки."
 
 msgid "The setting is used by default in all storefronts."
@@ -11089,8 +11058,11 @@ msgstr "Настройка используется по умолчанию на
 msgid "Business hours required to process an order"
 msgstr "Количество рабочих часов на обработку заказа"
 
-msgid "Is used to calculate order shipping terms. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later."
-msgstr "Используется для расчета сроков доставки. Указанный период добавляется ко времени оформления заказа и учитывается при переносе обработки заказов на другой день — для заказов, оформленных в конце или после окончания текущего рабочего дня."
+msgid "Is used to calculate estimated order shipping time. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later. Additional order picking time can be specified in individual shipping methods’ settings."
+msgstr "Используется для расчета сроков доставки. Указанный период добавляется ко времени оформления заказа и учитывается при переносе обработки заказов на другой день — для заказов, оформленных в конце или после окончания текущего рабочего дня. Дополнительное время комплектации заказа можно указать в настройках отдельных способов доставки."
+
+msgid "Is used to calculate estimated order shipping time only with in-cart checkout option. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later. Additional order picking time can be specified in individual shipping methods’ settings."
+msgstr "Используется для расчета сроков доставки только в режиме оформления заказа в корзине. Указанный период добавляется ко времени оформления заказа и учитывается при переносе обработки заказов на другой день — для заказов, оформленных в конце или после окончания текущего рабочего дня. Дополнительное время комплектации заказа можно указать в настройках отдельных способов доставки."
 
 msgid "Values in “%s” column denote the last hour of a workday before which orders are accepted for processing on the same day. Orders accepted after that hour are processed on the next workday."
 msgstr "Значения в столбце «%s» обозначают последний час рабочего дня, до которого заказы принимаются для обработки в течение дня. Заказы, оформленные после указанного часа, обрабатываются на следующий день."
@@ -11125,14 +11097,14 @@ msgstr "Подпись под номером телефона"
 msgid "Checkout page background color"
 msgstr "Цвет фона страницы оформления заказа"
 
-msgid "Layer background color"
-msgstr "Цвет фона слоя"
+msgid "Header &amp; footer background color"
+msgstr "Цвет фона шапки и подвала страницы"
 
 msgid "Custom CSS styles"
 msgstr "Свои CSS-стили"
 
-msgid "Entered CSS code will be added inside <code>&lt;script&gt; ... &lt;/script&gt;</code> tags in <code>&lt;head&gt;</code> block only on checkout page."
-msgstr "Введенный CSS-код будет помещен внутри тега <code>&lt;script&gt; ... &lt;/script&gt;</code> в блоке <code>&lt;head&gt;</code> только на странице оформления заказа."
+msgid "Entered CSS code will be added inside <code>&lt;style&gt; ... &lt;/style&gt;</code> tags in <code>&lt;head&gt;</code> block only on checkout page."
+msgstr "Введенный CSS-код будет помещен внутри тега <code>&lt;style&gt; ... &lt;/style&gt;</code> в блоке <code>&lt;head&gt;</code> только на странице оформления заказа."
 
 msgid "Block name"
 msgstr "Название блока"
@@ -11170,8 +11142,8 @@ msgstr "Выберите регион"
 msgid "Locality"
 msgstr "Населенный пункт"
 
-msgid "Separate locality names with a comma. With this field completed, the list of shipping areas in the minimal mode will be unavailable."
-msgstr "Перечислите населенные пункты через запятую. Если это поле заполнено, то в минимальном режиме список областей доставки будет недоступен."
+msgid "Separate locality names with a comma."
+msgstr "Перечислите населенные пункты через запятую."
 
 msgid "Show pickup points map"
 msgstr "Показывать карту выбора пунктов самовывоза"
@@ -11206,8 +11178,8 @@ msgstr "<a href=\"%s\" target=\"_blank\">Редактировать контак
 msgid "Companies:"
 msgstr "Компании:"
 
-msgid "<a href=\"%s\">Add and configure shipping methods</a>."
-msgstr "<a href=\"%s\">Добавить и настроить способы доставки</a>."
+msgid "<a href=\"%s\" target=\"_blank\">Add and configure shipping methods <i class=\"icon16 new-window\"></i></a>"
+msgstr "<a href=\"%s\" target=\"_blank\">Добавить и настроить способы доставки <i class=\"icon16 new-window\"></i></a>"
 
 msgid "Request ZIP code with the city name"
 msgstr "Запрашивать индекс вместе с городом"
@@ -11230,11 +11202,11 @@ msgstr "Время ожидания ответа от плагинов дост�
 msgid "Shipping options provided by plugins which process external requests longer than specified will not be available for choice."
 msgstr "Варианты доставки плагинов, которые обрабатывают запросы к сторонним сервисам дольше указанного времени, будут недоступны для выбора."
 
-msgid "<a href=\"%s\">Add and configure payment methods</a>."
-msgstr "<a href=\"%s\">Добавить и настроить способы оплаты</a>."
+msgid "<a href=\"%s\" target=\"_blank\">Add and configure payment methods <i class=\"icon16 new-window\"></i></a>"
+msgstr "<a href=\"%s\" target=\"_blank\">Добавить и настроить способы оплаты <i class=\"icon16 new-window\"></i></a>"
 
-msgid "Allow customers to leave an additional comment to an order"
-msgstr "Разрешить покупателям оставлять дополнительный комментарий к заказу"
+msgid "Allow customers to leave a comment to an order"
+msgstr "Разрешить покупателям оставлять комментарий к заказу"
 
 msgid "Show"
 msgstr "Показывать"
@@ -11308,8 +11280,8 @@ msgstr "Разделение суммы по видам скидки"
 msgid "Default"
 msgstr "Обычный"
 
-msgid "No fixed list of shipping areas. Available shipping options are grouped by type—“Courier”, “Pickup”, “Post”. One can select a pickup point on a map."
-msgstr "Нет фиксированного списка областей доставки. Доступные варианты доставки сгруппированы по типам: «Курьер», «Самовывоз», «Почта». Можно выбрать пункт самовывоза на карте."
+msgid "Available shipping options are grouped by type—“Courier”, “Pickup”, “Post”."
+msgstr "Доступные варианты доставки сгруппированы по типам: «Курьер», «Самовывоз», «Почта»."
 
 msgid "Minimal"
 msgstr "Минимальный"
@@ -11347,8 +11319,8 @@ msgstr "Нельзя оформить заказ без подтверждени
 msgid "Common working schedule"
 msgstr "Общий режим работы"
 
-msgid "Section “<a href=\"?action=settings#/schedule/\">%s</a>” settings are used"
-msgstr "Используются настройки раздела «<a href=\"?action=settings#/schedule/\">%s</a>»"
+msgid "Section “<a href=\"?action=settings#/schedule/\" target=\"_blank\">%s</a>” <i class=\"icon16 new-window\"></i> settings are used"
+msgstr "Используются настройки раздела «<a href=\"?action=settings#/schedule/\" target=\"_blank\">%s</a>» <i class=\"icon16 new-window\"></i>"
 
 msgid "Custom working schedule for this storefront"
 msgstr "Индивидуальный режим работы для этой витрины"
@@ -11461,8 +11433,8 @@ msgstr "Уменьшить количество"
 msgid "Increase quantity"
 msgstr "Увеличить количество"
 
-msgid "Only %s units available in stock. Please reduce the quantity or delete this product from the cart."
-msgstr "На складе есть только %s штук. Уменьшите количество или удалите этот товар из корзины."
+msgid "Only %s available in stock. Please reduce the quantity or delete this product from the cart."
+msgstr "На складе есть только %s шт. Уменьшите количество или удалите этот товар из корзины."
 
 msgid "One item’s weight"
 msgstr "Вес одной штуки"
@@ -11494,8 +11466,453 @@ msgstr "Скидка по бонусным баллам"
 msgid "Validation error"
 msgstr "Ошибка валидации"
 
-msgid "Set up validation of required fields in backend, order spam filter, and web push notifications in “<a href=\"%s\">General settings</a>” section."
-msgstr "Настройте проверку обязательных полей в бекенде, антиспам-фильтр для заказов и push-уведомления в разделе «<a href=\"%s\">Общие настройки</a>»."
+msgid "Setup of required fields validation in backend, order spam filter, and web push notifications is available in “<a href=\"%s\">General settings</a>” section."
+msgstr "Настройка проверки обязательных полей в бекенде, антиспам-фильтра для заказов и push-уведомлений доступна в разделе «<a href=\"%s\">Общие настройки</a>»."
 
 msgid "%s with total weight %s"
 msgstr "%s с общим весом %s"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:795
+msgid "country"
+msgstr "страна"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:813
+msgid "region"
+msgstr "регион"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:832
+msgid "city"
+msgstr "город"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:971
+msgid "Подтверждение можно пропустить и отпарвить заказ, но тогда данные существующего контакта будут обновлены данными покупателя, который не подтвержил свой email или телефон."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:29
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:31
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:33
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:35
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:52
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:58
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:64
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:76
+msgid "Width"
+msgstr "Ширина"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:29
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:31
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:33
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:35
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:52
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:58
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:64
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:76
+msgid "Height"
+msgstr "Высота"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutSidebar.html:41
+msgid "Common storefront settings:"
+msgstr "Общие настройки витрин:"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutSidebar.html:8
+msgid "<i class=\"icon16 status-green-tiny\"></i>&nbsp;“In-cart checkout” or <i class=\"icon16 status-blue-tiny\"></i>&nbsp;“Multi-step checkout” are selectable in <a href=\"%s\" target=\"_blank\">strorefront settings</a> <i class=\"icon10 new-window\"></i> individually for each storefront."
+msgstr "<i class=\"icon16 status-green-tiny\"></i>&nbsp;«Оформление закзаза в корзине» или <i class=\"icon16 status-blue-tiny\"></i>&nbsp;«Пошаговое оформление заказа» выбираются в <a href=\"%s\" target=\"_blank\">настройках витрины</a> <i class=\"icon10 new-window\"></i> отдельно для каждой витрины."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsRegions.html:6
+msgid "You can set up countries and regions in “<a href=\\\"%s\\\">Settings</a>” app."
+msgstr "Страны и регионы настраиваются в приложении «<a href=\\\"%s\\\">Настройки</a>»."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:9
+msgid "Multi-step checkout setup"
+msgstr "Настройка «Пошагового оформления заказа»"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:17
+msgid "Checkout setup tips"
+msgstr "Рекомендации по настройке оформления"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2.html:188
+msgid "Storefront not found."
+msgstr "Витрина не найдена."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:315
+msgid "Select an online map service in <a href=\"%s\">Settings</a> app."
+msgstr "Выберите сервис онлайн-карт в приложении «<a href=\"%s\">Настройки</a>»."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:115
+msgid "This payment method may be unavilable during checkout due to limitations by shipping type or customer type."
+msgstr "Этот способ доставки может быть недоступен из-за ограничений по типу доставки и типу покупателя при оформлении заказа."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:172
+msgid "Customer’s “User-Agent” value at the time of order creation"
+msgstr "Значение «User-Agent» покупателя на момент создания заказа"
+
+#: /wa-apps/shop/templates/actions/product/ProductPageEdit.html:110
+msgid "Uploading..."
+msgstr "Загрузка..."
+
+#: /wa-apps/shop/templates/actions/product/ProductPageEdit.html:117
+msgid "Upload"
+msgstr "Загрузить"
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/payment.html:43
+msgid "Unknown"
+msgstr "Неизвестный"
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/payment.html:124
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutPaymentStep.class.php:79
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutPaymentStep.class.php:85
+msgid "Please select a payment method"
+msgstr "Выберите способ оплаты"
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/region.html:259
+msgid "Locations"
+msgstr "Локации"
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/auth.html:73
+msgid "Logout"
+msgstr "Выход"
+
+#: /wa-apps/shop/lib/actions/settings/schedule/shopSettingsScheduleSave.controller.php:58
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2Save.controller.php:119
+msgid "Invalid value"
+msgstr "Некорректное значение"
+
+#: /wa-apps/shop/lib/actions/settings/schedule/shopSettingsScheduleSave.controller.php:86
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2Save.controller.php:147
+msgid "Remove duplicate"
+msgstr "Удалить дубликат"
+
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2Save.controller.php:78
+msgid "Logo not uploaded. Please try again."
+msgstr "Логотип не загружен. Повторите попытку."
+
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2UploadLogo.controller.php:9
+msgid "Missing storefront id."
+msgstr "Отсутствует идентификатор витрины."
+
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2UploadLogo.controller.php:22
+msgid "Invalid image format."
+msgstr "Некорректный формат изображения."
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShippingSave.controller.php:75
+msgid "Parameters are not specified: %s"
+msgstr "Не указаны параметры: %s"
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:707
+msgid "%d product imported with errors"
+msgid_plural "%d products imported with errors"
+msgstr[0] "%d товар импортирован с ошибками"
+msgstr[1] "%d товара импортированы с ошибками"
+msgstr[2] "%d товаров импортированы с ошибками"
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:712
+msgid "%d SKU not imported due to pricing plan restriction"
+msgid_plural "%d SKUs not imported due to pricing plan restriction"
+msgstr[0] "%d артикул не импортирован из-за ограничений тарифного плана"
+msgstr[1] "%d артикула не импортированы из-за ограничений тарифного плана"
+msgstr[2] "%d артикулов не импортированы из-за ограничений тарифного плана"
+
+#: /wa-apps/shop/lib/actions/orders/shopOrdersLoadList.controller.php:18
+msgid "Unknown offset"
+msgstr "Неизвестное значение смещения"
+
+#: /wa-apps/shop/lib/actions/orders/shopOrdersLoadList.controller.php:22
+msgid "Unknown count"
+msgstr "Неизвестное количество"
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:95
+msgid "Service does not exist."
+msgstr "Услуга не существует."
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:100
+msgid "Service is already in cart."
+msgstr "Услуга уже выбрана в корзине."
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:107
+msgid "Service variant does not exist."
+msgstr "Вариант услуги не существует."
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:130
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:157
+msgid "Incorrect input data"
+msgstr "Некорректные данные"
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:137
+msgid "No product to add service to."
+msgstr "Нет товара для добавления услуг."
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:376
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:383
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:420
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:422
+msgid "Data mismatch. Shopping cart parameters have changed beyond this page?"
+msgstr "Несовпадение данных. Параметры корзины изменились вне этой страницы?"
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:396
+msgid "Quantity must be integer."
+msgstr "Количество должно быть целым числом."
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:403
+msgid "Not enough in stock."
+msgstr "Недостаточное количество на складе."
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrder.actions.php:71
+msgid "You must be logged in to complete this order."
+msgstr "Для завершения заказы вы должны быть авторизованы."
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrder.actions.php:129
+msgid "Order creation error."
+msgstr "Ошибка создания заказа."
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrder.actions.php:157
+msgid "Unable to save order."
+msgstr "Не удалось сохранить заказ."
+
+#: /wa-apps/shop/lib/classes/shopOrder.class.php:1052
+msgid "Discount is greater than order total."
+msgstr "Скидка больше стоимости заказа."
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutDetailsStep.class.php:30
+msgid "Unknown shipping method."
+msgstr "Неизвестный способ доставки."
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutDetailsStep.class.php:146
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutDetailsStep.class.php:151
+msgid "Unable to calculate a shipping rate."
+msgstr "Не удалось рассчитать стоимость доставки."
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutAuthStep.class.php:42
+msgid "You are logged in as a company. Please log out and login again as a person."
+msgstr "Вы авторизованы как юридическое лицо. Пожалуйста, выйдите и снова войдите от имени физического лица."
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutAuthStep.class.php:45
+msgid "You are logged in as a person. Please log out and log in again as a company."
+msgstr "Вы авторизованы как физическое лицо. Пожалуйста, выйдите и снова войдите от имени юридического лица."
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutAuthStep.class.php:127
+msgid "Please select customer type."
+msgstr "Выберите тип клиента."
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutShippingStep.class.php:63
+msgid "No shipping options available for selected region."
+msgstr "Для выбранного региона нет доступных вариантов доставки."
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutShippingStep.class.php:195
+msgid "Please select shipping option."
+msgstr "Выберите вариант доставки."
+
+#: /wa-apps/shop/lib/config/site.php:86
+msgid "<br>Product URLs: /<strong>product-name/</strong><br>Category URLs: /category/<strong>category-name/subcategory-name/subcategory-name/</strong>"
+msgstr "<br>Страницы товаров: /<strong>product-name/</strong><br>Страницы категорий: /category/<strong>category-name/subcategory-name/subcategory-name/</strong>"
+
+#: /wa-apps/shop/lib/config/site.php:195
+msgid "Checkout mode"
+msgstr "Вид оформления заказа"
+
+#: /wa-apps/shop/lib/config/site.php:199
+msgid "<span class=\"checkout-2-background\">%s</span> (might be not supported by all design themes; check in your theme description or in checkout settings after you select this mode)"
+msgstr "<span class=\"checkout-2-background\">%s</span> (может не поддерживаться всеми темами дизайна; проверьте в описании своей темы или в настройках оформления заказа после выбора этого режима)"
+
+#: /wa-apps/shop/lib/config/site.php:200
+msgid "If your design theme does not support “in-cart checkout”, standard checkout design of “Default” theme will be used. <a href=\"%s\">Set up</a> <i class=\"icon16 new-window\"></i>in-cart checkout."
+msgstr "Если ваша тема дизайна не поддерживает «оформление заказа в корзине», для страницы оформления заказа будет использоваться стандартный дизайн темы «Дефолт». <a href=\"%s\">Настройте</a> <i class=\"icon16 new-window\"></i>оформление заказа в корзине."
+
+#: /wa-apps/shop/lib/config/site.php:212
+msgid "<a href=\"%s\">Set up</a> <i class=\"icon16 new-window\"></i>multi-step checkout"
+msgstr "<a href=\"%s\">Настройте</a> <i class=\"icon16 new-window\"></i>пошаговое оформление заказа"
+
+#: /wa-apps/shop/lib/config/site.php:234
+msgid "Array of product SKUs"
+msgstr "Массив артикулов товара"
+
+#: /wa-apps/shop/lib/config/site.php:236
+msgid "Array of product images"
+msgstr "Массив изображений товара"
+
+#: /wa-apps/shop/lib/config/site.php:237
+msgid "Array of product categories"
+msgstr "Массив категорий товара"
+
+#: /wa-apps/shop/lib/config/site.php:240
+msgid "Array of product tags"
+msgstr "Массив тегов товара"
+
+#: /wa-apps/shop/lib/config/site.php:240
+msgid "Array of product subpages"
+msgstr "Массив подстраниц товара"
+
+#: /wa-apps/shop/lib/config/site.php:241
+msgid "Array of product features and values"
+msgstr "Массив характеристик товара и их значений"
+
+#: /wa-apps/shop/lib/config/site.php:242
+msgid "Array of product reviews"
+msgstr "Массив отзывов о товаре"
+
+#: /wa-apps/shop/lib/config/site.php:266
+msgid "Returns HTML of in-cart checkout cart block"
+msgstr "Возвращает HTML-код блока корзины для оформления заказа в корзине"
+
+#: /wa-apps/shop/lib/config/site.php:267
+msgid "Returns variables that $wa->shop->checkout()->cart() assigns to its template"
+msgstr "Возвращает переменные, которые $wa->shop->checkout()->cart() формирует для своего шаблона"
+
+#: /wa-apps/shop/lib/config/site.php:270
+msgid "Returns HTML of in-cart checkout form"
+msgstr "Возвращает HTML-код формы оформления заказа в корзине"
+
+#: /wa-apps/shop/lib/config/site.php:272
+msgid "Returns variables that $wa->shop->checkout()->form() assigns to its template"
+msgstr "Возвращает переменные, которые $wa->shop->checkout()->form() формирует для своего шаблона"
+
+#: /wa-apps/shop/lib/config/site.php:337
+msgid "Returns checkout page URL"
+msgstr "Возвращает URL страницы оформления заказа"
+
+#: /wa-apps/shop/lib/config/site.php:338
+msgid "Returns shopping cart page URL"
+msgstr "Возвращает URL страницы корзины"
+
+#: /wa-apps/shop/lib/config/site.php:510
+msgid "Nearest delivery date and time formatted as <em>yyyy-mm-dd</em>; e.g., <em>2001-12-31</em>."
+msgstr "Ближайшая дата и время доставки в формате <em>yyyy-mm-dd</em>, например, <em>2001-12-31</em>."
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:18
+msgid "Your shopping cart is empty"
+msgstr "Ваша корзина пуста"
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:40
+msgid "Logging in makes ordering simple because all your orders are saved in your account history and you do not need to enter contact details for every new order."
+msgstr "Вход с паролем делает посещение интернет-магазина более удобным: все заказы сохраняются в истории личного кабинета, а при повторных заказах не нужно заново заполнять свои контактные данные."
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:43
+#: /wa-apps/shop/lib/config/checkout2/default.php:49
+msgid "Log out if you want to check out as another customer"
+msgstr "Выйдите, если хотите оформить заказ от имени другого покупателя"
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:54
+msgid "I accept <a href=\"\">terms of service</a>"
+msgstr "Принимаю <a href=\"\">условия работы</a>"
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:62
+msgid "Pickup"
+msgstr "Самовывоз"
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:64
+msgid "Post"
+msgstr "Почта"
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:69
+msgid "By placing an order you confirm that you are of adult age and agree to our <a href=\"\">personal data processing terms</a>"
+msgstr "Оформляя заказ, вы подтверждаете свое совершеннолетие и соглашаетесь с нашими <a href=\"\">условиями обработки персональных данных</a>"
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:78
+msgid "We have received your order. Thank you!"
+msgstr "Заказ оформлен. Спасибо!"
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:78
+msgid "We will contact you soon. Your order No. is $order_id."
+msgstr "Мы свяжемся с вами в ближайшее время. Номер вашего заказа: $order_id."
+
+#: /wa-apps/shop/themes/default/order.html:21
+#: /wa-apps/shop/themes/default/checkout.success.html:47
+msgid "Go to home page"
+msgstr "Перейти на главную страницу"
+
+#: /wa-apps/shop/lib/updates/dev/1541167785.php:16
+msgid "We will contact you as soon as possible. Your order No. is $order_id."
+msgstr "Мы свяжемся с вами в ближайшее время. Номер вашего заказа: $order_id."
+
+#: /wa-apps/shop/templates/actions/category/ProductsCategory.html:166
+#: /wa-apps/shop/templates/actions/category/ProductsCategory.html:214
+msgid "less or equal"
+msgstr "меньше или равно"
+
+#: /wa-apps/shop/lib/actions/frontend/shopFrontendCheckout.action.php:172
+msgid "Your order number is"
+msgstr "Ваш номер заказа"
+
+msgid "Profile"
+msgstr "Профиль"
+
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2UploadLogo.controller.php:14
+msgid "Image uploading error"
+msgstr "Ошибка загрузки изображения"
+
+#: /wa-apps/shop/lib/config/site.php:199
+msgid "<span class=\"checkout-2-background\">%s</span> (may be not supported by some design themes; please check your theme’s description or checkout settings after selecting this mode)"
+msgstr "<span class=\"checkout-2-background\">%s</span> (может не поддерживаться некоторыми темами дизайна; проверьте это в описании вашей темы или в настройках оформления заказа после выбора этого режима)"
+
+msgid "Set up connection to SMS providers in <a href=\"%s\">Settings</a> app."
+msgstr "Настройте подключение к SMS-провайдерам в приложении «<a href=\"%s\">Настройки</a>»."
+
+msgid "<a href=\"%s\" target=\"_blank\">Add a shipping method</a>"
+msgstr "<a href=\"%s\" target=\"_blank\">Добавьте способ доставки</a>"
+
+msgid "<a href=\"%s\" target=\"_blank\">Add a payment method</a>"
+msgstr "<a href=\"%s\" target=\"_blank\">Добавьте способ оплаты</a>"
+
+msgid "General checkout settings"
+msgstr "Общие настройки оформления заказа"
+
+msgid "Additional order picking time"
+msgstr "Дополнительное время на комплектацию"
+
+msgid "Added to order ready time calculated by storefront business hours."
+msgstr "Прибавляется ко времени готовности заказа с учетом режима работы витрины."
+
+msgid "This setting is used only with in-cart checkout option."
+msgstr "Эта настройка используется только в режиме оформления заказа в корзине."
+
+msgid "Existing customer’s data will be updated by the data from a new order."
+msgstr "Данные существующего покупателя будут обновлены данными из нового заказа."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:315
+msgid "Select an online map service in <a href=\\\"%s\\\">Settings</a> app."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:328
+msgid "Set up connection to SMS providers in <a href=\\\"%s\\\">Settings</a> app."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:330
+msgid "You need access to Settings app to set up connection to SMS providers."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/confirm.html:66
+#: /wa-apps/shop/templates/actions/frontend/order/form/details.html:157
+msgid "free"
+msgstr "бесплатно"
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/setpassword.html:7
+msgid "Set password"
+msgstr "Придумайте пароль"
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/signup.html:7
+msgid "Signup"
+msgstr "Регистрация"
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/forgotpassword.html:7
+msgid "Password recovery"
+msgstr "Восстановление пароля"
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/shipping.html:50
+#: /wa-apps/shop/templates/actions/frontend/order/form/shipping.html:116
+msgid "Free"
+msgstr "Бесплатно"
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfirmStep.class.php:50
+msgid "Some items in your order are not available. Please remove them from your cart."
+msgstr "Некоторые товары в вашем заказе недоступны — удалите их из корзины."
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShippingClone.controller.php:23
+msgid "Shipping plugin not found."
+msgstr "Плагин доставки не найден."
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrder.action.php:37
+msgid "Page not supported by selected design theme."
+msgstr "Страница не поддерживается выбранной темой дизайна."
+
+#: /wa-apps/shop/lib/config/site.php:336
+msgid "Returns working schedule data array for current storefront"
+msgstr "Возвращает массив данных с режимом работы магазина для текущей витрины"

@@ -13,7 +13,7 @@
                 {$_required_inline_fields = []}
                 {$_required_custom_fields = []}
 
-                {* render_field function here *}
+                {* shop_order_render_field function here *}
                 {include file="./render_field.function.html" inline}
 
                 {* FIELDS *}
@@ -26,9 +26,9 @@
                         {/if}
 
                         {if !empty($_field.affects_rate)}
-                            {capture append="_required_inline_fields"}{render_field _field=$_field}{/capture}
+                            {capture append="_required_inline_fields"}{shop_order_render_field _field=$_field}{/capture}
                         {else}
-                            {capture append="_inline_fields"}{render_field _field=$_field}{/capture}
+                            {capture append="_inline_fields"}{shop_order_render_field _field=$_field}{/capture}
                         {/if}
                     {/foreach}
                 {/if}
@@ -60,7 +60,7 @@
 
                                 {else}
                                     {capture assign="_custom_field"}
-                                        <div class="wa-line wa-plugin-field-wrapper">
+                                        <div class="wa-line wa-plugin-fields-wrapper">
                                             {if !empty($_plugin.label)}
                                                 <div class="wa-label">
                                                     {$_plugin.label|escape}
@@ -68,7 +68,7 @@
                                                 </div>
                                             {/if}
 
-                                            {$_plugin.html}
+                                            <div class="wa-body">{$_plugin.html}</div>
 
                                             {if !empty($_plugin.description)}
                                                 <div class="wa-description">{$_plugin.description|escape}</div>
@@ -87,6 +87,11 @@
                             {continue}
                         {/if}
                     {/foreach}
+                {/if}
+
+                {$_plugin_description = ifset($details, 'preliminary_shipping_rate', 'description', '')}
+                {if !empty($_plugin_description)}
+                    <div class="wa-details-description">{$_plugin_description|escape}</div>
                 {/if}
 
                 {* RENDER *}
@@ -110,6 +115,7 @@
                     {$_additional = null}
                     {$_storage_days = null}
                     {$_photos = null}
+                    {$_est_delivery = str_replace(date('Y'), '', $details.shipping_rate.est_delivery|default:"—")}
 
                     {if !empty($details.shipping_rate.custom_data)}
                         {$_data = $details.shipping_rate.custom_data}
@@ -128,8 +134,8 @@
                                 {$_additional = $_custom_data.additional}
                             {/if}
 
-                            {if !empty($_custom_data.storage_days)}
-                                {$_storage_days = $_custom_data.storage_days}
+                            {if !empty($_custom_data.storage.storage_days)}
+                                {$_storage_days = $_custom_data.storage.storage_days}
                             {/if}
 
                             {if !empty($_custom_data.photos)}
@@ -145,7 +151,13 @@
                                     <div class="wa-name">[`Shipping cost`]</div>
                                 </div>
                                 <div class="wa-cell wa-cell-value">
-                                    <span class="wa-delivery-price">{shop_currency($details.shipping_rate.rate, ['in_currency' => $details.shipping_rate.currency,'extended_format' => '%t{h}'])}</span>
+                                    <span class="wa-delivery-price">
+                                        {if $details.shipping_rate.rate > 0}
+                                            {shop_currency($details.shipping_rate.rate, ['in_currency' => $details.shipping_rate.currency,'extended_format' => '%t{h}'])}
+                                        {else}
+                                            [`free`]
+                                        {/if}
+                                    </span>
                                 </div>
                             </div>
 
@@ -154,7 +166,7 @@
                                     <div class="wa-name">[`Estimated shipping time`]</div>
                                 </div>
                                 <div class="wa-cell wa-cell-value">
-                                    {$details.shipping_rate.est_delivery|default:"—"|escape}
+                                    {$_est_delivery|escape}
                                 </div>
                             </div>
 
@@ -193,7 +205,7 @@
                         {if !empty($details.shipping_rate.pickup_schedule.days)}
                             <div class="wa-line wa-schedule-wrapper">
                                 <div class="wa-label">[`Business hours`]:</div>
-                                <div class="wa-value">
+                                <div class="wa-days-wrapper">
                                     {foreach $details.shipping_rate.pickup_schedule.days as $_day}
                                         <div class="wa-day-wrapper">
                                             <div class="wa-date">{$_day.weekday_short|escape}, {$_day.date_formatted|escape}</div>
@@ -226,14 +238,21 @@
 
                         {if !empty($_photos)}
                             <div class="wa-line wa-photos-section">
-                                {foreach $_photos as $_photo}
-                                    {if !empty($_photo.uri)}
-                                        <div class="wa-photo-wrapper">
-                                            <a class="wa-photo js-show-photo" href="{$_photo.uri|escape}"
-                                               style="background-image: url({$wa->shop->imgUrl($_photo.uri|escape, '100x75')});"></a>
-                                        </div>
-                                    {/if}
-                                {/foreach}
+                                <div class="wa-action left js-scroll-prev">
+                                    <i class="wa-icon arrow-left"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#arrow-left"></use></svg></i>
+                                </div>
+                                <div class="wa-photos-list">
+                                    {foreach $_photos as $_photo}
+                                        {if !empty($_photo.uri)}
+                                            <div class="wa-photo-wrapper">
+                                                <a class="wa-photo js-show-photo" href="{$_photo.uri|escape}" style="background-image: url({$wa->shop->imgUrl($_photo.uri|escape, '100x75')});"></a>
+                                            </div>
+                                        {/if}
+                                    {/foreach}
+                                </div>
+                                <div class="wa-action right js-scroll-next">
+                                    <i class="wa-icon arrow-right"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#arrow-right"></use></svg></i>
+                                </div>
                             </div>
                         {/if}
 

@@ -116,7 +116,18 @@ class shopShipping extends waAppShipping
             $instance->saveSettings($plugin['settings']);
         }
 
+        // Clean shipping methods cache
+        self::flushCache();
+
         return $plugin;
+    }
+
+    public static function flushCache()
+    {
+        try {
+            waFiles::delete(wa()->getCachePath('shipping_methods', 'shop'), true);
+        } catch (waException $e) {
+        }
     }
 
     public function getDataPath($order_id, $path = null)
@@ -208,13 +219,9 @@ class shopShipping extends waAppShipping
         /** @var waSystem $wa */
         $wa = wa('shop');
 
-        /** @var shopConfig $config */
-        $config = $wa->getConfig();
-
-
         if (!isset($units['dimensions']) || !empty($units['dimensions'])) {
 
-            if ($dimensions = $config->getGeneralSettings('shipping_dimensions')) {
+            if ($dimensions = self::getShopSettings('shipping_dimensions')) {
                 $dimensions = preg_split('@\D+@', $dimensions);
                 $features = $feature_model->getByField((count($dimensions) == 1) ? 'parent_id' : 'id', $dimensions, true);
 
@@ -303,7 +310,7 @@ class shopShipping extends waAppShipping
 
 
 
-        $preferred_id = $config->getGeneralSettings('shipping_package_provider');
+        $preferred_id = self::getShopSettings('shipping_package_provider');
 
 
         if ($preferred_id) {
@@ -325,6 +332,7 @@ class shopShipping extends waAppShipping
              * @return array[string][string]float $return[%plugin_id%]['length'] Calculated total package length
              */
             $result = $wa->event('shipping_package', $items);
+            $preferred_id = sprintf('%s-plugin', $preferred_id);
             if (isset($result[$preferred_id])) {
                 $plugin_result = ifset($result, $preferred_id, array());
                 if (isset($plugin_result['callback']) && is_callable($plugin_result['callback'])) {
@@ -365,5 +373,37 @@ class shopShipping extends waAppShipping
             waShipping::TYPE_TODOOR => sprintf(_w('shipping type “%s”'), _w('courier')),
             waShipping::TYPE_POST   => sprintf(_w('shipping type “%s”'), _w('post')),
         );
+    }
+
+    private static function getShopSettings($field)
+    {
+        /** @var shopConfig $config */
+        static $config;
+        if (empty($config)) {
+            $config = wa('shop')->getConfig();
+        }
+
+        return $config->getGeneralSettings($field);
+    }
+
+    public function getAppProperties($name = null)
+    {
+        if ($name === 'dimensions') {
+            $dimensions = self::getShopSettings('shipping_dimensions');
+            $return = !empty($dimensions);
+            if ($return) {
+                $shipping_package_provider = self::getShopSettings('shipping_package_provider');
+                if ($shipping_package_provider) {
+                    $return = $shipping_package_provider;
+                }
+            }
+        } elseif ($name === null) {
+            $return = parent::getAppProperties($name);
+            $return['dimensions'] = $this->getAppProperties('dimensions');
+        } else {
+            $return = parent::getAppProperties($name);
+        }
+
+        return $return;
     }
 }

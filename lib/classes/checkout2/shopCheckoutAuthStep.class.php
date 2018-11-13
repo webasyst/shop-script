@@ -29,6 +29,7 @@ class shopCheckoutAuthStep extends shopCheckoutStep
             $selected_mode = ifset($data, 'input', 'auth', 'mode', shopCheckoutConfig::CUSTOMER_TYPE_PERSON);
         }
 
+        $errors = [];
         $config = $this->getCheckoutConfig();
         $auth_fields = $config->getAuthFields();
 
@@ -36,13 +37,20 @@ class shopCheckoutAuthStep extends shopCheckoutStep
         if (1 == count($auth_fields)) {
             $selected_mode = key($auth_fields);
             if ($contact_id) {
-                $errors = null;
                 if ($contact['is_company'] && $selected_mode == shopCheckoutConfig::CUSTOMER_TYPE_PERSON) {
-                    // Authorised as company but company mode is disabled in checkout. Can not proceed.
-                    $errors = ['auth[mode]' => _w('You are logged in as a company. Please log out and authorize as a person.')];
+                    // Authorised as company but company mode is disabled in checkout. Cannot proceed.
+                    $errors[] = [
+                        'name' => 'auth[mode]',
+                        'text' => _w('You are logged in as a company. Please log out and login again as a person.'),
+                        'section' => $this->getId(),
+                    ];
                 } elseif (!$contact['is_company'] && $selected_mode == shopCheckoutConfig::CUSTOMER_TYPE_COMPANY) {
-                    // Authorised as person but person mode is disabled in checkout. Can not proceed.
-                    $errors = ['auth[mode]' => _w('You are logged in as a person. Please log out and authorize as a company.')];
+                    // Authorised as person but person mode is disabled in checkout. Cannot proceed.
+                    $errors[] = [
+                        'name' => 'auth[mode]',
+                        'text' => _w('You are logged in as a person. Please log out and log in again as a company.'),
+                        'section' => $this->getId(),
+                    ];
                 }
                 if ($errors) {
                     return array(
@@ -63,7 +71,6 @@ class shopCheckoutAuthStep extends shopCheckoutStep
         }
 
         // If mode is selected, load contact data into it
-        $errors = [];
         $form_fields = null;
         if ($selected_mode) {
             $fields = $auth_fields[$selected_mode];
@@ -124,7 +131,11 @@ class shopCheckoutAuthStep extends shopCheckoutStep
                 $contact['is_company'] = (int) ($selected_mode == shopCheckoutConfig::CUSTOMER_TYPE_COMPANY);
             }
         } else {
-            $errors['auth[mode]'] = _w('Please select customer mode.');
+            $errors[] = [
+                'name' => 'auth[mode]',
+                'text' => _w('Please select customer type.'),
+                'section' => $this->getId(),
+            ];
         }
 
         if (!empty($delayed_errors)) {
@@ -148,6 +159,6 @@ class shopCheckoutAuthStep extends shopCheckoutStep
 
     public function getTemplatePath()
     {
-        return wa()->getAppPath('templates/actions/frontend/order/form/auth.html', 'shop');
+        return 'auth.html';
     }
 }

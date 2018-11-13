@@ -195,15 +195,27 @@ class shopCheckoutRegionStep extends shopCheckoutStep
         }
 
         // Validation
-        $errors = array();
+        $errors = [];
         if (empty($selected_values['country_id'])) {
-            $errors['region[country]'] = _w('This field is required.');
+            $errors[] = [
+                'name' => 'region[country]',
+                'text' => _w('This field is required.'),
+                'section' => $this->getId(),
+            ];
         } else if (empty($countries_by_id[$selected_values['country_id']])) {
-            $errors['region[country]'] = _w('This field is required.');
+            $errors[] = [
+                'name' => 'region[country]',
+                'text' => _w('This field is required.'),
+                'section' => $this->getId(),
+            ];
         }
         if (empty($errors)) {
             if (empty($selected_values['region']) && empty($selected_values['region_id'])) {
-                $errors['region[region]'] = _w('This field is required.');
+                $errors[] = [
+                    'name' => 'region[region]',
+                    'text' => _w('This field is required.'),
+                    'section' => $this->getId(),
+                ];
             } else {
                 // Make sure region exists if country has them
                 $c = ifset($countries_by_id, $selected_values['country_id'], null);
@@ -212,16 +224,28 @@ class shopCheckoutRegionStep extends shopCheckoutStep
                         return $region_found || $r['id'] == $selected_values['region_id'];
                     });
                     if (!$region_found) {
-                        $errors['region[region]'] = _w('This field is required.');
+                        $errors[] = [
+                            'name' => 'region[region]',
+                            'text' => _w('This field is required.'),
+                            'section' => $this->getId(),
+                        ];
                     }
                 }
             }
         }
         if (empty($errors) && empty($selected_values['city'])) {
-            $errors['region[city]'] = _w('This field is required.');
+            $errors[] = [
+                'name' => 'region[city]',
+                'text' => _w('This field is required.'),
+                'section' => $this->getId(),
+            ];
         }
         if (!empty($cfg['shipping']['ask_zip']) && empty($selected_values['zip'])) {
-            $errors['region[zip]'] = _w('This field is required.');
+            $errors[] = [
+                'name' => 'region[zip]',
+                'text' => _w('This field is required.'),
+                'section' => $this->getId(),
+            ];
         }
 
         $result = $this->addRenderedHtml([
@@ -367,6 +391,6 @@ selected_values: {
 
     public function getTemplatePath()
     {
-        return wa()->getAppPath('templates/actions/frontend/order/form/region.html', 'shop');
+        return 'region.html';
     }
 }

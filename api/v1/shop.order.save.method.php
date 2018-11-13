@@ -28,6 +28,7 @@ class shopOrderSaveMethod extends shopApiMethod
 
         if ($post) {
             $so = new shopOrder($post, array(
+                'ignore_stock_validate'  => true,
                 'items_format' => 'tree',
             ));
 

@@ -138,7 +138,7 @@ class shopSettingsShippingAction extends waViewAction
 
         foreach ($available_shop_plugins as $plugin_id => $plugin_info) {
             if (!empty($plugin_info['handlers']['shipping_package'])) {
-                $shipping_package_provider['options'][] = array(
+                $shipping_package_provider['options'][$plugin_id] = array(
                     'name'  => $plugin_info['name'],
                     'title' => $plugin_info['description'],
                     'value' => $plugin_id,

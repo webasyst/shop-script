@@ -15,7 +15,7 @@
  * @property-read string $update_datetime   Last order update
  * @property-read string $state_id          Order workflow state id, see Settings - Order states.
  * @property-read double $total             Order total in order currency
- * @property string $currency               ISO3 code - all prices here and in order items use this currency. Note that currency of existing order can not be changed.
+ * @property string $currency               ISO3 code - all prices here and in order items use this currency. Note that currency of existing order cannot be changed.
  * @property-read double $rate              Order currency rate relative to default shop currency, as used to be when order were created
  * @property-read double $tax               Total order tax in order currency. Set it into 'calculate' to recalculate tax;
  * @property double $shipping               Total order shipping cost in order currency.
@@ -1049,7 +1049,7 @@ class shopOrder implements ArrayAccess
         }
 
         if (($this->subtotal + $this->shipping) < $this->discount) {
-            $this->errors['order']['discount'] = _w('!!! Скидка больше стоимости заказа');
+            $this->errors['order']['discount'] = _w('Discount is greater than order total.');
         }
 
         if (!$this->errors && !$this->options(null, 'ignore_stock_validate')) {
@@ -1516,7 +1516,7 @@ class shopOrder implements ArrayAccess
         } elseif ($ext == 'billing') {
             $this->billing_address = $new_address;
         } else {
-            throw new waException('Unknown address type '.$ext); // this can not happen
+            throw new waException('Unknown address type '.$ext); // this cannot happen
         }
 
         // In case old address in order matches one of old customer's addresses,

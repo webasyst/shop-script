@@ -11,7 +11,7 @@ class shopProductPageMoveController extends waJsonController
 
         $before_id = waRequest::post('before_id', null, waRequest::TYPE_INT);
         if ($id == $before_id) {
-            $this->errors[] = _w("Page couldn't be inserted before itself");
+            $this->errors[] = _w("Page couldn’t be inserted before itself.");
         }
 
         $product_page_model = new shopProductPagesModel();

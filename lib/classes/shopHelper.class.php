@@ -285,9 +285,30 @@ class shopHelper
 
                 if (!empty($params['departure_datetime'])) {
                     $shipping_params['departure_datetime'] = $params['departure_datetime'];
+                    if ($params['departure_datetime'] instanceof shopDepartureDateTimeFacade) {
+                        /** @var shopDepartureDateTimeFacade $departure_datetime */
+
+                        $departure_datetime = $params['departure_datetime'];
+                        $departure_datetime->setExtraProcessingTime(ifset($m, 'options', 'assembly_time', 0) * 3600);
+                        $shipping_params['departure_datetime'] = (string)$departure_datetime;
+                    } elseif (!empty($m['options']['assembly_time']) && (intval($m['options']['assembly_time']) > 0)) {
+                        $departure_timestamp = strtotime(
+                            sprintf('+%d hours', $m['options']['assembly_time']),
+                            strtotime($params['departure_datetime'])
+                        );
+                        $shipping_params['departure_datetime'] = date('Y-m-d H:i:s', $departure_timestamp);
+                    }
                 }
 
-                $m['__rates'] = $plugin->getRates($items, $address ? $address : array(), $shipping_params);
+                if (!empty($params['filter']['services_by_type'])) {
+                    $shipping_params['services_by_type'] = true;
+                }
+
+                if (empty($address)) {
+                    $address = array();
+                }
+
+                $m['__rates'] = $plugin->getRates($items, $address, $shipping_params);
             }
 
         }
@@ -322,11 +343,15 @@ class shopHelper
                             $key = $method_id.'.'.$rate_id;
                             if (empty($params['raw_rate'])) {
                                 $rate = is_array($info['rate']) ? max($info['rate']) : $info['rate'];
-                                if ($rate !== null) {
-                                    $rate = (float)shop_currency($rate, reset($plugin_currency), $params['currency'], false);
+                                $currency_from = ifset($info, 'currency', reset($plugin_currency));
+                                $currency = $params['currency'];
+                                if ($rate !== null && $currency_from) {
+                                    $rate = (float)shop_currency($rate, $currency_from, $currency, false);
                                 }
                             } else {
                                 $rate = $info['rate'];
+                                $currency = ifset($info, 'currency', reset($plugin_currency));
+                                $currency = ifempty($currency, $params['currency']);
                             }
                             if (!empty($params['filter']['services_by_type'])) {
                                 $rate_name = empty($info['name']) ? $m['name'] : $info['name'];
@@ -348,9 +373,10 @@ class shopHelper
                                 'icon'                 => $plugin_info['icon'],
                                 'img'                  => $plugin_info['img'],
                                 'name'                 => $rate_name,
+                                'description'          => $m['description'],
                                 'service'              => ifset($info, 'service', (count($rates) > 1) || ($rate_name != $m['name']) ? $m['name'] : ''),
                                 'rate'                 => $rate,
-                                'currency'             => $params['currency'],
+                                'currency'             => $currency,
                                 'external'             => !empty($plugin_info['external']),
                                 'type'                 => ifset($plugin_info, 'type', null),
                             );
@@ -432,6 +458,7 @@ class shopHelper
                         'name'                 => $m['name'],
                         'error'                => _w('Not available'),
                         'rate'                 => false,
+                        'currency'             => $params['currency'],
                         'external'             => !empty($plugin_info['external']),
                     );
                 }
@@ -1783,7 +1810,7 @@ SQL;
         if ($total !== $order_data['total']) {
             if ($options['currency'] != ifset($order['original_currency'], $order['currency'])) {
                 $_error = abs($order_data['total'] - $total);
-                if (($_error > 1) || waSystemConfig::isDebug()) {
+                if (($_error > 0.005) || waSystemConfig::isDebug()) {
                     $id = ifset($order['id'], '-');
                     $_debug = compact('id', 'order_data', '_error');
                     waLog::log(var_export($_debug, true), 'shop/round_total.error.log');

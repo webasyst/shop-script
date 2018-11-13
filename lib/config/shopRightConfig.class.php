@@ -36,6 +36,6 @@ class shopRightConfig extends waRightConfig
          * @param waRightConfig $this Rights setup object
          * @return void
          */
-        wa()->event('rights.config', $this);
+        wa('shop')->event('rights.config', $this);
     }
 }

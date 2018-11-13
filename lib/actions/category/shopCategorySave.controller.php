@@ -18,7 +18,7 @@ class shopCategorySaveController extends waJsonController
 
         $parent = $scm->getById($data['parent_id']);
         if ($parent && $parent['type'] == shopCategoryModel::TYPE_DYNAMIC && $data['type'] == shopCategoryModel::TYPE_STATIC) {
-            throw new waException('You can not create a static category in a dynamic category.');
+            throw new waException('You cannot create a static category in a dynamic category.');
         }
 
         $id = $this->saveSettings($category_id, $data);
@@ -216,11 +216,11 @@ class shopCategorySaveController extends waJsonController
                 if (substr($f_type, 0 ,5) === 'range') {
                     $begin = ifset($f_values, 'begin', null);
                     if ($begin) {
-                        $conditions[] = $f_code.'.value_id>='.$begin;
+                        $conditions[] = $f_code.'.value>='.$begin;
                     }
                     $end = ifset($f_values, 'end', null);
                     if ($end) {
-                        $conditions[] = $f_code.'.value_id<='.$end;
+                        $conditions[] = $f_code.'.value<='.$end;
                     }
                 } elseif($f_values) {
                     $conditions[] = $f_code.'.value_id='.implode(',', $f_values);

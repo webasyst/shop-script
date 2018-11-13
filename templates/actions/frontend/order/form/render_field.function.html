@@ -1,8 +1,8 @@
 {strip}
 
-{if empty($render_field_function)}
+{if empty($shop_order_render_field_function)}
 
-{function name="render_field" _field=[]}
+{function name="shop_order_render_field" _field=[]}
     {$_wrapper_classes = []}
     {if !empty($_field.width)}
         {if $_field.width == shopCheckoutConfig::FIELD_WIDTH_MINI}
@@ -140,7 +140,7 @@
     {/if}
 {/function}
 
-{$render_field_function = true}
+{$shop_order_render_field_function = true}
 
 {/if}
 

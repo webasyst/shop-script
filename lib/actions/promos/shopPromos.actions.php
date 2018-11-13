@@ -296,7 +296,7 @@ EOF;
         } else {
             $result = array(
                 'status' => 'error',
-                'error' => _w('Error file upload'),
+                'error' => _w('File uploading error'),
             );
         }
 

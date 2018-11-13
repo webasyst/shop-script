@@ -36,12 +36,14 @@
                     </div>
 
                     {* DISCOUNT *}
-                    <div class="wa-item">
-                        <div class="wa-name">[`Discount`]</div>
-                        <div class="wa-value">
-                            <span class="wa-price">{shop_currency($confirm.discount, ['in_currency' => true, 'extended_format' => '%t{h}'])}</span>
+                    {if !empty($confirm.discount)}
+                        <div class="wa-item">
+                            <div class="wa-name">[`Discount`]</div>
+                            <div class="wa-value">
+                                <span class="wa-price">{shop_currency($confirm.discount, ['in_currency' => true, 'extended_format' => '%t{h}'])}</span>
+                            </div>
                         </div>
-                    </div>
+                    {/if}
 
                     {* TAX *}
                     {if !empty($confirm.tax)}
@@ -57,8 +59,12 @@
                     <div class="wa-item">
                         <div class="wa-name">[`Shipping cost`]</div>
                         <div class="wa-value">
-                            {if !empty($confirm.shipping)}
-                                <span class="wa-price">{shop_currency($confirm.shipping, ['in_currency' => true, 'extended_format' => '%t{h}'])}</span>
+                            {if $confirm.shipping !== null}
+                                {if $confirm.shipping > 0}
+                                    <span class="wa-price">{shop_currency($confirm.shipping, ['in_currency' => true, 'extended_format' => '%t{h}'])}</span>
+                                {else}
+                                    [`free`]
+                                {/if}
                             {else}
                                 [`not selected`]
                             {/if}

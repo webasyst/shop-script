@@ -3,7 +3,7 @@
         <h1>[`Countries & Regions`]</h1>
         <div style="font-size: 16px;">
             {if !empty($wa_settings)}
-                {$wa_backend_url|cat:'webasyst/settings/regions/'|string_format:'[`You can set up a directory of countries and regions in “<a href=\"%s\">Settings</a>” app‘s.`]'}
+                {$wa_backend_url|cat:'webasyst/settings/regions/'|string_format:'[`You can set up countries and regions in “<a href=\"%s\">Settings</a>” app.`]'}
             {else}
                 [`To edit countries and regions, you need to access the “Settings” app‘s.`]
             {/if}

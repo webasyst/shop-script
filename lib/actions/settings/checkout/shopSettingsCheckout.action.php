@@ -41,11 +41,26 @@ class shopSettingsCheckoutAction extends shopSettingsCheckoutAbstractAction
                 $auth_alert[] = $domain;
             }
         }
+
         $this->view->assign(array(
-            'redirect_hash'  => !empty($redirect_hash) ? $redirect_hash : null,
-            'auth_alert'     => $auth_alert,
-            'steps'          => $steps,
-            'guest_checkout' => $this->getConfig()->getGeneralSettings('guest_checkout'),
+            'redirect_hash'    => !empty($redirect_hash) ? $redirect_hash : null,
+            'auth_alert'       => $auth_alert,
+            'steps'            => $steps,
+            'guest_checkout'   => $this->getConfig()->getGeneralSettings('guest_checkout'),
+            'shipping_plugins' => $this->getPlugins(shopPluginModel::TYPE_SHIPPING),
+            'payment_plugins'  => $this->getPlugins(shopPluginModel::TYPE_PAYMENT),
         ));
+    }
+
+    protected function getPlugins($type)
+    {
+        static $model;
+
+        if ($model === null) {
+            $model = new shopPluginModel();
+        }
+
+        $plugins = $model->listPlugins($type);
+        return $plugins;
     }
 }

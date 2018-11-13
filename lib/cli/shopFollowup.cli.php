@@ -159,7 +159,7 @@ class shopFollowupCli extends waCliController
                 $event_params = $f;
                 $event_params['sent_count'] = $sent_count;
                 $event_params['send_count_sms'] = $sent_count_sms;
-                wa()->event('followup_send', $event_params);
+                wa('shop')->event('followup_send', $event_params);
             }
 
             $fm->updateById($f['id'], array(

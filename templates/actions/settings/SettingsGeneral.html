@@ -89,7 +89,7 @@
                                 <option value="custom" {if $gravatar_default == 'custom'}selected="selected"{/if}>[`Use default userpic`]</option>
                                 <option value="mm" {if $gravatar_default == 'mm'}selected="selected"{/if}>[`(mystery-man) a simple, cartoon-style silhouetted outline of a person (does not vary by email hash)`]</option>
                                 <option value="identicon" {if $gravatar_default == 'identicon'}selected="selected"{/if}>[`a geometric pattern based on an email hash`]</option>
-                                <option value="monsterid" {if $gravatar_default == 'monsterid'}selected="selected"{/if}>[`a generated 'monster' with different colors, faces, etc`]</option>
+                                <option value="monsterid" {if $gravatar_default == 'monsterid'}selected="selected"{/if}>[`a generated “monster” with different colors, faces, etc.`]</option>
                                 <option value="wavatar" {if $gravatar_default == 'wavatar'}selected="selected"{/if}>[`generated faces with differing features and backgrounds`]</option>
                                 <option value="retro" {if $gravatar_default == 'retro'}selected="selected"{/if}>[`awesome generated, 8-bit arcade-style pixelated faces`]</option>
                             </select>
@@ -192,6 +192,7 @@
                             {else}
                                 <span {if !$_wp_is_active} class="gray"{/if} id="s-toggle-web-push-disabled-label">[`Disabled`]</span>
                                 <div style="display: inline-block; margin: 0 10px;">
+                                    <input type="hidden" name="web_push_settings[active]" value="0" />
                                     <input type="checkbox" id="s-toggle-web-push-active" name="web_push_settings[active]" value="1"{if $_wp_is_active} checked="checked"{/if}>
                                 </div>
                                 <span id="s-toggle-web-push-enabled-label" {if $_wp_is_active} class="gray"{/if}>[`Enabled`]</span>
@@ -301,7 +302,7 @@
                         {if !empty($wa_settings)}
                             <span class="s-auth-captcha-text"><a href="{$wa_backend_url}webasyst/settings/captcha/">[`Select Webasyst default captcha or Google reCAPTCHA`]</a></span>
                         {else}
-                            [`To select an captcha engine, you need access to “Settings” app‘s.`]
+                            [`To select a captcha engine, you need access to Settings app.`]
                         {/if}
                         <label>
 
@@ -312,9 +313,9 @@
                     <div class="name">[`Maps`]</div>
                     <div class="value no-shift">
                         {if !empty($wa_settings)}
-                            {$wa_backend_url|cat:'webasyst/settings/maps/'|string_format:'[`Select an online map engine in “<a href=\"%s\">Settings</a>” app‘s.`]'}
+                            {$wa_backend_url|cat:'webasyst/settings/maps/'|string_format:'[`Select an online map service in <a href=\"%s\">Settings</a> app.`]'}
                         {else}
-                            [`To select an online map engine, you need access to “Settings” app‘s.`]
+                            [`To select an online map engine, you need access to Settings app.`]
                         {/if}
                     </div>
                 </div>
@@ -323,56 +324,20 @@
             <div class="field-group">
                 <div class="field">
                     <div class="name">[`SMS`]</div>
-                    {if count($sms_adapters)}
-                        {foreach $sms_adapters as $i => $a}
-                        <div class="value no-shift">
-                            <input name="sms[{$i}][adapter]" type="hidden" value="{$a.id}">
-                            <strong><i class="icon16" style="background-image: url('{$a.icon}');"></i>{$a.name}</strong><br>
-                            <div class="field">
-                                <div class="name">{if isset($a.controls.from.title)}{$a.controls.from.title}{else}[`Sender IDs`]{/if}</div>
-                                <div class="value">
-                                    {strip}
-                                    <textarea name="sms[{$i}][from]">
-                                        {if !empty($a.config.from)}{implode("\n", $a.config.from)}{/if}
-                                    </textarea>
-                                    {/strip}
-                                    <p class="hint">{if isset($a.controls.from.description)}{$a.controls.from.description}{else}[`Enter Sender IDs to use with this SMS gateway (Sender ID is either your phone number or up-to-11-characters text label). Enter * to use default Sender ID issued for your account by the gateway.`]{/if}</p>
-                                </div>
-                            </div>
-                            {foreach $a.controls as $k => $v}
-                            {if $k != 'from'}
-                            <div class="field">
-                                <div class="name">{$v.title}</div>
-                                <div class="value">
-                                    {if ifset($v.control_type) == 'checkbox'}
-                                    <input type="hidden" name="sms[{$i}][{$k}]" value="">
-                                    <input type="checkbox" name="sms[{$i}][{$k}]" value="1" {if !empty($a.config[$k])}checked{/if}>
-                                    {else}
-                                    <input type="text" name="sms[{$i}][{$k}]" value="{if !empty($a.config[$k])}{$a.config[$k]|escape}{/if}">
-                                    {/if}
-                                    {if !empty($v.description)}
-                                    <p class="hint">{$v.description}</p>
-                                    {/if}
-                                </div>
-                            </div>
-                            {/if}
-                            {/foreach}
-                        </div>
-                        <div class="value no-shift">
-                            <p class="small">
-                                {sprintf('[`Once gateway is setup, add new and edit existing SMS notifications using the <a href="%s">Notifications</a> settings screen.`]', '#/notifications/')}
-                                <br>
-                                {sprintf('[`<a href="%s" target="_blank">See documentation</a> for details.`]', '[`http://www.shop-script.com/help/1061/shop-script-5-sms-setup/`]')}
-                            </p>
-                        </div>
-                        {/foreach}
-                    {else}
-                        <div class="value no-shift">
-                            <p>
-                                {sprintf('[`To enable SMS message sending, install and configure sending plugin for your preferred SMS gateway.<br /> <a href="%s">Browse for SMS gateway plugins</a> in Installer app.`]', $wa_backend_url|cat:'installer/#/plugins/wa-plugins/sms/')}
-                            </p>
-                        </div>
-                    {/if}
+                    <div class="value no-shift">
+                        {if !empty($wa_settings)}
+                            {$wa_backend_url|cat:'webasyst/settings/sms/'|string_format:'[`Set up connection to SMS providers in <a href=\"%s\">Settings</a> app.`]'}
+                        {else}
+                            [`You need access to Settings app to set up connection to SMS providers.`]
+                        {/if}
+                    </div>
+                    <div class="value no-shift">
+                        <p class="hint">
+                            {sprintf('[`Once connection is set up, add and edit SMS notifications in “<a href="%s">Notifications</a>” settings screen.`]', '#/notifications/')}
+                            <br>
+                            {sprintf('[`<a href="%s" target="_blank">See documentation</a> for details.`]', '[`http://www.shop-script.com/help/1061/shop-script-5-sms-setup/`]')}
+                        </p>
+                    </div>
                 </div>
             </div>
 

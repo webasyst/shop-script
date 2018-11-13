@@ -6,15 +6,14 @@
 <div class="s-settings-checkout-content content blank left200px">
     <div class="block double-padded s-settings-form">
         {* TODO: Locale *}
-        <h1 style="margin-bottom: 1.3em;">[`Настройка "Пошагового оформления заказа"`]</h1>
+        <h1 style="margin-bottom: 1.3em;">[`Multi-step checkout setup`]</h1>
 
         <h2><i class="icon16 ss cart-bw"></i> [`Storefront`]</h2>
         <p>[`Define the checkout step order and each step settings using the form below.`]</p>
         <p>
             <a href="javascript:void(0);" class="js-checkout-recommendations-link" style="text-decoration: none;">
                 <i class="icon16 info"></i>
-                {* TODO: Locale *}
-                [`Рекомендации по настройке оформления`]
+                [`Checkout setup tips`]
                 <i class="icon16 darr js-arrow" style="margin-top: 2px;"></i>
             </a>
         </p>
@@ -35,7 +34,7 @@
             <p class="gray">
                 <i class="icon10 exclamation"></i>
                 <strong>[`Shipping & Contacts`].</strong>
-                [`Some shipping options require to know the destination address. If shipping step is before the contact info step (i.e. customer didn't input the address yet), certain shipping options may not calculate shipping rates properly.`]
+                [`Some shipping options require to know the destination address. If the shipping step is before the contact info step (i.e. customer hasn’t input the address yet), certain shipping options may not calculate shipping rates properly.`]
             </p>
             <p class="gray">
                 <i class="icon10 exclamation"></i>
@@ -50,7 +49,13 @@
             <td class="min-width valign-top"><i class="icon16 sort checkout-steps-handle"></i></td>
             <td>
                 <div class="float-right links">
-                    {if $step.status}
+                    {if $step_id == shopPluginModel::TYPE_SHIPPING && empty($shipping_plugins)}
+                        {sprintf('[`<a href="%s" target="_blank">Add a shipping method</a>`]', '?action=settings#/shipping/')}
+                        <i class="icon16 new-window"></i>
+                    {elseif $step_id == shopPluginModel::TYPE_PAYMENT && empty($payment_plugins)}
+                        {sprintf('[`<a href="%s" target="_blank">Add a payment method</a>`]', '?action=settings#/payment/')}
+                        <i class="icon16 new-window"></i>
+                    {elseif $step.status}
                         <a href="#" class="link-options inline-link inline"><i class="icon16 settings"></i><b><i>[`Configure`]</i></b></a>
                     {else}
                         [`Disabled`]
@@ -100,13 +105,13 @@
                 <div class="value no-shift">
                     <label>
                         <input class="guest-checkout" type="radio" name="guest_checkout" value="" {if !$guest_checkout}checked{/if}>
-                        [`Create new customer record for every guest order`]
+                        [`Create new customer profile for every guest order`]
                     </label>
                 </div>
                 <div class="value no-shift">
                     <label>
                         <input class="guest-checkout" type="radio" name="guest_checkout" value="merge_email" {if $guest_checkout == 'merge_email'}checked{/if}>
-                        [`Automatically add order to existing customer record if same email address were entered`]
+                        [`Add an order to existing customer profile with the same email address`]
                     </label>
                 </div>
                 {if $auth_alert}
@@ -137,7 +142,7 @@
                 });
             </script>
             <div style="margin-top: 20px;">
-                {sprintf('[`Set up validation of required fields in backend, order spam filter, and web push notifications in “<a href="%s">General settings</a>” section.`]', '?action=settings#/general/')}
+                {sprintf('[`Setup of required fields validation in backend, order spam filter, and web push notifications is available in “<a href="%s">General settings</a>” section.`]', '?action=settings#/general/')}
             </div>
         </div>
     </div>

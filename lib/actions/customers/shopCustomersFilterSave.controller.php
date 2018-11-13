@@ -8,7 +8,7 @@ class shopCustomersFilterSaveController extends waJsonController
         $cfm = new shopCustomersFilterModel();
         $filter = $this->getFilter();
         if (!($res = $cfm->save($filter))) {
-            $this->errors[] = _w("Filter couldn't be saved");
+            $this->errors[] = _w("Filter cannot be saved.");
         }
         $filter['id'] = $filter['id'] ? $filter['id'] : (int) $res;
         $this->response = array(

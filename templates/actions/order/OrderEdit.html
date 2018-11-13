@@ -408,8 +408,8 @@
                     <td>
                         {capture name=hold_discount}
                             <br/><strong>[`Total discount breakdown`]</strong><br/>
-- [`applicable to individual items:`] {shop_currency_html((float)$order.items_total_discount,$currency,$currency)|escape:ENT_QUOTES}<br/>
-- [`applicable to entire order:`] {shop_currency_html((float)$order.discount-(float)$order.items_total_discount,$currency,$currency)}
+- [`applicable to individual items:`] {shop_currency_html((float)$order.items_total_discount|default:0,$currency,$currency)|escape:ENT_QUOTES}<br/>
+- [`applicable to entire order:`] {shop_currency_html((float)$order.discount|default:0-(float)$order.items_total_discount|default:0,$currency,$currency)}
                         {/capture}
 
                         <input type="hidden" name="discount_description" value="{if !empty($order.items_total_discount) || !empty($order.discount)}{$smarty.capture.hold_discount|escape}{/if}" id="discount-description"

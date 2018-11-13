@@ -1047,6 +1047,11 @@ SQL;
         return new shopCheckoutViewHelper();
     }
 
+    public function schedule()
+    {
+        return $this->shopConfig()->getStorefrontSchedule();
+    }
+
     /**
      * @return shopConfig
      */

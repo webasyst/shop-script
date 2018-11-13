@@ -2,7 +2,19 @@
 
 {$wa->globals("wa_order_form", [])}
 
-<div class="wa-order-form-wrapper is-not-ready" id="wa-order-form-wrapper" style="visibility: hidden;">
+{$_use_adaptive_styles = true}
+{if !empty($options)}
+    {if isset($options["adaptive"]) && (empty($options["adaptive"]) || $options["adaptive"] === "false")}
+        {$_use_adaptive_styles = false}
+    {/if}
+{/if}
+
+{$_form_classes = []}
+{if !empty($_use_adaptive_styles)}
+    {$_form_classes[] = "with-adaptive"}
+{/if}
+
+<div class="wa-order-form-wrapper is-not-ready {$_form_classes|join:" "}" id="wa-order-form-wrapper" style="visibility: hidden;">
     <script>
         ( function($) {
             $("#wa-order-form-wrapper").data("ready", $.Deferred());
@@ -181,7 +193,9 @@
                     urls: {
                         "calculate": {$wa->getUrl('shop/frontendOrder/calculate')|json_encode},
                         "success": {$wa->getUrl('shop/frontend/checkout', ['step'=>'success'])|json_encode},
-                        "create": {$wa->getUrl('shop/frontendOrder/create')|json_encode}
+                        "create": {$wa->getUrl('shop/frontendOrder/create')|json_encode},
+                        "logout": "{$wa_app_url}?logout",
+                        "auth_dialog": {$wa->getUrl('shop/frontendOrder/authDialog')|json_encode}
                     }
                 });
             }

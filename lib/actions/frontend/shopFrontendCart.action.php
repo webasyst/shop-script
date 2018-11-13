@@ -4,6 +4,17 @@ class shopFrontendCartAction extends shopFrontendAction
 {
     public function execute()
     {
+        // In case new checkout is enabled and current design theme is not adapted to use it properly
+        // (i.e. set up to use template from default theme), this controller must redirect to new cart url.
+        $route = wa()->getRouting()->getRoute();
+        $checkout_version = ifset($route, 'checkout_version', 1);
+        if ($checkout_version == 2 && isset($route['checkout_storefront_id'])) {
+            $checkout_config = new shopCheckoutConfig($route['checkout_storefront_id']);
+            if (ifempty($checkout_config, 'design', 'custom', null) === true) {
+                $this->redirect(wa()->getRouteUrl('shop/frontend/order'));
+            }
+        }
+
         $this->getResponse()->addHeader("Cache-Control", "no-store, no-cache, must-revalidate");
         $this->getResponse()->addHeader("Expires", date("r"));
 

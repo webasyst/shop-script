@@ -69,7 +69,7 @@ class shopSettingsOrderStateSaveController extends waJsonController
     public function validate($data, $add = true)
     {
         if (empty($data['state']['name'])) {
-            $this->errors['state']['name'] = _w('State name can not be empty');
+            $this->errors['state']['name'] = _w('State name cannot be empty');
         }
 
         if (isset($data['state']['new_id'])) {

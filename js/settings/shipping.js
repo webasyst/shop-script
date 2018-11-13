@@ -16,11 +16,13 @@ if (typeof($) != 'undefined') {
             null: null,
             loading: $_('Loading')+'...<i class="icon16 loading"><i>'
         },
+
+        locales: null,
         /**
          * Init section
          *
          */
-        shippingInit: function () {
+        shippingInit: function (options) {
             /* init settings */
             var self = this;
             $('#s-settings-content').on('click', 'a.js-action', function () {
@@ -61,6 +63,10 @@ if (typeof($) != 'undefined') {
                 var $this = $(this);
                 return self.shippingParamsSave($this);
             });
+
+            self.locales = options.locales;
+            //init clone plugin
+            self.shippingPluginClone();
 
         },
 
@@ -236,6 +242,41 @@ if (typeof($) != 'undefined') {
             });
         },
 
+        shippingPluginClone: function () {
+            var that = this,
+                $plugin_list = $('#s-settings-shipping');
+
+            $plugin_list.on('click', '.js-shipping-plugin-clone', function (e) {
+                e.preventDefault();
+                var $self = $(this),
+                    $tr = $self.closest('tr'),
+                    original_id = $tr.data('id');
+
+                $.post('?module=settings&action=shippingClone', {original_id: original_id}).success(function (r) {
+                    if (r && r.data && r.data.plugin_id) {
+                        var id = r.data.plugin_id,
+                            $new_plugin = $tr.clone().attr('data-id', id),
+                            $title = $new_plugin.find('.js-plugin-title'),
+                            is_off = $title.hasClass('gray'),
+                            $setup = $new_plugin.find('.js-shipping-plugin-setup'),
+                            $delete = $new_plugin.find('.js-shipping-plugin-delete');
+
+                        //if plugin now off not need add text
+                        if (!is_off) {
+                            $title.addClass('gray').text($title.text() + '(' + that.locales['disabled'] +')');
+                        }
+
+                        //change id in url
+                        $setup.attr('href', '#/shipping/plugin/setup/' + id +'/');
+                        $delete.attr('href', '#/shipping/plugin/delete/' + id +'/');
+
+                        //add new node
+                        $plugin_list.append($new_plugin);
+                    }
+                });
+            })
+        },
+
         /**
          * @param {jQuery} $form
          */
@@ -332,7 +373,6 @@ if (typeof($) != 'undefined') {
                 }
             }
         },
-
 
         shippingPlugins: function () {
             $('#s-settings-content').find('#s-settings-shipping').hide();

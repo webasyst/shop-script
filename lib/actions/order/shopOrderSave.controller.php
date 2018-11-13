@@ -38,6 +38,8 @@ class shopOrderSaveController extends waJsonController
             ),
         );
 
+        $this->workupData($data);
+
         $options = array(
             'items_format'          => 'flat',
             'ignore_count_validate' => true,
@@ -52,11 +54,27 @@ class shopOrderSaveController extends waJsonController
 
     }
 
+    private function workupData(&$data)
+    {
+        if (!empty($data['params']['shipping_id'])
+            && ($data['params']['departure_datetime'] instanceof shopDepartureDateTimeFacade)
+        ) {
+            $model = new shopPluginModel();
+            $info = $model->getById($data['params']['shipping_id']);
+            if ($info && !empty($info['options']['assembly_time'])) {
+                /** @var shopDepartureDateTimeFacade $departure */
+                $departure = &$data['params']['departure_datetime'];
+                $departure->setExtraProcessingTime($info['options']['assembly_time']*3600);
+                unset($departure);
+            }
+        }
+    }
+
     private function getShippingParams()
     {
         $shipping_id = waRequest::post('shipping_id', '', 'string');
         $_ = explode('.', $shipping_id, 2);
+
         return waRequest::post('shipping_'.$_[0], null);
     }
-
 }

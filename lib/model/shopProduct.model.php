@@ -54,7 +54,7 @@ class shopProductModel extends waModel
          * @param array [string]array $params['ids'] Array of IDs of deleted product entries
          * @return void
          */
-        wa()->event('product_delete', $params);
+        wa('shop')->event('product_delete', $params);
 
         // remove files
         foreach ($delete_ids as $product_id) {

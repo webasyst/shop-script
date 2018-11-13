@@ -113,7 +113,7 @@
                 {if !empty($auth.fields_order)}
                     <div class="wa-line wa-fields-group line">
 
-                        {* render_field function here *}
+                        {* shop_order_render_field function here *}
                         {include file="./render_field.function.html" inline}
 
                         {foreach $auth.fields_order as $_field_id}
@@ -123,7 +123,7 @@
                                 {continue}
                             {/if}
 
-                            {render_field _field=$_field}
+                            {shop_order_render_field _field=$_field}
                         {/foreach}
                     </div>
                 {/if}
@@ -156,8 +156,6 @@
         </form>
     </div>
 
-    {capture assign="_login_template"}{include file="./dialog/login.html" inline}{/capture}
-
     <script>
         ( function($) {
             var $section = $("#wa-step-auth-section"),
@@ -167,10 +165,9 @@
             ready_promise.then( function(controller) {
                 controller.initAuth({
                     $wrapper: $section,
+                    contact_id: {if !empty($auth.contact_id)}{$auth.contact_id|escape}{else}null{/if},
                     errors: {$_errors|json_encode},
-                    templates: {
-                        "login": {$_login_template|json_encode}
-                    }
+                    templates: { }
                 });
             });
         })(jQuery);

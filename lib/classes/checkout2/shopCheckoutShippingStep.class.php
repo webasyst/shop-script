@@ -18,16 +18,19 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             'zip'     => ifset($data, 'result', 'region', 'selected_values', 'zip', null),
         ];
 
+        $errors = [];
         $config = $this->getCheckoutConfig();
         if (!$config['shipping']['ask_zip']) {
             unset($address['zip']);
         }
 
         if (empty($address['country']) || empty($address['region']) || empty($address['city'])) {
-            // This can not happen. It means previous step did not properly validate shipping region selection,
+            // This cannot happen. It means previous step did not properly validate shipping region selection,
             // or a plugin interfered and broke things, or some other terrible stuff occurred. Like, Godzilla. Blame Godzilla.
-            $errors = [
-                'general_error' => 'Unable to prepare list of shipping options because shipping region is not properly selected.',
+            $errors[] = [
+                'id' => 'general',
+                'text' => 'Unable to prepare list of shipping options because shipping region is not properly selected.',
+                'section' => $this->getId(),
             ];
             return array(
                 'data'         => $data,
@@ -36,9 +39,6 @@ class shopCheckoutShippingStep extends shopCheckoutStep
                 'can_continue' => false,
             );
         }
-
-        /** @var waStorage $storage to use instead of wa()->getStorage() being friendly to unit tests */
-        $storage = $data['storage'];
 
         /** @var shopOrder $order we take cart items from there */
         $order = $data['order'];
@@ -59,8 +59,10 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         }
 
         if (!$services_flat) {
-            $errors = [
-                'empty_region_options' => _w('No shipping options available for selected region.'),
+            $errors[] = [
+                'id' => 'empty_region_options',
+                'text' => _w('No shipping options available for selected region.'),
+                'section' => $this->getId(),
             ];
             return array(
                 'data'         => $data,
@@ -85,6 +87,7 @@ class shopCheckoutShippingStep extends shopCheckoutStep
                 'date_max'    => null, // null|'Y-m-d H:i:s'
                 'date_min_ts' => null, // null|int
                 'date_max_ts' => null, // null|int
+                'date_formatted' => '',
                 'variants'    => [],
             ],
             'todoor' => [
@@ -98,6 +101,7 @@ class shopCheckoutShippingStep extends shopCheckoutStep
                 'date_max'    => null,
                 'date_min_ts' => null,
                 'date_max_ts' => null,
+                'date_formatted' => '',
                 'variants'    => [],
             ],
             'post'   => [
@@ -111,6 +115,7 @@ class shopCheckoutShippingStep extends shopCheckoutStep
                 'date_max'    => null,
                 'date_min_ts' => null,
                 'date_max_ts' => null,
+                'date_formatted' => '',
                 'variants'    => [],
             ],
         ];
@@ -152,9 +157,11 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             }
 
             // Update type rates
-            if (!empty($s['currency']) && !empty($currencies[$s['currency']]) && isset($s['rate_min']) && isset($s['rate_max'])) {
-                $rate_min = shop_currency($s['rate_min'], $s['currency'], $type['currency'], false);
-                $rate_max = shop_currency($s['rate_max'], $s['currency'], $type['currency'], false);
+            if (!empty($s['currency']) && !empty($currencies[$s['currency']]['rate']) && !empty($currencies[$type['currency']]['rate']) && isset($s['rate_min']) && isset($s['rate_max'])) {
+                $rate_from = $currencies[$s['currency']]['rate'];
+                $rate_to = $currencies[$type['currency']]['rate'];
+                $rate_min = $s['rate_min'] * $rate_from / $rate_to;
+                $rate_max = $s['rate_max'] * $rate_from / $rate_to;
                 if ($type['rate_min'] === null || $type['rate_min'] > $rate_min) {
                     $type['rate_min'] = $rate_min;
                 }
@@ -179,20 +186,58 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             unset($type);
         }
 
+        // Format expected delivery date into human-readable form
+        foreach($shipping_types as &$type) {
+            if (empty($type['date_min_ts'])) {
+                continue;
+            }
+
+            if ($type['id'] !== 'post') {
+                // Today and tommorrow
+                $date = waDateTime::format('Ymd', $type['date_min_ts']);
+                if ($date == waDateTime::format('Ymd')) {
+                    $type['date_formatted'] = _ws('Today');
+                    continue;
+                } else if ($date == waDateTime::format('Ymd', strtotime('+1 day'))) {
+                    $type['date_formatted'] = _ws('Tomorrow');
+                    continue;
+                }
+            }
+
+            // Format into day+month+year
+            $type['date_formatted'] = waDateTime::format('humandate', $type['date_min_ts']);
+            if (empty($type['date_max_ts']) || $type['date_max_ts'] != $type['date_min_ts']) {
+                $type['date_formatted'] = _w('from') . ' ' . $type['date_formatted'];
+            }
+
+            // Do not show year if reasonable
+            $type['date_formatted'] = trim(str_replace(date('Y'), '', $type['date_formatted']));
+            if ($type['date_min_ts'] - time() < 3600*24*365/2) {
+                $type['date_formatted'] = trim(str_replace(date('Y', strtotime('+1 year')), '', $type['date_formatted']));
+            }
+        }
+        unset($type);
+
         if (!$proper_variant_is_selected) {
             $selected_variant_id = null;
         }
 
         if ($selected_type_id && isset($shipping_types[$selected_type_id])) {
             $shipping_types[$selected_type_id]['is_selected'] = true;
+
+            // Select single variant if user selected type
+            if (!$selected_variant_id && 1 == count($shipping_types[$selected_type_id]['variants'])) {
+                $selected_variant_id = key($shipping_types[$selected_type_id]['variants']);
+            }
         } else {
             $selected_type_id = null;
         }
 
-        $errors = [];
         if (!$selected_variant_id) {
-            $errors = [
-                'shipping[variant_id]' => _w('Please select shipping option.'),
+            $errors[] = [
+                'name' => 'shipping[variant_id]',
+                'text' => _w('Please select shipping option.'),
+                'section' => $this->getId(),
             ];
         } else {
             // This is used by Details step
@@ -231,15 +276,18 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         $s['rate_max'] = null;
         if (!empty($s['currency']) && !empty($currencies[$s['currency']])) {
             $rate = ifset($s, 'rate', null);
-            if ($rate) {
-                if (is_array($rate)) {
-                    $s['rate_min'] = min($rate);
-                    $s['rate_max'] = max($rate);
-                } else {
-                    $s['rate_min'] = $rate;
-                    $s['rate_max'] = $rate;
-                }
+            if (is_array($rate) && $rate) {
+                $s['rate_min'] = min($rate);
+                $s['rate_max'] = max($rate);
+            } else if ($rate !== null && is_numeric($rate)) {
+                $s['rate_min'] = $rate;
+                $s['rate_max'] = $rate;
             }
+        }
+
+        // Pickup has its own delivery date field
+        if (isset($s['custom_data']['pickup']['interval'])) {
+            $s['delivery_date'] = $s['custom_data']['pickup']['interval'];
         }
 
         // Parse dates
@@ -247,17 +295,16 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         $s['date_max'] = null;
         $s['date_min_ts'] = null;
         $s['date_max_ts'] = null;
-        $date = ifset($s, 'delivery_date', null); // this is unix timestamp or array of them
+        $date = ifset($s, 'delivery_date', null); // this is mysql date (string) or array of them
         if ($date) {
-            if (is_array($date)) {
-                $s['date_min_ts'] = min($date);
-                $s['date_max_ts'] = max($date);
-                $s['date_min'] = date('Y-m-d H:i:s', $s['date_min_ts']);
-                $s['date_max'] = date('Y-m-d H:i:s', $s['date_max_ts']);
-            } else {
-                $s['date_min_ts'] = $date;
-                $s['date_min'] = date('Y-m-d H:i:s', $s['date_min_ts']);
+            if (!is_array($date)) {
+                $date = [$date];
             }
+            $date = array_map('strtotime', $date);
+            $s['date_min_ts'] = max(time(), min($date));
+            $s['date_max_ts'] = max(time(), max($date));
+            $s['date_min'] = date('Y-m-d H:i:s', $s['date_min_ts']);
+            $s['date_max'] = date('Y-m-d H:i:s', $s['date_max_ts']);
         }
 
         return $s;
@@ -315,6 +362,6 @@ class shopCheckoutShippingStep extends shopCheckoutStep
 
     public function getTemplatePath()
     {
-        return wa()->getAppPath('templates/actions/frontend/order/form/shipping.html', 'shop');
+        return 'shipping.html';
     }
 }

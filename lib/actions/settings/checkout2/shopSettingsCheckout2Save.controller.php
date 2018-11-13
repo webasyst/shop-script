@@ -75,7 +75,7 @@ class shopSettingsCheckout2SaveController extends waJsonController
     protected function validateDesignLogo($logo)
     {
         if ($logo && !file_exists(shopCheckoutConfig::getLogoPath($logo))) {
-            return $this->insertError("design-logo", _w('Logo not loaded. Try again'));
+            return $this->insertError("design-logo", _w('Logo not uploaded. Please try again.'));
         }
 
         // Delete all or other storefront logos

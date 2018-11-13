@@ -27,7 +27,11 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
         $config = $this->getCheckoutConfig();
         $plugin = $config->getShippingPluginByRate($selected_variant);
         if (!$plugin) {
-            $errors = ['general' => _w('Unknown shipping method.')];
+            $errors[] = [
+                'id' => 'general',
+                'text' => _w('Unknown shipping method.'),
+                'section' => $this->getId(),
+            ];
             return array(
                 'data' => $data,
                 'result' => $this->addRenderedHtml([], $data, $errors),
@@ -75,7 +79,11 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
             $field_info['affects_rate'] = !empty($required_address_fields[$field_id]['cost']);
             if (!empty($field_info['required']) && !strlen($address[$field_id])) {
                 if ($field_info['affects_rate']) {
-                    $errors["details[shipping_address][{$field_id}]"] = _w('This field is required.');
+                    $errors[] = [
+                        'name' => "details[shipping_address][{$field_id}]",
+                        'text' => _w('This field is required.'),
+                        'section' => $this->getId(),
+                    ];
                 } else {
                     $delayed_errors["details[shipping_address][{$field_id}]"] = _w('This field is required.');
                 }
@@ -111,7 +119,6 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
         // Ask shipping plugin for final shipping rate, taking all the custom and address data into account
         $updated_selected_variant = null;
         if (!$errors) {
-
             $rates = $config->getShippingRates(
                 $address,
                 $data['order']['items'],
@@ -119,12 +126,17 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
                 [
                     'shipping_params' => $custom_field_values,
                     'id'              => $shop_plugin_id,
+                    'service'         => $selected_variant,
                 ]
             );
 
             if (isset($rates[$selected_variant['variant_id']]['error'])) {
                 // Shipping plugin returned an error
-                $errors['shipping'] = $rates[$selected_variant['variant_id']]['error'];
+                $errors[] = [
+                    'id' => 'shipping',
+                    'text' => $rates[$selected_variant['variant_id']]['error'],
+                    'section' => $this->getId(),
+                ];
             } elseif (isset($rates[$selected_variant['variant_id']])) {
                 // Shipping plugin returned proper rate
                 $currencies = $config->getCurrencies();
@@ -133,7 +145,8 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
                     $updated_selected_variant_timezone = ifset($updated_selected_variant, 'custom_data', 'pickup', 'timezone', null);
                     $updated_selected_variant['pickup_schedule'] = shopCheckoutShippingStep::formatPickupSchedule(
                         $updated_selected_variant['custom_data']['pickup']['schedule'],
-                        waDateTime::getTimeZones(), $config['schedule']['timezone'],
+                        waDateTime::getTimeZones(),
+                        $config['schedule']['timezone'],
                         $updated_selected_variant_timezone
                     );
                 }
@@ -143,12 +156,20 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
                 } else {
                     // Shipping plugin didn't return a single final rate.
                     // This is exceptional. This should not happen.
-                    $errors['shipping'] = _w('Unable to calculate shipping rate.');
+                    $errors[] = [
+                        'id' => 'shipping',
+                        'text' => _w('Unable to calculate a shipping rate.'),
+                        'section' => $this->getId(),
+                    ];
                 }
             } else {
                 // Shipping plugin didn't return rate that user asked for.
                 // This is exceptional. This should not happen.
-                $errors['shipping'] = _w('Unable to calculate shipping rate.');
+                $errors[] = [
+                    'id' => 'shipping',
+                    'text' => _w('Unable to calculate a shipping rate.'),
+                    'section' => $this->getId(),
+                ];
             }
 
             if (!$errors) {
@@ -157,9 +178,9 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
 
                 // re-format shipping params flattening arrays
                 $data['shipping']['params'] = [];
-                foreach($custom_field_values as $k => $v) {
+                foreach ($custom_field_values as $k => $v) {
                     if (is_array($v)) {
-                        foreach($v as $kk => $vv) {
+                        foreach ($v as $kk => $vv) {
                             $data['shipping']['params'][$k.'.'.$kk] = $vv;
                         }
                     } else {
@@ -190,6 +211,6 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
 
     public function getTemplatePath()
     {
-        return wa()->getAppPath('templates/actions/frontend/order/form/details.html', 'shop');
+        return 'details.html';
     }
 }

@@ -14,6 +14,7 @@ class shopCheckoutViewHelper
     {
         $template_path = wa()->getAppPath('templates/actions/frontend/FrontendOrderCart.html', 'shop');
         return $this->renderTemplate($template_path, $this->cartVars() + array(
+            'shop_checkout_include_path' => wa()->getAppPath('templates/actions/frontend/order/', 'shop'),
             'options' => $opts + [
                 'adaptive' => true,
             ],
@@ -37,6 +38,13 @@ class shopCheckoutViewHelper
                 $this->cartCouponVars($data, $order),
                 $this->cartAffiliateVars($data, $order)
             );
+
+            /**
+             * @event frontend_order_cart_vars
+             * Allows to modify template vars of $wa->shop->checkout()->cart() before sending them to template
+             */
+            wa('shop')->event('frontend_order_cart_vars', $result);
+
             waConfig::set('is_template', $old_is_template);
         }
         return $result;
@@ -52,6 +60,7 @@ class shopCheckoutViewHelper
             return $carry + $item['product']['features'];
         }, []);
 
+        $config = new shopCheckoutConfig(ifset(ref(wa()->getRouting()->getRoute()), 'checkout_storefront_id', []));
         return [
             'cart' => $order,
             'currency_info' => [
@@ -70,6 +79,7 @@ class shopCheckoutViewHelper
                 'round_up_only' => $currency_info['round_up_only'],
             ],
             'features' => (new shopFeatureModel())->getByCode(array_keys($feature_codes)),
+            'config' => $config,
         ];
     }
 
@@ -498,6 +508,7 @@ class shopCheckoutViewHelper
     {
         $template_path = wa()->getAppPath('templates/actions/frontend/FrontendOrderForm.html', 'shop');
         return $this->renderTemplate($template_path, $this->formVars() + array(
+            'shop_checkout_include_path' => wa()->getAppPath('templates/actions/frontend/order/', 'shop'),
             'options' => $opts,
         ));
     }
@@ -556,7 +567,7 @@ class shopCheckoutViewHelper
         $route = wa()->getRouting()->getRoute();
         $app = ifset($route, 'app', null);
         if ($app !== 'shop') {
-            $route = $this->getStorefrontRoute();
+            $route = wa('shop')->getConfig()->getStorefrontRoute();
         }
 
         $checkout_version = ifset($route, 'checkout_version', 1);
@@ -581,7 +592,7 @@ class shopCheckoutViewHelper
         $route = wa()->getRouting()->getRoute();
         $app = ifset($route, 'app', null);
         if ($app !== 'shop') {
-            $route = $this->getStorefrontRoute();
+            $route = wa('shop')->getConfig()->getStorefrontRoute();
         }
 
         $checkout_version = ifset($route, 'checkout_version', 1);
@@ -591,22 +602,5 @@ class shopCheckoutViewHelper
         }
 
         return wa()->getRouteUrl('shop/frontend/cart', [], $absolute);
-    }
-
-    /**
-     * Returns the rule from routing to storefront
-     * @return null|array
-     */
-    protected function getStorefrontRoute()
-    {
-        $storefronts = shopHelper::getStorefronts(true);
-        $shop_url = preg_replace('~^https?://~', '', wa()->getRouteUrl('shop/frontend', [], true));
-        foreach ($storefronts as $storefront) {
-            if (isset($storefront['route']) && isset($storefront['url']) && $storefront['url'] == $shop_url) {
-                return $storefront['route'];
-            }
-        }
-
-        return null;
     }
 }

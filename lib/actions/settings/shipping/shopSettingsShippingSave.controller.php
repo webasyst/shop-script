@@ -25,9 +25,9 @@ class shopSettingsShippingSaveController extends waJsonController
                 $shipping_dimensions = $params['dimensions'];
             } else {
                 $dimensions = array(
-                    'height' => _w('Высота'),
-                    'width'  => _w('Ширина'),
-                    'length' => _w('Длина'),
+                    'height' => _w('Product height'),
+                    'width'  => _w('Product width'),
+                    'length' => _w('Product length'),
                 );
                 $shipping_dimensions = array();
 
@@ -72,12 +72,13 @@ class shopSettingsShippingSaveController extends waJsonController
 
             if ($errors) {
                 $this->setError(sprintf(
-                    _w('Не указаны параметры: %s'),
+                    _w('Parameters are not specified: %s'),
                     implode(', ', $errors)
                 ));
             } else {
                 $this->response['params'] = $status;
             }
+            shopShipping::flushCache();
         }
     }
 }

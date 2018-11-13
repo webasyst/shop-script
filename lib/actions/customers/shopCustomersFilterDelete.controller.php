@@ -7,7 +7,7 @@ class shopCustomersFilterDeleteController extends waJsonController
         $cfm = new shopCustomersFilterModel();
         $filter_id = $this->getFilterId();
         if (!$cfm->delete($filter_id)) {
-            $this->errors[] = _w("Couldn't delete filter");
+            $this->errors[] = _w("Filter cannot be deleted.");
         }
     }
 

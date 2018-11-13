@@ -32,17 +32,23 @@
                         {/if}
 
                         {$_date = null}
-                        {if !empty($_type.date_min)}
-                            {$_date = "[`from`] {$_type.date_min|wa_datetime:'humandate'}"}
-                        {elseif !empty($_type.date_max)}
-                            {$_date = "[`to`] {$_type.date_min|wa_datetime:'humandate'}"}
+                        {if !empty($_type.date_formatted)}
+                            {$_date = $_type.date_formatted}
                         {/if}
 
                         {$_price = null}
-                        {if !empty($_type.rate_min)}
-                            {$_price = "[`from`] {shop_currency_html($_type.rate_min, $_type.currency)}"}
-                        {elseif !empty($_type.rate_max)}
-                            {$_price = "[`to`] {shop_currency_html($_type.rate_max, $_type.currency)}"}
+                        {if isset($_type.rate_min) && $_type.rate_min !== null}
+                            {if $_type.rate_min > 0}
+                                {$_price = shop_currency_html($_type.rate_min, $_type.currency)}
+                                {if !(isset($_type.rate_max) && $_type.rate_min === $_type.rate_max)}
+                                    {$_price = "[`from`] `$_price`"}
+                                {/if}
+                            {elseif $_type.rate_min !== $_type.rate_max}
+                                {$_price = shop_currency_html($_type.rate_min, $_type.currency)}
+                                {$_price = "[`from`] `$_price`"}
+                            {else}
+                                {$_price = _w("Free")}
+                            {/if}
                         {/if}
 
                         {if !empty($_type.variants)}
@@ -87,17 +93,28 @@
                         <div class="wa-dropdown-area">
                             {foreach $_active_type.variants as $_variant}
                                 {$_date = null}
-                                {if !empty($_variant.date_min)}
-                                    {$_date = "[`from`] {$_variant.date_min|wa_datetime:'humandate'}"}
-                                {elseif !empty($_variant.date_max)}
-                                    {$_date = "[`to`] {$_variant.date_min|wa_datetime:'humandate'}"}
+                                {if !empty($_variant.date_locale)}
+                                    {$_date = $_variant.date_locale}
+                                {else}
+                                    {if !empty($_variant.date_min)}
+                                        {$_date = $_variant.date_min|wa_datetime:'shortdate'}
+                                        {$_date = "[`from`] `$_date`"}
+                                    {elseif !empty($_variant.date_max)}
+                                        {$_date = $_variant.date_max|wa_datetime:'shortdate'}
+                                        {$_date = "[`to`] `$_date`"}
+                                    {/if}
                                 {/if}
 
                                 {$_price = null}
-                                {if !empty($_variant.rate_min)}
-                                    {$_price = "[`from`] {shop_currency_html($_variant.rate_min, $_variant.currency)}"}
-                                {elseif !empty($_variant.rate_max)}
-                                    {$_price = "[`to`] {shop_currency_html($_variant.rate_max, $_variant.currency)}"}
+                                {if isset($_variant.rate_min) && $_variant.rate_min !== null}
+                                    {if $_variant.rate_min > 0}
+                                        {$_price = shop_currency_html($_variant.rate_min, $_variant.currency)}
+                                        {if !(isset($_variant.rate_max) && $_variant.rate_min === $_variant.rate_max)}
+                                            {$_price = "[`from`] `$_price`"}
+                                        {/if}
+                                    {else}
+                                        {$_price = _w("Free")}
+                                    {/if}
                                 {/if}
 
                                 {if !empty($_variant.variant_id)}
@@ -152,7 +169,11 @@
             ready_promise.then( function(controller) {
                 controller.initShipping({
                     $wrapper: $section,
-                    errors: {$_errors|json_encode}
+                    errors: {$_errors|json_encode},
+                    locales: {
+                        type_required: "Выберите тип доставки.",
+                        variant_required: "Выберите вариант доставки."
+                    }
                 });
             });
         })(jQuery);

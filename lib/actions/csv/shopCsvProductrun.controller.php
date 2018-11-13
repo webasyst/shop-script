@@ -709,8 +709,8 @@ class shopCsvProductrunController extends waLongActionController
                     ),
                     self::STAGE_PRODUCT  => array /*_w*/
                     (
-                                                  '%d SKU not imported due to tariff restriction',
-                                                  '%d SKUs not imported due to tariff restriction',
+                                                  '%d SKU not imported due to pricing plan restriction',
+                                                  '%d SKUs not imported due to pricing plan restriction',
                     ),
                     'icon'               => 'no-bw',
                 ),

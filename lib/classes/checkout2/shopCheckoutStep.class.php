@@ -92,20 +92,54 @@ abstract class shopCheckoutStep
                 break;
         }
 
+        if (!$namespace) {
+            // Do not render unless asked for
+            $html = '';
+        } else if ($row['control_type'] == waHtmlControl::DATETIME) {
+
+            // For 'datetime' type we want a specific HTML structure
+            $html = waHtmlControl::getControl($row['control_type'], $field_id, array_merge($row, [
+                'namespace' => $namespace,
+                'title_wrapper' => false,
+                'description_wrapper' => false,
+                'class' => '',
+
+                // This is overall wrapper around date input and time selector
+                'control_wrapper' => '
+<div class="wa-desired-date-wrapper">
+    <div class="wa-fields-group">
+        <div class="wa-field-wrapper wa-field-date">
+            <div class="wa-label">'._ws('Date').'</div>
+            %s%s%s
+        </div>
+    </div>
+</div>',
+
+                // This gets inserted between date input and time selector
+                'control_separator' => '
+    </div><div class="wa-field-wrapper wa-field-time">
+        <div class="wa-label">'._ws('Time').'</div>
+',
+            ]));
+        } else {
+            // For everything else we only want the input element itself, without any wrappers
+            $html = waHtmlControl::getControl($row['control_type'], $field_id, array_merge($row, [
+                'namespace' => $namespace,
+                'title_wrapper' => false,
+                'description_wrapper' => false,
+                'class' => trim($css_class.' '.ifempty($row, 'class', '')),
+                'control_wrapper' => "%s%s%s",
+                'control_separator' => '',
+            ]));
+        }
+
         return [
             'label' => ifset($row, 'title', ''),
             'description' => ifset($row, 'description', ''),
             'control_type' => $row['control_type'],
             'wa_css_class_added' => !!$css_class,
             'value' => ifset($row, 'value', null),
-            'html' => !$namespace ? '' : waHtmlControl::getControl($row['control_type'], $field_id, array_merge($row, [
-                'namespace' => $namespace,
-                'title_wrapper' => false,
-                'description_wrapper' => false,
-                'control_wrapper' => "%s%s%s",
-                'control_separator' => '',
-                'class' => trim($css_class.' '.ifempty($row, 'class', '')),
-            ])),
+            'html' => $html,
         ];
     }
 
@@ -120,22 +154,13 @@ abstract class shopCheckoutStep
      * @param string $origin identifies where this is being called from
      * @param waOrder $order
      * @param array $input data from POST, session, or another input source
-     * @param waStorage $storage
      * @param shopCheckoutConfig $config
      * @return array
      */
-    public static function processAll($origin, $order, $input=[], $storage=null, $checkout_config=null)
+    public static function processAll($origin, $order, $input=[], $checkout_config=null)
     {
         if (!$order || !($order instanceof shopOrder)) {
             throw new waException('compatible order is required');
-        }
-
-        // Default storage
-        if (!$storage) {
-            $storage = new waPrefixStorage(['namespace'=>'shop_checkout2']);
-        }
-        if (!($storage instanceof waStorage)) {
-            throw new waException('incompatible storage');
         }
 
         // Default checkout config
@@ -164,7 +189,6 @@ abstract class shopCheckoutStep
             'origin'  => $origin,
             'order'   => $order,
             'input'   => $input,
-            'storage' => $storage,
             'result'  => [],
         ];
 
@@ -172,7 +196,7 @@ abstract class shopCheckoutStep
          * @var $checkout_steps array[shopCheckoutStep]
          *
          * This contains objects that together form a checkout process.
-         * Order of checkout steps is fixed and can not be changed by shop settings.
+         * Order of checkout steps is fixed and cannot be changed by shop settings.
          *
          * Something like:
          * -> process cart from session and/or post data
@@ -209,6 +233,8 @@ abstract class shopCheckoutStep
         // Checkout step objects process one after another in a fixed order.
         //
         foreach($checkout_steps as $step) {
+            $time_start = microtime(true);
+
             /** @var $step shopCheckoutStep */
             $step_id = $step->getId();
 
@@ -225,7 +251,7 @@ abstract class shopCheckoutStep
 
             //
             // ->prepare() is always called for all steps, even if
-            // previous step returned an error. This can not change $data,
+            // previous step returned an error. This cannot change $data,
             // but may err, may return something to JS and may pass data to process() below.
             //
             $data['result'] = $result;
@@ -290,6 +316,8 @@ abstract class shopCheckoutStep
                 }
             }
 
+            $time_delta = microtime(true) - $time_start;
+            //waLog::log($step_id.' -> '.round($time_delta, 3), 'checkout2-time.log');
         }
 
         // pass errors to JS
@@ -309,15 +337,31 @@ abstract class shopCheckoutStep
         return $data;
     }
 
-    protected function addRenderedHtml($result, $data, $errors, $template=null)
+    protected function addRenderedHtml($result, $data, $errors)
     {
-        if (!empty($data['input'][$this->getId()]['html']) && $data['origin'] != 'create') {
-            if (empty($template)) {
-                $template = $this->getTemplatePath();
-            }
-            if (empty($template) || !is_readable($template)) {
+        if (!empty($data['input'][$this->getId()]['html']) && $data['origin'] != 'create' && $data['origin'] != 'form') {
+            $template_file = $this->getTemplatePath();
+            if (empty($template_file)) {
                 return $result;
             }
+
+            // Custom template in theme exists?
+            $theme = new waTheme(waRequest::getTheme());
+            $theme_template_path = $theme->path.'/order.'.$template_file;
+            if (file_exists($theme_template_path)) {
+                $template = 'order.'.$template_file;
+            }
+
+            // Default template from app folder
+            if (empty($template)) {
+                $theme = null;
+                $template = wa()->getAppPath('templates/actions/frontend/order/form/'.$template_file, 'shop');
+                if (!is_readable($template)) {
+                    return $result;
+                }
+            }
+
+            // Render the template
             $vars = $data['result'];
             $vars[$this->getId()] = $result;
             $vars['contact'] = ifset($data, 'contact', null);
@@ -328,17 +372,24 @@ abstract class shopCheckoutStep
                 $vars['error_step_id'] = $this->getId();
                 $vars['errors'] = $errors;
             }
-            $result['html'] = $this->renderTemplate($template, $vars);
+            $time_start = microtime(true);
+            $result['html'] = $this->renderTemplate($template, $vars, $theme);
+            $time_delta = microtime(true) - $time_start;
+            //waLog::log($this->getId().' render -> '.round($time_delta, 3), 'checkout2-time.log');
         }
         return $result;
     }
 
-    protected function renderTemplate($template_path, $assign = array())
+    protected function renderTemplate($template_path, $assign = array(), $theme = null)
     {
         $view = wa('shop')->getView();
         $old_vars = $view->getVars();
+        if ($theme) {
+            $view->setThemeTemplate($theme, $template_path);
+        }
         $view->assign($assign + array(
             'config' => $this->getCheckoutConfig(),
+            'shop_checkout_include_path' => wa()->getAppPath('templates/actions/frontend/order/', 'shop'),
         ));
         $html = $view->fetch($template_path);
         $view->clearAllAssign();

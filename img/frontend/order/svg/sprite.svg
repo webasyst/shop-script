@@ -40,13 +40,19 @@
     </symbol>
 
     <symbol id="location" viewBox="0 0 10 14">
-        <g>
-            <path fill="currentColor" d="M5,17 C1.66666667,12.8409492 0,9.84094917 0,8 C0,5.23857625 2.23857625,3 5,3 C7.76142375,3 10,5.23857625 10,8 C10,9.84094917 8.33333333,12.8409492 5,17 Z M5,10 C6.1045695,10 7,9.1045695 7,8 C7,6.8954305 6.1045695,6 5,6 C3.8954305,6 3,6.8954305 3,8 C3,9.1045695 3.8954305,10 5,10 Z" transform="translate(0 -3)"/>
-        </g>
+        <g><path fill="currentColor" d="M5,17 C1.66666667,12.8409492 0,9.84094917 0,8 C0,5.23857625 2.23857625,3 5,3 C7.76142375,3 10,5.23857625 10,8 C10,9.84094917 8.33333333,12.8409492 5,17 Z M5,10 C6.1045695,10 7,9.1045695 7,8 C7,6.8954305 6.1045695,6 5,6 C3.8954305,6 3,6.8954305 3,8 C3,9.1045695 3.8954305,10 5,10 Z" transform="translate(0 -3)"/></g>
     </symbol>
 
     <symbol id="time" viewBox="0 0 11 11">
         <g><path fill="currentColor" d="M5.5,37 C2.46243388,37 0,34.5375661 0,31.5 C0,28.4624339 2.46243388,26 5.5,26 C8.53756612,26 11,28.4624339 11,31.5 C11,34.5375661 8.53756612,37 5.5,37 Z M6,31 L6,28 L5,28 L5,32 L8,32 L8,31 L6,31 Z" transform="translate(0 -26)" /></g>
+    </symbol>
+
+    <symbol id="arrow-left" viewBox="0 0 6.34 11">
+        <g><polyline style="fill:none; stroke:currentColor;" points="5.89 0.4 0.79 5.5 5.89 10.61"/></g>
+    </symbol>
+
+    <symbol id="arrow-right" viewBox="0 0 6.34 11">
+        <g><polyline style="fill:none; stroke:currentColor;" points="0.47 0.4 5.57 5.5 0.47 10.61"/></g>
     </symbol>
 
     <symbol id="webasyst" viewBox="0 0 184 36">

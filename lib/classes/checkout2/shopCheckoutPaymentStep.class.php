@@ -75,23 +75,34 @@ class shopCheckoutPaymentStep extends shopCheckoutStep
             // Well... it's not an error I guess?..
         } elseif (!$selected_method_id) {
             // User didn't select payment method
-            $errors = [
-                'payment[id]' => _w('Please select payment method'),
+            $errors[] = [
+                'name' => 'payment[id]',
+                'text' => _w('Please select a payment method'),
+                'section' => $this->getId(),
             ];
         } elseif (empty($methods[$selected_method_id])) {
             // User selected payment method that does not exist.
             // This should never happen.
-            $errors = [
-                'payment[id]' => _w('Please select payment method'),
+            $errors[] = [
+                'name' => 'payment[id]',
+                'text' => _w('Please select a payment method'),
+                'section' => $this->getId(),
             ];
         } elseif (!empty($methods[$selected_method_id]['custom_fields'])) {
             // Check for required fields, as well as errors returned by plugin
             foreach ($methods[$selected_method_id]['custom_fields'] as $field_id => $row) {
-                $key = 'payment[custom]['.$field_id.']';
                 if (isset($row['error'])) {
-                    $errors[$key] = $row['error'];
+                    $errors[] = [
+                        'name' => 'payment[custom]['.$field_id.']',
+                        'text' => $row['error'],
+                        'section' => $this->getId(),
+                    ];
                 } elseif (!empty($row['required']) && !strlen(ifset($row, 'value', ''))) {
-                    $errors[$key] = _w('This field is required.');
+                    $errors[] = [
+                        'name' => 'payment[custom]['.$field_id.']',
+                        'text' => _w('This field is required.'),
+                        'section' => $this->getId(),
+                    ];
                 } else {
                     $custom_field_values_validated[$field_id] = ifset($row, 'value', '');
                 }
@@ -124,6 +135,6 @@ class shopCheckoutPaymentStep extends shopCheckoutStep
 
     public function getTemplatePath()
     {
-        return wa()->getAppPath('templates/actions/frontend/order/form/payment.html', 'shop');
+        return 'payment.html';
     }
 }

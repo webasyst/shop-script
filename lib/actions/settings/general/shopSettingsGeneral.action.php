@@ -14,60 +14,6 @@ class shopSettingsGeneralAction extends waViewAction
                 $app_settings->set('shop', $name, $value);
             }
 
-            $sms = waRequest::post('sms', array());
-            $path = $this->getConfig()->getPath('config', 'sms');
-            $save = array();
-            foreach ($sms as $s) {
-                $from = $s['from'];
-                $adapter = $s['adapter'];
-                unset($s['from']);
-                unset($s['adapter']);
-                $empty = true;
-                foreach ($s as $v) {
-                    if ($v) {
-                        $empty = false;
-                        break;
-                    }
-                }
-                if (!$empty) {
-                    if (!$from) {
-                        $from = '*';
-                    }
-                    foreach (explode("\n", $from) as $from) {
-                        $from = trim($from);
-                        $save[$from] = $s;
-                        $save[$from]['adapter'] = $adapter;
-                    }
-                }
-            }
-            waUtils::varExportToFile($save, $path);
-
-            if (($captcha = waRequest::post('captcha', null, 'string_trim')) && preg_match('~^(wa|shop)\w*Captcha$~', $captcha)) {
-                $config_path = $this->getConfig()->getConfigPath('config.php');
-                if (file_exists($config_path)) {
-                    $config = include($config_path);
-                }
-                if ($captcha == 'waCaptcha') {
-                    if (!empty($config['factories']['captcha'])) {
-                        unset($config['factories']['captcha']);
-                        waUtils::varExportToFile($config, $config_path);
-                    }
-                } else {
-                    $captcha_options = waRequest::post('captcha_options');
-                    $tmp = array_values($captcha_options);
-                    $tmp = array_filter($tmp, 'trim');
-                    if ($tmp) {
-                        $captcha_factory = array(
-                            $captcha,
-                            $captcha_options
-                        );
-                        if (ifset($config['factories']['captcha']) != $captcha_factory) {
-                            $config['factories']['captcha'] = $captcha_factory;
-                            waUtils::varExportToFile($config, $config_path);
-                        }
-                    }
-                }
-            }
             $app_settings->set('shop', 'disable_backend_customer_form_validation', waRequest::post('disable_backend_customer_form_validation') ? null : '1');
 
             //
@@ -138,9 +84,6 @@ class shopSettingsGeneralAction extends waViewAction
         $this->view->assign('countries', $cm->all());
         $this->view->assign($settings);
 
-        $sms_adapters = $this->getSMSAdapters();
-        $this->view->assign('sms_adapters', $sms_adapters);
-
         $this->view->assign('saved', waRequest::post());
 
         $routes = wa()->getRouting()->getByApp('shop');
@@ -186,65 +129,5 @@ class shopSettingsGeneralAction extends waViewAction
             $data['map'] = waRequest::post('map', '', waRequest::TYPE_STRING_TRIM);
         }
         return $data;
-    }
-
-    protected function getSMSAdapters()
-    {
-        $path = $this->getConfig()->getPath('plugins').'/sms/';
-        if (!file_exists($path)) {
-            return array();
-        }
-        $dh = opendir($path);
-        $adapters = array();
-        while (($f = readdir($dh)) !== false) {
-            if ($f === '.' || $f === '..' || !is_dir($path.$f)) {
-                continue;
-            } elseif (file_exists($path.$f.'/lib/'.$f.'SMS.class.php')) {
-                require_once($path.$f.'/lib/'.$f.'SMS.class.php');
-                $class_name = $f.'SMS';
-                $adapters[$f] = new $class_name(array());
-            }
-        }
-        closedir($dh);
-        $result = array();
-
-
-        $config = wa()->getConfig()->getConfigFile('sms');
-
-        $used = array();
-        foreach ($config as $c_from => $c) {
-            if (isset($adapters[$c['adapter']])) {
-                $used[$c['adapter']] = 1;
-                if (!isset($result[$c['adapter']])) {
-                    $temp = $this->getSMSAdapaterInfo($adapters[$c['adapter']]);
-                    $temp['config'] = $c;
-                    $temp['config']['from'] = array($c_from);
-                    $result[$c['adapter']] = $temp;
-                } else {
-                    $result[$c['adapter']]['config']['from'][] = $c_from;
-                }
-            }
-        }
-        $result = array_values($result);
-
-        foreach ($adapters as $a) {
-            /**
-             * @var waSMSAdapter $a
-             */
-            if (!empty($used[$a->getId()])) {
-                continue;
-            }
-            $result[] = $this->getSMSAdapaterInfo($a);
-        }
-        return $result;
-
-    }
-
-    protected function getSMSAdapaterInfo(waSMSAdapter $a)
-    {
-        $temp = $a->getInfo();
-        $temp['id'] = $a->getId();
-        $temp['controls'] = $a->getControls();
-        return $temp;
     }
 }

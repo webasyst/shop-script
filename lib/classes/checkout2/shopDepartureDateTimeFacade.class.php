@@ -4,7 +4,7 @@
  * Class shopDepartureTime
  *
  * @property string timezone
- * @property string processing_time
+ * @property float processing_time
  * @property array extra_workdays
  * @property array extra_weekends
  * @property array week
@@ -15,6 +15,8 @@ class shopDepartureDateTimeFacade
 {
     protected $schedule = [];
     protected $days = null;
+    protected $extra_processing_time = 0;
+
 
     /**
      * shopDepartureDateTimeFacade constructor.
@@ -59,13 +61,27 @@ class shopDepartureDateTimeFacade
         $this->schedule = $schedule;
     }
 
+    public function __toString()
+    {
+        return (string)$this->getDepartureDateTime();
+    }
+
     /**
-     * @return int
+     * @param int $time
+     */
+    public function setExtraProcessingTime($time)
+    {
+        $this->extra_processing_time = max(0, intval($time));
+    }
+
+
+    /**
+     * @return string SQL DATETIME
      */
     public function getDepartureDateTime()
     {
         $timestamp = $this->getFirstDay();
-        $processing = $processing_residue = (int)$this->processing_time * 3600;
+        $processing = $processing_residue = round((float)$this->processing_time * 3600 + $this->extra_processing_time);
 
         //get first day processing
         $day_info = $this->getDayInfo($timestamp);
@@ -371,12 +387,11 @@ class shopDepartureDateTimeFacade
      * Quick class call
      * @param $schedule
      * @param null $storefront
-     * @return int
+     * @return self
      */
     public static function getDeparture($schedule = null, $storefront = null)
     {
-        $departure = new shopDepartureDateTimeFacade($schedule, $storefront);
-        return $departure->getDepartureDateTime();
+        return new self($schedule, $storefront);
     }
 
 }

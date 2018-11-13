@@ -21,7 +21,7 @@ class shopLoginAction extends waLoginAction
         wa()->getResponse()->setTitle(_w('Login'));
     }
 
-    protected function afterAuth()
+    protected function redirectAfterAuth()
     {
         $referer = waRequest::server('HTTP_REFERER');
         $referer = substr($referer, strlen($this->getConfig()->getHostUrl()));

@@ -43,13 +43,14 @@
         };
 
         Cart.prototype.initClass = function() {
-            var that = this;
+            var that = this,
+                $document = $(document);
 
             that.$wrapper.removeAttr("style").removeClass("is-not-ready");
+            that.$outer_wrapper.data("controller", that);
+            that.trigger("ready", that);
 
-            $(document).on("addProductToCart", function(event, data) {
-                that.addProduct(data);
-            });
+            // START
 
             that.initDeleteProduct();
 
@@ -61,9 +62,50 @@
 
             that.initAffiliate();
 
-            that.$outer_wrapper.data("controller", that);
+            $document.on("wa_order_cart_add_product", addProductWatcher);
+            function addProductWatcher(event, data) {
+                var is_exist = $.contains(document, that.$wrapper[0]);
+                if (is_exist) {
+                    that.addProduct(data);
+                } else {
+                    $document.off("wa_order_cart_add_product", addProductWatcher);
+                }
+            }
 
-            that.trigger("ready", that);
+            $document.on("wa_order_cart_invalid", reloadWatcher);
+            function reloadWatcher() {
+                var is_exist = $.contains(document, that.$wrapper[0]);
+                if (is_exist) {
+                    var $errors = that.$wrapper.find(".wa-error-text");
+                    if ($errors.length) {
+                        $("html, body").scrollTop( $errors.first().offset().top - 40 );
+                    } else {
+                        that.reload();
+                    }
+                } else {
+                    $document.off("wa_order_cart_invalid", reloadWatcher);
+                }
+            }
+
+            $document.on("wa_auth_contact_logged", loginWatcher);
+            function loginWatcher() {
+                var is_exist = $.contains(document, that.$wrapper[0]);
+                if (is_exist) {
+                    that.reload();
+                } else {
+                    $(document).off("wa_auth_contact_logged", loginWatcher);
+                }
+            }
+
+            $document.on("wa_auth_contact_logout", logoutWatcher);
+            function logoutWatcher() {
+                var is_exist = $.contains(document, that.$wrapper[0]);
+                if (is_exist) {
+                    that.reload();
+                } else {
+                    $document.off("wa_auth_contact_logout", logoutWatcher);
+                }
+            }
         };
 
         Cart.prototype.DEBUG = function() {
@@ -623,9 +665,10 @@
                     // compare
                     var $compare_wrapper = $product.find(".js-product-compare");
                     if ($compare_wrapper.length) {
-                        if (api_product.full_compare_price > 0) {
+                        var compare_price = ( api_product.discount > 0 ? api_product.full_price + api_product.discount : null );
+                        if (compare_price > 0) {
                             $compare_wrapper.show()
-                                .html( that.formatPrice(api_product.full_compare_price) );
+                                .html( that.formatPrice(compare_price) );
                         } else {
                             $compare_wrapper.hide()
                                 .html( that.formatPrice(0) );
@@ -688,24 +731,11 @@
                 // discount
                 var $full_discount_wrapper = $("#wa-cart-full-discount");
                 if ($full_discount_wrapper) {
-                    var $full_discount = $full_discount_wrapper.find(".js-price"),
-                        full_discount = 0;
+                    var $full_discount = $full_discount_wrapper.find(".js-price");
 
                     if (cart.discount > 0) {
-                        full_discount += cart.discount;
-                    }
-
-                    if (api.coupon_discount > 0) {
-                        full_discount += api.coupon_discount;
-                    }
-
-                    if (api.affiliate && api.affiliate.used_affiliate_bonus > 0) {
-                        full_discount += api.affiliate.used_affiliate_bonus;
-                    }
-
-                    if (full_discount > 0) {
                         $full_discount_wrapper.show();
-                        $full_discount.html( that.formatPrice(full_discount) );
+                        $full_discount.html( that.formatPrice(cart.discount) );
                     } else {
                         $full_discount_wrapper.hide();
                         $full_discount.html( that.formatPrice(0) );
@@ -717,8 +747,18 @@
                 if ($discount_wrapper.length) {
                     var $discount = $discount_wrapper.find(".js-price");
                     if (cart.discount > 0) {
+                        var partial_discount = cart.discount;
+
+                        if (api.coupon_discount > 0) {
+                            partial_discount -= api.coupon_discount;
+                        }
+
+                        if (api.affiliate && api.affiliate.use_affiliate && api.affiliate.affiliate_discount > 0) {
+                            partial_discount -= api.affiliate.affiliate_discount;
+                        }
+
                         $discount_wrapper.show();
-                        $discount.html( that.formatPrice(cart.discount) );
+                        $discount.html( that.formatPrice(partial_discount) );
                     } else {
                         $discount_wrapper.hide();
                         $discount.html( that.formatPrice(0) );
@@ -742,9 +782,9 @@
                 var $affiliate_wrapper = $("#wa-cart-discount-affiliate");
                 if ($affiliate_wrapper.length) {
                     var $affiliate = $affiliate_wrapper.find(".js-price");
-                    if (api.affiliate && api.affiliate.used_affiliate_bonus > 0) {
+                    if (api.affiliate && api.affiliate.use_affiliate && api.affiliate.affiliate_discount > 0) {
                         $affiliate_wrapper.show();
-                        $affiliate.html( that.formatPrice(api.affiliate.used_affiliate_bonus) );
+                        $affiliate.html( that.formatPrice(api.affiliate.affiliate_discount) );
                     } else {
                         $affiliate_wrapper.hide();
                         $affiliate.html( that.formatPrice(0) );
@@ -1105,7 +1145,7 @@
             if (that.add_services_count === 0) {
                 /**
                  * This deferred is resolved once ALL add requests are complete.
-                 * Contains no data. Can not be rejected, it always resolves.
+                 * Contains no data. Cannot be rejected, it always resolves.
                  * Used in saveCart() to run cart/save requests only when it's safe.
                  * */
                 that.add_services_deferred = $.Deferred();
@@ -1315,7 +1355,6 @@
                             var api = formatAPI(response.data);
                             that.DEBUG("Cart is cleared.", "info", response);
                             that.trigger("cleared", api);
-                            that.trigger("changed", api);
                             deferred.resolve(response);
 
                         } else {

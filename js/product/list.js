@@ -551,7 +551,7 @@
                 }
             });
 
-            // Visually show the user that he can not edit given table cell
+            // Visually show the user that he cannot edit given table cell
             function playDeniedAnimation($td, reason) {
                 if ($td.data('denied-reason') == reason) {
                     $td.data('denied-reason', '');
@@ -999,7 +999,14 @@
         },
 
         initEditingControls: function () {
-            var list_title = $('#s-product-list-title');
+            var list_title = $('#s-product-list-title'),
+                type = $.product_list.collection_hash[0],
+                save_url = '?module=category&action=save&';
+
+            if (type === 'set') {
+                save_url = '?module=set&action=save&'
+            }
+
             if (list_title.hasClass('editable')) {
                 list_title.inlineEditable({
                     minSize: {
@@ -1020,10 +1027,10 @@
                         if (!data.changed) {
                             return false;
                         }
-                        $.shop.jsonPost('?module=products&action=saveListSettings&' + $.product_list.collection_param + '&edit=name', {
+                        $.shop.jsonPost(save_url + $.product_list.collection_param + '&edit=name', {
                             name: $(input).val()
                         }, function (r) {
-                            $.product_list.sidebar.find('#' + $.product_list.collection_hash[0] + '-' + r.data.id).find('.name:first').html(r.data.name);
+                            $.product_list.sidebar.find('#' + type + '-' + r.data.id).find('.name:first').html(r.data.name);
                         });
                     }
                 });
@@ -1032,14 +1039,11 @@
                 }
             }
 
-            var type = $.product_list.collection_hash[0];
-
             // category settings
             var list_settings_link = $('#s-product-list-settings');
             if (list_settings_link.length && (type == 'category' || type == 'set')) {
                 list_settings_link.unbind('click').bind('click', function () {
 
-                    //TODO!!!!
                     //new mode
                     if (type == 'category') {
                         shopDialogProductsCategory.staticDialog($.product_list.collection_hash[1], null, 'edit');

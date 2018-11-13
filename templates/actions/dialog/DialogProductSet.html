@@ -35,8 +35,7 @@
                                 &#123;$wa->shop->productSet("<input type="text" name="id" class="s-full-width-input js-product-set-id" value="{$settings.id|escape}" style="margin-top: -3px;">")&#125;
                                 <em class="errormsg"></em>
                                 <p class="hint">[`Set ID is used in the code for embedding product set into frontend design templates and pages.`]
-                                    {if !$new}[`Updating set ID <em>will not</em> automatically update templates and pages that this code is embedded into, so be sure to update
-                                    those manually if you change the ID.`]</p> {/if}
+                                    {if !$new}[`Changing the set ID <em>will not</em> automatically update templates and pages in which this code is embedded, so be sure to update them if you change the ID.`]</p> {/if}
 
                                 {if $settings.id == 'promo' || $settings.id == 'bestsellers'}
                                     <p class="small black"><i class="icon10 exclamation"></i> [`It is highly advisable to keep product sets with IDs <strong>promo</strong> and <strong>bestsellers</strong>, as these set IDs are used by most Shop-Script frontend design themes.`]</p>

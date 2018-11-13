@@ -92,19 +92,19 @@ class shopFrontendOrderCartActions extends waJsonActions
         // Make sure service and variant exist for given product
         $service = ifset($parent_item, 'services', $new_item['service_id'], null);
         if (!$service) {
-            return array(_w('Service does not exist'));
+            return array(_w('Service does not exist.'));
         }
 
         // Make sure service is not taken into cart already
         if (!empty($service['id'])) {
-            return array(_w('Service is already in cart'));
+            return array(_w('Service is already in cart.'));
         }
 
         // Make sure service variant exists
         $variant_exists = $new_item['service_variant_id'] == $service['variant_id'];
         $variant_exists = $variant_exists || !empty($service['variants'][$new_item['service_variant_id']]);
         if (!$variant_exists) {
-            return array(_w('Service variant does not exist'));
+            return array(_w('Service variant does not exist.'));
         }
 
         return array();
@@ -134,7 +134,7 @@ class shopFrontendOrderCartActions extends waJsonActions
             $checkout_vars = (new shopCheckoutViewHelper())->cartVars();
             $parent_item = ifset($checkout_vars, 'cart', 'items', $new_item['parent_id'], null);
             if (!$parent_item) {
-                $errors[] = _w('No product exist to add service for');
+                $errors[] = _w('No product to add service to.');
             } else {
                 $new_item += [
                     'product_id' => $parent_item['product_id'],
@@ -169,7 +169,28 @@ class shopFrontendOrderCartActions extends waJsonActions
         }
 
         if (!$errors) {
-            $new_item['id'] = $cart->addItem($new_item);
+
+            /**
+             * @event frontend_order_cart_add_before
+             * Allows to validate and modify item before adding it to the cart
+             */
+            wa('shop')->event('frontend_order_cart_add_before', ref([
+                'new_item' => &$new_item,
+                'errors' => &$errors,
+            ]));
+
+            if (!$errors) {
+                $new_item['id'] = $cart->addItem($new_item);
+
+                /**
+                 * @event frontend_order_cart_add
+                 * Notify plugins about item just added to the cart.
+                 */
+                wa('shop')->event('frontend_order_cart_add', ref([
+                    'new_item' => $new_item,
+                ]));
+            }
+
         }
 
         // Reset vars cache
@@ -219,7 +240,7 @@ class shopFrontendOrderCartActions extends waJsonActions
             }
         */
 
-        $errors = array();
+        $errors = [];
 
         //
         // Update coupon
@@ -260,10 +281,19 @@ class shopFrontendOrderCartActions extends waJsonActions
             $old_cart_items = $cart->items();
             $items_data = waRequest::post('items', [], 'array');
             list($update, $item_errors) = $this->getItemsUpdate($old_cart_items, $items_data);
-            //waLog::dump($old_cart_items, $items_data, $update, 'shop_checkout2.log'); // !!! TODO: remove logging
             if ($item_errors) {
                 $errors['items'] = $item_errors;
             }
+
+            /**
+             * @event frontend_order_cart_save_before
+             * Allows to validate and modify items before saving the cart
+             */
+            wa('shop')->event('frontend_order_cart_save_before', ref([
+                'update' => &$update,
+                'errors' => &$errors,
+            ]));
+
             foreach($update as $item_id => $item) {
                 if ($item) {
                     $cart->updateItem($item_id, $item);
@@ -272,10 +302,22 @@ class shopFrontendOrderCartActions extends waJsonActions
                 }
             }
         } catch (waException $e) {
+            // This is exceptional and should never happen.
             $errors['items'] = $e->getMessage();
             if (waSystemConfig::isDebug()) {
                 $errors['items'] .= " (".$e->getCode().")\n".$e->getFullTraceAsString();
             }
+        }
+
+        if (!empty($update)) {
+            /**
+             * @event frontend_order_cart_save
+             * Notify plugins about cart being modified
+             */
+            wa('shop')->event('frontend_order_cart_save', ref([
+                'update' => $update,
+                'errors' => $errors,
+            ]));
         }
 
         if (waRequest::request('render')) {
@@ -344,11 +386,6 @@ class shopFrontendOrderCartActions extends waJsonActions
                     $check_count = $stock_id;
                 }
             }
-            $item_counts = null;
-            $code = ifset(ref(reset($old_cart_items)), 'code', '');
-            if ($check_count && $code) {
-                $item_counts = $cart_model->checkAvailability($code, $check_count);
-            }
         }
 
         // Make sure all existing cart items are present in data,
@@ -373,14 +410,14 @@ class shopFrontendOrderCartActions extends waJsonActions
                     continue;
                 }
                 // no data came for this service
-                $item_errors[$item['id']]['services'][$s['id']]['general'] = _w('Data mismatch. Cart changed outside the page?');
+                $item_errors[$item['id']]['services'][$s['id']]['general'] = _w('Data mismatch. Shopping cart parameters have changed beyond this page?');
                 $errors_cancel_update = true;
             }
 
             $type_by_id[$item['id']] = 'product';
             if (!isset($new_items_data[$item['id']])) {
                 // No data came for this product
-                $item_errors[$item['id']]['general'] = _w('Data mismatch. Cart changed outside the page?');
+                $item_errors[$item['id']]['general'] = _w('Data mismatch. Shopping cart parameters have changed beyond this page?');
                 $errors_cancel_update = true;
                 continue;
             }
@@ -395,15 +432,6 @@ class shopFrontendOrderCartActions extends waJsonActions
                 if (strtolower($cart_fields['quantity']['type']) == 'int' && !wa_is_int($new_items_data[$item['id']]['quantity'])) {
                     $item_errors[$item['id']]['quantity'] = _w('Quantity must be integer.');
                 }
-
-                // Make sure stock count for product is not exceeded
-                // but allow to save if item quantity didn't change
-                if (isset($item_counts[$item['id']]['count']) && $new_items_data[$item['id']]['quantity'] != $item['quantity']) {
-                    if ($item_counts[$item['id']]['count'] < $new_items_data[$item['id']]['quantity']) {
-                        $item_errors[$item['id']]['quantity'] = _w('Not enough in stock');
-                    }
-                }
-
             }
         }
 
@@ -417,9 +445,9 @@ class shopFrontendOrderCartActions extends waJsonActions
                 // Otherwise it's an error
                 $errors_cancel_update = true;
                 if (empty($type_by_id[$item_id]) || $type_by_id[$item_id] === 'product') {
-                    $item_errors[$item_id]['general'] = _w('Data mismatch. Cart changed outside the page?');
+                    $item_errors[$item_id]['general'] = _w('Data mismatch. Shopping cart parameters have changed beyond this page?');
                 } else {
-                    $item_errors[$type_by_id[$item_id]]['services'][$item_id]['general'] = _w('Data mismatch. Cart changed outside the page?');
+                    $item_errors[$type_by_id[$item_id]]['services'][$item_id]['general'] = _w('Data mismatch. Shopping cart parameters have changed beyond this page?');
                 }
             }
         }
@@ -437,9 +465,9 @@ class shopFrontendOrderCartActions extends waJsonActions
 
     public function renderAction($errors = array())
     {
-        echo (new shopCheckoutViewHelper())->cart(array(
+        echo (new shopCheckoutViewHelper())->cart([
             'errors' => $errors,
-        ) + $this->getOpts());
+        ] + $this->getOpts());
         exit;
     }
 

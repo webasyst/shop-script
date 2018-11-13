@@ -10,6 +10,7 @@
 
             // VARS
             that.urls = options["urls"];
+            that.templates = options["templates"];
 
             // DYNAMIC VARS
 
@@ -23,6 +24,8 @@
             that.initUI();
 
             that.initThemeCart();
+
+            that.initThemeAuth();
 
             that.$wrapper.on("click", ".js-clear-cart", function() {
                 var wa_order_cart = getCartController(that.$wrapper);
@@ -44,18 +47,33 @@
             initUI();
 
             that.$wrapper
-                .on("wa_order_cart_reloaded", initUI)
-                .on("wa_order_form_reloaded", initUI)
-                .on("wa_order_form_changed", initUI);
+                .on("wa_order_cart_reloaded", function() {
+                    initUI();
+                })
+                .on("wa_order_form_reloaded", function() {
+                    initUI();
+                })
+                .on("wa_order_form_changed", function() {
+                    initUI();
+                });
 
-            function initUI() {
-                initCheckbox();
-                initStyledSelect();
-                initRadio();
+            $(document).on("wa_auth_form_loaded", function(event, data) {
+                var $wrapper = $("#" + data.form_wrapper_id);
+                if ($wrapper.length) {
+                    initUI($wrapper);
+                }
+            });
+
+            function initUI($wrapper) {
+                $wrapper = ($wrapper ? $wrapper : that.$wrapper);
+
+                initCheckbox($wrapper);
+                initStyledSelect($wrapper);
+                initRadio($wrapper);
             }
 
-            function initCheckbox() {
-                that.$wrapper.find("input[type=\"checkbox\"]").each( function() {
+            function initCheckbox($wrapper) {
+                $wrapper.find("input[type=\"checkbox\"]").each( function() {
                     var $input = $(this),
                         is_rendered = $input.data("is_rendered");
 
@@ -75,8 +93,8 @@
                 }
             }
 
-            function initRadio() {
-                that.$wrapper.find("input[type=\"radio\"]").each( function() {
+            function initRadio($wrapper) {
+                $wrapper.find("input[type=\"radio\"]").each( function() {
                     var $input = $(this),
                         is_rendered = $input.data("is_rendered");
 
@@ -96,8 +114,8 @@
                 }
             }
 
-            function initStyledSelect() {
-                that.$wrapper.find("select").each( function() {
+            function initStyledSelect($wrapper) {
+                $wrapper.find("select").each( function() {
                     var $select = $(this),
                         is_rendered = $select.data("is_rendered");
 
@@ -195,6 +213,41 @@
                     formatted_price: wa_order_cart.formatPrice(api.cart.total)
                 });
             });
+        };
+
+        ShopOrderPage.prototype.initThemeAuth = function() {
+            var that = this,
+                xhr = null;
+
+            var $auth = $("#js-header-auth-wrapper");
+            if (!$auth.length) { return false; }
+
+            $(document).on("wa_auth_contact_logged ", onLogin);
+            function onLogin(event, data) {
+                updateAuth(data);
+            }
+
+            $(document).on("wa_auth_contact_logout ", function() {
+                updateAuth();
+            });
+
+            function updateAuth(login_data) {
+                var template = null;
+
+                if (login_data) {
+                    template = that.templates["header_logged"];
+                    template = template.replace("%name%", login_data.firstname).replace("%image%", login_data.userpic_20);
+
+                } else {
+                    template = that.templates["header_logout"];
+                }
+
+                if (template) {
+                    var $_auth = $(template);
+                    $auth.replaceWith($_auth);
+                    $auth = $_auth;
+                }
+            }
         };
 
         return ShopOrderPage;

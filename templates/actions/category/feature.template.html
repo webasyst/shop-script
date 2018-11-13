@@ -1,5 +1,6 @@
 {if !empty($settings.features)}
     {foreach $settings.features as $f_id => $f}
+        {$conditions_feature = ifset($settings, 'conditions', 'feature', [])}
         <tr>
             <td colspan="2" class="js-condition-feature-names">
                 <label>
@@ -14,7 +15,7 @@
                 <div class="js-condition-feature-block s-feature-block-values">
                     {if !empty($settings.id)}
                     <div class="js-feature-list-value">
-                        {if !empty($f.values)}
+                        {if !empty($f.values) && substr($f.type, 0, 5) !== 'range'}
                             {foreach $f.values as $v_id => $value}
                                 <label>
                                     <input class="s-condition js-feature-value" type="checkbox" data-f_val="{$v_id}" name="condition[features][{$f.code}][values][]" value="{$v_id}"
@@ -31,9 +32,9 @@
                         {/if}
                         {if substr($f.type, 0, 5) == 'range'}
                             <div class="js-feature-slider-{$f.code} s-feature-slider-block" data-slider="range" data-code="{$f.code}">
-                                {if !empty($settings['conditions']['feature'][$f.code])}
-                                    {$begin = $settings['conditions']['feature'][$f.code]['begin']}
-                                    {$end = $settings['conditions']['feature'][$f.code]['end']}
+                                {if !empty($conditions_feature[$f.code])}
+                                    {$begin = ifset($conditions_feature, $f.code, 'begin', null)}
+                                    {$end = ifset($conditions_feature, $f.code, 'end', null)}
                                     [`from`]
                                     <input type="text" class="js-begin" name="condition[features][{$f.code}][values][begin]" placeholder="{if isset($begin)}{$begin}{else}0{/if}"
                                            value="{if isset($begin)}{$begin}{else}0{/if}">

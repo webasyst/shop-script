@@ -5,7 +5,7 @@
 
 <div data-role="content" class="content">
     {if $orders === false}
-        <h3>[`You don't have enough access permissions to view order list.`]</h3>
+        <h3>[`You don’t have enough access rights to view the order list.`]</h3>
     {else}
     <ul data-role="listview" class="s-mobile-order-list" id="s-mobile-order-list">
         {foreach $orders as $o}

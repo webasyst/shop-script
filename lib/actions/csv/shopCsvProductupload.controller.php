@@ -301,7 +301,7 @@ class shopCsvProductuploadController extends shopUploadController
             }
             $file->moveTo($name);
         } else {
-            throw new waException(_w('Error file upload'));
+            throw new waException(_w('File uploading error'));
         }
         $encoding = waRequest::post('encoding', 'UTF-8');
         $delimiter = waRequest::post('delimiter');

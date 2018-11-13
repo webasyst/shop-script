@@ -10,7 +10,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 2.0.6\n"
 "Plural-Forms: nplurals=2; plural=n == 1 ? 0 : 1;\n"
 "Language: en_US\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -446,16 +446,8 @@ msgstr ""
 msgid "Welcome to Shop-Script!"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:4
-msgid "Using the quick-start form below you can easily prepare an initial setup of your online store depending on your region and what you are going to sell online. This won't add your stuff to your store automatically, but will prepare configuration lists such as currencies and taxes rates, so you don't add such data manually."
-msgstr ""
-
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:9
 msgid "Import"
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:13
-msgid "Don't import anything, start from scratch"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:20
@@ -486,10 +478,6 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:66
 msgid "Select product types which you are going to sell online. Product types will automatically add a set of product custom features to your store, and will then allow you to manage product access level and publication based on product types."
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:78
-msgid "If you don't see your product type here, you will be able to add it later."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:87
@@ -1188,7 +1176,7 @@ msgid "Delete currency"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogCurrencyDelete.html:24
-msgid "You don't have products priced in this currency. The currency can be safely deleted."
+msgid "You don’t have products priced in this currency. The currency can be safely deleted."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategoryCreate.html:2
@@ -1234,7 +1222,7 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategoryCreate.html:30
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:204
-msgid "Optional set of custom <em>key=value</em> parameters which can be used within a frontend's theme template as <em>&#123;$category.params.key&#125;</em>. Each key=value pair should be on a separate line."
+msgid "Optional set of custom <em>key=value</em> parameters which can be used in frontend theme templates as <em>&#123;$category.params.key&#125;</em>. Each key=value pair must be on a separate line."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategoryCreate.html:40
@@ -1350,11 +1338,6 @@ msgstr ""
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategoryCreate.html:120
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:249
 msgid "is greater or equal"
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/dialog/DialogProductCategoryCreate.html:121
-#: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:250
-msgid "is lesser or equal"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:40
@@ -1543,7 +1526,7 @@ msgid "Limit the maximum number of products in this set"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductSetSettings.html:17
-msgid "Updating set ID <em>will not</em> automatically update templates and pages that this code is embedded into, so be sure to update those manually if you change the ID."
+msgid "Changing the set ID <em>will not</em> automatically update templates and pages in which this code is embedded, so be sure to update them if you change the ID.e those manually if you change the ID."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductSetSettings.html:19
@@ -1561,7 +1544,7 @@ msgid "Change product type"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogTypes.html:8
-msgid "Changing product type may affect products' publication status and access settings."
+msgid "Changing product type may affect products’ publication status and access settings."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogTypes.html:18
@@ -2225,7 +2208,7 @@ msgid "Separate tags with comma (,)."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/Product.html:956
-msgid "Optional set of custom <em>key=value</em> parameters which can be used within a frontend's theme template as <em>&#123;$product.params.key&#125;</em>. Each key=value pair should be on a separate line."
+msgid "Optional set of custom <em>key=value</em> parameters which can be used in frontend theme templates as <em>&#123;$product.params.key&#125;</em>. Each key=value pair must be on a separate line."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductFeatures.html:26
@@ -2660,7 +2643,7 @@ msgid "Show more products"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/products/Products.html:234
-msgid "Don't delete products"
+msgid "Don’t delete products"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/products/Products.html:236
@@ -2859,7 +2842,7 @@ msgid "New service"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/services/Services.html:16
-msgid "Services allow you to add customization options for products and SKUs, e.g. custom packaging, extended warranty, engraving. Services are great for increasing your online store's average order value."
+msgid "Services allow you to add customization options for products and SKUs; e.g., custom packaging, extended warranty, engraving. Services are great for increasing your online store’s average order value."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/services/Services.html:27
@@ -3033,7 +3016,7 @@ msgid "Shipping & Contacts"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:19
-msgid "Some shipping options require to know the destination address. If shipping step is before the contact info step (i.e. customer didn't input the address yet), certain shipping options may not calculate shipping rates properly."
+msgid "Some shipping options require to know the destination address. If the shipping step is before the contact info step (i.e. customer hasn’t input the address yet), certain shipping options may not calculate shipping rates properly."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:23
@@ -3286,7 +3269,7 @@ msgid "Convert prices"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:140
-msgid "Don't convert, leave all product prices as is"
+msgid "Don’t convert, leave all product prices as is"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:15
@@ -3709,7 +3692,7 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:175
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:205
-msgid "Customer’s User Agent string for the moment of order creation"
+msgid "Customer’s “User-Agent” value at the time of order creation"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:183
@@ -3833,7 +3816,7 @@ msgid "a geometric pattern based on an email hash"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:65
-msgid "a generated 'monster' with different colors, faces, etc"
+msgid "a generated “monster” with different colors, faces, etc."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:66
@@ -3873,7 +3856,7 @@ msgid "Enter Sender IDs to use with this SMS gateway (Sender ID is either your p
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:128
-msgid "Once gateway is setup, add new and edit existing SMS notifications using the <a href=\"%s\">Notifications</a> settings screen."
+msgid "Once connection is set up, add and edit SMS notifications in “<a href=\"%s\">Notifications</a>” settings screen."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:133
@@ -4028,7 +4011,7 @@ msgid "Automatically create thumbnails of predefined custom sizes (enable this i
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:192
-msgid "Please don't close your browser window until re-generation is over."
+msgid "Please don’t close your browser window until re-generation is over."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:205
@@ -4204,10 +4187,6 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:154
 msgid "Automatically assign all orders set to %s state to"
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:156
-msgid "Don't change the assignment"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:157
@@ -4434,7 +4413,7 @@ msgid "Depending on the number of products, this operation may take from few sec
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsSearch.html:102
-msgid "Please don't close your browser window until the entire process is finished."
+msgid "Please don’t close your browser window until the process is completed."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsSearch.html:114
@@ -4464,6 +4443,9 @@ msgstr ""
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:63
 #: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:8
 msgid "This will permanently delete this shipping option. Are you sure?"
+msgstr ""
+
+msgid "Create a copy"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:71
@@ -4610,7 +4592,7 @@ msgid "Mostly used for VAT. Tax will not be added to the cart subtotal, but will
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:67
-msgid "Calculate taxes based on customer's"
+msgid "Calculate taxes based on customer’s"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:69
@@ -5128,7 +5110,7 @@ msgstr ""
 #: /wa-apps/shop/themes/nifty/checkout.payment.html:19
 #: /wa-apps/shop/themes/sidebar/checkout.payment.html:20
 #: /wa-apps/shop/themes/vk/checkout.payment.html:20
-msgid "Oops! We are sorry, but <strong>we can not offer any payment option for your order</strong>. Checkout can not be completed."
+msgid "Oops! We are sorry, but <strong>we cannot offer any payment option for your order</strong>. Checkout cannot be completed."
 msgstr ""
 
 #: /wa-apps/shop/themes/clear/checkout.shipping.html:21
@@ -5183,16 +5165,6 @@ msgstr ""
 #: /wa-apps/shop/themes/sidebar/checkout.success.html:8
 #: /wa-apps/shop/themes/vk/checkout.success.html:7
 msgid "We successfully accepted your order, and will contact you asap."
-msgstr ""
-
-#: /wa-apps/shop/themes/clear/checkout.success.html:8
-#: /wa-apps/shop/themes/custom/checkout.success.html:8
-#: /wa-apps/shop/themes/default/checkout.success.html:9
-#: /wa-apps/shop/themes/facebook/checkout.success.html:9
-#: /wa-apps/shop/themes/nifty/checkout.success.html:8
-#: /wa-apps/shop/themes/sidebar/checkout.success.html:9
-#: /wa-apps/shop/themes/vk/checkout.success.html:8
-msgid "Your order number is "
 msgstr ""
 
 #: /wa-apps/shop/themes/clear/compare.html:1
@@ -6416,7 +6388,7 @@ msgid "feature"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:144
-msgid "Error file upload"
+msgid "File uploading error"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:158
@@ -6608,7 +6580,7 @@ msgid "Unknown image"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/product/shopProductImageDelete.controller.php:24
-msgid "Coudn't delete image"
+msgid "Coudn’t delete image"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/product/shopProductImageDownload.controller.php:9
@@ -6642,7 +6614,7 @@ msgid "Error while rotate. Original file corupted but backuped"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/product/shopProductPageMove.controller.php:14
-msgid "Page couldn't be inserted before itself"
+msgid "Page couldn’t be inserted before itself."
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/product/shopProductPageSave.controller.php:43
@@ -6913,7 +6885,7 @@ msgid "New State"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateSave.controller.php:42
-msgid "State name can not be empty"
+msgid "State name cannot be empty"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateSave.controller.php:48
@@ -7742,7 +7714,7 @@ msgid "Invalid captcha code"
 msgstr ""
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:437
-msgid "Name can not be left blank"
+msgid "Name cannot be left blank"
 msgstr ""
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:440
@@ -7750,7 +7722,7 @@ msgid "Name length should not exceed 255 symbols"
 msgstr ""
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:443
-msgid "Email can not be left blank"
+msgid "Email cannot be left blank"
 msgstr ""
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:447
@@ -7762,11 +7734,11 @@ msgid "Site URL is not valid"
 msgstr ""
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:457
-msgid "Review title can not be left blank"
+msgid "Review title cannot be left blank"
 msgstr ""
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:461
-msgid "Review text can not be left blank"
+msgid "Review text cannot be left blank"
 msgstr ""
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:466
@@ -7989,7 +7961,7 @@ msgid "Shop by category"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions-mobile/orders/Orders.html:8
-msgid "You don't have enough access permissions to view order list."
+msgid "You don’t have enough access rights to view the order list."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/backend/BackendImportexport.html:41
@@ -9579,7 +9551,7 @@ msgid "The results of A/B test will be available on the main sales reports page 
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:137
-msgid "This will delete the entire A/B test and all it's results without the ability to restore this data. Delete?"
+msgid "This A/B test and its results will be deleted without a recovery option. Delete?"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:11
@@ -9702,11 +9674,11 @@ msgid "Guest checkout"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:92
-msgid "Create new customer record for every guest order"
+msgid "Create new customer profile for every guest order"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:98
-msgid "Automatically add order to existing customer record if same email address were entered"
+msgid "Add an order to existing customer profile with the same phone number or email address"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/reports/shopReportsCohorts.action.php:126
@@ -9855,7 +9827,7 @@ msgid "There are products that belong to this product type. To delete this produ
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/settings/features/shopSettingsFeaturesTypeDelete.controller.php:19
-msgid "Can not delete product type. At least one product type must remain."
+msgid "Cannot delete product type. At least one product type must remain."
 msgstr ""
 
 #: /wa-apps/shop/lib/config/app.php:3
@@ -10128,11 +10100,11 @@ msgid "Welcome tutorial"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/customers/shopCustomersFilterDelete.controller.php:10
-msgid "Couldn't delete filter"
+msgid "Filter cannot be deleted."
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/customers/shopCustomersFilterSave.controller.php:11
-msgid "Filter couldn't be saved"
+msgid "Filter cannot be saved."
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/customers/shopCustomersSearchForm.action.php:115
@@ -10259,7 +10231,7 @@ msgid "Data cannot be processed because required currency %s is not defined in y
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/backend/BackendReports.html:3
-msgid "Only paid and complete orders are shown in reports. If you don't see a particular order in reports, make sure to click <strong>Pay</strong> or <strong>Complete</strong> button on the order info page. Clicking either of these buttons will add a big PAID stamp for this order and make the order counted in your sales reports."
+msgid "Only paid and completed orders are shown in reports. If you cannot see a particular order in reports, make sure to click <strong>Pay</strong> or <strong>Complete</strong> button on the order-viewing page. Clicking either of these buttons will add a big “PAID” stamp to an order and will make it counted in your sales reports."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:7
@@ -10388,7 +10360,7 @@ msgid "Product subpages are great for publishing product extra information such 
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:56
-msgid "Weight value will be used to calculating order shipping costs."
+msgid "Weight value will be used to calculate order shipping cost."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:121
@@ -10586,11 +10558,11 @@ msgid "Store working days, e.g. Sun, Mon, Wed—Fri"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:354
-msgid "Start of store working hours, e.g. 9:00 am"
+msgid "Start of store’s business hours; e.g., 9:00 am"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:362
-msgid "End of store working hours, e.g. 5:00 pm"
+msgid "End of store’s business hours; e.g., 5:00 pm"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/order/shopOrderSendprintform.controller.php:88
@@ -11143,7 +11115,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: /wa-apps/shop/lib/workflow/shopWorkflowEditAction.class.php:134
-msgid "Editing this order will mark this order as settled and will re-calculate it's current amount (%s) based on the order content your enter. Are you sure you want to settle this order and reset the order amount?"
+msgid "Editing this order will mark it as settled and will re-calculate its current amount (%s) based on the changed order content. Are you sure you want to settle this order and to reset the order amount?"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:65
@@ -11746,10 +11718,6 @@ msgstr ""
 msgid "Execution of “Paid” action manually in backend or automatically by a callback from a payment gateway."
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:175
-msgid "Select an online map engine in Installer app‘s “<a href=\"%s\">Settings</a>” screen."
-msgstr ""
-
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:177
 msgid "To select an online map engine, you need access to Installer app‘s “Settings” screen."
 msgstr ""
@@ -11761,4 +11729,2185 @@ msgid "Current name"
 msgstr ""
 
 msgid "To change the date and time of delivery by courier, you must specify the date and time of delivery"
+msgstr ""
+
+#: /wa-apps/shop/templates/mail/Order.editshippingdetails.html:106
+msgid "Administrator has changed the shipping details of your order %s as follows:<br><strong>%s</strong>"
+msgstr ""
+
+#: /wa-apps/shop/templates/mail/Order.settle.html:110
+msgid "Administrator has settled your unsettled order %s."
+msgstr ""
+
+#: /wa-apps/shop/templates/mail/Order.settle.html:112
+msgid "Administrator has settled your unsettled order %s by merging it with order %s."
+msgstr ""
+
+#: /wa-apps/shop/templates/mail/Order.settle.html:115
+msgid "Administrator has merged your order %s with an unsettled order."
+msgstr ""
+
+#: /wa-apps/shop/templates/mail/Order.comment.html:106
+msgid "Administrator has added a comment to your order %s:<br><strong>%s</strong>"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendSettings.html:15
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:46
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:298
+msgid "Working schedule"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:11
+msgid "Values selected here can be changed in the <a href=\"%s\">settings</a> later."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:14
+msgid "This screen will help you to quickly launch your new online store."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:17
+msgid "Select a primary currency"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:18
+msgid "You will later be able to add more currencies in «Settings - Currencies» section"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:20
+msgid "Select currency"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:30
+msgid "This will automatically enable corresponding tax rates."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:41
+msgid "Select types of products<br/>which you would like to be added as examples to your catalog."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:42
+msgid "Each type provides its own set of editable product<br/>features to publish detailed product descriptions on the website,<br/>and to set up filters and automated recommendations."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:65
+msgid "You can import data from your existing online store<br/>based on another software platform."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:85
+#: /wa-apps/shop/templates/actions/tutorial/TutorialCustom.html:14
+msgid "Next step"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendProducts.html:198
+msgid "Start typing in search field to find a tag."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendProducts.html:197
+msgid "There are more than %u tags."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/category/ProductsCategory.html:69
+msgid "Hide links to this category in the storefront"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/category/ProductsCategory.html:163
+#: /wa-apps/shop/templates/actions/category/ProductsCategory.html:211
+msgid "i"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/category/ProductsCategory.html:240
+#: /wa-apps/shop/js/category/products.category.js:328
+#: /wa-apps/shop/js/category/products.category.js:408
+msgid "From"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/category/ProductsCategory.html:247
+msgid "Type text to start search"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/category/ProductsCategory.html:327
+#: /wa-apps/shop/templates/actions/category/ProductsCategory.html:348
+msgid "Filtering by this feature is not available, because only one of its values is selected in “Product filtering options” section."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/category/feature.template.html:29
+#: /wa-apps/shop/templates/actions/category/feature.template.html:78
+msgid "Show all"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:64
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:793
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:811
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:829
+msgid "Use field"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:80
+msgid "Field width"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:98
+msgid "Use location"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:101
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:103
+msgid "Location name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:127
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:522
+#: /wa-apps/shop/templates/actions/frontend/order/form/region.html:135
+msgid "Select a region"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:134
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:136
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:532
+msgid "Locality"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:148
+msgid "No locations added"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:159
+msgid "Enable default design"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:169
+msgid "Logo"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:179
+msgid "Delete logo"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:187
+msgid "Business scope"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:207
+msgid "Phone number hint"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:227
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:391
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:444
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:71
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:99
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:129
+#: /wa-apps/shop/templates/actions/frontend/order/form/details.html:195
+msgid "Business hours"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:237
+msgid "Checkout page background color"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:247
+msgid "Header &amp; footer background color"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:257
+msgid "Custom CSS styles"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:262
+msgid "Entered CSS code will be added inside <code>&lt;style&gt; ... &lt;/style&gt;</code> tags in <code>&lt;head&gt;</code> block only on checkout page."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:277
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:346
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:589
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:731
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:894
+msgid "Block name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:285
+msgid "Empty cart text"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:295
+msgid "SKU selection"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:300
+msgid "Allow customers to select other product SKUs in the shopping cart"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:302
+msgid "Mainly used to change product properties such color or size"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:309
+msgid "Discout information per product"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:324
+msgid "Total discount information"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:356
+msgid "Store working schedule"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:371
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:50
+msgid "Timezone"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:384
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:63
+msgid "Order processing schedule"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:389
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:69
+msgid "Day of the week"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:390
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:70
+msgid "Open"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:392
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:416
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:417
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:445
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:72
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:99
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:100
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:130
+msgid "New orders for processing"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:416
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:99
+msgid "Values of “%s” and “%s” fields can be used to calculate the estimated shipping time."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:417
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:100
+msgid "Values in “%s” column denote the last hour of a workday before which orders are accepted for processing on the same day. Orders accepted after that hour are processed on the next workday."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:418
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:101
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:115
+msgid "The setting is used by default in all storefronts."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:426
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:109
+msgid "Business hours required to process an order"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:431
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:114
+msgid "Is used to calculate estimated order shipping time. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:438
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:122
+msgid "Extra workdays"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:457
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:476
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:143
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:164
+msgid "Add day"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:465
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:152
+msgid "Extra weekend"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:491
+msgid "Checkout type"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:506
+msgid "Limit shipping area"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:535
+msgid "Separate locality names with a comma."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:543
+msgid "Show pickup points map"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:571
+msgid "Add location"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:599
+msgid "Login offer text"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:609
+msgid "Logout offer text"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:618
+#: /wa-apps/shop/templates/actions/frontend/order/form/auth.html:93
+msgid "Customer type"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:633
+msgid "Person mode name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:641
+msgid "Company mode name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:652
+msgid "Hint text for companies"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:660
+msgid "Companies service terms text"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:669
+msgid "Persons:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:681
+msgid "Companies:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:699
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:858
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:96
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:265
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutShipping.html:38
+msgid "Personal data processing"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:716
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:120
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:290
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutShipping.html:46
+msgid "Restore original text"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:742
+#: /wa-apps/shop/templates/actions/frontend/order/form/region.html:54
+msgid "ZIP code"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:747
+msgid "Request ZIP code with the city name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:755
+msgid "“Courier” shipping type title"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:765
+msgid "“Pickup” shipping type title"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:775
+msgid "“Post” shipping type title"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:795
+msgid "country"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:813
+msgid "region"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:831
+#: /wa-apps/shop/templates/actions/frontend/order/form/region.html:183
+msgid "City"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:832
+msgid "city"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:865
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutShipping.html:42
+msgid "Show notice"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:873
+msgid "Shipping plugins response waiting time"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:879
+msgid "Shipping options provided by plugins which process external requests longer than specified will not be available for choice."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:914
+msgid "Allow customers to leave a comment to an order"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:931
+msgid "Show"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:939
+msgid "Enter your terms of service, refund conditions, and other legal information for customers to read and to agree to during checkout."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:940
+msgid "If this field is completed, customers will see a link to the conditions and a checkbox to confirm their consent before checkout completion."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:948
+msgid "Unauthorized checkout with existing customer profiles"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:965
+msgid "Ask to log in with a confirmation code"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:970
+msgid "A login confirmation code will be sent to a customer’s email address or phone."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:971
+msgid "Подтверждение можно пропустить и отпарвить заказ, но тогда данные существующего контакта будут обновлены данными покупателя, который не подтвержил свой email или телефон."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:979
+msgid "Upon confirmation, a customer will be authorized and will have access to their online account."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:983
+msgid "You can request a code again in"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:991
+msgid "After this timeout, a customer will be able to re-request a confirmation code by email or SMS when logging in to confirm checkout completion."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:997
+msgid "“Thank you” page title"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:1008
+msgid "“Thank you” page text"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:677
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:689
+msgid "<a href=\"%s\" target=\"_blank\">Edit contact fields</a> <i class=\"icon10 new-window\"></i> in Settings app."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:727
+msgid "<a href=\"%s\" target=\"_blank\">Add and configure shipping methods <i class=\"icon16 new-window\"></i></a>"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:848
+msgid "<a href=\"%s\" target=\"_blank\">Edit address fields</a> <i class=\"icon10 new-window\"></i> in Settings app."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:889
+msgid "<a href=\"%s\" target=\"_blank\">Add and configure payment methods <i class=\"icon16 new-window\"></i></a>"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:136
+msgid "When disabled, thumbnails’ file names are generated only with the use of numbers denoting thumbnail dimensions."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:240
+msgid "Enable to get thumbnails of all available sizes created at once. It is recommended if automatic image thumbnail generation is disabled in image settings."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:241
+msgid "If you leave this option disabled, thumbnails will be automatically created later, at the first request of an image on the website, if automatic image thumbnail generation is enabled."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutSidebar.html:41
+msgid "Common storefront settings:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsRegions.html:8
+msgid "To edit countries and regions, you need to access the “Settings” app‘s."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:100
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:270
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:264
+msgid "Do not require consent to personal data protection policy"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:107
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:277
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:267
+msgid "Show only notice and link to policy"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:113
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:283
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:271
+msgid "Show mandatory checkbox, notice, and link"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:104
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:274
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutShipping.html:55
+msgid "---INSERT A LINK HERE!---"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:9
+msgid "Multi-step checkout setup"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:17
+msgid "Checkout setup tips"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:24
+msgid "For online stores shipping to multiple countries and regions:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:25
+msgid "1.&nbsp;Contact info &rarr; 2.&nbsp;Shipping &rarr; 3.&nbsp;Payment &rarr; 4.&nbsp;Confirmation."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:27
+msgid "For one-city-centric stores offering mostly courier shipping:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:28
+msgid "1.&nbsp;Shipping &rarr; 2.&nbsp;Contact info &rarr; 3.&nbsp;Payment &rarr; 4.&nbsp;Confirmation"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:31
+msgid "For electronic-delivery-only stores:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:31
+msgid "1.&nbsp;Contact info &rarr; 2.&nbsp;Payment &rarr; 3.&nbsp;Confirmation"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:35
+msgid "Keep the checkout setup as simple as possible."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:140
+msgid "Setup of required fields validation in backend, order spam filter, and web push notifications is available in “<a href=\"%s\">General settings</a>” section."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCouriers.html:102
+msgid "Edit orders"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCouriers.html:106
+msgid "If enabled, a courier can edit order items, discount amount, and shipping cost via the mobile app."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCouriers.html:108
+msgid "Payment and shipping methods selected by a customer and values of default shipping address fields “Country”, “ZIP”, “State”, “City” cannot be changed via mobile app."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCouriers.html:110
+msgid "A courier can change order status, shipping address in an order, except for fields “Country”, “ZIP”, “State”, and “City”, and other shipping parameters regardless of this setting’s value."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCouriers.html:115
+msgid "Edit customers"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCouriers.html:118
+msgid "Courier can edit customers’ contact details in mobile app."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:168
+msgid "Not updated by order actions"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:171
+msgid "With option “Not updated by order actions”, products’ stock level is supposed to be updated only during data exchange with accounting software, which is used to manage product stock updates."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:26
+msgid "https://www.shop-script.com/help/28265/order-processing-in-shop-script/"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:27
+msgid "About order statuses and actions"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:118
+msgid "Payment option availability"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:122
+msgid "customers can pay for orders in this state in their personal accounts"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:176
+msgid "Enter a hint, visible only in backend, to describe what your action does and when it should be executed."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:221
+msgid "Behavior"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:223
+msgid "default"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:239
+msgid "Email and SMS notifications on order actions are configured in “<a href=\"?action=settings#/notifications/\" class=\"nowrap\">Settings → Notifications</a>” section."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:139
+#: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:166
+msgid "ZIP code mask"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2.html:14
+msgid "<span class=\"s-checkout-2-label\">In-cart checkout</span> setting for <i class=\"icon16 status-green\"></i><span class=\"gray\">%s/%s</span>"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2.html:22
+msgid "Checkout page demo"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2.html:188
+msgid "Storefront not found."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:116
+msgid "Maximum available rounding precision is to nearest 0.01."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:117
+msgid "“Not round” option is not available by default, unless enabled in user configuration."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:137
+msgid "For service cost"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:139
+msgid "If checked, service cost in newly placed orders will be rounded according to order currency settings."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:68
+msgid "Sort order items"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:302
+msgid "Select Webasyst default captcha or Google reCAPTCHA"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:304
+msgid "To select a captcha engine, you need access to Settings app."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:317
+msgid "To select an online map engine, you need access to Settings app."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:7
+msgid "Order weight &amp; dimensions"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:130
+msgid "Send only if order status has not been changed from the one selected above"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:72
+msgid "Offer payment to customer types"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:83
+#: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:90
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:251
+msgid "Persons"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:89
+#: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:93
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:254
+msgid "Companies"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:91
+msgid "In  “%s” mode payment is offered only to selected customer types.<br>In “%s” mode this setting is ignored and payment is always offered to all customer types."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:91
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:102
+#: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:95
+msgid "In-cart checkout"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:91
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:102
+#: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:95
+msgid "Multi-step checkout"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:95
+msgid "Offer this payment method with selected shipping types"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:102
+msgid "In  “%s” mode payment is offered only with selected shipping types.<br>In “%s” mode this setting is ignored and payment is always offered with all shipping types."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:115
+msgid "This payment method may be unavilable during checkout due to limitations by shipping type or customer type."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:57
+msgid "Select a tax rule to be applied to shipping rates calculated by this plugin."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:85
+msgid "Offer shipping to customer types"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:95
+msgid "In  “%s” mode shipping is offered only to selected customer types.<br>In “%s” mode this setting is ignored and shipping is always offered to all customer types."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutShipping.html:12
+msgid "All address fields required by selected shipping option"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutShipping.html:16
+msgid "If a customer has completed some address fields on “Contact info” checkout step, those fields may be not available for editing on “Shipping” step depending on shipping modules’ settings."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutShipping.html:21
+msgid "All address fields required by selected shipping option including hidden completed fields"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutShipping.html:23
+msgid "Make completed address fields, hidden with previous option “All address fields required by selected shipping option”, available for editing on “Shipping” step."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/Order.printable.html:109
+#: /wa-apps/shop/templates/actions/order/Order.html:131
+#: /wa-apps/shop/lib/workflow/templates/ShipAction.html:36
+msgid "Preferred shipping time:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/Order.printable.html:142
+#: /wa-apps/shop/templates/actions/order/Order.html:164
+#: /wa-apps/shop/templates/layouts/Backend.html:303
+msgid "Shipping time"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/OrderEdit.html:116
+#: /wa-apps/shop/lib/classes/shopOrder.class.php:1933
+msgid "Total discount for this service: %s."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/OrderEdit.html:249
+#: /wa-apps/shop/lib/classes/shopOrder.class.php:1932
+#: /wa-apps/shop/lib/classes/shopDiscounts.class.php:535
+msgid "Total discount for this order item: %s."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/OrderEdit.html:263
+msgid "Customer source"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/OrderEdit.html:405
+msgid "Edit discount"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/OrderEdit.html:410
+msgid "Total discount breakdown"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/OrderEdit.html:411
+msgid "applicable to individual items:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/OrderEdit.html:412
+msgid "applicable to entire order:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/OrderEdit.html:417
+msgid "Manually edit automatically calculated discount"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/Order.html:168
+#: /wa-apps/shop/lib/config/data/workflow.php:193
+msgid "Edit shipping details"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/Order.html:230
+msgid "deleted product"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/Order.html:230
+msgid "deleted service"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/product_list_table.html:199
+msgid "Feature search by name or code"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/tutorial/include.TutorialSidebar.html:9
+#: /wa-apps/shop/templates/layouts/Backend.html:124
+msgid "Quick start"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/tutorial/include.TutorialSidebar.html:12
+#: /wa-apps/shop/templates/layouts/Backend.html:127
+msgid "of"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/tutorial/include.TutorialSidebar.html:37
+msgid "Done!"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/tutorial/include.TutorialSidebar.html:44
+msgid "Close quick start"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductPageEdit.html:91
+#: /wa-apps/shop/templates/actions/product/ProductPageEdit.html:105
+msgid "Upload image"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductPageEdit.html:110
+msgid "Uploading..."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductPageEdit.html:117
+msgid "Upload"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderForm.html:178
+msgid "Validation error"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderForm.html:179
+#: /wa-apps/shop/templates/actions/frontend/order/form/region.html:40
+#: /wa-apps/shop/templates/actions/frontend/order/form/render_field.function.html:26
+msgid "Required field"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:260
+msgid "Activate"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:263
+msgid "Coupon applied"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:264
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:289
+msgid "Undo"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:288
+msgid "Bonus used"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:319
+msgid "Total discount"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:348
+msgid "Coupon discount"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:358
+msgid "Affiliate bonus discount"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:379
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:534
+msgid "%s with total weight %s"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:6
+msgid "No more items in stock"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:10
+msgid "Only %s available in stock. Please reduce the quantity or delete this product from the cart."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:4
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:7
+msgid "Delete product from the cart"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:8
+msgid "Reduce quantity"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:9
+msgid "Increase quantity"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:85
+msgid "One item’s weight"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:525
+msgid "Coupon code is empty"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/cart/dialog/product.delete.html:5
+msgid "Delete product from the cart?"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/cart/dialog/product.delete.html:12
+#: /wa-apps/shop/templates/actions/frontend/order/cart/dialog/clear.html:12
+msgid "Don’t delete"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/cart/dialog/clear.html:5
+msgid "Empty cart"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/cart/dialog/clear.html:10
+msgid "Delete all products from the cart?"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/payment.html:43
+msgid "Unknown"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/payment.html:124
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutPaymentStep.class.php:79
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutPaymentStep.class.php:85
+msgid "Please select a payment method"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/shipping.html:18
+msgid "Shipping methods"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/shipping.html:84
+msgid "Select a shipping option"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/shipping.html:130
+#: /wa-apps/shop/templates/actions/frontend/order/form/shipping.html:135
+msgid "There are no shipping options available for specified location."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/shipping.html:130
+#: /wa-apps/shop/templates/actions/frontend/order/form/shipping.html:135
+msgid "Please check values in location fields or contact us."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/region.html:73
+msgid "To view shipping cost and estimated shipping time, please complete fields with an asterisk"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/region.html:197
+msgid "Select a city"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/region.html:259
+msgid "Locations"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/region.html:266
+msgid "No name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/details.html:145
+#: /wa-apps/shop/templates/actions/frontend/order/form/confirm.html:58
+msgid "Shipping cost"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/details.html:154
+msgid "Estimated shipping time"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/details.html:164
+msgid "Order storage time"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/details.html:184
+msgid "Shipping service"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/details.html:204
+msgid "day off"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/details.html:215
+msgid "How to reach"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/details.html:222
+msgid "More details"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/confirm.html:32
+msgid "Items cost"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/confirm.html:63
+msgid "not selected"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/confirm.html:70
+msgid "Total less shipping cost"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/confirm.html:84
+msgid "accept our <a class=\"js-show-terms-dialog\" href=\"javascript:void(0);\">terms of service</a>"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/confirm.html:98
+msgid "Confirm order"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/delivery.variants.html:7
+msgid "Shipping option selection"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/auth.html:30
+msgid "You are authorized as a company, and orders can be placed only by persons. Please %slog out%s of your account to check out as a person."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/auth.html:35
+msgid "You are authorized as a person, and orders can be placed only by companies. Please %slog out%s of your account to check out as a company."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/auth.html:73
+msgid "Logout"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/auth.html:77
+msgid "Log in"
+msgstr ""
+
+#: /wa-apps/shop/templates/layouts/Backend.html:294
+msgid "Time created"
+msgstr ""
+
+#: /wa-apps/shop/templates/layouts/Backend.html:297
+msgid "Time updated"
+msgstr ""
+
+#: /wa-apps/shop/templates/layouts/Backend.html:300
+msgid "Time paid"
+msgstr ""
+
+#: /wa-apps/shop/js/category/products.category.js:81
+msgid "Matching features were not found or are already selected."
+msgstr ""
+
+#: /wa-apps/shop/js/category/products.category.js:717
+#: /wa-apps/shop/js/category/products.category.js:718
+msgid "Nothing selected"
+msgstr ""
+
+#: /wa-apps/shop/js/settings/features.js:210
+msgid "Sorting in the common list is disabled. Drag-and-drop features into product types."
+msgstr ""
+
+#: /wa-apps/shop/js/product/product.js:979
+msgid "Select parameters to be available to customers for ordering this product in the storefront."
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowEditshippingdetailsAction.class.php:48
+#: /wa-apps/shop/lib/workflow/templates/ShipAction.html:56
+msgid "None"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowAction.class.php:403
+msgid "Order shipping via <strong>%s</strong> service was canceled."
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowAction.class.php:407
+msgid "Order is being prepared for shipping via <strong>%s</strong> service."
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowAction.class.php:411
+msgid "Order is ready for shipping via <strong>%s</strong> service."
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowAction.class.php:415
+msgid "Order details were sent to shipping service <strong>%s</strong>."
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowAction.class.php:442
+msgid "An error has occurred during the interaction with shipping service <strong>%s</strong>."
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowRefundAction.class.php:46
+msgid "Refunded %s via %s payment gateway."
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/RefundAction.html:17
+msgid "Actual refund"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/ShipAction.html:22
+msgid "Courier shipping"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/ShipAction.html:28
+msgid "from "
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/ShipAction.html:31
+msgid "to "
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/ShipAction.html:33
+msgid "specify date and time"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/ShipAction.html:50
+msgid "apply"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/ShipAction.html:97
+msgid "End time is earlier than start time. Are you sure?"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflow.class.php:154
+#: /wa-apps/shop/lib/workflow/shopWorkflow.class.php:157
+#: /wa-apps/shop/lib/workflow/shopWorkflow.class.php:160
+#: /wa-apps/shop/lib/workflow/shopWorkflow.class.php:163
+#: /wa-apps/shop/lib/workflow/shopWorkflow.class.php:166
+#: /wa-apps/shop/lib/workflow/shopWorkflow.class.php:169
+#: /wa-apps/shop/lib/workflow/shopWorkflow.class.php:172
+msgid "“%s” action"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:237
+msgid "Adding of a comment to an order in backend."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:238
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:240
+msgid "A comment was added to your order %s"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:246
+msgid "Editing of order shipping details in backend."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:247
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:249
+msgid "Shipping details of your order %s have been changed"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:256
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:258
+msgid "Your order %s has been settled"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/schedule/shopSettingsScheduleSave.controller.php:58
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2Save.controller.php:119
+msgid "Invalid value"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/schedule/shopSettingsScheduleSave.controller.php:65
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2Save.controller.php:126
+msgid "Please enter at least one working day"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/schedule/shopSettingsScheduleSave.controller.php:75
+#: /wa-apps/shop/lib/actions/settings/schedule/shopSettingsScheduleSave.controller.php:112
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2Save.controller.php:136
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2Save.controller.php:173
+msgid "Invalid time"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/schedule/shopSettingsScheduleSave.controller.php:84
+#: /wa-apps/shop/lib/actions/settings/schedule/shopSettingsScheduleSave.controller.php:99
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2Save.controller.php:145
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2Save.controller.php:160
+msgid "Invalid date"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/schedule/shopSettingsScheduleSave.controller.php:86
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2Save.controller.php:147
+msgid "Remove duplicate"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/schedule/shopSettingsScheduleSave.controller.php:101
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2Save.controller.php:162
+msgid "Remove the date from extra work days days"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2Save.controller.php:78
+msgid "Logo not uploaded. Please try again."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2UploadLogo.controller.php:9
+msgid "Missing storefront id."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2UploadLogo.controller.php:14
+msgid "Image loading error."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2UploadLogo.controller.php:22
+msgid "Invalid image format."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShipping.action.php:47
+msgid "Product feature “%s” with code <tt>%s</tt> is used."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShipping.action.php:55
+msgid "Shipping plugins retrieve weight from the vaules of a product feature with code <tt>%s</tt>."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShipping.action.php:77
+msgid "Product dimensions (value × value × value)"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShipping.action.php:78
+msgid "Select a common product feature containing 3 dimension values to avoid selecting separate features for individual dimensions below."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShipping.action.php:85
+msgid "Product dimensions are passed on to shipping plugins."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShipping.action.php:89
+msgid "Passing of product dimensions on to shipping plugins is not set up."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShipping.action.php:96
+msgid "Product height"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShipping.action.php:103
+msgid "Product width"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShipping.action.php:110
+msgid "Product length"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShipping.action.php:111
+msgid "Select separate product features for individual product dimensions if you have not selected a common dimensions feature above."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShipping.action.php:119
+msgid "Order dimensions calculation plugin"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShipping.action.php:124
+msgid "Order dimensions calculation is set up."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShipping.action.php:126
+msgid "Order dimensions calculation is not set up."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShipping.action.php:150
+msgid "Install an order dimensions calculation plugin."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShipping.action.php:156
+msgid "Do not calculate order dimensions"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShipping.action.php:159
+msgid "If no plugin is selected, then order dimensions are calculated by shipping plugins."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShipping.action.php:198
+msgid "Select a feature"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShippingSave.controller.php:75
+msgid "Parameters are not specified: %s"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:707
+msgid "%d product imported with errors"
+msgid_plural "%d products imported with errors"
+msgstr[0] ""
+msgstr[1] ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:712
+msgid "%d SKU not imported due to pricing plan restriction"
+msgid_plural "%d SKUs not imported due to pricing plan restriction"
+msgstr[0] ""
+msgstr[1] ""
+
+#: /wa-apps/shop/lib/actions/tutorial/shopTutorial.actions.php:122
+msgid "Basic settings"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/tutorial/shopTutorial.actions.php:132
+msgid "Select design"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/tutorial/shopTutorial.actions.php:137
+msgid "Set up payment"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/tutorial/shopTutorial.actions.php:142
+msgid "Set up shipping"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/orders/shopOrdersLoadList.controller.php:18
+msgid "Unknown offset"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/orders/shopOrdersLoadList.controller.php:22
+msgid "Unknown count"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/shopFrontendProductReviewsAdd.controller.php:157
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutContactinfo.class.php:249
+msgid "Please confirm your agreement"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:95
+msgid "Service does not exist."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:100
+msgid "Service is already in cart."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:107
+msgid "Service variant does not exist."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:130
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:157
+msgid "Incorrect input data"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:137
+msgid "No product to add service to."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:376
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:383
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:420
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:422
+msgid "Data mismatch. Shopping cart parameters have changed beyond this page?"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:396
+msgid "Quantity must be integer."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:403
+msgid "Not enough in stock."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrder.actions.php:71
+msgid "You must be logged in to complete this order."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrder.actions.php:157
+msgid "Unable to save order."
+msgstr ""
+
+#: /wa-apps/shop/lib/layouts/shopBackend.layout.php:89
+msgid "Conventional commodity"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopOrder.class.php:2168
+msgid "Discount specified manually during order creation: %s"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopOrder.class.php:2170
+msgid "Discount modified manually via backend editor: %s"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopOrder.class.php:2178
+msgid "Previously calculated discount was preserved"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopShipping.class.php:51
+#: /wa-apps/shop/lib/classes/shopShipping.class.php:74
+msgid "Shipping method with id=%s not found."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopShipping.class.php:364
+#: /wa-apps/shop/lib/classes/shopShipping.class.php:365
+#: /wa-apps/shop/lib/classes/shopShipping.class.php:366
+msgid "shipping type “%s”"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopShipping.class.php:364
+msgid "pickup"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopShipping.class.php:365
+msgid "courier"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopShipping.class.php:367
+msgid "post"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopAffiliate.class.php:368
+msgid "Recalculation of discount after order is restored"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutDetailsStep.class.php:30
+msgid "Unknown shipping method."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutDetailsStep.class.php:146
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutDetailsStep.class.php:151
+msgid "Unable to calculate a shipping rate."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutAuthStep.class.php:127
+msgid "Please select customer mode."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutShippingStep.class.php:63
+msgid "No shipping options available for selected region."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutShippingStep.class.php:195
+msgid "Please select shipping option."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:178
+msgid "Mini"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:181
+msgid "Narrow"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:184
+msgid "Medium"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:187
+msgid "Large"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:196
+msgid "Discount amount"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:199
+msgid "Compare at price without discount"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:208
+msgid "Only common amount"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:211
+msgid "Breakdown per discount types"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:220
+msgid "Default"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:221
+msgid "Available shipping options are grouped by type—“Courier”, “Pickup”, “Post”."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:225
+msgid "Minimal"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:225
+msgid "Fixed list of shipping areas. Available shipping options are not grouped by type—“Courier”, “Pickup”, “Post”. There is no option to select a pickup point on a map."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:235
+msgid "Always show"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:237
+msgid "Except for mobile devices"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:241
+msgid "Never show"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:256
+msgid "Persons &amp; companies"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:268
+msgid "By submitting this form I agree to <a href=\"---INSERT A LINK HERE!---\" target=\"_blank\">personal data protection policy</a>"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:272
+msgid "I agree to <a href=\"---INSERT A LINK HERE!---\" target=\"_blank\">personal data protection policy</a>"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:281
+msgid "Unauthorized customer can place orders, and each order will create a new customer profile"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:284
+msgid "Unauthorized customer can place orders, and they will be connected with an existing customer profile"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:287
+msgid "Checkout is not allowed without email address or phone number confirmation"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:297
+msgid "Common working schedule"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:297
+msgid "Section “<a href=\"?action=settings#/schedule/\" target=\"_blank\">%s</a>” <i class=\"icon16 new-window\"></i> settings are used"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:300
+msgid "Custom working schedule for this storefront"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:301
+msgid "Select if your online store has several storefronts with different working schedules"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:71
+msgid "Social sharing URL (og:url)"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:73
+msgid "If at least one og: value above is not empty, then you may keep this field empty for og:url meta tag to contain this storefront‘s URL by default. Or type a custom og:url value manually, if necessary."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:86
+msgid "<br>Product URLs: /<strong>product-name/</strong><br>Category URLs: /category/<strong>category-name/subcategory-name/subcategory-name/</strong>"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:195
+msgid "Вид оформления заказа"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:199
+msgid "Оформление заказа в корзине"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:200
+msgid "В случае, если ваша тема не поддерживает \"оформление заказа в корзине\", для страницы оформления будет включен стандартный дизайн темы \"Дефолт\". <a href=\"%s\">Настройте</a> <i class=\"icon16 new-window\"></i>оформление заказа в корзине"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:212
+msgid "<a href=\"%s\">Настройте</a> <i class=\"icon16 new-window\"></i>пошаговое оформление заказа"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:266
+msgid "Returns HTML rendering cart block for new one-page checkout"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:267
+msgid "Returns variables that $wa->shop->checkout()->cart() assigns to its template"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:270
+msgid "Returns HTML rendering form block for new one-page checkout"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:272
+msgid "Returns variables that $wa->shop->checkout()->form() assigns to its template"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:295 /wa-apps/shop/lib/config/site.php:416
+#: /wa-apps/shop/lib/config/site.php:505
+msgid "URL of Shop-Script storefront where the order was placed, decoded from Punycode if applicable"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:298 /wa-apps/shop/lib/config/site.php:418
+#: /wa-apps/shop/lib/config/site.php:507
+msgid "Customer’s User-Agent value at the moment of order creation"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:304 /wa-apps/shop/lib/config/site.php:430
+#: /wa-apps/shop/lib/config/site.php:519
+msgid "Day number of customer’s date of birth"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:305 /wa-apps/shop/lib/config/site.php:431
+#: /wa-apps/shop/lib/config/site.php:521
+msgid "Month number of customer’s date of birth"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:307 /wa-apps/shop/lib/config/site.php:432
+#: /wa-apps/shop/lib/config/site.php:522
+msgid "Year number of customer’s date of birth"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:308 /wa-apps/shop/lib/config/site.php:434
+#: /wa-apps/shop/lib/config/site.php:523
+msgid "Customer’s name"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:309 /wa-apps/shop/lib/config/site.php:434
+#: /wa-apps/shop/lib/config/site.php:524
+msgid "Customer’s company name"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:310 /wa-apps/shop/lib/config/site.php:436
+#: /wa-apps/shop/lib/config/site.php:525
+msgid "Customer’s job title"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:311 /wa-apps/shop/lib/config/site.php:437
+#: /wa-apps/shop/lib/config/site.php:526
+msgid "Customer’s phone number"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:312 /wa-apps/shop/lib/config/site.php:438
+#: /wa-apps/shop/lib/config/site.php:527
+msgid "Customer’s email address"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:313 /wa-apps/shop/lib/config/site.php:439
+#: /wa-apps/shop/lib/config/site.php:528
+msgid "Customer’s street address"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:314 /wa-apps/shop/lib/config/site.php:439
+#: /wa-apps/shop/lib/config/site.php:528
+msgid "Customer’s city name"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:314 /wa-apps/shop/lib/config/site.php:440
+#: /wa-apps/shop/lib/config/site.php:529
+msgid "Customer’s ZIP code"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:315 /wa-apps/shop/lib/config/site.php:440
+#: /wa-apps/shop/lib/config/site.php:529
+msgid "Customer’s region name"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:315 /wa-apps/shop/lib/config/site.php:440
+#: /wa-apps/shop/lib/config/site.php:530
+msgid "Customer’s country name"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:316 /wa-apps/shop/lib/config/site.php:441
+#: /wa-apps/shop/lib/config/site.php:530
+msgid "Amount of customer‘s bonuses accumulated with the “Loyalty program” enabled in store settings"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:317 /wa-apps/shop/lib/config/site.php:442
+#: /wa-apps/shop/lib/config/site.php:531
+msgid "Total amount of money spent by a customer calculated in default currency. To add formatted amount expressed in the order currency, use <code>{shop_currency($customer.total_spent, null, $order.currency)}</code>."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:318 /wa-apps/shop/lib/config/site.php:443
+#: /wa-apps/shop/lib/config/site.php:534
+msgid "Number of orders placed by a customer."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:320 /wa-apps/shop/lib/config/site.php:445
+#: /wa-apps/shop/lib/config/site.php:535
+msgid "ID of last order placed by a customer. To add formatted order ID, use <code>{shopHelper::encodeOrderId($customer.last_order_id)}</code>."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:338
+msgid "Returns array of visible subcategories of specified parent category.<br><strong>$id</strong> (default: <em>0</em>): ID of parent category whose subcategories must be returned. By default, categories starting from top level are returned.<br><strong>$depth</strong> (default: <em>null</em>): depth of subcategory tree. By default, entire category tree is returned.<br><strong>$tree</strong> (default: <em>false</em>): flag requiring to return categories as a tree (<em>true</em>) or a flat array (<em>false</em>).<br><strong>$params</strong> (default: <em>false</em>): flag requiring to return categories with their extra parameters. By default, categories are returned without extra parameters.<br><strong>$route</strong> (default: <em>null</em>): array of route parameters of the storefront for which visible categories must be returned. By default, returned categories are not necessarily limited to certain storefronts."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:342
+msgid "Returns category URL for specified <em>$category</em> array"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:344
+msgid "Returns array of specified product’s cross-selling items.<br><strong>$id</strong> of product whose cross-selling items must be returned.<br><strong>$limit</strong> (default: <em>5</em>) limits the number of returned items.<br><strong>$available_only</strong> (default: <em>false</em>) excludes out-of-stock products from the result. By default, out-of-stock products are not skipped."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:346
+msgid "Returns array of available currencies."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:347
+msgid "Returns current currency’s properties object."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:347
+msgid "Returns HTML for a product image thumbnail with specified size and attributes. <em>$image</em> array must contain <em>'id'</em>, <em>'product_id'</em>, and <em>'ext'</em> elements."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:349
+msgid "Returns relative or absolute URL of a product image thumbnail with specified size. <em>$image</em> array must contain <em>'id'</em>, <em>'product_id'</em>, and <em>'ext'</em> elements."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:350
+msgid "To get product-related information, first create a product object by passing its numeric ID; e.g., <em>'product_id'</em> property of an item in <em>$order.items</em> array."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:351
+msgid "Returns product URL for specified storefront address. E.g., use <em>$order.params.storefront</em> containing the storefront on which a product was purchased by a customer."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:352
+msgid "Returns array of product’s upselling items.<br><strong>$limit</strong> (default: <em>5</em>) limits the number of returned items.<br><strong>$available_only</strong> (default: <em>false</em>) excludes out-of-stock products from the result. By default, out-of-stock products are not skipped."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:353
+msgid "Returns array of product’s cross-selling items.<br><strong>$limit</strong> (default: <em>5</em>) limits the number of returned items.<br><strong>$available_only</strong> (default: <em>false</em>) excludes out-of-stock products from the result. By default, out-of-stock products are not skipped."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:361
+msgid "Array of product’s SKUs"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:362
+msgid "Array of product’s images"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:362
+msgid "Array of product’s categories"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:363
+msgid "Array of product’s tags"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:365
+msgid "Array of product’s subpages"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:366
+msgid "Array of product’s features and their values"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:367
+msgid "Array of product’s reviews"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:375
+msgid "Returns array of tags, by default limited to 50 items"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:379
+msgid "Returns formatted order ID by provided numerical ID"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:382
+msgid "Returns array of enabled payment methods"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:384
+msgid "Returns array of enabled shipping methods"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:392 /wa-apps/shop/lib/config/site.php:481
+msgid "Relative URL of ordered product‘s main image with specified size."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:393 /wa-apps/shop/lib/config/site.php:482
+msgid "<code>$item</code> must be an item of <code>$order.items</code> array."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:395 /wa-apps/shop/lib/config/site.php:484
+msgid "<code>$size</code> must contain one of size values described in the <a href=\"https://www.shop-script.com/help/43/image-thumbnails-in-shop-script-5-storefront/\" target=\"_blank\">documentation</a>; e.g., \"200\" or \"200x0\", etc. Default image size, if not specified, is \"750x0\"."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:395 /wa-apps/shop/lib/config/site.php:484
+msgid "To obtain an absolute image URL, use <code>{$wa-&gt;domainUrl()}</code>."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:396 /wa-apps/shop/lib/config/site.php:485
+msgid "Example:"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:420
+msgid "Nearest delivery date and time formatted as <em>yyyy-mm-dd hh:mm:ss</em>; e.g., <em>2001-12-31 12:30:59</em>."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:421 /wa-apps/shop/lib/config/site.php:510
+msgid "Deadline for delivery formatted as <em>yyyy-mm-dd hh:mm:ss</em>; e.g., <em>2001-12-31 13:30:59</em>."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:422 /wa-apps/shop/lib/config/site.php:511
+msgid "Desired delivery date selected by customer, formatted as <em>yyyy-mm-dd</em>; e.g., <em>2001-12-31</em>."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:423 /wa-apps/shop/lib/config/site.php:513
+msgid "Desired delivery date selected by customer, formatted as <em>dd.mm.yyyy</em>; e.g., <em>31.12.2001</em>."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:426 /wa-apps/shop/lib/config/site.php:515
+msgid "Desired delivery interval selected by customer, formatted as <em>xx:xx-xx:xx</em>; e.g., <em>10:00-12:00</em>."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:452
+msgid "Shipping date, for example: February 16, 2017"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:453
+msgid "Shipping date, for example: February 16"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:455
+msgid "Shipping date, for example: 02/16/2017"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:456
+msgid "Start of shipping time interval"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:457
+msgid "End of shipping time interval"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:458
+msgid "Shipping date and time, for example: February 16, 10:00 - 20:30"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:510
+msgid "Nearest delivery date and time formatted as <em>yyyy-mm-dd</em>; e.g., <em>2001-12-31</em>."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/hints/template.html:8
+msgid "Read more"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/shopConfig.class.php:43
+msgid "as added to the shopping cart"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/shopConfig.class.php:44
+msgid "by item name"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/shopConfig.class.php:45
+msgid "by SKU code"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:17
+#: /wa-apps/shop/themes/default/order.html:35
+msgid "Корзина"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:18
+msgid "В вашей корзине пусто"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:29
+#: /wa-apps/shop/themes/default/order.html:57
+msgid "Оформление"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:40
+msgid "Покупатель"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:40
+msgid "Вход упрощает работу с магазином: все заказы сохраняются в истории личного кабинета, а при повторных заказах не нужно заполнять поля покупателя"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:43
+#: /wa-apps/shop/lib/config/checkout2/default.php:49
+msgid "Выйдите, если вы хотите оформить заказ от имени другого пользователя"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:48
+msgid "Физ. лица"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:49
+msgid "Юр. лица"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:54
+msgid "Принимаю <a href=\"\">условия работы</a>"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:61
+msgid "Доставка"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:61
+msgid "Курьер"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:62
+msgid "Самовывоз"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:64
+msgid "Почта"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/data/workflow.php:160
+#: /wa-apps/shop/lib/config/data/workflow.php:170
+#: /wa-apps/shop/lib/config/data/workflow.php:139
+#: /wa-apps/shop/lib/config/data/workflow.php:149
+#: /wa-apps/shop/lib/config/data/workflow.php:205
+#: /wa-apps/shop/lib/config/data/workflow.php:226
+msgid "Order status will be changed to “%s”."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/data/workflow.php:150
+#: /wa-apps/shop/lib/config/data/workflow.php:227
+msgid "A payment date will be saved."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/data/workflow.php:171
+#: /wa-apps/shop/lib/config/data/workflow.php:206
+msgid "Quantities of ordered products and their SKUs, if non-empty, will be increased accordingly. Order payment date will be cleared."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/data/workflow.php:197
+msgid "Shipping details changed"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/data/workflow.php:217
+msgid "Order status will be changed to the one the order had before deletion."
+msgstr ""
+
+#: /wa-apps/shop/lib/model/shopProductStocksLog.model.php:43
+msgid "Inventory transferred to warehouse"
+msgstr ""
+
+#: /wa-apps/shop/themes/default/order.html:21
+#: /wa-apps/shop/themes/default/checkout.success.html:47
+msgid "Go to home page"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutSidebar.html:8
+msgid "<i class=\"icon16 status-green-tiny\"></i>&nbsp;“In-cart checkout” or <i class=\"icon16 status-blue-tiny\"></i>&nbsp;“Multi-step checkout” are selectable in <a href=\"%s\" target=\"_blank\">strorefront settings</a> <i class=\"icon10 new-window\"></i> individually for each storefront."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsRegions.html:6
+msgid "You can set up countries and regions in “<a href=\\\"%s\\\">Settings</a>” app."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductSet.html:38
+msgid "Changing the set ID <em>will not</em> automatically update templates and pages in which this code is embedded, so be sure to update them if you change the ID."
+msgstr ""
+
+#: /wa-apps/shop/lib/updates/dev/1541167785.php:16
+msgid "We will contact you as soon as possible. Your order No. is $order_id."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2UploadLogo.controller.php:14
+msgid "s"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/shopFrontendCheckout.action.php:172
+msgid "Your order number is"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrder.actions.php:129
+msgid "Order creation error."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopOrder.class.php:1052
+msgid "Discount is greater than order total."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutAuthStep.class.php:42
+msgid "You are logged in as a company. Please log out and login again as a person."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutAuthStep.class.php:45
+msgid "You are logged in as a person. Please log out and log in again as a company."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutAuthStep.class.php:127
+msgid "Please select customer type."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:195
+msgid "Checkout mode"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:199
+msgid "<span class=\"checkout-2-background\">%s</span> (may be not supported by some design themes; please check your theme’s description or checkout settings after selecting this mode)"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:200
+msgid "If your design theme does not support “in-cart checkout”, standard checkout design of “Default” theme will be used. <a href=\"%s\">Set up</a> <i class=\"icon16 new-window\"></i>in-cart checkout."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:204
+msgid "<a href=\"%s\">Set up</a> <i class=\"icon16 new-window\"></i>multi-step checkout"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:234
+msgid "Array of product subpages"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:265
+msgid "Returns HTML of in-cart checkout cart block"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:267
+msgid "Returns HTML of in-cart checkout form"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:335
+msgid "Returns checkout page URL"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:336
+msgid "Returns shopping cart page URL"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:18
+msgid "Your shopping cart is empty"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:40
+msgid "Logging in makes ordering simple because all your orders are saved in your account history and you do not need to enter contact details for every new order."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:41
+#: /wa-apps/shop/lib/config/checkout2/default.php:47
+msgid "Log out if you want to check out as another customer"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:48
+msgid "I accept <a href=\"\">terms of service</a>"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:57
+msgid "Pickup"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:58
+msgid "Post"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:61
+msgid "By placing an order you confirm that you are of adult age and agree to our <a href=\"\">personal data processing terms</a>"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:75
+msgid "We have received your order. Thank you!"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/checkout2/default.php:76
+msgid "We will contact you soon. Your order No. is $order_id."
+msgstr ""
+
+#: /wa-apps/shop/themes/default/checkout.success.html:34
+msgid "Your order number is "
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/category/ProductsCategory.html:165
+#: /wa-apps/shop/templates/actions/category/ProductsCategory.html:211
+msgid "is less or equal"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.export.html:29
+msgid "Profile"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:197
+msgid "item"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:315
+msgid "Select an online map service in <a href=\\\"%s\\\">Settings</a> app."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:328
+msgid "Set up connection to SMS providers in <a href=\\\"%s\\\">Settings</a> app."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:330
+msgid "You need access to Settings app to set up connection to SMS providers."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2.html:51
+msgid "General checkout settings"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2.html:93
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:53
+msgid "<a href=\"%s\" target=\"_blank\">Add a shipping method</a>"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2.html:131
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:56
+msgid "<a href=\"%s\" target=\"_blank\">Add a payment method</a>"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:433
+msgid "Is used to calculate estimated order shipping time. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later. Additional order picking time can be specified in individual shipping methods’ settings."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:62
+msgid "Additional order picking time"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:65
+msgid "Added to order ready time calculated by storefront business hours."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:66
+msgid "This setting is used only with in-cart checkout option."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:114
+msgid "Is used to calculate estimated order shipping time only with in-cart checkout option. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later. Additional order picking time can be specified in individual shipping methods’ settings."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/confirm.html:66
+#: /wa-apps/shop/templates/actions/frontend/order/form/details.html:157
+msgid "free"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/setpassword.html:7
+msgid "Set password"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/signup.html:7
+msgid "Signup"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/forgotpassword.html:7
+msgid "Password recovery"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/shipping.html:50
+#: /wa-apps/shop/templates/actions/frontend/order/form/shipping.html:116
+msgid "Free"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:285
+msgid "Existing customer’s data will be updated by the data from a new order."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfirmStep.class.php:50
+msgid "Some items in your order are not available. Please remove them from your cart."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/checkout2/shopSettingsCheckout2UploadLogo.controller.php:14
+msgid "Image uploading error"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shipping/shopSettingsShippingClone.controller.php:23
+msgid "Shipping plugin not found."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrder.action.php:37
+msgid "Page not supported by selected design theme."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:336
+msgid "Returns working schedule data array for current storefront"
 msgstr ""

@@ -32,7 +32,7 @@
 
                 <section class="s-order-section" id="js-order-cart">
                     <div class="s-section-header wa-flex-box full-line middle">
-                        <h2 class="s-header">{$config.cart.block_name|default:"[`Корзина`]"|escape}</h2>
+                        <h2 class="s-header">{$config.cart.block_name|default:"[`Shopping cart`]"|escape}</h2>
                         <a class="s-delete-button js-clear-cart" href="javascript:void(0);">
                             {$_svg_icon = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9.9 9.9"><path d="M0,8.5l3.5-3.5L0,1.4L1.4,0l3.5,3.5L8.5,0l1.4,1.4L6.4,4.9l3.5,3.5L8.5,9.9L4.9,6.4L1.4,9.9L0,8.5z"/></svg>'}
                             <span class="s-delete-icon">{$_svg_icon}</span>Удалить все товары
@@ -41,8 +41,7 @@
                     <div class="s-section-body">
                         {$wa->shop->checkout()->cart([
                             "DEBUG" => true,
-                            "wrapper" => "#js-order-cart",
-                            "some_other_options" => "whatever"
+                            "wrapper" => "#js-order-cart"
                         ])}
                     </div>
                 </section>
@@ -54,18 +53,33 @@
 
             <section class="s-order-section" id="js-order-form">
                 <div class="s-section-header">
-                    <h2 class="s-header">{$config.order.block_name|default:"[`Оформление`]"|escape}</h2>
+                    <h2 class="s-header">{$config.order.block_name|default:"[`Checkout`]"|escape}</h2>
                 </div>
                 <div class="s-section-body">
                     {$wa->shop->checkout()->form([
                         "DEBUG" => true,
-                        "wrapper" => "#js-order-form",
-                        "some_other_options" => "whatever"
+                        "wrapper" => "#js-order-form"
                     ])}
                 </div>
             </section>
 
         </div>
+
+        {capture assign="_header_logged_template"}
+            <ul class="auth" id="js-header-auth-wrapper">
+                <li class="bold">
+                    <a href="{if $wa->myUrl()}{$wa->myUrl()}{else}{$wa->getUrl('/frontend/myProfile')}{/if}" class="not-visited"><i class="icon16 userpic20 float-left" style="background-image: url('%image%');"></i> %name%</a>
+                </li>
+                <li><a href="?logout" class="not-visited">[s`Log out`]</a></li>
+            </ul>
+        {/capture}
+
+        {capture assign="_header_logout_template"}
+            <ul class="auth" id="js-header-auth-wrapper">
+                <li><a href="{$wa->loginUrl()}" class="not-visited">[s`Log in`]</a></li>
+                <li><a href="{$wa->signupUrl()}" class="not-visited">[s`Sign up`]</a></li>
+            </ul>
+        {/capture}
 
         <script>
             ( function($) {
@@ -85,6 +99,10 @@
                 function init() {
                     new window.ShopOrderPage({
                         $wrapper: $("#js-order-page"),
+                        templates: {
+                            "header_logged": {$_header_logged_template|strip|json_encode},
+                            "header_logout": {$_header_logout_template|strip|json_encode}
+                        },
                         urls: {
                             "checkbox-icon": "{$wa_app_static_url}img/frontend/order/svg/sprite.svg#checkbox-yes"
                         }
@@ -95,3 +113,7 @@
         </script>
     </div>
 {/if}
+
+<!-- plugin hook: 'frontend_order' -->
+{* @event frontend_order.%plugin_id% *}
+{foreach $frontend_order as $_}{$_}{/foreach}

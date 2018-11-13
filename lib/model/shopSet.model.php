@@ -61,7 +61,7 @@ class shopSetModel extends waModel
         /**
          * @event set_delete
          */
-        wa()->event('set_delete', $item);
+        wa('shop')->event('set_delete', $item);
 
         $this->deleteById($id);
 

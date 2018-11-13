@@ -96,7 +96,7 @@
                                 </tbody>
                             </table>
 
-                            <div class="hint" style="margin: 10px 0 0; max-width: 570px;">{sprintf('[`Values of “%s” and “%s” fields can be used to calculate the shipping terms.`]', '[`Business hours`]', '[`New orders for processing`]')}</div>
+                            <div class="hint" style="margin: 10px 0 0; max-width: 570px;">{sprintf('[`Values of “%s” and “%s” fields can be used to calculate the estimated shipping time.`]', '[`Business hours`]', '[`New orders for processing`]')}</div>
                             <div class="hint" style="margin: 10px 0 0; max-width: 570px;">{sprintf('[`Values in “%s” column denote the last hour of a workday before which orders are accepted for processing on the same day. Orders accepted after that hour are processed on the next workday.`]', '[`New orders for processing`]')}</div>
                             <div class="hint" style="margin: 10px 0 0; max-width: 570px;">[`The setting is used by default in all storefronts.`]</div>
                         </div>
@@ -111,7 +111,7 @@
                         <div class="value">
                             <input id="processing_time" class="s-time" type="text" autocomplete="off" name="data[processing_time]" value="{$processing_time|escape}" />
 
-                            <div class="hint" style="margin: 10px 0 5px; max-width: 570px;">[`Is used to calculate order shipping terms. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later.`]</div>
+                            <div class="hint" style="margin: 10px 0 5px; max-width: 570px;">[`Is used to calculate estimated order shipping time only with in-cart checkout option. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later. Additional order picking time can be specified in individual shipping methods’ settings.`]</div>
                             <div class="hint">[`The setting is used by default in all storefronts.`]</div>
                         </div>
                     </div>

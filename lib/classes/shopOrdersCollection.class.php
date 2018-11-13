@@ -54,7 +54,7 @@ class shopOrdersCollection
          * @event orders_collection.filter
          * @param array shopOrdersCollection $this
          */
-        wa()->event('orders_collection.filter', $this);
+        wa('shop')->event('orders_collection.filter', $this);
     }
 
     public function setOptions($options)

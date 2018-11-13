@@ -7,14 +7,26 @@
     "quantity_delete" => _w('Delete product from the cart'),
     "quantity_decrease" => _w('Reduce quantity'),
     "quantity_increase" => _w('Increase quantity'),
-    "quantity_stock_error" => _w("Only %s units available in stock. Please reduce the quantity or delete this product from the cart.")
+    "quantity_stock_error" => _w("Only %s available in stock. Please reduce the quantity or delete this product from the cart.")
 ]}
 
 {function name="_renderError" _text=""}
     <div class="wa-error-text js-error-text">{$_text|default:""}</div>
 {/function}
 
-<div class="wa-order-cart-wrapper is-not-ready" id="wa-order-cart-wrapper" style="visibility: hidden;">
+{$_use_adaptive_styles = true}
+{if !empty($options)}
+    {if isset($options["adaptive"]) && (empty($options["adaptive"]) || $options["adaptive"] === "false")}
+        {$_use_adaptive_styles = false}
+    {/if}
+{/if}
+
+{$_cart_classes = []}
+{if !empty($_use_adaptive_styles)}
+    {$_cart_classes[] = "with-adaptive"}
+{/if}
+
+<div class="wa-order-cart-wrapper is-not-ready {$_cart_classes|join:" "}" id="wa-order-cart-wrapper" style="visibility: hidden;">
     {if empty($cart.count)}
         <div class="wa-cart-body">
             <p class="align-center" style="margin: 100px 0;">[`Your shopping cart is empty.`]</p>
@@ -182,7 +194,7 @@
                                             {shop_currency($_item.price, [
                                                 'in_currency' => true,
                                                 'extended_format' => '%t{h}'
-                                            ])}/шт.
+                                            ])}/[`item`]
                                         </div>
                                     </div>
 
@@ -212,9 +224,14 @@
                                         </div>
 
                                         {if $_config.discount_item === shopCheckoutConfig::DISCOUNT_ITEM_TYPE_STRIKEOUT}
-                                            <div class="wa-price-compare js-product-compare" {if empty($_item.full_compare_price)}style="display: none;"{/if}>
-                                                {if !empty($_item.full_compare_price)}
-                                                    {shop_currency($_item.full_compare_price, ['in_currency' => true, 'extended_format' => '%t{h}'])}
+                                            {$_compare_price = null}
+                                            {if !empty($_item.discount)}
+                                                {$_compare_price = $_item.full_price + $_item.discount}
+                                            {/if}
+
+                                            <div class="wa-price-compare js-product-compare" {if empty($_compare_price)}style="display: none;"{/if}>
+                                                {if !empty($_compare_price)}
+                                                    {shop_currency($_compare_price, ['in_currency' => true, 'extended_format' => '%t{h}'])}
                                                 {else}0{/if}
                                             </div>
 
@@ -302,19 +319,9 @@
 
                     <div class="wa-price-section">
                         {if $_config.discount_general === shopCheckoutConfig::DISCOUNT_GENERAL_TYPE_AMOUNT}
-                            {$_total_discount = 0}
-
-                            {if !empty($cart.discount)}
-                                {$_total_discount = $_total_discount + $cart.discount}
-                            {/if}
-                            {if !empty($coupon_discount)}
-                                {$_total_discount = $_total_discount + $coupon_discount}
-                            {/if}
-                            {if !empty($affiliate) && !empty($affiliate.used_affiliate_bonus)}
-                                {$_total_discount = $_total_discount + $affiliate.used_affiliate_bonus}
-                            {/if}
 
                             {*discount*}
+                            {$_total_discount = $cart.discount}
                             <div class="wa-price-discount" id="wa-cart-full-discount" style="{if empty($_total_discount)}display: none;{/if}">
                                 [`Total discount`]
                                 <span class="wa-discount js-price">{if !empty($cart.discount)}
@@ -333,11 +340,21 @@
                                     ])}
                                 </span>
                             </div>
-                            {*discount*}
-                            <div class="wa-price-discount" id="wa-cart-discount" style="{if empty($cart.discount)}display: none;{/if}">
+
+                            {*
+                             * discount without coupon and affiliate
+                             *}
+                            {$_partial_discount = $cart.discount}
+                            {if !empty($coupon_discount)}
+                                {$_partial_discount = $_partial_discount - $coupon_discount}
+                            {/if}
+                            {if !empty($affiliate.use_affiliate) && !empty($affiliate.affiliate_discount)}
+                                {$_partial_discount = $_partial_discount - $affiliate.affiliate_discount}
+                            {/if}
+                            <div class="wa-price-discount" id="wa-cart-discount" style="{if empty($_partial_discount)}display: none;{/if}">
                                 [`Discount`]
-                                <span class="wa-discount js-price">{if !empty($cart.discount)}
-                                    {shop_currency($cart.discount, [
+                                <span class="wa-discount js-price">{if !empty($_partial_discount)}
+                                    {shop_currency($_partial_discount, [
                                         'in_currency' => true,
                                         'extended_format' => '%t{h}'
                                     ])}
@@ -357,7 +374,8 @@
                             <div class="wa-price-discount" id="wa-cart-discount-affiliate" style="{if empty($affiliate.use_affiliate)}display: none;{/if}">
                                 [`Affiliate bonus discount`]
                                 <span class="wa-discount js-price">{if !empty($affiliate.use_affiliate)}
-                                    {shop_currency(shopAffiliate::convertBonus($affiliate.used_affiliate_bonus), [
+                                    {shop_currency($affiliate.affiliate_discount, [
+                                        'in_currency' => true,
                                         'extended_format' => '%t{h}'
                                     ])}
                                 {else}0{/if}</span>

@@ -244,7 +244,7 @@
                 {* Layout background *}
                 <div class="field">
                     <div class="name">
-                        <label for="design_layout_background">[`Layer background color`]</label>
+                        <label for="design_layout_background">[`Header &amp; footer background color`]</label>
                     </div>
                     <div class="value input">
                         <input id="design_layout_background" class="s-color-input js-color-input" type="text" name="data[design][layout_background]" value="{$settings.layout_background|escape}" autocomplete="off" />
@@ -259,7 +259,7 @@
                     <div class="value">
                         <textarea id="design_custom_css" name="data[design][custom_css]">{$settings.custom_css|escape}</textarea>
                         <div class="hint" style="margin-top: 10px;">
-                            [`Entered CSS code will be added inside <code>&lt;script&gt; ... &lt;/script&gt;</code> tags in <code>&lt;head&gt;</code> block only on checkout page.`]
+                            [`Entered CSS code will be added inside <code>&lt;style&gt; ... &lt;/style&gt;</code> tags in <code>&lt;head&gt;</code> block only on checkout page.`]
                         </div>
                     </div>
                 </div>
@@ -313,6 +313,9 @@
                     <label>
                         <input type="radio" name="data[cart][discount_item]" value="{$_id|escape}"{if $settings.discount_item === $_id} checked{/if} />
                         {$_variant.name|escape}
+                        {if isset($_variant.description)}
+                            <p class="hint">{$_variant.description}</p>
+                        {/if}
                     </label>
                 </div>
             {/foreach}
@@ -413,9 +416,8 @@
                                             </tbody>
                                         </table>
 
-                                        <div class="hint" style="margin: 10px 0 0; max-width: 570px;">{sprintf('[`Values of “%s” and “%s” fields can be used to calculate the shipping terms.`]', '[`Working hours`]', '[`New orders for processing`]')}</div>
+                                        <div class="hint" style="margin: 10px 0 0; max-width: 570px;">{sprintf('[`Values of “%s” and “%s” fields can be used to calculate the estimated shipping time.`]', '[`Business hours`]', '[`New orders for processing`]')}</div>
                                         <div class="hint" style="margin: 10px 0 0; max-width: 570px;">{sprintf('[`Values in “%s” column denote the last hour of a workday before which orders are accepted for processing on the same day. Orders accepted after that hour are processed on the next workday.`]', '[`New orders for processing`]')}</div>
-                                        <div class="hint" style="margin: 10px 0 0; max-width: 570px;">[`The setting is used by default in all storefronts.`]</div>
                                     </div>
                                 </div>
                             </div>
@@ -428,7 +430,7 @@
                                     <div class="value">
                                         <input id="processing_time" class="s-time" type="text" autocomplete="off" name="data[schedule][processing_time]" value="{$_schedule.processing_time|default:0|escape}" />
 
-                                        <div class="hint" style="margin: 10px 0 5px; max-width: 570px;">[`Is used to calculate order shipping terms. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later.`]</div>
+                                        <div class="hint" style="margin: 10px 0 5px; max-width: 570px;">[`Is used to calculate estimated order shipping time. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later. Additional order picking time can be specified in individual shipping methods’ settings.`]</div>
                                     </div>
                                 </div>
                             </div>
@@ -532,7 +534,7 @@
                                         <input name="data[order][fixed_delivery_area][city]" class="js-fix-delivery-city" type="text" value="{$settings.fixed_delivery_area.city|escape}" autocomplete="off" />
                                     </label>
                                     <div class="hint" style="margin-top: 10px;">
-                                        [`Separate locality names with a comma. With this field completed, the list of shipping areas in the minimal mode will be unavailable.`]
+                                        [`Separate locality names with a comma.`]
                                     </div>
                                 </div>
                             </div>
@@ -724,7 +726,7 @@
 {* Shipping block *}
 {function shipping_block settings=[]}
     <div class="s-checkout-field-group field-group">
-        <div style="margin-top: 10px;">{sprintf(_w('<a href="%s">Add and configure shipping methods</a>.'), '?action=settings#/shipping/')}</div>
+        <div style="margin-top: 10px;">{sprintf(_w('<a href="%s" target="_blank">Add and configure shipping methods <i class="icon16 new-window"></i></a>'), '?action=settings#/shipping/')}</div>
         {* Block name *}
         <div class="field">
             <div class="name">
@@ -886,7 +888,7 @@
 {* Payment block *}
 {function payment_block settings=[]}
 <div class="s-checkout-field-group field-group">
-    <div style="margin-top: 10px;">{sprintf(_w('<a href="%s">Add and configure payment methods</a>.'), '?action=settings#/payment/')}</div>
+    <div style="margin-top: 10px;">{sprintf(_w('<a href="%s" target="_blank">Add and configure payment methods <i class="icon16 new-window"></i></a>'), '?action=settings#/payment/')}</div>
     {* Block name *}
     <div class="field">
         <div class="name">
@@ -911,7 +913,7 @@
             <label>
                 <input type="hidden" name="data[confirmation][order_comment]" value="0" />
                 <input id="confirmation_order_comment" type="checkbox" name="data[confirmation][order_comment]"{if $settings.order_comment} checked{/if} />
-                [`Allow customers to leave an additional comment to an order`]
+                [`Allow customers to leave a comment to an order`]
             </label>
         </div>
     </div>
@@ -949,11 +951,14 @@
         <div class="value radio js-order-without-auth-wrapper">
             <input type="hidden" name="data[confirmation][auth_with_code]" value="0" />
             {foreach $confirmation_order_without_auth_variants as $_id => $_variant}
-                {* TODO: Remove this if in 8.1 !!! *}
+                {* TODO: Remove this if in 8.0.1 !!! *}
                 <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}"{if $_id == shopCheckoutConfig::ORDER_WITHOUT_AUTH_CONFIRM} style="display: none;"{/if}>
                     <label>
                         <input class="js-order-without-auth-variant" type="radio" name="data[confirmation][order_without_auth]" value="{$_id|escape}"{if $settings.order_without_auth === $_id} checked{/if} />
                         {$_variant.name|escape}
+                        {if isset($_variant.description)}
+                            <div class="hint block-padded">{$_variant.description}</div>
+                        {/if}
                     </label>
                     <div class="s-variant-params js-variant-params"></div>
                 </div>
@@ -965,16 +970,17 @@
                     [`Ask to log in with a confirmation code`]
                 </label>
             </div>
-            *}
             <div class="hint block-padded js-auth-with-code-hint">
                 [`A login confirmation code will be sent to a customer’s email address or phone.`]
-                [`Подтверждение можно пропустить и отпарвить заказ, но тогда данные существующего контакта будут обновлены данными покупателя, который не подтвержил свой email или телефон.`] {* TODO: локализовать, когда пойму смысл этого *}
+                [`Подтверждение можно пропустить и отпарвить заказ, но тогда данные существующего контакта будут обновлены данными покупателя, который не подтвержил свой email или телефон.`] TODO: locale: локализовать, когда пойму смысл этого
                 [`Upon confirmation, a customer will be authorized and will have access to their online account.`]
             </div>
+            *}
         </div>
     </div>
 
     {* Recode timeout *}
+    {*
     <div class="field">
         <div class="name">
             <label for="confirmation_recode_timeout">[`You can request a code again in`]</label>
@@ -987,6 +993,7 @@
             </div>
         </div>
     </div>
+    *}
 
     {* Thank you header *}
     <div class="field">

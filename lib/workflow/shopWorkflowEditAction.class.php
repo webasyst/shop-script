@@ -204,7 +204,7 @@ class shopWorkflowEditAction extends shopWorkflowAction
         if (is_array($this->order_item)) {
             if (!empty($this->order_item['unsettled'])) {
                 $total = wa_currency($this->order_item['total'], $this->order_item['currency']);
-                $confirm = _w("Editing this order will mark this order as settled and will re-calculate it's current amount (%s) based on the order content your enter. Are you sure you want to settle this order and reset the order amount?");
+                $confirm = _w("Editing this order will mark it as settled and will re-calculate its current amount (%s) based on the changed order content. Are you sure you want to settle this order and to reset the order amount?");
                 $confirm = sprintf($confirm, $total);
                 $attrs = sprintf('data-confirm="%s"', htmlentities($confirm, ENT_QUOTES, 'utf-8'));
             }

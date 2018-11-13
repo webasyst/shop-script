@@ -16,7 +16,7 @@ class shopSettingsFeaturesTypeDeleteController extends waJsonController
             if ($model->countAll() > 1) {
                 $model->deleteById($id);
             } else {
-                $this->errors[] = _w("Can not delete product type. At least one product type must remain.");
+                $this->errors[] = _w("Cannot delete product type. At least one product type must remain.");
             }
         }
     }

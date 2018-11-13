@@ -112,7 +112,7 @@
                                   value="1"
                                 {if $p.available} checked="checked"{/if}
                         > {$p.name|escape}</label>
-                    <span class="hint" style="display: none">[`TODO: этот плагин доставки будет недоступен в силу ограничений по типу доставки и типу покупателя (Персона/Компания) при оформлении заказа в корзине`]</span>
+                    <span class="hint" style="display: none">[`This payment method may be unavilable during checkout due to limitations by shipping type or customer type.`]</span>
                     {if !$p@last}<br>{/if}
                     {foreachelse}
                     <span class="hint">[`No shipping options are defined.`]</span>

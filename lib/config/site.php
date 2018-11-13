@@ -192,16 +192,16 @@ return array(
             'type' => 'hidden',
         ),
         'checkout_version' => array(
-            'name'  => _w('Вид оформления заказа'), // TODO: LOCALE THIS !!!
+            'name'  => _w('Checkout mode'),
             'type'  => 'radio_select',
             'items' => array(
                 2 => array(
-                    'name'        => '<span class="checkout-2-background">'._w('Оформление заказа в корзине').'</span> — '._w('поддерживается не всеми темами, проверьте в описании темы или в настройках оформления заказа, после выбора этого вида'),
-                    'description' => '<br>'.sprintf(_w('В случае, если ваша тема не поддерживает "оформление заказа в корзине", для страницы оформления будет включен стандартный дизайн темы "Дефолт". <a href="%s">Настройте</a> <i class="icon16 new-window"></i>оформление заказа в корзине'), wa()->getAppUrl('shop/?action=settings#/checkout')) . '<br><br>',// TODO: Locale !!!
+                    'name'        => sprintf(_w('<span class="checkout-2-background">%s</span> (may be not supported by some design themes; please check your theme’s description or checkout settings after selecting this mode)'), _w('In-cart checkout')),
+                    'description' => '<br>'.sprintf(_w('If your design theme does not support “in-cart checkout”, standard checkout design of “Default” theme will be used. <a href="%s">Set up</a> <i class="icon16 new-window"></i>in-cart checkout.'), wa()->getAppUrl('shop/?action=settings#/checkout')) . '<br><br>',
                 ),
                 1 => array(
-                    'name'        => _w('Пошаговое оформление заказа'),
-                    'description' => '<br>'.sprintf(_w('<a href="%s">Настройте</a> <i class="icon16 new-window"></i>пошаговое оформление заказа'), wa()->getAppUrl('shop/?action=settings#/checkout')) . $checkout_version_move_setting, // TODO: Locale !!!
+                    'name'        => _w('Multi-step checkout'),
+                    'description' => '<br>'.sprintf(_w('<a href="%s">Set up</a> <i class="icon16 new-window"></i>multi-step checkout'), wa()->getAppUrl('shop/?action=settings#/checkout')) . $checkout_version_move_setting,
                 ),
             ),
             'default' => 1,
@@ -230,7 +230,7 @@ return array(
             '$product.images'      => _w('Array of product images'),
             '$product.categories'  => _w('Array of product categories'),
             '$product.tags'        => _w('Array of product tags'),
-            '$product.pages'       => _w('Array of product static info pages'),
+            '$product.pages'       => _w('Array of product subpages'),
             '$product.features'    => _w('Array of product features and values'),
 
             '$reviews'  => _w('Array of product reviews'),
@@ -261,9 +261,9 @@ return array(
             )
         ),
         'order.html'       => array(
-            '$wa->shop->checkout()->cart(<em>$opts</em>)'            => _w('Returns HTML rendering cart block for new one-page checkout'),
+            '$wa->shop->checkout()->cart(<em>$opts</em>)'            => _w('Returns HTML of in-cart checkout cart block'),
             '$wa->shop->checkout()->cartVars(<em>$clear_cache</em>)' => _w('Returns variables that $wa->shop->checkout()->cart() assigns to its template'),
-            '$wa->shop->checkout()->form(<em>$opts</em>)'            => _w('Returns HTML rendering form block for new one-page checkout'),
+            '$wa->shop->checkout()->form(<em>$opts</em>)'            => _w('Returns HTML of in-cart checkout form'),
             '$wa->shop->checkout()->formVars(<em>$clear_cache</em>)' => _w('Returns variables that $wa->shop->checkout()->form() assigns to its template'),
         ),
         'my.order.html'    => array(
@@ -331,8 +331,9 @@ return array(
 
         ),
         '$wa'              => array(
-            '$wa->shop->checkout()->url(<em>$absolute</em>)'                                                          => _w('Returns url to checkout page'),
-            '$wa->shop->checkout()->cartUrl(<em>$absolute</em>)'                                                      => _w('Returns url to cart page'),
+            '$wa->shop->checkout()->url(<em>$absolute</em>)'                                                          => _w('Returns checkout page URL'),
+            '$wa->shop->checkout()->cartUrl(<em>$absolute</em>)'                                                      => _w('Returns shopping cart page URL'),
+            '$wa->shop->checkout()->schedule()'                                                                       => _w('Returns working schedule data array for current storefront'),
             '$wa->shop->badgeHtml(<em>$product.code</em>)'                                                            => _w('Displays badge of the specified product (<em>$product</em> object)'),
             '$wa->shop->cart()'                                                                                       => _w('Returns current cart object'),
             '$wa->shop->categories(<em>$id, $depth, $tree, $params, $route</em>)'                                     => _w('Returns array of visible subcategories of specified parent category.<br><strong>$id</strong> (default: <em>0</em>): ID of parent category whose subcategories must be returned. By default, categories starting from top level are returned.<br><strong>$depth</strong> (default: <em>null</em>): depth of subcategory tree. By default, entire category tree is returned.<br><strong>$tree</strong> (default: <em>false</em>): flag requiring to return categories as a tree (<em>true</em>) or a flat array (<em>false</em>).<br><strong>$params</strong> (default: <em>false</em>): flag requiring to return categories with their extra parameters. By default, categories are returned without extra parameters.<br><strong>$route</strong> (default: <em>null</em>): array of route parameters of the storefront for which visible categories must be returned. By default, returned categories are not necessarily limited to certain storefronts.'),

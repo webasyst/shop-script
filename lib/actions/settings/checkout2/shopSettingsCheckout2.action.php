@@ -33,6 +33,8 @@ class shopSettingsCheckout2Action extends shopSettingsCheckoutAbstractAction
             'regions'                                  => $this->getRegions(),
             'timezones'                                => wa()->getDateTime()->getTimezones(),
             'logo_url'                                 => shopCheckoutConfig::getLogoUrl(),
+            'shipping_plugins'                         => $this->getPlugins(shopPluginModel::TYPE_SHIPPING),
+            'payment_plugins'                          => $this->getPlugins(shopPluginModel::TYPE_PAYMENT),
         ]);
     }
 
@@ -161,5 +163,17 @@ class shopSettingsCheckout2Action extends shopSettingsCheckoutAbstractAction
     {
         $rm = new waRegionModel();
         return $rm->getAll();
+    }
+
+    protected function getPlugins($type)
+    {
+        static $model;
+
+        if ($model === null) {
+            $model = new shopPluginModel();
+        }
+
+        $plugins = $model->listPlugins($type);
+        return $plugins;
     }
 }

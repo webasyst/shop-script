@@ -160,11 +160,9 @@
                                                 </td>
                                                 <td>
                                                     <select name="rating[]">
-                                                        <option value=">=" {if isset($settings.conditions.rating.condition) && $settings.conditions.rating.condition == '>='}selected{/if}>[`is
-                                                            greater or equal`]
+                                                        <option value=">=" {if isset($settings.conditions.rating.condition) && $settings.conditions.rating.condition == '>='}selected{/if}>[`is greater or equal`]
                                                         </option>
-                                                        <option value="<=" {if isset($settings.conditions.rating.condition) && $settings.conditions.rating.condition == '<='}selected{/if}>[`is
-                                                            lesser or equal`]
+                                                        <option value="<=" {if isset($settings.conditions.rating.condition) && $settings.conditions.rating.condition == '<='}selected{/if}>[`is less or equal`]
                                                         </option>
                                                     </select>
                                                 </td>
@@ -208,11 +206,9 @@
                                                 </td>
                                                 <td>
                                                     <select name="count[]">
-                                                        <option value=">=" {if isset($settings.conditions.count.condition) && $settings.conditions.count.condition == '>='}selected{/if}>[`is
-                                                            greater or equal`]
+                                                        <option value=">=" {if isset($settings.conditions.count.condition) && $settings.conditions.count.condition == '>='}selected{/if}>[`is greater or equal`]
                                                         </option>
-                                                        <option value="<=" {if isset($settings.conditions.count.condition) && $settings.conditions.count.condition == '<='}selected{/if}>[`is
-                                                            lesser or equal`]
+                                                        <option value="<=" {if isset($settings.conditions.count.condition) && $settings.conditions.count.condition == '<='}selected{/if}>[`is less or equal`]
                                                         </option>
                                                     </select>
                                                 </td>
@@ -285,8 +281,7 @@
                                         <option value="stock_worth DESC" {if $settings.sort_products == 'stock_worth DESC'}selected="selected"{/if}>[`Stock net worth`]</option>
                                     </select>
                                     <label class="small">
-                                        <input type="checkbox" name="enable_sorting" {if $settings.enable_sorting}checked="checked"{/if} value="1"> [`Customers can select
-                                        preferable product sort order`]
+                                        <input type="checkbox" name="enable_sorting" {if $settings.enable_sorting}checked="checked"{/if} value="1"> [`Customers can select preferable product sort order`]
                                     </label>
                                 </div>
                             </div>
@@ -532,7 +527,7 @@
                                 </div>
                                 <div class="value">
                                     <textarea name="params" rows="10" cols="5">{if !empty($settings.params)}{foreach $settings.params as $k=>$v}{if $k!='order'}{$k}={$v|escape|cat:"\n"}{/if}{/foreach}{/if}</textarea><br>
-                                    <span class="hint">[`Optional set of custom <em>key=value</em> parameters which can be used within a frontend's theme template as <em>&#123;$category.params.key&#125;</em>. Each key=value pair should be on a separate line.`]</span>
+                                    <span class="hint">[`Optional set of custom <em>key=value</em> parameters which can be used in frontend theme templates as <em>&#123;$category.params.key&#125;</em>. Each key=value pair must be on a separate line.`]</span>
                                 </div>
                             </div>
                         </div>

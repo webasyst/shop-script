@@ -1,4 +1,7 @@
-{$_cart_url = $wa->shop->checkout()->cartUrl()}
+{$_cart_url = $wa->getUrl('shop/frontend/cart')}
+{if method_exists($wa->shop, 'checkout')}
+    {$_cart_url = $wa->shop->checkout()->cartUrl()}
+{/if}
 
 <!-- products thumbnail list view -->
 

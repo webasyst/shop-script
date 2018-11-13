@@ -134,6 +134,8 @@ class shopCategoryEditAction extends waViewAction
                 'frontend' => true,
             ]);
 
+
+
             $settings['filter'] += $filter;
             $settings['features'] = $features;
         }
@@ -159,6 +161,8 @@ class shopCategoryEditAction extends waViewAction
             $settings['filter'] += $filter;
         }
 
+
+        $settings['conditions'] = $this->parseRangeValue($settings['features'], $settings['conditions']);
         return $settings;
     }
 
@@ -215,8 +219,17 @@ class shopCategoryEditAction extends waViewAction
 
             if ($temp) {
                 $name = array_shift($temp);
-                $feature_name = substr($name, 0, -9);
-                $is_feature = substr($name, -9) === '.value_id';
+                $is_feature = false;
+                $feature_name = null;
+
+                //get feature name
+                if (substr($name, -9) === '.value_id') {
+                    $is_feature = true;
+                    $feature_name = substr($name, 0, -9);
+                } elseif (substr($name, -6) === '.value') {
+                    $is_feature = true;
+                    $feature_name = substr($name, 0, -6);
+                }
 
                 //Get previous saved values
                 if ($is_feature) {
@@ -315,6 +328,49 @@ class shopCategoryEditAction extends waViewAction
 
         return $frontend_base_url;
     }
+
+
+    /**
+     * todo. Please remove it sometime.
+     * It is needed to upgrade to version 8 of the shop script
+     * Previously, under strange conditions, you could save the range. Only not values, but specific id. This method converts such id to range.
+     * I did not want to do this. I was tortured. Sorry T_T
+     *
+     * @param $features
+     * @param $conditions
+     * @see task #53.5941
+     * @return mixed
+     */
+    protected function parseRangeValue($features, $conditions)
+    {
+        if ($features) {
+            foreach ($features as $key => $feature) {
+                $feature_type = ifset($feature, 'type', '');
+                if (substr($feature_type, 0, 5) === 'range') {
+                    $condition = ifset($conditions, 'feature', $feature['code'], '');
+
+                    if ($condition) {
+                        $condition_type = ifset($condition, 'type', '');
+                        if ($condition_type === 'equal') {
+                            $range_id = ifset($condition, 'values', 0, null);
+
+                            //Get saved values
+                            $range = ifset($feature, 'values', $range_id, []);
+                            $condition = [
+                                'type'  => 'range',
+                                'begin' => ifset($range, 'begin_base_unit', 0),
+                                'end'   => ifset($range, 'end_base_unit', 0),
+                            ];
+                            $conditions['feature'][$feature['code']] = $condition;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $conditions;
+    }
+
 
     /**
      * todo maybe this deprecated

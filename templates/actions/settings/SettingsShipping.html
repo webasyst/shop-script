@@ -77,7 +77,7 @@
                 </li>
             </ul>
         </div>
-        <h2>[`Shipping options`]</h2>
+        <h2>[`Shipping methods`]</h2>
         <br/>
 
         <table class="zebra" id="s-settings-shipping">
@@ -99,7 +99,7 @@
                     {/if}
                 </td>
                 <td>
-                    <h3 class="large {if empty($plugin.status)} gray{/if}">
+                    <h3 class="large {if empty($plugin.status)} gray{/if} js-plugin-title">
                         {$plugin.name|escape}
                         {if empty($plugin.status)}([`disabled`]){/if}
                         {if empty($plugin.installed)}
@@ -119,8 +119,13 @@
                 </td>
                 <td>
                     <ul class="menu-h with-icons">
-                        <li><a href="#/shipping/plugin/setup/{$id}/" class="nowrap"><i class="icon16 settings"></i>[`Configure`]</a></li>
-                        <li><a href="#/shipping/plugin/delete/{$id}/" class="nowrap js-action js-confirm" data-confirm-text="[`This will permanently delete this shipping option. Are you sure?`]"><i class="icon16 delete"></i>[`Delete`]</a></li>
+                        <li><a href="#/shipping/plugin/setup/{$id}/" class="nowrap js-shipping-plugin-setup"><i class="icon16 settings"></i>[`Configure`]</a></li>
+                        <li>
+                            <a href="#" class="nowrap js-shipping-plugin-clone">
+                                <i class="icon16 split"></i>[`Create a copy`]
+                            </a>
+                        </li>
+                        <li><a href="#/shipping/plugin/delete/{$id}/" class="nowrap js-action js-confirm js-shipping-plugin-delete" data-confirm-text="[`This will permanently delete this shipping option. Are you sure?`]"><i class="icon16 delete"></i>[`Delete`]</a></li>
                     </ul>
                 </td>
 
@@ -144,11 +149,14 @@
 
 </div>
 
-
 <script type="text/javascript" src="{$wa_app_static_url}js/settings/shipping.js?{$wa->version()}"></script>
 <script type="text/javascript">(function() { "use strict";
     document.title = "[`Shipping`] — {$wa->accountName(false)|escape:javascript}";
     if (typeof(window.$) != 'undefined') {
-        $.settings.shippingInit();
+        $.settings.shippingInit({
+            locales: {
+                disabled: {_w('disabled')|json_encode}
+            }
+        });
     }
 }());</script>

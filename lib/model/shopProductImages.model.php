@@ -145,7 +145,7 @@ class shopProductImagesModel extends waModel
          * @event product_images_delete
          */
 
-        wa()->event('product_images_delete', $image);
+        wa('shop')->event('product_images_delete', $image);
 
         $product_id = $image['product_id'];
 

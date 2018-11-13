@@ -1474,7 +1474,7 @@ editClick:(function ($) {
                 var parent = self.parent();
                 var input = self.find('input[name=new_category]');
                 var value = input.val();
-                $.shop.jsonPost('?module=products&action=saveListSettings&category_id=0&parent_id=0', {
+                $.shop.jsonPost('?module=category&action=save&category_id=0&parent_id=0', {
                     name: value
                 }, function (r) {
                     var select = parent.find('select');

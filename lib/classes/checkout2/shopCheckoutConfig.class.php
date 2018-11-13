@@ -89,8 +89,7 @@ class shopCheckoutConfig implements ArrayAccess
             $this->storefront = (string)$storefront;
             $valid_storefront = $this->validateStorefrontId();
             if (!$valid_storefront) {
-                // TODO: Turn it on friday !!! :D
-                //throw new waException('Invalid storefront id');
+                throw new waException('Invalid storefront id');
             }
             $this->loadConfig();
         }
@@ -218,7 +217,7 @@ class shopCheckoutConfig implements ArrayAccess
         return [
             self::ORDER_MODE_TYPE_DEFAULT => [
                 'name'        => _w('Default'),
-                'description' => _w('No fixed list of shipping areas. Available shipping options are grouped by type—“Courier”, “Pickup”, “Post”. One can select a pickup point on a map.'),
+                'description' => _w('Available shipping options are grouped by type—“Courier”, “Pickup”, “Post”.'),
             ],
             self::ORDER_MODE_TYPE_MINIMUM => [
                 'name'        => _w('Minimal'),
@@ -278,10 +277,11 @@ class shopCheckoutConfig implements ArrayAccess
     {
         return [
             self::ORDER_WITHOUT_AUTH_CREATE   => [
-                'name' => _w('Unauthorized customer can place orders, and each order will create a new customer profile'),
+                'name' => _w('Create new customer profile for every guest order'),
             ],
             self::ORDER_WITHOUT_AUTH_EXISTING => [
-                'name' => _w('Unauthorized customer can place orders, and they will be connected with an existing customer profile'),
+                'name' => _w('Add an order to existing customer profile with the same phone number or email address'),
+                'description' => _w('Existing customer’s data will be updated by the data from a new order.'),
             ],
             self::ORDER_WITHOUT_AUTH_CONFIRM  => [
                 'name' => _w('Checkout is not allowed without email address or phone number confirmation'),
@@ -294,7 +294,7 @@ class shopCheckoutConfig implements ArrayAccess
         return [
             self::SCHEDULE_MODE_DEFAULT => [
                 'name'        => _w('Common working schedule'),
-                'description' => sprintf(_w('Section “<a href="?action=settings#/schedule/">%s</a>” settings are used'), _w('Working schedule')),
+                'description' => sprintf(_w('Section “<a href="?action=settings#/schedule/" target="_blank">%s</a>” <i class="icon16 new-window"></i> settings are used'), _w('Working schedule')),
             ],
             self::SCHEDULE_MODE_CUSTOM  => [
                 'name'        => _w('Custom working schedule for this storefront'),
@@ -306,6 +306,14 @@ class shopCheckoutConfig implements ArrayAccess
     //
     //
     //
+
+    /**
+     * @return waStorage
+     */
+    public function getStorage()
+    {
+        return new waPrefixStorage(['namespace'=>'shop_checkout2']);
+    }
 
     /**
      * Return steps of new (8.0+) checkout
@@ -357,12 +365,16 @@ class shopCheckoutConfig implements ArrayAccess
             ],
             'departure_datetime' => shopDepartureDateTimeFacade::getDeparture($this['schedule']),
             'customer_type'      => $customer_type == self::CUSTOMER_TYPE_PERSON_AND_COMPANY ? '' : $customer_type,
+            'currency'           => $this->getFrontendCurrency(),
         ];
 
         if ($single_plugin_params) {
             // Ask a single specific plugin for its rates
             $params['shipping'] = ['id' => $single_plugin_params['id']];
             $params['shipping_params'][$single_plugin_params['id']] = $single_plugin_params['shipping_params'];
+            if (isset($single_plugin_params['service'])) {
+                $params['shipping_params'][$single_plugin_params['id']]['service'] = $single_plugin_params['service'];
+            }
         } else {
             // filter plugins by what's specified in routing
             $allowed_shipping_id = waRequest::param('shipping_id');
@@ -389,7 +401,14 @@ class shopCheckoutConfig implements ArrayAccess
     // Overridden in unit tests
     protected function getShippingMethods($address, $items, $params)
     {
-        return shopHelper::getShippingMethods($address, $items, $params);
+        $function_cache = new waFunctionCache(['shopHelper', 'getShippingMethods'], [
+            'call_limit' => 1,
+            'namespace'  => 'shop/shipping_methods',
+            'ttl'        => 300, // 5 min
+            'hard_clean' => true,
+            'hash_salt'  => wa()->getLocale().$this->getStorefront().wa('shop')->getConfig()->getCurrency(false),
+        ]);
+        return $function_cache->call($address, $items, $params);
     }
 
     /**
@@ -426,6 +445,12 @@ class shopCheckoutConfig implements ArrayAccess
         }
         unset($m);
         return $methods;
+    }
+
+    // Overridden in unit tests
+    public function getFrontendCurrency()
+    {
+        return wa('shop')->getConfig()->getCurrency(false);
     }
 
     // Overridden in unit tests
@@ -1168,7 +1193,6 @@ class shopCheckoutConfig implements ArrayAccess
         return false;
     }
 
-
     private function loadConfig()
     {
         if ($this->config) {
@@ -1182,10 +1206,26 @@ class shopCheckoutConfig implements ArrayAccess
 
         if (!empty($all_settings[$this->storefront])) {
             $storefront_settings = $all_settings[$this->storefront];
-        }
-
-        if (!isset($storefront_settings)) {
+        } else {
             $storefront_settings = self::$static_cache['default'];
+            // Load contact fields from old checkout here
+            list($contact_field, $address_fields) = $this->getOldCheckoutFields();
+
+            foreach ($contact_field as $field_id => $field) {
+                $field = [
+                    'used'     => true,
+                    'required' => !empty($field['required']),
+                ];
+                $storefront_settings['customer']['fields_person'][$field_id] = $field;
+                $storefront_settings['customer']['fields_company'][$field_id] = $field;
+            }
+
+            foreach ($address_fields as $field_id => $field) {
+                $storefront_settings['shipping']['address_fields'][$field_id] = [
+                    'used'     => true,
+                    'required' => !empty($field['required']),
+                ];
+            }
         }
         $this->config = $storefront_settings;
     }
@@ -1204,6 +1244,22 @@ class shopCheckoutConfig implements ArrayAccess
                 self::$static_cache[$element] = include($path);
             }
         }
+    }
+
+    private function getOldCheckoutFields()
+    {
+        $old_checkout_steps = wa('shop')->getConfig()->getCheckoutSettings();
+
+        $contact_fields = ifempty($old_checkout_steps, 'contactinfo', 'fields', []);
+
+        $shipping_fields = ifempty($old_checkout_steps, 'contactinfo', 'fields', 'address.shipping', 'fields', []);
+
+        unset($contact_fields['address'], $contact_fields['address.shipping']);
+
+        return [
+            $contact_fields,
+            $shipping_fields,
+        ];
     }
 
     // Helpers

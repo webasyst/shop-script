@@ -231,7 +231,7 @@ class shopCategoryModel extends waNestedSetModel
         /**
          * @event category_delete
          */
-        wa()->event('category_delete', $item);
+        wa('shop')->event('category_delete', $item);
 
         // because all descendants will be thrown one level up
         // it's necessary to ensure uniqueness urls of descendants in new environment (new parent)

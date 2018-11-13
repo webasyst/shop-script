@@ -29,6 +29,7 @@ class shopFrontendOrderActions extends waJsonActions
         $config = $this->getCheckoutConfig();
         $view->assign($this->response + [
             'config' => $config,
+            'contact' => $data['contact'],
             'options' => [
                 'DEBUG' => ifset($opts, 'DEBUG', false),
                 'wrapper' => ifset($opts, 'wrapper', ''),
@@ -68,7 +69,7 @@ class shopFrontendOrderActions extends waJsonActions
                 case 'confirm_contact':
                     // Must be authorised.
                     $this->errors = [
-                        'please_log_in' => [_w('You must be logged in to complete this order')],
+                        'please_log_in' => [_w('You must be logged in to complete this order.')],
                     ];
                     return;
                 case 'existing_contact':
@@ -109,7 +110,7 @@ class shopFrontendOrderActions extends waJsonActions
                 // stock_id, virtualstock_id see below
             ] + $this->getOrderParamsFromRequest(),
 
-            'comment'  => ifset($data, 'confirm', 'comment', ''),
+            'comment'  => ifset($data, 'result', 'confirm', 'comment', ''),
 
             'customer' => $contact_field_values,
             'items'    => $data['order']['items'],
@@ -126,7 +127,7 @@ class shopFrontendOrderActions extends waJsonActions
             $order = new shopOrder($order_data, $options);
         } catch (waException $ex) {
             $this->errors = [
-                'general' => _w('Error creating order.'),
+                'general' => _w('Order creation error.'),
             ];
         }
 
@@ -159,6 +160,43 @@ class shopFrontendOrderActions extends waJsonActions
                 ];
             }
         }
+    }
+
+    /**
+     * Render Dialog for Auth Forms (login, signup, forgotpassword, setpassword)
+     * @return string
+     */
+    public function authDialogAction()
+    {
+        // Get type
+        $type = waRequest::request('type');
+        $type = is_scalar($type) ? (string)$type : '';
+
+        // All known form types
+        $types = array('login', 'signup', 'forgotpassword', 'setpassword');
+
+        // Unknown form type case
+        if (!in_array($type, $types, true)) {
+            return '';
+        }
+
+        // Template path
+        $template_path = wa()->getAppPath("templates/actions/frontend/order/form/dialog/{$type}.html", 'shop');
+
+        // Render itself
+        $view = wa('shop')->getView();
+        $old_vars = $view->getVars();
+        $view->assign(array(
+            'type' => $type,
+            'hash' => waRequest::request('hash')    // need for setpassword form
+        ));
+        $html = $view->fetch($template_path);
+        $view->clearAllAssign();
+        $view->assign($old_vars);
+
+        // Result
+        echo $html;
+        exit;
     }
 
     protected function getOrderParamsFromRequest()

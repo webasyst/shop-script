@@ -169,7 +169,7 @@ class shopFrontendCheckoutAction extends waViewAction
         } else {
             $this->view->assign([
                 'thankyou_header' =>_w('Thank you!'),
-                'thankyou_content' => _w('We successfully accepted your order, and will contact you asap.')." "._w('Your order number is ').'$order_id',
+                'thankyou_content' => _w('We successfully accepted your order, and will contact you asap.')." "._w('Your order number is ').' $order_id',
             ]);
         }
 

@@ -52,6 +52,7 @@ class shopOrderSaveItemMethod extends shopApiMethod
                 $data['discount'] = 'calculate';
                 $data += array('shipping' => null);
                 $so = new shopOrder($data, array(
+                    'ignore_stock_validate'  => true,
                     'items_format' => 'tree',
                     'items_delta'  => true,
                 ));

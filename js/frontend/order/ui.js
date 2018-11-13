@@ -90,7 +90,7 @@
                 // INIT
                 that.initClass();
             } else {
-                log("Error: bad data for dialog");
+                console.error("Error: bad data for dialog");
             }
         };
 
@@ -106,6 +106,10 @@
             setTimeout(function() {
                 that.bindEvents();
             }, 0);
+
+            that.$wrapper
+                .data("dialog", that)
+                .trigger("wa_order_dialog_open", [that.$wrapper, that]);
         };
 
         Dialog.prototype.bindEvents = function() {
@@ -127,7 +131,6 @@
             //
 
             $block.on("click", ".js-close-dialog", close);
-
             function close() {
                 var result = that.close();
                 if (result === true) {
@@ -139,13 +142,14 @@
             //
 
             $(window).on("resize", onResize);
-
+            $document.on("resize", onResize);
             function onResize() {
                 var is_exist = $.contains(document, that.$wrapper[0]);
                 if (is_exist) {
                     that.resize();
                 } else {
                     $(window).off("resize", onResize);
+                    $document.off("resize", onResize);
                 }
             }
 
@@ -153,7 +157,6 @@
 
             // refresh dialog position
             $document.on("resizeDialog", resizeDialog);
-
             function resizeDialog() {
                 var is_exist = $.contains(document, that.$wrapper[0]);
                 if (is_exist) {
@@ -166,7 +169,6 @@
             //
 
             $(document).on("keyup", keyWatcher);
-
             function keyWatcher(event) {
                 if (!that.is_removed) {
                     var escape_code = 27,
@@ -197,7 +199,8 @@
             try {
                 that.show();
             } catch(e) {
-                log("Error: " + e.message);
+                console.error("Error: " + e.message);
+                console.log(e.stack);
             }
 
             //
@@ -338,6 +341,22 @@
 
             // update vars
             $(window).trigger("scroll");
+        };
+
+        /**
+         * @param {Boolean} do_lock
+         * */
+        Dialog.prototype.lock = function(do_lock) {
+            var that = this,
+                locked_class = "is-locked";
+
+            if (typeof do_lock === "boolean") {
+                if (do_lock) {
+                    that.$wrapper.addClass(locked_class);
+                } else {
+                    that.$wrapper.removeClass(locked_class);
+                }
+            }
         };
 
         return Dialog;

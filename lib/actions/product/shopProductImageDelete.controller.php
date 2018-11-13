@@ -21,7 +21,7 @@ class shopProductImageDeleteController extends waJsonController
         }
 
         if (!$product_images_model->delete($id)) {
-            throw new waException(_w("Coudn't delete image"));
+            throw new waException(_w("Coudn’t delete image"));
         }
         $this->response['id'] = $id;
     }

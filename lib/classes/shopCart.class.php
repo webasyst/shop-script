@@ -205,7 +205,7 @@ class shopCart
             ], $data);
         }
 
-        wa()->event('cart_update', ref([
+        wa('shop')->event('cart_update', ref([
             'item' => $data + $item,
             'old_item' => $item,
             'update' => $data,

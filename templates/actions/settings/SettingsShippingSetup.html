@@ -59,6 +59,14 @@
         </div>
         {/if}
         <div class="field">
+            <div class="name"><label for="s-shipping-plugin-">[`Additional order picking time`]</label></div>
+            <div class="value">
+                <input type="number" name="shipping[options][assembly_time]" value="{if isset($plugin['options']['assembly_time'])}{max(0, intval($plugin['options']['assembly_time']))}{/if}" id="">
+                <p class="hint">[`Added to order ready time calculated by storefront business hours.`]<br>
+                    [`This setting is used only with in-cart checkout option.`]</p>
+            </div>
+        </div>
+        <div class="field">
             <div class="name">
                 <label for="s-shipping-plugin-description">[`Description`]</label>
             </div>

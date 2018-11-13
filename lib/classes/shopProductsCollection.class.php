@@ -62,7 +62,7 @@ class shopProductsCollection
          * @event products_collection.filter
          * @param array shopProductsCollection $this
          */
-        wa()->event('products_collection.filter', $this);
+        wa('shop')->event('products_collection.filter', $this);
     }
 
     /**
@@ -1001,8 +1001,8 @@ SQL;
             foreach ($range_collection as $code => $ranges) {
                 $begin = $end = null;
 
-                if (substr($code, -9) == '.value_id') {
-                    $code = substr($code, 0, -9);
+                if (substr($code, -6) == '.value') {
+                    $code = substr($code, 0, -6);
                 }
 
                 $feature_model = $this->getModel('feature');
@@ -1017,16 +1017,30 @@ SQL;
                         }
                     }
 
-                    $where = ['feature_id = i:feature_id'];
+                    // 1=1 need to connect conditions
+                    $where = [
+                        'feature' => 'feature_id = i:feature_id',
+                        'end'     => '1=1',
+                        'begin'   => '1=1',
+                    ];
                     $where_placeholder = ['feature_id' => $feature['id']];
+
                     if ($end) {
-                        $where[] = 'end_base_unit <= i:end';
-                        $where_placeholder['end'] = max($end);
+                        $where['end'] .= ' AND end_base_unit <= i:end';
+                        $where['begin'] .= ' AND begin_base_unit <=i:end'; //The initial value should not be greater than the maximum
+                        $where_placeholder['end'] = min($end); //if many conditions take the minimum range
                     }
                     if ($begin) {
-                        $where[] = 'begin_base_unit >= i:begin';
-                        $where_placeholder['begin'] = min($begin);
+                        $where['end'] .= ' AND end_base_unit >= i:begin'; //The final value should not be less than the starting value.
+                        $where['begin'] .= ' AND begin_base_unit >= i:begin';
+                        $where_placeholder['begin'] = max($begin); //see above
                     }
+
+                    //If the final or initial value is not specified, use the "end" or "begin" column.
+                    //Because in the column "*** _ base_unit" never is the value NULL
+                    $where['end'] = '(('.$where['end'].') OR end IS NULL)';
+                    $where['begin'] = '(('.$where['begin'].') OR begin IS NULL)';
+
                     $where = join(' AND ', $where);
 
                     $feature_range_model = new shopFeatureValuesRangeModel();
@@ -1623,7 +1637,7 @@ SQL;
             }
 
             if ($this->is_frontend) {
-                // Striked-out price can not be lower than actual price
+                // Striked-out price cannot be lower than actual price
                 if (!empty($p['compare_price']) && $p['compare_price'] <= ifset($p['price'])) {
                     $p['compare_price'] = 0;
                 }
