@@ -66,6 +66,13 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
         // Customer-supplied values from POST for shipping address
         $input_values = ifset($data, 'input', 'details', 'shipping_address', []);
 
+        // Check if user just logged in. If so, put missing data into fields
+        // despite there being (empty) values in old input
+        $user_id_from_input = ifset($data, 'input', 'auth', 'user_id', '');
+        if ($base_values && $user_id_from_input != $contact['id']) {
+            $input_values = array_filter($input_values);
+        }
+
         // Format shipping address fields for template
         $address_fields = $config->formatContactFields($address_fields_config, $input_values, $base_values);
 

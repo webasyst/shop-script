@@ -22,9 +22,6 @@ class shopProductSaveController extends waJsonController
         }
 
         $data = waRequest::post('product');
-        if ($this->validate($data)) {
-            return;
-        };
 
         $id = (empty($data['id']) || !intval($data['id'])) ? null : $data['id'];
         if (!$id && isset($data['id'])) {
@@ -330,17 +327,5 @@ class shopProductSaveController extends waJsonController
             'default_meta_keywords'    => shopProduct::getDefaultMetaKeywords($product),
             'default_meta_description' => shopProduct::getDefaultMetaDescription($product),
         );
-    }
-
-
-    protected function validate($data)
-    {
-        $sku_type = ifset($data, 'sku_type', 0);
-
-        if ($sku_type === 1 && empty($data['skus'])) {
-            $this->errors[] = _wp('Select parameters to be available to customers for ordering this product in the storefront.');
-        }
-
-        return $this->errors;
     }
 }

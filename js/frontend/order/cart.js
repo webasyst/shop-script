@@ -646,8 +646,8 @@
 
                     // price
                     var $full_price = $product.find(".js-product-full-price"),
-                        full_price = that.formatPrice(api_product.full_price);
-                    $full_price.html(full_price);
+                        full_price = api_product.full_price + (api_product.discount > 0 ? -api_product.discount : 0);
+                    $full_price.html( that.formatPrice(full_price) );
 
                     // discount
                     var $discount_wrapper = $product.find(".js-product-discount");
@@ -665,7 +665,7 @@
                     // compare
                     var $compare_wrapper = $product.find(".js-product-compare");
                     if ($compare_wrapper.length) {
-                        var compare_price = ( api_product.discount > 0 ? api_product.full_price + api_product.discount : null );
+                        var compare_price = ( api_product.discount > 0 ? api_product.full_price : null );
                         if (compare_price > 0) {
                             $compare_wrapper.show()
                                 .html( that.formatPrice(compare_price) );

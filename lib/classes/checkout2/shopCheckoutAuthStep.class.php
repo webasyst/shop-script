@@ -119,6 +119,13 @@ class shopCheckoutAuthStep extends shopCheckoutStep
             // Customer-supplied values from POST
             $input_values = ifset($data, 'input', 'auth', 'data', []);
 
+            // Check if user just logged in. If so, put missing data into fields
+            // despite there being (empty) values in old input
+            $user_id_from_input = ifset($data, 'input', 'auth', 'user_id', '');
+            if ($contact_id && $user_id_from_input != $contact_id) {
+                $input_values = array_filter($input_values);
+            }
+
             $delayed_errors = [];
             $form_fields = $config->formatContactFields($fields, $input_values, $base_values);
             foreach ($form_fields as $field_id => $field_info) {

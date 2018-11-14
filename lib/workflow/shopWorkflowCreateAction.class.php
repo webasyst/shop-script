@@ -67,7 +67,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                          * @event signup
                          * @param waContact $contact
                          */
-                        wa()->event('signup', $contact);
+                        wa('shop')->event('signup', $contact);
                     }
                 }
                 return $contact;

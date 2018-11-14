@@ -264,7 +264,7 @@ class shopCart
          * @event cart_add
          * @param array $item
          */
-        wa()->event('cart_add', $item);
+        wa('shop')->event('cart_add', $item);
         return $item['id'];
     }
 
@@ -381,7 +381,7 @@ class shopCart
              * @event cart_delete
              * @param array $item
              */
-            wa()->event('cart_delete', $item);
+            wa('shop')->event('cart_delete', $item);
             $this->clearSessionData();
         }
         return $item;

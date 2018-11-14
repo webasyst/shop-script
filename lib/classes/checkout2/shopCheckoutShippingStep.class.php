@@ -301,8 +301,13 @@ class shopCheckoutShippingStep extends shopCheckoutStep
                 $date = [$date];
             }
             $date = array_map('strtotime', $date);
-            $s['date_min_ts'] = max(time(), min($date));
-            $s['date_max_ts'] = max(time(), max($date));
+
+            // Do not allow delivery dates in the past.
+            // Cut off minutes and seconds to improve caching.
+            $time_now = strtotime(date('Y-m-d H:00:00'));
+
+            $s['date_min_ts'] = max($time_now, min($date));
+            $s['date_max_ts'] = max($time_now, max($date));
             $s['date_min'] = date('Y-m-d H:i:s', $s['date_min_ts']);
             $s['date_max'] = date('Y-m-d H:i:s', $s['date_max_ts']);
         }

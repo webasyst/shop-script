@@ -1,6 +1,13 @@
 <?php
 /**
- * /order/calculate/ page in frontend: JSON API for new single-page checkout
+ * /order/calculate/ and /order/create/ in frontend:
+ * JSON API for new single-page checkout.
+ *
+ * Both `calculate` and `create` endpoints accept same data but do validation
+ * slightly differently.
+ *
+ * The main work is not done here, though.
+ * See shopCheckoutStep::processAll() and all the steps in lib/classes/checkout2
  */
 class shopFrontendOrderActions extends waJsonActions
 {
@@ -180,14 +187,32 @@ class shopFrontendOrderActions extends waJsonActions
             return '';
         }
 
-        // Template path
+        // define contact_type (aka customer_type)
+
+        $route_params = wa()->getRouting()->getRoute();
+        $checkout_storefront_id = isset($route_params['checkout_storefront_id']) ? $route_params['checkout_storefront_id'] : '';
+        $checkout_config = new shopCheckoutConfig($checkout_storefront_id);
+
+        if ($checkout_config['customer']['type'] === 'company') {
+            $contact_type = 'company';
+        } elseif ($checkout_config['customer']['type'] === 'person') {
+            $contact_type = 'person';
+        } elseif ($checkout_config['customer']['type'] === 'person_and_company') {
+            $contact_type = waRequest::request('contact_type') === 'company' ? 'company' : 'person';
+        } else {
+            $contact_type = 'person';
+        }
+
+            // Template path
         $template_path = wa()->getAppPath("templates/actions/frontend/order/form/dialog/{$type}.html", 'shop');
+
 
         // Render itself
         $view = wa('shop')->getView();
         $old_vars = $view->getVars();
         $view->assign(array(
             'type' => $type,
+            'contact_type' => $contact_type,             // need for signup form, to signup contact of proper type
             'hash' => waRequest::request('hash')    // need for setpassword form
         ));
         $html = $view->fetch($template_path);

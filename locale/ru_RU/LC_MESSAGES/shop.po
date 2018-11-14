@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 2.0.5\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -328,6 +328,9 @@ msgstr "Для работы некоторых способов доставки
 #: /wa-apps/shop/lib/config/data/checkout.php:16
 msgid "Confirmation"
 msgstr "Подтверждение"
+
+msgid "No storefronts with multi-step checkout. Go to the storefronts <a href=\"%s\">settings</a>."
+msgstr "Нет витрин с пошаговым оформлением заказа. Перейти в <a href=\"%s\">настройки</a>."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:26
 msgid "Disabling the Confirmation step is bad if the order total can be changed during the checkout, e.g. if shipping, tax, or promotions can increase the order total. Make sure your customer seen the final order amount before the order is placed."
@@ -11511,8 +11514,8 @@ msgid "Height"
 msgstr "Высота"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutSidebar.html:41
-msgid "Common storefront settings:"
-msgstr "Общие настройки витрин:"
+msgid "Common storefront settings"
+msgstr "Общие настройки витрин"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutSidebar.html:8
 msgid "<i class=\"icon16 status-green-tiny\"></i>&nbsp;“In-cart checkout” or <i class=\"icon16 status-blue-tiny\"></i>&nbsp;“Multi-step checkout” are selectable in <a href=\"%s\" target=\"_blank\">strorefront settings</a> <i class=\"icon10 new-window\"></i> individually for each storefront."
@@ -11714,8 +11717,8 @@ msgid "<span class=\"checkout-2-background\">%s</span> (might be not supported b
 msgstr "<span class=\"checkout-2-background\">%s</span> (может не поддерживаться всеми темами дизайна; проверьте в описании своей темы или в настройках оформления заказа после выбора этого режима)"
 
 #: /wa-apps/shop/lib/config/site.php:200
-msgid "If your design theme does not support “in-cart checkout”, standard checkout design of “Default” theme will be used. <a href=\"%s\">Set up</a> <i class=\"icon16 new-window\"></i>in-cart checkout."
-msgstr "Если ваша тема дизайна не поддерживает «оформление заказа в корзине», для страницы оформления заказа будет использоваться стандартный дизайн темы «Дефолт». <a href=\"%s\">Настройте</a> <i class=\"icon16 new-window\"></i>оформление заказа в корзине."
+msgid "If your design theme does not support “in-cart checkout”, standard checkout design of “Default” theme can be used. <a href=\"%s\">Set up</a> <i class=\"icon16 new-window\"></i>in-cart checkout."
+msgstr "Если ваша тема дизайна не поддерживает «оформление заказа в корзине», для страницы оформления заказа может использоваться стандартный дизайн темы «Дефолт». <a href=\"%s\">Настройте</a> <i class=\"icon16 new-window\"></i>оформление заказа в корзине."
 
 #: /wa-apps/shop/lib/config/site.php:212
 msgid "<a href=\"%s\">Set up</a> <i class=\"icon16 new-window\"></i>multi-step checkout"

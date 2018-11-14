@@ -4,8 +4,6 @@
  * Note: all prices in this table (price and purchase_price)
  * are stored in shop_order.currency, not the default shop currency.
  * shop_order.rate contains the currency rate valid at the time of the order.
- *
- * PHPUnit : wa-apps/shop/model/order/shopOrderItemsModelTest.php
  */
 class shopOrderItemsModel extends waModel implements shopOrderStorageInterface
 {

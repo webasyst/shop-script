@@ -363,7 +363,7 @@ class shopCheckoutConfig implements ArrayAccess
             'filter'             => [
                 'services_by_type' => true,
             ],
-            'departure_datetime' => shopDepartureDateTimeFacade::getDeparture($this['schedule']),
+            'departure_datetime' => (string)shopDepartureDateTimeFacade::getDeparture($this['schedule']),
             'customer_type'      => $customer_type == self::CUSTOMER_TYPE_PERSON_AND_COMPANY ? '' : $customer_type,
             'currency'           => $this->getFrontendCurrency(),
         ];
@@ -401,14 +401,22 @@ class shopCheckoutConfig implements ArrayAccess
     // Overridden in unit tests
     protected function getShippingMethods($address, $items, $params)
     {
+        $call_limit = 0.2;
+        if (defined('SHOP_SHIPPING_PLUGINS_CACHE_TIME_LIMIT')) {
+            $call_limit = (float) SHOP_SHIPPING_PLUGINS_CACHE_TIME_LIMIT;
+        }
+        $time_start = microtime(true);
         $function_cache = new waFunctionCache(['shopHelper', 'getShippingMethods'], [
-            'call_limit' => 1,
+            'call_limit' => $call_limit,
             'namespace'  => 'shop/shipping_methods',
             'ttl'        => 300, // 5 min
             'hard_clean' => true,
             'hash_salt'  => wa()->getLocale().$this->getStorefront().wa('shop')->getConfig()->getCurrency(false),
         ]);
-        return $function_cache->call($address, $items, $params);
+        $result = $function_cache->call($address, $items, $params);
+        $time_delta = round(microtime(true) - $time_start, 3);
+        //waLog::log('getShippingMethods('.(isset($params['shipping']['id']) ? 'single' : 'all').') - '.$function_cache->last_call_cache_status.' - '.$time_delta, 'checkout2-time.log');
+        return $result;
     }
 
     /**

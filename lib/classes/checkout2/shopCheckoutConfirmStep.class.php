@@ -78,9 +78,9 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
 
         return [
             'code' => $currency_info['code'],
-            'fraction_divider' => $locale_info['decimal_point'],
-            'fraction_size' => $currency_info['precision'],
-            'group_divider' => $locale_info['thousands_sep'],
+            'fraction_divider' => ifset($locale_info, 'decimal_point', '.'),
+            'fraction_size' => ifset($currency_info, 'precision', 2),
+            'group_divider' => ifset($locale_info, 'thousands_sep', ''),
             'group_size' => 3,
 
             'pattern_html' => str_replace('0', '%s', waCurrency::format('%{h}', 0, $currency)),

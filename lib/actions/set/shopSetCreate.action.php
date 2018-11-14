@@ -4,7 +4,6 @@ class shopSetCreateAction extends waViewAction
 {
     private $set_dynamic_default_count = 8;
 
-    //protected $template = 'DialogProductSetsCreate'; // OLD MODE
     protected $template = 'DialogProductSet'; // NEW MODE
 
     public function execute()

@@ -59,11 +59,19 @@
 
     <script>
         ( function($) { "use strict";
+
+            var locale = {$wa->locale()|substr:0:2|json_encode};
+
             load([
                 {
-                    id: "wa-order-ui-css",
+                    id: "wa-content-jquery-ui-js",
+                    type: "js",
+                    uri: "{$wa_url}wa-content/js/jquery-ui/jquery-ui-1.7.2.custom.min.js?v={$wa->version(true)}"
+                },
+                {
+                    id: "wa-content-jquery-ui-css",
                     type: "css",
-                    uri: "{$wa_app_static_url}css/frontend/order/ui.css?v={$wa->version()}"
+                    uri: "{$wa_url}wa-content/css/jquery-ui/jquery-ui-1.7.2.custom.css?v={$wa->version(true)}"
                 },
                 {
                     id: "wa-order-ui-js",
@@ -71,21 +79,33 @@
                     uri: "{$wa_app_static_url}js/frontend/order/ui.js?v={$wa->version()}"
                 },
                 {
-                    id: "wa-order-jquery-ui-js",
-                    type: "js",
-                    uri: "{$wa_app_static_url}js/frontend/order/jquery.datepicker.min.js?v={$wa->version()}"
-                },
-                {
-                    id: "wa-order-form-css",
+                    id: "wa-order-ui-css",
                     type: "css",
-                    uri: "{$wa_app_static_url}css/frontend/order/form.css?v={$wa->version()}"
+                    uri: "{$wa_app_static_url}css/frontend/order/ui.css?v={$wa->version()}"
                 },
                 {
                     id: "wa-order-form-js",
                     type: "js",
                     uri: "{$wa_app_static_url}js/frontend/order/form.js?v={$wa->version()}"
+                },
+                {
+                    id: "wa-order-form-css",
+                    type: "css",
+                    uri: "{$wa_app_static_url}css/frontend/order/form.css?v={$wa->version()}"
                 }
-            ]).then(init);
+            ]).then( function() {
+
+                if (locale === "ru") {
+                    load([{
+                        id: "wa-content-jquery-ui-locale-js",
+                        type: "js",
+                        uri: "{$wa_url}wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-ru_RU.js?v={$wa->version(true)}"
+                    }]).then(init);
+
+                } else {
+                    init();
+                }
+            });
 
             function load(sources) {
                 var deferred = $.Deferred();

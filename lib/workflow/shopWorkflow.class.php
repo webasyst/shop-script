@@ -148,7 +148,6 @@ class shopWorkflow extends waWorkflow
 
     public static function getExtendsActions()
     {
-        //TODO add descriptions; manage available actions (use only predefined)
         return array(
             'process'       =>  array(
                 'name' => sprintf(_w('“%s” action'), _w('Process')),

@@ -5,7 +5,11 @@
 {/if}
 <div class="s-settings-checkout-content content blank left200px">
     <div class="block double-padded s-settings-form">
-        {* TODO: Locale *}
+        {if empty($old_storefronts)}
+            <div style="margin: 80px auto; text-align: center;">
+                {sprintf('[`No storefronts with multi-step checkout. Go to the storefronts <a href="%s">settings</a>.`]', '?action=storefronts#/design/action=settings')}
+            </div>
+        {else}
         <h1 style="margin-bottom: 1.3em;">[`Multi-step checkout setup`]</h1>
 
         <h2><i class="icon16 ss cart-bw"></i> [`Storefront`]</h2>
@@ -145,6 +149,7 @@
                 {sprintf('[`Setup of required fields validation in backend, order spam filter, and web push notifications is available in “<a href="%s">General settings</a>” section.`]', '?action=settings#/general/')}
             </div>
         </div>
+        {/if}
     </div>
 
     <div class="clear-both"></div>

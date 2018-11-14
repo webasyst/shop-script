@@ -109,7 +109,6 @@ abstract class shopCheckoutStep
 <div class="wa-desired-date-wrapper">
     <div class="wa-fields-group">
         <div class="wa-field-wrapper wa-field-date">
-            <div class="wa-label">'._ws('Date').'</div>
             %s%s%s
         </div>
     </div>
@@ -118,7 +117,6 @@ abstract class shopCheckoutStep
                 // This gets inserted between date input and time selector
                 'control_separator' => '
     </div><div class="wa-field-wrapper wa-field-time">
-        <div class="wa-label">'._ws('Time').'</div>
 ',
             ]));
         } else {
@@ -317,7 +315,7 @@ abstract class shopCheckoutStep
             }
 
             $time_delta = microtime(true) - $time_start;
-            //waLog::log($step_id.' -> '.round($time_delta, 3), 'checkout2-time.log');
+            if ($time_delta >= 1.5 && waSystemConfig::isDebug()) waLog::log($step_id.' -> '.round($time_delta, 3), 'checkout2-time.log');
         }
 
         // pass errors to JS
@@ -375,7 +373,7 @@ abstract class shopCheckoutStep
             $time_start = microtime(true);
             $result['html'] = $this->renderTemplate($template, $vars, $theme);
             $time_delta = microtime(true) - $time_start;
-            //waLog::log($this->getId().' render -> '.round($time_delta, 3), 'checkout2-time.log');
+            if ($time_delta >= 1 && waSystemConfig::isDebug()) waLog::log($this->getId().' render -> '.round($time_delta, 3), 'checkout2-time.log');
         }
         return $result;
     }

@@ -121,7 +121,7 @@ class shopOrdersCollection
                      * @param array [string]boolean $params['add']
                      * @return bool null if ignored, true when something changed in the collection
                      */
-                    $processed = wa()->event('orders_collection', $params);
+                    $processed = wa('shop')->event('orders_collection', $params);
                     if (!$processed) {
                         throw new waException('Unknown collection hash type: '.htmlspecialchars($type, ENT_COMPAT, 'utf-8'));
                     }
@@ -255,7 +255,7 @@ class shopOrdersCollection
          * @event orders_collection.prepared
          * @param shopOrdersCollection $this
          */
-        wa()->event('orders_collection.prepared', $this);
+        wa('shop')->event('orders_collection.prepared', $this);
 
         $sql = "\nFROM shop_order o";
 

@@ -563,12 +563,15 @@ SQL;
         );
         $ids = array();
         foreach (explode(',', $ids_str) as $id) {
-            $ids[] = (int)$id;
+            if (strlen($id)) {
+                $ids[] = (int)$id;
+            }
         }
-        if (!$ids) {
+        if ($ids) {
+            $this->where[] = "p.id IN (".implode(',', $ids).")";
+        } else {
             $this->where[] = '0';
         }
-        $this->where[] = "p.id IN (".implode(',', $ids).")";
     }
 
     /**
@@ -1329,7 +1332,7 @@ SQL;
          * @event products_collection.prepared
          * @param shopProductsCollection $this
          */
-        wa()->event('products_collection.prepared', $this);
+        wa('shop')->event('products_collection.prepared', $this);
 
 
         $sql = "FROM shop_product p";

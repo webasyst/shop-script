@@ -11,7 +11,7 @@ class shopSettingsCheckoutAction extends shopSettingsCheckoutAbstractAction
         if (!empty($this->storefronts[2]) && $do_not_redirect) {
             foreach ($this->storefronts[2] as $route) {
                 $domain = waIdna::dec($route['domain']);
-                $redirect_hash = sprintf('/checkout2&domain=%s&route=%d/', $domain, $route['id']);
+                $redirect_hash = sprintf('/checkout2&domain=%s&route=%d/', urlencode($domain), urlencode($route['id']));
                 break;
             }
         }
@@ -49,6 +49,7 @@ class shopSettingsCheckoutAction extends shopSettingsCheckoutAbstractAction
             'guest_checkout'   => $this->getConfig()->getGeneralSettings('guest_checkout'),
             'shipping_plugins' => $this->getPlugins(shopPluginModel::TYPE_SHIPPING),
             'payment_plugins'  => $this->getPlugins(shopPluginModel::TYPE_PAYMENT),
+            'old_storefronts'  => ifempty($this->storefronts, 1, []),
         ));
     }
 

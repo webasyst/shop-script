@@ -11,6 +11,10 @@ class shopCategoryEditAction extends waViewAction
 
     public function execute()
     {
+        if (!$this->getUser()->getRights('shop', 'setscategories')) {
+            throw new waRightsException(_w('Access denied'));
+        }
+
         $category_id = waRequest::get('category_id', null, waRequest::TYPE_INT);
         $config = wa('shop')->getConfig();
         /**

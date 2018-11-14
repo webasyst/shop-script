@@ -1,6 +1,15 @@
 <?php
 /**
- * /order/cart/add|delete|save|get in frontend: JSON API for new single-page cart
+ * /order/cart/<add|save|get|render> in frontend: JSON API for new single-page cart.
+ *
+ * New cart items are added via `add` endpoint.
+ *
+ * Existing items are modified and deleted via `save` endpoint.
+ *
+ * `get` returns JSON describing current cart state. `add` and `save` use the same output as `get`.
+ *
+ * `render` returns cart HTML as would be rendered by $wa->shop->cgeckout()->cart().
+ * `add` and `save` can optionally render cart instead of returhing JSON if a certain parameter is passed in.
  */
 class shopFrontendOrderCartActions extends waJsonActions
 {

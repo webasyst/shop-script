@@ -90,16 +90,32 @@ class shopCheckoutRegionStep extends shopCheckoutStep
             ]];
         }
 
-        // Values in form: either from POST or customer address in DB
+        // Values in form are either from POST or customer address in DB. Load both.
+        $address_from_contact = ifset($data, 'contact', 'address', 0, 'data', []);
         $we_have_input = !empty($data['input']['region']) && is_array($data['input']['region']);
         if ($we_have_input) {
-            $address = ifset($data, 'input', 'region', []);
+            $address_from_input = ifset($data, 'input', 'region', []);
             $location_id = ifempty($data['input']['region'], 'location_id', $default_location_id);
-            $selected_values = $this->getSelectedValues($cfg, $cfg_locations, $location_id, $default_location_id, $address);
         } else {
-            $address = ifset($data, 'contact', 'address', 0, 'data', []);
-            $selected_values = $this->getSelectedValues($cfg, $cfg_locations, $default_location_id, $default_location_id, $address);
+            $location_id = $default_location_id;
+            $address_from_input = [];
         }
+
+        $contact_id = ifset($data, 'contact', 'id', null);
+        $user_id_from_input = ifset($data, 'input', 'auth', 'user_id', '');
+        if ($contact_id && $user_id_from_input != $contact_id) {
+            // User just logged in: combine input and address from contact
+            $address = array_filter($address_from_input) + $address_from_contact;
+        } else if ($we_have_input) {
+            // It's a POST. Use address from input
+            $address = $address_from_input;
+        } else {
+            // It's initial page load. Use address from contact.
+            $address = $address_from_contact;
+        }
+
+        // Figure out what values to show in form fields
+        $selected_values = $this->getSelectedValues($cfg, $cfg_locations, $location_id, $default_location_id, $address);
 
         // For selected country load all regions.
         // For countries used in locations load names of fixed regions.

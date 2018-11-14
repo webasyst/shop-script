@@ -217,7 +217,7 @@ class shopImage
          * Make extra workup
          * @event image_thumb
          */
-        wa()->event('image_thumb', $image);
+        wa('shop')->event('image_thumb', $image);
 
         return $image;
     }

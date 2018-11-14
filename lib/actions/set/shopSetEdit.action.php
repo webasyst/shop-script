@@ -2,7 +2,6 @@
 
 class shopSetEditAction extends waViewAction
 {
-    //protected $template = 'DialogProductSetsSettings'; // OLD MODE
     protected $template = 'DialogProductSet'; // NEW MODE
 
     public function execute()

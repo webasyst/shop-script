@@ -39,7 +39,6 @@ class shopProductStocksLogModel extends waModel
                 $icon = '<i class="icon16 ss transfer-bw" title="'._w('Inventory transferred from one stock to another').'"></i>';
                 break;
             case self::TYPE_TRANSFER:
-                // TODO: To come up with the right text
                 $icon = '<i class="icon16 ss transfer-bw" title="'._w('Inventory transferred to warehouse').'"></i>';
                 break;
             default:

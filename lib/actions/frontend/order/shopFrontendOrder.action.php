@@ -1,6 +1,11 @@
 <?php
 /**
  * /order/ page in frontend: new single-page cart and checkout
+ *
+ * Note that the page itself does not do much work.
+ * Controller loads the order.html template from theme which uses
+ * $wa->shop->checkout()->cart() and ->form().
+ * Those do the heavy lifting.
  */
 class shopFrontendOrderAction extends shopFrontendAction
 {

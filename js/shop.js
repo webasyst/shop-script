@@ -474,7 +474,6 @@
                     if ($.contains(document, that.$wrapper[0])) {
                         that.menuWatcher();
                     } else {
-                        console.log( "off" );
                         $window.off("resize", onResize);
                     }
                 }

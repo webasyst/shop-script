@@ -14,10 +14,6 @@ class shopFeatureModel extends waModel
     const TYPE_COLOR = 'color';
 
     const STATUS_PUBLIC = 'public';
-
-    /**
-     * todo what is "hidden" Vlad? Its not use =(
-     */
     const STATUS_HIDDEN = 'hidden';
     const STATUS_PRIVATE = 'private';
 

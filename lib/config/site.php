@@ -197,7 +197,7 @@ return array(
             'items' => array(
                 2 => array(
                     'name'        => sprintf(_w('<span class="checkout-2-background">%s</span> (may be not supported by some design themes; please check your theme’s description or checkout settings after selecting this mode)'), _w('In-cart checkout')),
-                    'description' => '<br>'.sprintf(_w('If your design theme does not support “in-cart checkout”, standard checkout design of “Default” theme will be used. <a href="%s">Set up</a> <i class="icon16 new-window"></i>in-cart checkout.'), wa()->getAppUrl('shop/?action=settings#/checkout')) . '<br><br>',
+                    'description' => '<br>'.sprintf(_w('If your design theme does not support “in-cart checkout”, standard checkout design of “Default” theme can be used. <a href="%s">Set up</a> <i class="icon16 new-window"></i>in-cart checkout.'), wa()->getAppUrl('shop/?action=settings#/checkout')) . '<br><br>',
                 ),
                 1 => array(
                     'name'        => _w('Multi-step checkout'),

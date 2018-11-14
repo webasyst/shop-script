@@ -220,13 +220,18 @@
                                 <div class="wa-column-price">
                                     <div class="wa-price-section">
                                         <div class="wa-price-total js-product-full-price">
-                                            {shop_currency($_item.full_price, ['in_currency' => true, 'extended_format' => '%t{h}'])}
+                                            {$_full_price = $_item.full_price}
+                                            {if !empty($_item.discount)}
+                                                {$_full_price = $_full_price - $_item.discount}
+                                            {/if}
+
+                                            {shop_currency($_full_price, ['in_currency' => true, 'extended_format' => '%t{h}'])}
                                         </div>
 
                                         {if $_config.discount_item === shopCheckoutConfig::DISCOUNT_ITEM_TYPE_STRIKEOUT}
                                             {$_compare_price = null}
                                             {if !empty($_item.discount)}
-                                                {$_compare_price = $_item.full_price + $_item.discount}
+                                                {$_compare_price = $_item.full_price}
                                             {/if}
 
                                             <div class="wa-price-compare js-product-compare" {if empty($_compare_price)}style="display: none;"{/if}>
