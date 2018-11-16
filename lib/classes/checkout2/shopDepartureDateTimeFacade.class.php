@@ -123,6 +123,23 @@ class shopDepartureDateTimeFacade
         //convert to server timezone
         $timestamp = $this->changeTimezone('Y-m-d H:i:s', $timestamp, $this->timezone, date_default_timezone_get());
 
+        $params = [
+            'this'     => $this,
+            'timezone' => $this->timezone,
+            'timestamp' => &$timestamp,
+        ];
+
+        /**
+         * @event departure_datetime.after
+         * @param array $params
+         * @param array [string] $params['hash']
+         * @param array [string] $params['storefront']
+         * @param array [array] $params['schedule']
+         *
+         * @return bool
+         */
+        wa('shop')->event('departure_datetime.after', $params);
+
         return $timestamp;
     }
 
@@ -393,5 +410,4 @@ class shopDepartureDateTimeFacade
     {
         return new self($schedule, $storefront);
     }
-
 }

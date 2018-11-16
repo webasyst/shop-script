@@ -171,71 +171,72 @@
                 {$_wp_is_allowed = $web_push->isAllowed()}
                 <div class="field">
                     <div class="name">[`Web push notifications`]</div>
-                    <div class="value">
-                        <div class="name">{waIdna::dec($_wp_domain)}</div>
-                        <div class="value s-ibutton-checkbox no-shift">
-                            {if !$web_push->isBrowserSupported()}
-                                <div class="block not-padded">
-                                    <p>
-                                        <i class="icon16 exclamation"></i>
-                                        [`Your browser doesn't support web push technology.`]
-                                        <br>
-                                        [`However, you can configure web push notifications so that users with supported browsers can receive them.`]
-                                        <br>
-                                        [`Check <a target="_blank" href="https://documentation.onesignal.com/docs/website-sdk-overview">web push documentation</a> for the list of supported browsers.`]
-                                    </p>
-                                </div>
-                            {/if}
-
-                            {if !$_wp_is_allowed}
-                                <i class="icon10 exclamation"></i> [`This domain does not support push notifications. Ensure that an SSL certificate is installed for the domain name.`]
-                            {else}
-                                <span {if !$_wp_is_active} class="gray"{/if} id="s-toggle-web-push-disabled-label">[`Disabled`]</span>
-                                <div style="display: inline-block; margin: 0 10px;">
-                                    <input type="hidden" name="web_push_settings[active]" value="0" />
-                                    <input type="checkbox" id="s-toggle-web-push-active" name="web_push_settings[active]" value="1"{if $_wp_is_active} checked="checked"{/if}>
-                                </div>
-                                <span id="s-toggle-web-push-enabled-label" {if $_wp_is_active} class="gray"{/if}>[`Enabled`]</span>
-                            {/if}
-
-                        </div>
-
-                        {if $_wp_is_allowed}
-                            <div id="s-web-push-enabled-block" class="value s-web-push-settings"{if !$_wp_is_active} style="display: none"{/if}>
-                                <p class="small">{sprintf('[`User manual on setting up web push notifications: <a href="%s" target="_blank">%s</a>.`]','[`http://www.shop-script.com/help/13536/push-notifications/`]','[`http://www.shop-script.com/help/13536/push-notifications/`]')}</p>
-                                <div class="fields form">
-                                    <div class="field">
-                                        <div class="name">[`Short company name`]</div>
-                                        <div class="value">
-                                            <input type="text" name="web_push_settings[manifest][short_name]" value="{$_wp_manifest.short_name|default:''}">
-                                        </div>
-                                    </div>
-                                    <div class="field">
-                                        <div class="name">[`Safari Web ID`]</div>
-                                        <div class="value">
-                                            <input type="text" name="web_push_settings[safari_web_id]" value="{$web_push->getSafariWebId()}">
-                                        </div>
-                                    </div>
-                                    <div class="field">
-                                        <div class="name">[`OneSignal App ID`]</div>
-                                        <div class="value">
-                                            <input type="text" name="web_push_settings[app_id]" value="{$web_push->getAppId()}">
-                                        </div>
-                                    </div>
-                                    <div class="field">
-                                        <div class="name">[`REST API Key`]</div>
-                                        <div class="value">
-                                            <input type="text" name="web_push_settings[rest_api_key]" value="{$web_push->getRestApiKey()}">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div id="s-web-push-disabled-block" class="value"{if $_wp_is_active} style="display: none"{/if}>
-                                <p class="hint">[`Enable web push notifications for your browser to get notified on new orders on your computer screen.`]</p>
+                    <div class="value s-ibutton-checkbox no-shift">
+                        {if !$web_push->isBrowserSupported()}
+                            <div class="block not-padded">
+                                <p>
+                                    <i class="icon16 exclamation"></i>
+                                    [`Your browser doesn’t support web push technology.`]
+                                    <br>
+                                    [`However, you can configure web push notifications so that users with supported browsers can receive them.`]
+                                    <br>
+                                    [`Check <a target="_blank" href="https://documentation.onesignal.com/docs/website-sdk-overview">web push documentation</a> for the list of supported browsers.`]
+                                </p>
                             </div>
                         {/if}
+
+                        {if !$_wp_is_allowed}
+                            <i class="icon10 exclamation"></i> [`This domain does not support push notifications. Ensure that an SSL certificate is installed for the domain name.`]
+                        {else}
+                            <span {if !$_wp_is_active} class="gray"{/if} id="s-toggle-web-push-disabled-label">[`Disabled`]</span>
+                            <div style="display: inline-block; margin: 0 10px;">
+                                <input type="hidden" name="web_push_settings[active]" value="0" />
+                                <input type="checkbox" id="s-toggle-web-push-active" name="web_push_settings[active]" value="1"{if $_wp_is_active} checked="checked"{/if}>
+                            </div>
+                            <span id="s-toggle-web-push-enabled-label" {if $_wp_is_active} class="gray"{/if}>[`Enabled`]</span>
+                        {/if}
+
                     </div>
+
+                    {if $_wp_is_allowed}
+                        <div id="s-web-push-enabled-block" class="value s-web-push-settings"{if !$_wp_is_active} style="display: none"{/if}>
+                            <p class="small">{sprintf('[`User manual on setting up web push notifications: <a href="%s" target="_blank">%s</a>.`]','[`http://www.shop-script.com/help/13536/push-notifications/`]','[`http://www.shop-script.com/help/13536/push-notifications/`]')}</p>
+                            <div class="fields form">
+                                <div class="field">
+                                    <div class="name" style="padding-top: 0;">[`Site URL`]</div>
+                                    <div class="value">{waIdna::dec($_wp_domain)}</div>
+                                </div>
+                                <div class="field">
+                                    <div class="name">[`Short company name`]</div>
+                                    <div class="value">
+                                        <input type="text" name="web_push_settings[manifest][short_name]" value="{$_wp_manifest.short_name|default:''}">
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="name">[`Safari Web ID`]</div>
+                                    <div class="value">
+                                        <input type="text" name="web_push_settings[safari_web_id]" value="{$web_push->getSafariWebId()}">
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="name">[`OneSignal App ID`]</div>
+                                    <div class="value">
+                                        <input type="text" name="web_push_settings[app_id]" value="{$web_push->getAppId()}">
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="name">[`REST API Key`]</div>
+                                    <div class="value">
+                                        <input type="text" name="web_push_settings[rest_api_key]" value="{$web_push->getRestApiKey()}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="s-web-push-disabled-block" class="value"{if $_wp_is_active} style="display: none"{/if}>
+                            <p class="hint">[`Enable web push notifications for your browser to get notified on new orders on your computer screen.`]</p>
+                        </div>
+                    {/if}
                 </div>
             </div>
 
@@ -313,7 +314,7 @@
                     <div class="name">[`Maps`]</div>
                     <div class="value no-shift">
                         {if !empty($wa_settings)}
-                            {$wa_backend_url|cat:'webasyst/settings/maps/'|string_format:'[`Select an online map service in <a href=\"%s\">Settings</a> app.`]'}
+                            {$wa_backend_url|cat:'webasyst/settings/maps/'|string_format:'[`Select an online map service in <a href="%s">Settings</a> app.`]'}
                         {else}
                             [`To select an online map engine, you need access to Settings app.`]
                         {/if}
@@ -326,7 +327,7 @@
                     <div class="name">[`SMS`]</div>
                     <div class="value no-shift">
                         {if !empty($wa_settings)}
-                            {$wa_backend_url|cat:'webasyst/settings/sms/'|string_format:'[`Set up connection to SMS providers in <a href=\"%s\">Settings</a> app.`]'}
+                            {$wa_backend_url|cat:'webasyst/settings/sms/'|string_format:'[`Set up connection to SMS providers in <a href="%s">Settings</a> app.`]'}
                         {else}
                             [`You need access to Settings app to set up connection to SMS providers.`]
                         {/if}

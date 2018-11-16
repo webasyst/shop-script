@@ -106,8 +106,18 @@
                         {/if}
                     </div>
                 {/if}
+
+                {* @event checkout_render_payment *}
+                {foreach $event_hook.payment as $_}
+                    <div class="wa-plugin-hook">{$_}</div>
+                {/foreach}
             </form>
         </div>
+    {else}
+        {* @event checkout_render_payment *}
+        {foreach $event_hook.payment as $_}
+            <div class="wa-plugin-hook">{$_}</div>
+        {/foreach}
     {/if}
 
     <script>

@@ -354,8 +354,7 @@ class shopCsvProductrunController extends waLongActionController
             if ($features) {
                 $options['features'] = true;
                 foreach ($features as $feature) {
-                    if (
-                        !preg_match('/\.\d$/', $feature['code'])
+                    if (!preg_match('/\.\d$/', $feature['code'])
                         &&
                         ($feature['type'] != shopFeatureModel::TYPE_DIVIDER)
                     ) {
@@ -1654,14 +1653,11 @@ class shopCsvProductrunController extends waLongActionController
      */
     private function stepImportCategory($data)
     {
-        /**
-         * @var shopCategoryModel $model
-         */
+        /** @var shopCategoryModel $model */
         static $model;
-        /**
-         * @var shopCategoryParamsModel $params_model
-         */
+        /** @var shopCategoryParamsModel $params_model */
         static $params_model;
+
         $empty = $this->reader->getEmpty();
         $data += $empty;
         if (!$model) {
@@ -1730,7 +1726,7 @@ class shopCsvProductrunController extends waLongActionController
                 }
 
             }
-            if (!empty($data['params']) && !empty($id)) {
+            if (!empty($data['params']) && !$this->emulate() && !empty($id)) {
                 if (!$params_model) {
                     $params_model = new shopCategoryParamsModel();
                 }
@@ -1742,6 +1738,16 @@ class shopCsvProductrunController extends waLongActionController
                     }
                 }
                 $params_model->set($id, $params);
+            }
+
+            if (!$this->emulate() && !empty($id)) {
+                $data['id'] = $id;
+                /**
+                 * @event category_save
+                 * @param array $category
+                 * @return void
+                 */
+                wa()->event('category_save', $data);
             }
         } catch (waDbException $ex) {
             $target = 'error';
@@ -1797,14 +1803,10 @@ class shopCsvProductrunController extends waLongActionController
     private function stepExport()
     {
         $res = $this->stepExportProduct($this->data['current'], $this->data['count'], $this->data['processed_count']);
-        if (
-            #export products chunk complete
-            !$res
-            && #export categories is enabled
 
-            $this->data['export_category']
-            //      &&
-            //      ($this->data['current'][self::STAGE_CATEGORY] < $this->data['count'][self::STAGE_CATEGORY])
+        if (!$res                             #export products chunk complete
+            && $this->data['export_category'] #export categories is enabled
+            // && ($this->data['current'][self::STAGE_CATEGORY] < $this->data['count'][self::STAGE_CATEGORY])
         ) {
             $res = $this->stepExportCategory($this->data['current'], $this->data['count'], $this->data['processed_count']);
         }

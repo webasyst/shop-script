@@ -10,7 +10,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 1.8.7.1\n"
 "Plural-Forms: nplurals=2; plural=n == 1 ? 0 : 1;\n"
 "Language: en_US\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -9277,10 +9277,6 @@ msgstr ""
 msgid "Out-of-stock products can be added to cart and ordered"
 msgstr ""
 
-#: /wa-apps/shop/templates/layouts/Backend.html:176
-msgid "Compare custom ranges..."
-msgstr ""
-
 #: /wa-apps/shop/templates/layouts/Backend.html:203
 msgid "Cohorts"
 msgstr ""
@@ -10624,14 +10620,6 @@ msgstr ""
 msgid "Selected captcha type will be used throughout your storefront wherever applicable."
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:155
-msgid "Site Key"
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:161
-msgid "Secret"
-msgstr ""
-
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:164
 msgid "Get Google reCAPTCHA site key and secret for your site on <a href=\"https://www.google.com/recaptcha\" target=\"_blank\">https://www.google.com/recaptcha</a>"
 msgstr ""
@@ -11109,8 +11097,8 @@ msgid "Not visible to customers"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/backend/shopBackendLoc.action.php:96
-msgid "You've added %d product to this transfer already. Are you sure you want to change the source stock?"
-msgid_plural "You've added %d products to this transfer already. Are you sure you want to change the source stock?"
+msgid "You’ve added %d product to this transfer already. Are you sure you want to change the source stock?"
+msgid_plural "You’ve added %d products to this transfer already. Are you sure you want to change the source stock?"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -11291,15 +11279,6 @@ msgstr ""
 msgid "Unknown channel"
 msgstr ""
 
-#: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateMove.controller.php:87
-msgid "State hasn't any available action"
-msgstr ""
-
-#: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateMove.controller.php:96
-#: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateMove.controller.php:104
-msgid "Action isn't available"
-msgstr ""
-
 #: /wa-apps/shop/templates/actions/backend/BackendOrders.html:69
 #: /wa-apps/shop/templates/actions/backend/BackendSettings.html:64
 #: /wa-apps/shop/templates/actions/couriers/Couriers.html:166
@@ -11426,7 +11405,7 @@ msgid "Ordered products"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:223
-msgid "Your browser doesn't support web push technology."
+msgid "Your browser doesn’t support web push technology."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:225
@@ -11548,7 +11527,7 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/order/OrderEdit.html:373
 #: /wa-apps/shop/templates/actions/order/OrderEdit.html:374
-msgid "Don't notify customer on this order editing"
+msgid "Don’t notify customer on this order editing"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/orders/Orders.html:6
@@ -11582,7 +11561,7 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPayment.html:68
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:72
-msgid "You can remove settings or install the plugin"
+msgid "You can remove settings or install the plugin."
 msgstr ""
 
 #: /wa-apps/shop/templates/layouts/Backend.html:328
@@ -11598,17 +11577,17 @@ msgid "Unknown destination stock"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/workflow/shopWorkflowPrepare.controller.php:30
-msgid "Syntax Error in template for action \"%s\" in line %s \"%s\". Reason: %s."
+msgid "Syntax error in the template of action “%s” in line %s “%s”. Reason: %s."
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/workflow/shopWorkflowPrepare.controller.php:32
-msgid "You can edit template <a href=\"?action=settings#/orderStates/\">order states settings</a>"
+msgid "You can edit the template in <a href=\"?action=settings#/orderStates/\">order states settings</a>."
 msgstr ""
 
 #: /wa-apps/shop/lib/config/my.order.php:49
 #: /wa-apps/shop/lib/config/site.php:281 /wa-apps/shop/lib/config/site.php:371
 #: /wa-apps/shop/lib/config/site.php:430
-msgid "Courier contact's default phone number"
+msgid "Courier contact’s default phone number"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/my.order.php:44
@@ -11626,7 +11605,7 @@ msgstr ""
 #: /wa-apps/shop/lib/config/my.order.php:48
 #: /wa-apps/shop/lib/config/site.php:280 /wa-apps/shop/lib/config/site.php:370
 #: /wa-apps/shop/lib/config/site.php:429
-msgid "Courier contact's default email address"
+msgid "Courier contact’s default email address"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/my.order.php:53
@@ -13690,10 +13669,6 @@ msgstr ""
 msgid "<i class=\"icon16 status-green-tiny\"></i>&nbsp;“In-cart checkout” or <i class=\"icon16 status-blue-tiny\"></i>&nbsp;“Multi-step checkout” are selectable in <a href=\"%s\" target=\"_blank\">strorefront settings</a> <i class=\"icon10 new-window\"></i> individually for each storefront."
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsRegions.html:6
-msgid "You can set up countries and regions in “<a href=\\\"%s\\\">Settings</a>” app."
-msgstr ""
-
 #: /wa-apps/shop/templates/actions/dialog/DialogProductSet.html:38
 msgid "Changing the set ID <em>will not</em> automatically update templates and pages in which this code is embedded, so be sure to update them if you change the ID."
 msgstr ""
@@ -13817,17 +13792,6 @@ msgid "Profile"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:197
-msgid "item"
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:315
-msgid "Select an online map service in <a href=\\\"%s\\\">Settings</a> app."
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:328
-msgid "Set up connection to SMS providers in <a href=\\\"%s\\\">Settings</a> app."
-msgstr ""
-
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:330
 msgid "You need access to Settings app to set up connection to SMS providers."
 msgstr ""
@@ -13910,4 +13874,24 @@ msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:336
 msgid "Returns working schedule data array for current storefront"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:10
+msgid "No storefronts with multi-step checkout. Go to the storefronts <a href=\"%s\">settings</a>."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:118
+msgid "Add an order to existing customer profile with the same email address"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:316
+msgid "Select an online map service in <a href=\"%s\">Settings</a> app."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:329
+msgid "Set up connection to SMS providers in <a href=\"%s\">Settings</a> app."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsRegions.html:6
+msgid "You can set up countries and regions in “<a href=\"%s\">Settings</a>” app."
 msgstr ""

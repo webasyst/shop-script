@@ -10,7 +10,16 @@ class shopSettingsCheckout2Action extends shopSettingsCheckoutAbstractAction
     public function execute()
     {
         $route = $this->getRoute();
-        $this->checkout_config = new shopCheckoutConfig(ifset($route, 'checkout_storefront_id', null));
+        try {
+            $this->checkout_config = new shopCheckoutConfig(ifset($route, 'checkout_storefront_id', null));
+        } catch (waException $e) {
+            $this->view->assign([
+                'route'           => false,
+                'checkout_config' => false,
+            ]);
+            return;
+        }
+
         $this->view->assign([
             'route'                                    => $route,
             'checkout_config'                          => $this->checkout_config,

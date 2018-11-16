@@ -66,22 +66,25 @@
 
         Auth.prototype.initAuth = function() {
             var that = this,
+                $document = $(document),
                 dialog = null,
                 dialog_xhr = null;
 
-            that.scope.$wrapper.on("before_reload", function() {
-                if (dialog) { dialog.close(); }
-            });
+            $document.on("wa_auth_contact_logged", loginWatcher);
+            function loginWatcher() {
+                var is_exist = $.contains(document, that.$wrapper[0]);
+                if (is_exist) {
+                    if (dialog) { dialog.close(); }
+                } else {
+                    $document.off("wa_auth_contact_logged", loginWatcher);
+                }
+            }
 
             // LOGOUT
             if (that.contact_id) {
+                // These code were used to update the block. Now used reload page
                 that.$wrapper.on("click", ".js-logout-button", function(event) {
-                    event.preventDefault();
-                    var href = that.scope.urls["logout"];
-
-                    $.get(href, function() {
-                        that.scope.$wrapper.trigger("wa_auth_contact_logout");
-                    });
+                    $(document).trigger("wa_order_reload_start");
                 });
 
             // LOGIN
@@ -1496,6 +1499,7 @@
                 }).then( function(api) {
                     if (api.order_id) {
                         that.scope.trigger("created", api);
+                        that.scope.lock(true);
                         try {
                             location.href = that.scope.urls.success;
                         } catch (e) {
@@ -1521,7 +1525,8 @@
                     lift = 40;
 
                 if (error["$field"] && error["$field"].length) {
-                    scroll_top = error["$field"].offset().top - lift;
+                    var top = getTop(error["$field"]);
+                    scroll_top = top - lift;
                     error["$field"].focus();
                 }
 
@@ -1530,6 +1535,23 @@
                 }
 
                 $("html, body").scrollTop(scroll_top);
+
+                function getTop($wrapper) {
+                    var result = 0,
+                        is_visible = $wrapper.is(":visible");
+
+                    if (is_visible) {
+                        result = $wrapper.offset().top;
+
+                    } else {
+                        var $parent = $wrapper.parent();
+                        if ($parent.length) {
+                            result = getTop($parent);
+                        }
+                    }
+
+                    return result;
+                }
             }
         };
 
@@ -1633,13 +1655,26 @@
                 }
             }
 
+            // These code were used to update the cart block. Now used reload page
             $document.on("wa_auth_contact_logged", loginWatcher);
             function loginWatcher() {
                 var is_exist = $.contains(document, that.$wrapper[0]);
                 if (is_exist) {
-                    that.reload();
+                    $document.trigger("wa_order_reload_start");
+                    location.reload();
+
                 } else {
                     $(document).off("wa_auth_contact_logged", loginWatcher);
+                }
+            }
+
+            $document.on("wa_order_reload_start", reloadWatcher);
+            function reloadWatcher() {
+                var is_exist = $.contains(document, that.$wrapper[0]);
+                if (is_exist) {
+                    that.lock(true);
+                } else {
+                    $document.off("wa_order_reload_start", reloadWatcher);
                 }
             }
         };
@@ -2209,8 +2244,7 @@
 
         Form.prototype.reload = function() {
             var that = this,
-                deferred = $.Deferred(),
-                locked_class = "is-locked";
+                deferred = $.Deferred();
 
             if (!that.reload_xhr) {
                 if (that.calculate_xhr) {
@@ -2218,7 +2252,7 @@
                     that.calculate_xhr = false;
                 }
 
-                that.$wrapper.addClass(locked_class);
+                that.lock(true);
 
                 var form_data = that.getFormData({
                     only_api: true
@@ -2268,12 +2302,24 @@
                         deferred.reject(state);
                     })
                     .always( function() {
-                        that.$wrapper.removeClass(locked_class);
+                        that.lock(false);
                         that.reload_xhr = false;
                     });
             }
 
             return deferred.promise();
+        };
+
+        Form.prototype.lock = function(do_lock) {
+            var that = this,
+                locked_class = "is-locked";
+
+            if (do_lock) {
+                that.$wrapper.addClass(locked_class);
+
+            } else {
+                that.$wrapper.removeClass(locked_class);
+            }
         };
 
         // PUBLIC

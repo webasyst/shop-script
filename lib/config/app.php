@@ -17,7 +17,7 @@ return array(
     'pages'            => true,
     'mobile'           => true,
     'my_account'       => true,
-    'version'          => '8.0.0', // RC4 developer preview
+    'version'          => '8.0.0', // RC5 developer preview
     'critical'         => '8.0.0',
     'vendor'           => 'webasyst',
     'csrf'             => true,
@@ -31,6 +31,7 @@ return array(
         'cancel'        => true,
         'taxes'         => true,
         'custom_fields' => true,
+        'dimensions'    => false, //actual value casted via shopShipping::getAppProperties
     ),
     'sms_plugins'      => true,
     'license'          => 'commercial',

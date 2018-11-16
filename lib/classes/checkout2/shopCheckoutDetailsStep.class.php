@@ -50,7 +50,10 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
         // Fetch base values for shipping address from contact
         /** @var waContact $contact */
         $contact = $data['contact'];
-        $base_values = $contact->get('address', 'js');
+        $base_values = $contact->get('address.shipping', 'js');
+        if (!$base_values) {
+            $base_values = $contact->get('address', 'js');
+        }
         if (isset($base_values[0])) {
             $base_values = $base_values[0];
         }

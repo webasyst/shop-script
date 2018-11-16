@@ -118,9 +118,11 @@ class shopFrontendOrderActions extends waJsonActions
             ] + $this->getOrderParamsFromRequest(),
 
             'comment'  => ifset($data, 'result', 'confirm', 'comment', ''),
+            'shipping' => $data['order']['shipping'],
 
             'customer' => $contact_field_values,
             'items'    => $data['order']['items'],
+            'discount' => 'calculate',
         ];
 
         $options = [

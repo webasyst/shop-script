@@ -20,7 +20,7 @@ abstract class shopFeatureValuesModel extends shopSortableModel
     }
 
     /**
-     * @param string $field
+     * @param string|mixed[string] $field
      * @param int|int[] $value
      * @param int $limit
      * @return array array of values for multiple features or values of single feature

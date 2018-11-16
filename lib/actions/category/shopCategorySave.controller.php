@@ -2,6 +2,7 @@
 
 class shopCategorySaveController extends waJsonController
 {
+    /** @var shopCategoryModel  */
     protected $model = null;
 
     public function execute()
@@ -213,7 +214,7 @@ class shopCategorySaveController extends waJsonController
             foreach ($features as $f_code => $f_data) {
                 $f_type = ifset($f_data, 'type', null);
                 $f_values = ifset($f_data, 'values', null);
-                if (substr($f_type, 0 ,5) === 'range') {
+                if (substr($f_type, 0, 5) === 'range') {
                     $begin = ifset($f_values, 'begin', null);
                     if ($begin) {
                         $conditions[] = $f_code.'.value>='.$begin;
@@ -222,7 +223,7 @@ class shopCategorySaveController extends waJsonController
                     if ($end) {
                         $conditions[] = $f_code.'.value<='.$end;
                     }
-                } elseif($f_values) {
+                } elseif ($f_values) {
                     $conditions[] = $f_code.'.value_id='.implode(',', $f_values);
                 }
             }

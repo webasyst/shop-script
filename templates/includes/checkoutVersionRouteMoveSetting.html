@@ -9,6 +9,6 @@
         var $version_field = $('input[name="params[checkout_version]"]').parents('.field'),
             $theme_field = $('select[name="params[theme_mobile]"]').parents('.field');
 
-        $version_field.insertBefore($theme_field);
+        $version_field.insertAfter($theme_field);
     })(jQuery);
 </script>

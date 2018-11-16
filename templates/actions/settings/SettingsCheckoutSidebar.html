@@ -8,23 +8,25 @@
         {sprintf(_w('<i class="icon16 status-green-tiny"></i>&nbsp;“In-cart checkout” or <i class="icon16 status-blue-tiny"></i>&nbsp;“Multi-step checkout” are selectable in <a href="%s" target="_blank">strorefront settings</a> <i class="icon10 new-window"></i> individually for each storefront.'), "?action=storefronts#/design/action=settings")}
     </div>
 
-    <h5 class="heading js-list-header" data-version="2">
-        <span class="table-cell"><i class="icon16 darr"></i></span>
-        <a class="table-cell" href="javascript:void(0);">[`In-cart checkout`]&nbsp;({$_new_checkouts|count})</a>
-    </h5>
-    <ul class="menu-v js-storefronts-list" data-version="2">
-        {* Routes with new checkout *}
-        {foreach $_new_checkouts as $_route}
-            {$_domain = waIdna::dec($_route.domain)}
-            {$_url = "`$_domain`/`$_route.url|escape`"}
-            <li class="s-domain-item" data-domain-id="{waIdna::dec($_domain)}" data-route-id="{$_route.id}" title="{$_url}">
-                <a href="{$wa_app_url}?action=settings#/checkout2&domain={$_domain}&route={$_route.id}/">
-                    <i class="icon16 status-green-tiny"></i>{$_url}
-                    <i class="shortener"></i>
-                </a>
-            </li>
-        {/foreach}
-    </ul>
+    {if !empty($_new_checkouts)}
+        <h5 class="heading js-list-header" data-version="2">
+            <span class="table-cell"><i class="icon16 darr"></i></span>
+            <a class="table-cell" href="javascript:void(0);">[`In-cart checkout`]&nbsp;({$_new_checkouts|count})</a>
+        </h5>
+        <ul class="menu-v js-storefronts-list" data-version="2">
+            {* Routes with new checkout *}
+            {foreach $_new_checkouts as $_route}
+                {$_domain = waIdna::dec($_route.domain)}
+                {$_url = "`$_domain`/`$_route.url|escape`"}
+                <li class="s-domain-item" data-domain-id="{waIdna::dec($_domain)}" data-route-id="{$_route.id}" title="{$_url}">
+                    <a href="{$wa_app_url}?action=settings#/checkout2&domain={$_domain|urlencode}&route={$_route.id|urlencode}/">
+                        <i class="icon16 status-green-tiny"></i>{$_url}
+                        <i class="shortener"></i>
+                    </a>
+                </li>
+            {/foreach}
+        </ul>
+    {/if}
 
     <h5 class="heading js-list-header" data-version="1">
         <span class="table-cell"><i class="icon16 darr"></i></span>

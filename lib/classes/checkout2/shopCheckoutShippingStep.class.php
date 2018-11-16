@@ -187,7 +187,7 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         }
 
         // Format expected delivery date into human-readable form
-        foreach($shipping_types as &$type) {
+        foreach ($shipping_types as &$type) {
             if (empty($type['date_min_ts'])) {
                 continue;
             }
@@ -198,7 +198,7 @@ class shopCheckoutShippingStep extends shopCheckoutStep
                 if ($date == waDateTime::format('Ymd')) {
                     $type['date_formatted'] = _ws('Today');
                     continue;
-                } else if ($date == waDateTime::format('Ymd', strtotime('+1 day'))) {
+                } elseif ($date == waDateTime::format('Ymd', strtotime('+1 day'))) {
                     $type['date_formatted'] = _ws('Tomorrow');
                     continue;
                 }
@@ -276,10 +276,13 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         $s['rate_max'] = null;
         if (!empty($s['currency']) && !empty($currencies[$s['currency']])) {
             $rate = ifset($s, 'rate', null);
-            if (is_array($rate) && $rate) {
-                $s['rate_min'] = min($rate);
-                $s['rate_max'] = max($rate);
-            } else if ($rate !== null && is_numeric($rate)) {
+            if (is_array($rate)) {
+                $rate = array_filter($rate, 'is_numeric');
+                if ($rate) {
+                    $s['rate_min'] = min($rate);
+                    $s['rate_max'] = max($rate);
+                }
+            } elseif ($rate !== null && is_numeric($rate)) {
                 $s['rate_min'] = $rate;
                 $s['rate_max'] = $rate;
             }

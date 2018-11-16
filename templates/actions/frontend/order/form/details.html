@@ -115,7 +115,11 @@
                     {$_additional = null}
                     {$_storage_days = null}
                     {$_photos = null}
-                    {$_est_delivery = str_replace(date('Y'), '', $details.shipping_rate.est_delivery|default:"—")}
+                    {if !empty($details.shipping_rate.date_min)}
+                        {$_est_delivery = $details.shipping_rate.date_min|wa_datetime:"shortdate"}
+                    {else}
+                        {$_est_delivery = str_replace(date('Y'), '', $details.shipping_rate.est_delivery|default:"")}
+                    {/if}
 
                     {if !empty($details.shipping_rate.custom_data)}
                         {$_data = $details.shipping_rate.custom_data}
@@ -161,14 +165,16 @@
                                 </div>
                             </div>
 
-                            <div class="wa-row">
-                                <div class="wa-cell wa-cell-name">
-                                    <div class="wa-name">[`Estimated shipping time`]</div>
+                            {if !empty($_est_delivery)}
+                                <div class="wa-row">
+                                    <div class="wa-cell wa-cell-name">
+                                        <div class="wa-name">[`Estimated shipping time`]</div>
+                                    </div>
+                                    <div class="wa-cell wa-cell-value">
+                                        {$_est_delivery|escape}
+                                    </div>
                                 </div>
-                                <div class="wa-cell wa-cell-value">
-                                    {$_est_delivery|escape}
-                                </div>
-                            </div>
+                            {/if}
 
                             {if !empty($_storage_days)}
                                 <div class="wa-row">
@@ -271,6 +277,11 @@
                     </div>
                 {/if}
             {/if}
+
+            {* @event checkout_render_details *}
+            {foreach $event_hook.details as $_}
+                <div class="wa-plugin-hook">{$_}</div>
+            {/foreach}
         </form>
     </div>
 

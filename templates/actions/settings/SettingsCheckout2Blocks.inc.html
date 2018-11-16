@@ -493,12 +493,14 @@
         <div class="name s-table-field-name bold">[`Checkout type`]</div>
         <div class="value s-table-field-value radio js-order-mode-wrapper">
             {foreach $order_mode_variants as $_id => $_variant}
-                {* TODO: Remove this if in 8.1 !!! *}
-                <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}"{if $_id === shopCheckoutConfig::ORDER_MODE_TYPE_MINIMUM} style="display: none;"{/if}>
-                    <label>
-                        <input class="js-order-mode-variant" type="radio" name="data[order][mode]" value="{$_id|escape}"{if $settings.mode === $_id} checked{/if} />
+                <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
+                    <label{if $_id === shopCheckoutConfig::ORDER_MODE_TYPE_MINIMUM} class="gray"{/if}>
+                        <input class="js-order-mode-variant" type="radio" name="data[order][mode]" value="{$_id|escape}"{if $settings.mode === $_id} checked{/if}{if $_id === shopCheckoutConfig::ORDER_MODE_TYPE_MINIMUM} disabled{/if} />
                         {$_variant.name|escape}
                     </label>
+                    {if $_id === shopCheckoutConfig::ORDER_MODE_TYPE_MINIMUM}
+                        <div class="block-padded small">[`This mode will be available in Shop-Script 8.0.1.`]</div>
+                    {/if}
                     <div class="s-variant-params block-padded js-variant-params"{if $settings.mode !== $_id} style="display: none;"{/if}>
                         <div class="hint" style="margin: 10px 0;">{$_variant.description|escape}</div>
                         {* DEFAULT MODE PARAMS *}
@@ -558,6 +560,7 @@
 
                         {* MINIMAL MODE PARAMS *}
                         {else}
+                            {*
                             <table class="zebra s-sort-table js-sort-table js-locations-table">
                                 <tbody>
                                     {foreach $settings.locations_list as $_location}
@@ -573,6 +576,7 @@
                                     <b><i>[`Add location`]</i></b>
                                 </a>
                             </div>
+                            *}
                         {/if}
                     </div>
                 </div>

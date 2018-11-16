@@ -5,7 +5,7 @@
 {* Render checkout settings sidebar *}
 {$checkout_sidebar}
 
-{if $route}
+{if $route && $checkout_config}
 <div class="{$_class} content blank left200px" id="{$_id}">
     <div class="s-settings-form">
         <form action="?module=SettingsCheckout2Save">

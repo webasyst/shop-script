@@ -324,8 +324,8 @@ return array(
             '$courier.name'                                            => _w('Courier name'),
             '$courier.note'                                            => _w('Note'),
             '$courier.contact'                                         => _w('Array of data of a courier contact stored in Contacts app, if courier is linked to an existing contact'),
-            '$courier.contact->get(\'email\', \'default\')'            => _w('Courier contact\'s default email address'),
-            '$courier.contact->get(\'phone\', \'default\')'            => _w("Courier contact's default phone number"),
+            '$courier.contact->get(\'email\', \'default\')'            => _w('Courier contact’s default email address'),
+            '$courier.contact->get(\'phone\', \'default\')'            => _w("Courier contact’s default phone number"),
             /** OTHER **/
             '$signup_url'                                              => _w('Signup page URL. Will not be provided if either the order was placed by a registered customer, or <a href="?action=settings#/checkout/">Guest checkout setting</a> is not enabled.'),
 
@@ -457,8 +457,8 @@ return array(
             '$courier.name'                                            => _w('Courier name'),
             '$courier.note'                                            => _w('Note'),
             '$courier.contact'                                         => _w('Array of data of a courier contact stored in Contacts app, if courier is linked to an existing contact'),
-            '$courier.contact->get(\'email\', \'default\')'            => _w('Courier contact\'s default email address'),
-            '$courier.contact->get(\'phone\', \'default\')'            => _w("Courier contact's default phone number"),
+            '$courier.contact->get(\'email\', \'default\')'            => _w('Courier contact’s default email address'),
+            '$courier.contact->get(\'phone\', \'default\')'            => _w("Courier contact’s default phone number"),
             /** ACTION DATA **/
             '$action_data'                                             => _w('An array containing information about performed order action (action-dependent)'),
             '$action_data.text'                                        => _w('Performed action text comment (action-dependent)'),
@@ -539,8 +539,8 @@ return array(
             '$courier.name'                                               => _w('Courier name'),
             '$courier.note'                                               => _w('Note'),
             '$courier.contact'                                            => _w('Array of data of a courier contact stored in Contacts app, if courier is linked to an existing contact'),
-            '$courier.contact->get(\'email\', \'default\')'               => _w('Courier contact\'s default email address'),
-            '$courier.contact->get(\'phone\', \'default\')'               => _w("Courier contact's default phone number"),
+            '$courier.contact->get(\'email\', \'default\')'               => _w('Courier contact’s default email address'),
+            '$courier.contact->get(\'phone\', \'default\')'               => _w("Courier contact’s default phone number"),
             /** OTHER **/
             '$signup_url'                                                 => _w('Signup page URL. Will not be provided if either the order was placed by a registered customer, or <a href="?action=settings#/checkout/">Guest checkout setting</a> is not enabled.'),
         ),

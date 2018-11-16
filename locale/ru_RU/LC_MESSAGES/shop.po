@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 2.0.5\n"
+"X-Generator: Poedit 1.8.7.1\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -8228,10 +8228,6 @@ msgstr "Поиск товаров будет производится по на�
 msgid "Out-of-stock products can be added to cart and ordered"
 msgstr "Товары, отсутствующие на складе, могут быть добавлены в корзину и заказаны"
 
-#: /wa-apps/shop/templates/layouts/Backend.html:176
-msgid "Compare custom ranges..."
-msgstr ""
-
 #: /wa-apps/shop/templates/layouts/Backend.html:203
 msgid "Cohorts"
 msgstr "Когорты"
@@ -8347,7 +8343,7 @@ msgstr "Выбор нескольких возможных вариантов (c
 
 #: /wa-apps/shop/lib/model/shopFeatureValues.model.php:249
 msgid "Data too long"
-msgstr ""
+msgstr "Слишком длинная строка данных"
 
 #: /wa-apps/shop/lib/model/shopSales.model.php:374
 msgid "n/a"
@@ -9441,14 +9437,6 @@ msgstr ""
 msgid "Selected captcha type will be used throughout your storefront wherever applicable."
 msgstr "Выбранный тип будет использован на витрине вашего интернет-магазина везде, где показывается капча."
 
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:155
-msgid "Site Key"
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:161
-msgid "Secret"
-msgstr ""
-
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:164
 msgid "Get Google reCAPTCHA site key and secret for your site on <a href=\"https://www.google.com/recaptcha\" target=\"_blank\">https://www.google.com/recaptcha</a>"
 msgstr "Получите ключи Google reCAPTCHA для вашего сайта по адресу <a href=\"https://www.google.com/recaptcha\" target=\"_blank\">https://www.google.com/recaptcha</a>"
@@ -9907,8 +9895,8 @@ msgid "Not visible to customers"
 msgstr "Не виден на витрине"
 
 #: /wa-apps/shop/lib/actions/backend/shopBackendLoc.action.php:96
-msgid "You've added %d product to this transfer already. Are you sure you want to change the source stock?"
-msgid_plural "You've added %d products to this transfer already. Are you sure you want to change the source stock?"
+msgid "You’ve added %d product to this transfer already. Are you sure you want to change the source stock?"
+msgid_plural "You’ve added %d products to this transfer already. Are you sure you want to change the source stock?"
 msgstr[0] "Вы уже добавили %d товар в этот трансфер. Вы уверены, что хотите сменить склад-источник, откуда производится трансфер?"
 msgstr[1] "Вы уже добавили %d товара в этот трансфер. Вы уверены, что хотите сменить склад-источник, откуда производится трансфер?"
 msgstr[2] "Вы уже добавили %d товаров в этот трансфер. Вы уверены, что хотите сменить склад-источник, откуда производится трансфер?"
@@ -10077,15 +10065,6 @@ msgstr "По адресу доставки"
 msgid "No categories available."
 msgstr "Список категорий пуст."
 
-#: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateMove.controller.php:87
-msgid "State hasn't any available action"
-msgstr "У статуса нет доступных действий"
-
-#: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateMove.controller.php:96
-#: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateMove.controller.php:104
-msgid "Action isn't available"
-msgstr "Действие недоступно"
-
 #: /wa-apps/shop/templates/actions/backend/BackendOrders.html:91
 #: /wa-apps/shop/templates/actions/couriers/Couriers.html:3
 msgid "Couriers"
@@ -10233,7 +10212,7 @@ msgid "Show more"
 msgstr "Показать еще"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:223
-msgid "Your browser doesn't support web push technology."
+msgid "Your browser doesn’t support web push technology."
 msgstr "Ваш браузер не поддерживает push-уведомления."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:225
@@ -10319,7 +10298,7 @@ msgstr "Введите значения, полученные при регис�
 msgid "Check <a target=\"_blank\" href=\"https://documentation.onesignal.com/docs/website-sdk-overview\">web push documentation</a> for the list of supported browsers."
 msgstr "Список поддерживаемых браузеров доступен на <a target=\"_blank\" href=\"https://documentation.onesignal.com/docs/website-sdk-overview\">странице документации</a>."
 
-msgid "Don't notify customer on this order editing"
+msgid "Don’t notify customer on this order editing"
 msgstr "Не отправлять уведомление покупателю об этом изменении заказа"
 
 msgid "hours after the order was set to state"
@@ -10331,10 +10310,10 @@ msgstr "Массив данных курьера"
 msgid "Array of data of a courier contact stored in Contacts app, if courier is linked to an existing contact"
 msgstr "Массив данных контакта курьера из приложения «Контакты», если курьер связан с существующим контактом"
 
-msgid "Courier contact's default email address"
+msgid "Courier contact’s default email address"
 msgstr "Email-адрес контакта курьера"
 
-msgid "Courier contact's default phone number"
+msgid "Courier contact’s default phone number"
 msgstr "Номер телефона контакта курьера"
 
 #: /wa-apps/shop/templates/actions/orders/Orders.html:6
@@ -10360,16 +10339,16 @@ msgstr "badge-google-play-ru.png"
 #: /wa-apps/shop/templates/actions/settings/SettingsPayment.html:66
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:70
 msgid "You can remove settings or install the <a href=\"%s\" class=\"inline\">plugin</a>."
-msgstr ""
+msgstr "Можно удалить настройки или установить <a href=\"%s\" class=\"inline\">плагин</a>."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPayment.html:68
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:72
-msgid "You can remove settings or install the plugin"
-msgstr ""
+msgid "You can remove settings or install the plugin."
+msgstr "Можно удалить настройки или установить плагин."
 
 #: /wa-apps/shop/templates/layouts/Backend.html:328
 msgid "An error occurred"
-msgstr ""
+msgstr "Произошла ошибка"
 
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:42
 msgid "Primary SKU"
@@ -10377,15 +10356,15 @@ msgstr "Основной артикул"
 
 #: /wa-apps/shop/lib/actions/settings/stock/shopSettingsStockDelete.controller.php:27
 msgid "Unknown destination stock"
-msgstr ""
+msgstr "Неизвестный склад назначения"
 
 #: /wa-apps/shop/lib/actions/workflow/shopWorkflowPrepare.controller.php:30
-msgid "Syntax Error in template for action \"%s\" in line %s \"%s\". Reason: %s."
-msgstr ""
+msgid "Syntax error in the template of action “%s” in line %s “%s”. Reason: %s."
+msgstr "Синтаксическая ошибка в шаблоне действия «%s» в строке %s «%s». Причина: %s."
 
 #: /wa-apps/shop/lib/actions/workflow/shopWorkflowPrepare.controller.php:32
-msgid "You can edit template <a href=\"?action=settings#/orderStates/\">order states settings</a>"
-msgstr ""
+msgid "You can edit the template in <a href=\"?action=settings#/orderStates/\">order states settings</a>."
+msgstr "Шаблон можно изменить в <a href=\"?action=settings#/orderStates/\">настройках статусов заказов</a>."
 
 #: /wa-apps/shop/lib/config/my.order.php:53
 #: /wa-apps/shop/lib/config/site.php:375
@@ -11522,8 +11501,8 @@ msgid "<i class=\"icon16 status-green-tiny\"></i>&nbsp;“In-cart checkout” or
 msgstr "<i class=\"icon16 status-green-tiny\"></i>&nbsp;«Оформление закзаза в корзине» или <i class=\"icon16 status-blue-tiny\"></i>&nbsp;«Пошаговое оформление заказа» выбираются в <a href=\"%s\" target=\"_blank\">настройках витрины</a> <i class=\"icon10 new-window\"></i> отдельно для каждой витрины."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsRegions.html:6
-msgid "You can set up countries and regions in “<a href=\\\"%s\\\">Settings</a>” app."
-msgstr "Страны и регионы настраиваются в приложении «<a href=\\\"%s\\\">Настройки</a>»."
+msgid "You can set up countries and regions in “<a href=\"%s\">Settings</a>” app."
+msgstr "Страны и регионы настраиваются в приложении «<a href=\"%s\">Настройки</a>»."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:9
 msgid "Multi-step checkout setup"
@@ -11870,17 +11849,9 @@ msgstr "Эта настройка используется только в ре�
 msgid "Existing customer’s data will be updated by the data from a new order."
 msgstr "Данные существующего покупателя будут обновлены данными из нового заказа."
 
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:315
-msgid "Select an online map service in <a href=\\\"%s\\\">Settings</a> app."
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:328
-msgid "Set up connection to SMS providers in <a href=\\\"%s\\\">Settings</a> app."
-msgstr ""
-
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:330
 msgid "You need access to Settings app to set up connection to SMS providers."
-msgstr ""
+msgstr "Для подключения к SMS-шлюзам нужен доступ к приложению «Настройки»."
 
 #: /wa-apps/shop/templates/actions/frontend/order/form/confirm.html:66
 #: /wa-apps/shop/templates/actions/frontend/order/form/details.html:157
@@ -11919,3 +11890,9 @@ msgstr "Страница не поддерживается выбранной т
 #: /wa-apps/shop/lib/config/site.php:336
 msgid "Returns working schedule data array for current storefront"
 msgstr "Возвращает массив данных с режимом работы магазина для текущей витрины"
+
+msgid "Site URL"
+msgstr "URL сайта"
+
+msgid "This mode will be available in Shop-Script 8.0.1."
+msgstr "Этот режим будет доступен в Shop-Script 8.0.1."

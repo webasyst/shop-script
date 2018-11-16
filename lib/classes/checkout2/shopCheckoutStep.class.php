@@ -6,7 +6,7 @@
  */
 abstract class shopCheckoutStep
 {
-    // Cache for getId(), can be overriden in subclasses to force a certain id
+    // Cache for getId(), can be overridden in subclasses to force a certain id
     protected $id;
     /** @var shopCheckoutConfig $checkout_config */
     protected $checkout_config;
@@ -47,18 +47,15 @@ abstract class shopCheckoutStep
     public function process($data, $prepare_result)
     {
         return array(
-            'data' => $data,
-            'result' => array(),
-            'errors' => array(),
+            'data'         => $data,
+            'result'       => array(),
+            'errors'       => array(),
             'can_continue' => true,
         );
     }
 
     /** @return string absolute path to render template using addRenderedHtml() */
-    public function getTemplatePath()
-    {
-        // override in subclasses
-    }
+    abstract public function getTemplatePath();
 
     /** @return shopCheckoutConfig */
     public function getCheckoutConfig()
@@ -70,6 +67,10 @@ abstract class shopCheckoutStep
      * Helper to prepare waHtmlControl for template.
      * It renders control itself into HTML without wrappers
      * while providing description, title, etc. in machine-readable form.
+     * @param string $field_id
+     * @param array $row
+     * @param $namespace
+     * @return array
      */
     protected function renderWaHtmlControl($field_id, $row, $namespace)
     {
@@ -95,7 +96,7 @@ abstract class shopCheckoutStep
         if (!$namespace) {
             // Do not render unless asked for
             $html = '';
-        } else if ($row['control_type'] == waHtmlControl::DATETIME) {
+        } elseif ($row['control_type'] == waHtmlControl::DATETIME) {
 
             // For 'datetime' type we want a specific HTML structure
             $html = waHtmlControl::getControl($row['control_type'], $field_id, array_merge($row, [
@@ -150,12 +151,14 @@ abstract class shopCheckoutStep
      *
      * All three use same basic execution flow with slightly different parameters.
      * @param string $origin identifies where this is being called from
-     * @param waOrder $order
+     * @param shopOrder $order
      * @param array $input data from POST, session, or another input source
-     * @param shopCheckoutConfig $config
+     * @param null $checkout_config
      * @return array
+     * @throws waException
+     * @internal param shopCheckoutConfig $config
      */
-    public static function processAll($origin, $order, $input=[], $checkout_config=null)
+    public static function processAll($origin, $order, $input = [], $checkout_config = null)
     {
         if (!$order || !($order instanceof shopOrder)) {
             throw new waException('compatible order is required');
@@ -230,7 +233,7 @@ abstract class shopCheckoutStep
         //
         // Checkout step objects process one after another in a fixed order.
         //
-        foreach($checkout_steps as $step) {
+        foreach ($checkout_steps as $step) {
             $time_start = microtime(true);
 
             /** @var $step shopCheckoutStep */
@@ -315,7 +318,10 @@ abstract class shopCheckoutStep
             }
 
             $time_delta = microtime(true) - $time_start;
-            if ($time_delta >= 1.5 && waSystemConfig::isDebug()) waLog::log($step_id.' -> '.round($time_delta, 3), 'checkout2-time.log');
+            if (($time_delta >= 1.5)
+                && waSystemConfig::isDebug()) {
+                waLog::log($step_id.' -> '.round($time_delta, 3), 'checkout2-time.log');
+            }
         }
 
         // pass errors to JS
@@ -359,21 +365,37 @@ abstract class shopCheckoutStep
                 }
             }
 
-            // Render the template
+            // Vars for template
             $vars = $data['result'];
             $vars[$this->getId()] = $result;
             $vars['contact'] = ifset($data, 'contact', null);
             if (!empty($data['error_step_id'])) {
                 $vars['error_step_id'] = $data['error_step_id'];
                 $vars['errors'] = $data['errors'];
-            } else if($errors) {
+            } elseif ($errors) {
                 $vars['error_step_id'] = $this->getId();
                 $vars['errors'] = $errors;
+            } else {
+                $vars['error_step_id'] = null;
+                $vars['errors'] = null;
             }
+
+            // checkout_render_* allows to inject HTML into template of each checkout step
+            $vars['event_hook'][$this->getId()] = wa('shop')->event('checkout_render_'.$this->getId(), ref([
+                'step_id' => $this->getId(),
+                'data' => $data,
+                'error_step_id' => &$vars['error_step_id'],
+                'errors' => &$vars['errors'],
+                'vars' => &$vars,
+            ]));
+
+            // Render the template
             $time_start = microtime(true);
             $result['html'] = $this->renderTemplate($template, $vars, $theme);
             $time_delta = microtime(true) - $time_start;
-            if ($time_delta >= 1 && waSystemConfig::isDebug()) waLog::log($this->getId().' render -> '.round($time_delta, 3), 'checkout2-time.log');
+            if ($time_delta >= 1 && waSystemConfig::isDebug()) {
+                waLog::log($this->getId().' render -> '.round($time_delta, 3), 'checkout2-time.log');
+            }
         }
         return $result;
     }

@@ -207,12 +207,14 @@ class shopShipping extends waAppShipping
         $map = array();
 
         $dimension_fields = array('height', 'width', 'length');
+        $dimension_types = array();
 
         $feature_model = new shopFeatureModel();
 
         if (!isset($units['weight']) || !empty($units['weight'])) {
             if ($weight = $feature_model->getByCode('weight')) {
                 $map['weight'] = $weight;
+                $dimension_types['weight']='weight';
             }
         }
 
@@ -230,6 +232,7 @@ class shopShipping extends waAppShipping
                     if (isset($units['dimensions'])) {
                         foreach ($dimension_fields as $field) {
                             $units[$field] = $units['dimensions'];
+                            $dimension_types[$field]='length';
                         }
                     }
                 }
@@ -257,14 +260,15 @@ class shopShipping extends waAppShipping
             } else {
                 $values_model = $feature_model->getValuesModel($feature['type']);
                 $values = $values_model->getProductValues($product_ids, $feature['id']);
-                if ($values && $units && !empty($units[$field])) {
+                if ($values && $units && !empty($unit_types[$field]) && !empty($dimension_types[$field])) {
                     $unit = $units[$field];
-                    $dimension = shopDimension::getInstance()->getDimension($field);
+                    $dimension_type = $dimension_types[$field];
+                    $dimension = shopDimension::getInstance()->getDimension($dimension_type);
                     if ($units[$field] != $dimension['base_unit']) {
                         if (isset($dimension['units'][$unit])) {
                             $multiplier = (double)$dimension['units'][$unit]['multiplier'];
                         } else {
-                            throw new waException(sprintf('Unknown %s unit [%s]', $field, $unit));
+                            throw new waException(sprintf('Unknown %s unit [%s] for %s', $dimension_type, $unit, $field));
                         }
                     }
                 }

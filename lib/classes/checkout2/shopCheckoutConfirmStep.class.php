@@ -22,7 +22,7 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
         // Delayed errors from auth step
         if ($data['origin'] == 'create') {
             if (!empty($data['auth']['delayed_errors'])) {
-                foreach($data['auth']['delayed_errors'] as $field_name => $error_text) {
+                foreach ($data['auth']['delayed_errors'] as $field_name => $error_text) {
                     $errors[] = [
                         'name' => $field_name,
                         'text' => $error_text,
@@ -31,7 +31,7 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
                 }
             }
             if (!empty($data['details']['delayed_errors'])) {
-                foreach($data['details']['delayed_errors'] as $field_name => $error_text) {
+                foreach ($data['details']['delayed_errors'] as $field_name => $error_text) {
                     $errors[] = [
                         'name' => $field_name,
                         'text' => $error_text,
@@ -41,7 +41,7 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
             }
 
             // Validate cart against stock counts
-            $cart_is_ok = !array_filter($this->getCartItems(), function($item) {
+            $cart_is_ok = !array_filter($this->getCartItems(), function ($item) {
                 return isset($item['error']);
             });
             if (!$cart_is_ok) {
@@ -73,7 +73,9 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
 
     protected function getCurrencyInfo($currency, $locale = null)
     {
-        $currency_info = reset(ref(wa('shop')->getConfig()->getCurrencies($currency)));
+        /** @var shopConfig $config */
+        $config = wa('shop')->getConfig();
+        $currency_info = reset(ref($config->getCurrencies($currency)));
         $locale_info = waLocale::getInfo(ifset($locale, wa()->getLocale()));
 
         return [
@@ -95,7 +97,7 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
 
     protected function getCartItems()
     {
-        // This is global and should be overriden in subclasses
+        // This is global and should be overridden in subclasses
         $cart_vars = (new shopCheckoutViewHelper())->cartVars();
         return ifset($cart_vars, 'cart', 'items', []);
     }

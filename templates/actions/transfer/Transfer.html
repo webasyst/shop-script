@@ -248,7 +248,7 @@
                     select.change(function () {
                         var len = form.find('.s-transfer-products-list').children().length
                         if (len > 0) {
-                            var msg = $_(len, "You've added %d product to this transfer already. Are you sure you want to change the source stock?")
+                            var msg = $_(len, "You’ve added %d product to this transfer already. Are you sure you want to change the source stock?")
                             msg = msg.replace('%d', len);
                             if (!confirm(msg)) {
                                 select.find('option[value="' + selected + '"]').attr('selected', true);

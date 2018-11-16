@@ -26,7 +26,7 @@ class shopCheckoutRegionStep extends shopCheckoutStep
         $country_model = new waCountryModel();
         $countries = [];
         $countries_by_id = [];
-        foreach($country_model->allWithFav() as $c) {
+        foreach ($country_model->allWithFav() as $c) {
             $c = [
                 'id' => $c['iso3letter'],
                 'name' => $c['name'],
@@ -46,7 +46,7 @@ class shopCheckoutRegionStep extends shopCheckoutStep
 
         // Filter out disabled locations and figure out default selected one
         $default_location_id = null;
-        foreach($cfg_locations as $loc_id => $cfg_loc) {
+        foreach ($cfg_locations as $loc_id => $cfg_loc) {
 
             // Some locations are disabled by admin too lazy to remove them
             if (empty($cfg_loc['enabled'])) {
@@ -90,8 +90,19 @@ class shopCheckoutRegionStep extends shopCheckoutStep
             ]];
         }
 
+        // Get address from contact (prefer shipping)
+        /** @var waContact $contact */
+        $contact = $data['contact'];
+        $address_from_contact = $contact->get('address.shipping', 'js');
+        if (!$address_from_contact) {
+            $address_from_contact = $contact->get('address', 'js');
+        }
+        if (isset($address_from_contact[0])) {
+            $address_from_contact = $address_from_contact[0];
+        }
+        $address_from_contact = ifset($address_from_contact, 'data', []);
+
         // Values in form are either from POST or customer address in DB. Load both.
-        $address_from_contact = ifset($data, 'contact', 'address', 0, 'data', []);
         $we_have_input = !empty($data['input']['region']) && is_array($data['input']['region']);
         if ($we_have_input) {
             $address_from_input = ifset($data, 'input', 'region', []);
@@ -106,7 +117,7 @@ class shopCheckoutRegionStep extends shopCheckoutStep
         if ($contact_id && $user_id_from_input != $contact_id) {
             // User just logged in: combine input and address from contact
             $address = array_filter($address_from_input) + $address_from_contact;
-        } else if ($we_have_input) {
+        } elseif ($we_have_input) {
             // It's a POST. Use address from input
             $address = $address_from_input;
         } else {
@@ -121,7 +132,7 @@ class shopCheckoutRegionStep extends shopCheckoutStep
         // For countries used in locations load names of fixed regions.
         // Change region to region_id in $selected_values if selected country has regions
         $region_model = new waRegionModel();
-        foreach($countries_by_id as &$c) {
+        foreach ($countries_by_id as &$c) {
 
             // Load all regions of currently selected country
             $load_all = $c['id'] == $selected_values['country_id'];
@@ -132,7 +143,7 @@ class shopCheckoutRegionStep extends shopCheckoutStep
             if ($load_all && null !== $selected_values['location_id']) {                    // ...a location is selected...
                 if (null !== $cfg_locations[$selected_values['location_id']]['country']) {  // ...it fixes country...
                     $load_all = false;
-                    foreach($cfg_locations as $loc_id => $cfg_loc) {                        // ...and all locations...
+                    foreach ($cfg_locations as $loc_id => $cfg_loc) {                        // ...and all locations...
                         if ($cfg_loc['country'] == $selected_values['country_id']) {        // ...of that country...
                             if ($cfg_loc['region'] === null) {                              // ...have region fixed.
                                 $load_all = true;
@@ -147,7 +158,7 @@ class shopCheckoutRegionStep extends shopCheckoutStep
                 // Load all regions for currently selected country
                 $raw_regions = $region_model->getByCountryWithFav($c['id']);
                 $c['has_regions'] = !!$raw_regions;
-            } else if ($c['regions']) {
+            } elseif ($c['regions']) {
                 // Load fixed regions for not-currently-selected country
                 $raw_regions = $region_model->getByField([
                     'code' => array_column($c['regions'], 'id'),
@@ -159,7 +170,7 @@ class shopCheckoutRegionStep extends shopCheckoutStep
                 $c['has_regions'] = null; // means we dont know
             }
 
-            $c['regions'] = array_map(function($r) {
+            $c['regions'] = array_map(function ($r) {
                 return [
                     'id' => $r['code'],
                     'name' => $r['name'],
@@ -178,7 +189,7 @@ class shopCheckoutRegionStep extends shopCheckoutStep
 
         // Build a list of locations for template/JSON.
         $locations = array();
-        foreach($cfg_locations as $loc_id => $cfg_loc) {
+        foreach ($cfg_locations as $loc_id => $cfg_loc) {
 
             $country_id = ifset($cfg_loc, 'country', null);
             $region_id = ifset($cfg_loc, 'region', null);
@@ -218,7 +229,7 @@ class shopCheckoutRegionStep extends shopCheckoutStep
                 'text' => _w('This field is required.'),
                 'section' => $this->getId(),
             ];
-        } else if (empty($countries_by_id[$selected_values['country_id']])) {
+        } elseif (empty($countries_by_id[$selected_values['country_id']])) {
             $errors[] = [
                 'name' => 'region[country]',
                 'text' => _w('This field is required.'),

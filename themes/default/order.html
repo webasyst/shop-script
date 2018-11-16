@@ -65,22 +65,6 @@
 
         </div>
 
-        {capture assign="_header_logged_template"}
-            <ul class="auth" id="js-header-auth-wrapper">
-                <li class="bold">
-                    <a href="{if $wa->myUrl()}{$wa->myUrl()}{else}{$wa->getUrl('/frontend/myProfile')}{/if}" class="not-visited"><i class="icon16 userpic20 float-left" style="background-image: url('%image%');"></i> %name%</a>
-                </li>
-                <li><a href="?logout" class="not-visited">[s`Log out`]</a></li>
-            </ul>
-        {/capture}
-
-        {capture assign="_header_logout_template"}
-            <ul class="auth" id="js-header-auth-wrapper">
-                <li><a href="{$wa->loginUrl()}" class="not-visited">[s`Log in`]</a></li>
-                <li><a href="{$wa->signupUrl()}" class="not-visited">[s`Sign up`]</a></li>
-            </ul>
-        {/capture}
-
         <script>
             ( function($) {
 
@@ -99,10 +83,6 @@
                 function init() {
                     new window.ShopOrderPage({
                         $wrapper: $("#js-order-page"),
-                        templates: {
-                            "header_logged": {$_header_logged_template|strip|json_encode},
-                            "header_logout": {$_header_logout_template|strip|json_encode}
-                        },
                         urls: {
                             "checkbox-icon": "{$wa_app_static_url}img/frontend/order/svg/sprite.svg#checkbox-yes"
                         }

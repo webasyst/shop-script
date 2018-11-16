@@ -99,7 +99,7 @@ class shopBackendLocAction extends waViewAction
             array/*_w*/('%d SKU in total', '%d SKUs in total'),
             array/*_w*/('%d column will be processed', '%d columns will be processed'),
             array/*_w*/('%d column will be ignored', '%d columns will be ignored'),
-            array/*_w*/("You've added %d product to this transfer already. Are you sure you want to change the source stock?", "You've added %d products to this transfer already. Are you sure you want to change the source stock?")
+            array/*_w*/("You’ve added %d product to this transfer already. Are you sure you want to change the source stock?", "You’ve added %d products to this transfer already. Are you sure you want to change the source stock?")
         );
     }
 }

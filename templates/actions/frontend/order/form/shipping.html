@@ -157,6 +157,11 @@
                 <div class="wa-error-text">{$_error_text}</div>
             </div>
         {/if}
+
+        {* @event checkout_render_shipping *}
+        {foreach $event_hook.shipping as $_}
+            <div class="wa-plugin-hook">{$_}</div>
+        {/foreach}
     </form>
     </div>
 

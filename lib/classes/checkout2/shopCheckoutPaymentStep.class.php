@@ -69,6 +69,10 @@ class shopCheckoutPaymentStep extends shopCheckoutStep
         }
         unset($m);
 
+        if (1 == count($methods) && !$selected_method_id) {
+            $selected_method_id = array_keys($methods)[0];
+        }
+
         $errors = [];
         $custom_field_values_validated = [];
         if (empty($methods)) {

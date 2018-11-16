@@ -104,6 +104,11 @@
                     <button class="wa-button wa-submit-button js-submit-order-button" {if !empty($_locked)}disabled{/if}>[`Confirm order`]</button>
                 </div>
             </div>
+
+            {* @event checkout_render_confirm *}
+            {foreach $event_hook.confirm as $_}
+                <div class="wa-plugin-hook">{$_}</div>
+            {/foreach}
         </form>
     </div>
 

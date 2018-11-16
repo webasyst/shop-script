@@ -289,7 +289,8 @@ class shopHelper
                         /** @var shopDepartureDateTimeFacade $departure_datetime */
 
                         $departure_datetime = $params['departure_datetime'];
-                        $departure_datetime->setExtraProcessingTime(ifset($m, 'options', 'assembly_time', 0) * 3600);
+                        $assembly_time = max(0, ifset($m, 'options', 'assembly_time', 0)) * 3600;
+                        $departure_datetime->setExtraProcessingTime($assembly_time);
                         $shipping_params['departure_datetime'] = (string)$departure_datetime;
                     } elseif (!empty($m['options']['assembly_time']) && (intval($m['options']['assembly_time']) > 0)) {
                         $departure_timestamp = strtotime(

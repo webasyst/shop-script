@@ -964,6 +964,14 @@ class shopOrder implements ArrayAccess
         if (!$this->id) {
             $data['skip_description'] = true;
             $action_id = 'create';
+
+            // In case we didn't force stock_id during validation,
+            // let workflow.create determine them
+            foreach($data['items'] as &$item) {
+                unset($item['stock_id']);
+            }
+            unset($item);
+
         } else {
             $action_id = 'edit';
         }
@@ -1644,7 +1652,7 @@ class shopOrder implements ArrayAccess
         if (!empty($params['shipping_id'])) {
             $shipping_parts = explode('.', $params['shipping_id'], 2);
             $shipping_id = $shipping_parts[0];
-            $rate_id = isset($shipping_parts[1]) ? $shipping_parts[1] : '';
+            $rate_id = ifset($shipping_parts, 1, ifset($params, 'shipping_rate_id', ''));
             $params['shipping_id'] = $shipping_id;
             $params['shipping_rate_id'] = $rate_id;
 

@@ -72,8 +72,8 @@
                 }
             }
 
-            $document.on("wa_order_cart_invalid", reloadWatcher);
-            function reloadWatcher() {
+            $document.on("wa_order_cart_invalid", updateWatcher);
+            function updateWatcher() {
                 var is_exist = $.contains(document, that.$wrapper[0]);
                 if (is_exist) {
                     var $errors = that.$wrapper.find(".wa-error-text");
@@ -83,7 +83,7 @@
                         that.reload();
                     }
                 } else {
-                    $document.off("wa_order_cart_invalid", reloadWatcher);
+                    $document.off("wa_order_cart_invalid", updateWatcher);
                 }
             }
 
@@ -91,7 +91,9 @@
             function loginWatcher() {
                 var is_exist = $.contains(document, that.$wrapper[0]);
                 if (is_exist) {
-                    that.reload();
+                    // These code were used to update the cart block. Now used reload page
+                    // that.reload();
+                    that.lock(true);
                 } else {
                     $(document).off("wa_auth_contact_logged", loginWatcher);
                 }
@@ -101,9 +103,21 @@
             function logoutWatcher() {
                 var is_exist = $.contains(document, that.$wrapper[0]);
                 if (is_exist) {
-                    that.reload();
+                    // These code were used to update the cart block. Now used reload page
+                    // that.reload();
+                    that.lock(true);
                 } else {
                     $document.off("wa_auth_contact_logout", logoutWatcher);
+                }
+            }
+
+            $document.on("wa_order_reload_start", reloadWatcher);
+            function reloadWatcher() {
+                var is_exist = $.contains(document, that.$wrapper[0]);
+                if (is_exist) {
+                    that.lock(true);
+                } else {
+                    $document.off("wa_order_reload_start", reloadWatcher);
                 }
             }
         };
@@ -1408,8 +1422,7 @@
          * */
         Cart.prototype.reload = function() {
             var that = this,
-                deferred = $.Deferred(),
-                locked_class = "is-locked";
+                deferred = $.Deferred();
 
             var href = that.urls["refresh"],
                 data = {
@@ -1417,7 +1430,7 @@
                 };
 
             if (!that.reload_xhr) {
-                that.$wrapper.addClass(locked_class);
+                that.lock(true);
 
                 that.trigger("before_reload", that);
 
@@ -1433,12 +1446,24 @@
                     that.trigger("reloaded", that);
 
                 }).always( function() {
-                    that.$wrapper.removeClass(locked_class);
+                    that.lock(false);
                     that.reload_xhr = false;
                 });
             }
 
             return deferred.promise();
+        };
+
+        Cart.prototype.lock = function(do_lock) {
+            var that = this,
+                locked_class = "is-locked";
+
+            if (do_lock) {
+                that.$wrapper.addClass(locked_class);
+
+            } else {
+                that.$wrapper.removeClass(locked_class);
+            }
         };
 
         return Cart;

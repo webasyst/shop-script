@@ -10,22 +10,24 @@ class shopCheckoutViewHelper
      * @param array
      * @return string
      */
-    public function cart($opts=array())
+    public function cart($opts = array())
     {
         $template_path = wa()->getAppPath('templates/actions/frontend/FrontendOrderCart.html', 'shop');
+
         return $this->renderTemplate($template_path, $this->cartVars() + array(
-            'shop_checkout_include_path' => wa()->getAppPath('templates/actions/frontend/order/', 'shop'),
-            'options' => $opts + [
-                'adaptive' => true,
-            ],
-        ));
+                'shop_checkout_include_path' => wa()->getAppPath('templates/actions/frontend/order/', 'shop'),
+                'options'                    => $opts + [
+                        'adaptive' => true,
+                    ],
+            ));
     }
 
     /**
      * Returns variables that $wa->shop->checkout()->cart() assigns to its template.
+     * @param bool $clear_cache
      * @return array
      */
-    public function cartVars($clear_cache=false)
+    public function cartVars($clear_cache = false)
     {
         static $result = null;
         if ($clear_cache || $result === null) {
@@ -41,9 +43,10 @@ class shopCheckoutViewHelper
 
             /**
              * @event frontend_order_cart_vars
-             * Allows to modify template vars of $wa->shop->checkout()->cart() before sending them to template
+             * Allows to modify template vars of $wa->shop->checkout()->cart() before sending them to template,
+             * or add custom HTML to cart page.
              */
-            wa('shop')->event('frontend_order_cart_vars', $result);
+            $result['event_hook'] = wa('shop')->event('frontend_order_cart_vars', $result);
 
             waConfig::set('is_template', $old_is_template);
         }
@@ -53,10 +56,10 @@ class shopCheckoutViewHelper
     protected function cartBasicVars($order)
     {
         $currency = $order['currency'];
-        $currency_info = reset(ref(wa('shop')->getConfig()->getCurrencies($currency)));
+        $currency_info = reset(ref($this->getShopConfig()->getCurrencies($currency)));
         $locale_info = waLocale::getInfo(wa()->getLocale());
 
-        $feature_codes = array_reduce($order['items'], function($carry, $item) {
+        $feature_codes = array_reduce($order['items'], function ($carry, $item) {
             return $carry + $item['product']['features'];
         }, []);
 
@@ -103,6 +106,10 @@ class shopCheckoutViewHelper
         return $dimension->format(false);
     }
 
+    /**
+     * @param shopCart $cart
+     * @return array
+     */
     protected function getFakeOrder($cart)
     {
         //
@@ -115,15 +122,15 @@ class shopCheckoutViewHelper
         $result = [
             'cart_code' => $cart->getCode(),
         ];
-        foreach(['currency', 'total', 'subtotal', 'discount', 'discount_description'] as $i) {
+        foreach (['currency', 'total', 'subtotal', 'discount', 'discount_description'] as $i) {
             $result[$i] = $order[$i];
         }
         $result['params'] = $order['discount_params'];
 
         // discounts by item
-        $items_discount = array_map(function($discount) {
+        $items_discount = array_map(function ($discount) {
             return array(
-                'id' => $discount['cart_item_id'],
+                'id'       => $discount['cart_item_id'],
                 'discount' => $discount['value'],
             );
         }, $order->items_discount);
@@ -140,8 +147,8 @@ class shopCheckoutViewHelper
         $result['items'] = $this->validateStock($result['items']);
 
         // Total weight
-        $result['total_weight'] = array_reduce($result['items'], function($carry, $item) {
-            return $carry + ifempty($item, 'product', 'weight', 0)*$item['quantity'];
+        $result['total_weight'] = array_reduce($result['items'], function ($carry, $item) {
+            return $carry + ifempty($item, 'product', 'weight', 0) * $item['quantity'];
         }, 0);
         $result['total_weight_html'] = $this->getTotalWeightHtml($result['total_weight']);
 
@@ -185,12 +192,22 @@ class shopCheckoutViewHelper
 
         $affiliate_discount = 0;
         if (!empty($data['use_affiliate'])) {
-            $affiliate_discount = shop_currency(shopAffiliate::convertBonus(ifset($order, 'params', 'affiliate_bonus', 0)), wa('shop')->getConfig()->getCurrency(true), null, false);
+            $affiliate_discount = shop_currency(
+                shopAffiliate::convertBonus(ifset($order, 'params', 'affiliate_bonus', 0)),
+                $this->getShopConfig()->getCurrency(true),
+                null,
+                false
+            );
             if ($usage_percent) {
                 $affiliate_discount = min($affiliate_discount, ($order['total'] + $affiliate_discount) * $usage_percent / 100.0);
             }
         } elseif ($affiliate_bonus) {
-            $affiliate_discount = shop_currency(shopAffiliate::convertBonus($affiliate_bonus), wa('shop')->getConfig()->getCurrency(true), null, false);
+            $affiliate_discount = shop_currency(
+                shopAffiliate::convertBonus($affiliate_bonus),
+                $this->getShopConfig()->getCurrency(true),
+                null,
+                false
+            );
             if ($usage_percent) {
                 $affiliate_discount = min($affiliate_discount, $order['total'] * $usage_percent / 100.0);
             }
@@ -198,11 +215,11 @@ class shopCheckoutViewHelper
 
         $template_vars = array(
             'affiliate' => array(
-                'affiliate_bonus' => $affiliate_bonus,
-                'affiliate_discount' => $affiliate_discount,
-                'add_affiliate_bonus' => round($add_affiliate_bonus, 2),
-                'use_affiliate' => !empty($data['use_affiliate']),
-                'affiliate_percent' => $usage_percent,
+                'affiliate_bonus'      => $affiliate_bonus,
+                'affiliate_discount'   => $affiliate_discount,
+                'add_affiliate_bonus'  => round($add_affiliate_bonus, 2),
+                'use_affiliate'        => !empty($data['use_affiliate']),
+                'affiliate_percent'    => $usage_percent,
                 'used_affiliate_bonus' => 0,
             ),
         );
@@ -234,10 +251,10 @@ class shopCheckoutViewHelper
         $cart_model = new shopCartItemsModel();
         $item_counts = $cart_model->checkAvailability($code, $check_count);
 
-        return array_map(function($item) use ($item_counts) {
+        return array_map(function ($item) use ($item_counts) {
             $item_data = ifset($item_counts, $item['id'], [
-                'count' => 0,
-                'available' => false,
+                'count'          => 0,
+                'available'      => false,
                 'can_be_ordered' => false,
             ]);
             $item['stock_count'] = $item_data['count'];
@@ -252,14 +269,22 @@ class shopCheckoutViewHelper
 
                 if ($item['sku_available']) {
                     if ($item['stock_count'] > 0) {
-                        $item['error'] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $item['stock_count'], $name);
+                        $item['error'] = sprintf(
+                            _w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'),
+                            $item['stock_count'],
+                            $name
+                        );
                     } else {
-                        $item['error'] = sprintf(_w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience. Please remove this product from your shopping cart to proceed.'),
-                            $name);
+                        $item['error'] = sprintf(
+                            _w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience. Please remove this product from your shopping cart to proceed.'),
+                            $name
+                        );
                     }
                 } else {
-                    $item['error'] = sprintf(_w('Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed.'),
-                        $name);
+                    $item['error'] = sprintf(
+                        _w('Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed.'),
+                        $name
+                    );
                 }
             }
             return $item;
@@ -286,7 +311,7 @@ class shopCheckoutViewHelper
         shopOrderItemsModel::sortItemsByGeneralSettings($items);
 
         // Insert per-item discounts
-        foreach($items as &$item) {
+        foreach ($items as &$item) {
             $item['discount'] = ifset($items_discount, $item['id'], 0);
         }
         unset($item);
@@ -451,10 +476,10 @@ class shopCheckoutViewHelper
 
         // Full price and compare (strike-out) price for each item, with services
         foreach ($items as $item_id => $item) {
-            $services_price = array_sum(array_map(function($s) use ($item) {
+            $services_price = array_sum(array_map(function ($s) use ($item) {
                 if (empty($s['id'])) {
                     return 0;
-                } else if (isset($s['variants'])) {
+                } elseif (isset($s['variants'])) {
                     return shop_currency($s['variants'][$s['variant_id']]['price'] * $item['quantity'], $s['currency'], null, false);
                 } else {
                     return shop_currency($s['price'] * $item['quantity'], $s['currency'], null, false);
@@ -467,13 +492,14 @@ class shopCheckoutViewHelper
 
         // Prepare product features, including weight
         $product_features_model = new shopProductFeaturesModel();
-        foreach($items as &$item) {
+        foreach ($items as &$item) {
             $item['product']['features'] = $product_features_model->getValues($item['product_id'], $item['sku_id'], $item['product']['type_id'], $item['product']['sku_type'], false);
             $item['product']['weight'] = ifset($item, 'product', 'features', 'weight', null);
             $item['product']['weight_html'] = $item['product']['weight'];
             $item['total_weight'] = null;
             $item['total_weight_html'] = null;
             if ($item['product']['weight'] instanceof shopDimensionValue) {
+                /** @var shopDimensionValue $weight */
                 $weight = $item['product']['weight'];
                 $item['product']['weight_html'] = $weight->format(false);
                 $item['product']['weight'] = $weight->value_base_unit;
@@ -481,7 +507,7 @@ class shopCheckoutViewHelper
                 $weight['value_base_unit'] *= $item['quantity'];
                 $item['total_weight_html'] = $weight->format(false);
                 $item['total_weight'] = $weight->value_base_unit;
-            } else if (is_numeric($item['product']['weight'])) {
+            } elseif (is_numeric($item['product']['weight'])) {
                 $item['total_weight'] = $item['product']['weight'] * $item['quantity'];
                 $item['total_weight_html'] = $item['total_weight'];
             }
@@ -504,7 +530,7 @@ class shopCheckoutViewHelper
      * @param array
      * @return string
      */
-    public function form($opts=array())
+    public function form($opts = array())
     {
         $template_path = wa()->getAppPath('templates/actions/frontend/FrontendOrderForm.html', 'shop');
         return $this->renderTemplate($template_path, $this->formVars() + array(
@@ -515,9 +541,10 @@ class shopCheckoutViewHelper
 
     /**
      * Returns variables that $wa->shop->checkout()->form() assigns to its template.
+     * @param bool $clear_cache
      * @return array
      */
-    public function formVars($clear_cache=false)
+    public function formVars($clear_cache = false)
     {
         static $result = null;
         if ($clear_cache || $result === null) {
@@ -528,12 +555,33 @@ class shopCheckoutViewHelper
             $session_checkout = wa()->getStorage()->get('shop/checkout');
             $session_input = (!empty($session_checkout['order']) && is_array($session_checkout['order'])) ? $session_checkout['order'] : [];
 
+            /** @var shopOrder $order */
             $order = (new shopFrontendOrderActions())->makeOrderFromCart();
             $process_data = shopCheckoutStep::processAll('form', $order, $session_input);
             $config = new shopCheckoutConfig(ifset(ref(wa()->getRouting()->getRoute()), 'checkout_storefront_id', null));
             $result = array_merge([
                 'config' => $config,
             ], $process_data['result']);
+
+            if (!isset($result['error_step_id'])) {
+                $result['error_step_id'] = null;
+            }
+            if (!isset($result['errors'])) {
+                $result['errors'] = null;
+            }
+
+            // Run all the checkout_render_* events
+            // Also see other checkout_* events in shopCheckoutStep::processAll()
+            foreach ($config->getCheckoutSteps() as $step) {
+                $result['event_hook'][$step->getId()] = wa('shop')->event('checkout_render_'.$step->getId(), ref([
+                    'step_id' => $step->getId(),
+                    'data' => $process_data,
+                    'error_step_id' => &$result['error_step_id'],
+                    'errors' => &$result['errors'],
+                    'vars' => &$result,
+                ]));
+            }
+
             waConfig::set('is_template', $old_is_template);
         }
         return $result;
@@ -567,7 +615,7 @@ class shopCheckoutViewHelper
         $route = wa()->getRouting()->getRoute();
         $app = ifset($route, 'app', null);
         if ($app !== 'shop') {
-            $route = wa('shop')->getConfig()->getStorefrontRoute();
+            $route = $this->getShopConfig()->getStorefrontRoute();
         }
 
         $checkout_version = ifset($route, 'checkout_version', 1);
@@ -592,7 +640,7 @@ class shopCheckoutViewHelper
         $route = wa()->getRouting()->getRoute();
         $app = ifset($route, 'app', null);
         if ($app !== 'shop') {
-            $route = wa('shop')->getConfig()->getStorefrontRoute();
+            $route = $this->getShopConfig()->getStorefrontRoute();
         }
 
         $checkout_version = ifset($route, 'checkout_version', 1);
@@ -602,5 +650,15 @@ class shopCheckoutViewHelper
         }
 
         return wa()->getRouteUrl('shop/frontend/cart', [], $absolute);
+    }
+
+    /**
+     * @return shopConfig
+     */
+    protected function getShopConfig()
+    {
+        /** @var shopConfig $config */
+        $config = wa('shop')->getConfig();
+        return $config;
     }
 }

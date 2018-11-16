@@ -319,6 +319,11 @@
                     {$_zip_field}
                 </div>
             {/if}
+
+            {* @event checkout_render_region *}
+            {foreach $event_hook.region as $_}
+                <div class="wa-plugin-hook">{$_}</div>
+            {/foreach}
         </form>
     </div>
 

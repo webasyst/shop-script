@@ -135,14 +135,14 @@ class shopCheckoutConfig implements ArrayAccess
     protected function getValue($element, $key)
     {
         $method = $this->getMethodByKey('get', $element, $key);
-        return $method ? call_user_func_array([$this, $method], [$element, $key]) : null;
+        return $method ? $this->{$method}($element, $key) : null;
     }
 
     protected function setValue($element, $key, $value)
     {
         $method = $this->getMethodByKey('set', $element, $key);
         if ($method) {
-            call_user_func_array([$this, $method], [$element, $key, $value]);
+            $this->{$method}($element, $key, $value);
         }
     }
 
@@ -317,7 +317,7 @@ class shopCheckoutConfig implements ArrayAccess
 
     /**
      * Return steps of new (8.0+) checkout
-     * @return array [shopCheckoutStep]
+     * @return shopCheckoutStep[]
      * @throws waException
      */
     public function getCheckoutSteps()
@@ -363,7 +363,7 @@ class shopCheckoutConfig implements ArrayAccess
             'filter'             => [
                 'services_by_type' => true,
             ],
-            'departure_datetime' => (string)shopDepartureDateTimeFacade::getDeparture($this['schedule']),
+            'departure_datetime' => shopDepartureDateTimeFacade::getDeparture($this['schedule']),
             'customer_type'      => $customer_type == self::CUSTOMER_TYPE_PERSON_AND_COMPANY ? '' : $customer_type,
             'currency'           => $this->getFrontendCurrency(),
         ];
@@ -411,7 +411,7 @@ class shopCheckoutConfig implements ArrayAccess
             'namespace'  => 'shop/shipping_methods',
             'ttl'        => 300, // 5 min
             'hard_clean' => true,
-            'hash_salt'  => wa()->getLocale().$this->getStorefront().wa('shop')->getConfig()->getCurrency(false),
+            'hash_salt'  => wa()->getLocale().$this->getStorefront().$this->getShopConfig()->getCurrency(false),
         ]);
         $result = $function_cache->call($address, $items, $params);
         $time_delta = round(microtime(true) - $time_start, 3);
@@ -458,13 +458,20 @@ class shopCheckoutConfig implements ArrayAccess
     // Overridden in unit tests
     public function getFrontendCurrency()
     {
-        return wa('shop')->getConfig()->getCurrency(false);
+        return $this->getShopConfig()->getCurrency(false);
     }
 
     // Overridden in unit tests
     public function getCurrencies()
     {
-        return wa('shop')->getConfig()->getCurrencies();
+        return $this->getShopConfig()->getCurrencies();
+    }
+
+    protected function getShopConfig()
+    {
+        /** @var shopConfig $config */
+        $config = wa('shop')->getConfig();
+        return $config;
     }
 
     // Overridden in unit tests
@@ -802,9 +809,7 @@ class shopCheckoutConfig implements ArrayAccess
             $storefront_schedule = null;
         }
 
-        /**
-         * @var shopConfig $shop_config
-         */
+        /** @var shopConfig $shop_config */
         $shop_config = wa('shop', 1)->getConfig();
         $storefront_schedule = $shop_config->getSchedule($storefront_schedule);
         $this->config['schedule'] = $storefront_schedule;
@@ -1056,7 +1061,7 @@ class shopCheckoutConfig implements ArrayAccess
         $k_parts = join('', $k_parts);
         $method_name = 'get'.ucfirst($element).$k_parts.'Variants';
         if (method_exists($this, $method_name)) {
-            return call_user_func([$this, $method_name]);
+            return $this->{$method_name}();
         } else {
             return [];
         }
@@ -1256,7 +1261,7 @@ class shopCheckoutConfig implements ArrayAccess
 
     private function getOldCheckoutFields()
     {
-        $old_checkout_steps = wa('shop')->getConfig()->getCheckoutSettings();
+        $old_checkout_steps = $this->getShopConfig()->getCheckoutSettings();
 
         $contact_fields = ifempty($old_checkout_steps, 'contactinfo', 'fields', []);
 

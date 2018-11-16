@@ -153,6 +153,11 @@
 
                 <input name="auth[user_id]" value="{$wa->userId()|default:""|escape}" type="hidden">
             {/if}
+
+            {* @event checkout_render_auth *}
+            {foreach $event_hook.auth as $_}
+                <div class="wa-plugin-hook">{$_}</div>
+            {/foreach}
         </form>
     </div>
 

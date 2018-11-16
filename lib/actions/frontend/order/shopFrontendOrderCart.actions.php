@@ -18,6 +18,7 @@ class shopFrontendOrderCartActions extends waJsonActions
         try {
             $this->response = (new shopCheckoutViewHelper())->cartVars();
             unset($this->response['cart']['discount_description']);
+            unset($this->response['event_hook']);
             unset($this->response['features']);
             foreach($this->response['cart']['items'] as &$item) {
                 if (!empty($item['services'])) {
