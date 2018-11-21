@@ -74,7 +74,10 @@
         {else}
 
             <h3 class="wa-header">{$_config.block_name}</h3>
-            <a class="wa-login-link js-show-login-dialog wa-tooltip bottom" href="{$wa->getUrl('shop/login/')}" data-title="{$_config.offer_login|escape}">[`Log in`]</a>
+
+            {if $wa->isAuthEnabled()}
+                <a class="wa-login-link js-show-login-dialog wa-tooltip bottom" href="{$wa->getUrl('shop/login/')}" data-title="{$_config.offer_login|escape}">[`Log in`]</a>
+            {/if}
         {/if}
     </header>
 

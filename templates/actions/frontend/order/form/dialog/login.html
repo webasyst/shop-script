@@ -1,4 +1,4 @@
-<div class="wa-order-dialog">
+<div class="wa-order-dialog wa-auth-dialog-wrapper">
     <div class="wa-dialog-background"></div>
     <div class="wa-dialog-body with-full-height without-footer">
         <header class="wa-dialog-header">
@@ -10,7 +10,6 @@
 
         <div class="wa-dialog-content">
             {$wa->loginForm('', [
-                'need_placeholder' => true,
                 'show_oauth_adapters' => true,
                 'need_redirects' => false
             ])}

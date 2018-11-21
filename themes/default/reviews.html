@@ -126,8 +126,9 @@
                                     {foreach $auth_adapters as $adapter}
                                         {$adapter_id = $adapter->getId()}
                                         <li data-provider="{$adapter_id}" {if $current_auth_source == $adapter_id}class="selected"{/if}>
-                                            <a href="{$adapter->getCallbackUrl(0)}&app=shop{if !$require_authorization}&guest=1{/if}">
-                                            <img src="{$adapter->getIcon()}" alt="">{$adapter->getName()}</a>
+                                            <a href="{$adapter->getCallbackUrl(0)}&app=shop{if !$require_authorization}&guest=1{/if}" title="{$adapter->getName()}">
+                                                <img src="{$adapter->getIcon()}" alt="">
+                                            </a>
                                         </li>
                                     {/foreach}
                                 </ul>

@@ -321,8 +321,9 @@ table.rating-distribution td .bar .filling { background: #f7c854; height: 13px; 
 .review-form textarea { min-width: 70%; min-height: 160px; }
 .review-form .review-submit { padding:0 0 20px 170px;}
 .review-form .userpic { width: 20px; height: 20px; float: left; margin-right: 5px; border-radius: 50%; }
-.review-form ul.menu-h.auth-type li a img { float: left; margin-right: 3px; position: relative; top: 2px; }
 .review-form ul.menu-h.auth-type { padding-bottom: 20px; }
+.review-form ul.menu-h.auth-type li { vertical-align: middle; }
+.review-form ul.menu-h.auth-type li a img { float: left; margin-right: 3px; position: relative; top: 2px; }
 .review-form label { width: 160px; display: block; float: left; margin: 0 10px 0 0; color: #AAA; }
 .reviews span.rate { line-height: 1.3em; display: block; margin: 0.5em 0; }
 .reviews span.rate a { text-decoration: none !important; }

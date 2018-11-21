@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 2.0.6\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -6645,7 +6645,7 @@ msgstr "Пожалуйста, выберите способ доставки"
 #: /wa-apps/shop/themes/nifty/footer.html:4
 #: /wa-apps/shop/themes/sidebar/footer.html:4
 msgid "<a href=\"http://www.shop-script.com/\">Ecommerce software</a> by Webasyst"
-msgstr "<a href=\"http://www.shop-script.ru/\">Создание интернет-магазина</a> — Shop-Script 7"
+msgstr "<a href=\"http://www.shop-script.ru/\">Создание интернет-магазина</a> — Shop-Script"
 
 #: /wa-apps/shop/themes/clear/list-thumbs-mini.html:38
 #: /wa-apps/shop/themes/clear/list-thumbs.html:57
@@ -11244,32 +11244,32 @@ msgstr "Узкая"
 msgid "Medium"
 msgstr "Средняя"
 
-msgid "Discount amount"
-msgstr "Сумма скидки"
+msgid "Compare at price without discount and discount amount"
+msgstr "Зачеркнутая цена без учета скидки и сумма скидки"
 
 msgid "Large"
 msgstr "Большая"
 
-msgid "Compare at price without discount"
-msgstr "Зачеркнутая цена без учета скидки"
+msgid "Only compare at price without discount"
+msgstr "Только зачеркнутая цена без учета скидки"
 
-msgid "Only common amount"
-msgstr "Только общая сумма"
+msgid "Only common discount amount"
+msgstr "Только общая сумма скидки"
 
-msgid "Breakdown per discount types"
-msgstr "Разделение суммы по видам скидки"
+msgid "Extra information about discounts by coupons and bonus points"
+msgstr "Отображение отдельных сумм скидки по купону и бонусным баллам"
 
 msgid "Default"
 msgstr "Обычный"
 
-msgid "Available shipping options are grouped by type—“Courier”, “Pickup”, “Post”."
-msgstr "Доступные варианты доставки сгруппированы по типам: «Курьер», «Самовывоз», «Почта»."
+msgid "Available shipping options are grouped by type—“courier”, “pickup”, “post”."
+msgstr "Доступные варианты доставки сгруппированы по типам: «курьер», «самовывоз», «почта»."
 
 msgid "Minimal"
 msgstr "Минимальный"
 
-msgid "Fixed list of shipping areas. Available shipping options are not grouped by type—“Courier”, “Pickup”, “Post”. There is no option to select a pickup point on a map."
-msgstr "Фиксированный список областей доставки. Доступные варианты доставки показаны общим списком без группировки по типам: «Курьер», «Самовывоз», «Почта». Нет возможности выбрать пункт самовывоза на карте."
+msgid "Fixed list of shipping areas. Available shipping options are not grouped by type—“courier”, “pickup”, “post”. There is no option to select a pickup point on a map."
+msgstr "Фиксированный список областей доставки. Доступные варианты доставки показаны общим списком без группировки по типам: «курьер», «самовывоз», «почта». Нет возможности выбрать пункт самовывоза на карте."
 
 msgid "Always show"
 msgstr "Всегда показывать"
@@ -11280,7 +11280,7 @@ msgstr "Кроме мобильных устройств"
 msgid "Never show"
 msgstr "Никогда не показывать"
 
-msgid "Persons &amp; companies"
+msgid "Persons & companies"
 msgstr "Персоны и компании"
 
 msgid "By submitting this form I agree to <a href=\"---INSERT A LINK HERE!---\" target=\"_blank\">personal data protection policy</a>"
@@ -11445,8 +11445,8 @@ msgstr "Скидка по купону"
 msgid "Affiliate bonus discount"
 msgstr "Скидка по бонусным баллам"
 
-msgid "Validation error"
-msgstr "Ошибка валидации"
+msgid "Incorrect value"
+msgstr "Неправильное значение"
 
 msgid "Setup of required fields validation in backend, order spam filter, and web push notifications is available in “<a href=\"%s\">General settings</a>” section."
 msgstr "Настройка проверки обязательных полей в бекенде, антиспам-фильтра для заказов и push-уведомлений доступна в разделе «<a href=\"%s\">Общие настройки</a>»."
@@ -11696,12 +11696,15 @@ msgid "<span class=\"checkout-2-background\">%s</span> (might be not supported b
 msgstr "<span class=\"checkout-2-background\">%s</span> (может не поддерживаться всеми темами дизайна; проверьте в описании своей темы или в настройках оформления заказа после выбора этого режима)"
 
 #: /wa-apps/shop/lib/config/site.php:200
-msgid "If your design theme does not support “in-cart checkout”, standard checkout design of “Default” theme can be used. <a href=\"%s\">Set up</a> <i class=\"icon16 new-window\"></i>in-cart checkout."
-msgstr "Если ваша тема дизайна не поддерживает «оформление заказа в корзине», для страницы оформления заказа может использоваться стандартный дизайн темы «Дефолт». <a href=\"%s\">Настройте</a> <i class=\"icon16 new-window\"></i>оформление заказа в корзине."
+msgid "If your design theme does not support “in-cart checkout”, standard checkout design of “Default” theme can be used. <a href=\"%s\" target=\"_blank\">Set up</a> <i class=\"icon16 new-window\"></i>in-cart checkout."
+msgstr "Если ваша тема дизайна не поддерживает «оформление заказа в корзине», для страницы оформления заказа может использоваться стандартный дизайн темы «Дефолт». <a href=\"%s\" target=\"_blank\">Настройте</a> <i class=\"icon16 new-window\"></i>оформление заказа в корзине."
+
+msgid "Read <a href=\"https://www.shop-script.com/help/29297/in-cart-checkout/\" target=\"_blank\">user manual</a> before enabling this checkout option."
+msgstr "Прочтите <a href=\"https://support.webasyst.ru/shop-script/29292/in-cart-checkout/\" target=\"_blank\">иструкцию</a> перед включением этого вида оформления заказа."
 
 #: /wa-apps/shop/lib/config/site.php:212
-msgid "<a href=\"%s\">Set up</a> <i class=\"icon16 new-window\"></i>multi-step checkout"
-msgstr "<a href=\"%s\">Настройте</a> <i class=\"icon16 new-window\"></i>пошаговое оформление заказа"
+msgid "<a href=\"%s\" target=\"_blank\">Set up</a> <i class=\"icon16 new-window\"></i>multi-step checkout"
+msgstr "<a href=\"%s\" target=\"_blank\">Настройте</a> <i class=\"icon16 new-window\"></i>пошаговое оформление заказа"
 
 #: /wa-apps/shop/lib/config/site.php:234
 msgid "Array of product SKUs"

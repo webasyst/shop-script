@@ -10,7 +10,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 2.0.6\n"
 "Plural-Forms: nplurals=2; plural=n == 1 ? 0 : 1;\n"
 "Language: en_US\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -12571,7 +12571,7 @@ msgid "Upload"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/frontend/FrontendOrderForm.html:178
-msgid "Validation error"
+msgid "Incorrect value"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/frontend/FrontendOrderForm.html:179
@@ -13179,20 +13179,16 @@ msgstr ""
 msgid "Large"
 msgstr ""
 
-#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:196
-msgid "Discount amount"
-msgstr ""
-
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:199
-msgid "Compare at price without discount"
+msgid "Only compare at price without discount"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:208
-msgid "Only common amount"
+msgid "Only common discount amount"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:211
-msgid "Breakdown per discount types"
+msgid "Extra information about discounts by coupons and bonus points"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:220
@@ -13200,7 +13196,7 @@ msgid "Default"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:221
-msgid "Available shipping options are grouped by type—“Courier”, “Pickup”, “Post”."
+msgid "Available shipping options are grouped by type—“courier”, “pickup”, “post”."
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:225
@@ -13208,7 +13204,7 @@ msgid "Minimal"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:225
-msgid "Fixed list of shipping areas. Available shipping options are not grouped by type—“Courier”, “Pickup”, “Post”. There is no option to select a pickup point on a map."
+msgid "Fixed list of shipping areas. Available shipping options are not grouped by type—“courier”, “pickup”, “post”. There is no option to select a pickup point on a map."
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:235
@@ -13224,7 +13220,7 @@ msgid "Never show"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:256
-msgid "Persons &amp; companies"
+msgid "Persons & companies"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:268

@@ -35,10 +35,10 @@
     {if $_field.type == "input" && $_field.content_type == "date"}
         <div class="wa-field-wrapper {$_wrapper_classes|join:" "}">
             <div class="wa-label">{$_label}</div>
-            <input class="wa-input wa-date js-datepicker"
+            <input class="wa-input wa-date js-datepicker" type="text"
                 autocomplete="false"
                 data-alt=".js-alt-date"
-                placeholder="{$_field.label|escape}"
+                {*placeholder="{$_field.label|escape}"*}
                 value="{if !empty($_field.value)}{$_field.value|wa_date}{/if}"
                 {if !empty($_field.required)}required{/if}
             >
@@ -75,7 +75,7 @@
                 name="{$_field.name|escape}"
                 type="{$_field_type|escape}"
                 value="{$_field.value|default:""|escape}"
-                placeholder="{$_field.label|escape}"
+                {*placeholder="{$_field.label|escape}"*}
                 {if !empty($_field.affects_rate)}data-affects-rate="true"{/if}
                 {if !empty($_field.required)}required{/if}
             >

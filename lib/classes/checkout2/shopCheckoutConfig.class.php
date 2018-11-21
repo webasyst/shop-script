@@ -72,6 +72,12 @@ class shopCheckoutConfig implements ArrayAccess
     protected $config = [];
 
     /**
+     * The flag indicating the sign that the config is default.
+     * @var bool
+     */
+    protected $is_default = false;
+
+    /**
      * shopCheckoutConfig constructor.
      * @param string|array $storefront string - checkout_storefront_id value from routing.php
      *                                 array  - the config itself
@@ -102,6 +108,11 @@ class shopCheckoutConfig implements ArrayAccess
         return $this->storefront;
     }
 
+    public function isDefault()
+    {
+        return (bool) $this->is_default;
+    }
+
     //
 
     public function setData($data)
@@ -110,6 +121,7 @@ class shopCheckoutConfig implements ArrayAccess
         foreach ($data as $element => $keys) {
             foreach ($keys as $key => $value) {
                 $this->setValue($element, $key, $value);
+                $this->is_default = false;
             }
         }
     }
@@ -191,11 +203,11 @@ class shopCheckoutConfig implements ArrayAccess
     public function getCartDiscountItemVariants()
     {
         return [
-            self::DISCOUNT_ITEM_TYPE_AMOUNT    => [
-                'name' => _w('Discount amount'),
-            ],
             self::DISCOUNT_ITEM_TYPE_STRIKEOUT => [
-                'name' => _w('Compare at price without discount'),
+                'name' => _w('Only compare at price without discount'),
+            ],
+            self::DISCOUNT_ITEM_TYPE_AMOUNT    => [
+                'name' => _w('Compare at price without discount and discount amount'),
             ],
         ];
     }
@@ -204,10 +216,10 @@ class shopCheckoutConfig implements ArrayAccess
     {
         return [
             self::DISCOUNT_GENERAL_TYPE_AMOUNT     => [
-                'name' => _w('Only common amount'),
+                'name' => _w('Only common discount amount'),
             ],
             self::DISCOUNT_GENERAL_TYPE_SEPARATION => [
-                'name' => _w('Breakdown per discount types'),
+                'name' => _w('Extra information about discounts by coupons and bonus points'),
             ],
         ];
     }
@@ -217,11 +229,11 @@ class shopCheckoutConfig implements ArrayAccess
         return [
             self::ORDER_MODE_TYPE_DEFAULT => [
                 'name'        => _w('Default'),
-                'description' => _w('Available shipping options are grouped by type—“Courier”, “Pickup”, “Post”.'),
+                'description' => _w('Available shipping options are grouped by type—“courier”, “pickup”, “post”.'),
             ],
             self::ORDER_MODE_TYPE_MINIMUM => [
                 'name'        => _w('Minimal'),
-                'description' => _w('Fixed list of shipping areas. Available shipping options are not grouped by type—“Courier”, “Pickup”, “Post”. There is no option to select a pickup point on a map.'),
+                'description' => _w('Fixed list of shipping areas. Available shipping options are not grouped by type—“courier”, “pickup”, “post”. There is no option to select a pickup point on a map.'),
             ],
         ];
     }
@@ -251,7 +263,7 @@ class shopCheckoutConfig implements ArrayAccess
                 'name' => _w('Companies'),
             ],
             self::CUSTOMER_TYPE_PERSON_AND_COMPANY => [
-                'name' => _w('Persons &amp; companies'),
+                'name' => _w('Persons & companies'),
             ],
         ];
     }
@@ -721,7 +733,7 @@ class shopCheckoutConfig implements ArrayAccess
                     break;
                 case 'Checkbox':
                     $type = 'checkbox';
-                    $value = (int)(!!$value);
+                    $value = (string)(int)(!!$value);
                     break;
                 case 'Hidden':
                     $type = 'hidden';
@@ -1239,6 +1251,8 @@ class shopCheckoutConfig implements ArrayAccess
                     'required' => !empty($field['required']),
                 ];
             }
+
+            $this->is_default = true;
         }
         $this->config = $storefront_settings;
     }
@@ -1252,7 +1266,7 @@ class shopCheckoutConfig implements ArrayAccess
     private function loadElement($element)
     {
         if (!isset(self::$static_cache[$element])) {
-            $path = wa('shop')->getConfig()->getConfigPath("checkout2/{$element}.php", false);
+            $path = wa()->getConfig()->getConfigPath("checkout2/{$element}.php", false, 'shop');
             if (file_exists($path)) {
                 self::$static_cache[$element] = include($path);
             }

@@ -39,12 +39,12 @@
                         {$_price = null}
                         {if isset($_type.rate_min) && $_type.rate_min !== null}
                             {if $_type.rate_min > 0}
-                                {$_price = shop_currency_html($_type.rate_min, $_type.currency)}
+                                {$_price = shop_currency($_type.rate_min, ['in_currency' => $_type.currency, 'extended_format' => '%t{h}'])}
                                 {if !(isset($_type.rate_max) && $_type.rate_min === $_type.rate_max)}
                                     {$_price = "[`from`] `$_price`"}
                                 {/if}
                             {elseif $_type.rate_min !== $_type.rate_max}
-                                {$_price = shop_currency_html($_type.rate_min, $_type.currency)}
+                                {$_price = shop_currency($_type.rate_min, ['in_currency' => $_type.currency, 'extended_format' => '%t{h}'])}
                                 {$_price = "[`from`] `$_price`"}
                             {else}
                                 {$_price = _w("Free")}
@@ -108,7 +108,7 @@
                                 {$_price = null}
                                 {if isset($_variant.rate_min) && $_variant.rate_min !== null}
                                     {if $_variant.rate_min > 0}
-                                        {$_price = shop_currency_html($_variant.rate_min, $_variant.currency)}
+                                        {$_price = shop_currency($_variant.rate_min, ['in_currency' => $_variant.currency, 'extended_format' => '%t{h}'])}
                                         {if !(isset($_variant.rate_max) && $_variant.rate_min === $_variant.rate_max)}
                                             {$_price = "[`from`] `$_price`"}
                                         {/if}

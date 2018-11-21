@@ -197,11 +197,11 @@ return array(
             'items' => array(
                 2 => array(
                     'name'        => sprintf(_w('<span class="checkout-2-background">%s</span> (may be not supported by some design themes; please check your theme’s description or checkout settings after selecting this mode)'), _w('In-cart checkout')),
-                    'description' => '<br>'.sprintf(_w('If your design theme does not support “in-cart checkout”, standard checkout design of “Default” theme can be used. <a href="%s">Set up</a> <i class="icon16 new-window"></i>in-cart checkout.'), wa()->getAppUrl('shop/?action=settings#/checkout')) . '<br><br>',
+                    'description' => '<br>'.sprintf(_w('If your design theme does not support “in-cart checkout”, standard checkout design of “Default” theme can be used. <a href="%s" target="_blank">Set up</a> <i class="icon16 new-window"></i>in-cart checkout.'), wa()->getAppUrl('shop/?action=settings#/checkout')) . '<br><strong>'. _w('Read <a href="https://www.shop-script.com/help/29297/in-cart-checkout/" target="_blank">user manual</a> before enabling this checkout option.') . '</strong><br><br>',
                 ),
                 1 => array(
                     'name'        => _w('Multi-step checkout'),
-                    'description' => '<br>'.sprintf(_w('<a href="%s">Set up</a> <i class="icon16 new-window"></i>multi-step checkout'), wa()->getAppUrl('shop/?action=settings#/checkout')) . $checkout_version_move_setting,
+                    'description' => '<br>'.sprintf(_w('<a href="%s" target="_blank">Set up</a> <i class="icon16 new-window"></i>multi-step checkout'), wa()->getAppUrl('shop/?action=settings#/checkout&r=1')) . $checkout_version_move_setting,
                 ),
             ),
             'default' => 1,
@@ -333,7 +333,7 @@ return array(
         '$wa'              => array(
             '$wa->shop->checkout()->url(<em>$absolute</em>)'                                                          => _w('Returns checkout page URL'),
             '$wa->shop->checkout()->cartUrl(<em>$absolute</em>)'                                                      => _w('Returns shopping cart page URL'),
-            '$wa->shop->checkout()->schedule()'                                                                       => _w('Returns working schedule data array for current storefront'),
+            '$wa->shop->schedule()'                                                                                   => _w('Returns working schedule data array for current storefront'),
             '$wa->shop->badgeHtml(<em>$product.code</em>)'                                                            => _w('Displays badge of the specified product (<em>$product</em> object)'),
             '$wa->shop->cart()'                                                                                       => _w('Returns current cart object'),
             '$wa->shop->categories(<em>$id, $depth, $tree, $params, $route</em>)'                                     => _w('Returns array of visible subcategories of specified parent category.<br><strong>$id</strong> (default: <em>0</em>): ID of parent category whose subcategories must be returned. By default, categories starting from top level are returned.<br><strong>$depth</strong> (default: <em>null</em>): depth of subcategory tree. By default, entire category tree is returned.<br><strong>$tree</strong> (default: <em>false</em>): flag requiring to return categories as a tree (<em>true</em>) or a flat array (<em>false</em>).<br><strong>$params</strong> (default: <em>false</em>): flag requiring to return categories with their extra parameters. By default, categories are returned without extra parameters.<br><strong>$route</strong> (default: <em>null</em>): array of route parameters of the storefront for which visible categories must be returned. By default, returned categories are not necessarily limited to certain storefronts.'),

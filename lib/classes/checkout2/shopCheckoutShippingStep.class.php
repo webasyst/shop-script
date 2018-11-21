@@ -145,8 +145,9 @@ class shopCheckoutShippingStep extends shopCheckoutStep
                     }
                     $plugin_timezone = ifset($s, 'custom_data', 'pickup', 'timezone', null);
                     $s['pickup_schedule'] = self::formatPickupSchedule($s['custom_data']['pickup']['schedule'], $timezones, $config['schedule']['timezone'], $plugin_timezone);
+                    $s['pickup_schedule']['user_timezone'] = $contact->getTimezone();
                 } else {
-                    //$s['pickup_schedule_html'] = $s['custom_data']['pickup']['schedule'];
+                    $s['pickup_schedule_html'] = $s['custom_data']['pickup']['schedule'];
                 }
             }
 
@@ -186,6 +187,19 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             unset($type);
         }
 
+        if (!$proper_variant_is_selected) {
+            $selected_variant_id = null;
+
+            // If there's only one active shipping type, select it immediately
+            $nonempty_types = array_filter($shipping_types, function($type) {
+                return !empty($type['variants']);
+            });
+            if (1 === count($nonempty_types)) {
+                $type = reset($nonempty_types);
+                $selected_type_id = $type['id'];
+            }
+        }
+
         // Format expected delivery date into human-readable form
         foreach ($shipping_types as &$type) {
             if (empty($type['date_min_ts'])) {
@@ -217,10 +231,6 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             }
         }
         unset($type);
-
-        if (!$proper_variant_is_selected) {
-            $selected_variant_id = null;
-        }
 
         if ($selected_type_id && isset($shipping_types[$selected_type_id])) {
             $shipping_types[$selected_type_id]['is_selected'] = true;
@@ -340,11 +350,21 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             list($date, $time_start) = explode(' ', $d['start_work']);
             list($_, $time_end) = explode(' ', $d['end_work']);
             $weekday_id = date('N', strtotime($d['start_work']));
-            if ($time_start && $time_start{0} === '0') {
-                $time_start = substr($time_start, 1);
+            if ($time_start) {
+                if (strlen($time_start) == 8) {
+                    $time_start = substr($time_start, 0, -3);
+                }
+                if ($time_start{0} === '0') {
+                    $time_start = substr($time_start, 1);
+                }
             }
-            if ($time_end && $time_end{0} === '0') {
-                $time_end = substr($time_end, 1);
+            if ($time_end) {
+                if (strlen($time_end) == 8) {
+                    $time_end = substr($time_end, 0, -3);
+                }
+                if ($time_end{0} === '0') {
+                    $time_end = substr($time_end, 1);
+                }
             }
 
             // pass in default time zone to make it not convert the time

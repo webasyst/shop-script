@@ -77,6 +77,7 @@
                             <td class="s-block-container">
                                 {* Show/hide settings *}
                                 <div class="float-right">
+                                    {*
                                     {if !empty($shipping_plugins)}
                                         <div class="s-toggle-wrapper js-block-toggle-wrapper">
                                             <input id="shipping_used" name="data[shipping][used]" class="ibutton js-toggle" type="checkbox"{if $checkout_config.shipping.used} checked="checked"{/if}>
@@ -100,6 +101,12 @@
                                             </label>
                                         </div>
                                     {/if}
+                                    *}
+
+                                    <a href="javascript:void(0);" class="inline-link s-settings-link js-settings-link"{if !$checkout_config.shipping.used} style="display: none;"{/if}>
+                                        <i class="icon16 settings"></i>
+                                        <b><i>[`Settings`]</i></b>
+                                    </a>
                                 </div>
                                 <h3 class="name">[`Shipping`]</h3>
                                 {if !empty($shipping_plugins)}
@@ -115,6 +122,7 @@
                             <td class="s-block-container">
                                 {* Show/hide settings *}
                                 <div class="float-right">
+                                    {*
                                     {if !empty($payment_plugins)}
                                         <div class="s-toggle-wrapper js-block-toggle-wrapper">
                                             <input id="payment_used" name="data[payment][used]" class="ibutton js-toggle" type="checkbox"{if $checkout_config.payment.used} checked="checked"{/if}>
@@ -138,6 +146,12 @@
                                             </label>
                                         </div>
                                     {/if}
+                                    *}
+
+                                    <a href="javascript:void(0);" class="inline-link s-settings-link js-settings-link"{if !$checkout_config.payment.used} style="display: none;"{/if}>
+                                        <i class="icon16 settings"></i>
+                                        <b><i>[`Settings`]</i></b>
+                                    </a>
                                 </div>
                                 <h3 class="name">[`Payment`]</h3>
                                 {if !empty($payment_plugins)}

@@ -151,14 +151,19 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
                 // Shipping plugin returned proper rate
                 $currencies = $config->getCurrencies();
                 $updated_selected_variant = shopCheckoutShippingStep::prepareShippingVariant($rates[$selected_variant['variant_id']], $currencies);
-                if (!empty($updated_selected_variant['custom_data']['pickup']['schedule']) && is_array($updated_selected_variant['custom_data']['pickup']['schedule'])) {
-                    $updated_selected_variant_timezone = ifset($updated_selected_variant, 'custom_data', 'pickup', 'timezone', null);
-                    $updated_selected_variant['pickup_schedule'] = shopCheckoutShippingStep::formatPickupSchedule(
-                        $updated_selected_variant['custom_data']['pickup']['schedule'],
-                        waDateTime::getTimeZones(),
-                        $config['schedule']['timezone'],
-                        $updated_selected_variant_timezone
-                    );
+                if (!empty($updated_selected_variant['custom_data']['pickup']['schedule'])) {
+                    if (is_array($updated_selected_variant['custom_data']['pickup']['schedule'])) {
+                        $updated_selected_variant_timezone = ifset($updated_selected_variant, 'custom_data', 'pickup', 'timezone', null);
+                        $updated_selected_variant['pickup_schedule'] = shopCheckoutShippingStep::formatPickupSchedule(
+                            $updated_selected_variant['custom_data']['pickup']['schedule'],
+                            waDateTime::getTimeZones(),
+                            $config['schedule']['timezone'],
+                            $updated_selected_variant_timezone
+                        );
+                        $updated_selected_variant['pickup_schedule']['user_timezone'] = $contact->getTimezone();
+                    } else {
+                        $updated_selected_variant['pickup_schedule_html'] = $updated_selected_variant['custom_data']['pickup']['schedule'];
+                    }
                 }
 
                 if (is_numeric($updated_selected_variant['rate'])) {

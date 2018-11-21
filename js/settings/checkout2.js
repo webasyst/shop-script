@@ -106,6 +106,7 @@ var ShopSettingsCheckout2 = ( function($) {
             } else {
                 $design_values.hide();
             }
+            that.$button.removeClass('green').addClass('yellow');
             $(window).trigger('scroll');
         });
 
@@ -149,7 +150,6 @@ var ShopSettingsCheckout2 = ( function($) {
                     $logo_preview_wrapper.show();
                     $loading.hide();
                 } else {
-                    console.log(res);
                     $logo_field.val('');
                     $logo_preview_wrapper.hide();
                     $logo_preview.removeAttr('src');
@@ -188,6 +188,10 @@ var ShopSettingsCheckout2 = ( function($) {
             $replacer.click(function() {
                 $picker.slideToggle(200);
                 return false;
+            });
+
+            $input.on('keydown', function () {
+                that.$button.removeClass('green').addClass('yellow');
             });
 
             var timer_id;
@@ -512,6 +516,7 @@ var ShopSettingsCheckout2 = ( function($) {
             } else {
                 $service_agreement_hint.hide();
             }
+            $(window).trigger('scroll');
         });
 
         // Zip
@@ -536,6 +541,7 @@ var ShopSettingsCheckout2 = ( function($) {
                 $zip_required.prop('disabled', false);
                 $zip_width.show();
             }
+            $(window).trigger('scroll');
         }
     };
 
@@ -554,6 +560,7 @@ var ShopSettingsCheckout2 = ( function($) {
             } else {
                 $terms_text_wrapper.hide();
             }
+            $(window).trigger('scroll');
         });
 
         $terms_generete.on('click', function () {
@@ -584,6 +591,7 @@ var ShopSettingsCheckout2 = ( function($) {
                 $current_variant.find('.js-variant-params').html($auth_code_checkbox);
                 $auth_code_checkbox.append($hint);
             }
+            $(window).trigger('scroll');
         }
     };
 

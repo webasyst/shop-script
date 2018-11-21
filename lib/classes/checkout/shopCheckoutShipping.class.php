@@ -148,15 +148,6 @@ class shopCheckoutShipping extends shopCheckout
 
     protected function workupShippingMethod($m, $method_options, $selected_shipping = array())
     {
-        static $items;
-        if ($items === null) {
-            $items = $this->getItems();
-        }
-        static $total;
-        if ($total === null) {
-            $total = $this->cart->total();
-        }
-
         try {
             $plugin = shopShipping::getPlugin($m['plugin'], $m['id']);
 
@@ -174,16 +165,19 @@ class shopCheckoutShipping extends shopCheckout
                 if ($m['external']) {
                     $m['rates'] = array();
                 } else {
-                    $options = array(
-                        'currency' => $m['currency'],
-                        'weight'   => $plugin->allowedWeightUnit(),
-                    );
-                    $total_price = shopHelper::workupValue($total, 'price', $options['currency']);
 
-                    $shipping_items = shopHelper::workupOrderItems($items, $options);
-                    $params = array(
-                        'total_price' => $total_price,
+                    $options = array(
+                        'weight'     => $plugin->allowedWeightUnit(),
+                        'dimensions' => $plugin->allowedLinearUnit(),
+                        'currency'   => $m['currency'],
                     );
+
+                    $items = $this->getItems();
+
+                    $shipping_items = shopHelper::workupOrderItems($items, array_filter($options));
+                    $params = $this->getItemsTotal();
+
+                    $params = shopShipping::convertTotalDimensions($params, $options);
 
                     $params = $this->extendShippingParams($params, $m['id']);
 
@@ -427,37 +421,47 @@ class shopCheckoutShipping extends shopCheckout
         }
     }
 
+    private $items = null;
 
-    public function getItems($weight_unit = null, $dimensions_unit = null)
+    public function getItems()
     {
-        $items = array();
-        $cart_items = $this->cart->items();
+        if ($this->items === null) {
+            $this->items = array();
+            $cart_items = $this->cart->items();
 
-        $units = array();
-
-        if ($weight_unit) {
-            $units['weight'] = $weight_unit;
-        }
-        if ($dimensions_unit) {
-            $units['dimensions'] = $dimensions_unit;
-        }
-
-        #get actual order items weight
-        shopShipping::extendItems($cart_items, $units);
-
-        foreach ($cart_items as $item) {
-            $items[] = array(
-                'name'     => $item['name'],
-                'price'    => $item['price'],
-                'currency' => $item['currency'],
-                'quantity' => $item['quantity'],
-                'weight'   => ifset($item['weight']),
-                'height'   => ifset($item['height']),
-                'width'    => ifset($item['width']),
-                'length'   => ifset($item['length']),
+            $units = array(
+                'weight'     => true,
+                'dimensions' => true,
             );
+
+            #get actual order items weight
+            shopShipping::extendItems($cart_items, $units);
+
+            foreach ($cart_items as $item) {
+                $this->items[] = array(
+                    'name'     => $item['name'],
+                    'price'    => $item['price'],
+                    'currency' => $item['currency'],
+                    'quantity' => $item['quantity'],
+                    'weight'   => ifset($item['weight']),
+                    'height'   => ifset($item['height']),
+                    'width'    => ifset($item['width']),
+                    'length'   => ifset($item['length']),
+                );
+            }
         }
-        return $items;
+        return $this->items;
+    }
+
+    private $items_total = null;
+
+    public function getItemsTotal()
+    {
+        if ($this->items_total === null) {
+            $this->items_total = shopShipping::getItemsTotal($this->getItems());
+            $this->items_total['total_price'] = $this->cart->total();
+        }
+        return $this->items_total;
     }
 
     protected function extendShippingParams($params, $id)
@@ -534,7 +538,11 @@ class shopCheckoutShipping extends shopCheckout
 
         $params = $this->extendShippingParams($params, $id);
 
-        $items = $this->getItems($plugin->allowedWeightUnit(), $plugin->allowedLinearUnit());
+        $items = $this->getItems();
+
+        $params += shopShipping::convertTotalDimensions($this->getItemsTotal(), $plugin);
+
+        shopShipping::convertItemsDimensions($items, $plugin);
 
         $rates = $plugin->getRates($items, $this->getAddress($contact), $params);
         if (!$rates) {

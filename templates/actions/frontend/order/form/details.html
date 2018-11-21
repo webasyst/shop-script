@@ -210,20 +210,36 @@
 
                         {if !empty($details.shipping_rate.pickup_schedule.days)}
                             <div class="wa-line wa-schedule-wrapper">
-                                <div class="wa-label">[`Business hours`]:</div>
+                                <div class="wa-label">
+                                    [`Business hours`]:
+                                    {*if $details.shipping_rate.pickup_schedule.timezone != $details.shipping_rate.pickup_schedule.user_timezone}
+                                        <span class="wa-timezone">{$details.shipping_rate.pickup_schedule.timezone_text|escape}</span>
+                                    {/if*}
+                                </div>
                                 <div class="wa-days-wrapper">
                                     {foreach $details.shipping_rate.pickup_schedule.days as $_day}
                                         <div class="wa-day-wrapper">
-                                            <div class="wa-date">{$_day.weekday_short|escape}, {$_day.date_formatted|escape}</div>
+                                            <div class="wa-date">{$_day.weekday_full|escape}, {$_day.date_formatted|escape}</div>
                                             <div class="wa-value">
                                                 {if !empty($_day.works)}
-                                                    <div class="wa-time">{$_day.time_start|escape}–{$_day.time_end|escape}</div>
+                                                    <div class="wa-time"
+                                                        {if $details.shipping_rate.pickup_schedule.timezone != $details.shipping_rate.pickup_schedule.user_timezone}
+                                                            title="{$details.shipping_rate.pickup_schedule.timezone_text|escape}"
+                                                        {/if}
+                                                    >{$_day.time_start|escape}—{$_day.time_end|escape}</div>
                                                 {else}
                                                     <div class="wa-text">[`day off`]</div>
                                                 {/if}
                                             </div>
                                         </div>
                                     {/foreach}
+                                </div>
+                            </div>
+                        {elseif !empty($details.shipping_rate.pickup_schedule_html)}
+                            <div class="wa-line wa-schedule-wrapper">
+                                <div class="wa-label">[`Business hours`]:</div>
+                                <div class="wa-days-wrapper">
+                                    {$details.shipping_rate.pickup_schedule_html}
                                 </div>
                             </div>
                         {/if}

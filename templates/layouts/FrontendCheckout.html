@@ -63,21 +63,19 @@
 <div class="wa-order-layout font_family_google_fira">
     <header class="wa-order-header">
         <div class="container">
-            <div class="wa-logo-section">
-                <div class="wa-logo">
-                    <a href="{$wa_app_url}">
-                        {if !empty($design_settings.logo_url)}
+            {if !empty($design_settings.logo_url)}
+                <div class="wa-logo-section">
+                    <div class="wa-logo">
+                        <a href="{$wa_app_url}">
                             <img src="{$design_settings.logo_url|escape}" alt="">
-                        {else}
-                            <i class="wa-icon webasyst"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#webasyst"></use></svg></i>
-                        {/if}
-                    </a>
-                </div>
+                        </a>
+                    </div>
 
-                {if !empty($design_settings.business_scope)}
-                    <div class="wa-description">{$design_settings.business_scope|escape}</div>
-                {/if}
-            </div>
+                    {if !empty($design_settings.business_scope)}
+                        <div class="wa-description">{$design_settings.business_scope|escape}</div>
+                    {/if}
+                </div>
+            {/if}
 
             {if !empty($design_settings.phone)}
                 <div class="wa-phone-section">
@@ -101,29 +99,27 @@
         </div>
     </main>
 
-    {if !empty($design_settings.address) || !empty($design_settings.working_hours)}
-        <footer class="wa-order-footer">
-            <div class="container">
+    <footer class="wa-order-footer">
+        <div class="container">
 
-                <div class="wa-shop-details-section">
-                    {if !empty($design_settings.address)}
-                        <div class="wa-line">
-                            <i class="wa-icon location"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#location"></use></svg></i>
-                            {$design_settings.address|escape}
-                        </div>
-                    {/if}
+            <div class="wa-shop-details-section">
+                {if !empty($design_settings.address)}
+                    <div class="wa-line">
+                        <i class="wa-icon location"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#location"></use></svg></i>
+                        {$design_settings.address|escape}
+                    </div>
+                {/if}
 
-                    {if !empty($design_settings.working_hours)}
-                        <div class="wa-line">
-                            <i class="wa-icon time size-11"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#time"></use></svg></i>
-                            {$design_settings.working_hours|escape}
-                        </div>
-                    {/if}
-                </div>
-
+                {if !empty($design_settings.working_hours)}
+                    <div class="wa-line">
+                        <i class="wa-icon time size-11"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#time"></use></svg></i>
+                        {$design_settings.working_hours|escape}
+                    </div>
+                {/if}
             </div>
-        </footer>
-    {/if}
+
+        </div>
+    </footer>
 
     <script>
         ( function($) { "use strict";

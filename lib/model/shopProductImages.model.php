@@ -20,7 +20,7 @@ class shopProductImagesModel extends waModel
         }
         if (!$sizes) {
             $sizes = array('crop' => wa('shop')->getConfig()->getImageSize('crop'));
-        } else if (is_numeric($sizes)) {
+        } elseif (is_numeric($sizes)) {
             $sizes = array($sizes => $sizes);
         } elseif (is_string($sizes)) {
             $sizes = array((string)$sizes => wa('shop')->getConfig()->getImageSize((string)$sizes));
@@ -115,9 +115,9 @@ class shopProductImagesModel extends waModel
         if ($is_default) {
             $product_model = new shopProductModel();
             $product_model->updateById($product_id, array(
-                'image_id' => $image_id,
+                'image_id'       => $image_id,
                 'image_filename' => $data['filename'],
-                'ext' => $data['ext']
+                'ext'            => $data['ext'],
             ));
         }
         return $image_id;
@@ -126,6 +126,7 @@ class shopProductImagesModel extends waModel
     /**
      * Delete one image
      * @param int $id ID of image
+     * @return bool
      */
     public function delete($id)
     {
@@ -138,6 +139,8 @@ class shopProductImagesModel extends waModel
             return false;
         }
 
+        $product_id = (int)$image['product_id'];
+
         /**
          * Delete image event
          * @param array $image
@@ -146,8 +149,6 @@ class shopProductImagesModel extends waModel
          */
 
         wa('shop')->event('product_images_delete', $image);
-
-        $product_id = $image['product_id'];
 
         // first of all try delete files from disk
         waFiles::delete(shopImage::getThumbsPath($image));
@@ -159,7 +160,15 @@ class shopProductImagesModel extends waModel
         }
 
         // first image for this product is main image for this product
-        $main_image = $this->query("SELECT id AS image_id, filename as image_filename, ext FROM {$this->table} WHERE product_id = $product_id ORDER BY sort LIMIT 1")->fetchAssoc();
+        $sql = <<<SQL
+SELECT
+  id       AS image_id,
+  filename as image_filename,
+  ext
+FROM {$this->table} WHERE product_id = {$product_id} ORDER BY sort LIMIT 1
+SQL;
+
+        $main_image = $this->query($sql)->fetchAssoc();
         if (!$main_image) {
             $main_image = array('image_id' => null, 'image_filename' => '', 'ext' => null);
         }
@@ -167,10 +176,13 @@ class shopProductImagesModel extends waModel
         $product_model->updateById($product_id, $main_image);
 
         // make NULL image_id for that skus of this product which have image_id equals this image ID
-        $this->exec("
-            UPDATE `shop_product_skus` SET image_id = NULL
-            WHERE product_id = $product_id AND image_id = $id
-        ");
+        $sql = <<<SQL
+UPDATE `shop_product_skus`
+SET image_id = NULL
+WHERE product_id = $product_id AND image_id = $id
+SQL;
+
+        $this->exec($sql);
 
         return true;
     }
@@ -200,9 +212,9 @@ class shopProductImagesModel extends waModel
     {
         if ($type == self::BADGE_TYPE_NEW) {
             return '<div class="badge new"><span>'._w('New!').'</span></div>';
-        } else if ($type == self::BADGE_TYPE_BESTSELLER) {
+        } elseif ($type == self::BADGE_TYPE_BESTSELLER) {
             return '<div class="badge bestseller"><span>'._w('Bestseller!').'</span></div>';
-        } else if ($type == self::BADGE_TYPE_BESTPRICE) {
+        } elseif ($type == self::BADGE_TYPE_BESTPRICE) {
             return '<div class="badge low-price"><span>'._w('Low price!').'</span></div>';
         } else {
             return '<div class="badge" style="background-color: #a1fcff;"><span>'._w('YOUR TEXT').'</span></div>';
@@ -250,5 +262,155 @@ class shopProductImagesModel extends waModel
                 LIMIT {$offset}, {$limit}";
         }
         return $this->query($sql)->fetchAll('id');
+    }
+
+    /**
+     * @param string|waImage|waRequestFile $image
+     * @param int|array $product
+     * @param string $filename
+     * @param string $description
+     * @return array
+     * @throws waException
+     */
+    public function addImage($image, $product, $filename = null, $description = null)
+    {
+
+        if (is_array($product)) {
+            $product_id = (int)ifset($product['product_id']);
+            $image_id = (int)ifset($product['image_id']);
+        } else {
+            $product_id = (int)$product;
+            $image_id = null;
+        }
+
+        if (empty($product_id)) {
+            throw new waException('Incorrect product id');
+        }
+
+        if (is_string($image)) {
+            $file = $image;
+            $image = waImage::factory($file);
+            if ($filename === null) {
+                $filename = pathinfo($file, PATHINFO_FILENAME);
+            }
+        } elseif ($image instanceof waImage) {
+            /** @var waImage $image */
+            $file = $image->file;
+            if ($filename === null) {
+                $filename = pathinfo($file, PATHINFO_FILENAME);
+            }
+        } elseif ($image instanceof waRequestFile) {
+            /** @var waRequestFile $file */
+            $file = $image;
+            $image = $file->waImage();
+            if (!$image) {
+                throw new waException('Incorrect image');
+            }
+            $filename = $file->name;
+        } else {
+            throw new waException('Incorrect image');
+        }
+
+        $image_changed = false;
+
+        /**
+         * Extend upload process
+         * Make extra workup
+         * @event image_upload
+         * @params waImage $image
+         * @return bool $result Is image changed
+         */
+        $event = wa('shop')->event('image_upload', $image);
+
+        if ($event) {
+            $image_changed = count(array_filter($event));
+        }
+
+        /** @var shopConfig $config */
+        $config = wa('shop')->getConfig();
+
+        $original_filename = $filename;
+        if ($config->getOption('image_filename')) {
+            if (!preg_match('//u', $filename)) {
+                $tmp_name = @iconv('windows-1251', 'utf-8//ignore', $filename);
+                if ($tmp_name) {
+                    $filename = $tmp_name;
+                }
+            }
+            $filename = preg_replace('/\s+/u', '_', $filename);
+            if ($filename) {
+                foreach (waLocale::getAll() as $l) {
+                    $filename = waLocale::transliterate($filename, $l);
+                }
+            }
+            $filename = preg_replace('/[^a-zA-Z0-9_\.-]+/', '', $filename);
+            if (!strlen(str_replace('_', '', $filename))) {
+                $filename = '';
+            }
+        } else {
+            $filename = '';
+        }
+
+        $data = array(
+            'product_id'        => $product_id,
+            'upload_datetime'   => date('Y-m-d H:i:s'),
+            'width'             => $image->width,
+            'height'            => $image->height,
+            'size'              => filesize($image->file),
+            'filename'          => $filename,
+            'description'       => $description,
+            'original_filename' => pathinfo($original_filename, PATHINFO_BASENAME),
+            'ext'               => pathinfo($original_filename, PATHINFO_EXTENSION),
+        );
+
+        if ($image_id) {
+            if ($this->updateById($image_id, $data)) {
+                $data['id'] = $image_id;
+            }
+        } else {
+            $data['id'] = $this->add($data);
+        }
+
+        if (empty($data['id'])) {
+            throw new waException("Database error");
+        }
+
+        $image_path = shopImage::getPath($data);
+        if ((file_exists($image_path) && !is_writable($image_path))
+            || (!file_exists($image_path) && !waFiles::create($image_path))
+        ) {
+            $this->deleteById($data['id']);
+            throw new waException(
+                sprintf(
+                    "The insufficient file write permissions for the %s folder.",
+                    substr($image_path, strlen($config->getRootPath()))
+                )
+            );
+        }
+
+        $target_path = null;
+
+        if ($image_changed) {
+            $image->save($image_path);
+            // save original
+            $original_file = shopImage::getOriginalPath($data);
+            if ($config->getOption('image_save_original') && $original_file) {
+                $target_path = $original_file;
+            }
+        } else {
+            $target_path = $image_path;
+        }
+
+        unset($image);
+
+        if ($target_path) {
+            if ($file instanceof waRequestFile) {
+                $file->moveTo($target_path);
+            } else {
+                waFiles::copy($file, $target_path);
+            }
+        }
+
+        return $data;
     }
 }

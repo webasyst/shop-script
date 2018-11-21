@@ -183,7 +183,8 @@ class shopShipping extends waAppShipping
         $options = array();
         if ($shipping_plugin) {
             $options['currency'] = $shipping_plugin->allowedCurrency();
-            $options['dimensions'] = $shipping_plugin->allowedWeightUnit();
+            $options['weight'] = $shipping_plugin->allowedWeightUnit();
+            $options['dimensions'] = $shipping_plugin->allowedLinearUnit();
         }
 
         return shopHelper::getWaOrder($order, $options);
@@ -218,9 +219,6 @@ class shopShipping extends waAppShipping
             }
         }
 
-        /** @var waSystem $wa */
-        $wa = wa('shop');
-
         if (!isset($units['dimensions']) || !empty($units['dimensions'])) {
 
             if ($dimensions = self::getShopSettings('shipping_dimensions')) {
@@ -245,9 +243,13 @@ class shopShipping extends waAppShipping
             foreach ($items as $i) {
                 if (!isset($i[$field])) {
                     if (isset($i['item'])) {
-                        $product_ids[] = $i['item']['product_id'];
+                        if (!empty($i['item']['product_id'])) {
+                            $product_ids[] = $i['item']['product_id'];
+                        }
                     } else {
-                        $product_ids[] = $i['product_id'];
+                        if (!empty($i['product_id'])) {
+                            $product_ids[] = $i['product_id'];
+                        }
                     }
                 }
             }
@@ -267,7 +269,7 @@ class shopShipping extends waAppShipping
                     if ($units[$field] != $dimension['base_unit']) {
                         if (isset($dimension['units'][$unit])) {
                             $multiplier = (double)$dimension['units'][$unit]['multiplier'];
-                        } else {
+                        } elseif ($unit !== true) {
                             throw new waException(sprintf('Unknown %s unit [%s] for %s', $dimension_type, $unit, $field));
                         }
                     }
@@ -309,13 +311,15 @@ class shopShipping extends waAppShipping
                 unset($item);
             }
         }
+    }
 
+    public static function getItemsTotal($items)
+    {
         $total = array();
 
-
-
         $preferred_id = self::getShopSettings('shipping_package_provider');
-
+        $dimension_fields = array_fill_keys(array('height', 'width', 'length'), 'length');
+        $dimension_fields['weight'] = 'weight';
 
         if ($preferred_id) {
             /**
@@ -335,7 +339,7 @@ class shopShipping extends waAppShipping
              * @return array[string][string]float $return[%plugin_id%]['width'] Calculated total package width
              * @return array[string][string]float $return[%plugin_id%]['length'] Calculated total package length
              */
-            $result = $wa->event('shipping_package', $items);
+            $result = wa('shop')->event('shipping_package', $items);
             $preferred_id = sprintf('%s-plugin', $preferred_id);
             if (isset($result[$preferred_id])) {
                 $plugin_result = ifset($result, $preferred_id, array());
@@ -346,18 +350,129 @@ class shopShipping extends waAppShipping
                         waLog::log($ex->getMessage(), 'shop/shipping_package.log');
                     }
                 }
-                $total_fields = array_merge(array('weight'), $dimension_fields);
-                foreach ($total_fields as $field) {
-                    if (!isset($total[$field]) && isset($plugin_result[$field])) {
-                        $total[$field] = $plugin_result[$field];
+                foreach ($dimension_fields as $field => $type) {
+                    $total_field = 'total_'.$field;
+                    if (!isset($total[$total_field])) {
+                        if (isset($plugin_result[$total_field])) {
+                            $total[$total_field] = $plugin_result[$total_field];
+                        } elseif (isset($plugin_result[$field])) {
+                            $total[$total_field] = $plugin_result[$field];
+                        }
                     }
                 }
-
             }
         }
 
         return $total;
     }
+
+    /**
+     * @param $total
+     * @param waShipping|array $plugin
+     * @return array
+     */
+    public static function convertTotalDimensions($total, $plugin)
+    {
+        $dimension_fields = array();
+        $units = self::getDimensionUnits($plugin);
+        if (!empty($units['dimensions'])) {
+            $dimension_fields += array_fill_keys(array('height', 'width', 'length'), $units['dimensions']);
+        }
+
+        if (!empty($units['weight'])) {
+            $dimension_fields['weight'] = $units['weight'];
+        }
+
+        if (!empty($units['currency'])) {
+            $dimension_fields['price'] = $units['currency'];
+        }
+
+        foreach ($dimension_fields as $dimension => $unit) {
+            $field = 'total_'.$dimension;
+
+            if (isset($total[$field])) {
+                $total[$field] = shopHelper::workupValue($total[$field], $dimension, $unit);
+            }
+        }
+        return $total;
+    }
+
+
+
+    /**
+     * @param $items
+     * @param waShipping|array $plugin
+     */
+    public static function convertItemsDimensions(&$items, $plugin)
+    {
+        $dimension_fields = array();
+
+        $units = self::getDimensionUnits($plugin);
+
+        $dimensions = shopDimension::getInstance();
+
+        if (!empty($units['weight'])) {
+            $dimension_fields['weight'] = array(
+                'type' => 'weight',
+                'unit' => $units['weight'],
+            );
+        }
+
+        if (!empty($units['dimensions'])) {
+            $dimension_fields['height'] = array(
+                'type' => 'length',
+                'unit' => $units['dimensions'],
+            );
+            $dimension_fields['length'] = array(
+                'type' => 'length',
+                'unit' => $units['dimensions'],
+            );
+            $dimension_fields['width'] = array(
+                'type' => 'length',
+                'unit' => $units['dimensions'],
+            );
+        }
+
+        foreach ($items as &$item) {
+            foreach ($dimension_fields as $field => $unit) {
+                if (!empty($item[$field])) {
+                    $original_field = 'original_'.$field;
+                    if (empty($item[$original_field])) {
+                        $item[$original_field] = $item[$field];
+                    }
+                    $item[$field] = $dimensions->convert($item[$original_field], $unit['type'], $unit['unit']);
+                }
+            }
+        }
+        unset($item);
+    }
+
+    private static function getDimensionUnits($params)
+    {
+        $units = array();
+        if (is_array($params)) {
+            if (isset($params['dimensions'])) {
+                $units['dimensions'] = $params['dimensions'];
+            }
+            if (isset($params['weight'])) {
+                $units['weight'] = $params['weight'];
+            }
+            if (isset($params['currency'])) {
+                $units['currency'] = $params['currency'];
+            }
+        } elseif ($params instanceof waShipping) {
+            if ($unit = $params->allowedLinearUnit()) {
+                $units['dimensions'] = $unit;
+            }
+            if ($unit = $params->allowedWeightUnit()) {
+                $units['weight'] = $unit;
+            }
+
+        }
+
+        return $units;
+    }
+
 
     public function getAvailableLinearUnits()
     {

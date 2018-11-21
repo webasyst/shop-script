@@ -967,10 +967,12 @@ class shopOrder implements ArrayAccess
 
             // In case we didn't force stock_id during validation,
             // let workflow.create determine them
-            foreach($data['items'] as &$item) {
-                unset($item['stock_id']);
+            if ($this->options(null, 'ignore_stock_validate')) {
+                foreach($data['items'] as &$item) {
+                    unset($item['stock_id']);
+                }
+                unset($item);
             }
-            unset($item);
 
         } else {
             $action_id = 'edit';
@@ -1734,7 +1736,8 @@ class shopOrder implements ArrayAccess
                 }
             }
 
-            //XXX optimize code
+            $total = shopShipping::getItemsTotal($this->data['items']);
+            $plugin_params += shopShipping::convertTotalDimensions($total, $units);
             $rates = $plugin->getRates($this->data['items'], $shipping_address, $plugin_params);
 
             $params['shipping_plugin'] = $plugin->getId();
@@ -3365,13 +3368,17 @@ class shopOrder implements ArrayAccess
             $units['weight'] = $weight_unit;
         }
 
-        shopShipping::extendItems($this->data['items'], $units);
+        shopShipping::extendItems($this->data['items']);
 
-        foreach ($this->items as $i) {
+        $items = $this->items;
+
+        shopShipping::convertItemsDimensions($items,$units);
+
+        foreach ($items as $i) {
             $shipping_items[] = array(
                 'name'     => '',
-                'price'    => shop_currency($i['price'], $currency, $currency, false),
-                'quantity' => $i['quantity'],
+                'price'    => shop_currency(ifset($i, 'price', 0), $currency, $currency, false),
+                'quantity' => ifset($i, 'quantity', 1),
                 'weight'   => ifset($i['weight']),
                 'height'   => ifset($i['height']),
                 'width'    => ifset($i['width']),

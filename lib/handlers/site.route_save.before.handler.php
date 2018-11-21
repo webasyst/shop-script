@@ -1,9 +1,9 @@
 <?php
 
-class shopSiteSaveRouteHandler extends waEventHandler
+class shopSiteRoute_saveBeforeHandler extends waEventHandler
 {
     /**
-     * @param array $params array('old' => string, 'new' => string)
+     * @param array $params array('domain' => string, 'route' => array)
      * @see waEventHandler::execute()
      * @return void
      */

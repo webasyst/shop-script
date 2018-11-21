@@ -10,7 +10,6 @@ class shopFrontendShippingController extends waJsonController
         $shipping = new shopCheckoutShipping();
         $items = $shipping->getItems();
 
-
         if (waRequest::method() == 'post') {
             wa()->getStorage()->close();
             $shipping_id = waRequest::post('shipping_id');
@@ -21,7 +20,8 @@ class shopFrontendShippingController extends waJsonController
             $address = ifset($customer['address.shipping'], array());
 
             if ($shipping_id) {
-                $this->response = $this->getRates($shipping_id, $items, $address, $total);
+                $rates = $this->getRates($shipping_id, $items, $address, $total);
+                $this->response = $this->formatRates($rates);
             } else {
                 $this->errors = _w('Shipping is required');
             }
@@ -78,15 +78,10 @@ class shopFrontendShippingController extends waJsonController
         try {
             //XXX use shopCheckoutShipping class
             $plugin = shopShipping::getPlugin(null, $shipping_id);
-            $weight_unit = $plugin->allowedWeightUnit();
-            $dimension = shopDimension::getInstance()->getDimension('weight');
-            if ($weight_unit != $dimension['base_unit']) {
-                foreach ($items as $item_id => $item) {
-                    if ($item['weight']) {
-                        $items[$item_id]['weight'] = $item['weight'] / $dimension['units'][$weight_unit]['multiplier'];
-                    }
-                }
-            }
+
+            # convert dimensions
+            shopShipping::convertItemsDimensions($items, $plugin);
+
             $currency = $plugin->allowedCurrency();
             $config = wa('shop')->getConfig();
             /** @var shopConfig $config */
@@ -112,12 +107,11 @@ class shopFrontendShippingController extends waJsonController
                 $params['shipping_params'] = $shipping_params;
             }
             $rates = $plugin->getRates($items, $address, $params);
-
         } catch (waException $ex) {
             return $ex->getMessage();
         }
 
-        return $rates;
+        return  $rates;
     }
 
     protected function formatRates($rates)
@@ -166,6 +160,10 @@ class shopFrontendShippingController extends waJsonController
                     $r['rate_html'] = $is_html ? shop_currency_html($r['rate'], $r['currency']) : shop_currency($r['rate'], $r['currency']);
                     $r['rate'] = shop_currency($r['rate'], $r['currency']);
                 }
+                $r += array(
+                    'est_delivery' => '',
+                    'comment'      => null,
+                );
             }
             unset($r);
 

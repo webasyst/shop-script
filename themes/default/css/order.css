@@ -149,6 +149,7 @@ main.maincontent {
 .s-styled-select {
   position: relative;
   display: inline-block;
+  vertical-align: top;
   margin-right: 20px;
   max-width: 100%;
 }
@@ -244,6 +245,27 @@ main.maincontent {
   }
   .s-styled-select select {
     width: 100%;
+  }
+  .wa-signup-form-wrapper .wa-field.wa-field-birthday .wa-value {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: box;
+    display: flex;
+    -webkit-box-pack: justify;
+    -moz-box-pack: justify;
+    -o-box-pack: justify;
+    -ms-flex-pack: justify;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+  }
+  .wa-signup-form-wrapper .wa-field.wa-field-birthday .wa-value .s-styled-select {
+    display: inline-block;
+    margin-right: 0;
+  }
+  .wa-signup-form-wrapper .wa-field.wa-field-birthday .wa-value .s-styled-select select {
+    margin-right: 0;
   }
 }
 .s-order-page {

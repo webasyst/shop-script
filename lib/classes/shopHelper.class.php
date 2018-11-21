@@ -181,6 +181,7 @@ class shopHelper
         );
 
         shopShipping::extendItems($items);
+        $total_params = shopShipping::getItemsTotal($items);
 
         $result = array();
         foreach ($methods as &$m) {
@@ -270,11 +271,26 @@ class shopHelper
 
             } else {
                 $shipping_params = array();
+                $shipping_params += shopShipping::convertTotalDimensions($total_params, $plugin);
+                $shipping_items = $items;
 
-                $total = self::getShippingItemsTotal($items, $plugin_currency, $params);
+                $total = self::getShippingItemsTotal($shipping_items, $plugin_currency, $params);
 
                 # convert dimensions
-                self::convertShippingItemsDimensions($items, $plugin);
+                shopShipping::convertItemsDimensions($shipping_items, $plugin);
+
+                foreach ($shipping_items as &$item) {
+                    $item = array(
+                        'name'     => $item['name'],
+                        'price'    => $item['price'],
+                        'currency' => $plugin_currency,
+                        'quantity' => $item['quantity'],
+                        'weight'   => ifset($item['weight']),
+                        'height'   => ifset($item['height']),
+                        'width'    => ifset($item['width']),
+                        'length'   => ifset($item['length']),
+                    );
+                }
 
                 if ($total) {
                     $shipping_params['total_price'] = $total;
@@ -309,7 +325,7 @@ class shopHelper
                     $address = array();
                 }
 
-                $m['__rates'] = $plugin->getRates($items, $address, $shipping_params);
+                $m['__rates'] = $plugin->getRates($shipping_items, $address, $shipping_params);
             }
 
         }
@@ -359,6 +375,7 @@ class shopHelper
                                 if (isset($info['service'])
                                     && ($length = strlen($info['service']))
                                     && (strpos($rate_name, $info['service']) === 0)
+                                    && (strlen($rate_name) > $length)
                                 ) {
                                     $rate_name = preg_replace('@^[\s:\.,]+@', '', substr($rate_name, $length));
                                 }
@@ -469,7 +486,7 @@ class shopHelper
         return $result;
     }
 
-    private static function getShippingItemsTotal($items, $plugin_currency, $params)
+    private static function getShippingItemsTotal(&$items, $plugin_currency, $params)
     {
         $total = null;
         if (isset($params['total_price'])) {
@@ -479,65 +496,20 @@ class shopHelper
                 $total = $params['total_price'];
             }
         } else {
-            foreach ($items as $item) {
+            foreach ($items as &$item) {
                 if (!empty($item['price'])) {
-                    $total += $item['price'] * (isset($item['quantity']) ? $item['quantity'] : 1);
+                    $item['price'] = floatval($item['price']);
+                    if (!in_array($params['currency'], $plugin_currency)) {
+                        $item['original_price'] = $item['price'];
+                        $item['price'] = shop_currency($item['price'], $params['currency'], reset($plugin_currency), false);
+                    }
+                    $total += $item['price'] * (isset($item['quantity']) ? max(0, $item['quantity']) : 1);
                 }
-                if ($total && !in_array($params['currency'], $plugin_currency)) {
-                    $total = shop_currency($total, $params['currency'], reset($plugin_currency), false);
-                }
+                unset($item);
             }
         }
 
         return $total;
-    }
-
-    /**
-     * @param $items
-     * @param waShipping $plugin
-     */
-    private static function convertShippingItemsDimensions(&$items, $plugin)
-    {
-        $dimension_fields = array();
-
-        $dimensions = shopDimension::getInstance();
-
-        if ($weight_unit = $plugin->allowedWeightUnit()) {
-            $dimension_fields['weight'] = array(
-                'type' => 'weight',
-                'unit' => $weight_unit,
-            );
-            unset($weight_unit);
-        }
-
-        if ($linear_unit = $plugin->allowedLinearUnit()) {
-            $dimension_fields['height'] = array(
-                'type' => 'length',
-                'unit' => $linear_unit,
-            );
-            $dimension_fields['length'] = array(
-                'type' => 'length',
-                'unit' => $linear_unit,
-            );
-            $dimension_fields['width'] = array(
-                'type' => 'length',
-                'unit' => $linear_unit,
-            );
-            unset($linear_unit);
-        }
-
-        foreach ($items as &$item) {
-            foreach ($dimension_fields as $field => $unit) {
-                if (!empty($item[$field])) {
-                    $original_field = 'original_'.$field;
-                    if (empty($item[$original_field])) {
-                        $item[$original_field] = $item[$field];
-                    }
-                    $item[$field] = $dimensions->convert($item[$original_field], $unit['type'], $unit['unit']);
-                }
-            }
-        }
-        unset($item);
     }
 
     /**
@@ -604,6 +576,7 @@ class shopHelper
      */
     public static function getGravatar($email, $size = 50, $default = 'mm', $full_protocol = false)
     {
+        $url = null;
         if ($default == 'custom') {
             // Note that we cannot use @2x versions here since Gravatar
             // removes the @ symbol (even escaped) from the URL before redirect.
@@ -1274,7 +1247,8 @@ SQL;
     {
         $storefronts = array();
         $idna = new waIdna();
-        foreach (wa()->getRouting()->getByApp('shop') as $domain => $domain_routes) {
+        $routing = new waRouting(wa());
+        foreach ($routing->getByApp('shop') as $domain => $domain_routes) {
             foreach ($domain_routes as $route) {
                 $url = rtrim($domain.'/'.$route['url'], '/*');
                 if (strpos($url, '/') !== false) {
@@ -1489,7 +1463,7 @@ SQL;
                         if ($weight_unit != $weight['base_unit']) {
                             if (isset($weight['units'][$weight_unit])) {
                                 $value = $value / $weight['units'][$weight_unit]['multiplier'];
-                            } else {
+                            } elseif (!in_array($weight_unit, array(false, null, true), true)) {
                                 throw new waException(sprintf('Invalid weight unit "%s"', $weight_unit));
                             }
                         }
@@ -1497,13 +1471,15 @@ SQL;
                 }
                 break;
             case 'length':
+            case 'width':
+            case 'height':
                 if ($value) {
                     $length_unit = $target;
                     $length = self::getEnv('length');
                     if ($length_unit != $length['base_unit']) {
                         if (isset($length['units'][$length_unit])) {
                             $value = $value / $length['units'][$length_unit]['multiplier'];
-                        } else {
+                        } elseif (!in_array($length_unit, array(false, null, true), true)) {
                             throw new waException(sprintf('Invalid length unit "%s"', $length_unit));
                         }
                     }
@@ -1516,32 +1492,18 @@ SQL;
 
     public static function workupOrderItems($order_items, $options)
     {
+        $length = self::getEnv('length');
+        $weight = self::getEnv('weight');
         $options += array(
-            'weight'   => null,
-            'tax'      => null,
-            'currency' => ifset($options['order_currency']),
+            'dimensions' => $length ? $length['base_unit'] : null,
+            'weight'     => $weight ? $weight['base_unit'] : null,
+            'tax'        => null,
+            'currency'   => ifset($options['order_currency']),
         );
         $items = array();
 
-        $values = array();
-
-        if ($options['weight']) {
-            $product_ids = array();
-            foreach ($order_items as $i) {
-                if (!empty($i['product_id'])) {
-                    $product_ids[] = $i['product_id'];
-                }
-            }
-            $product_ids = array_unique($product_ids);
-            if ($product_ids) {
-                $feature_model = new shopFeatureModel();
-                $feature = $feature_model->getByCode('weight');
-                if ($feature) {
-                    $values_model = $feature_model->getValuesModel($feature['type']);
-                    $values = $values_model->getProductValues($product_ids, $feature['id']);
-                }
-            }
-        }
+        $features = array_fill_keys(array('height', 'length', 'width'), 'dimensions');
+        $features['weight'] = 'weight';
 
         foreach ($order_items as $item) {
 
@@ -1551,40 +1513,35 @@ SQL;
             $item['total_discount'] = ifempty($item['total_discount'], 0.0);
             $item['total_discount'] = shopHelper::workupValue($item['total_discount'], 'price', $options['currency'], $options['order_currency']);
 
-            if ($options['weight']) {
-                if (empty($item['weight'])) {
-                    $item['weight'] = null;
-                    if (ifset($item['type']) == 'product') {
-                        if (!empty($item['sku_id']) && isset($values['skus'][$item['sku_id']])) {
-                            $item['weight'] = $values['skus'][$item['sku_id']];
-                        } elseif (!empty($item['product_id']) && isset($values[$item['product_id']])) {
-                            $item['weight'] = $values[$item['product_id']];
-                        }
-                    }
+            foreach ($features as $feature => $type) {
+                if (!isset($item[$feature])) {
+                    $item[$feature] = null;
                 }
-
-                $item['weight'] = shopHelper::workupValue($item['weight'], 'weight', $options['weight']);
+                $unit = ifset($item, $type.'_unit', null);
+                $item[$feature] = shopHelper::workupValue($item[$feature], $feature, $options[$type], $unit);
             }
 
             $items[] = array(
-                'id'             => ifset($item['id']),
-                'name'           => ifset($item['name']),
-                'sku'            => ifset($item['sku_code']),
-                'tax_rate'       => ifset($item['tax_percent']),
-                'tax_included'   => ifset($item['tax_included'], 1),
-                'description'    => '',
-                'price'          => (float)$item['price'],
-                'quantity'       => (int)ifset($item['quantity'], 0),
-                'total'          => (float)$item['price'] * (int)$item['quantity'],
-                'type'           => ifset($item['type'], 'product'),
-                'product_id'     => ifset($item['product_id']),
-                'weight'         => (float)ifset($item['weight']),
-                'weight_unit'    => (string)$options['weight'],
-                'total_discount' => (float)$item['total_discount'],
-                'discount'       => (float)($item['quantity'] ? ($item['total_discount'] / $item['quantity']) : 0.0),
+                'id'              => ifset($item['id']),
+                'name'            => ifset($item['name']),
+                'sku'             => ifset($item['sku_code']),
+                'tax_rate'        => ifset($item['tax_percent']),
+                'tax_included'    => ifset($item['tax_included'], 1),
+                'description'     => '',
+                'price'           => (float)$item['price'],
+                'quantity'        => (int)ifset($item['quantity'], 0),
+                'total'           => (float)$item['price'] * (int)$item['quantity'],
+                'type'            => ifset($item['type'], 'product'),
+                'product_id'      => ifset($item['product_id']),
+                'weight'          => (float)ifset($item['weight']),
+                'height'          => (float)ifset($item['height']),
+                'length'          => (float)ifset($item['length']),
+                'width'           => (float)ifset($item['width']),
+                'weight_unit'     => (string)$options['weight'],
+                'dimensions_unit' => (string)$options['dimensions'],
+                'total_discount'  => (float)$item['total_discount'],
+                'discount'        => (float)($item['quantity'] ? ($item['total_discount'] / $item['quantity']) : 0.0),
             );
-
-
         }
 
         return array_values($items);
@@ -1742,6 +1699,18 @@ SQL;
             'shipping_address' => $shipping_address,
             'billing_address'  => $billing_address,
         );
+
+        $units = array();
+        if (!empty($options['weight'])) {
+            $units['weight'] = $options['weight'];
+        }
+        if (!empty($options['dimensions'])) {
+            $units['dimensions'] = $options['dimensions'];
+        }
+
+        if ($units) {
+            shopShipping::extendItems($order['items'], $units);
+        }
 
         $order_data = array(
             #common data

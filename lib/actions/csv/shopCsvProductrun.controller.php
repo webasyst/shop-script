@@ -1538,85 +1538,29 @@ class shopCsvProductrunController extends waLongActionController
                 if ($file && file_exists($file)) {
                     if ($image = waImage::factory($file)) {
                         $search['original_filename'] = $name;
-                        $data = array(
-                            'product_id'        => $this->data['map'][self::STAGE_PRODUCT],
-                            'upload_datetime'   => date('Y-m-d H:i:s'),
-                            'width'             => $image->width,
-                            'height'            => $image->height,
-                            'size'              => filesize($file),
-                            'original_filename' => $name,
-                            'ext'               => pathinfo($file, PATHINFO_EXTENSION),
-                        );
                         //TODO update shop_product_skus.image_id
-                        if ($exists = $model->getByField($search)) {
-                            $data = array_merge($exists, $data);
-                            $thumb_dir = shopImage::getThumbsPath($data);
-                            $back_thumb_dir = preg_replace('@(/$|$)@', '.back$1', $thumb_dir, 1);
-                            $paths[] = $back_thumb_dir;
-                            waFiles::delete($back_thumb_dir); // old backups
-                            if (file_exists($thumb_dir)) {
-                                if (!(waFiles::move($thumb_dir, $back_thumb_dir) || waFiles::delete($back_thumb_dir)) && !waFiles::delete($thumb_dir)) {
-                                    throw new waException(_w("Error while rebuild thumbnails"));
-                                }
-                            }
 
-                        }
+                        $exists = $model->getByField($search);
 
-                        $image_changed = false;
-
-                        /**
-                         * TODO move it code into product core method
-                         */
-
-                        /**
-                         * Extend add/update product images
-                         * Make extra workup
-                         * @event image_upload
-                         */
-                        $event = wa()->event('image_upload', $image);
-                        if ($event) {
-                            foreach ($event as $result) {
-                                if ($result) {
-                                    $image_changed = true;
-                                    break;
-                                }
-                            }
-                        }
-
-                        $data['width'] = $image->width;
-                        $data['height'] = $image->height;
-
-                        if (empty($data['id'])) {
-                            $image_id = $data['id'] = $model->add($data);
+                        if (empty($exists['id'])) {
+                            $product = $this->data['map'][self::STAGE_PRODUCT];
+                            $description = null;
                         } else {
-                            $image_id = $data['id'];
-                            $target = 'update';
-                            $model->updateById($image_id, $data);
-                        }
-
-                        if (!$image_id) {
-                            throw new waException("Database error");
-                        }
-
-                        $image_path = shopImage::getPath($data);
-                        if ((file_exists($image_path) && !is_writable($image_path)) || (!file_exists($image_path) && !waFiles::create($image_path))) {
-                            $model->deleteById($image_id);
-                            throw new waException(
-                                sprintf("The insufficient file write permissions for the %s folder.", substr($image_path, strlen($this->getConfig()->getRootPath())))
+                            $product = array(
+                                'image_id'   => $exists['id'],
+                                'product_id' => $this->data['map'][self::STAGE_PRODUCT],
                             );
+                            $description = $exists['description'];
+                            $target = 'update';
                         }
 
-                        if ($image_changed) {
-                            $image->save($image_path);
-                            /**
-                             * @var shopConfig $config
-                             */
-                            $config = $this->getConfig();
-                            if ($config->getOption('image_save_original') && ($original_file = shopImage::getOriginalPath($data))) {
-                                waFiles::copy($file, $original_file);
-                            }
-                        } else {
-                            waFiles::copy($file, $image_path);
+                        $model->addImage($image, $product, $name, $description);
+
+                        if (!empty($exists['id'])) {
+                            $thumb_dir = shopImage::getThumbsPath($exists);
+                            waFiles::delete($thumb_dir, true);
+                            $back_thumb_dir = preg_replace('@(/$|$)@', '.back$1', $thumb_dir, 1);
+                            waFiles::delete($back_thumb_dir, true);
                         }
 
                     } else {

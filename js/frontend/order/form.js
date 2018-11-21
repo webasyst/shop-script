@@ -620,6 +620,10 @@
                     hover: false,
                     change_title: false,
                     change_selector: ".wa-dropdown-item",
+                    open: function(dropdown) {
+                        var lift = ( $(document).width() < 760 ? 55 : 0 );
+                        $("html, body").scrollTop( $variants_section.offset().top - lift);
+                    },
                     change: function(event, target, dropdown) {
                         var $target = $(target),
                             variant_id = $target.data("id"),
