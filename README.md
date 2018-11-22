@@ -1,6 +1,6 @@
-# Shop-Script 7 #
+# Shop-Script 8 #
 
-Shop-Script 7 is a robust PHP ecommerce framework with best-in-class analytics tools. Powered by Webasyst Framework.
+Shop-Script 8 is a robust PHP ecommerce framework with best-in-class analytics tools. Powered by Webasyst Framework.
 
 http://www.shop-script.com
 http://www.webasyst.com
@@ -10,7 +10,7 @@ http://www.webasyst.com
   * Web Server
 		* e.g. Apache or IIS
 
-	* PHP 5.2+
+	* PHP 5.6+
 		* spl extension
 		* mbstring
 		* iconv
