@@ -347,7 +347,7 @@ SQL;
                     $item['price'] = $sku['price'];
                     $item['name'] = $item['product']['name'];
                     $item['sku_file_name'] = $sku['file_name'];
-                    if ($item['sku_name'] !== null) {
+                    if (is_scalar($item['sku_name']) && strlen($item['sku_name']) > 0) {
                         $item['name'] .= ' ('.$item['sku_name'].')';
                     }
                     // Fix for purchase price when rounding is enabled

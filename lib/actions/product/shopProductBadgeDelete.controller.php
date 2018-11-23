@@ -5,7 +5,6 @@ class shopProductBadgeDeleteController extends waJsonController
     public function execute()
     {
         $product_model = new shopProductModel();
-
         $hash = waRequest::post('hash', '', 'string');
         $products_id = null;
 
@@ -15,14 +14,6 @@ class shopProductBadgeDeleteController extends waJsonController
                 $products_id = waRequest::get('id', array(), waRequest::TYPE_ARRAY_INT);
             }
             $hash = 'id/'.join(',', $products_id);
-        }
-
-        $product = $product_model->getById($products_id);
-        if (!$product) {
-            throw new waException(_w("Unknown product"));
-        }
-        if (!$product_model->checkRights(reset($product))) {
-            throw new waException(_w("Access denied"));
         }
 
         /**
@@ -44,7 +35,25 @@ class shopProductBadgeDeleteController extends waJsonController
         $collection = new shopProductsCollection($hash);
         $total_count = $collection->count();
         while ($offset < $total_count) {
-            $products_id = array_keys($collection->getProducts('*', $offset, $count));
+            $products = $collection->getProducts('id, type_id', $offset, $count);
+            $products_id = [];
+            $type_ids = [];
+
+            foreach ($products as $product) {
+                $type_ids[] = $product['type_id'];
+                $products_id[] = $product['id'];
+            };
+
+            $type_ids = array_unique($products_id);
+
+            foreach ($type_ids as $type_id) {
+                $right = $product_model->checkRights($type_id);
+
+                if (!$right) {
+                    throw new waException(_w("Access denied"));
+                }
+            }
+
             $product_model->updateById($products_id, array('badge' => null));
             $offset += count($products_id);
         }

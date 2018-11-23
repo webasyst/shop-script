@@ -838,7 +838,8 @@ class shopCheckoutConfig implements ArrayAccess
         }
 
         $invalid_region = !$fixed_delivery_area['country'] || !isset($fixed_delivery_area['region']) || !is_string($fixed_delivery_area['region']);
-        if ($invalid_region || empty(trim(ifset($fixed_delivery_area, 'region', null)))) {
+        $region = trim(ifset($fixed_delivery_area, 'region', null));
+        if ($invalid_region || empty($region)) {
             $fixed_delivery_area['region'] = null;
         }
 
