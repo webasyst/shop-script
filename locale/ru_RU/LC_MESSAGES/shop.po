@@ -11897,5 +11897,5 @@ msgstr "Возвращает массив данных с режимом раб�
 msgid "Site URL"
 msgstr "URL сайта"
 
-msgid "This mode will be available in Shop-Script 8.0.1."
-msgstr "Этот режим будет доступен в Shop-Script 8.0.1."
+msgid "This mode will be available in Shop-Script 8.1."
+msgstr "Этот режим будет доступен в Shop-Script 8.1."

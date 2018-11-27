@@ -178,6 +178,7 @@
 <script type="text/javascript" src="{$wa_app_static_url}js/settings/schedule.js?{$wa->version()}"></script>
 <script>
     (function ($) {
+        document.title = '{"[`Working schedule`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
         new ShopSettingsSchedule({
             $wrapper: $("#{$id}"),
             extra_workday_template: {renderExtraWorkday|json_encode},

@@ -765,8 +765,8 @@ var shopDialogProductsCategory = (function ($) {
                         }
                     };
 
-                    if ($('.js-category-description-content').length) {
-                        $('.js-category-description-content').waEditor('sync');
+                    if ($('#s-category-description-content').length) {
+                        $('#s-category-description-content').waEditor('sync');
                     }
 
                     if (form.find('input:file').length) {

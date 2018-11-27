@@ -95,6 +95,9 @@ class shopOrderModel extends waModel
         }
 
         if ($item_fields) {
+            if (!preg_match('@\b(parent_id|\*)\b@', $item_fields)) {
+                $item_fields .= ',parent_id';
+            }
             $order_id = null;
             $sql = "
                 SELECT $item_fields, id, order_id FROM `shop_order_items`

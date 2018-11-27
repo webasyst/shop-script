@@ -812,7 +812,6 @@ SQL;
             foreach ($items as $i_key => $item) {
                 if (isset($item['type']) && $item['type'] == 'service') {
                     $tmp_services[$item['parent_id']][$i_key] = $item;
-                    unset($items[$i_key]);
                 }
             }
 
@@ -824,6 +823,9 @@ SQL;
             }
 
             foreach ($items as $p_key => $product) {
+                if (isset($product['type']) && $product['type'] == 'service') {
+                    continue;
+                }
                 $new_items[$p_key] = $product;
                 $product_id = ifset($product, 'id', null);
                 $tmp_item_services = ifset($tmp_services, $product_id, []);

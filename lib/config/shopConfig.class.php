@@ -117,12 +117,14 @@ class shopConfig extends waAppConfig
                 }
                 $routes = array_merge($categories_routes, $routes);
             }
+
             /**
              * Extend routing via plugin routes
              * @event routing
              * @param array $routes
              * @return array $routes routes collected for every plugin
              */
+
             $result = wa()->event(array($this->application, 'routing'), $route);
             $all_plugins_routes = array();
             foreach ($result as $plugin_id => $routing_rules) {
@@ -145,6 +147,7 @@ class shopConfig extends waAppConfig
                 }
             }
             $routes = array_merge($all_plugins_routes, $routes);
+
             if ($dispatch) {
                 return $routes;
             }
@@ -512,7 +515,7 @@ class shopConfig extends waAppConfig
                     'end_processing' => $end_processing,
                 );
 
-            // Old shop setting
+                // Old shop setting
             } elseif ($workhours) {
                 $start_work = ifset($workhours, 'from', $start_time);
                 $start_work = $prepare_time($start_work, $start_time);
@@ -528,7 +531,7 @@ class shopConfig extends waAppConfig
                     'end_processing' => $end_processing_time,
                 );
 
-            // Default
+                // Default
             } else {
                 $weekdays[$id] = array(
                     'name'           => $day,

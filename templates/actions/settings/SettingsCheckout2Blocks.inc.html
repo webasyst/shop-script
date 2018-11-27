@@ -499,7 +499,7 @@
                         {$_variant.name|escape}
                     </label>
                     {if $_id === shopCheckoutConfig::ORDER_MODE_TYPE_MINIMUM}
-                        <div class="block-padded small">[`This mode will be available in Shop-Script 8.0.1.`]</div>
+                        <div class="block-padded small">[`This mode will be available in Shop-Script 8.1.`]</div>
                     {/if}
                     <div class="s-variant-params block-padded js-variant-params"{if $settings.mode !== $_id} style="display: none;"{/if}>
                         <div class="hint" style="margin: 10px 0;">{$_variant.description|escape}</div>
@@ -955,7 +955,7 @@
         <div class="value radio js-order-without-auth-wrapper">
             <input type="hidden" name="data[confirmation][auth_with_code]" value="0" />
             {foreach $confirmation_order_without_auth_variants as $_id => $_variant}
-                {* TODO: Remove this if in 8.0.1 !!! *}
+                {* TODO: Remove this if in 8.1 !!! *}
                 <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}"{if $_id == shopCheckoutConfig::ORDER_WITHOUT_AUTH_CONFIRM} style="display: none;"{/if}>
                     <label>
                         <input class="js-order-without-auth-variant" type="radio" name="data[confirmation][order_without_auth]" value="{$_id|escape}"{if $settings.order_without_auth === $_id} checked{/if} />

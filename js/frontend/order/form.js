@@ -1467,11 +1467,11 @@
                 result = [];
 
             $.each(errors, function(i, error) {
-                if (error.name === "cart_invalid") {
+                if (error.id === "cart_invalid") {
                     that.$wrapper.trigger("wa_order_cart_invalid");
                 }
                 result.push(error);
-            });
+            }); 
 
             return result;
         };

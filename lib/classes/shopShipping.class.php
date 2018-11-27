@@ -288,15 +288,17 @@ class shopShipping extends waAppShipping
                         $i = $item;
                     }
 
-                    if (isset($values['skus'][$i['sku_id']])) {
+                    if (isset($i['sku_id']) && isset($values['skus'][$i['sku_id']])) {
                         $value = $values['skus'][$i['sku_id']];
                     } elseif (isset($i['product_id']) && isset($values[$i['product_id']])) {
                         $value = $values[$i['product_id']];
                     } else {
                         if (isset($item['product_id'])) {
                             $value = isset($values[$item['product_id']]) ? $values[$item['product_id']] : 0;
-                        } else {
+                        } elseif (isset($item['id'])) {
                             $value = isset($values[$item['id']]) ? $values[$item['id']] : 0;
+                        } else {
+                            $value = 0;
                         }
                     }
                     if ($multiplier !== null) {

@@ -281,10 +281,10 @@ class shopHelper
 
                 foreach ($shipping_items as &$item) {
                     $item = array(
-                        'name'     => $item['name'],
+                        'name'     => ifset($item['name'], ''),
                         'price'    => $item['price'],
                         'currency' => $plugin_currency,
-                        'quantity' => $item['quantity'],
+                        'quantity' => ifset($item['quantity'], 1),
                         'weight'   => ifset($item['weight']),
                         'height'   => ifset($item['height']),
                         'width'    => ifset($item['width']),
