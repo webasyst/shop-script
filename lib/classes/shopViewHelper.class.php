@@ -634,10 +634,14 @@ SQL;
         return $url;
     }
 
-
+    /**
+     * Get product.
+     * @param int|null $id
+     * @return shopProduct
+     */
     public function product($id)
     {
-        return new shopProduct($id, true);
+        return new shopProduct($id, wa()->getEnv() == 'frontend');
     }
 
     public function crossSelling($product_id, $limit = 5, $available_only = false, $key = false)
