@@ -7,6 +7,7 @@ class shopProductsCollection
 
     protected $options = array();
     protected $prepared = false;
+    protected $prepared_sql = false;
     protected $filtered = false;
     protected $filtered_by_features = array();
     protected $title;
@@ -1332,7 +1333,10 @@ SQL;
          * @event products_collection.prepared
          * @param shopProductsCollection $this
          */
-        wa('shop')->event('products_collection.prepared', $this);
+        if(!$this->prepared_sql) {
+            wa('shop')->event('products_collection.prepared', $this);
+            $this->prepared_sql = true;
+        }
 
 
         $sql = "FROM shop_product p";
