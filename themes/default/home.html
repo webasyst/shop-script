@@ -11,10 +11,91 @@
             <h1 itemprop="name">{$wa->shop->settings('name')}</h1>
             <h3>
                 <span itemprop="telephone">{$wa->shop->settings('phone')}</span>
-                {if $wh = $wa->shop->settings('workhours')}<br>
-                    <span class="hint">{$wh.days_from_to}{if $wh.hours_from && $wh.hours_to} {$wh.hours_from}—{$wh.hours_to}{/if}</span>
+                {if !method_exists($wa->shop, 'schedule')}
+                    {if $wh = $wa->shop->settings('workhours')}<br>
+                        <span class="hint">{$wh.days_from_to}{if $wh.hours_from && $wh.hours_to} {$wh.hours_from}—{$wh.hours_to}{/if}</span>
+                    {/if}
                 {/if}
             </h3>
+            {strip}
+            {if method_exists($wa->shop, 'schedule')}
+                {$_schedule = $wa->shop->schedule()}
+
+                <div class="s-schedule-wrapper" id="js-schedule-wrapper">
+                    <div class="s-visible">
+                        <div class="s-label-wrapper js-show-schedule" title="[`Business hours`]">
+                            [`Business hours`] <i class="s-icon"></i>
+                        </div>
+                    </div>
+                    <div class="s-hidden">
+                        <div class="s-days-wrapper">
+                            {foreach $_schedule.current_week as $_day}
+                                <div class="s-day-wrapper">
+                                    <div class="s-date">{$_day.name|escape}</div>
+                                    <div class="s-value">
+                                        {if !empty($_day.work)}
+                                            <div class="s-time">{$_day.start_work|escape} — {$_day.end_work|escape}</div>
+                                        {else}
+                                            <div class="s-text">[`day off`]</div>
+                                        {/if}
+                                    </div>
+                                </div>
+                            {/foreach}
+                        </div>
+                        <i class="s-close-icon js-close-schedule" title="[`Close`]"></i>
+                    </div>
+
+                    <script>
+                        ( function($) {
+                            var $wrapper = $("#js-schedule-wrapper");
+
+                            var open_class = "is-open";
+
+                            $wrapper.on("click", ".js-show-schedule", function(event) {
+                                event.preventDefault();
+                                $wrapper.toggleClass(open_class);
+                            });
+
+                            $wrapper.on("click", ".js-close-schedule", function(event) {
+                                event.preventDefault();
+                                $wrapper.removeClass(open_class);
+                            });
+
+                            $(document).on("click", clickWatcher);
+                            function clickWatcher(event) {
+                                var is_exist = $.contains(document, $wrapper[0]);
+                                if (is_exist) {
+                                    var is_target = $.contains($wrapper[0], event.target);
+                                    if (!is_target) {
+                                        if ($wrapper.hasClass(open_class)) {
+                                            $wrapper.removeClass(open_class);
+                                        }
+                                    }
+                                } else {
+                                    $(document).off("click", clickWatcher);
+                                }
+                            }
+
+                            $(document).on("keyup", keyWatcher);
+                            function keyWatcher(event) {
+                                var is_exist = $.contains(document, $wrapper[0]);
+                                if (is_exist) {
+                                    var is_escape = (event.keyCode === 27);
+                                    if (is_escape) {
+                                        if ($wrapper.hasClass(open_class)) {
+                                            $wrapper.removeClass(open_class);
+                                        }
+                                    }
+                                } else {
+                                    $(document).off("click", keyWatcher);
+                                }
+                            }
+                        })(jQuery);
+                    </script>
+                </div>
+            {/if}
+            {/strip}
+
             <meta itemprop="address" content="{$wa->shop->settings('country')}">
             <meta itemprop="currenciesAccepted" content="{$wa->shop->currency()}">
         </figure>

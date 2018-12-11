@@ -292,3 +292,95 @@
     right: 70px;
   }
 }
+.store-info .s-schedule-wrapper {
+  position: relative;
+}
+.store-info .s-schedule-wrapper.is-open .s-label-wrapper .s-icon {
+  -webkit-transform: rotate(180deg) translate(0, -1px);
+  -moz-transform: rotate(180deg) translate(0, -1px);
+  -o-transform: rotate(180deg) translate(0, -1px);
+  -ms-transform: rotate(180deg) translate(0, -1px);
+  transform: rotate(180deg) translate(0, -1px);
+}
+.store-info .s-schedule-wrapper.is-open .s-hidden {
+  display: block;
+}
+.store-info .s-schedule-wrapper .s-visible {
+  text-align: center;
+}
+.store-info .s-schedule-wrapper .s-hidden {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 250px;
+  padding: 12px 15px;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 3px;
+  -webkit-box-shadow: 0 3px 16px -3px rgba(0,0,0,0.25);
+  box-shadow: 0 3px 16px -3px rgba(0,0,0,0.25);
+  -webkit-transform: translate(-50%, 0);
+  -moz-transform: translate(-50%, 0);
+  -o-transform: translate(-50%, 0);
+  -ms-transform: translate(-50%, 0);
+  transform: translate(-50%, 0);
+  background: #fff;
+  text-align: left;
+}
+.store-info .s-schedule-wrapper .s-label-wrapper {
+  display: inline-block;
+  cursor: pointer;
+  color: #999;
+}
+.store-info .s-schedule-wrapper .s-label-wrapper .s-icon {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  background: transparent url("../img/svg/arrow.down.svg") 50% no-repeat;
+  -webkit-background-size: contain;
+  -moz-background-size: contain;
+  background-size: contain;
+}
+.store-info .s-schedule-wrapper .s-days-wrapper {
+  margin: 5px 0 0;
+}
+.store-info .s-schedule-wrapper .s-days-wrapper .s-day-wrapper {
+  margin-top: 5px;
+}
+.store-info .s-schedule-wrapper .s-days-wrapper .s-day-wrapper:first-child {
+  margin-top: 0;
+}
+.store-info .s-schedule-wrapper .s-days-wrapper .s-day-wrapper .s-date {
+  display: inline-block;
+  vertical-align: top;
+  margin-right: 20px;
+  color: #888;
+  width: 100px;
+  font-size: 14px;
+  line-height: 1.214285714285714em;
+}
+.store-info .s-schedule-wrapper .s-days-wrapper .s-day-wrapper .s-value {
+  display: inline-block;
+  vertical-align: top;
+  font-size: 16px;
+  line-height: 1.1875em;
+}
+.store-info .s-schedule-wrapper .s-days-wrapper .s-day-wrapper .s-value .s-time {
+  color: #000;
+}
+.store-info .s-schedule-wrapper .s-days-wrapper .s-day-wrapper .s-value .s-text {
+  color: #aaa;
+}
+.store-info .s-schedule-wrapper .s-close-icon {
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30px;
+  height: 30px;
+  background: transparent url("../img/svg/delete.svg") 50% no-repeat;
+  -webkit-background-size: 10px 10px;
+  -moz-background-size: 10px 10px;
+  background-size: 10px 10px;
+  cursor: pointer;
+}

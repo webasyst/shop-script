@@ -12,7 +12,7 @@
  * ... extends base Site app's default.css
  */
 
-@import "./css/home.slider.css";
+@import "./css/additional.default.shop.css";
 
 .currency-toggle { right: 0; position: absolute; }
 .bonus { background: #ceb; padding: 2px 4px 1px; }

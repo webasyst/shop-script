@@ -12,25 +12,19 @@ class shopFrontendMyOrderByCodeAction extends shopFrontendMyOrderAction
     public function execute()
     {
         $code = waRequest::param('code');
-        $encoded_order_id = waRequest::param('id');
-        $order_id = shopHelper::decodeOrderId($encoded_order_id);
-        if (!$order_id) {
-            // fall back to non-encoded id
-            $order_id = $encoded_order_id;
-            $encoded_order_id = shopHelper::encodeOrderId($order_id);
-        }
-        if (!$order_id || $order_id != substr($code, 16, -16)) {
+
+        $order = $this->getOrder();
+        if (!$order) {
             throw new waException(_w('Order not found'), 404);
         }
+
+        $order_id = $order['id'];
+        $encoded_order_id = shopHelper::encodeOrderId($order_id);
+
 
         // When user is authorized, check if order belongs to him.
         // When it does, redirect to plain order page.
         if (wa()->getUser()->isAuth()) {
-            $om = new shopOrderModel();
-            $order = $om->getOrder($order_id);
-            if (!$order) {
-                throw new waException(_w('Order not found'), 404);
-            }
             if ($order['contact_id'] == wa()->getUser()->getId()) {
                 $this->redirect(wa()->getRouteUrl('/frontend/myOrder', array('id' => $order_id)));
             }
@@ -79,9 +73,20 @@ class shopFrontendMyOrderByCodeAction extends shopFrontendMyOrderAction
         return array();
     }
 
-    protected function isAuth($order)
+    /**
+     * @return array|null
+     */
+    protected function getOrder()
     {
-        return $order['state_id'] != 'deleted';
+        $code = waRequest::param('code');
+        $order_id = substr($code, 16, -16);
+        $om = new shopOrderModel();
+        $order = $om->getOrder($order_id);
+        if ($order && $order['state_id'] !== 'deleted') {
+            return $order;
+        } else {
+            return null;
+        }
     }
 }
 

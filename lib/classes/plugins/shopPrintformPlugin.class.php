@@ -39,23 +39,25 @@ abstract class shopPrintformPlugin extends shopPlugin implements shopPrintformIn
 
     /**
      * Safe for rights getting order data
-     * @param $order_id
+     * @param int|waOrder|array $order_data order ID | order data-array | waOrder object
      * @param $options
      * @throws waException
      * @return waOrder
      */
-    public function getOrder($order_id, $options = array())
+    public function getOrder($order_data, $options = array())
     {
+        /**
+         * @var waOrder $order
+         */
+        $order = null;
+
         switch (wa()->getEnv()) {
             case 'backend':
-                if (!wa()->getUser()->getRights('shop', !$order_id ? 'settings' : 'orders')) {
+                if (!wa()->getUser()->getRights('shop', !$order_data ? 'settings' : 'orders')) {
                     throw new waException(_w("Access denied"));
                 }
-                if ($order_id) {
-                    $order = shopPayment::getOrderData($order_id, $this);
-                    if (!$order) {
-                        throw new waException('Order not found', 404);
-                    }
+                if ($order_data) {
+                    $order = $this->getShopPaymentOrder($order_data);
                 } else {
                     $config = wa('shop')->getConfig();
                     /**
@@ -86,20 +88,46 @@ abstract class shopPrintformPlugin extends shopPlugin implements shopPrintformIn
                 }
                 break;
             default:
-                //frontend
-                if ($order_id) {
-                    $order = shopPayment::getOrderData($order_id, $this);
-                }
-                if (empty($order)) {
-                    throw new waException('Order not found', 404);
-                }
+                // frontend
+                $order = $this->getShopPaymentOrder($order_data);
                 break;
         }
+
+        if (!$order) {
+            throw new waException('Order not found', 404);
+        }
+
         if (!empty($options['items'])) {
             $this->extendItems($order, $options['items']);
         }
+
         return $order;
     }
+
+    /**
+     * Helper for getOrder
+     *
+     * Get shop-payment formalized order
+     * Encapsulate input param preparation
+     *
+     * @param $order int|waOrder|array $order_data order ID | order data-array | waOrder object
+     * @return waOrder|null
+     * @throws waException
+     */
+    protected function getShopPaymentOrder($order)
+    {
+        if (!$order) {
+            return null;
+        }
+        // Order ID case
+        if (wa_is_int($order)) {
+            // To prevent incorrect order receiving
+            // encode into ORDER_STR_ID format, cause shopPayment::getOrderData will be decode it
+            $order = shopHelper::encodeOrderId($order, $this);
+        }
+        return shopPayment::getOrderData($order, $this);
+    }
+
 
 
     /**

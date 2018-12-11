@@ -7,20 +7,12 @@ class shopFrontendMyOrderAction extends shopFrontendAction
 {
     public function execute()
     {
-        $encoded_order_id = waRequest::param('id');
-        $order_id = shopHelper::decodeOrderId($encoded_order_id);
-        if (!$order_id) {
-            // fall back to non-encoded id
-            $order_id = $encoded_order_id;
-            $encoded_order_id = shopHelper::encodeOrderId($order_id);
-        }
-
-        // Check that order exists and belongs to this user
-        $om = new shopOrderModel();
-        $order = $om->getOrder($order_id);
-        if (!$order || !$this->isAuth($order)) {
+        $order = $this->getOrder();
+        if (!$order) {
             throw new waException(_w('Order not found'), 404);
         }
+
+        $encoded_order_id = shopHelper::encodeOrderId($order['id']);
 
         if ($order['paid_date']) {
             foreach ($order['items'] as &$i) {
@@ -172,8 +164,59 @@ class shopFrontendMyOrderAction extends shopFrontendAction
         return $result;
     }
 
-    protected function isAuth($order)
+    /**
+     * Get order by input ID param
+     * Cause input ID param may be in decoded or pure formats, method is a bit complicated
+     * @return array|null
+     */
+    protected function getOrder()
     {
-        return $order['contact_id'] == wa()->getUser()->getId() && $order['state_id'] != 'deleted';
+        // Input ID param
+        $order_id = waRequest::param('id');
+
+        // maybe it is encoded ID
+        if (!$this->isNumericOrderId($order_id)) {
+            $order_id = shopHelper::decodeOrderId($order_id);
+            // nope - something wrong with ID
+            if (!$this->isNumericOrderId($order_id)) {
+                return null;
+            }
+        }
+
+        $om = new shopOrderModel();
+
+        // Get order
+        $order = $om->getOrder($order_id);
+
+        // If own order found
+        if ($order && $order['contact_id'] === wa()->getUser()->getId()) {
+            if ($order['state_id'] != 'deleted') {
+                return $order;
+            } else {
+                return null;
+            }
+        }
+
+        // Needed ORDER not found...
+
+        // maybe ORDER ID is encoded ID
+        $order_id = shopHelper::decodeOrderId($order_id);
+        if (!$this->isNumericOrderId($order_id)) {
+            // nope
+            return null;
+        }
+
+        // Last try to get order
+        $order = $om->getOrder($order_id);
+        if ($order && $order['contact_id'] === wa()->getUser()->getId() && $order['state_id'] !== 'deleted') {
+            return $order;
+        } else {
+            return null;
+        }
+    }
+
+    protected function isNumericOrderId($id)
+    {
+        return wa_is_int($id) && $id > 0;
     }
 }
