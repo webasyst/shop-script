@@ -1049,7 +1049,30 @@ SQL;
 
     public function schedule()
     {
-        return $this->shopConfig()->getStorefrontSchedule();
+        $schedule = $this->shopConfig()->getStorefrontSchedule();
+        $schedule['current_week'] = $schedule['week'];
+
+        $monday_time = strtotime('monday this week');
+        $sunday_time = strtotime('sunday this week');
+
+        foreach ($schedule['extra_weekends'] as $extra_weekend) {
+            $time = strtotime($extra_weekend);
+            if ($time >= $monday_time && $time <= $sunday_time) {
+                $day_number = date('N', $time);
+                $schedule['current_week'][$day_number]['work'] = false;
+            }
+        }
+
+        foreach ($schedule['extra_workdays'] as $extra_workday) {
+            $time = strtotime($extra_workday['date']);
+            if ($time >= $monday_time && $time <= $sunday_time) {
+                $day_number = date('N', $time);
+                $schedule['current_week'][$day_number]['work'] = true;
+                $schedule['current_week'][$day_number] = array_merge($schedule['current_week'][$day_number], $extra_workday);
+            }
+        }
+
+        return $schedule;
     }
 
     /**
