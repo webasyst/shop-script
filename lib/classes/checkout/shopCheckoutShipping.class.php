@@ -439,14 +439,16 @@ class shopCheckoutShipping extends shopCheckout
 
             foreach ($cart_items as $item) {
                 $this->items[] = array(
-                    'name'     => $item['name'],
-                    'price'    => $item['price'],
-                    'currency' => $item['currency'],
-                    'quantity' => $item['quantity'],
-                    'weight'   => ifset($item['weight']),
-                    'height'   => ifset($item['height']),
-                    'width'    => ifset($item['width']),
-                    'length'   => ifset($item['length']),
+                    'name'       => $item['name'],
+                    'price'      => $item['price'],
+                    'currency'   => $item['currency'],
+                    'quantity'   => $item['quantity'],
+                    'type'       => $item['type'],
+                    'product_id' => ifset($item['product_id']),
+                    'weight'     => ifset($item['weight']),
+                    'height'     => ifset($item['height']),
+                    'width'      => ifset($item['width']),
+                    'length'     => ifset($item['length']),
                 );
             }
         }
