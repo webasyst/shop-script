@@ -1,31 +1,31 @@
-# Shop-Script 7 #
+# Shop-Script #
 
-Shop-Script 7 is a robust PHP ecommerce framework with best-in-class analytics tools. Powered by Webasyst Framework.
+Shop-Script is a robust PHP ecommerce platform with best-in-class analytics tools. Powered by Webasyst framework.
 
-http://www.shop-script.com
-http://www.webasyst.com
+https://www.shop-script.com
+https://www.webasyst.com
 
 ## System Requirements ##
 
   * Web Server
-		* e.g. Apache or IIS
+		* Apache, nginx or IIS
 
-	* PHP 5.2+
-		* spl extension
+	* PHP 5.6+
+		* spl
 		* mbstring
 		* iconv
 		* json
-		* gd or ImageMagick extension
+		* gd or ImageMagick
 
 	* MySQL 4.1+
 
-## Installing Webasyst Framework ##
+## Installing Webasyst framework ##
 
-Install Webasyst Framework via http://github.com/webasyst/webasyst-framework/ or http://www.webasyst.com/framework/
+Install Webasyst framework via https://github.com/webasyst/webasyst-framework/ or https://www.webasyst.com/platform/.
 
 ## Installing Shop-Script ##
 
-1. Once Webasyst Framework is installed, get Shop-Script code into your /PATH_TO_WEBASYST/wa-apps/shop/ folder:
+1. Once Webasyst framework is installed, copy Shop-Script source files to /PATH_TO_WEBASYST/wa-apps/shop/ folder:
 
 	via GIT:
 
@@ -37,12 +37,12 @@ Install Webasyst Framework via http://github.com/webasyst/webasyst-framework/ or
 		cd /PATH_TO_WEBASYST/wa-apps/shop/
 		svn checkout http://svn.github.com/webasyst/shop-script.git ./
 
-2. Add the following line into the /wa-config/apps.php file (this file lists all installed apps):
+2. Add the following item to the array in wa-config/apps.php file to enable the Shop-Script app—this file lists all installed apps:
 
 		'shop' => true,
 
-3. Done. Run Webasyst backend in a web browser and click on Shop-Script icon in the main app list.
+3. Open Webasyst backend in a web browser and click the Shop-Script icon in the main menu to start using the app.
 
-## Updating Webasyst Framework ##
+## Updating Shop-Script & Webasyst framework ##
 
-Staying with the latest version of Shop-Script is easy: simply update your files from the repository and login into Webasyst, and all required meta updates will be applied to Webasyst and its apps automatically.
+Update source files from the repository and log into Webasyst backend in your browser. All new meta updates will be applied automatically.
