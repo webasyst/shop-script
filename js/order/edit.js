@@ -446,6 +446,7 @@ $.order_edit = {
             $update_discount_button.data('description', data.discount_description);
 
             if (!data.discount) {
+                $update_discount_button.hide();
                 return;
             }
 
