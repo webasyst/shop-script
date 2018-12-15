@@ -89,12 +89,12 @@ class shopFrontendCompareAction extends waViewAction
             'products' => $products,
         );
 
-        $frontend_compare = wa()->event('frontend_compare', $params);
-        $this->view->assign('frontend_compare', $frontend_compare);
-
         $this->view->assign('features', $features);
         $this->view->assign('products', $products);
 
+        $frontend_compare = wa()->event('frontend_compare', $params);
+        $this->view->assign('frontend_compare', $frontend_compare);
+        
         $this->setLayout(new shopFrontendLayout());
         $this->setThemeTemplate('compare.html');
     }
