@@ -120,7 +120,7 @@ if ($notifications_model->countAll() == 0) {
             continue;
         }
         $data = array(
-            'name'      => $events[$event]['name'].' ('._w('Customer').')',
+            'name'      => ifset($events, $event, 'name', $event).' ('._w('Customer').')',
             'event'     => $event,
             'transport' => 'email',
             'status'    => 1,

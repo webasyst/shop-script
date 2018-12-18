@@ -35,13 +35,13 @@ class shopFrontendOrderActions extends waJsonActions
         $opts = waRequest::post('opts', [], 'array');
         $config = $this->getCheckoutConfig();
         $view->assign($this->response + [
-            'config' => $config,
-            'contact' => $data['contact'],
-            'options' => [
-                'DEBUG' => ifset($opts, 'DEBUG', false),
-                'wrapper' => ifset($opts, 'wrapper', ''),
-            ],
-        ]);
+                'config'  => $config,
+                'contact' => $data['contact'],
+                'options' => [
+                    'DEBUG'   => ifset($opts, 'DEBUG', false),
+                    'wrapper' => ifset($opts, 'wrapper', ''),
+                ],
+            ]);
         $html = $view->fetch(wa()->getAppPath('templates/actions/frontend/FrontendOrderForm.html', 'shop'));
         $view->clearAllAssign();
         $view->assign($old_vars);
@@ -62,10 +62,12 @@ class shopFrontendOrderActions extends waJsonActions
         }
 
         // Prepare customer data
-        $contact_field_values = array_map(function($f) {
+        $contact_field_values = array_map(function ($f) {
             return $f['value'];
         }, $data['result']['auth']['fields']);
-        $contact_field_values['address.shipping'] = $data['shipping']['address'];
+        if (isset($data['shipping']['address'])) {
+            $contact_field_values['address.shipping'] = $data['shipping']['address'];
+        }
 
         // In case customer is not logged in, should we
         // create new contact for this order or use an existing contact?
@@ -82,7 +84,7 @@ class shopFrontendOrderActions extends waJsonActions
                 case 'existing_contact':
                     // Attempt to find existing contact by phone and then by email
                     // !!! TODO: should probably look into which auth scheme is currently preferred...
-                    foreach(['phone', 'email'] as $field_id) {
+                    foreach (['phone', 'email'] as $field_id) {
                         if (!empty($contact_field_values[$field_id])) {
                             $c = new waContact();
                             $c[$field_id] = $contact_field_values[$field_id];
@@ -106,16 +108,16 @@ class shopFrontendOrderActions extends waJsonActions
         }
 
         $order_data = [
-            'id'                   => null,
-            'contact_id'           => $contact_id,
-            'currency'             => $data['order']['currency'],
-            'payment_params'       => ifempty($data, 'payment', 'params', null),
-            'shipping_params'      => ifempty($data, 'shipping', 'params', null),
-            'params'               => [
-                'shipping_id'  => ifset($data, 'shipping', 'selected_variant', 'variant_id', null),
-                'payment_id'   => ifset($data, 'payment', 'id', null),
-                // stock_id, virtualstock_id see below
-            ] + $this->getOrderParamsFromRequest(),
+            'id'              => null,
+            'contact_id'      => $contact_id,
+            'currency'        => $data['order']['currency'],
+            'payment_params'  => ifempty($data, 'payment', 'params', null),
+            'shipping_params' => ifempty($data, 'shipping', 'params', null),
+            'params'          => [
+                    'shipping_id' => ifset($data, 'shipping', 'selected_variant', 'variant_id', null),
+                    'payment_id'  => ifset($data, 'payment', 'id', null),
+                    // stock_id, virtualstock_id see below
+                ] + $this->getOrderParamsFromRequest(),
 
             'comment'  => ifset($data, 'result', 'confirm', 'comment', ''),
             'shipping' => $data['order']['shipping'],
@@ -127,9 +129,9 @@ class shopFrontendOrderActions extends waJsonActions
 
         $options = [
             'customer_validation_disabled' => true,
-            'customer_is_company' => $data['contact']['is_company'],
-            'customer_form_fields' => array_keys($contact_field_values),
-            'ignore_stock_validate' => true,
+            'customer_is_company'          => $data['contact']['is_company'],
+            'customer_form_fields'         => array_keys($contact_field_values),
+            'ignore_stock_validate'        => true,
         ];
 
         try {
@@ -147,9 +149,9 @@ class shopFrontendOrderActions extends waJsonActions
         list($stock_id, $virtualstock_id) = shopFrontendCheckoutAction::determineStockIds($order);
         if ($stock_id || $virtualstock_id) {
             $order['params'] = [
-                'stock_id'     => $stock_id,
-                'virtualstock_id' => $virtualstock_id,
-            ] + $order['params'];
+                    'stock_id'        => $stock_id,
+                    'virtualstock_id' => $virtualstock_id,
+                ] + $order['params'];
         }
 
         try {
@@ -164,7 +166,7 @@ class shopFrontendOrderActions extends waJsonActions
             $this->errors['shop_order'] = $order->errors();
             if (!$this->errors['shop_order']) {
                 $this->errors = [
-                    'general' => _w('Unable to save order.'),
+                    'general'   => _w('Unable to save order.'),
                     'exception' => $ex->getMessage(),
                 ];
             }
@@ -205,7 +207,7 @@ class shopFrontendOrderActions extends waJsonActions
             $contact_type = 'person';
         }
 
-            // Template path
+        // Template path
         $template_path = wa()->getAppPath("templates/actions/frontend/order/form/dialog/{$type}.html", 'shop');
 
 
@@ -213,9 +215,9 @@ class shopFrontendOrderActions extends waJsonActions
         $view = wa('shop')->getView();
         $old_vars = $view->getVars();
         $view->assign(array(
-            'type' => $type,
+            'type'         => $type,
             'contact_type' => $contact_type,             // need for signup form, to signup contact of proper type
-            'hash' => waRequest::request('hash')    // need for setpassword form
+            'hash'         => waRequest::request('hash')    // need for setpassword form
         ));
         $html = $view->fetch($template_path);
         $view->clearAllAssign();
@@ -229,7 +231,7 @@ class shopFrontendOrderActions extends waJsonActions
     protected function getOrderParamsFromRequest()
     {
         $params = [
-            'ip' => waRequest::getIp(),
+            'ip'         => waRequest::getIp(),
             'user_agent' => waRequest::getUserAgent(),
         ];
 
@@ -322,7 +324,7 @@ class shopFrontendOrderActions extends waJsonActions
         return $params;
     }
 
-    public function makeOrderFromCart($cart_items=null, $session_data=null)
+    public function makeOrderFromCart($cart_items = null, $session_data = null)
     {
         if ($cart_items === null) {
             $cart_items = (new shopCart())->items(true);
@@ -334,17 +336,83 @@ class shopFrontendOrderActions extends waJsonActions
 
         return new shopOrder([
             'contact_id' => ifempty(ref(wa()->getUser()->getId()), null),
-            'currency' => wa('shop')->getConfig()->getCurrency(false),
-            'items' => $cart_items,
-            'discount' => 'calculate',
+            'currency'   => wa('shop')->getConfig()->getCurrency(false),
+            'items'      => $cart_items,
+            'discount'   => 'calculate',
         ], [
-            'items_format' => 'cart',
+            'items_format'       => 'cart',
             'items_extend_round' => true,
         ]);
+    }
+
+    public function addressAutocompleteAction()
+    {
+        $result = [];
+
+        /**
+         * @event address_autocomplete
+         *
+         * @params array full or partial address data
+         *  country string
+         *  region string
+         *  city string
+         *  country string|int
+         *
+         * @return array[] arrays
+         */
+        $params = [
+            'country' => waRequest::request('country', null, waRequest::TYPE_STRING),
+            'region'  => waRequest::request('region', null, waRequest::TYPE_STRING),
+            'city'    => waRequest::request('city', null, waRequest::TYPE_STRING),
+            'zip'     => waRequest::request('zip', null),
+        ];
+        $event = wa('shop')->event('address_autocomplete', $params);
+
+        if ($event && is_array($event)) {
+            foreach ($event as $plugin_id => $plugin_results) {
+                if ($plugin_results && is_array($plugin_results)) {
+                    foreach ($plugin_results as $plugin_result) {
+                        $result[] = [
+                            'country' => ifset($plugin_result, 'country', ''),
+                            'region'  => ifset($plugin_result, 'region', ''),
+                            'city'    => ifset($plugin_result, 'city', ''),
+                            'zip'     => ifset($plugin_result, 'zip', ''),
+                        ];
+                    }
+                }
+            }
+        }
+
+        $this->response['result'] = $result;
     }
 
     protected function getCheckoutConfig()
     {
         return new shopCheckoutConfig(ifset(ref(wa()->getRouting()->getRoute()), 'checkout_storefront_id', null));
+    }
+
+    public function run($params = null)
+    {
+        $action = $params;
+        if (!$action) {
+            $action = 'default';
+        }
+        $this->action = $action;
+        $this->preExecute();
+        $this->execute($this->action);
+        $this->postExecute();
+
+        if ($this->action == $action) {
+            if (waRequest::isXMLHttpRequest()) {
+                $this->getResponse()->addHeader('Content-type', 'application/json');
+            }
+            $this->getResponse()->sendHeaders();
+            if (!$this->errors) {
+                echo waUtils::jsonEncode(array('status' => 'ok', 'data' => $this->response), JSON_UNESCAPED_UNICODE); // no pretty print even in debug here
+            } else {
+                echo waUtils::jsonEncode(array('status' => 'fail', 'errors' => $this->errors), JSON_UNESCAPED_UNICODE);
+            }
+        }
+
     }
 }

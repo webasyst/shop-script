@@ -1,33 +1,34 @@
 <?php
 
+/**
+ * @method shopConfig getConfig()
+ * */
 class shopFrontendShippingController extends waJsonController
 {
     public function execute()
     {
-        $cart = new shopCart();
-        $total = $cart->total();
-
         $shipping = new shopCheckoutShipping();
         $items = $shipping->getItems();
+
+        $shipping_params = shopShipping::getItemsTotal($items);
+        $cart = new shopCart();
+        $shipping_params['total_price'] = $cart->total();
 
         if (waRequest::method() == 'post') {
             wa()->getStorage()->close();
             $shipping_id = waRequest::post('shipping_id');
-            $default_customer = waRequest::post('customer');
-            $default_address = ifset($default_customer['address.shipping'], array());
             $customer = waRequest::post('customer_'.$shipping_id);
 
             $address = ifset($customer['address.shipping'], array());
 
             if ($shipping_id) {
-                $rates = $this->getRates($shipping_id, $items, $address, $total);
+                $rates = $this->getRates($shipping_id, $items, $address, $shipping_params);
                 $this->response = $this->formatRates($rates);
             } else {
                 $this->errors = _w('Shipping is required');
             }
         } elseif ($shipping_ids = waRequest::get('shipping_id', array(), waRequest::TYPE_ARRAY_INT)) {
             $address = $shipping->getAddress();
-            wa()->getStorage()->close();
             $empty = true;
             foreach ($address as $v) {
                 if ($v) {
@@ -39,11 +40,7 @@ class shopFrontendShippingController extends waJsonController
                 $address = array();
             }
             if (!$address) {
-                $config = wa('shop')->getConfig();
-                /**
-                 * @var shopConfig $config
-                 */
-                $settings = $config->getCheckoutSettings();
+                $settings = $this->getConfig()->getCheckoutSettings();
                 if ($settings['contactinfo']['fields']['address']) {
                     foreach ($settings['contactinfo']['fields']['address']['fields'] as $k => $f) {
                         if (!empty($f['value'])) {
@@ -52,12 +49,16 @@ class shopFrontendShippingController extends waJsonController
                     }
                 }
             }
+
+            wa()->getStorage()->close();
             waNet::multiQuery('shop.shipping');
+
             foreach ($shipping_ids as $shipping_id) {
-                $this->response[$shipping_id] = $this->getRates($shipping_id, $items, $address, $total);
+                $this->response[$shipping_id] = $this->getRates($shipping_id, $items, $address, $shipping_params);
             }
 
             waNet::multiQuery('shop.shipping');
+
             foreach ($this->response as &$rates) {
                 $rates = $this->formatRates($rates);
                 unset($rates);
@@ -66,29 +67,27 @@ class shopFrontendShippingController extends waJsonController
     }
 
     /**
-     * @param int $shipping_id
+     * @param int   $shipping_id
      * @param array $items
      * @param array $address
-     * @param float $total
+     * @param array $shipping_params
      * @return array|mixed|string
      * @throws waException
      */
-    protected function getRates($shipping_id, $items, $address, $total)
+    protected function getRates($shipping_id, $items, $address, $shipping_params)
     {
         try {
             //XXX use shopCheckoutShipping class
-            $plugin = shopShipping::getPlugin(null, $shipping_id);
+            $plugin_info = shopShipping::getPluginInfo($shipping_id);
+
+            $plugin = shopShipping::getPlugin($plugin_info['plugin'], $plugin_info['id']);
+
+            $params = shopShipping::workupShippingParams($shipping_params, $plugin, $plugin_info);
+            $params['shipping_params'] = shopShipping::getParams($plugin_info['id']);
 
             # convert dimensions
             shopShipping::convertItemsDimensions($items, $plugin);
-
             $currency = $plugin->allowedCurrency();
-            $config = wa('shop')->getConfig();
-            /** @var shopConfig $config */
-            $current_currency = $config->getCurrency(false);
-            if ($currency != $current_currency) {
-                $total = shop_currency($total, $current_currency, $currency, false);
-            }
 
             foreach ($items as &$item) {
                 if (!empty($item['currency'])) {
@@ -100,18 +99,12 @@ class shopFrontendShippingController extends waJsonController
             }
             unset($item);
 
-            $params = array(
-                'total_price' => $total,
-            );
-            if ($shipping_params = waRequest::post('shipping_'.$shipping_id)) {
-                $params['shipping_params'] = $shipping_params;
-            }
             $rates = $plugin->getRates($items, $address, $params);
         } catch (waException $ex) {
             return $ex->getMessage();
         }
 
-        return  $rates;
+        return $rates;
     }
 
     protected function formatRates($rates)

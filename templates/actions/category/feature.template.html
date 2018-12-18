@@ -36,11 +36,11 @@
                                     {$begin = ifset($conditions_feature, $f.code, 'begin', null)}
                                     {$end = ifset($conditions_feature, $f.code, 'end', null)}
                                     [`from`]
-                                    <input type="text" class="js-begin" name="condition[features][{$f.code}][values][begin]" placeholder="{if isset($begin)}{$begin}{else}0{/if}"
-                                           value="{if isset($begin)}{$begin}{else}0{/if}">
+                                    <input type="text" class="js-begin" name="condition[features][{$f.code}][values][begin]" placeholder="{if isset($begin)}{$begin}{/if}"
+                                           value="{if isset($begin)}{$begin}{/if}">
                                     [`to`]
-                                    <input type="text" class="js-end" name="condition[features][{$f.code}][values][end]" placeholder="{if isset($end)}{$end}{else}100{/if}"
-                                           value="{if isset($end)}{$end}{else}0{/if}">
+                                    <input type="text" class="js-end" name="condition[features][{$f.code}][values][end]" placeholder="{if isset($end)}{$end}{/if}"
+                                           value="{if isset($end)}{$end}{/if}">
                                     {$f_unit = shopDimension::getBaseUnit($f.type)}
                                     {if !empty($f_unit) && isset($f_unit['title'])}{$f_unit['title']}{/if}
                                     <div class="js-range-slider"></div>

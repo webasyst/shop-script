@@ -9,6 +9,19 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
 {
     public function process($data, $prepare_result)
     {
+        // Is shipping step disabled altogether?
+        $config = $this->getCheckoutConfig();
+        if (empty($config['shipping']['used'])) {
+            $result = $this->addRenderedHtml([
+                'disabled' => true,
+            ], $data, []);
+            return array(
+                'result' => $result,
+                'errors' => [],
+                'can_continue' => true,
+            );
+        }
+
         // Paranoid checks...
         if (empty($data['shipping']['selected_variant']) || empty($data['shipping']['address']) || empty($data['contact'])) {
             return array(
@@ -24,7 +37,6 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
         list($shop_plugin_id, $internal_variant_id) = explode('.', $selected_variant['variant_id'], 2) + [1=>''];
 
         // Instantiate proper shipping plugin
-        $config = $this->getCheckoutConfig();
         $plugin = $config->getShippingPluginByRate($selected_variant);
         if (!$plugin) {
             $errors[] = [
@@ -42,6 +54,7 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
 
         // Ask shipping plugin about required address fields
         $required_address_fields = $plugin->requestedAddressFieldsForService($selected_variant);
+        $required_address_fields = ifempty($required_address_fields, []);
 
         // Checkout config gives shipping address fields, including those required by plugin
         $address_fields_config = $config->getAddressFields($required_address_fields);

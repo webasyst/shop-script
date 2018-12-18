@@ -19,6 +19,9 @@ var TutorialSidebar = ( function($) {
     TutorialSidebar.prototype.initClass = function() {
         var that = this;
 
+        var $tutorial_menu_item = $("#js-menu-tutorial-item .s-tutorial-quick-start");
+        if ($tutorial_menu_item.length) { $tutorial_menu_item.addClass("is-active"); }
+
         that.setActiveStep();
         that.setCompleteStep();
         that.setStatus();

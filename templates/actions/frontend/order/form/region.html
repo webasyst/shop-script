@@ -2,20 +2,39 @@
 
 {$_config = $config.shipping}
 
-{$_countries = $region.countries}
-{$_active_location = $region.locations[$region.selected_values.location_id]}
-{$_active_county = null}
-{$_active_region = null}
-
 {$_errors = []}
 {if !empty($error_step_id) && $error_step_id === "region"}{$_errors = $errors}{/if}
 
+{$_countries = []}
+{if !empty($region.countries)}{$_countries = $region.countries}{/if}
+
+{$_active_location = null}
+{$_active_county = null}
+{$_active_region = null}
+
+{if isset($region.selected_values.location_id)}
+    {foreach $region.locations as $_location}
+        {if $_location.id == $region.selected_values.location_id}
+            {$_active_location = $_location}
+        {/if}
+    {/foreach}
+
+    {if empty($_active_location)}
+        {$_active_location = reset($region.locations)}
+    {/if}
+{/if}
+
 {$_is_default_mode = true}
 {$_is_minimal_mode = false}
-{if $config.order.mode == "minimal"}
+{if $config.order.mode == shopCheckoutConfig::ORDER_MODE_TYPE_MINIMUM}
     {$_is_default_mode = false}
     {$_is_minimal_mode = true}
 {/if}
+
+{$_is_country_required = true}
+{$_is_region_required = true}
+{$_is_city_required = true}
+{$_is_zip_required = true}
 
 {function name="_echo_size_class" _size=""}
     {$_size_class = "size-medium"}
@@ -49,281 +68,379 @@
 {capture assign="_zip_field"}
     {if !empty($_config.ask_zip)}
         <div class="wa-field-wrapper wa-zip-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MINI}">
-            {$_is_zip_required = !empty($_config.address_fields.zip.required)}
-
             <label class="wa-label">{_render_label _label="[`ZIP code`]" _required=!empty($_is_zip_required)}</label>
             <input class="wa-input js-zip-field" autocomplete="false" name="region[zip]" type="text" value="{$region.selected_values.zip|default:""|escape}" {if !empty($_is_zip_required)}required{/if}>
         </div>
     {/if}
 {/capture}
 
-{$_hide = !empty($_hide_region)}
+{$_hide_region = !empty($_hide_region) || !empty($region.disabled)}
 
-<section class="wa-step-section wa-step-region-section" id="wa-step-region-section" style="{if !empty($_hide)}display: none;{/if}">
+<section class="wa-step-section wa-step-region-section" id="wa-step-region-section" style="{if !empty($_hide_region)}display: none;{/if}">
     {* HEADER *}
     <header class="wa-section-header">
         <h3 class="wa-header">{$_config.block_name}</h3>
     </header>
 
     {* BODY *}
-    <div class="wa-section-body">
+
+    {$_nothing_to_change = false}
+    {if $_is_minimal_mode && count($region.locations) === 1}
+        {if !empty($_active_location.country_id) &&
+            !(empty($_active_location.region_id) && empty($_active_location.region) ) &&
+            !(empty($_active_location.city_id) && empty($_active_location.city) ) && empty($_config.ask_zip)}
+
+            {$_nothing_to_change = true}
+        {/if}
+    {/if}
+
+    <div class="wa-section-body" {if !empty($_nothing_to_change)}style="display: none;"{/if}>
         <form>
-            {if $_is_default_mode}
+            {if empty($region.disabled)}
                 <div class="wa-line wa-required-text">
                     <span class="wa-required"></span>[`To view shipping cost and estimated shipping time, please complete fields with an asterisk`]
                 </div>
 
-                <div class="wa-line wa-fields-group line">
-                    {* LOCATIONS *}
-                    <input name="region[location_id]" type="hidden" value="{$_active_location.id|default:""|escape}">
+                {if $_is_default_mode}
+                    <div class="wa-line wa-fields-group line">
+                        {* LOCATIONS *}
+                        <input name="region[location_id]" type="hidden" value="{$_active_location.id|default:""|escape}">
 
-                    {* COUNTRY *}
-                    <div class="wa-field-wrapper wa-country-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
-                        {$_is_country_required = true}
+                        {* COUNTRY *}
+                        <div class="wa-field-wrapper wa-country-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
 
-                        <label class="wa-label">{_render_label _label="[`Country`]" _required=!empty($_is_country_required)}</label>
-                        {if empty($_active_location.country_locked)}
-                            <select class="wa-select js-country-field" name="region[country]" {if !empty($_is_country_required)}required{/if}>
-                                {foreach $_countries as $_country}
-                                    {$_is_active = false}
-                                    {if empty($_country.is_copy) && $region.selected_values.country_id == $_country.id}
-                                        {$_is_active = true}
-                                        {$_active_county = $_country}
-                                    {/if}
+                            <label class="wa-label">{_render_label _label="[`Country`]" _required=!empty($_is_country_required)}</label>
 
-                                    <option value="{$_country.id|escape}" {if !empty($_is_active)}selected{/if}>{$_country.name|escape}</option>
-                                {/foreach}
-                            </select>
-                        {else}
-                            {$_active_country_id = $_active_location.country_id}
-                            {if !empty($region.selected_values.country_id)}
-                                {$_active_country_id = $region.selected_values.country_id}
-                                {foreach $_countries as $_country}
-                                    {if empty($_country.is_copy) && $region.selected_values.country_id == $_country.id}
-                                        {$_active_county = $_country}
-                                    {/if}
-                                {/foreach}
+                            {if empty($_active_location.country_locked)}
+                                <select class="wa-select js-country-field" name="region[country]" {if !empty($_is_country_required)}required{/if}>
+                                    {foreach $_countries as $_country}
+                                        {$_is_active = false}
+                                        {if empty($_country.is_copy) && $region.selected_values.country_id == $_country.id}
+                                            {$_is_active = true}
+                                            {$_active_county = $_country}
+                                        {/if}
+
+                                        {if empty($_country.id) && $_is_active}
+                                            <option value="" selected disabled>[`Select a country`]</option>
+                                        {else}
+                                            <option value="{$_country.id|escape}" {if !empty($_is_active)}selected{/if}>{$_country.name|escape}</option>
+                                        {/if}
+                                    {/foreach}
+                                </select>
+                            {else}
+                                {$_active_country_id = $_active_location.country_id}
+                                {if !empty($region.selected_values.country_id)}
+                                    {$_active_country_id = $region.selected_values.country_id}
+                                    {foreach $_countries as $_country}
+                                        {if empty($_country.is_copy) && $region.selected_values.country_id == $_country.id}
+                                            {$_active_county = $_country}
+                                        {/if}
+                                    {/foreach}
+                                {/if}
+
+                                <input class="wa-input" type="text" value="{$_active_county.name|escape}" disabled>
+                                <input name="region[country]" type="hidden" value="{$_active_country_id|default:""|escape}">
                             {/if}
+                        </div>
 
-                            <input class="wa-input" type="text" value="{$_active_county.name|escape}" disabled>
-                            <input name="region[country]" type="hidden" value="{$_active_country_id|default:""|escape}">
-                        {/if}
-                    </div>
+                        {* REGION *}
+                        <div class="wa-field-wrapper wa-country-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
 
-                    {* REGION *}
-                    <div class="wa-field-wrapper wa-country-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
-                        {$_is_region_required = true}
+                            <label class="wa-label">{_render_label _label="[`Region`]" _required=!empty($_is_region_required)}</label>
+                            {if empty($_active_location.region_locked)}
+                                {if !empty($_active_county.has_regions)}
+                                    {$_active_region_id = $_active_location.region_id}
+                                    {if !empty($region.selected_values.region_id)}
+                                        {$_active_region_id = $region.selected_values.region_id}
+                                    {/if}
 
-                        <label class="wa-label">{_render_label _label="[`Region`]" _required=!empty($_is_region_required)}</label>
-                        {if empty($_active_location.region_locked)}
-                            {if !empty($_active_county.has_regions)}
+                                    <select class="wa-select js-region-field" name="region[region]" {if !empty($_is_region_required)}required{/if}>
+                                        {foreach $_active_county.regions as $_region}
+                                            {$_is_active = false}
+
+                                            {if $_active_region_id == $_region.id}
+                                                {$_is_active = true}
+                                                {$_active_region = $_region}
+                                            {/if}
+
+                                            {if empty($_region.id) && $_is_active}
+                                                <option value="" selected disabled>[`Select a region`]</option>
+                                            {else}
+                                                <option value="{$_region.id|escape}" {if !empty($_is_active)}selected{/if}>{$_region.name|escape}</option>
+                                            {/if}
+                                        {/foreach}
+                                    </select>
+                                {else}
+                                    {$_region_value = $_active_location.region}
+                                    {if !empty($region.selected_values.region)}
+                                        {$_region_value = $region.selected_values.region}
+                                    {/if}
+
+                                    <input class="wa-input js-region-field" autocomplete="false" name="region[region]" type="text" value="{$_region_value|default:""|escape}" {if !empty($_is_region_required)}required{/if}>
+                                {/if}
+
+                            {else}
                                 {$_active_region_id = $_active_location.region_id}
                                 {if !empty($region.selected_values.region_id)}
                                     {$_active_region_id = $region.selected_values.region_id}
                                 {/if}
 
-                                <select class="wa-select js-region-field" name="region[region]" {if !empty($_is_region_required)}required{/if}>
-                                    {foreach $_active_county.regions as $_region}
-                                        {$_is_active = false}
-
-                                        {if $_active_region_id == $_region.id}
-                                            {$_is_active = true}
-                                            {$_active_region = $_region}
-                                        {/if}
-
-                                        {if empty($_region.id) && $_is_active}
-                                            <option value="" selected disabled>[`Select a region`]</option>
-                                        {else}
-                                            <option value="{$_region.id|escape}" {if !empty($_is_active)}selected{/if}>{$_region.name|escape}</option>
-                                        {/if}
-                                    {/foreach}
-                                </select>
-                            {else}
                                 {$_region_value = $_active_location.region}
                                 {if !empty($region.selected_values.region)}
                                     {$_region_value = $region.selected_values.region}
                                 {/if}
 
-                                <input class="wa-input js-region-field" autocomplete="false" name="region[region]" type="text" value="{$_region_value|default:""|escape}" {if !empty($_is_region_required)}required{/if}>
-                            {/if}
+                                {if !empty($_active_region_id)}
+                                    {foreach $_active_county.regions as $_region}
+                                        {if $_active_region_id == $_region.id}
+                                            {$_active_region = $_region}
+                                        {/if}
+                                    {/foreach}
 
-                        {else}
-                            {$_active_region_id = $_active_location.region_id}
-                            {if !empty($region.selected_values.region_id)}
-                                {$_active_region_id = $region.selected_values.region_id}
-                            {/if}
+                                    <input class="wa-input" type="text" value="{$_active_region.name|escape}" disabled>
+                                    <input name="region[region]" type="hidden" value="{$_active_region_id|default:""|escape}">
 
-                            {$_region_value = $_active_location.region}
-                            {if !empty($region.selected_values.region)}
-                                {$_region_value = $region.selected_values.region}
-                            {/if}
+                                {else}
 
-                            {if !empty($_active_region_id)}
-                                {foreach $_active_county.regions as $_region}
-                                    {if $_active_region_id == $_region.id}
-                                        {$_active_region = $_region}
+                                    <input class="wa-input" type="text" value="{$_region_value|escape}" disabled>
+                                    <input name="region[region]" type="hidden" value="{$_region_value|default:""|escape}">
+                                {/if}
+                            {/if}
+                        </div>
+
+                        {* CITY *}
+                        <div class="wa-field-wrapper wa-city-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
+                            <label class="wa-label">{_render_label _label="[`City`]" _required=!empty($_is_city_required)}</label>
+
+                            {if empty($_active_location.city_locked)}
+                                {if $_active_region.has_cities}
+                                    {$_active_city_id = $_active_location.city_id}
+                                    {if !empty($region.selected_values.city_id)}
+                                        {$_active_city_id = $region.selected_values.city_id}
                                     {/if}
-                                {/foreach}
 
-                                <input class="wa-input" type="text" value="{$_active_region.name|escape}" disabled>
-                                <input name="region[region]" type="hidden" value="{$_active_region_id|default:""|escape}">
+                                    <select class="wa-select js-city-field" name="region[city_id]" {if !empty($_is_city_required)}required{/if}>
+                                        {foreach $_active_region.cities as $_city}
+                                            {$_is_active = false}
+                                            {if $_active_city_id == $_city.id}{$_is_active = true}{/if}
 
+                                            {if empty($_city.id) && $_is_active}
+                                                <option value="" selected disabled>[`Select a locality`]</option>
+                                            {else}
+                                                <option value="{$_city.id|escape}" {if !empty($_is_active)}selected{/if}>{$_city.name|escape}</option>
+                                            {/if}
+                                        {/foreach}
+                                    </select>
+                                {else}
+                                    {$_city_value = $_active_location.city}
+                                    {if !empty($region.selected_values.city)}
+                                        {$_city_value = $region.selected_values.city}
+                                    {/if}
+
+                                    <input class="wa-input js-city-field js-city-autocomplete" autocomplete="false" name="region[city]" type="text" value="{$_city_value|default:""|escape}" {if !empty($_is_city_required)}required{/if}>
+                                {/if}
                             {else}
-
-                                <input class="wa-input" type="text" value="{$_region_value|escape}" disabled>
-                                <input name="region[region]" type="hidden" value="{$_region_value|default:""|escape}">
-                            {/if}
-                        {/if}
-                    </div>
-
-                    {* CITY *}
-                    <div class="wa-field-wrapper wa-city-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
-                        {$_is_city_required = true}
-
-                        <label class="wa-label">{_render_label _label="[`City`]" _required=!empty($_is_city_required)}</label>
-                        {if empty($_active_location.city_locked)}
-                            {if $_active_region.has_cities}
                                 {$_active_city_id = $_active_location.city_id}
                                 {if !empty($region.selected_values.city_id)}
                                     {$_active_city_id = $region.selected_values.city_id}
                                 {/if}
 
-                                <select class="wa-select js-city-field" name="region[city_id]" {if !empty($_is_city_required)}required{/if}>
-                                    {foreach $_active_region.cities as $_city}
-                                        {$_is_active = false}
-                                        {if $_active_city_id == $_city.id}{$_is_active = true}{/if}
-
-                                        {if empty($_city.id) && $_is_active}
-                                            <option value="" selected disabled>[`Select a city`]</option>
-                                        {else}
-                                            <option value="{$_city.id|escape}" {if !empty($_is_active)}selected{/if}>{$_city.name|escape}</option>
-                                        {/if}
-                                    {/foreach}
-                                </select>
-                            {else}
                                 {$_city_value = $_active_location.city}
                                 {if !empty($region.selected_values.city)}
                                     {$_city_value = $region.selected_values.city}
                                 {/if}
 
-                                <input class="wa-input js-city-field" autocomplete="false" name="region[city]" type="text" value="{$_city_value|default:""|escape}" {if !empty($_is_city_required)}required{/if}>
+                                {if !empty($_active_city_id)}
+                                    {$_active_city = null}
+                                    {if !empty($_active_region)}
+                                        {foreach $_active_region.cities as $_city}
+                                            {if $_active_city_id == $_city.id}
+                                                {$_active_city = $_city}
+                                                {break}
+                                            {/if}
+                                        {/foreach}
+                                    {/if}
+
+                                    <input class="wa-input" type="text" value="{$_active_city.name|default:""|escape}" disabled>
+                                    <input name="region[city_id]" type="hidden" value="{$_active_city_id|default:""|escape}">
+                                {else}
+
+                                    <input class="wa-input" type="text" value="{$_city_value|default:""|escape}" disabled>
+                                    <input name="region[city]" type="hidden" value="{$_city_value|default:""|escape}">
+                                {/if}
                             {/if}
+                        </div>
+
+                        {* ZIP *}
+                        {$_zip_field}
+                    </div>
+
+                {elseif $_is_minimal_mode}
+                    {$_region_value = $_active_location.region_id}
+                    {if !empty($_active_location.region)}{$_region_value = $_active_location.region}{/if}
+
+                    {$_city_value = $_active_location.city_id}
+                    {if !empty($_active_location.city)}{$_city_value = $_active_location.city}{/if}
+
+                    <div class="wa-line wa-fields-group line">
+
+                        {* LOCATIONS *}
+                        {if count($region.locations) > 1}
+                            <div class="wa-field-wrapper wa-location-wrapper size-medium">
+                                <label class="wa-label">{_render_label _label="[`Shipping area`]" _required=true}</label>
+
+                                <select class="wa-select js-location-field" name="region[location_id]" required>
+                                    {foreach $region.locations as $_location}
+                                        {$_is_active = false}
+
+                                        {if $_active_location.id == $_location.id}{$_is_active = true}{/if}
+
+                                        <option value="{$_location.id|escape}" {if !empty($_is_active)}selected{/if}>{$_location.name|default:"[`No name`]"|escape}</option>
+                                    {/foreach}
+                                </select>
+                            </div>
                         {else}
-                            {$_active_city_id = $_active_location.city_id}
-                            {if !empty($region.selected_values.city_id)}
-                                {$_active_city_id = $region.selected_values.city_id}
-                            {/if}
 
-                            {$_city_value = $_active_location.city}
-                            {if !empty($region.selected_values.city)}
-                                {$_city_value = $region.selected_values.city}
-                            {/if}
+                            <input name="region[location_id]" type="hidden" value="{$_active_location.id|default:""|escape}">
+                        {/if}
 
-                            {if !empty($_active_city_id)}
-                                {$_active_city = null}
-                                {if !empty($_active_region)}
-                                    {foreach $_active_region.cities as $_city}
-                                        {if $_active_city_id == $_city.id}
-                                            {$_active_city = $_city}
-                                            {break}
+                        {* COUNTRY *}
+
+                        {$_active_country_id = $_active_location.country_id}
+                        {if !empty($_active_country_id)}
+                            <input class="js-country-field" name="region[country]" type="hidden" value="{$_active_country_id|default:""|escape}">
+
+                            {foreach $_countries as $_country}
+                                {if empty($_country.is_copy) && $region.selected_values.country_id == $_country.id}
+                                    {$_active_county = $_country}
+                                    {break}
+                                {/if}
+                            {/foreach}
+
+                        {else}
+
+                            <div class="wa-field-wrapper wa-country-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
+                                <label class="wa-label">{_render_label _label="[`Country`]" _required=!empty($_is_country_required)}</label>
+
+                                <select class="wa-select js-country-field" name="region[country]" {if !empty($_is_country_required)}required{/if}>
+                                    {foreach $_countries as $_country}
+                                        {$_is_active = false}
+                                        {if empty($_country.is_copy) && $region.selected_values.country_id == $_country.id}
+                                            {$_is_active = true}
+                                            {$_active_county = $_country}
+                                        {/if}
+
+                                        {if empty($_country.id) && $_is_active}
+                                            <option value="" selected disabled>[`Select a country`]</option>
+                                        {else}
+                                            <option value="{$_country.id|escape}" {if !empty($_is_active)}selected{/if}>{$_country.name|escape}</option>
                                         {/if}
                                     {/foreach}
-                                {/if}
-
-                                <input class="wa-input" type="text" value="{$_active_city.name|default:""|escape}" disabled>
-                                <input name="region[city_id]" type="hidden" value="{$_active_city_id|default:""|escape}">
-                            {else}
-
-                                <input class="wa-input" type="text" value="{$_city_value|default:""|escape}" disabled>
-                                <input name="region[city]" type="hidden" value="{$_city_value|default:""|escape}">
-                            {/if}
+                                </select>
+                            </div>
                         {/if}
+
+                        {* REGION *}
+
+                        {$_active_region_id = $_active_location.region_id}
+                        {$_active_region_value = $_active_location.region}
+                        {if !empty($_active_region_id)}
+                            <input class="js-region-field" name="region[region]" type="hidden" value="{$_active_region_id|default:""|escape}">
+
+                        {elseif !empty($_active_region_value)}
+                            <input class="js-region-field" name="region[region]" type="hidden" value="{$_active_region_value|default:""|escape}">
+
+                        {else}
+                            <div class="wa-field-wrapper wa-country-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
+                                <label class="wa-label">{_render_label _label="[`Region`]" _required=!empty($_is_region_required)}</label>
+
+                                {if !empty($_active_county.has_regions)}
+                                    {$_active_region_id = null}
+                                    {if !empty($region.selected_values.region_id)}
+                                        {$_active_region_id = $region.selected_values.region_id}
+                                    {/if}
+
+                                    <select class="wa-select js-region-field" name="region[region]" {if !empty($_is_region_required)}required{/if}>
+                                        {foreach $_active_county.regions as $_region}
+                                            {$_is_active = false}
+
+                                            {if $_active_region_id == $_region.id}
+                                                {$_is_active = true}
+                                                {$_active_region = $_region}
+                                            {/if}
+
+                                            {if empty($_region.id) && $_is_active}
+                                                <option value="" selected disabled>[`Select a region`]</option>
+                                            {else}
+                                                <option value="{$_region.id|escape}" {if !empty($_is_active)}selected{/if}>{$_region.name|escape}</option>
+                                            {/if}
+                                        {/foreach}
+                                    </select>
+                                {else}
+                                    {$_region_value = null}
+                                    {if !empty($region.selected_values.region)}
+                                        {$_region_value = $region.selected_values.region}
+                                    {/if}
+
+                                    <input class="wa-input js-region-field" autocomplete="false" name="region[region]" type="text" value="{$_region_value|default:""|escape}" {if !empty($_is_region_required)}required{/if}>
+                                {/if}
+                            </div>
+
+                        {/if}
+
+                        {* CITY *}
+
+                        {$_active_city_id = $_active_location.city_id}
+                        {$_active_city_value = $_active_location.city}
+                        {if !empty($_active_city_id)}
+                            <input class="js-city-field" name="region[city_id]" type="hidden" value="{$_active_city_id|default:""|escape}">
+
+                        {elseif !empty($_active_city_value)}
+                            <input class="js-city-field" name="region[city]" type="hidden" value="{$_active_city_value|default:""|escape}">
+
+                        {else}
+                            <div class="wa-field-wrapper wa-city-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
+                                <label class="wa-label">{_render_label _label="[`Locality`]" _required=!empty($_is_city_required)}</label>
+
+                                {if $_active_region.has_cities}
+                                    {$_active_city_id = null}
+                                    {if isset($region.selected_values.city_id)}
+                                        {$_active_city_id = $region.selected_values.city_id}
+                                    {/if}
+
+                                    <select class="wa-select js-city-field" name="region[city_id]" {if !empty($_is_city_required)}required{/if}>
+                                        {foreach $_active_region.cities as $_city}
+                                            {$_is_active = false}
+                                            {if $_active_city_id == $_city.id}{$_is_active = true}{/if}
+
+                                            {if empty($_city.id) && $_is_active}
+                                                <option value="" selected disabled>[`Select a locality`]</option>
+                                            {else}
+                                                <option value="{$_city.id|escape}" {if !empty($_is_active)}selected{/if}>{$_city.name|escape}</option>
+                                            {/if}
+                                        {/foreach}
+                                    </select>
+                                {else}
+                                    {$_city_value = null}
+                                    {if isset($region.selected_values.city)}
+                                        {$_city_value = $region.selected_values.city}
+                                    {/if}
+
+                                    <input class="wa-input js-city-field js-city-autocomplete" autocomplete="false" name="region[city]" type="text" value="{$_city_value|default:""|escape}" {if !empty($_is_city_required)}required{/if}>
+                                {/if}
+                            </div>
+                        {/if}
+
+                        {* ZIP *}
+                        {$_zip_field}
                     </div>
+                {/if}
 
-                    {* ZIP *}
-                    {$_zip_field}
-                </div>
-
-            {elseif $_is_minimal_mode}
-                {$_region_value = $_active_location.region_id}
-                {if !empty($_active_location.region)}{$_region_value = $_active_location.region}{/if}
-
-                {$_city_value = $_active_location.city_id}
-                {if !empty($_active_location.city)}{$_city_value = $_active_location.city}{/if}
-
-                {* FIELDS GROUP 3 *}
-                <div class="wa-line wa-fields-group line">
-
-                    {* LOCATIONS *}
-                    <div class="wa-field-wrapper wa-location-wrapper size-medium">
-                        <label class="wa-label">{_render_label _label="[`Locations`]"}</label>
-
-                        <select class="wa-select js-location-field" name="region[location_id]" required>
-                            {foreach $region.locations as $_location}
-                                {$_is_active = false}
-                                {if $_active_location.id == $_location.id}{$_is_active = true}{/if}
-
-                                <option value="{$_location.id|escape}" {if !empty($_is_active)}selected{/if}>{$_location.name|default:"[`No name`]"|escape}</option>
-                            {/foreach}
-                        </select>
-                    </div>
-
-                    {* COUNTRY *}
-
-                    {$_active_country_id = $_active_location.country_id}
-                    {if !empty($region.selected_values.country_id)}
-                        {$_active_country_id = $region.selected_values.country_id}
-                    {/if}
-
-                    {if !empty($_active_country_id)}
-                        <input name="region[country]" type="hidden" value="{$_active_country_id|default:""|escape}">
-                    {/if}
-
-                    {* REGION *}
-
-                    {$_active_region_id = $_active_location.region_id}
-                    {if !empty($region.selected_values.region_id)}
-                        {$_active_region_id = $region.selected_values.region_id}
-                    {/if}
-
-                    {$_region_value = $_active_location.region}
-                    {if !empty($region.selected_values.region)}
-                        {$_region_value = $region.selected_values.region}
-                    {/if}
-
-                    {if !empty($_active_region_id)}
-                        <input name="region[region]" type="hidden" value="{$_active_region_id|default:""|escape}">
-                    {elseif !empty($_region_value)}
-                        <input name="region[region]" type="hidden" value="{$_region_value|default:""|escape}">
-                    {/if}
-
-                    {* CITY *}
-
-                    {$_active_city_id = $_active_location.city_id}
-                    {if !empty($region.selected_values.city_id)}
-                        {$_active_city_id = $region.selected_values.city_id}
-                    {/if}
-
-                    {$_city_value = $_active_location.city}
-                    {if !empty($region.selected_values.city)}
-                        {$_city_value = $region.selected_values.city}
-                    {/if}
-
-                    {if !empty($_active_city_id)}
-                        <input name="region[city_id]" type="hidden" value="{$_active_city_id|default:""|escape}">
-                    {elseif !empty($_city_value)}
-                        <input name="region[city]" type="hidden" value="{$_city_value|default:""|escape}">
-                    {/if}
-
-                    {* ZIP *}
-                    {$_zip_field}
-                </div>
+                {* @event checkout_render_region *}
+                {foreach $event_hook.region as $_}
+                    <div class="wa-plugin-hook">{$_}</div>
+                {/foreach}
             {/if}
-
-            {* @event checkout_render_region *}
-            {foreach $event_hook.region as $_}
-                <div class="wa-plugin-hook">{$_}</div>
-            {/foreach}
         </form>
     </div>
 
@@ -336,6 +453,7 @@
             ready_promise.then( function(controller) {
                 controller.initRegion({
                     $wrapper: $section,
+                    disabled: {if !empty($region.disabled)}true{else}false{/if},
                     errors: {$_errors|json_encode}
                 });
             });

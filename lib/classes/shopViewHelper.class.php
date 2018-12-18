@@ -243,7 +243,7 @@ class shopViewHelper extends waAppViewHelper
         }
         if ($selectable_product_ids) {
             $sql = <<<SQL
-SELECT pf.*
+SELECT DISTINCT pf.*
 FROM shop_product_features pf
 JOIN shop_product_features_selectable pfs
 ON

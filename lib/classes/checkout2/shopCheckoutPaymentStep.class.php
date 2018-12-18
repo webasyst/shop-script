@@ -7,21 +7,39 @@ class shopCheckoutPaymentStep extends shopCheckoutStep
 {
     public function process($data, $prepare_result)
     {
-        // Shipping option selected on previous step
-        $selected_variant = $data['shipping']['selected_variant'];
-        $shop_plugin_id = explode('.', $selected_variant['variant_id'], 2)[0];
+        // Is payment step disabled altogether?
+        $config = $this->getCheckoutConfig();
+        if (empty($config['payment']['used'])) {
+            return array(
+                'result' => $this->addRenderedHtml([
+                    'disabled' => true,
+                ], $data, []),
+                'errors' => [],
+                'can_continue' => true,
+            );
+        }
+
+        if (!empty($config['shipping']['used'])) {
+            // Filter based on shipping variant selected on previous step
+            $selected_shipping_plugin_id = explode('.', $data['shipping']['selected_variant']['variant_id'], 2)[0];
+            $selected_shipping_type = $data['shipping']['selected_variant']['type'];
+        } else {
+            // Shipping is disabled in checkout settings.
+            // Do not filter payment options based on selected shipping variant.
+            $selected_shipping_plugin_id = null;
+            $selected_shipping_type = null;
+        }
+
+        // List of available payment options
+        /** @var waContact $contact */
+        $contact = $data['contact'];
+        $customer_type = $contact['is_company'] ? shopCheckoutConfig::CUSTOMER_TYPE_COMPANY : shopCheckoutConfig::CUSTOMER_TYPE_PERSON;
+        $methods = $config->getPaymentRates($selected_shipping_plugin_id, $customer_type, $selected_shipping_type);
 
         // Currently selected payment option
         $selected_method_id = ifset($data, 'input', 'payment', 'id', null);
         // Payment custom field values for selected payment option
         $payment_custom_field_values = ifset($data, 'input', 'payment', 'custom', []);
-
-        // List of available payment options
-        $config = $this->getCheckoutConfig();
-        /** @var waContact $contact */
-        $contact = $data['contact'];
-        $customer_type = $contact['is_company'] ? shopCheckoutConfig::CUSTOMER_TYPE_COMPANY : shopCheckoutConfig::CUSTOMER_TYPE_PERSON;
-        $methods = $config->getPaymentRates($shop_plugin_id, $customer_type, $selected_variant['type']);
 
         // Fetch custom fields from each plugin
         foreach ($methods as $key => &$m) {

@@ -2,7 +2,7 @@
 
 class shopCategorySaveController extends waJsonController
 {
-    /** @var shopCategoryModel  */
+    /** @var shopCategoryModel */
     protected $model = null;
 
     public function execute()
@@ -12,12 +12,17 @@ class shopCategorySaveController extends waJsonController
         }
 
         $this->model = new shopCategoryModel();
-        $scm = new shopCategoryModel();
+
+        //Only update name
+        if (waRequest::get('edit', null, waRequest::TYPE_STRING_TRIM) === 'name') {
+            $this->saveCategoryName();
+            return null;
+        }
 
         $category_id = waRequest::get('category_id', null, waRequest::TYPE_INT);
         $data = $this->getData();
 
-        $parent = $scm->getById($data['parent_id']);
+        $parent = $this->model->getById($data['parent_id']);
         if ($parent && $parent['type'] == shopCategoryModel::TYPE_DYNAMIC && $data['type'] == shopCategoryModel::TYPE_STATIC) {
             throw new waException('You cannot create a static category in a dynamic category.');
         }
@@ -55,8 +60,21 @@ class shopCategorySaveController extends waJsonController
         if (isset($data['id'])) {
             unset($data['id']);
         }
-
         return $this->saveCategorySettings($category_id, $data);
+    }
+
+    private function saveCategoryName()
+    {
+        $name = waRequest::post('name', '', waRequest::TYPE_STRING_TRIM);
+        $category_id = waRequest::get('category_id', null, waRequest::TYPE_INT);
+
+        $this->model->updateById($category_id, array(
+            'name' => $name
+        ));
+        $this->response = array(
+            'id'   => $category_id,
+            'name' => htmlspecialchars($name)
+        );
     }
 
     private function saveCategorySettings($category_id, &$data)
@@ -216,11 +234,11 @@ class shopCategorySaveController extends waJsonController
                 $f_values = ifset($f_data, 'values', null);
                 if (substr($f_type, 0, 5) === 'range') {
                     $begin = ifset($f_values, 'begin', null);
-                    if ($begin) {
+                    if (is_numeric($begin)) {
                         $conditions[] = $f_code.'.value>='.$begin;
                     }
                     $end = ifset($f_values, 'end', null);
-                    if ($end) {
+                    if (is_numeric($end)) {
                         $conditions[] = $f_code.'.value<='.$end;
                     }
                 } elseif ($f_values) {

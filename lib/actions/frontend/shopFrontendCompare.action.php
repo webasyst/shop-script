@@ -85,8 +85,8 @@ class shopFrontendCompareAction extends waViewAction
          */
 
         $params = array(
-            'features' => $features,
-            'products' => $products,
+            'features' => &$features,
+            'products' => &$products,
         );
 
         $frontend_compare = wa()->event('frontend_compare', $params);

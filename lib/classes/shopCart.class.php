@@ -9,7 +9,7 @@ class shopCart
      * Constructor
      * @param string $code Cart unique ID
      */
-    public function __construct($code='', $options = array())
+    public function __construct($code = '', $options = array())
     {
         $this->code = waRequest::cookie(self::COOKIE_KEY, $code);
         if (!$this->code) {
@@ -80,7 +80,7 @@ class shopCart
     public function total($discount = true)
     {
         if (!$discount) {
-            return (float) $this->model()->total($this->code);
+            return (float)$this->model()->total($this->code);
         }
         $total = $this->getSessionData('total');
         if ($total === null) {
@@ -88,8 +88,8 @@ class shopCart
             if ($total > 0) {
                 $order = array(
                     'currency' => wa('shop')->getConfig()->getCurrency(false),
-                    'total' => $total,
-                    'items' => $this->items(false)
+                    'total'    => $total,
+                    'items'    => $this->items(false)
                 );
                 $discount = shopDiscounts::calculate($order);
                 $total = $total - $discount;
@@ -98,7 +98,7 @@ class shopCart
                 $this->setSessionData('total', $total);
             }
         }
-        return (float) $total;
+        return (float)$total;
     }
 
     /**
@@ -112,8 +112,8 @@ class shopCart
         $total = $this->model()->total($this->code);
         $order = array(
             'currency' => wa('shop')->getConfig()->getCurrency(false),
-            'total' => $total,
-            'items' => $this->items(false)
+            'total'    => $total,
+            'items'    => $this->items(false)
         );
         return shopDiscounts::calculate($order);
     }
@@ -172,10 +172,10 @@ class shopCart
         // Have to delete the whole item and create anew to do that.
         $data = array_intersect_key($data, [
             //'product_id' => 1, // nope
-            'sku_id' => 1,
+            'sku_id'             => 1,
             //'service_id' => 1, // nope
             'service_variant_id' => 1,
-            'quantity' => 1,
+            'quantity'           => 1,
         ]);
 
         if ($data) {
@@ -195,20 +195,20 @@ class shopCart
 
         $this->model()->updateByField([
             'code' => $this->code,
-            'id' => $item_id,
+            'id'   => $item_id,
         ], $data);
 
         if ($item['type'] == 'product') {
             $this->model()->updateByField([
-                'code' => $this->code,
+                'code'      => $this->code,
                 'parent_id' => $item_id,
             ], $data);
         }
 
         wa('shop')->event('cart_update', ref([
-            'item' => $data + $item,
+            'item'     => $data + $item,
             'old_item' => $item,
-            'update' => $data,
+            'update'   => $data,
         ]));
 
         $this->setSessionData('total', null);
@@ -222,8 +222,9 @@ class shopCart
      */
     public function setServiceVariantId($item_id, $variant_id)
     {
-        $this->model()->updateByField(array('code' => $this->code, 'id' => $item_id), array('service_variant_id' => $variant_id));
-        $this->setSessionData('total', null);
+        $this->updateItem($item_id, [
+            'service_variant_id' => $variant_id,
+        ]);
     }
 
     /**

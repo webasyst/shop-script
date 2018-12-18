@@ -56,6 +56,14 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
         $result['comment'] = ifset($data, 'input', 'confirm', 'comment', '');
         $result['terms'] = ifset($data, 'input', 'confirm', 'terms', '');
 
+        if ($this->checkout_config['confirmation']['terms'] && !$result['terms']) {
+            $errors[] = [
+                'name' => 'confirm[terms]',
+                'text' => _w('You have not accepted the terms of service.'),
+                'section' => 'confirm',
+            ];
+        }
+
         // Render template in case process() won't have a chance to do that
         $result = $this->addRenderedHtml($result, $data, $errors);
 

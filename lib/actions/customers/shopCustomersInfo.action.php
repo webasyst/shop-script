@@ -51,34 +51,13 @@ class shopCustomersInfoAction extends waViewAction
         }
         $contact['photo'] = $photo;
 
-        // Customer orders
+        // Customer orders info
         $orders_collection = new shopOrdersCollection('search/contact_id='.$id);
-        $total_count = $orders_collection->count();
-        $orders = $orders_collection->getOrders('*,items,params', 0, $total_count);
-        shopHelper::workupOrders($orders);
+        $total_paid_sum = $orders_collection->getTotalPaidSum();
+        $total_paid_num = $orders_collection->getTotalPaidNum();
+        $days_ago = $this->getLastOrderDaysAgo($orders_collection);
 
-
-        $total_paid_sum = 0;
-        $total_paid_num = 0;
-        $days_ago = null;
         $primary_currency = $config->getCurrency();
-
-        foreach ($orders as &$o) {
-            if ($days_ago === null) {
-                //$days_ago =
-                $create_date = date('Y-m-d 00:00:00', strtotime($o['create_datetime']));
-                $now_date = date('Y-m-d 00:00:00');
-                $days_ago = (strtotime($now_date) - strtotime($create_date)) / 86400;
-            }
-            $o['total_formatted'] = waCurrency::format('%{h}', $o['total'], $o['currency']);
-            $o['shipping_name'] = ifset($o['params']['shipping_name'], '');
-            $o['payment_name'] = ifset($o['params']['payment_name'], '');
-            if ($o['paid_date']) {
-                $total_paid_sum += ($o['total'] * $o['rate']);
-                $total_paid_num += 1;
-            }
-            // !!! TODO: shipping and payment icons
-        }
 
         if (abs($customer['total_spent'] - $total_paid_sum) > 1) {
             $scm->recalcTotalSpent($id);
@@ -115,7 +94,7 @@ class shopCustomersInfoAction extends waViewAction
         $this->view->assign('billing_map', $billing_map);
 
         $this->view->assign('top', $top);
-        $this->view->assign('orders', $orders);
+        $this->view->assign('orders_html', $this->getOrdersHtml($id));
         $this->view->assign('reviews', $reviews);
         $this->view->assign('contact', $contact);
         $this->view->assign('customer', $customer);
@@ -223,5 +202,31 @@ class shopCustomersInfoAction extends waViewAction
         $adapter = waLocale::getAdapter();
         $str = $adapter->ngettext('<strong>%s</strong> on %d paid order', '<strong>%s</strong> on %d paid orders', $total_paid_num);
         return sprintf($str, shop_currency_html($total_paid_sum), $total_paid_num);
+    }
+
+    protected function getLastOrderDaysAgo(shopOrdersCollection $collection)
+    {
+        // assume that collection ordered by 'create_datetime'
+        $orders = $collection->getOrders('*', 0, 1);
+        if (!$orders) {
+            return null;
+        }
+        $orders = array_values($orders);
+        $order = $orders[0];
+        $create_date = date('Y-m-d 00:00:00', strtotime($order['create_datetime']));
+        $now_date = date('Y-m-d 00:00:00');
+        return (strtotime($now_date) - strtotime($create_date)) / 86400;
+    }
+
+    protected function getOrdersHtml($id)
+    {
+        $view = wa()->getView();
+        $old_vars = $view->getVars();
+        $view->clearAllAssign();
+        $action = new shopCustomersOrdersAction(array('id' => $id));
+        $html = $action->display();
+        $view->clearAllAssign();
+        $view->assign($old_vars);
+        return $html;
     }
 }

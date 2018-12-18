@@ -10,6 +10,18 @@ class shopCheckoutRegionStep extends shopCheckoutStep
         // Read shop checkout settings
         $cfg = $this->getCheckoutConfig();
 
+        // Is shipping step disabled altogether?
+        if (empty($cfg['shipping']['used'])) {
+            $result = $this->addRenderedHtml([
+                'disabled' => true,
+            ], $data, []);
+            return array(
+                'result' => $result,
+                'errors' => [],
+                'can_continue' => true,
+            );
+        }
+
         // List of pre-defined locations
         if (ifempty($cfg, 'order', 'mode', shopCheckoutConfig::ORDER_MODE_TYPE_DEFAULT) == shopCheckoutConfig::ORDER_MODE_TYPE_DEFAULT) {
             // Default mode is like fixed mode with a single location
@@ -197,6 +209,7 @@ class shopCheckoutRegionStep extends shopCheckoutStep
 
             $loc = array(
                 'id' => $loc_id,
+                'name' => ifset($cfg_loc, 'name', ''),
                 'country_id' => $country_id,
 
                 'region_id' => null, // see below
@@ -291,7 +304,6 @@ class shopCheckoutRegionStep extends shopCheckoutStep
 /*
 
 Variables passed to template by prepare()
-!!! TODO should probably move this comment elsewhere...
 
 countries: [
   {

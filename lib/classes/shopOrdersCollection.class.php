@@ -257,10 +257,64 @@ class shopOrdersCollection
          */
         wa('shop')->event('orders_collection.prepared', $this);
 
+        $sql = $this->buildSQL(array(
+            'joins'    => $this->joins,
+            'where'    => $this->where,
+            'order_by' => $this->order_by
+        ));
+        return $sql;
+    }
+
+    /**
+     * Helper for building SQL query
+     *
+     * @param array $statements
+     *
+     *   - array 'joins'
+     *   - array 'where'
+     *   - string 'order_by'
+     *   - string 'group_by'
+     *   - array 'having'
+     *
+     * @return string
+     */
+    protected function buildSQL($statements)
+    {
+        $statements = is_array($statements) ? $statements : array();
+
+        // Prepare SQL statements
+
+        $joins = array();
+        if (isset($statements['joins']) && is_array($statements['joins'])) {
+            $joins = $statements['joins'];
+        }
+
+        $where = array();
+        if (isset($statements['where']) && is_array($statements['where'])) {
+            $where = $statements['where'];
+        }
+
+        $order_by = '';
+        if (isset($statements['order_by']) && is_scalar($statements['order_by'])) {
+            $order_by = (string)$statements['order_by'];
+        }
+
+        $group_by = '';
+        if (isset($statements['group_by']) && is_scalar($statements['group_by'])) {
+            $group_by = (string)$statements['group_by'];
+        }
+
+        $having = array();
+        if (isset($statements['having']) && is_array($statements['having'])) {
+            $having = $statements['having'];
+        }
+
+        // Build SQL query
+
         $sql = "\nFROM shop_order o";
 
-        if ($this->joins) {
-            foreach ($this->joins as $join) {
+        if ($joins) {
+            foreach ($joins as $join) {
                 $alias = isset($join['alias']) ? $join['alias'] : '';
                 if (isset($join['on'])) {
                     $on = $join['on'];
@@ -270,10 +324,24 @@ class shopOrdersCollection
                 $sql .= "\n\t".trim((!empty($join['type']) ? " ".$join['type'] : '')." JOIN").' '.$join['table']." AS ".$alias." ON ".$on;
             }
         }
-        if ($this->where) {
-            $sql .= "\nWHERE ".implode("\n\tAND ", $this->where);
+
+        if ($where) {
+            $sql .= "\nWHERE ".join("\n\tAND ", $where);
         }
-        $sql .= "\n".trim($this->getOrderBy());
+
+        if ($order_by) {
+            $sql .= "\nORDER BY ".trim($order_by);
+        }
+
+        if ($group_by) {
+            $sql .= "\nGROUP BY ".trim($group_by);
+        }
+
+        if ($having) {
+            $sql .= "\nHAVING ".join("\n\tAND ", $having);
+        }
+
+        // Return result
         return $sql;
     }
 
@@ -491,6 +559,54 @@ class shopOrdersCollection
         }
         return $data;
     }
+
+    /**
+     * @return int
+     * @throws waException
+     */
+    public function getTotalPaidNum()
+    {
+        $this->prepare();
+
+        $where = $this->where;
+        $where[] = 'o.paid_date IS NOT NULL';
+        $sql = $this->buildSQL(array(
+            'joins' => $this->joins,
+            'where' => $where,
+            'order_by' => $this->order_by
+        ));
+        $sql = "SELECT COUNT(".($this->joins ? 'DISTINCT ' : '')."o.id) ".$sql;
+        $num = (int)self::getModel()->query($sql)->fetchField();
+        return $num;
+    }
+
+    /**
+     * @return float
+     * @throws waException
+     */
+    public function getTotalPaidSum()
+    {
+        $this->prepare();
+
+        $where = $this->where;
+        $where[] = 'o.paid_date IS NOT NULL';
+        $this->addWhere('o.paid_date IS NOT NULL');
+
+        $statements = array(
+            'joins' => $this->joins,
+            'where' => $where,
+            'order_by' => $this->order_by
+        );
+        if ($this->joins) {
+            $statements['group_by'] = 'o.id';
+        }
+
+        $sql = $this->buildSQL($statements);
+        $sql = "SELECT SUM(o.total * o.rate) {$sql}";
+        $num = (float)self::getModel()->query($sql)->fetchField();
+        return $num;
+    }
+
 
     public function getFields($raw_fields)
     {
@@ -1045,19 +1161,6 @@ class shopOrdersCollection
     public function getType()
     {
         return $this->hash[0];
-    }
-
-    /**
-     * Returns ORDER BY clause
-     * @return string
-     */
-    protected function getOrderBy()
-    {
-        if ($this->order_by) {
-            return " ORDER BY ".$this->order_by;
-        } else {
-            return "";
-        }
     }
 
     /**

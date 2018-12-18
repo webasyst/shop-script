@@ -95,20 +95,20 @@
     {* Sort / used *}
     <td style="min-width: 38px; width: 38px;">
         <i class="icon16 sort"></i>
-        <input type="checkbox" data-name="enabled"{if $_location.enabled|default:false} checked{/if} title="[`Use location`]" />
+        <input type="checkbox" data-name="enabled"{if $_location.enabled|default:false} checked{/if} title="[`Use shipping area`]" />
     </td>
     {* Name *}
-    <td title="[`Location name`]">
+    <td title="[`Shipping area name`]">
         <span class="js-preview">{$_location.name|default:null|escape}</span>
-        <input class="s-input-narrow js-editor" type="text" autocomplete="off" data-name="name" value="{$_location.name|default:null|escape}" placeholder="[`Location name`]" style="display: none;" />
+        <input class="s-editor js-editor" type="text" autocomplete="off" data-name="name" value="{$_location.name|default:null|escape}" placeholder="[`Shipping area name`]" style="display: none;" />
     </td>
     {* Country *}
     <td title="[`Country`]">
         <span class="js-preview">{$countries[$_location.country|default:null].name|default:null|escape}</span>
-        <select class="js-location-country js-editor" data-name="country" style="display: none;">
+        <select class="js-location-country s-editor js-editor" data-name="country" style="display: none;">
             <option value="">[`Select a country`]</option>
             {foreach $countries as $_country_id => $_country}
-                <option value="{$_country_id|escape}" title="{$_country.name|escape}"{if $_location.country|default:null === $_country_id} selected{/if}>{$_country.name|escape|truncate:17:'...'}</option>
+                <option value="{$_country_id|escape}" title="{$_country.name|escape}"{if $_location.country|default:null === $_country_id} selected{/if}>{$_country.name|escape|truncate:30:'...'}</option>
             {/foreach}
         </select>
     </td>
@@ -123,29 +123,28 @@
                 {/foreach}
             {/if}
         </span>
-        <select class="js-location-region js-editor" data-name="region" style="display: none;">
+        <select class="js-location-region s-editor js-editor" data-name="region" style="display: none;">
             <option value="">[`Select a region`]</option>
             {foreach $regions as $_region}
-                <option value="{$_region.code|escape}" title="{$_region.name|escape}" data-country="{$_region.country_iso3|escape}"{if $_location.country|default:null == $_region.country_iso3 && $_location.region|default:null === $_region.code} selected{/if}>{$_region.name|escape|truncate:17:'...'}</option>
+                <option value="{$_region.code|escape}" title="{$_region.name|escape}" data-country="{$_region.country_iso3|escape}"{if $_location.country|default:null == $_region.country_iso3 && $_location.region|default:null === $_region.code} selected{/if}>{$_region.name|escape|truncate:30:'...'}</option>
             {/foreach}
         </select>
     </td>
     {* City *}
     <td title="[`Locality`]">
         <span class="js-preview">{$_location.city|default:null|escape}</span>
-        <input class="s-input-narrow js-location-city js-editor" type="text" data-name="city" value="{$_location.city|default:null|escape}" autocomplete="off" placeholder="[`Locality`]" style="display: none;" />
+        <input class="js-location-city s-editor js-editor" type="text" data-name="city" value="{$_location.city|default:null|escape}" autocomplete="off" placeholder="[`Locality`]" style="display: none;" />
     </td>
     {* Edit / Remove *}
-    <td class="align-right">
-        <i class="icon16 edit js-edit-location" title="[`Edit`]"></i>
-        <i class="icon16 no js-delete-location" title="[`Delete`]"></i>
+    <td class="align-right" style="min-width: 42px;max-width: 42px;">
+        <i class="icon16 edit js-edit-location" title="[`Edit`]"></i><i class="icon16 no js-delete-location" title="[`Delete`]"></i>
     </td>
 </tr>
 {/function}
 
 {function renderOrderNoLocations}
 <tr class="js-no-locations no-border">
-    <td style="text-align: center;">[`No locations added`]</td>
+    <td style="text-align: center;">[`No shipping areas added`]</td>
 </tr>
 {/function}
 
@@ -494,15 +493,12 @@
         <div class="value s-table-field-value radio js-order-mode-wrapper">
             {foreach $order_mode_variants as $_id => $_variant}
                 <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
-                    <label{if $_id === shopCheckoutConfig::ORDER_MODE_TYPE_MINIMUM} class="gray"{/if}>
-                        <input class="js-order-mode-variant" type="radio" name="data[order][mode]" value="{$_id|escape}"{if $settings.mode === $_id} checked{/if}{if $_id === shopCheckoutConfig::ORDER_MODE_TYPE_MINIMUM} disabled{/if} />
+                    <label>
+                        <input class="js-order-mode-variant" type="radio" name="data[order][mode]" value="{$_id|escape}"{if $settings.mode === $_id} checked{/if} />
                         {$_variant.name|escape}
+                        <div class="hint" style="margin: 10px 0 20px 18px;">{$_variant.description}</div>
                     </label>
-                    {if $_id === shopCheckoutConfig::ORDER_MODE_TYPE_MINIMUM}
-                        <div class="block-padded small">[`This mode will be available in Shop-Script 8.1.`]</div>
-                    {/if}
                     <div class="s-variant-params block-padded js-variant-params"{if $settings.mode !== $_id} style="display: none;"{/if}>
-                        <div class="hint" style="margin: 10px 0;">{$_variant.description|escape}</div>
                         {* DEFAULT MODE PARAMS *}
                         {if shopCheckoutConfig::ORDER_MODE_TYPE_DEFAULT === $_id}
                             {* Fixed delivery area *}
@@ -541,8 +537,7 @@
                                 </div>
                             </div>
 
-                            {* Shop map *}
-                            {*
+                            {* Pickup map *}
                             <div class="field">
                                 <div class="name">[`Show pickup points map`]</div>
                                 <div class="value radio">
@@ -551,17 +546,23 @@
                                             <label>
                                                 <input type="radio" name="data[order][show_pickuppoint_map]" value="{$_map_variant_id|escape}"{if $settings.show_pickuppoint_map === $_map_variant_id} checked{/if} />
                                                 {$_map_variant.name|escape}
+                                                {if isset($_map_variant.description)}
+                                                    <p class="hint">{$_map_variant.description}</p>
+                                                {/if}
                                             </label>
                                         </div>
                                     {/foreach}
                                 </div>
                             </div>
-                            *}
 
                         {* MINIMAL MODE PARAMS *}
                         {else}
-                            {*
-                            <table class="zebra s-sort-table js-sort-table js-locations-table">
+                            <div class="hint" style="margin: -10px 0 10px 0;">[`Use a fixed list of <strong>shipping areas</strong> if you deliver orders to a limited list of locations. Customers can quickly select a location from a list without having to select a country and region first.`]</div>
+                            <div class="hint" style="margin: 10px 0;">[`A <strong>country is required</strong> to be selected in shipping area properties. If a region or a city name are not specified, they will be requested from a customer.`]</div>
+                            <div class="hint" style="margin: 10px 0;">[`If <strong>no shipping areas have been set up</strong>, customers will have to select a country and a region, and to enter a city name to view available shipping options.`]</div>
+                            <div class="hint" style="margin: 10px 0;">[`If you set up <strong>only one shipping area</strong>, with <strong>country</strong>, <strong>region</strong>, and <strong>city</strong> specified, then customers will see at once all shipping options available for that area only, without an option to change location.`]</div>
+
+                            <table class="zebra s-locations-table s-sort-table js-sort-table js-locations-table">
                                 <tbody>
                                     {foreach $settings.locations_list as $_location}
                                         {renderOrderLocation _location=$_location}
@@ -573,10 +574,9 @@
                             <div style="margin-top: 10px;">
                                 <a href="javascript:void(0);" class="inline-link js-add-location">
                                     <i class="icon16 add"></i>
-                                    <b><i>[`Add location`]</i></b>
+                                    <b><i>[`Add shipping area`]</i></b>
                                 </a>
                             </div>
-                            *}
                         {/if}
                     </div>
                 </div>
@@ -621,7 +621,7 @@
 
     {* Customer type *}
     <div class="field">
-        <div class="name s-table-field-name bold">[`Customer type`]</div>
+        <div class="name s-table-field-name bold">[`Customer types`]</div>
         <div class="value s-table-field-value radio js-customer-type-wrapper">
             {foreach $customer_type_variants as $_id => $_variant}
                 <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
@@ -750,7 +750,7 @@
                 <label>
                     <input type="hidden" name="data[shipping][ask_zip]" value="0" />
                     <input class="js-shipping-ask-zip" type="checkbox" name="data[shipping][ask_zip]"{if $settings.ask_zip} checked{/if} />
-                    [`Request ZIP code with the city name`]
+                    [`Request ZIP code with the locality name`]
                 </label>
             </div>
         </div>
@@ -833,8 +833,8 @@
                                 <i style="display: inline-block; width: 16px; height: 16px; margin: -0.1em 0.25em 0 0;"></i>
                                 <label>
                                     <input type="checkbox" title="[`Use field`]" checked disabled>
-                                    [`City`]
-                                    <i class="hint">[`city`] — [`Text (input)`]</i>
+                                    [`Locality`]
+                                    <i class="hint">[`locality`] — [`Text (input)`]</i>
                                 </label>
                             </td>
                             <td>
@@ -851,7 +851,8 @@
                 </table>
                 <div class="hint" style="margin-top: 10px;">
                     <i class="icon10 edit"></i>
-                    {sprintf(_w('<a href="%s" target="_blank">Edit address fields</a> <i class="icon10 new-window"></i> in Settings app.'), "`$wa_backend_url`webasyst/settings/field/")}
+                    {sprintf(_w('<a href="%s" target="_blank">Edit address fields</a> <i class="icon10 new-window"></i> in Settings app.'), "`$wa_backend_url`webasyst/settings/field/")}<br>
+                    [`Address fields provided by shipping plugins will be displayed before custom fields that you may add.`]
                 </div>
             </div>
         </div>
@@ -955,8 +956,11 @@
         <div class="value radio js-order-without-auth-wrapper">
             <input type="hidden" name="data[confirmation][auth_with_code]" value="0" />
             {foreach $confirmation_order_without_auth_variants as $_id => $_variant}
-                {* TODO: Remove this if in 8.1 !!! *}
-                <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}"{if $_id == shopCheckoutConfig::ORDER_WITHOUT_AUTH_CONFIRM} style="display: none;"{/if}>
+                {* Someday we will make a confirmation. But it will not be today. *}
+                {if $_id == shopCheckoutConfig::ORDER_WITHOUT_AUTH_CONFIRM}
+                    {continue}
+                {/if}
+                <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
                     <label>
                         <input class="js-order-without-auth-variant" type="radio" name="data[confirmation][order_without_auth]" value="{$_id|escape}"{if $settings.order_without_auth === $_id} checked{/if} />
                         {$_variant.name|escape}
@@ -967,6 +971,7 @@
                     <div class="s-variant-params js-variant-params"></div>
                 </div>
             {/foreach}
+            {* Someday we will make a confirmation 2. *}
             {*
             <div class="s-auth-with-code js-auth-with-code">
                 <label>

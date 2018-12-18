@@ -14,6 +14,16 @@
                     {sprintf('[`<span class="s-checkout-2-label">In-cart checkout</span> setting for <i class="icon16 status-green"></i><span class="gray">%s/%s</span>`]', {$route.domain}, {$route.url|default:null|escape})}
                 </h1>
 
+                <div class="s-page-description" style="margin: 0 0 2em;">
+                    {$_storefront_settings_path = sprintf("?action=storefronts#/design/theme=%s&domain=%s&route=%s&action=settings", $route.theme|urlencode, waIdna::enc($route.domain)|urlencode, $route.route_id|urlencode)}
+                    <div>
+                        <a href="[`https://www.shop-script.com/help/29577/in-cart-checkout-settings/`]" target="_blank"><i class="icon16 info"></i>[`Setup instructions`]</a>
+                    </div>
+                    <div style="margin: 2em 0 0;">
+                        <span style="color: #888">{sprintf('[`In <a href="%s" target="_blank">storefront settings <i class="icon16 new-window"></i></a> you can switch between <strong>multi-step checkout</strong> and <strong>in-cart checkout</strong>.`]', $_storefront_settings_path)}</span>
+                    </div>
+                </div>
+
                 {* DESIGN SETTINGS *}
                 {design_block settings=$checkout_config.design}
 
@@ -77,9 +87,9 @@
                             <td class="s-block-container">
                                 {* Show/hide settings *}
                                 <div class="float-right">
-                                    {*
                                     {if !empty($shipping_plugins)}
                                         <div class="s-toggle-wrapper js-block-toggle-wrapper">
+                                            <input type="hidden" name="data[shipping][used]" value="0" />
                                             <input id="shipping_used" name="data[shipping][used]" class="ibutton js-toggle" type="checkbox"{if $checkout_config.shipping.used} checked="checked"{/if}>
                                             <label for="shipping_used">
                                                 <span class="s-toggle-status js-toggle-status{if !$checkout_config.shipping.used} disabled{/if}">{if $checkout_config.shipping.used}[`Enabled`]{else}[`Disabled`]{/if}</span>
@@ -101,12 +111,6 @@
                                             </label>
                                         </div>
                                     {/if}
-                                    *}
-
-                                    <a href="javascript:void(0);" class="inline-link s-settings-link js-settings-link"{if !$checkout_config.shipping.used} style="display: none;"{/if}>
-                                        <i class="icon16 settings"></i>
-                                        <b><i>[`Settings`]</i></b>
-                                    </a>
                                 </div>
                                 <h3 class="name">[`Shipping`]</h3>
                                 {if !empty($shipping_plugins)}
@@ -122,10 +126,10 @@
                             <td class="s-block-container">
                                 {* Show/hide settings *}
                                 <div class="float-right">
-                                    {*
                                     {if !empty($payment_plugins)}
                                         <div class="s-toggle-wrapper js-block-toggle-wrapper">
-                                            <input id="payment_used" name="data[payment][used]" class="ibutton js-toggle" type="checkbox"{if $checkout_config.payment.used} checked="checked"{/if}>
+                                            <input type="hidden" name="data[payment][used]" value="0" />
+                                            <input id="payment_used" name="data[payment][used]" value="1" class="ibutton js-toggle" type="checkbox"{if $checkout_config.payment.used} checked="checked"{/if}>
                                             <label for="payment_used">
                                                 <span class="s-toggle-status js-toggle-status{if !$checkout_config.payment.used} disabled{/if}">{if $checkout_config.payment.used}[`Enabled`]{else}[`Disabled`]{/if}</span>
                                             </label>
@@ -146,12 +150,6 @@
                                             </label>
                                         </div>
                                     {/if}
-                                    *}
-
-                                    <a href="javascript:void(0);" class="inline-link s-settings-link js-settings-link"{if !$checkout_config.payment.used} style="display: none;"{/if}>
-                                        <i class="icon16 settings"></i>
-                                        <b><i>[`Settings`]</i></b>
-                                    </a>
                                 </div>
                                 <h3 class="name">[`Payment`]</h3>
                                 {if !empty($payment_plugins)}

@@ -175,11 +175,8 @@ class shopCheckoutShipping extends shopCheckout
                     $items = $this->getItems();
 
                     $shipping_items = shopHelper::workupOrderItems($items, array_filter($options));
-                    $params = $this->getItemsTotal();
 
-                    $params = shopShipping::convertTotalDimensions($params, $options);
-
-                    $params = $this->extendShippingParams($params, $m['id']);
+                    $params = $this->getShippingParams($plugin, $m);
 
                     $m['rates'] = $plugin->getRates($shipping_items, $method_options['shipping_address'], $params);
                 }
@@ -439,14 +436,19 @@ class shopCheckoutShipping extends shopCheckout
 
             foreach ($cart_items as $item) {
                 $this->items[] = array(
-                    'name'     => $item['name'],
-                    'price'    => $item['price'],
-                    'currency' => $item['currency'],
-                    'quantity' => $item['quantity'],
-                    'weight'   => ifset($item['weight']),
-                    'height'   => ifset($item['height']),
-                    'width'    => ifset($item['width']),
-                    'length'   => ifset($item['length']),
+                    'name'               => $item['name'],
+                    'price'              => $item['price'],
+                    'currency'           => $item['currency'],
+                    'quantity'           => $item['quantity'],
+                    'type'               => ifset($item, 'type', null),
+                    'product_id'         => ifset($item, 'product_id', null),
+                    'sku_id'             => ifset($item, 'sku_id', null),
+                    'service_id'         => ifset($item, 'service_id', null),
+                    'service_variant_id' => ifset($item, 'service_variant_id', null),
+                    'weight'             => ifset($item, 'weight', null),
+                    'height'             => ifset($item, 'height', null),
+                    'width'              => ifset($item, 'width', null),
+                    'length'             => ifset($item, 'length', null),
                 );
             }
         }
@@ -466,7 +468,8 @@ class shopCheckoutShipping extends shopCheckout
 
     protected function extendShippingParams($params, $id)
     {
-        if ($shipping_params = waRequest::post('shipping_'.$id)) {
+        $shipping_params = shopShipping::getParams($id);
+        if (is_array($shipping_params)) {
             $params['shipping_params'] = $shipping_params;
         } else {
             $shipping = $this->getSessionData('shipping', array());
@@ -475,6 +478,7 @@ class shopCheckoutShipping extends shopCheckout
                 $params['shipping_params'] = ifset($session_params['shipping']);
             }
         }
+
         return $params;
     }
 
@@ -516,31 +520,9 @@ class shopCheckoutShipping extends shopCheckout
             return false;
         }
 
-        $total = $this->cart->total();
-        $currency = $plugin->allowedCurrency();
-
-        $shop_config = wa('shop')->getConfig();
-        /**
-         * @var shopConfig $shop_config
-         */
-        $current_currency = $shop_config->getCurrency(false);
-        /**
-         * @var string $current_currency
-         */
-        if ($currency != $current_currency) {
-            $total = shop_currency($total, $current_currency, $currency, false);
-        }
-
-        $params = array(
-            'total_price'     => $total,
-            'shipping_params' => null,
-        );
-
-        $params = $this->extendShippingParams($params, $id);
-
         $items = $this->getItems();
 
-        $params += shopShipping::convertTotalDimensions($this->getItemsTotal(), $plugin);
+        $params = $this->getShippingParams($plugin, $plugin_info);
 
         shopShipping::convertItemsDimensions($items, $plugin);
 
@@ -567,6 +549,14 @@ class shopCheckoutShipping extends shopCheckout
                 $result['rate'] = max($result['rate']);
             }
 
+            $currency = $plugin->allowedCurrency();
+
+            /** @var shopConfig $shop_config */
+            $shop_config = wa('shop')->getConfig();
+
+            /** @var string $current_currency */
+            $current_currency = $shop_config->getCurrency(false);
+
             // if $current_currency == $currency it's will be rounded to currency precision
             if ($result['rate']) {
                 $result['rate'] = shop_currency($result['rate'], $currency, $current_currency, false);
@@ -581,6 +571,21 @@ class shopCheckoutShipping extends shopCheckout
         $result['name'] = $plugin_info['name'].(!empty($result['name']) ? ' ('.$result['name'].')' : '');
         $result['tax_id'] = ifset($plugin_info['options']['tax_id']);
         return $result;
+    }
+
+    private $shipping_params = null;
+
+    protected function getShippingParams($plugin, $plugin_info)
+    {
+        if ($this->shipping_params === null) {
+            $items = $this->getItems();
+
+            $this->shipping_params = shopShipping::getItemsTotal($items);
+            $this->shipping_params['total_price'] = $this->cart->total();
+        }
+
+        $params = shopShipping::workupShippingParams($this->shipping_params, $plugin, $plugin_info);
+        return $this->extendShippingParams($params, $plugin_info['id']);
     }
 
     /**

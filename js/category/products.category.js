@@ -422,7 +422,8 @@ var shopDialogProductsCategory = (function ($) {
 
         // disable manual sort is show subcategory products
         $wrapper.find('.js-subcategory-toggle').change(function () {
-            if (that.checked) {
+            var self = this;
+            if (self.checked) {
                 $wrapper.find('.js-sort-type option[value=""]').attr('disabled', true).next().attr('selected', 'selected');
             } else {
                 $wrapper.find('.js-sort-type option[value=""]').attr('disabled', false);

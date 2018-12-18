@@ -1,0 +1,102 @@
+{$class_id = 's-customer-orders-wrapper'}
+{$wrapper_id = uniqid($class_id)}
+
+<div id="{$wrapper_id}" data-page="{$page}">
+    {if !count($orders)}
+        <p class="gray">{sprintf('[`%s did not purchase anything yet.`]', $contact.name|escape)}</p>
+    {else}
+        <table class="zebra double-padded s-customer-orders single-lined" id="s-order-list">
+            {foreach $orders as $o}
+                <tr>
+                    <td class="nowrap">
+                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
+                           style="{$o.style|escape}"
+                           data-order-id="{$o.id}"
+                           data-state-id="{$o.state_id}"
+                           class="s-order-link"
+                        >
+                            <i class="{$o.icon}"></i>{$wa->shop->orderId($o.id)}
+                        </a>
+                    </td>
+                    <td class="nowrap">
+                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
+                           style="{$o.style|escape}"
+                           data-order-id="{$o.id}"
+                           data-state-id="{$o.state_id}"
+                           class="s-order-link"
+                        >{$o.create_datetime|wa_date:'humandate'}</a>
+                    </td>
+                    <td>
+                        <div>
+                            <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
+                               style="{$o.style|escape}"
+                               data-order-id="{$o.id}"
+                               data-state-id="{$o.state_id}"
+                               class="s-order-link"
+                            >
+                                {if $o.shipping_name}
+                                    {$o.shipping_name}
+                                {else}
+                                    <span class="gray">[`Shipping option not specified`]</span>
+                                {/if}
+                            </a>
+                            <i class="shortener"></i>
+                        </div>
+                    </td>
+                    <td>
+                        <div>
+                            <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
+                               style="{$o.style|escape}"
+                               data-order-id="{$o.id}"
+                               data-state-id="{$o.state_id}"
+                               class="s-order-link"
+                            >
+                                {if $o.payment_name}
+                                    {$o.payment_name}
+                                {else}
+                                    <span class="gray">[`Payment option not specified`]</span>
+                                {/if}
+                            </a>
+                            <i class="shortener"></i>
+                        </div>
+                    </td>
+                    <td class="bold nowrap align-right">
+                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
+                           style="{$o.style|escape}"
+                           data-order-id="{$o.id}"
+                           data-state-id="{$o.state_id}"
+                           class="s-order-link"
+                        >{$o.total_formatted}</a>
+                    </td>
+                </tr>
+            {/foreach}
+        </table>
+
+        <div class="s-customer-orders-pagination-wrapper">
+            {wa_pagination
+                page=$page
+                total=$pages_count
+                attrs=['class' => "menu-h"]
+            }
+        </div>
+
+        {$include_js = $wa->get('include_js')}
+
+        {* DEFAULT VALUE *}
+        {if $include_js === null}
+            {$include_js = true}
+        {/if}
+
+        {if $include_js}
+            <script>
+                new ShopCustomerOrders({
+                    $wrapper: $('#{$wrapper_id}'),
+                    contact: {
+                        id: {$contact.id|json_encode}
+                    }
+                });
+            </script>
+        {/if}
+
+    {/if}
+</div>

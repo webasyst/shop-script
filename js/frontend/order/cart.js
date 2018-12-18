@@ -407,22 +407,29 @@
                             $input.attr("disabled", false).trigger("enabled");
                         })
                         .then(function(api) {
-                            var new_id = api.just_added_item.id;
-                            $service
-                                .addClass(active_class)
-                                .attr("data-id", new_id).data("id", new_id)
-                                .attr("data-enabled", "1").data("enabled", 1);
 
-                            if ($select.length) { $select.attr("disabled", false).trigger("enabled"); }
+                            if (!api.just_added_item) {
+                                that.DEBUG(api.errors, "error");
+                                that.reload();
 
-                            that.DEBUG("Service added.", "info", $service[0], api);
-
-                            if (that.cart_save_promise) {
-                                that.cart_save_promise.then( function(api) {
-                                    that.updateCart(api);
-                                });
                             } else {
-                                that.updateCart(api);
+                                var new_id = api.just_added_item.id;
+                                $service
+                                    .addClass(active_class)
+                                    .attr("data-id", new_id).data("id", new_id)
+                                    .attr("data-enabled", "1").data("enabled", 1);
+
+                                if ($select.length) { $select.attr("disabled", false).trigger("enabled"); }
+
+                                that.DEBUG("Service added.", "info", $service[0], api);
+
+                                if (that.cart_save_promise) {
+                                    that.cart_save_promise.then( function(api) {
+                                        that.updateCart(api);
+                                    });
+                                } else {
+                                    that.updateCart(api);
+                                }
                             }
                         }, function(state, data) {
                             that.DEBUG("Add service is aborted.", "warn", state, data);

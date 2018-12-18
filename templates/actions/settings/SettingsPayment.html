@@ -53,7 +53,7 @@
                     {/if}
                 </td>
                 <td>
-                    <h3 class="large{if empty($plugin.status)} gray{/if}">
+                    <h3 class="large{if empty($plugin.status)} gray{/if}  js-plugin-title">
                         {$plugin.name|escape}
                         {if empty($plugin.status)}([`disabled`]){/if}
                         {if empty($plugin.installed)}
@@ -73,8 +73,14 @@
                 </td>
                 <td>
                     <ul class="menu-h with-icons">
-                        <li><a href="#/payment/plugin/setup/{$id}/" class="nowrap"><i class="icon16 settings"></i>[`Configure`]</a></li>
-                        <li><a href="#/payment/plugin/delete/{$id}/" class="nowrap js-action js-confirm" data-confirm-text="[`This will permanently delete this payment option. Are you sure?`]"><i class="icon16 delete"></i>[`Delete`]</a></li>
+                        <li><a href="#/payment/plugin/setup/{$id}/" class="nowrap js-payment-plugin-setup"><i class="icon16 settings"></i>[`Configure`]</a></li>
+                        <li>
+                            <a href="#" class="nowrap js-payment-plugin-clone">
+                                <i class="icon16 split"></i>[`Create a copy`]
+                            </a>
+                        </li>
+                        <li><a href="#/payment/plugin/delete/{$id}/" class="nowrap js-action js-confirm js-payment-plugin-delete"
+                               data-confirm-text="[`This will permanently delete this payment option. Are you sure?`]"><i class="icon16 delete"></i>[`Delete`]</a></li>
                     </ul>
                 </td>
 
@@ -100,6 +106,10 @@
 <script type="text/javascript">
 document.title = '{"[`Payment`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
 if(typeof($)!='undefined') {
-$.settings.paymentInit();
+$.settings.paymentInit({
+    locales: {
+        disabled: {_w('disabled')|json_encode}
+    }
+});
 }
 </script>

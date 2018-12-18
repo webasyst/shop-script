@@ -1,0 +1,93 @@
+{strip}
+
+{$_filters = []}
+{foreach $_variants as $_variant}
+    {if !empty($_variant.service) && !in_array($_variant.service, $_filters)}
+        {$_filters[$_variant.service] = [
+            "id" => $_variant.service,
+            "name" => $_variant.service
+        ]}
+    {/if}
+{/foreach}
+
+<div class="wa-order-dialog wa-shipping-pickup-dialog">
+    <div class="wa-dialog-background"></div>
+    <div class="wa-dialog-body with-full-height">
+        <header class="wa-dialog-header">
+            <div>
+                <div class="wa-header">[`Pickup option selection`]</div>
+
+                <div class="wa-line wa-mobile-content">
+                    <div class="wa-toggle wa-mobile-view-toggle js-mobile-view-toggle">
+                        <span class="selected" data-id="list">[`List`]</span>
+                        <span class="" data-id="map">[`Map`]</span>
+                    </div>
+                </div>
+            </div>
+
+            <span class="wa-close-wrapper js-close-dialog">
+                <i class="wa-icon delete size-10"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#delete"></use></svg></i>
+            </span>
+        </header>
+        <div class="wa-dialog-content">
+
+            <div class="wa-content-section">
+                <div class="wa-map-section">
+                    <div class="wa-map-wrapper" id="wa-yandex-map"></div>
+                </div>
+
+                <div class="wa-sidebar-section">
+                    <div class="wa-variants-section">
+                        {if !empty($_filters)}
+                            <div class="wa-filters-wrapper">
+                                [`Shipping services`]:
+                                <div class="wa-filters-list">
+                                    {foreach $_filters as $_filter}
+                                        {if empty($_filter.id)}{break}{/if}
+
+                                        <div class="wa-filter-wrapper js-set-filter" data-id="{$_filter.id|escape}">
+                                            <span class="wa-name">{$_filter.name|escape}</span>
+                                            <span class="wa-action"><i class="wa-icon delete"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#delete"></use></svg></i></span>
+                                        </div>
+                                    {/foreach}
+                                </div>
+                            </div>
+                        {/if}
+
+                        <div class="wa-variants-list">
+                            {foreach $_variants as $_variant}{if !empty($_variant.service)}
+                                <div class="wa-variant-wrapper js-show-variant-details" data-id="{$_variant.variant_id|escape}" data-service-id="{$_variant.service|default:""|escape}" title="{$_variant.name|escape}">
+                                    <div class="wa-name">{$_variant.name|escape}</div>
+
+                                    {if !empty($_variant.formatted_price)}
+                                        <span class="wa-price">{$_variant.formatted_price}</span>
+                                    {/if}
+
+                                    {if !empty($_variant.formatted_date)}
+                                        <span class="wa-date">{$_variant.formatted_date}</span>
+                                    {/if}
+
+                                    {if !empty($_variant.service)}
+                                        <span class="wa-service">{$_variant.service|escape}</span>
+                                    {/if}
+                                </div>
+                            {/if}{/foreach}
+                        </div>
+                    </div>
+
+                    <div class="wa-variant-details-section">
+                        <div class="wa-section-header">
+                            <a class="js-show-variants-list" href="javascript:void(0);">
+                                <i class="wa-icon delete size-10"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#arrow-left"></use></svg></i> [`Back`]
+                            </a>
+                        </div>
+                        <div class="wa-section-body"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{/strip}

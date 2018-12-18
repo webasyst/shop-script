@@ -11826,12 +11826,12 @@ msgid "Field width"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:98
-msgid "Use location"
+msgid "Use shipping area"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:101
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:103
-msgid "Location name"
+msgid "Shipping area name"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:127
@@ -11847,7 +11847,7 @@ msgid "Locality"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:148
-msgid "No locations added"
+msgid "No shipping areas added"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:159
@@ -12023,7 +12023,7 @@ msgid "Show pickup points map"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:571
-msgid "Add location"
+msgid "Add shipping area"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:599
@@ -12084,7 +12084,7 @@ msgid "ZIP code"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:747
-msgid "Request ZIP code with the city name"
+msgid "Request ZIP code with the locality name"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:755
@@ -12693,7 +12693,7 @@ msgid "To view shipping cost and estimated shipping time, please complete fields
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/frontend/order/form/region.html:197
-msgid "Select a city"
+msgid "Select a locality"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/frontend/order/form/region.html:259
@@ -13203,16 +13203,12 @@ msgstr ""
 msgid "Minimal"
 msgstr ""
 
-#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:225
-msgid "Fixed list of shipping areas. Available shipping options are not grouped by type—“courier”, “pickup”, “post”. There is no option to select a pickup point on a map."
-msgstr ""
-
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:235
 msgid "Always show"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:237
-msgid "Except for mobile devices"
+msgid "Only on screens over 760 pixels wide"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:241
@@ -13815,7 +13811,7 @@ msgid "Additional order picking time"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:65
-msgid "Added to order ready time calculated by storefront business hours."
+msgid "Specify a period of time expressed in hours. It will be added to order ready time calculated by storefront business hours."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:66

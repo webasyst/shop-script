@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 1.8.7.1\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -10950,6 +10950,12 @@ msgstr "Персоны"
 msgid "Companies"
 msgstr "Компании"
 
+msgid "Person"
+msgstr "Персона"
+
+msgid "Company"
+msgstr "Компания"
+
 msgid "In  “%s” mode shipping is offered only to selected customer types.<br>In “%s” mode this setting is ignored and shipping is always offered to all customer types."
 msgstr "В режиме «%s» доставка предлагается только выбранным типам покупателей.<br>В режиме «%s» эта настройка игнорируется, и доставка всегда предлагается всем типам покупателей."
 
@@ -11050,7 +11056,7 @@ msgid "Values in “%s” column denote the last hour of a workday before which 
 msgstr "Значения в столбце «%s» обозначают последний час рабочего дня, до которого заказы принимаются для обработки в течение дня. Заказы, оформленные после указанного часа, обрабатываются на следующий день."
 
 msgid "<span class=\"s-checkout-2-label\">In-cart checkout</span> setting for <i class=\"icon16 status-green\"></i><span class=\"gray\">%s/%s</span>"
-msgstr "Настройка <span class=\"s-checkout-2-label\">Оформления заказа в корзине</span> на <i class=\"icon16 status-green\"></i><span class=\"gray\">%s/%s</span>"
+msgstr "Настройка <span class=\"s-checkout-2-label\">оформления заказа в корзине</span> для <i class=\"icon16 status-green\"></i><span class=\"gray\">%s/%s</span>"
 
 msgid "Checkout page demo"
 msgstr "Демо страницы оформления заказа"
@@ -11124,6 +11130,9 @@ msgstr "Выберите регион"
 msgid "Locality"
 msgstr "Населенный пункт"
 
+msgid "locality"
+msgstr "населенный пункт"
+
 msgid "Separate locality names with a comma."
 msgstr "Перечислите населенные пункты через запятую."
 
@@ -11138,6 +11147,9 @@ msgstr "Текст предложения выйти из аккаунта"
 
 msgid "Customer type"
 msgstr "Тип покупателя"
+
+msgid "Customer types"
+msgstr "Типы покупателей"
 
 msgid "Person mode name"
 msgstr "Название режима для персон"
@@ -11163,8 +11175,8 @@ msgstr "Компании:"
 msgid "<a href=\"%s\" target=\"_blank\">Add and configure shipping methods <i class=\"icon16 new-window\"></i></a>"
 msgstr "<a href=\"%s\" target=\"_blank\">Добавить и настроить способы доставки <i class=\"icon16 new-window\"></i></a>"
 
-msgid "Request ZIP code with the city name"
-msgstr "Запрашивать индекс вместе с городом"
+msgid "Request ZIP code with the locality name"
+msgstr "Запрашивать индекс вместе с названием населенного пункта"
 
 msgid "“Courier” shipping type title"
 msgstr "Название для типа доставки «Курьер»"
@@ -11177,6 +11189,9 @@ msgstr "Название для типа доставки «Почта»"
 
 msgid "<a href=\"%s\" target=\"_blank\">Edit address fields</a> <i class=\"icon10 new-window\"></i> in Settings app."
 msgstr "<a href=\"%s\" target=\"_blank\">Редактировать поля адреса</a> <i class=\"icon10 new-window\"></i> в приложении «Настройки»."
+
+msgid "Address fields provided by shipping plugins will be displayed before custom fields that you may add."
+msgstr "Поля адреса, запрашиваемые плагинами доставки, отображаются выше добавленных вами дополнительных полей."
 
 msgid "Shipping plugins response waiting time"
 msgstr "Время ожидания ответа от плагинов доставки"
@@ -11223,17 +11238,17 @@ msgstr "Заголовок страницы «Спасибо»"
 msgid "“Thank you” page text"
 msgstr "Текст страницы «Спасибо»"
 
-msgid "Use location"
-msgstr "Использовать локацию"
+msgid "Use shipping area"
+msgstr "Использовать область доставки"
 
-msgid "Location name"
-msgstr "Название локации"
+msgid "Shipping area name"
+msgstr "Название области доставки"
 
-msgid "No locations added"
-msgstr "Нет добавленных локаций"
+msgid "No shipping areas added"
+msgstr "Нет добавленных областей доставки"
 
-msgid "Add location"
-msgstr "Добавить локацию"
+msgid "Add shipping area"
+msgstr "Добавить область доставки"
 
 msgid "Mini"
 msgstr "Мини"
@@ -11268,17 +11283,32 @@ msgstr "Доступные варианты доставки сгруппиро�
 msgid "Minimal"
 msgstr "Минимальный"
 
-msgid "Fixed list of shipping areas. Available shipping options are not grouped by type—“courier”, “pickup”, “post”. There is no option to select a pickup point on a map."
-msgstr "Фиксированный список областей доставки. Доступные варианты доставки показаны общим списком без группировки по типам: «курьер», «самовывоз», «почта». Нет возможности выбрать пункт самовывоза на карте."
+msgid "Use a fixed list of <strong>shipping areas</strong> if you deliver orders to a limited list of locations. Customers can quickly select a location from a list without having to select a country and region first."
+msgstr "Используйте фиксированные <strong>области доставки</strong>, если вы отправляете заказы в ограниченный список населенных пунктов или регионов. Покупатели смогут выбирать названия областей доставки из небольшого списка без необходимости указывать страну и регион."
+
+msgid "A <strong>country is required</strong> to be selected in shipping area properties. If a region or a city name are not specified, they will be requested from a customer."
+msgstr "<strong>Страну нужно выбрать обязательно</strong> в свойствах области доставки. Если регион или название города не указаны, их должны будут указывать покупатели."
+
+msgid "If <strong>no shipping areas have been set up</strong>, customers will have to select a country and a region, and to enter a city name to view available shipping options."
+msgstr "Если вы <strong>не настроите области доставки</strong>, покупатели должны будут выбирать страну и регион и вводить название населенного пункта, чтобы увидеть список доступных вариантов доставки."
+
+msgid "If you set up <strong>only one shipping area</strong>, with <strong>country</strong>, <strong>region</strong>, and <strong>city</strong> specified, then customers will see at once all shipping options available for that area only, without an option to change location."
+msgstr "Если вы настроите <strong>только одну область доставки</strong> — с указанием <strong>страны</strong>, <strong>региона</strong> и <strong>города</strong>, покупатели сразу увидят все варианты доставки, доступные для этой области — без возможности сменить область доставки."
+
+msgid "Shipping options are not grouped by types—“courier”, “pickup”, “post”. There is no option to select a pickup point on a map."
+msgstr "Варианты доставки показаны общим списком без группировки по типам: «курьер», «самовывоз», «почта». Выбор пункта самовывоза на карте недоступен."
 
 msgid "Always show"
 msgstr "Всегда показывать"
 
-msgid "Except for mobile devices"
-msgstr "Кроме мобильных устройств"
+msgid "Only on screens over 760 pixels wide"
+msgstr "Только на экранах шириной больше 760 пикселей"
 
 msgid "Never show"
 msgstr "Никогда не показывать"
+
+msgid "A small map with one pickup point will be shown by a click on an address in the pickup point selection dialog."
+msgstr "При выборе пункта самовывоза по нажатию на адрес будет показана мини-карта только с одним пунктом выдачи заказов."
 
 msgid "Persons & companies"
 msgstr "Персоны и компании"
@@ -11376,8 +11406,8 @@ msgstr "Обязательное поле"
 msgid "To view shipping cost and estimated shipping time, please complete fields with an asterisk"
 msgstr "Для расчета стоимости и срока доставки заполните поля со звездочкой"
 
-msgid "Select a city"
-msgstr "Выберите город"
+msgid "Select a locality"
+msgstr "Выберите населенный пункт"
 
 msgid "No name"
 msgstr "Нет названия"
@@ -11506,7 +11536,7 @@ msgstr "Страны и регионы настраиваются в прило�
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:9
 msgid "Multi-step checkout setup"
-msgstr "Настройка «Пошагового оформления заказа»"
+msgstr "Настройка пошагового оформления заказа"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:17
 msgid "Checkout setup tips"
@@ -11843,8 +11873,8 @@ msgstr "Общие настройки оформления заказа"
 msgid "Additional order picking time"
 msgstr "Дополнительное время на комплектацию"
 
-msgid "Added to order ready time calculated by storefront business hours."
-msgstr "Прибавляется ко времени готовности заказа с учетом режима работы витрины."
+msgid "Specify a period of time expressed in hours. It will be added to order ready time calculated by storefront business hours."
+msgstr "Укажите период времени в часах. Он будет добавлен ко времени готовности заказа с учетом режима работы витрины."
 
 msgid "This setting is used only with in-cart checkout option."
 msgstr "Эта настройка используется только в режиме оформления заказа в корзине."
@@ -11899,3 +11929,45 @@ msgstr "URL сайта"
 
 msgid "This mode will be available in Shop-Script 8.1."
 msgstr "Этот режим будет доступен в Shop-Script 8.1."
+
+msgid "Shipping area"
+msgstr "Область доставки"
+
+msgid "Select a point"
+msgstr "Выбрать пункт"
+
+msgid "Pickup option selection"
+msgstr "Выбор варианта самовывоза"
+
+msgid "List"
+msgstr "Список"
+
+msgid "Map"
+msgstr "Карта"
+
+msgid "Shipping services"
+msgstr "Службы доставки"
+
+msgid "Select a shipping type."
+msgstr "Выберите тип доставки."
+
+msgid "Select a shipping option."
+msgstr "Выберите вариант доставки."
+
+msgid "Manual product sorting may work inconsistently in this mode. Select other sorting options for stable results."
+msgstr "Сортировка товаров вручную может работать непредсказуемо в этом режиме. Для получения стабильного результата выберите другой вариант сортировки."
+
+msgid "In <a href=\"%s\" target=\"_blank\">storefront settings <i class=\"icon16 new-window\"></i></a> you can switch between <strong>multi-step checkout</strong> and <strong>in-cart checkout</strong>."
+msgstr "В <a href=\"%s\" target=\"_blank\">настройках витрины <i class=\"icon16 new-window\"></i></a> можно переключаться между <strong>пошаговым оформлением заказа</strong> и <strong>оформлением заказа в корзине</strong>."
+
+msgid "https://www.shop-script.com/help/29577/in-cart-checkout-settings/"
+msgstr "https://support.webasyst.ru/shop-script/29292/in-cart-checkout/"
+
+msgid "Setup instructions"
+msgstr "Инструкция по настройке"
+
+msgid "Common settings for all storefronts with multi-step checkout."
+msgstr "Общие настройки для всех витрин с пошаговым оформлением заказа."
+
+msgid "Online store"
+msgstr "Интернет-магазин"

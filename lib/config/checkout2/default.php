@@ -41,15 +41,15 @@ return array(
         'type'                   => shopCheckoutConfig::CUSTOMER_TYPE_PERSON,
         'fields_person'          => array(),
         'fields_company'         => array(),
-        'person_mode_name'       => _wd('shop', 'Persons'),
-        'company_mode_name'      => _wd('shop', 'Companies'),
+        'person_mode_name'       => _wd('shop', 'Person'),
+        'company_mode_name'      => _wd('shop', 'Company'),
         'company_hint'           => '',
         'company_terms'          => '',
         'service_agreement'      => shopCheckoutConfig::CUSTOMER_SERVICE_AGREEMENT_TYPE_NO,
         'service_agreement_hint' => '',
     ),
     'shipping'     => array(
-        'used'                   => true, // TODO: revert this setting in next release !!!
+        'used'                   => false,
         'block_name'             => _wd('shop', 'Shipping'),
         'ask_zip'                => false,
         'courier_name'           => _wd('shop', 'Courier'),
@@ -61,7 +61,7 @@ return array(
         'plugin_timeout'         => 10, // In seconds
     ),
     'payment'      => array(
-        'used'       => true, // TODO: revert this setting in next release !!!
+        'used'       => false,
         'block_name' => _wd('shop', 'Payment')
     ),
     'confirmation' => array(

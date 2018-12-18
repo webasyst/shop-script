@@ -24,12 +24,13 @@ if (typeof($) != 'undefined') {
         $payment_plugin_container: null,
         $payment_container: null,
         $payment_menu: null,
+        locales: null,
         /**
          * Init section
          *
          * @param string tail
          */
-        paymentInit: function () {
+        paymentInit: function (options) {
             $.shop.trace('$.settings.paymentInit');
             var self = this;
             /* init settings */
@@ -85,6 +86,10 @@ if (typeof($) != 'undefined') {
                 var customer_type = self.$payment_plugin_container.find(':input[name="payment\[options\]\[customer_type\]"]:checked').val();
                 self.paymentFilterShippingPlugins(customer_type, shipping_type);
             });
+
+            self.locales = options.locales;
+            //init clone plugin
+            self.paymentPluginClone();
         },
 
         /**
@@ -207,6 +212,41 @@ if (typeof($) != 'undefined') {
 
                 self.$payment_plugin_container.find(':input[name="payment[options][customer_type]"]:checked, :input[name^="payment\[shipping_type\]"]').trigger('change');
             });
+        },
+
+       paymentPluginClone: function () {
+            var that = this,
+                $plugin_list = $('#s-settings-payment');
+
+            $plugin_list.on('click', '.js-payment-plugin-clone', function (e) {
+                e.preventDefault();
+                var $self = $(this),
+                    $tr = $self.closest('tr'),
+                    original_id = $tr.data('id');
+
+                $.post('?module=settings&action=systemPluginClone', {original_id: original_id, type: 'payment'}).success(function (r) {
+                    if (r && r.data && r.data.plugin_id) {
+                        var id = r.data.plugin_id,
+                            $new_plugin = $tr.clone().attr('data-id', id),
+                            $title = $new_plugin.find('.js-plugin-title'),
+                            is_off = $title.hasClass('gray'),
+                            $setup = $new_plugin.find('.js-payment-plugin-setup'),
+                            $delete = $new_plugin.find('.js-payment-plugin-delete');
+
+                        //if plugin now off not need add text
+                        if (!is_off) {
+                            $title.addClass('gray').text($title.text() + '(' + that.locales['disabled'] +')');
+                        }
+
+                        //change id in url
+                        $setup.attr('href', '#/payment/plugin/setup/' + id +'/');
+                        $delete.attr('href', '#/payment/plugin/delete/' + id +'/');
+
+                        //add new node
+                        $plugin_list.append($new_plugin);
+                    }
+                });
+            })
         },
 
         /**

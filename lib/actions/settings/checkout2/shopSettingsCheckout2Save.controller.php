@@ -101,6 +101,9 @@ class shopSettingsCheckout2SaveController extends waJsonController
             if (empty($location['name'])) {
                 $this->insertError("[order][locations_list][{$i}][name]", _w('Empty value'));
             }
+            if (empty($location['country'])) {
+                $this->insertError("[order][locations_list][{$i}][country]", _w('Empty value'));
+            }
         }
     }
 

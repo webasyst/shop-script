@@ -35,7 +35,7 @@
                         {/foreach}
                     </ul>
                     <span class="small">[`Or specify image URL (must be exactly 16x16 pixels):`]<br>
-                        <input value="{if substr($category.icon, 0, 7) == 'http://'}{$category.icon|escape}{else}http://{/if}" type="text" id="icon">
+                        <input value="{if substr($category.icon, 0, 4) == 'http'}{$category.icon|escape}{else}https://{/if}" type="text" id="icon">
                     </span>
                 </div>
             </div>
@@ -77,7 +77,7 @@
 
         var icon = $('#icon').val();
 
-        if (icon.length < 8 || icon.substr(0, 7) != 'http://') {
+        if (icon.length < 8 || icon.substr(0, 4) !== 'http') {
             if ($('#icons li.selected i').length > 0) {
                 icon = $('#icons li.selected i').attr('class').replace('icon16 ', '');
             } else {

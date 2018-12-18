@@ -125,76 +125,8 @@
                 {/if}
             </h2>
 
-            {if !count($orders)}
-                <p class="gray">{sprintf('[`%s did not purchase anything yet.`]', $contact.name|escape)}</p>
-            {else}
-                <table class="zebra double-padded s-customer-orders single-lined" id="s-order-list">
-                    {foreach $orders as $o}
-                        <tr>
-                            <td class="nowrap">
-                                <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                                                  style="{$o.style|escape}"
-                                                  data-order-id="{$o.id}"
-                                                  data-state-id="{$o.state_id}"
-                                                  class="s-order-link"
-                                            >
-                                    <i class="{$o.icon}"></i>{$wa->shop->orderId($o.id)}
-                                </a>
-                            </td>
-                            <td class="nowrap">
-                                <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                                              style="{$o.style|escape}"
-                                              data-order-id="{$o.id}"
-                                              data-state-id="{$o.state_id}"
-                                              class="s-order-link"
-                                        >{$o.create_datetime|wa_date:'humandate'}</a>
-                            </td>
-                            <td>
-                                <div>
-                                    <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                                                  style="{$o.style|escape}"
-                                                  data-order-id="{$o.id}"
-                                                  data-state-id="{$o.state_id}"
-                                                  class="s-order-link"
-                                            >
-                                            {if $o.shipping_name}
-                                                {$o.shipping_name}
-                                            {else}
-                                                <span class="gray">[`Shipping option not specified`]</span>
-                                            {/if}
-                                    </a>
-                                    <i class="shortener"></i>
-                                </div>
-                            </td>
-                            <td>
-                                <div>
-                                    <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                                                  style="{$o.style|escape}"
-                                                  data-order-id="{$o.id}"
-                                                  data-state-id="{$o.state_id}"
-                                                  class="s-order-link"
-                                            >
-                                        {if $o.payment_name}
-                                            {$o.payment_name}
-                                        {else}
-                                            <span class="gray">[`Payment option not specified`]</span>
-                                        {/if}
-                                    </a>
-                                    <i class="shortener"></i>
-                                </div>
-                            </td>
-                            <td class="bold nowrap align-right">
-                                    <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                                                  style="{$o.style|escape}"
-                                                  data-order-id="{$o.id}"
-                                                  data-state-id="{$o.state_id}"
-                                                  class="s-order-link"
-                                            >{$o.total_formatted}</a>
-                            </td>
-                        </tr>
-                    {/foreach}
-                </table>
-            {/if}
+            <!-- ORDER LIST HTML BLOCK -->
+            {$orders_html|default:''}
 
             <br><br>
 

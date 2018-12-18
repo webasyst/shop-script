@@ -3,29 +3,34 @@
 /**
  * Class shopSettingsShippingCloneController
  *
- * @see tests/wa-apps/shop/actions/settings/shopSettingsShippingCloneTest.php
  */
-class shopSettingsShippingCloneController extends waJsonController
+class shopSettingsSystemPluginCloneController extends waJsonController
 {
     public function execute()
     {
         $original_id = waRequest::post('original_id', '0', waRequest::TYPE_STRING);
+        $type = waRequest::post('type', null, waRequest::TYPE_STRING);
+
+        if (!$type || ($type !== 'shipping' && $type !== 'payment')) {
+            $this->errors[] = _w('Invalid plugin type');
+            return null;
+        }
 
         $shop_plugin_model = new shopPluginModel();
         $shop_plugin_settings = new shopPluginSettingsModel();
 
         $original_plugin = $shop_plugin_model->getByField([
             'id'   => $original_id,
-            'type' => 'shipping'
+            'type' => $type
         ]);
 
         if (!$original_plugin) {
             $this->errors[] = _w('Shipping plugin not found.');
-            return false;
+            return null;
         }
 
         //get sort value
-        $sort = $shop_plugin_model->select('MAX(`sort`)+1')->where("`type` = 'shipping'")->fetchField();
+        $sort = $shop_plugin_model->select('MAX(`sort`)+1')->where("`type` = '{$type}'")->fetchField();
 
         $new_plugin = $original_plugin;
 

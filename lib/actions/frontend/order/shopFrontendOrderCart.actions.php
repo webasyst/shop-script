@@ -102,19 +102,28 @@ class shopFrontendOrderCartActions extends waJsonActions
         // Make sure service and variant exist for given product
         $service = ifset($parent_item, 'services', $new_item['service_id'], null);
         if (!$service) {
-            return array(_w('Service does not exist.'));
+            return [[
+                'id' => 'service_not_found',
+                'text' => _w('Service does not exist.'),
+            ]];
         }
 
         // Make sure service is not taken into cart already
         if (!empty($service['id'])) {
-            return array(_w('Service is already in cart.'));
+            return [[
+                'id' => 'service_already_in_cart',
+                'text' => _w('Service is already in cart.'),
+            ]];
         }
 
         // Make sure service variant exists
         $variant_exists = $new_item['service_variant_id'] == $service['variant_id'];
         $variant_exists = $variant_exists || !empty($service['variants'][$new_item['service_variant_id']]);
         if (!$variant_exists) {
-            return array(_w('Service variant does not exist.'));
+            return [[
+                'id' => 'variant_not_found',
+                'text' => _w('Service variant does not exist.'),
+            ]];
         }
 
         return array();

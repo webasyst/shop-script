@@ -451,9 +451,8 @@
                 }
 
                 OneSignal.init({
-                    appId: {$web_push->getAppId()|json_encode},
-                    safari_web_id: {$web_push->getSafariWebId()|json_encode},
-                    path: {$web_push->sdk_path|json_encode},
+                    appId: "{$web_push->getAppId()}",
+                    safari_web_id: "{$web_push->getSafariWebId()}",
                     autoRegister: false,
                     notifyButton: {
                         enable: false

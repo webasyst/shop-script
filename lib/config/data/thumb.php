@@ -7,6 +7,14 @@
 
 $path = realpath(dirname(__FILE__)."/../../../../../");
 $config_path = $path."/wa-config/SystemConfig.class.php";
+
+// Maybe __FILE__ is resolved symlink - try process this case
+if (!file_exists($config_path)) {
+    $script_dir_name = dirname($_SERVER['SCRIPT_FILENAME']); // wa-data/public/shop/products
+    $system_path = realpath($script_dir_name . '/../../../../');
+    $config_path = $system_path."/wa-config/SystemConfig.class.php";
+}
+
 if (!file_exists($config_path)) {
     header("Location: ../../../wa-apps/shop/img/image-not-found.png");
     exit;

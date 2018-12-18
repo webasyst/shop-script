@@ -93,9 +93,18 @@ SQL;
         echo "OK";
     }
 
+    /** Repair nested set structure of categories */
     public function categoriesAction()
     {
         $model = new shopCategoryModel();
+        $model->repair();
+        echo "OK";
+    }
+
+    /** Repair nested set structure of product reviews */
+    public function productReviewsAction()
+    {
+        $model = new shopProductReviewsModel();
         $model->repair();
         echo "OK";
     }

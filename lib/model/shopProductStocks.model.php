@@ -510,7 +510,7 @@ class shopProductStocksModel extends waModel
         if (empty($data['product_id'])) {
             $product_skus_model = new shopProductSkusModel();
             $data['product_id'] = $product_skus_model->select('product_id')->
-                    where('sku_id = :sku_id', array(
+                    where('id = :sku_id', array(
                         'sku_id' => $data['sku_id']
                     ))->fetchField();
         }

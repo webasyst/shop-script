@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Represents all settings of new checkout for a single settlement.
  */
@@ -49,6 +48,9 @@ class shopCheckoutConfig implements ArrayAccess
      * @var array
      */
     protected static $static_cache;
+
+    protected $contact_fields = [];
+    protected $contact_address_fields = [];
 
     protected $config_elements = [
         'design',
@@ -233,7 +235,7 @@ class shopCheckoutConfig implements ArrayAccess
             ],
             self::ORDER_MODE_TYPE_MINIMUM => [
                 'name'        => _w('Minimal'),
-                'description' => _w('Fixed list of shipping areas. Available shipping options are not grouped by type—“courier”, “pickup”, “post”. There is no option to select a pickup point on a map.'),
+                'description' => _w('Shipping options are not grouped by types—“courier”, “pickup”, “post”. There is no option to select a pickup point on a map.'),
             ],
         ];
     }
@@ -245,10 +247,11 @@ class shopCheckoutConfig implements ArrayAccess
                 'name' => _w('Always show'),
             ],
             self::PICKUPPOINT_MAP_TYPE_EXCEPT_GADGETS => [
-                'name' => _w('Except for mobile devices'),
+                'name' => _w('Only on screens over 760 pixels wide'),
             ],
             self::PICKUPPOINT_MAP_TYPE_NEVER          => [
                 'name' => _w('Never show'),
+                'description' => _w('A small map with one pickup point will be shown by a click on an address in the pickup point selection dialog.'),
             ],
         ];
     }
@@ -427,19 +430,21 @@ class shopCheckoutConfig implements ArrayAccess
         ]);
         $result = $function_cache->call($address, $items, $params);
         $time_delta = round(microtime(true) - $time_start, 3);
-        //waLog::log('getShippingMethods('.(isset($params['shipping']['id']) ? 'single' : 'all').') - '.$function_cache->last_call_cache_status.' - '.$time_delta, 'checkout2-time.log');
+        if (defined('SHOP_CHECKOUT2_PROFILING')) {
+            waLog::log('getShippingMethods('.(isset($params['shipping']['id']) ? 'single' : 'all').') - '.$function_cache->last_call_cache_status.' - '.$time_delta, 'checkout2-time.log');
+        }
         return $result;
     }
 
     /**
      * Available payment options based on selected shipping plugin.
      *
-     * @param int $selected_shipping_plugin_id
-     * @param string $customer_type
-     * @param string $shipping_type
+     * @param int|null    $selected_shipping_plugin_id
+     * @param string      $customer_type
+     * @param string|null $shipping_type
      * @return array
      */
-    public function getPaymentRates($selected_shipping_plugin_id, $customer_type = self::CUSTOMER_TYPE_PERSON_AND_COMPANY, $shipping_type = null)
+    public function getPaymentRates($selected_shipping_plugin_id = null, $customer_type = self::CUSTOMER_TYPE_PERSON_AND_COMPANY, $shipping_type = null)
     {
         $methods = $this->getPaymentMethods($selected_shipping_plugin_id, $customer_type, $shipping_type);
         $currencies = $this->getCurrencies();
@@ -487,7 +492,7 @@ class shopCheckoutConfig implements ArrayAccess
     }
 
     // Overridden in unit tests
-    protected function getPaymentMethods($selected_shipping_plugin_id, $customer_type = self::CUSTOMER_TYPE_PERSON_AND_COMPANY, $shipping_type = null)
+    protected function getPaymentMethods($selected_shipping_plugin_id = null, $customer_type = self::CUSTOMER_TYPE_PERSON_AND_COMPANY, $shipping_type = null)
     {
         if ($customer_type == self::CUSTOMER_TYPE_PERSON_AND_COMPANY) {
             $customer_type = '';
@@ -495,9 +500,11 @@ class shopCheckoutConfig implements ArrayAccess
 
         // Payment plugins can be enabled or disabled based on selected shipping option
         $options = [
-            shopPluginModel::TYPE_SHIPPING => $selected_shipping_plugin_id,
             'customer_type'                => $customer_type,
         ];
+        if ($selected_shipping_plugin_id) {
+            $options[shopPluginModel::TYPE_SHIPPING] = $selected_shipping_plugin_id;
+        }
         if (!empty($shipping_type)) {
             $options['shipping_type'] = $shipping_type;
         }
@@ -1303,22 +1310,22 @@ class shopCheckoutConfig implements ArrayAccess
 
     protected function getContactFields($contact_type)
     {
-        if (empty(self::$static_cache["contact_{$contact_type}_fields"])) {
+        if (empty($this->contact_fields["contact_{$contact_type}_fields"])) {
             $person_fields = waContactFields::getAll($contact_type);
             $fields = [];
             foreach ($person_fields as $field) {
                 /** @var waContactField $field */
                 $fields[$field->getId()] = $field;
             }
-            self::$static_cache["contact_{$contact_type}_fields"] = $fields;
+            $this->contact_fields["contact_{$contact_type}_fields"] = $fields;
         }
 
-        return self::$static_cache["contact_{$contact_type}_fields"];
+        return $this->contact_fields["contact_{$contact_type}_fields"];
     }
 
     protected function getContactAddressFields()
     {
-        if (empty(self::$static_cache['contact_address_fields'])) {
+        if (empty($this->contact_address_fields)) {
             $address_field = waContactFields::get('address');
             $fields = [];
             if ($address_field instanceof waContactAddressField && is_array($address_field->getFields())) {
@@ -1328,10 +1335,10 @@ class shopCheckoutConfig implements ArrayAccess
                 }
             }
             unset($fields['lng'], $fields['lat']);
-            self::$static_cache['contact_address_fields'] = $fields;
+            $this->contact_address_fields = $fields;
         }
 
-        return self::$static_cache['contact_address_fields'];
+        return $this->contact_address_fields;
     }
 
     public function offsetSet($offset, $value)

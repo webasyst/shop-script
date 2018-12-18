@@ -215,13 +215,14 @@
 
     (function() { "use strict";
 
-        var product_list_container = $('#s-product-list-skus-container');
+        var product_list_container = $('#s-product-list-skus-container'),
+            $wrapper = product_list_container.closest(".block");
 
         var save_panel = product_list_container.find('.s-product-list-save-panel');
         save_panel.css({
             paddingLeft: $('#s-sidebar').width()
         });
-        
+
         // listen for appending, check rights and available save button
         $('#product-list').unbind('append_product_list.product_list_skus')
             .bind('append_product_list.product_list_skus', function (e, products) {
@@ -229,6 +230,10 @@
                 while (product = product_iterator.next()) {
                     if (product.edit_rights) {
                         save_panel.show().find('[type=button]').attr('disabled', false);
+                        $wrapper.css({
+                            "padding-bottom": 20 + save_panel.outerHeight() + "px"
+                        });
+
                         break;
                     }
                 }

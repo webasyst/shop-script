@@ -7,6 +7,19 @@ class shopCheckoutShippingStep extends shopCheckoutStep
 {
     public function process($data, $prepare_result)
     {
+        // Is shipping step disabled altogether?
+        $config = $this->getCheckoutConfig();
+        if (empty($config['shipping']['used'])) {
+            $result = $this->addRenderedHtml([
+                'disabled' => true,
+            ], $data, []);
+            return array(
+                'result'       => $result,
+                'errors'       => [],
+                'can_continue' => true,
+            );
+        }
+
         $address = [
             'country' => ifset($data, 'result', 'region', 'selected_values', 'country_id', null),
             'region'  => ifset($data, 'result', 'region', 'selected_values', 'region_id',
@@ -19,7 +32,6 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         ];
 
         $errors = [];
-        $config = $this->getCheckoutConfig();
         if (!$config['shipping']['ask_zip']) {
             unset($address['zip']);
         }
@@ -28,8 +40,8 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             // This cannot happen. It means previous step did not properly validate shipping region selection,
             // or a plugin interfered and broke things, or some other terrible stuff occurred. Like, Godzilla. Blame Godzilla.
             $errors[] = [
-                'id' => 'general',
-                'text' => 'Unable to prepare list of shipping options because shipping region is not properly selected.',
+                'id'      => 'general',
+                'text'    => 'Unable to prepare list of shipping options because shipping region is not properly selected.',
                 'section' => $this->getId(),
             ];
             return array(
@@ -60,8 +72,8 @@ class shopCheckoutShippingStep extends shopCheckoutStep
 
         if (!$services_flat) {
             $errors[] = [
-                'id' => 'empty_region_options',
-                'text' => _w('No shipping options available for selected region.'),
+                'id'      => 'empty_region_options',
+                'text'    => _w('No shipping options available for selected region.'),
                 'section' => $this->getId(),
             ];
             return array(
@@ -77,46 +89,46 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         //
         $shipping_types = [
             'pickup' => [
-                'id'          => 'pickup',
-                'is_selected' => false,
-                'name'        => $config['shipping']['pickuppoint_name'],
-                'rate_min'    => null, // null|number
-                'rate_max'    => null, // null|number
-                'currency'    => $data['order']['currency'],
-                'date_min'    => null, // null|'Y-m-d H:i:s'
-                'date_max'    => null, // null|'Y-m-d H:i:s'
-                'date_min_ts' => null, // null|int
-                'date_max_ts' => null, // null|int
+                'id'             => 'pickup',
+                'is_selected'    => false,
+                'name'           => $config['shipping']['pickuppoint_name'],
+                'rate_min'       => null, // null|number
+                'rate_max'       => null, // null|number
+                'currency'       => $data['order']['currency'],
+                'date_min'       => null, // null|'Y-m-d H:i:s'
+                'date_max'       => null, // null|'Y-m-d H:i:s'
+                'date_min_ts'    => null, // null|int
+                'date_max_ts'    => null, // null|int
                 'date_formatted' => '',
-                'variants'    => [],
+                'variants'       => [],
             ],
             'todoor' => [
-                'id'          => 'todoor',
-                'is_selected' => false,
-                'name'        => $config['shipping']['courier_name'],
-                'rate_min'    => null,
-                'rate_max'    => null,
-                'currency'    => $data['order']['currency'],
-                'date_min'    => null,
-                'date_max'    => null,
-                'date_min_ts' => null,
-                'date_max_ts' => null,
+                'id'             => 'todoor',
+                'is_selected'    => false,
+                'name'           => $config['shipping']['courier_name'],
+                'rate_min'       => null,
+                'rate_max'       => null,
+                'currency'       => $data['order']['currency'],
+                'date_min'       => null,
+                'date_max'       => null,
+                'date_min_ts'    => null,
+                'date_max_ts'    => null,
                 'date_formatted' => '',
-                'variants'    => [],
+                'variants'       => [],
             ],
             'post'   => [
-                'id'          => 'post',
-                'is_selected' => false,
-                'name'        => $config['shipping']['post_name'],
-                'rate_min'    => null,
-                'rate_max'    => null,
-                'currency'    => $data['order']['currency'],
-                'date_min'    => null,
-                'date_max'    => null,
-                'date_min_ts' => null,
-                'date_max_ts' => null,
+                'id'             => 'post',
+                'is_selected'    => false,
+                'name'           => $config['shipping']['post_name'],
+                'rate_min'       => null,
+                'rate_max'       => null,
+                'currency'       => $data['order']['currency'],
+                'date_min'       => null,
+                'date_max'       => null,
+                'date_min_ts'    => null,
+                'date_max_ts'    => null,
                 'date_formatted' => '',
-                'variants'    => [],
+                'variants'       => [],
             ],
         ];
 
@@ -191,7 +203,7 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             $selected_variant_id = null;
 
             // If there's only one active shipping type, select it immediately
-            $nonempty_types = array_filter($shipping_types, function($type) {
+            $nonempty_types = array_filter($shipping_types, function ($type) {
                 return !empty($type['variants']);
             });
             if (1 === count($nonempty_types)) {
@@ -221,14 +233,15 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             // Format into day+month+year
             $type['date_formatted'] = waDateTime::format('humandate', $type['date_min_ts']);
             if (empty($type['date_max_ts']) || $type['date_max_ts'] != $type['date_min_ts']) {
-                $type['date_formatted'] = _w('from') . ' ' . $type['date_formatted'];
+                $type['date_formatted'] = _w('from').' '.$type['date_formatted'];
             }
 
             // Do not show year if reasonable
-            $type['date_formatted'] = trim(str_replace(date('Y'), '', $type['date_formatted']));
-            if ($type['date_min_ts'] - time() < 3600*24*365/2) {
-                $type['date_formatted'] = trim(str_replace(date('Y', strtotime('+1 year')), '', $type['date_formatted']));
+            $type['date_formatted'] = str_replace(date('Y'), '', $type['date_formatted']);
+            if ($type['date_min_ts'] - time() < 3600 * 24 * 365 / 2) {
+                $type['date_formatted'] = str_replace(date('Y', strtotime('+1 year')), '', $type['date_formatted']);
             }
+            $type['date_formatted'] = trim($type['date_formatted'], " ,\t\r\n");
         }
         unset($type);
 
@@ -245,8 +258,8 @@ class shopCheckoutShippingStep extends shopCheckoutStep
 
         if (!$selected_variant_id) {
             $errors[] = [
-                'name' => 'shipping[variant_id]',
-                'text' => _w('Please select shipping option.'),
+                'name'    => 'shipping[variant_id]',
+                'text'    => _w('Please select shipping option.'),
                 'section' => $this->getId(),
             ];
         } else {
@@ -349,7 +362,8 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         foreach ($schedule['weekdays'] as $d) {
             list($date, $time_start) = explode(' ', $d['start_work']);
             list($_, $time_end) = explode(' ', $d['end_work']);
-            $weekday_id = date('N', strtotime($d['start_work']));
+            $timestamp = strtotime($d['start_work']);
+            $weekday_id = date('N', $timestamp);
             if ($time_start) {
                 if (strlen($time_start) == 8) {
                     $time_start = substr($time_start, 0, -3);
@@ -369,7 +383,11 @@ class shopCheckoutShippingStep extends shopCheckoutStep
 
             // pass in default time zone to make it not convert the time
             $date_formatted = waDateTime::format('humandate', $date, waDateTime::getDefaultTimeZone());
-            $date_formatted = trim(str_replace(date('Y'), '', $date_formatted));
+            $date_formatted = str_replace(date('Y'), '', $date_formatted);
+            if ($timestamp - time() < 3600 * 24 * 365 / 2) {
+                $date_formatted = str_replace(date('Y', strtotime('+1 year')), '', $date_formatted);
+            }
+            $date_formatted = trim($date_formatted, " ,\t\r\n");
 
             $days[] = [
                 'date'           => $date,
@@ -379,6 +397,7 @@ class shopCheckoutShippingStep extends shopCheckoutStep
                 'time_end'       => $time_end,
                 'weekday_full'   => $weekday_names_full[$weekday_id],
                 'weekday_short'  => $weekday_names_short[$weekday_id],
+                'additional'     => mb_substr(ifset($d, 'additional', ''), 0, 64),
             ];
         }
         return [

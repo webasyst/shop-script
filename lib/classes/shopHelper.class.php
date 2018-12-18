@@ -185,6 +185,7 @@ class shopHelper
 
         $result = array();
         foreach ($methods as &$m) {
+            $time_start = microtime(true);
             if (!$m['available']) {
                 continue;
             }
@@ -328,6 +329,10 @@ class shopHelper
                 $m['__rates'] = $plugin->getRates($shipping_items, $address, $shipping_params);
             }
 
+            $time_delta = microtime(true) - $time_start;
+            if ($time_delta >= 0.5 && defined('SHOP_CHECKOUT2_PROFILING')) {
+                waLog::log("{$m['plugin']} / {$m['id']} getting rates ".round($time_delta, 3), 'checkout2-time.log');
+            }
         }
         unset($m);
 
@@ -343,6 +348,7 @@ class shopHelper
 
         foreach ($methods as $m) {
             if (isset($m['__rates'])) {
+                $time_start = microtime(true);
                 $rates = $m['__rates'];
                 $method_id = $m['id'];
                 $plugin_info = $m['__plugin_info'];
@@ -428,7 +434,7 @@ class shopHelper
                             $control_params['namespace'] = 'shipping_'.$m['id'];
                             $control_params['title_wrapper'] = '%s';
                             $control_params['description_wrapper'] = '<br><span class="hint">%s</span>';
-                            $control_params['control_wrapper'] = '<div class="field"><div class="name">%s</div><div class="value">%s %s</div></div>';
+                            $control_params['control_wrapper'] = '<div class="field s-desired-delivery-time-wrapper"><div class="name">%s</div><div class="value">%s %s</div></div>';
                             $control_params['control_separator'] = '</div><div class="value">';
 
                             $controls = array();
@@ -479,6 +485,11 @@ class shopHelper
                         'currency'             => $params['currency'],
                         'external'             => !empty($plugin_info['external']),
                     );
+                }
+
+                $time_delta = microtime(true) - $time_start;
+                if ($time_delta >= 0.1 && defined('SHOP_CHECKOUT2_PROFILING')) {
+                    waLog::log("{$m['plugin']} / {$m['id']} preparing rates ".round($time_delta, 3), 'checkout2-time.log');
                 }
             }
         }

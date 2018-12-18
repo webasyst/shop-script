@@ -11,7 +11,7 @@ class shopWorkflowCallbackAction extends shopWorkflowAction
             $reason = _w($params['callback_declined']);
 
             if (!empty($params['unsettled_order_id'])) {
-                $string = _w('Callback request was received but not applied to this order the following reason: <strong>%s</strong>');
+                $string = _w('This unsettled order was created because its initiating callback request was rejected by the original order it was addressed to. We thought you should resolve this case manually. The reason was: <strong>%s</strong>');
                 $format = "<br><em>{$string}</em>";
 
                 $result['text'] .= sprintf($format, $reason);
@@ -21,15 +21,6 @@ class shopWorkflowCallbackAction extends shopWorkflowAction
 \n\n<i class="icon16 icon16 ss flag-purple"></i><em>{$string}</em>
 HTML;
 
-                $result['text'] .= sprintf($format, $this->getOrderLink($params['unsettled_order_id']));
-            } else {
-                $string = _w('This unsettled order was created because its initiating callback request was rejected by the original order it was addressed to. We thought you should resolve this case manually. The reason was: <strong>%s</strong>');
-                $format = <<<HTML
-<br><em><i class="icon16 icon16 ss flag-purple"></i>{$string}</em>
-HTML;
-
-                $result['text'] .= sprintf($format, $reason);
-
                 if (!empty($params['original_order_id'])) {
                     $string = _w("Original order that did not accept the callback request: %s");
                     $format = <<<HTML
@@ -38,6 +29,15 @@ HTML;
 
                     $result['text'] .= sprintf($format, $this->getOrderLink($params['original_order_id']));
                 }
+
+                $result['text'] .= sprintf($format, $this->getOrderLink($params['unsettled_order_id']));
+            } else {
+                $string = _w('Callback request was received but not applied to this order the following reason: <strong>%s</strong>');
+                $format = <<<HTML
+<br><em><i class="icon16 icon16 ss flag-purple"></i>{$string}</em>
+HTML;
+
+                $result['text'] .= sprintf($format, $reason);
             }
             $result['text'] .= "\n\n".$this->getCallbackDetails($params);
         } else {

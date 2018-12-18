@@ -7,6 +7,7 @@ class shopProductsCollection
 
     protected $options = array();
     protected $prepared = false;
+    protected $prepared_event = false;
     protected $filtered = false;
     protected $filtered_by_features = array();
     protected $title;
@@ -1326,14 +1327,17 @@ SQL;
     {
         $this->prepare();
 
-        /**
-         * Products collection after prepare
-         *
-         * @event products_collection.prepared
-         * @param shopProductsCollection $this
-         */
-        wa('shop')->event('products_collection.prepared', $this);
 
+        if(!$this->prepared_event) {
+            /**
+             * Products collection after prepare
+             *
+             * @event products_collection.prepared
+             * @param shopProductsCollection $this
+             */
+            wa('shop')->event('products_collection.prepared', $this);
+            $this->prepared_event = true;
+        }
 
         $sql = "FROM shop_product p";
 

@@ -804,6 +804,19 @@ SQL;
         return $data;
     }
 
+    /**
+     * Re-sort input items
+     *
+     * Be careful - input array must has correct consistence
+     * Otherwise it will be shrink
+     *
+     * Correct consistence - input array must has products and related to them services
+     * Services without product will be thrown out of result array
+     *
+     * @param array $items items (products and services)
+     * @param string $type type of sorting
+     * @return array
+     */
     protected static function sortOrderItems($items, $type)
     {
         $tmp_services = $new_items = [];

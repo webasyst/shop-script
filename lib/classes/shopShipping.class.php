@@ -203,6 +203,40 @@ class shopShipping extends waAppShipping
         return is_array($shipping_params) ? $shipping_params : null;
     }
 
+    /**
+     * @param array      $params
+     * @param waShipping $plugin
+     * @param array      $plugin_info
+     * @return array
+     */
+    public static function workupShippingParams($params, $plugin, $plugin_info)
+    {
+        $params = shopShipping::convertTotalDimensions($params, $plugin);
+
+        if (!isset($params['departure_datetime'])) {
+            $departure_datetime = shopDepartureDateTimeFacade::getDeparture();
+            $assembly_time = max(0, ifset($plugin_info, 'options', 'assembly_time', 0)) * 3600;
+            $departure_datetime->setExtraProcessingTime($assembly_time);
+            $params['departure_datetime'] = (string)$departure_datetime;
+        }
+
+        if (isset($params['total_price'])) {
+            $currency = $plugin->allowedCurrency();
+
+            /** @var shopConfig $shop_config */
+            $shop_config = wa('shop')->getConfig();
+
+            /** @var string $current_currency */
+            $current_currency = $shop_config->getCurrency(false);
+
+            if ($currency != $current_currency) {
+                $params['total_price'] = shop_currency($params['total_price'], $current_currency, $currency, false);
+            }
+        }
+
+        return $params;
+    }
+
     public static function extendItems(&$items, $units = array())
     {
         $map = array();

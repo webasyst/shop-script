@@ -8,13 +8,13 @@
  * @method shippingBlur
  * @todo flush unavailable hash (edit/delete/etc)
  */
-if (typeof($) != 'undefined') {
+if (typeof ($) != 'undefined') {
 
     $.extend($.settings = $.settings || {}, {
 
         shipping_options: {
             null: null,
-            loading: $_('Loading')+'...<i class="icon16 loading"><i>'
+            loading: $_('Loading') + '...<i class="icon16 loading"><i>'
         },
 
         locales: null,
@@ -68,6 +68,7 @@ if (typeof($) != 'undefined') {
             //init clone plugin
             self.shippingPluginClone();
 
+            self.shippingResizeSetupList();
         },
 
         shipping_data: {
@@ -162,13 +163,13 @@ if (typeof($) != 'undefined') {
                         if (data.data && data.data.message) {
                             message = data.data.message;
                         }
-                        if(data.data.params){
+                        if (data.data.params) {
                             var params = data.data.params;
-                            for(var param in params){
-                                $('.js-shipping-'+param).each(
-                                    function(){
+                            for (var param in params) {
+                                $('.js-shipping-' + param).each(
+                                    function () {
                                         var $param = $(this);
-                                        if($param.data('state')==params[param]){
+                                        if ($param.data('state') == params[param]) {
                                             $param.show();
                                         } else {
                                             $param.hide();
@@ -236,7 +237,7 @@ if (typeof($) != 'undefined') {
             $plugins.hide();
             var url = '?module=settings&action=shippingSetup&plugin_id=' + plugin_id;
             $('#s-settings-shipping-setup').show().html(this.shipping_options.loading).load(url, function () {
-                if (typeof(callback) == 'function') {
+                if (typeof (callback) == 'function') {
                     callback();
                 }
             });
@@ -252,7 +253,7 @@ if (typeof($) != 'undefined') {
                     $tr = $self.closest('tr'),
                     original_id = $tr.data('id');
 
-                $.post('?module=settings&action=shippingClone', {original_id: original_id}).success(function (r) {
+                $.post('?module=settings&action=systemPluginClone', {original_id: original_id, type: 'shipping'}).success(function (r) {
                     if (r && r.data && r.data.plugin_id) {
                         var id = r.data.plugin_id,
                             $new_plugin = $tr.clone().attr('data-id', id),
@@ -263,12 +264,12 @@ if (typeof($) != 'undefined') {
 
                         //if plugin now off not need add text
                         if (!is_off) {
-                            $title.addClass('gray').text($title.text() + '(' + that.locales['disabled'] +')');
+                            $title.addClass('gray').text($title.text() + '(' + that.locales['disabled'] + ')');
                         }
 
                         //change id in url
-                        $setup.attr('href', '#/shipping/plugin/setup/' + id +'/');
-                        $delete.attr('href', '#/shipping/plugin/delete/' + id +'/');
+                        $setup.attr('href', '#/shipping/plugin/setup/' + id + '/');
+                        $delete.attr('href', '#/shipping/plugin/delete/' + id + '/');
 
                         //add new node
                         $plugin_list.append($new_plugin);
@@ -378,6 +379,20 @@ if (typeof($) != 'undefined') {
             $('#s-settings-content').find('#s-settings-shipping').hide();
             var url = this.options.backend_url + 'installer/?module=plugins&action=view&options[no_confirm]=1&slug=wa-plugins/shipping&return_hash=/shipping/plugin/add/%plugin_id%/';
             $('#s-settings-shipping-setup').show().html(this.shipping_options.loading).load(url);
+        },
+
+        /**
+         * Needed to ensure that the list of delivery services is always placed on the screen.
+         */
+        shippingResizeSetupList: function () {
+            $('.s-add-shipping-method').on('hover', function () {
+                var scrollHeight = Math.max(
+                    document.documentElement.scrollHeight,
+                    document.documentElement.offsetHeight,
+                    document.documentElement.clientHeight
+                ) - $('.s-add-shipping-method').offset().top - 35;
+                $('.js-shipping-window-height').css('max-height', scrollHeight);
+            })
         },
 
         shippingHelper: {

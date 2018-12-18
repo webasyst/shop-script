@@ -61,6 +61,11 @@ $.order_edit = {
         this.float_delimeter = options.float_delimeter;
         this.prev_ship_method = null;
 
+        /**
+         * @event order_edit_init
+         */
+        this.container.trigger('order_edit_init');
+
         //INIT
         this.initView();
         this.initShippingControl();
@@ -156,7 +161,6 @@ $.order_edit = {
                         }
                     }));
                     var item = add_row.prev();
-                    //item.find('.s-orders-services .s-orders-service-variant').trigger('change');
 
                     $('#s-order-comment-edit').show();
                     $.order_edit.updateTotal();
@@ -207,9 +211,7 @@ $.order_edit = {
                             }
                         })
                     );
-                    tr.find('.s-orders-product-price').//find('span').html(r.data.sku.price_html || r.data.sku.price_str).end().
-                    find('input').val(r.data.sku.price);
-                    //.trigger('change');
+                    tr.find('.s-orders-product-price').find('input').val(r.data.sku.price);
 
                     tr.find('.s-orders-sku-stock-place').empty();
                     li.find('.s-orders-sku-stock-place').html(
@@ -363,6 +365,11 @@ $.order_edit = {
         $("#total").text(this.roundFloat($("#total").text()));
         $('#discount').val(this.roundFloat($('#discount').val()));
         $('#tax').text(this.roundFloat($('#tax').text()));
+
+        /**
+         * @event order_edit_init_view
+         */
+        this.container.trigger('order_edit_init_view');
     },
 
     initShippingControl: function () {
@@ -404,6 +411,10 @@ $.order_edit = {
             $.order_edit.updateTotal();
         });
 
+        /**
+         * @event order_edit_init_shipping
+         */
+        this.container.trigger('order_edit_init_shipping');
     },
 
     initDiscountControl: function () {
@@ -414,7 +425,6 @@ $.order_edit = {
         var $tooltip_icon = $('#discount-tooltip-icon');
 
         // Tooltip to show how discounts were calculated
-        $(document).tooltip
         $tooltip_icon.tooltip({
             showURL: false,
             bodyHandler: function () {
@@ -562,6 +572,11 @@ $.order_edit = {
                     .fadeIn(duration += delta); // sorry doge
             }
         }
+
+        /**
+         * @event order_edit_init_discount
+         */
+        this.container.trigger('order_edit_init_discount');
     },
 
     initCustomerSourceControl: function (customer_sources) {
@@ -997,6 +1012,11 @@ $.order_edit = {
         }
 
         $.shop.trace(type, form.serialize());
+
+        /**
+         * @event order_edit_save
+         */
+        this.container.trigger('order_edit_save', data);
 
         return $.shop.jsonPost(
             form.attr('action'),

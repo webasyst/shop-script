@@ -4,15 +4,15 @@ class shopSettingsFeaturesFeatureSaveController extends waJsonController
 {
     public function execute()
     {
-        if (!$this->getUser()->getRights('shop', 'settings')) {
-            throw new waRightsException(_w('Access denied'));
+        if (!$this->getRights('settings')) {
+            throw new waRightsException();
         }
-        if ($features = waRequest::post('feature')) {
+        $features = waRequest::post('feature', array(), waRequest::TYPE_ARRAY);
 
+        if ($features) {
             $model = new shopFeatureModel();
             $type_features_model = new shopTypeFeaturesModel();
             foreach ($features as $feature_id => & $feature) {
-
                 if (!empty($feature['status_private'])) {
                     $feature['status'] = 'private';
                 } else {
@@ -62,7 +62,15 @@ class shopSettingsFeaturesFeatureSaveController extends waJsonController
                 }
             }
             unset($feature);
+
+            /**
+             * @event features_save
+             * @param array $features
+             * @return void
+             */
+            wa('shop')->event('features_save', $features);
         }
+
         $this->response = $features;
     }
 }

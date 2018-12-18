@@ -94,15 +94,16 @@ class shopCategoryCreateAction extends waViewAction
         $settings = $category_model->getEmptyRow();
 
         $other_keys = [
-            'has_children'      => false,
-            'status'            => null,
-            'frontend_urls'     => array(),
-            'allow_filter'      => false,
-            'enable_sorting'    => 0,
-            'custom_conditions' => '',
-            'params'            => [],
-            'routes'            => $category_routes_model->getEmptyRow(),
-            'cloud'             => $this->getTagsCloud(),
+            'has_children'           => false,
+            'status'                 => null,
+            'frontend_urls'          => array(),
+            'allow_filter'           => false,
+            'enable_sorting'         => 0,
+            'include_sub_categories' => 0,
+            'custom_conditions'      => '',
+            'params'                 => [],
+            'routes'                 => $category_routes_model->getEmptyRow(),
+            'cloud'                  => $this->getTagsCloud(),
         ];
 
         return array_merge($settings, $other_keys);

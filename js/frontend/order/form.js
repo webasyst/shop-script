@@ -1,5 +1,7 @@
 ( function($) { "use strict";
 
+    // STEPS
+
     var Auth = ( function($) {
 
         Auth = function(options) {
@@ -330,6 +332,7 @@
             that.$form = that.$wrapper.find("form:first");
 
             // VARS
+            that.disabled = options["disabled"];
             that.errors = options["errors"];
             that.scope = options["scope"];
 
@@ -363,18 +366,23 @@
                 $city_field = that.$form.find(".js-city-field"),
                 $zip_field = that.$form.find(".js-zip-field");
 
+            fieldWatcher($location_field, [$country_field, $region_field, $city_field, $zip_field]);
             fieldWatcher($country_field, [$region_field, $city_field, $zip_field]);
             fieldWatcher($region_field, [$city_field, $zip_field]);
-            fieldWatcher($city_field, [$zip_field]);
-            fieldWatcher($location_field);
             fieldWatcher($zip_field);
+
+            if ($city_field.length && $city_field.hasClass("js-city-autocomplete")) {
+                initAutocomplete($city_field);
+            } else {
+                fieldWatcher($city_field, [$zip_field]);
+            }
 
             /**
              * @param {Object} $field
              * @param {Array?} $dependent_fields
              * */
             function fieldWatcher($field, $dependent_fields) {
-                if ($field.length) {
+                if ($field.length && $field.is(":visible")) {
 
                     $field.on("keydown", function() {
                         onKeyDown($field);
@@ -423,6 +431,120 @@
                 //     }
                 // }
             }
+
+            function initAutocomplete($city_field) {
+
+                var xhr = null;
+                var change_timer = 0;
+
+                $city_field.on("change", function() {
+                    change();
+                });
+
+                $city_field.autocomplete({
+                    source: function(field_data, resolve) {
+                        getData().then( function(data) {
+                            resolve(data);
+                        });
+                    },
+                    minLength: 2,
+                    focus: function() {
+                        return false;
+                    },
+                    select: function(event, ui) {
+                        $city_field.val(ui.item.value);
+                        change(true);
+                        return false;
+                    }
+                });
+
+                function getData() {
+                    var deferred = $.Deferred();
+
+                    var href = that.scope.urls["order"] + "addressAutocomplete/",
+                        data = {};
+
+                    if ($country_field.length) {
+                        var country = $country_field.val();
+                        if (country) {
+                            data.country = country;
+                        }
+                    }
+
+                    if ($region_field.length) {
+                        var region = $region_field.val();
+                        if (region) {
+                            data.region = region;
+                        }
+                    }
+
+                    var city = $city_field.val();
+                    if (city) {
+                        data.city = city;
+                    }
+
+                    if ($zip_field.length) {
+                        var zip = $zip_field.val();
+                        if (zip) {
+                            data.zip = zip;
+                        }
+                    }
+
+                    if (xhr) { xhr.abort(); }
+
+                    xhr = $.post(href, data, "json")
+                        .always( function() {
+                            xhr = null;
+                        })
+                        .done( function(response) {
+                            if (response.status === "ok") {
+
+                                var result = response.data.result;
+                                if (!result.length) {
+                                    result = [];
+                                } else {
+                                    result = format(result);
+                                }
+
+                                deferred.resolve(result);
+                            } else {
+                                deferred.reject();
+                            }
+                        })
+                        .fail( function() {
+                            deferred.reject();
+                        });
+
+                    return deferred.promise();
+
+                    function format(data) {
+                        var result = [];
+
+                        $.each(data, function(i, item) {
+                            var city = item.city;
+                            if (city) {
+                                result.push({
+                                    label: city,
+                                    value: city
+                                });
+                            }
+                        });
+
+                        return result;
+                    }
+                }
+
+                function change(force) {
+                    var time = ( force ? 0 : 100 );
+
+                    $city_field.trigger("blur");
+
+                    clearTimeout(change_timer);
+                    change_timer = setTimeout( function() {
+                        onChange($city_field);
+                    }, time);
+                }
+            }
         };
 
         // REQUIRED
@@ -434,7 +556,13 @@
             var that = this,
                 result = [];
 
-            if (options.clean) {
+            if (that.disabled) {
+                result.push({
+                    name: "region[html]",
+                    value: "only"
+                });
+
+            } else if (options.clean) {
                 result.push({
                     name: "region[html]",
                     value: "only"
@@ -509,6 +637,486 @@
 
     var Shipping = ( function($) {
 
+        var PickupDialog = ( function($) {
+
+            PickupDialog = function(options) {
+                var that = this;
+
+                // DOM
+                that.$wrapper = options["$wrapper"];
+                that.$sidebar = that.$wrapper.find(".wa-sidebar-section");
+                that.$map_section = that.$wrapper.find(".wa-map-section");
+                that.$variants = that.$wrapper.find(".wa-variant-wrapper");
+
+                // VARS
+                that.show_map = options["show_map"];
+                that.dialog = options["dialog"];
+                that.scope = options["scope"];
+                that.data = options["data"];
+                that.onSet = (typeof options["set"] === "function" ? options["set"] : function() {});
+
+                that.variants = that.scope.variants;
+                that.active_variant = that.scope.active_variant;
+
+                // DYNAMIC VARS
+                that.map = null;
+
+                // INIT
+                that.initClass();
+            };
+
+            PickupDialog.prototype.initClass = function() {
+                var that = this;
+
+                if (that.show_map) {
+                    that.map = that.initMap();
+                } else {
+                    that.$map_section.hide();
+                }
+
+                that.initFilters();
+
+                that.initDetails();
+
+                that.initMobileToggle();
+            };
+
+            PickupDialog.prototype.initMap = function() {
+                var that = this,
+                    deferred = $.Deferred(),
+                    promise = deferred.promise();
+
+                var placemarks = {},
+                    cluster,
+                    active_balloon = null;
+
+                if (!window.ymaps) {
+                    that.scope.scope.DEBUG("Yandex API required", "error");
+                    return false;
+                }
+
+                var reset = function() {};
+                var moveTo = function() {};
+
+                ymaps.ready( function() {
+                    if (!$("#wa-yandex-map").length) { return false; }
+
+                    var center = getCenter(that.variants),
+                        map = new ymaps.Map("wa-yandex-map", { center: center, zoom: 10, controls: ["fullscreenControl", "zoomControl", "geolocationControl"] }),
+                        cluster = new ymaps.Clusterer();
+
+                    moveTo = function(placemark) {
+                        var is_mobile = isMobile();
+
+                        if (!is_mobile) {
+                            map.setCenter(placemark.geometry.getCoordinates(), 17).then( function() {
+                                active_balloon = placemark.balloon;
+
+                                var state = cluster.getObjectState(placemark);
+
+                                if (!state.isClustered && state.isShown) {
+                                    if (!active_balloon.isOpen()) {
+                                        active_balloon.open();
+                                    }
+                                }
+                            });
+                        }
+                    };
+
+                    reset = function() {
+                        map.setCenter(center, 10);
+                        if (active_balloon) {
+                            if (active_balloon.isOpen()) {
+                                active_balloon.close();
+                            }
+                            active_balloon = null;
+                        }
+                    };
+
+                    initCluster();
+
+                    initSearch();
+
+                    // return promise with map
+                    deferred.resolve(map, cluster);
+
+                    function initCluster() {
+                        var placemarks_array = [];
+
+                        $.each(that.variants, function(id, variant) {
+                            var placemark = addPlacemark(variant);
+                            if (placemark) { placemarks_array.push(placemark); }
+                        });
+
+                        cluster.add(placemarks_array);
+                        map.geoObjects.add(cluster);
+
+                        cluster.events.add("click", function(event) {
+                            var target = event.get("target"),
+                                is_cluster = !!(target.getGeoObjects);
+
+                            if (is_cluster) {
+                                var placemarks_array = target.getGeoObjects(),
+                                    current_zoom = map.getZoom();
+
+                                if (current_zoom >= 17) {
+                                    var variants_array = [];
+
+                                    $.each(placemarks_array, function(i, placemark) {
+                                        if (placemark.variant_id) {
+                                            variants_array.push(placemark.variant_id);
+                                        }
+                                    });
+
+                                    if (variants_array.length) {
+                                        exitFullscreen();
+                                        that.$wrapper.trigger("show_variant_details", [variants_array, null]);
+                                    }
+                                }
+
+                            } else if (target.variant_id) {
+                                exitFullscreen();
+                                that.$wrapper.trigger("show_variant_details", [[target.variant_id], null]);
+                            }
+                        });
+
+                        // set placemark if we have an active variant
+                        if (that.active_variant && placemarks[that.active_variant]) {
+                            var active_placemark = placemarks[that.active_variant];
+                            moveTo(active_placemark);
+                        }
+
+                        return cluster;
+
+                        function exitFullscreen() {
+                            var fullscreen_control = map.controls.get("fullscreenControl");
+                            if (fullscreen_control.state.get("fullscreen")) {
+                                fullscreen_control.exitFullscreen();
+                            }
+                        }
+                    }
+
+                    function initSearch() {
+                        var mySearchControl = new ymaps.control.SearchControl({
+                                options: { noPlacemark: true }
+                            }),
+                            mySearchResults = new ymaps.Collection(null, {});
+
+                        map.controls.add(mySearchControl);
+                        map.geoObjects.add(mySearchResults);
+
+                        mySearchControl.events.add('resultselect', function(e) {
+                            var index = e.get("index");
+                            mySearchControl.getResult(index).then( function(placemark) {
+                                placemark.options.set("preset", "islands#redIcon");
+                                mySearchResults.add(placemark);
+                            });
+                        }).add('submit', function () {
+                            mySearchResults.removeAll();
+                        })
+                    }
+                });
+
+                return {
+                    placemarks: placemarks,
+                    refresh: function(variant_ids) {
+                        promise.then(render);
+
+                        function render(map, cluster) {
+                            var placemarks_array = [];
+
+                            $.each(variant_ids, function(i, variant_id) {
+                                if (variant_id && placemarks[variant_id]) {
+                                    placemarks_array.push(placemarks[variant_id]);
+                                }
+                            });
+
+                            cluster.removeAll();
+                            cluster.add(placemarks_array);
+                        }
+                    },
+                    reset: function() {
+                        return reset();
+                    },
+                    moveTo: function(placemark) {
+                        return moveTo(placemark);
+                    }
+                };
+
+                function addPlacemark(variant) {
+                    var lat = null,
+                        lng = null;
+
+                    if (variant.lat && variant.lng) {
+                        lat = variant.lat;
+                        lng = variant.lng;
+                    } else {
+                        return false;
+                    }
+
+                    var placemark = new ymaps.Placemark([lat, lng], {
+                        balloonContentBody: variant.name
+                    });
+
+                    placemark.variant_id = variant.variant_id;
+
+                    placemarks[variant.variant_id] = placemark;
+
+                    return placemark;
+                }
+
+                function getCenter(variants) {
+                    var result = [55,37],
+                        lat_array = [],
+                        lng_array = [];
+
+                    $.each(variants, function(id, variant) {
+                        var lat = null,
+                            lng = null;
+
+                        if (variant.lat && variant.lng) {
+                            lat_array.push(variant.lat);
+                            lng_array.push(variant.lng);
+                        }
+                    });
+
+                    var lat_min = Math.min.apply(null, lat_array),
+                        lat_max = Math.max.apply(null, lat_array),
+                        lng_min = Math.min.apply(null, lng_array),
+                        lng_max = Math.max.apply(null, lng_array);
+
+                    result[0] = lat_min + (lat_max-lat_min)/2;
+                    result[1] = lng_min + (lng_max-lng_min)/2;
+
+                    return result;
+                }
+            };
+
+            PickupDialog.prototype.initFilters = function() {
+                var that = this,
+                    filters = [];
+
+                var $list = that.$wrapper.find(".wa-filters-list"),
+                    set_class = "is-set";
+
+                that.$wrapper.on("click", ".js-set-filter", function(event) {
+                    event.preventDefault();
+
+                    setFilter($(this));
+                    render();
+                });
+
+                function setFilter($button) {
+                    var service_id = $button.data("id"),
+                        filter_index = filters.indexOf(service_id);
+
+                    var active_class = "is-active",
+                        is_active = $button.hasClass(active_class);
+
+                    if (is_active) {
+                        $button.removeClass(active_class);
+                        if (filter_index >= 0) {
+                            filters.splice(filter_index, 1);
+                        }
+
+                    } else {
+                        $button.addClass(active_class);
+                        if ( !(filter_index >= 0) ) {
+                            filters.push(service_id);
+                        }
+                    }
+
+                    if (filters.length) {
+                        $list.addClass(set_class);
+                    } else {
+                        $list.removeClass(set_class);
+                    }
+                }
+
+                function render() {
+                    var active_variant_ids = [];
+
+                    that.$variants.each( function() {
+                        var $variant = $(this),
+                            variant_id = $variant.data("id"),
+                            variant_service_id = $variant.data("service-id");
+
+                        var active = (!filters.length || filters.indexOf(variant_service_id) >= 0);
+
+                        if (active) {
+                            $variant.show();
+                            active_variant_ids.push(variant_id);
+                        } else {
+                            $variant.hide();
+                        }
+                    });
+
+                    if (that.map) {
+                        that.map.refresh(active_variant_ids);
+                    }
+
+                    // that.dialog.resize();
+                }
+            };
+
+            PickupDialog.prototype.initDetails = function() {
+                var that = this;
+
+                var $variants_section = that.$sidebar.find(".wa-variants-section"),
+                    $details_section = that.$sidebar.find(".wa-variant-details-section"),
+                    $details_body = $details_section.find("> .wa-section-body");
+
+                that.$wrapper.on("click", ".js-show-variant-details", function(event) {
+                    event.preventDefault();
+                    var variant_id = $(this).data("id");
+                    var is_mobile = isMobile();
+                    if (is_mobile) {
+                        set(variant_id);
+                    } else {
+                        toggle([variant_id]);
+                    }
+                });
+
+                that.$wrapper.on("show_variant_details", function(event, variants) {
+                    var is_mobile = isMobile();
+                    if (is_mobile) {
+                        set(variants[0]);
+                    } else {
+                        toggle(variants);
+                    }
+                });
+
+                that.$wrapper.on("click", ".js-show-variants-list", function(event) {
+                    event.preventDefault();
+                    toggle(false);
+                });
+
+                that.$wrapper.on("click", ".js-use-variant", function(event) {
+                    event.preventDefault();
+                    var variant_id = $(this).data("variant-id");
+                    set(variant_id);
+                });
+
+                function set(variant_id) {
+                    if (variant_id) {
+                        that.onSet(variant_id);
+                        that.dialog.close();
+
+                    } else {
+                        that.scope.scope.DEBUG("Variant id is missing.", "error");
+                    }
+                }
+
+                function toggle(variants) {
+                    if (variants) {
+                        var details_html = "";
+
+                        $.each(variants, function(i, variant_id) {
+                            if (that.variants[variant_id]) {
+                                details_html += getDetailsHTML(that.variants[variant_id]);
+                            } else {
+                                that.scope.scope.DEBUG("Variant data is missing.", "error");
+                            }
+                        });
+
+                        $details_body.html(details_html);
+                        $variants_section.hide();
+                        $details_section.show();
+
+                        if (variants.length === 1 && that.map.placemarks && that.map.placemarks[variants[0]]) {
+                            var placemark = that.map.placemarks[variants[0]];
+                            that.map.moveTo(placemark);
+                        }
+                    } else {
+                        $details_section.hide();
+                        $details_body.html("");
+                        $variants_section.show();
+                    }
+
+                    // that.dialog.resize();
+                }
+
+                function getDetailsHTML(variant) {
+                    var template = that.scope.templates["map_details"];
+
+                    template = template.replace("%title%", variant.name).replace("%variant_id%", variant.variant_id);
+
+                    if (that.show_map) {
+                        template = template.replace("ymaps-geolink", "");
+                    }
+
+                    if (variant.formatted_price) {
+                        template = template.replace("%shipping_cost_style%", "").replace("%shipping_cost%", variant.formatted_price);
+                    } else {
+                        template = template.replace("%shipping_cost_style%", "display: none;");
+                    }
+
+                    if (variant.formatted_date) {
+                        template = template.replace("%shipping_time_style%", "").replace("%shipping_time%", variant.formatted_date);
+                    } else {
+                        template = template.replace("%shipping_time_style%", "display: none;");
+                    }
+
+                    if (variant.service) {
+                        template = template.replace("%shipping_service_style%", "").replace("%shipping_service%", variant.service);
+                    } else {
+                        template = template.replace("%shipping_service_style%", "display: none;");
+                    }
+
+                    if (variant.storage_days) {
+                        template = template.replace("%storage_time_style%", "").replace("%storage_time%", variant.storage_days);
+                    } else {
+                        template = template.replace("%storage_time_style%", "display: none;");
+                    }
+
+                    if (variant.description) {
+                        template = template.replace("%address_style%", "").replace("%address%", variant.description);
+                    } else {
+                        template = template.replace("%address_style%", "display: none;");
+                    }
+
+                    return template;
+                }
+            };
+
+            PickupDialog.prototype.initMobileToggle = function() {
+                var that = this;
+
+                var $type_toggle = that.$wrapper.find(".js-mobile-view-toggle").first();
+                if (!$type_toggle.length) { return false; }
+
+                var map_class = "is-mobile-map-view",
+                    list_class = "is-mobile-list-view";
+
+                that.$wrapper.addClass(list_class);
+
+                if (that.show_map) {
+                    var toggle = new window.waOrder.ui.Toggle({
+                        $wrapper: $type_toggle,
+                        change: function(event, target, toggle) {
+                            var id = $(target).data("id");
+                            if (id) {
+                                if (id === "map") {
+                                    that.$wrapper.removeClass(list_class);
+                                    that.$wrapper.addClass(map_class);
+
+                                } else if (id === "list") {
+                                    that.$wrapper.removeClass(map_class);
+                                    that.$wrapper.addClass(list_class);
+                                }
+                            }
+                        }
+                    });
+
+                } else {
+                    $type_toggle.hide();
+                }
+            };
+
+            return PickupDialog;
+
+        })(jQuery);
+
         var Types = ( function($) {
 
             Types = function(options) {
@@ -566,6 +1174,12 @@
             that.$form = that.$wrapper.find("form:first");
 
             // VARS
+            that.map_display = options["map_display"];
+            that.templates = options["templates"];
+            that.disabled = options["disabled"];
+            that.variants_array = options["variants"];
+            that.variants = construct(options["variants"], "variant_id");
+            that.active_variant = options["active_variant"];
             that.locales = options["locales"];
             that.errors = options["errors"];
             that.scope = options["scope"];
@@ -588,11 +1202,12 @@
                 event.preventDefault();
             });
 
-            var $variant_field = null;
+            var $type_field = null,
+                $variant_field = null;
 
             var $types_section = that.$wrapper.find("#js-delivery-types-section");
             if ($types_section.length) {
-                var $type_field = $types_section.find(".js-type-field");
+                $type_field = $types_section.find(".js-type-field");
 
                 new Types({
                     $wrapper: $types_section,
@@ -615,14 +1230,33 @@
             if ($variants_section.length) {
                 $variant_field = $variants_section.find(".js-variant-field");
 
-                new window.waOrder.ui.Dropdown({
+                var type = ($type_field ? $type_field.val() : "");
+
+                var dropdown = new window.waOrder.ui.Dropdown({
                     $wrapper: $variants_section.find(".js-variants-select"),
                     hover: false,
                     change_title: false,
                     change_selector: ".wa-dropdown-item",
                     open: function(dropdown) {
-                        var lift = ( $(document).width() < 760 ? 55 : 0 );
-                        $("html, body").scrollTop( $variants_section.offset().top - lift);
+                        var is_mobile = isMobile(),
+                            variants_count = that.variants_array.length;
+
+                        if (that.map_display === "always") {
+                            showPickupDialog(dropdown, true);
+                            return false;
+
+                        } else if (that.map_display === "desktop") {
+                            showPickupDialog(dropdown, !is_mobile);
+                            return false;
+
+                        } else if (variants_count > 5 && type === "pickup") {
+                            showPickupDialog(dropdown, false);
+                            return false;
+
+                        } else {
+                            var lift = ( is_mobile ? 55 : 0 );
+                            $("html, body").scrollTop( $variants_section.offset().top - lift);
+                        }
                     },
                     change: function(event, target, dropdown) {
                         var $target = $(target),
@@ -634,6 +1268,76 @@
 
                         that.update({
                             reload: true
+                        });
+                    }
+                });
+
+                if (!$variant_field.val()) {
+                    dropdown.$button.trigger("click");
+                }
+
+                $types_section.on("click", ".wa-type-wrapper.is-active", function() {
+                    dropdown.$button.trigger("click");
+                });
+            }
+
+            var $short_variants_section = that.$wrapper.find("#js-delivery-short-variants-section");
+            if ($short_variants_section.length) {
+                $type_field = $types_section.find(".js-type-field");
+                $variant_field = $short_variants_section.find(".js-variant-field");
+
+                new window.waOrder.ui.Dropdown({
+                    $wrapper: $short_variants_section.find(".js-variants-select"),
+                    hover: false,
+                    change_title: false,
+                    change_selector: ".wa-dropdown-item",
+                    open: function(dropdown) {
+                        var lift = ( isMobile() ? 55 : 0 );
+                        $("html, body").scrollTop( $short_variants_section.offset().top - lift);
+                    },
+                    change: function(event, target, dropdown) {
+                        var $target = $(target),
+                            type_id = $target.data("type-id"),
+                            variant_id = $target.data("variant-id"),
+                            name = $target.find(".wa-name").data("name");
+
+                        $type_field.val(type_id);
+                        $variant_field.val(variant_id);
+
+                        dropdown.setTitle(name);
+
+                        that.update({
+                            reload: true
+                        });
+                    }
+                });
+            }
+
+            function showPickupDialog(dropdown, show_map) {
+                var template = that.templates["map_dialog"];
+
+                new that.scope.ui.Dialog({
+                    $wrapper: $(template),
+                    onOpen: function($dialog, dialog) {
+                        new PickupDialog({
+                            $wrapper: $dialog,
+                            dialog: dialog,
+                            scope: that,
+                            show_map: show_map,
+                            set: function(variant_id) {
+                                if (that.variants[variant_id]) {
+                                    var variant = that.variants[variant_id];
+                                    var template = "<div class=\"wa-dropdown-item js-set-dropdown-item\" data-id=\"%variant_id%\"><div class=\"wa-delivery-variant\"><div class=\"wa-name\" data-name=\"%variant_name%\"></div></div></div>";
+                                    template = template.replace("%variant_id%", variant_id).replace("%variant_name%", variant.name);
+                                    dropdown.$menu.append(template);
+
+                                    var $target = dropdown.$menu.find(".js-set-dropdown-item[data-id=\"" + variant_id + "\"]");
+                                        $target.trigger("click");
+
+                                } else {
+                                    that.scope.DEBUG("Variants is missing", "error", variant_id);
+                                }
+                            }
                         });
                     }
                 });
@@ -649,7 +1353,13 @@
             var that = this,
                 result = [];
 
-            if (options.clean) {
+            if (that.disabled) {
+                result.push({
+                    name: "shipping[html]",
+                    value: "only"
+                });
+
+            } else if (options.clean) {
                 result.push({
                     name: "shipping[html]",
                     value: "only"
@@ -699,11 +1409,14 @@
                     }
                 }
 
+                var variant_id = null;
+
                 var $variant_section = that.$wrapper.find("#js-delivery-variants-section");
                 if ($variant_section.length) {
                     var $variants_list =  $variant_section.find(".js-variants-select"),
-                        $variant_field = $variant_section.find(".js-variant-field"),
-                        variant_id = $.trim( $variant_field.val() );
+                        $variant_field = $variant_section.find(".js-variant-field");
+
+                    variant_id = $.trim( $variant_field.val() );
 
                     if (!variant_id.length) {
                         errors.push({
@@ -720,6 +1433,34 @@
                                     .one("change", function() {
                                         $variants_list.removeClass(error_class);
                                         $variant_error.remove();
+                                    });
+                            }
+                        }
+                    }
+                }
+
+                var $short_variants_section = that.$wrapper.find("#js-delivery-short-variants-section");
+                if ($short_variants_section.length) {
+                    var $short_variants_list =  $short_variants_section.find(".js-variants-select"),
+                        $short_variant_field = $short_variants_section.find(".js-variant-field");
+
+                    variant_id = $.trim( $short_variant_field.val() );
+
+                    if (!variant_id.length) {
+                        errors.push({
+                            $wrapper: $short_variants_list,
+                            id: "variant_required",
+                            value: that.locales["variant_required"]
+                        });
+
+                        if (render_errors) {
+                            if (!$short_variants_list.hasClass(error_class)) {
+                                var $short_variant_error = $("<div class=\"wa-error-text\" />").text(that.locales["variant_required"]).insertAfter($short_variants_list);
+
+                                $short_variants_list.addClass(error_class)
+                                    .one("change", function() {
+                                        $short_variants_list.removeClass(error_class);
+                                        $short_variant_error.remove();
                                     });
                             }
                         }
@@ -768,13 +1509,30 @@
 
             that.reload = !!data.reload;
 
-            that.scope.update()
+            that.scope
+                .update({
+                    sections: ["auth", "region", "shipping", "confirm"]
+                })
                 .always( function() {
                     that.reload = true;
                 });
         };
 
         return Shipping;
+
+        function construct(data, key) {
+            var result = {};
+
+            if (key) {
+                $.each(data, function(i, item) {
+                    if (item[key]) {
+                        result[item[key]] = item;
+                    }
+                });
+            }
+
+            return result;
+        }
 
     })($);
 
@@ -788,6 +1546,8 @@
             that.$form = that.$wrapper.find("form:first");
 
             // VARS
+            that.templates = options["templates"];
+            that.disabled = options["disabled"];
             that.errors = options["errors"];
             that.scope = options["scope"];
 
@@ -846,12 +1606,11 @@
 
             if (!$photos_section.length) { return false; }
 
+            // horizontal move photos
             initSlider();
 
-            $photos_section.on("click", ".js-show-photo", function(event) {
-                event.preventDefault();
-                window.open(this.href);
-            });
+            // click on photo
+            initOpen();
 
             function initSlider() {
 
@@ -1030,6 +1789,125 @@
                     $right_arrow: $photos_section.find(".js-scroll-next")
                 });
             }
+
+            function initOpen() {
+
+                var dialog_name = $photos_section.data("name");
+
+                $photos_section.on("click", ".js-show-photo", function(event) {
+                    event.preventDefault();
+                    showDialog($(this).closest(".wa-photo-wrapper"));
+                });
+
+                function showDialog($photo_wrapper) {
+                    var template = that.templates["photo"].replace("%title%", dialog_name);
+
+                    var dialog = new that.scope.ui.Dialog({
+                        $wrapper: $(template),
+                        onOpen: function($dialog, dialog) {
+                            var $section = $dialog.find(".js-photo-slider-section");
+                            if ($section.length) {
+                                initPhotoSection($section, {
+                                    index: $photo_wrapper.index(),
+                                    onChange: function () {
+                                        dialog.resize();
+                                    }
+                                });
+                            }
+                        }
+                    });
+
+                    function initPhotoSection($section, options) {
+                        // DOM
+                        var $body = $section.find(".wa-photo-body"),
+                            $image = $("<img />").appendTo($body);
+
+                        // CONST
+                        var photos = getPhotos();
+
+                        // VARS
+                        var onChange = (options.onChange || function() {});
+                        var index = (options["index"] || 0);
+
+                        // INIT
+
+                        setPhoto(photos[index]);
+
+                        // EVENTS
+
+                        $(document).on("keyup", keyWatcher);
+
+                        function keyWatcher(event) {
+                            var is_exist = $.contains(document, $section[0]);
+                            if (is_exist) {
+                                var code = event.keyCode;
+                                if (code === 37) {
+                                    show(false);
+                                } else if (code === 39) {
+                                    show(true);
+                                }
+
+                            } else {
+                                $(document).off("keyup", keyWatcher);
+                            }
+                        }
+
+                        $section.on("click", ".js-show-prev", function(event) {
+                            event.preventDefault();
+                            show(false);
+                        });
+
+                        $section.on("click", ".js-show-next", function(event) {
+                            event.preventDefault();
+                            show(true);
+                        });
+
+                        // FUNCTIONS
+
+                        function show(next) {
+                            if (next) {
+                                index = (index + 1 < photos.length ? index + 1 : 0);
+                            } else {
+                                index = ( index > 0 ? index - 1 : photos.length - 1 );
+                            }
+
+                            setPhoto(photos[index]);
+                        }
+
+                        function setPhoto(photo) {
+                            $image.attr("src", photo.thumb_uri);
+
+                            var $pseudo_image = $("<img />");
+
+                            $pseudo_image.on("load", function() {
+                                if ($image.attr("src") === photo.thumb_uri) {
+                                    $image.attr("src", photo.image_uri);
+                                    onChange();
+                                }
+                            });
+
+                            $pseudo_image.attr("src", photo.image_uri);
+                        }
+                    }
+                }
+
+                function getPhotos() {
+                    var result = [];
+
+                    $photos_section.find(".wa-photo-wrapper").each( function() {
+                        var $wrapper = $(this),
+                            image_uri = $wrapper.data("image-uri"),
+                            thumb_uri = $wrapper.data("thumb-uri");
+
+                        result.push({
+                            image_uri: image_uri,
+                            thumb_uri: thumb_uri
+                        });
+                    });
+
+                    return result;
+                }
+            }
         };
 
         // REQUIRED
@@ -1041,7 +1919,13 @@
             var that = this,
                 result = [];
 
-            if (options.clean) {
+            if (that.disabled) {
+                result.push({
+                    name: "details[html]",
+                    value: "only"
+                });
+
+            } else if (options.clean) {
                 result.push({
                     name: "details[html]",
                     value: "only"
@@ -1124,9 +2008,10 @@
             that.$form = that.$wrapper.find("form:first");
 
             // VARS
+            that.disabled = options["disabled"];
+            that.locales = options["locales"];
             that.errors = options["errors"];
             that.scope = options["scope"];
-            that.locales = options["locales"];
 
             // DYNAMIC VARS
             that.reload = true;
@@ -1226,7 +2111,13 @@
             var that = this,
                 result = [];
 
-            if (options.clean) {
+            if (that.disabled) {
+                result.push({
+                    name: "payment[html]",
+                    value: "only"
+                });
+
+            } else if (options.clean) {
                 result.push({
                     name: "payment[html]",
                     value: "only"
@@ -1251,14 +2142,7 @@
                 var $list = that.$wrapper.find(".js-methods-list");
                 if ($list.length) {
                     var $method_field = $list.find(".js-method-field:checked");
-                    if ($method_field.length) {
-
-                        result.push({
-                            name: $method_field.attr("name"),
-                            value: $method_field.val()
-                        });
-
-                    } else {
+                    if (!$method_field.length) {
 
                         errors.push({
                             $wrapper: $list,
@@ -1471,7 +2355,7 @@
                     that.$wrapper.trigger("wa_order_cart_invalid");
                 }
                 result.push(error);
-            }); 
+            });
 
             return result;
         };
@@ -1562,6 +2446,8 @@
         return Confirm;
 
     })($);
+
+    // SCOPE
 
     var Form = ( function($) {
 
@@ -2041,9 +2927,15 @@
                 form_data = options.data;
 
             } else {
-                form_data = that.getFormData({
+                var form_options = {
                     render_errors: render_errors
-                });
+                };
+
+                if (options.sections) {
+                    form_options.sections = options.sections
+                }
+
+                form_data = that.getFormData(form_options);
             }
 
             if (render_errors && form_data.errors) {
@@ -2364,5 +3256,9 @@
     window.waOrder = (window.waOrder || {});
 
     window.waOrder.Form = Form;
+
+    function isMobile() {
+        return ( $(document).width() <= 760 );
+    }
 
 })(jQuery);

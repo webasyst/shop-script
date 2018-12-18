@@ -68,6 +68,20 @@ class shopOrderSaveController extends waJsonController
                 unset($departure);
             }
         }
+
+        /**
+         * Allows you to change the information that shopOrder will save
+         * @params array
+         *  order_data &array Info about order
+         *
+         * @return null
+         */
+
+        $params = [
+            'order_data' => &$data
+        ];
+
+        wa()->event('backend_order_save', $params);
     }
 
     private function getShippingParams()

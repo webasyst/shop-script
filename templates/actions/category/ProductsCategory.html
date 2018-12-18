@@ -297,7 +297,8 @@
                                     <label>
                                         <input type="checkbox" class="js-subcategory-toggle" name="include_sub_categories" {if $settings.include_sub_categories|default:'0'}checked="checked"{/if} value="1">
                                         [`Include products from sub-categories`]
-                                        <span class="hint">[`When enabled, products will be fetched from both the current category and all its sub-categories — and shown in one list`]</span>
+                                        <span class="hint">[`When enabled, products will be fetched from both the current category and all its sub-categories — and shown in one list`]</span><br>
+                                        <span class="hint js-sort-manual-message bold" {if !$settings.include_sub_categories}style="display: none;"{/if}>[`Manual product sorting may work inconsistently in this mode. Select other sorting options for stable results.`]</span>
                                     </label>
                                 </div>
                                 <div class="value no-shift">

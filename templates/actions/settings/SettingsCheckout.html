@@ -10,17 +10,16 @@
                 {sprintf('[`No storefronts with multi-step checkout. Go to the storefronts <a href="%s">settings</a>.`]', '?action=storefronts#/design/action=settings')}
             </div>
         {else}
-        <h1 style="margin-bottom: 1.3em;">[`Multi-step checkout setup`]</h1>
+        <h1>[`Multi-step checkout setup`]</h1>
 
-        <h2><i class="icon16 ss cart-bw"></i> [`Storefront`]</h2>
-        <p>[`Define the checkout step order and each step settings using the form below.`]</p>
-        <p>
+        <div>[`Common settings for all storefronts with multi-step checkout.`]</div>
+        <div style="margin: 1em 0 0; color: #888;">{sprintf('[`In <a href="%s" target="_blank">storefront settings <i class="icon16 new-window"></i></a> you can switch between <strong>multi-step checkout</strong> and <strong>in-cart checkout</strong>.`]', "`$wa_app_url`?action=storefronts#/design/action=settings")}</div>
+        <div style="margin: 3em 0 0;">[`Define the checkout step order and each step settings using the form below.`]</div>
+        <div style="margin: 1em 0 2em;">
             <a href="javascript:void(0);" class="js-checkout-recommendations-link" style="text-decoration: none;">
-                <i class="icon16 info"></i>
-                [`Checkout setup tips`]
-                <i class="icon16 darr js-arrow" style="margin-top: 2px;"></i>
+                <i class="icon16 info"></i>[`Checkout setup tips`]<i class="icon16 darr js-arrow"></i>
             </a>
-        </p>
+        </div>
         <div class="s-alert s-checkout-recommendations js-checkout-recommendations">
             <a class="close s-alert-close" href="javascript:void(0);">×</a>
             <p>

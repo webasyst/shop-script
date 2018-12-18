@@ -49,29 +49,38 @@
 
     </div>
 
-    <footer class="wa-form-footer js-form-footer">
-        {if !empty($config["shipping"]["service_agreement"])}
+    {if !empty($config["shipping"]["service_agreement"])}
+        <footer class="wa-form-footer js-form-footer">
             <div class="wa-line">
                 {$config["shipping"]["service_agreement_hint"]|default:""}
             </div>
-        {/if}
-    </footer>
+        </footer>
+    {/if}
 
     <script>
         ( function($) { "use strict";
 
             var locale = {$wa->locale()|substr:0:2|json_encode};
 
+            {* used for pickup dialog and geolink at "details" section. required. async. *}
+            load([
+                {
+                    id: "yandex-maps-api-js",
+                    type: "js",
+                    uri: "//api-maps.yandex.ru/2.1/?lang=ru_RU&load=Geolink,Map,Placemark,Clusterer,Collection,geoObject.addon.balloon,control.FullscreenControl,control.GeolocationControl,control.SearchControl,control.ZoomControl"
+                }
+            ]);
+
             load([
                 {
                     id: "wa-content-jquery-ui-js",
                     type: "js",
-                    uri: "{$wa_url}wa-content/js/jquery-ui/jquery-ui-1.7.2.custom.min.js?v={$wa->version(true)}"
+                    uri: "{$wa_app_static_url}js/frontend/order/jquery-ui/jquery-ui.min.js?v={$wa->version()}"
                 },
                 {
                     id: "wa-content-jquery-ui-css",
                     type: "css",
-                    uri: "{$wa_url}wa-content/css/jquery-ui/jquery-ui-1.7.2.custom.css?v={$wa->version(true)}"
+                    uri: "{$wa_app_static_url}js/frontend/order/jquery-ui/jquery-ui.css?v={$wa->version()}"
                 },
                 {
                     id: "wa-order-ui-js",
@@ -94,7 +103,6 @@
                     uri: "{$wa_app_static_url}css/frontend/order/form.css?v={$wa->version()}"
                 }
             ]).then( function() {
-
                 if (locale === "ru") {
                     load([{
                         id: "wa-content-jquery-ui-locale-js",
@@ -230,6 +238,7 @@
                         required: {_w("Required field")|json_encode}
                     },
                     urls: {
+                        "order": {$wa->shop->checkout()->cartUrl()|json_encode},
                         "calculate": {$wa->getUrl('shop/frontendOrder/calculate')|json_encode},
                         "success": {$wa->getUrl('shop/frontend/checkout', ['step'=>'success'])|json_encode},
                         "create": {$wa->getUrl('shop/frontendOrder/create')|json_encode},

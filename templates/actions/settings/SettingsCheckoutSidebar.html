@@ -4,10 +4,6 @@
 {$_old_checkouts = $storefronts.1}
 
 <div class="{$_class} sidebar left200px" id="{$_id}">
-    <div class="block padded hint" style="line-height: 14px;">
-        {sprintf(_w('<i class="icon16 status-green-tiny"></i>&nbsp;“In-cart checkout” or <i class="icon16 status-blue-tiny"></i>&nbsp;“Multi-step checkout” are selectable in <a href="%s" target="_blank">strorefront settings</a> <i class="icon10 new-window"></i> individually for each storefront.'), "?action=storefronts#/design/action=settings")}
-    </div>
-
     {if !empty($_new_checkouts)}
         <h5 class="heading js-list-header" data-version="2">
             <span class="table-cell"><i class="icon16 darr"></i></span>
@@ -28,17 +24,24 @@
         </ul>
     {/if}
 
-    <h5 class="heading js-list-header" data-version="1">
+    <h5 class="heading js-list-header js-old-checkout" data-version="1">
         <span class="table-cell"><i class="icon16 darr"></i></span>
-        <a class="table-cell" href="javascript:void(0);">[`Multi-step checkout`]&nbsp;({$_old_checkouts|count})</a>
+        <div class="table-cell">
+            <a href="?action=settings#/checkout&r=1">[`Multi-step checkout`]&nbsp;({$_old_checkouts|count})</a>
+        </div>
+        <div class="table-cell" style="width: 16px;">
+            <a class="js-link" href="?action=settings#/checkout&r=1"><i class="icon16 settings"></i></a>
+        </div>
     </h5>
     <ul class="menu-v js-storefronts-list" data-version="1">
+        {*
         <li class="js-old-checkout">
             <a href="?action=settings#/checkout&r=1">
                 <div class="table-cell"><i class="icon16 settings"></i></div>
                 <div class="table-cell">[`Common storefront settings`]</div>
             </a>
         </li>
+        *}
         {* Routes with old checkout *}
         {foreach $_old_checkouts as $_route}
             {$_domain = waIdna::dec($_route.domain)}

@@ -318,8 +318,7 @@ abstract class shopCheckoutStep
             }
 
             $time_delta = microtime(true) - $time_start;
-            if (($time_delta >= 1.5)
-                && waSystemConfig::isDebug()) {
+            if ($time_delta >= 1 && defined('SHOP_CHECKOUT2_PROFILING')) {
                 waLog::log($step_id.' -> '.round($time_delta, 3), 'checkout2-time.log');
             }
         }
@@ -393,7 +392,7 @@ abstract class shopCheckoutStep
             $time_start = microtime(true);
             $result['html'] = $this->renderTemplate($template, $vars, $theme);
             $time_delta = microtime(true) - $time_start;
-            if ($time_delta >= 1 && waSystemConfig::isDebug()) {
+            if ($time_delta >= 0.5 && defined('SHOP_CHECKOUT2_PROFILING')) {
                 waLog::log($this->getId().' render -> '.round($time_delta, 3), 'checkout2-time.log');
             }
         }

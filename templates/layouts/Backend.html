@@ -116,7 +116,7 @@
                     {foreach $backend_menu as $_}{ifset($_.aux_li)}{/foreach}
 
                     {if $tutorial_visible}
-                        <li class="s-tutorial-qs-lnk">
+                        <li class="s-tutorial-qs-lnk" id="js-menu-tutorial-item">
                             <div class="s-tutorial-quick-start">
                                 <a href="{$wa_app_url}?module=tutorial#/products/" class="s-tutorial-url js-tutorial-url">
                                     <div class="s-tutorial-progressbar" id="s-tutorial-progressbar">
