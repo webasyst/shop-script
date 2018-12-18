@@ -1,3 +1,8 @@
+{$_cart_url = $wa->getUrl('shop/frontend/cart')}
+{if method_exists($wa->shop, 'checkout')}
+    {$_cart_url = $wa->shop->checkout()->cartUrl()}
+{/if}
+
 <form id="cart-form{if $wa->get('cart')}-dialog{/if}" method="post" action="{$wa->getUrl('/frontendCart/add')}">
 
     <h4>{sprintf('[`Buy %s`]',$product.name|escape)}</h4>
@@ -209,9 +214,9 @@
             </div>
 
             <div class="added2cart" style="display: none;">
-                <div class="">{sprintf('[`%s is now in your shopping cart`]', $product.name|escape, $wa->getUrl('shop/frontend/cart'))}</div>
+                <div class="">{sprintf('[`%s is now in your shopping cart`]', $product.name|escape, $_cart_url|escape)}</div>
                 <div class="button-block">
-                    <a class="general-button gray" href="{$wa->getUrl('shop/frontend/cart')}">[`Go to shopping cart`]</a>
+                    <a class="general-button gray" href="{$_cart_url|escape}">[`Go to shopping cart`]</a>
                 </div>
             </div>
 

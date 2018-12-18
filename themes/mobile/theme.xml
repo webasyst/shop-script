@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="mobile" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:mobile" version="1.1.9">
+<theme id="mobile" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:mobile" version="1.2.0">
     <name locale="en_US">Mobile</name>
     <name locale="ru_RU">Mobile</name>
     <files>
@@ -148,6 +148,11 @@
         </file>
     </files>
     <settings>
+        <setting var="shop_divider_1" control_type="group_divider">
+            <value></value>
+            <name locale="en_US">Shop settings</name>
+            <name locale="ru_RU">Настройки магазина</name>
+        </setting>
         <setting var="selectable_features_control" control_type="radio">
             <value>inline</value>
             <name locale="ru_RU">Выбор характеристик</name>
@@ -220,15 +225,26 @@
                 </option>
             </options>
         </setting>
+        <setting var="slider_product_list_id" control_type="text">
+            <value>bestsellers</value>
+            <name locale="en_US">Slider product set ID</name>
+            <name locale="ru_RU">Список промотоваров в слайдере</name>
+            <description locale="en_US">ID of product set whose products will be shown in home page slider if selected in the slider setting above.</description>
+            <description locale="ru_RU">Идентификатор списка товаров, которые будут показаны в слайдере, если это выбрано в настройке слайдера выше.</description>
+        </setting>
         <setting var="store_address" control_type="text">
             <value></value>
             <name locale="en_US">Store Address</name>
             <name locale="ru_RU">Адрес магазина</name>
+            <description locale="en_US">Value for “address” element of Schema.org markup</description>
+            <description locale="ru_RU">Значение элемента «address» микроразметки Schema.org</description>
         </setting>
         <setting var="store_price_range" control_type="text">
             <value></value>
             <name locale="en_US">Store price range</name>
             <name locale="ru_RU">Ценовой диапазон магазина</name>
+            <description locale="en_US">Value for “priceRange” element of  Schema.org markup</description>
+            <description locale="ru_RU">Значение элемента «priceRange» микроразметки Schema.org</description>
         </setting>
     </settings>
     <locales>
@@ -239,6 +255,14 @@
         <locale>
             <msgid>Read reviews</msgid>
             <msgstr locale="ru_RU">Все отзывы</msgstr>
+        </locale>
+        <locale>
+            <msgid>There are no promo cards to show a slider.</msgid>
+            <msgstr locale="ru_RU">Нет промокарточек для показа слайдера.</msgstr>
+        </locale>
+        <locale>
+            <msgid>There are no products in selected product set “%s” to show a slider.</msgid>
+            <msgstr locale="ru_RU">Нет товаров в списке «%s» для показа слайдера.</msgstr>
         </locale>
     </locales>
 </theme>
