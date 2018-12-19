@@ -2,7 +2,7 @@
 
 {$_filters = []}
 {foreach $_variants as $_variant}
-    {if !empty($_variant.service) && !in_array($_variant.service, $_filters)}
+    {if isset($_variant.service) && !in_array($_variant.service, $_filters)}
         {$_filters[$_variant.service] = [
             "id" => $_variant.service,
             "name" => $_variant.service
@@ -55,23 +55,24 @@
                         {/if}
 
                         <div class="wa-variants-list">
-                            {foreach $_variants as $_variant}{if !empty($_variant.service)}
+                            {foreach $_variants as $_variant}
                                 <div class="wa-variant-wrapper js-show-variant-details" data-id="{$_variant.variant_id|escape}" data-service-id="{$_variant.service|default:""|escape}" title="{$_variant.name|escape}">
                                     <div class="wa-name">{$_variant.name|escape}</div>
+                                    <div class="wa-details">
+                                        {if !empty($_variant.formatted_price)}
+                                            <span class="wa-price">{$_variant.formatted_price}</span>
+                                        {/if}
 
-                                    {if !empty($_variant.formatted_price)}
-                                        <span class="wa-price">{$_variant.formatted_price}</span>
-                                    {/if}
+                                        {if !empty($_variant.formatted_date)}
+                                            <span class="wa-date">{$_variant.formatted_date}</span>
+                                        {/if}
 
-                                    {if !empty($_variant.formatted_date)}
-                                        <span class="wa-date">{$_variant.formatted_date}</span>
-                                    {/if}
-
-                                    {if !empty($_variant.service)}
-                                        <span class="wa-service">{$_variant.service|escape}</span>
-                                    {/if}
+                                        {if !empty($_variant.service)}
+                                            <span class="wa-service">{$_variant.service|escape}</span>
+                                        {/if}
+                                    </div>
                                 </div>
-                            {/if}{/foreach}
+                            {/foreach}
                         </div>
                     </div>
 

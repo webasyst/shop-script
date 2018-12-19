@@ -394,7 +394,7 @@ class shopCheckoutConfig implements ArrayAccess
             // filter plugins by what's specified in routing
             $allowed_shipping_id = waRequest::param('shipping_id');
             if ($allowed_shipping_id && is_array($allowed_shipping_id)) {
-                $params['shipping'] = $allowed_shipping_id;
+                $params['shipping']['id'] = $allowed_shipping_id;
             }
         }
 

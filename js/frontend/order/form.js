@@ -880,13 +880,15 @@
                         }
                     });
 
-                    var lat_min = Math.min.apply(null, lat_array),
-                        lat_max = Math.max.apply(null, lat_array),
-                        lng_min = Math.min.apply(null, lng_array),
-                        lng_max = Math.max.apply(null, lng_array);
+                    if (lat_array.length && lng_array.length) {
+                        var lat_min = Math.min.apply(null, lat_array),
+                            lat_max = Math.max.apply(null, lat_array),
+                            lng_min = Math.min.apply(null, lng_array),
+                            lng_max = Math.max.apply(null, lng_array);
 
-                    result[0] = lat_min + (lat_max-lat_min)/2;
-                    result[1] = lng_min + (lng_max-lng_min)/2;
+                        result[0] = lat_min + (lat_max-lat_min)/2;
+                        result[1] = lng_min + (lng_max-lng_min)/2;
+                    }
 
                     return result;
                 }

@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 2.0.6\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -11192,6 +11192,9 @@ msgstr "<a href=\"%s\" target=\"_blank\">Редактировать поля а�
 
 msgid "Address fields provided by shipping plugins will be displayed before custom fields that you may add."
 msgstr "Поля адреса, запрашиваемые плагинами доставки, отображаются выше добавленных вами дополнительных полей."
+
+msgid "Disable address fields which are not required for all shipping options. Shipping plugins will add required address fields during checkout, if necessary."
+msgstr "Отключите поля адреса, которые не нужны для всех вариантов доставки. Плагины доставки добавят дополнительные поля адреса, если это необходимо для их работы."
 
 msgid "Shipping plugins response waiting time"
 msgstr "Время ожидания ответа от плагинов доставки"

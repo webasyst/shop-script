@@ -166,7 +166,7 @@
                                                 {$_variant_for_dialog = [
                                                     "name" => $_variant.name|escape,
                                                     "type" => $_variant.type|escape,
-                                                    "service" => $_variant.service|escape,
+                                                    "service" => $_variant.service|default:""|escape,
                                                     "variant_id" => $_variant.variant_id|escape,
                                                     "formatted_date" => $_date,
                                                     "formatted_price" => $_price
