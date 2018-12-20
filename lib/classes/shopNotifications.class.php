@@ -515,6 +515,7 @@ SQL;
         $view->assign($data);
         $subject = $view->fetch('string:'.$n['subject']);
         $body = $view->fetch('string:'.$n['body']);
+        $from = $view->fetch('string:'.$from); //Use Smarty in from address
 
         $message = new waMailMessage($subject, $body);
         $message->setTo($to);
