@@ -91,62 +91,61 @@ class shopConfig extends waAppConfig
         return $order_model->getStateCounters('new');
     }
 
+    /**
+     * @params array $route
+     * @params bool $dispatch
+     * @return array
+     */
     public function getRouting($route = array(), $dispatch = false)
     {
-        $url_type = isset($route['url_type']) ? $route['url_type'] : 0;
+        $url_type = ifset($route['url_type'], 0);
         if (!isset($this->_routes[$url_type]) || $dispatch) {
             $routes = parent::getRouting($route);
             if ($routes) {
-                if (isset($routes[$url_type])) {
-                    $routes = $routes[$url_type];
-                } else {
-                    $routes = $routes[0];
-                }
+                $routes = ifset($routes[$url_type], $routes[0]);
             }
             // for URL <category_url>/<product_url>/
             if ($dispatch && $url_type == 2) {
-                $category_model = new shopCategoryModel();
-                $categories = $category_model->getByRoute(wa()->getRouting()->getDomain(null, true).'/'.$route['url']);
-                $categories_routes = array();
+                $categories = wao(new shopCategoryModel())->getByRoute(
+                    wa($this->application)->getRouting()->getDomain(null, true).'/'.ifset($route['url'])
+                );
                 foreach ($categories as $c) {
-                    $categories_routes[$c['full_url'].'/'] = array(
-                        'module'      => 'frontend',
-                        'action'      => 'category',
-                        'category_id' => $c['id'],
-                    );
+                    $c['full_url'] .= '/';
+                    if (!isset($routes[$c['full_url']])) {
+                        $routes[$c['full_url']] = array(
+                            'app'         => $this->application,
+                            'module'      => 'frontend',
+                            'action'      => 'category',
+                            'category_id' => $c['id'],
+                        );
+                    }
                 }
-                $routes = array_merge($categories_routes, $routes);
             }
 
             /**
              * Extend routing via plugin routes
              * @event routing
-             * @param array $routes
-             * @return array $routes routes collected for every plugin
+             * @param array $route
+             * @return array routes collected for every plugin
              */
-
-            $result = wa()->event(array($this->application, 'routing'), $route);
-            $all_plugins_routes = array();
+            $result = wa($this->application)->event('routing', $route);
+            $result = array_filter($result);
             foreach ($result as $plugin_id => $routing_rules) {
-                if ($routing_rules) {
-                    $plugin = str_replace('-plugin', '', $plugin_id);
-                    if ($plugin == $plugin_id) {
-                        // apps cannot add routes to other apps
-                        continue;
+                $plugin = str_replace('-plugin', '', $plugin_id);
+                if ($plugin == $plugin_id) {
+                    // apps cannot add routes to other apps
+                    continue;
+                }
+                foreach ($routing_rules as $url => $route) {
+                    if (!is_array($route)) {
+                        $route = explode('/', $route);
+                        $route = array('module' => $route[0], 'action' => $route[1]);
                     }
-                    foreach ($routing_rules as $url => & $route) {
-                        if (!is_array($route)) {
-                            list($route_ar['module'], $route_ar['action']) = explode('/', $route);
-                            $route = $route_ar;
-                        }
-                        $route['plugin'] = $plugin;
-                        $route['app'] = $this->application;
-                        $all_plugins_routes[$url] = $route;
-                    }
-                    unset($route);
+                    $route['plugin'] = $plugin;
+                    $route['app'] = $this->application;
+                    $routes[$url] = $route;
                 }
             }
-            $routes = array_merge($all_plugins_routes, $routes);
 
             if ($dispatch) {
                 return $routes;
