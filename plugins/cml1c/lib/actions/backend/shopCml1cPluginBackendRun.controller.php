@@ -139,6 +139,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                     $data = array('error' => $ex->getMessage());
 
                 }
+
                 if ($options) {
                     echo json_encode($data, $options);
                 } else {
@@ -146,6 +147,54 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 }
             }
         }
+    }
+
+
+    public function fastExecute(&$id = null)
+    {
+        $result = null;
+        try {
+            ob_start();
+            $this->_processId = $id;
+            $this->init();
+            $is_done = $this->isDone();
+
+            if (empty($_POST['processId'])) {
+                $_POST['processId'] = $this->processId;
+                $this->getStorage()->set('processId', $_POST['processId']);
+            }
+
+            while (!$is_done) {
+
+                $this->step();
+                $is_done = $this->isDone();
+            }
+            $_POST['cleanup'] = true;
+            $this->save();
+            $this->finish(null);
+
+            $out = ob_get_clean();
+            $result = array(
+                'success' => $this->exchangeReport(),
+            );
+            if ($out) {
+                $this->error(sprintf("Error occurred during execute: %s", $out));
+                $result['notice'] = 'See error log for details';
+            }
+
+
+        } catch (waException $ex) {
+            if ($ex->getCode() == '302') {
+                $result = array(
+                    'warning' => $ex->getMessage(),
+                );
+            } else {
+                $result = array(
+                    'error' => $ex->getMessage(),
+                );
+            }
+        }
+        return $result;
     }
 
     /**
@@ -321,7 +370,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                             $feature['sort'] = ifset($feature['sort'][$product->type_id]);
                             unset($feature);
                         }
-                        uasort($features, create_function('$a,$b', 'return max(-1,min(1,$a["sort"]-$b["sort"]));'));
+                        uasort($features, wa_lambda('$a,$b', 'return max(-1,min(1,$a["sort"]-$b["sort"]));'));
                     }
                     $related = array_keys($features);
                 }
@@ -800,11 +849,11 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             $xpath = '//ЗначениеРеквизита';
             $namespace = ifset(self::$feature_xpath_map[$xpath]['namespace']);
             $predefined = array(
-                'Полное наименование'  => 'm:name',
-                'ПолноеНаименование'   => 'm:name',
-                'НаименованиеПолное'   => 'm:name',
-                'ОписаниеВФорматеHTML' => 'm:description',
-                'ВидНоменклатуры'      => 'm:type_name',
+                'Полное наименование'  => 'm:name:default_mapping',
+                'ПолноеНаименование'   => 'm:name:default_mapping',
+                'НаименованиеПолное'   => 'm:name:default_mapping',
+                'ОписаниеВФорматеHTML' => 'm:description:default_mapping',
+                'ВидНоменклатуры'      => 'm:type_name:default_mapping',
                 'ТипНоменклатуры'      => 's',
 
             );
@@ -1701,8 +1750,8 @@ HTML;
                 $control .= waHtmlControl::getControl($target_control, 'target', $target_params);
             } else {
                 $target_params_ = $target_params;
-                $target_params_['title'] = $target_options['skip']['title'];
-                $control .= waHtmlControl::getControl($target_control, 'target', $target_params_);
+                $target_params_['description'] = $target_options['skip']['title'];
+                $control .= waHtmlControl::getControl($target_control, 'target', $target_params_).$target_options['skip']['title'];
             }
             if (count($targets) > 1) {
                 $control .= $params['control_separator'];
@@ -2760,7 +2809,6 @@ HTML;
         if (!$categories) {
 
             $categories = $this->getCategoryModel()->getFullTree('*', true);
-            var_dump($current_stage);
             if (!empty($current_stage[self::STAGE_CATEGORY])) {
                 $categories = array_slice($categories, $current_stage[self::STAGE_CATEGORY]);
             }
@@ -2801,7 +2849,6 @@ HTML;
             ++$processed[self::STAGE_CATEGORY];
         }
 
-        var_dump($current_stage, $count);
         if ($current_stage[self::STAGE_CATEGORY] == $count[self::STAGE_CATEGORY]) {
             $level = 0;
             $this->writeCategory(null, $level);
@@ -3181,7 +3228,7 @@ HTML;
 
             $discount_rate = ifset($params['discount_rate'], 0);
             $taxes = shopTaxes::apply($items, $params, $order['currency']);
-            $taxes = array_filter($taxes, create_function('$a', 'return !empty($a["name"]);'));
+            $taxes = array_filter($taxes, wa_lambda('$a', 'return !empty($a["name"]);'));
             //Вид, ставка и сумма налога
             $this->writeTaxes($taxes);
             if (!$items && ($order['discount'] > 0)) {
@@ -3511,6 +3558,7 @@ SQL;
     {
         $this->initOrderItemMap();
 
+        //XXX TODO Remap primary SKU id
         $map = &$this->data['map'][self::STAGE_ORDER]['skus'];
         $sku_id = ifset($item['sku_id'], $item['id']);
         if (!empty($map[$sku_id]['sku_id']) && ($sku_id != $map[$sku_id]['sku_id'])) {
@@ -3848,7 +3896,7 @@ SQL;
                 $this->writer->writeElement('УчтеноВСумме', $tax['included'] ? 'true' : 'false');
                 $this->writer->writeElement('Сумма', $this->price($tax['included'] ? $tax['sum_included'] : $tax['sum']));
                 if (isset($tax['rate'])) {
-                    $this->writer->writeElement('Ставка', $this->price($tax['rate']));
+                    $this->writer->writeElement('Ставка', $this->price($tax['rate'], 0));
                 }
                 $this->writer->endElement(/*Налог*/);
             }
@@ -3905,9 +3953,14 @@ SQL;
     private function formatAddress($address)
     {
         $address_view = $address;
-        if (!empty($address['Регион']) && !empty($address['Город']) && (strcasecmp($address['Регион'], $address_view['Город']) === 0)) {
+
+        if (!empty($address['Регион'])
+            && !empty($address['Город'])
+            && (strcasecmp($address['Регион'], $address_view['Город']) === 0)
+        ) {
             unset($address['Регион']);
         }
+
         return implode(', ', $address);
     }
 
@@ -4510,16 +4563,17 @@ SQL;
             if (!$feature_model) {
                 $feature_model = $this->getModel('feature');
             }
-            /**
-             * @var shopFeatureModel $feature_model
-             */
+            /** @var shopFeatureModel $feature_model */
 
             $uuid = is_array($data) ? ifset($data['id_1c']) : null;
             if (!empty($uuid) && ($features = $feature_model->getFeatures('cml1c_id', $uuid))) {
                 $feature = reset($features);
                 $key = '*'.$uuid;
                 $feature_map[$key] = $feature['code'];
-                if (!empty($data['values']) && ($this->pluginSettings('features_references') === 'update')) {
+                if (is_array($data)
+                    && !empty($data['values'])
+                    && ($this->pluginSettings('features_references') === 'update')
+                ) {
                     $values_model = $feature_model->getValuesModel($feature['type']);
                     $values_uuid = array_keys($data['values']);
                     $uuid_map = $values_model
@@ -4529,7 +4583,7 @@ SQL;
 
                     foreach ($data['values'] as $value_uuid => &$value) {
                         $value_id =ifset($uuid_map[$value_uuid]);
-                        $row = $values_model->addValue($feature['id'], $value, $value_id);
+                        $row = $values_model->addValue($feature['id'], $value, $value_id, $feature['type']);
                         if (!empty($row['error'])) {
                             if (!empty($row['error']['original_id'])) {
                                 if (strcmp($row['error']['original_value'], $value) === 0) {
@@ -4572,9 +4626,12 @@ SQL;
                 $feature = array(
                     'name' => $name,
                     'code' => strtolower(waLocale::transliterate($name, 'ru_RU')),
-                    'type' => ifempty($data['type'], shopFeatureModel::TYPE_VARCHAR),
+                    'type' => is_array($data) ? ifempty($data['type'], shopFeatureModel::TYPE_VARCHAR) : shopFeatureModel::TYPE_VARCHAR,
                 );
-                $feature += ifempty($data, array());
+
+                if (is_array($data)) {
+                    $feature += ifempty($data, array());
+                }
 
                 if (empty($this->data['configure'])) {
                     //save new features only for import
@@ -5326,7 +5383,7 @@ SQL;
                         if (!$expert) {
                             break;
                         }
-                        //no-break
+                    //no-break
                     default:
                         if ($feature['name']) {
                             $code = $this->findFeature($feature['name'], $feature);
@@ -5473,16 +5530,35 @@ SQL;
 
             $target = $this->explainTarget($target);
 
+            if ($data && is_array($data) && isset($data['values'])) {
+                if (is_array($value)) {
+                    foreach ($value as &$_value) {
+                        if (isset($data['values'][$_value])) {
+                            $_value = $data['values'][$_value];
+                        }
+                        unset($_value);
+                    }
 
-            if ($data && isset($data['values'][$value])) {
-                if (true || shopCml1cPlugin::isGuid($value)) {
-                    //TODO add optional settings (strip_tags/etc)
-                    $value = $data['values'][$value];
+                } else {
+                    if (isset($data['values'][$value])) {
+                        $value = $data['values'][$value];
+                    }
                 }
             }
 
-            if ($target['dimension'] && !preg_match('@\d\s+\w+@', $value)) {
-                $value = doubleval($value).' '.$target['dimension'];
+            if ($target['dimension'] && ($target['field'] !== 'm')) {
+                if (is_array($value)) {
+                    foreach ($value as &$_value) {
+                        if (!preg_match('@\d\s+\w+@', $_value)) {
+                            $_value = doubleval($value).' '.$target['dimension'];
+                        }
+                        unset($_value);
+                    }
+                } else {
+                    if (!preg_match('@\d\s+\w+@', $value)) {
+                        $value = doubleval($value).' '.$target['dimension'];
+                    }
+                }
             }
 
             if ($target['code']) {
@@ -5535,6 +5611,13 @@ SQL;
         return $result;
     }
 
+    /**
+     * @param      $field
+     * @param      $xpath
+     * @param null $node_name
+     * @param null $data
+     * @return false|string
+     */
     private function isRemapped($field, $xpath, $node_name = null, $data = null)
     {
         if (!isset($this->data['remapped_main_fields'])) {
@@ -5545,35 +5628,43 @@ SQL;
                     if (!empty($features_map['target'])) {
                         $target = $this->explainTarget($features_map['target']);
                         if ($target['field'] == 'm') {
-                            $this->data['remapped_main_fields'][$target['code']] = true;
+                            if (empty($this->data['remapped_main_fields'][$target['code']])
+                                ||
+                                ($this->data['remapped_main_fields'][$target['code']] === 'default_mapping')
+                            ) {
+                                $this->data['remapped_main_fields'][$target['code']] = empty($target['dimension']) ? true : 'default_mapping';
+                            }
                         }
                     }
                 }
             }
         }
 
-        $remapped = !empty($this->data['remapped_main_fields'][$field]);
+        $remapped = !empty($this->data['remapped_main_fields'][$field]) ? $this->data['remapped_main_fields'][$field] : false;
         $target = null;
+        if ($xpath) {
+            if (!$remapped) {
 
-        if (!$remapped && $xpath) {
+                $namespace = ifset(self::$feature_xpath_map[$xpath]['namespace']);
+                $xpath_field = ifset(self::$feature_xpath_map[$xpath]['field']);
 
-            $namespace = ifset(self::$feature_xpath_map[$xpath]['namespace']);
-            $xpath_field = ifset(self::$feature_xpath_map[$xpath]['field']);
+                if (is_array($data) && isset($data[$xpath_field])) {
+                    $namespace_key = $data[$xpath_field];
+                } else {
+                    $namespace_key = $node_name;
+                }
 
-            if (is_array($data) && isset($data[$xpath_field])) {
-                $namespace_key = $data[$xpath_field];
-            } else {
-                $namespace_key = $node_name;
-            }
-
-            if ($namespace && isset($this->data['features_map'][$namespace][$namespace_key])) {
-                if (!empty($this->data['features_map'][$namespace][$namespace_key]['target'])) {
-                    $target = $this->data['features_map'][$namespace][$namespace_key]['target'];
+                if ($namespace && isset($this->data['features_map'][$namespace][$namespace_key])) {
+                    if (!empty($this->data['features_map'][$namespace][$namespace_key]['target'])) {
+                        $target = $this->data['features_map'][$namespace][$namespace_key]['target'];
+                    }
                 }
             }
+        } elseif ($remapped === 'default_mapping') {
+            $remapped = false;
         }
 
-        return $remapped || $target;
+        return $target ? $target : $remapped;
     }
 
     /**
@@ -5604,19 +5695,28 @@ SQL;
         $update_fields = array(
             'summary'     => null,
             'description' => null,
-            'name'        => self::field($element, 'Наименование'),
+            'name'        => null,
             'tax_id'      => null,
             'type_id'     => null,
         );
+
+        if (!$this->isRemapped('name', false)) {
+            $update_fields['name'] = self::field($element, 'Наименование');
+        }
 
         if (!$this->isRemapped('summary', false)) {
             $update_fields['summary'] = self::field($element, 'Описание');
             if ($this->pluginSettings('description_is_html')) {
                 $update_fields['summary'] = htmlspecialchars($update_fields['summary'], ENT_NOQUOTES, 'utf-8');
             }
-            if (!$this->isRemapped('description', false)) {
-                $update_fields['description'] = nl2br($update_fields['summary']);
+        }
+
+        if (!$this->isRemapped('description', false)) {
+            $description = self::field($element, 'Описание');
+            if ($this->pluginSettings('description_is_html')) {
+                $description = htmlspecialchars($description, ENT_NOQUOTES, 'utf-8');
             }
+            $update_fields['description'] = nl2br($description);
         }
 
         $taxes = array();
@@ -5717,14 +5817,16 @@ SQL;
                         }
                         break;
                     }
-                    //no break
+                //no break
                 case 'ОписаниеВФорматеHTML':
+                case 'Описание':
                     if (!$this->isRemapped('description', $xpath, $property_name)) {
                         if ($value = self::field($property, 'Значение')) {
                             $update_fields['description'] = $value;
                         }
                         break;
                     }
+                //no break
                 case 'ВидНоменклатуры': // Товар/услуга или тип товаров
                     if (!$this->isRemapped('type_name', $xpath, $property_name)) {
                         $value = self::field($property, 'Значение');
@@ -5736,12 +5838,14 @@ SQL;
                         }
                         break;
                     }
+                //no break
                 case '___':
                 case 'ТипНоменклатуры':
                     //fields to ignore
                     if (empty($this->data['expert'])) {
                         break;
                     }
+                //no break
                 default:
 
                     if (!empty($this->data['expert'])) {
@@ -5791,8 +5895,9 @@ SQL;
                 }
                 $value = self::field($property, array('Значение', 'ИдЗначения'));
 
+                $feature_name = $feature ? (is_array($feature) ? mb_strtolower($feature['name'], 'utf-8') : $feature) : null;
 
-                switch (mb_strtolower($feature['name'], 'utf-8')) {
+                switch ($feature_name) {
                     case 'вид номенклатуры':
                     case 'вид товара':
                         //значение из справочника "номенклатурные группы"
@@ -5802,8 +5907,8 @@ SQL;
                         }
                         break;
                     default:
-                        if ($feature['name']) {
-                            $this->applyMapping($product, $update_fields, $features, $params, $feature['name'], $value, $feature, $xpath);
+                        if ($feature_name) {
+                            $this->applyMapping($product, $update_fields, $features, $params, $feature_name, $value, $feature, $xpath);
                         }
                         break;
                 }

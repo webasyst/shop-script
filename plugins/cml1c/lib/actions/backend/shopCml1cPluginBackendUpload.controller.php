@@ -56,7 +56,7 @@ class shopCml1cPluginBackendUploadController extends shopUploadController
             }
 
         } else {
-            throw new waException(_w('Error file upload'));
+            throw new waException(_w('File uploading error'));
         }
 
         return array(

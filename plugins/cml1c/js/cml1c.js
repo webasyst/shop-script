@@ -662,7 +662,7 @@
                             if (!autocomplete) {
                                 $.shop.trace('autocomplete', $td.find(':input.js-autocomplete-cml1c:first'));
                                 $td.find(':input.js-autocomplete-cml1c:first').autocomplete({
-                                    source: '?action=autocomplete&type=feature&options[single]=1',
+                                    source: '?action=autocomplete&type=feature',
                                     minLength: 2,
                                     delay: 300,
                                     select: function (event, ui) {
