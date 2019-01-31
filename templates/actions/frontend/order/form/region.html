@@ -95,7 +95,7 @@
     {/if}
 
     <div class="wa-section-body" {if !empty($_nothing_to_change)}style="display: none;"{/if}>
-        <form>
+        <form autocomplete="off">
             {if empty($region.disabled)}
                 <div class="wa-line wa-required-text">
                     <span class="wa-required"></span>[`To view shipping cost and estimated shipping time, please complete fields with an asterisk`]
@@ -210,7 +210,7 @@
 
                         {* CITY *}
                         <div class="wa-field-wrapper wa-city-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
-                            <label class="wa-label">{_render_label _label="[`City`]" _required=!empty($_is_city_required)}</label>
+                            <label class="wa-label">{_render_label _label="[`Locality`]" _required=!empty($_is_city_required)}</label>
 
                             {if empty($_active_location.city_locked)}
                                 {if $_active_region.has_cities}

@@ -14,33 +14,40 @@ class shopCheckoutContactinfo extends shopCheckout
 
     public function display()
     {
-        if (!$this->form) {
-            $this->form = shopHelper::getCustomerForm(null, false, true);
-        }
-
+        $view = wa()->getView();
         $contact = $this->getContact();
-        if ($contact) {
-            $this->form->setValue($contact);
+        $billing_matches_shipping = false;
 
-            // Make sure there are no more than one address of each type in the form
-            foreach (array('address', 'address.shipping', 'address.billing') as $fld) {
-                if (isset($this->form->values[$fld]) && count($this->form->values[$fld]) > 1) {
-                    $this->form->values[$fld] = array(reset($this->form->values[$fld]));
+        if ($contact->get('is_company')) {
+            $this->form = new waContactForm();
+            $url = wa('shop')->getRouteUrl('/frontend/checkout', array(), true);
+            $view->assign('error', sprintf(_w("We do not accept orders from clients registered as companies. To continue checkout, please <a href='?logout=%s'>log out</a> and log in again as a person."), $url));
+
+        } else {
+            if (!$this->form) {
+                $this->form = shopHelper::getCustomerForm(null, false, true);
+            }
+            if ($contact) {
+                $this->form->setValue($contact);
+
+                // Make sure there are no more than one address of each type in the form
+                foreach (array('address', 'address.shipping', 'address.billing') as $fld) {
+                    if (isset($this->form->values[$fld]) && count($this->form->values[$fld]) > 1) {
+                        $this->form->values[$fld] = array(reset($this->form->values[$fld]));
+                    }
+                }
+            }
+
+            if ($this->form->fields('address.shipping') && $this->form->fields('address.billing')) {
+                if (empty($this->form->values['address.shipping'])
+                    || empty($this->form->values['address.billing'][0]['value'])
+                    || $this->form->values['address.shipping'][0]['value'] == $this->form->values['address.billing'][0]['value']
+                ) {
+                    $billing_matches_shipping = true;
                 }
             }
         }
 
-        $billing_matches_shipping = false;
-        if ($this->form->fields('address.shipping') && $this->form->fields('address.billing')) {
-            if (empty($this->form->values['address.shipping'])
-                || empty($this->form->values['address.billing'][0]['value'])
-                || $this->form->values['address.shipping'][0]['value'] == $this->form->values['address.billing'][0]['value']
-            ) {
-                $billing_matches_shipping = true;
-            }
-        }
-
-        $view = wa()->getView();
         $this->assign('checkout_contact_form', $this->form);
         $this->assign('billing_matches_shipping', $billing_matches_shipping);
         $this->assign('customer', $contact ? $contact : new waContact());

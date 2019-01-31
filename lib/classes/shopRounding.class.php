@@ -22,7 +22,7 @@ class shopRounding
 
         list($round_unit, $shift, $precision) = self::getRoundingVars($rounding);
         $result = round($amount + $shift, $precision) - $shift;
-        if ($round_up_only && $result < $amount) {
+        if (($round_up_only && $result < $amount) || ($amount > 0 && $result <= 0)) {
             $result += $round_unit;
         }
 

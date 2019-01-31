@@ -13,14 +13,14 @@ return array(
         'custom_css'        => '',
     ),
     'cart'         => array(
-        'block_name'       => _wd('shop', 'Shopping cart'),
-        'empty_text'       => _wd('shop', 'Your shopping cart is empty'),
-        'article_change'   => false,
-        'discount_item'    => shopCheckoutConfig::DISCOUNT_ITEM_TYPE_STRIKEOUT,
-        'discount_general' => shopCheckoutConfig::DISCOUNT_GENERAL_TYPE_AMOUNT,
+        'block_name'        => _wd('shop', 'Shopping cart'),
+        'empty_text'        => _wd('shop', 'Your shopping cart is empty'),
+        'change_sku'        => false,
+        'discount_item'     => shopCheckoutConfig::DISCOUNT_ITEM_TYPE_STRIKEOUT,
+        'discount_general'  => shopCheckoutConfig::DISCOUNT_GENERAL_TYPE_AMOUNT,
     ),
-    'schedule' => array(
-        'mode' => shopCheckoutConfig::SCHEDULE_MODE_DEFAULT,
+    'schedule'     => array(
+        'mode'            => shopCheckoutConfig::SCHEDULE_MODE_DEFAULT,
         'processing_time' => '0',
     ),
     'order'        => array(

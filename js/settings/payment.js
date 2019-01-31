@@ -208,13 +208,90 @@ if (typeof($) != 'undefined') {
             this.$payment_plugin_container.show().html(this.payment_options.loading).load(url, function () {
                 if (typeof(callback) == 'function') {
                     callback();
+                    self.initElasticFooter();
                 }
 
                 self.$payment_plugin_container.find(':input[name="payment[options][customer_type]"]:checked, :input[name^="payment\[shipping_type\]"]').trigger('change');
             });
         },
 
-       paymentPluginClone: function () {
+        initElasticFooter:function() {
+            var that = this;
+
+            // DOM
+            var $window = $(window),
+                $wrapper = that.$container,
+                $header = $wrapper.find(".js-footer-block"),
+                $dummy = false,
+                is_set = false;
+
+            var active_class = "is-fixed-to-bottom";
+
+            var header_o, header_w, header_h;
+
+            clear();
+
+            $window.on("scroll", useWatcher);
+            $window.on("resize", onResize);
+
+            onScroll();
+
+            function useWatcher() {
+                var is_exist = $.contains(document, $header[0]);
+                if (is_exist) {
+                    onScroll();
+                } else {
+                    $window.off("scroll", useWatcher);
+                }
+            }
+
+            function onScroll() {
+                var scroll_top = $window.scrollTop(),
+                    use_scroll = header_o.top + header_h > scroll_top + $window.height();
+
+                if (use_scroll) {
+                    if (!is_set) {
+                        is_set = true;
+                        $dummy = $("<div />");
+
+                        $dummy.height(header_h).insertAfter($header);
+
+                        $header
+                            .css("left", header_o.left - 20) //20 -  Because parents are doing padding 20
+                            .width(header_w)
+                            .addClass(active_class);
+                    }
+
+                } else {
+                    clear();
+                }
+            }
+
+            function onResize() {
+                clear();
+                $window.trigger("scroll");
+            }
+
+            function clear() {
+                if ($dummy && $dummy.length) {
+                    $dummy.remove();
+                }
+                $dummy = false;
+
+                $header
+                    .removeAttr("style")
+                    .removeClass(active_class);
+
+                header_o = $header.offset();
+                header_w = $header.outerWidth() + 40; // Because parents are doing padding 20
+                header_h = $header.outerHeight();
+
+                is_set = false;
+            }
+        },
+
+
+        paymentPluginClone: function () {
             var that = this,
                 $plugin_list = $('#s-settings-payment');
 

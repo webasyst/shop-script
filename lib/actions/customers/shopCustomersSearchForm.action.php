@@ -71,6 +71,7 @@ class shopCustomersSearchFormAction extends waViewAction
                 $this->hash = '';
             }
         }
+        $this->hash = urldecode($this->hash);
         $hash = $this->hash;
         if ($parsed) {
             return $this->hash_parsed === null ? ($this->hash_parsed = shopCustomersCollectionPreparator::parseSearchHash($hash)) : $this->hash_parsed;

@@ -138,13 +138,20 @@ class shopFrontendCheckoutAction extends waViewAction
             shopOrderItemsModel::sortItemsByGeneralSettings($order['items']);
 
             $payment = '';
-            if (!empty($order['params']['payment_id'])) {
-                try {
-                    /** @var waPayment $plugin */
-                    $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
-                    $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), true);
-                } catch (waException $ex) {
-                    $payment = $ex->getMessage();
+            if (!empty($order['params']['payment_id'])) { # order has related payment plugin
+                $workflow = new shopWorkflow();
+                /** @var shopWorkflowState $state */
+                $state = $workflow->getStateById($order['state_id']);
+                if ($state->paymentAllowed()) { # order state allow payment
+                    try {
+                        /** @var waPayment $plugin */
+                        $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
+                        $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), true);
+                    } catch (waException $ex) {
+                        $payment = $ex->getMessage();
+                    }
+                } else {
+                    $payment = _w('Payment option will be available in your customer account after your order has been verified.');
                 }
             }
             $order['id'] = shopHelper::encodeOrderId($order_id);

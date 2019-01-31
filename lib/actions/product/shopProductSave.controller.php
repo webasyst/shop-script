@@ -107,8 +107,8 @@ class shopProductSaveController extends waJsonController
 
                     $features_total_count = array_product($features_counts);
                     $this->response['features_selectable_strings'] = array(
-                        'options' => implode(' x ', $features_counts).' '._w('option', 'options', $features_total_count),
-                        'skus'    => _w('%d SKU in total', '%d SKUs in total', $features_total_count)
+                        'options' => sprintf (_w('Parameters: %s'), implode(' x ', $features_counts)),
+                        'skus'    => sprintf (_w('SKUs: %d'), $features_total_count)
                     );
                 }
 

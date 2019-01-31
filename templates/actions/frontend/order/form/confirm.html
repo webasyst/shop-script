@@ -15,7 +15,7 @@
                     <div class="wa-comment-section {if !empty($confirm.comment)}is-opened{/if}">
                         <div class="wa-visible">
                             <span class="wa-link js-open-section">
-                                [`Comment to the order`]&nbsp;&nbsp;<i class="wa-icon arrow-bottom size-8"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#arrow-bottom"></use></svg></i>
+                                [`Comment to the order`]&nbsp;&nbsp;<i class="wa-icon arrow-bottom size-8"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#arrow-bottom"></use></svg></i>
                             </span>
                         </div>
                         <div class="wa-hidden">
@@ -112,6 +112,20 @@
         </form>
     </div>
 
+    {$_channel = [
+        "status" => "error",
+        "required" => "disabled"
+    ]}
+
+    {if !empty($_config.order_without_auth)}
+        {if $_config.order_without_auth === "create_contact" && !empty($_config.auth_with_code)}
+            {$_channel["required"] = "optional"}
+        {/if}
+        {if $_config.order_without_auth === "confirm_contact"}
+            {$_channel["required"] = "required"}
+        {/if}
+    {/if}
+
     <script>
         ( function($) {
             var $step = $("#wa-step-confirm-section"),
@@ -122,8 +136,13 @@
                 controller.initConfirm({
                     $wrapper: $step,
                     errors: {$_errors|json_encode},
+                    channel: {$_channel|json_encode},
                     templates: {
                         terms_dialog: {waUtils::jsonEncode(trim(ifset($_terms_dialog, '')))}
+                    },
+                    urls: {
+                        "channel_dialog": {$wa->getUrl('shop/frontendOrderConfirmation/defaultDialog')|json_encode},
+                        "channel_confirm": {$wa->getUrl('shop/frontendOrder/confirmationDialog')|json_encode}
                     }
                 });
             });

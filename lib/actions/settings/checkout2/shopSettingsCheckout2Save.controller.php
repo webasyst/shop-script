@@ -169,11 +169,28 @@ class shopSettingsCheckout2SaveController extends waJsonController
 
     protected function validateScheduleDayFields($block, $day_id, $day)
     {
-        $day_fields = ['start_work', 'end_work', 'end_processing'];
+        $invalid_times = false;
         $time_validator = new waTimeValidator();
+
+        $day_fields = ['start_work', 'end_work', 'end_processing'];
         foreach ($day_fields as $field) {
             if (!empty($day[$field]) && !$time_validator->isValid($day[$field])) {
                 $this->insertError("[schedule][{$block}][{$day_id}][{$field}]", _w('Invalid time'));
+                if (!$invalid_times) {
+                    $invalid_times = true;
+                }
+            }
+        }
+
+        if ($invalid_times) {
+            return;
+        }
+
+        if (!empty($day['start_work']) && !empty($day['end_work'])) {
+            $start_time = strtotime($day['start_work']);
+            $end_time = strtotime($day['end_work']);
+            if ($start_time >= $end_time) {
+                $this->insertError("[schedule][{$block}][{$day_id}][end_work]", _w('Invalid time'));
             }
         }
     }

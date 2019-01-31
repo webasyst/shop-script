@@ -435,16 +435,23 @@
             function initAutocomplete($city_field) {
 
                 var xhr = null;
-                var change_timer = 0;
+                var change_timer = 0,
+                    auto_use_timer = 0;
 
                 $city_field.on("change", function() {
                     change();
+                });
+
+                $city_field.on("keydown", function() {
+                    clearTimeout(auto_use_timer);
                 });
 
                 $city_field.autocomplete({
                     source: function(field_data, resolve) {
                         getData().then( function(data) {
                             resolve(data);
+
+                            if (!data.length) { autoUse(); }
                         });
                     },
                     minLength: 2,
@@ -457,6 +464,13 @@
                         return false;
                     }
                 });
+
+                function autoUse() {
+                    clearTimeout(auto_use_timer);
+                    auto_use_timer = setTimeout( function() {
+                        change(true);
+                    }, 2000);
+                }
 
                 function getData() {
                     var deferred = $.Deferred();
@@ -648,18 +662,24 @@
                 that.$map_section = that.$wrapper.find(".wa-map-section");
                 that.$variants = that.$wrapper.find(".wa-variant-wrapper");
 
-                // VARS
-                that.show_map = options["show_map"];
+                //
                 that.dialog = options["dialog"];
                 that.scope = options["scope"];
-                that.data = options["data"];
+
+                // VARS
+                that.show_map = options["show_map"];
+                that.templates = options["templates"];
+                that.variants = options["variants"];
+                that.active_variant = options["active_variant"];
+
+                // FUNCTIONS
                 that.onSet = (typeof options["set"] === "function" ? options["set"] : function() {});
 
-                that.variants = that.scope.variants;
-                that.active_variant = that.scope.active_variant;
-
                 // DYNAMIC VARS
-                that.map = null;
+                that.map_deferred = $.Deferred();
+                that.getMap = function () {
+                    return that.map_deferred.promise();
+                };
 
                 // INIT
                 that.initClass();
@@ -669,7 +689,7 @@
                 var that = this;
 
                 if (that.show_map) {
-                    that.map = that.initMap();
+                    that.initMap();
                 } else {
                     that.$map_section.hide();
                 }
@@ -682,30 +702,53 @@
             };
 
             PickupDialog.prototype.initMap = function() {
-                var that = this,
-                    deferred = $.Deferred(),
-                    promise = deferred.promise();
+                var that = this;
 
-                var placemarks = {},
-                    cluster,
-                    active_balloon = null;
-
-                if (!window.ymaps) {
-                    that.scope.scope.DEBUG("Yandex API required", "error");
+                if ( !(that.scope.map.adapter && that.scope.map.api_uri) ) {
                     return false;
                 }
 
-                var reset = function() {};
-                var moveTo = function() {};
+                if (!$("#wa-shipping-map").length) { return false; }
 
-                ymaps.ready( function() {
-                    if (!$("#wa-yandex-map").length) { return false; }
+                if (that.scope.map.adapter === "yandex") {
+                    window.waOrder.ui.load([{
+                        id: "yandex-maps-api-js",
+                        type: "js",
+                        uri: that.scope.map.api_uri
+                    }]).then(function () {
+                        if (window.ymaps) {
+                            window.ymaps.ready(function () {
+                                initYandexMap(window.ymaps);
+                            });
+                        } else {
+                            that.scope.scope.DEBUG("Yandex API required", "error");
+                            return false;
+                        }
+                    });
+
+                } else if (that.scope.map.adapter === "google") {
+                    window.waOrder.ui.load([{
+                        id: "google-maps-api-js",
+                        type: "js",
+                        uri: that.scope.map.api_uri
+                    }, {
+                        id: "google-maps-clusterer-js",
+                        type: "js",
+                        uri: "//developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"
+                    }]).then( function() {
+                        initGoogleMap();
+                    });
+                }
+
+                function initYandexMap(ymaps) {
+                    var placemarks = {},
+                        active_balloon = null;
 
                     var center = getCenter(that.variants),
-                        map = new ymaps.Map("wa-yandex-map", { center: center, zoom: 10, controls: ["fullscreenControl", "zoomControl", "geolocationControl"] }),
+                        map = new ymaps.Map("wa-shipping-map", { center: center, zoom: 10, controls: ["fullscreenControl", "zoomControl", "geolocationControl"] }),
                         cluster = new ymaps.Clusterer();
 
-                    moveTo = function(placemark) {
+                    var moveTo = function(placemark) {
                         var is_mobile = isMobile();
 
                         if (!is_mobile) {
@@ -723,22 +766,37 @@
                         }
                     };
 
-                    reset = function() {
-                        map.setCenter(center, 10);
-                        if (active_balloon) {
-                            if (active_balloon.isOpen()) {
-                                active_balloon.close();
-                            }
-                            active_balloon = null;
-                        }
-                    };
-
                     initCluster();
 
                     initSearch();
 
-                    // return promise with map
-                    deferred.resolve(map, cluster);
+                    that.map_deferred.resolve({
+                        placemarks: placemarks,
+                        refresh: function(variant_ids) {
+                            var placemarks_array = [];
+
+                            $.each(variant_ids, function(i, variant_id) {
+                                if (variant_id && placemarks[variant_id]) {
+                                    placemarks_array.push(placemarks[variant_id]);
+                                }
+                            });
+
+                            cluster.removeAll();
+                            cluster.add(placemarks_array);
+                        },
+                        reset: function() {
+                            map.setCenter(center, 10);
+                            if (active_balloon) {
+                                if (active_balloon.isOpen()) {
+                                    active_balloon.close();
+                                }
+                                active_balloon = null;
+                            }
+                        },
+                        moveTo: function(placemark) {
+                            return moveTo(placemark);
+                        }
+                    });
 
                     function initCluster() {
                         var placemarks_array = [];
@@ -815,54 +873,153 @@
                             mySearchResults.removeAll();
                         })
                     }
-                });
 
-                return {
-                    placemarks: placemarks,
-                    refresh: function(variant_ids) {
-                        promise.then(render);
+                    function addPlacemark(variant) {
+                        var lat = null,
+                            lng = null;
 
-                        function render(map, cluster) {
-                            var placemarks_array = [];
-
-                            $.each(variant_ids, function(i, variant_id) {
-                                if (variant_id && placemarks[variant_id]) {
-                                    placemarks_array.push(placemarks[variant_id]);
-                                }
-                            });
-
-                            cluster.removeAll();
-                            cluster.add(placemarks_array);
+                        if (variant.lat && variant.lng) {
+                            lat = variant.lat;
+                            lng = variant.lng;
+                        } else {
+                            return false;
                         }
-                    },
-                    reset: function() {
-                        return reset();
-                    },
-                    moveTo: function(placemark) {
-                        return moveTo(placemark);
+
+                        var placemark = new ymaps.Placemark([lat, lng], {
+                            balloonContentBody: variant.name
+                        });
+
+                        placemark.variant_id = variant.variant_id;
+
+                        placemarks[variant.variant_id] = placemark;
+
+                        return placemark;
                     }
-                };
+                }
 
-                function addPlacemark(variant) {
-                    var lat = null,
-                        lng = null;
+                function initGoogleMap() {
+                    var center = getCenter(that.variants);
 
-                    if (variant.lat && variant.lng) {
-                        lat = variant.lat;
-                        lng = variant.lng;
-                    } else {
-                        return false;
-                    }
-
-                    var placemark = new ymaps.Placemark([lat, lng], {
-                        balloonContentBody: variant.name
+                    var map = new google.maps.Map(document.getElementById("wa-shipping-map"), {
+                        center: {lat: center[0], lng: center[1]},
+                        zoom: 10
                     });
 
-                    placemark.variant_id = variant.variant_id;
+                    var placemarks = {},
+                        balloon = new google.maps.InfoWindow();
 
-                    placemarks[variant.variant_id] = placemark;
+                    var cluster = initCluster();
 
-                    return placemark;
+                    var moveTo = function(placemark) {
+                        var is_mobile = isMobile();
+                        if (!is_mobile) {
+                            console.log("TODO: moveTo", placemark);
+
+                            // map.setCenter(placemark.geometry.getCoordinates(), 17).then( function() {
+                            //     active_balloon = placemark.balloon;
+                            //
+                            //     var state = cluster.getObjectState(placemark);
+                            //
+                            //     if (!state.isClustered && state.isShown) {
+                            //         if (!active_balloon.isOpen()) {
+                            //             active_balloon.open();
+                            //         }
+                            //     }
+                            // });
+                        }
+                    };
+
+                    that.map_deferred.resolve({
+                        placemarks: placemarks,
+                        refresh: function(variant_ids) {
+                            console.log("TODO: refresh");
+
+                            // var placemarks_array = [];
+                            //
+                            // $.each(variant_ids, function(i, variant_id) {
+                            //     if (variant_id && placemarks[variant_id]) {
+                            //         placemarks_array.push(placemarks[variant_id]);
+                            //     }
+                            // });
+                            //
+                            // cluster.removeAll();
+                            // cluster.add(placemarks_array);
+                        },
+                        reset: function() {
+                            console.log("TODO: reset");
+
+                            // map.setCenter(center, 10);
+                            // if (active_balloon) {
+                            //     if (active_balloon.isOpen()) {
+                            //         active_balloon.close();
+                            //     }
+                            //     active_balloon = null;
+                            // }
+                        },
+                        moveTo: function(placemark) {
+                            return moveTo(placemark);
+                        }
+                    });
+
+                    function initCluster(cluster) {
+                        if (cluster) {
+                            cluster.clearMarkers();
+                        }
+
+                        var placemarks_array = [];
+
+                        $.each(that.variants, function(id, variant) {
+                            var placemark = addPlacemark(variant);
+                            if (placemark) { placemarks_array.push(placemark); }
+                        });
+
+                        cluster = new MarkerClusterer(map, placemarks_array, {
+                            imagePath: '//developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
+                        });
+
+                        // set placemark if we have an active variant
+                        if (that.active_variant && placemarks[that.active_variant]) {
+                            var active_placemark = placemarks[that.active_variant];
+
+                            console.log( "TODO: move_to", active_placemark );
+                        }
+
+                        return cluster;
+
+                        function addPlacemark(variant) {
+                            var lat = null,
+                                lng = null;
+
+                            if (variant.lat && variant.lng) {
+                                lat = parseFloat(variant.lat);
+                                lng = parseFloat(variant.lng);
+                            } else {
+                                return false;
+                            }
+
+                            var placemark = new google.maps.Marker({
+                                position: {
+                                    lat: lat,
+                                    lng: lng
+                                },
+                                title: variant.name
+                            });
+
+                            placemark.variant_id = variant.variant_id;
+
+                            placemarks[variant.variant_id] = placemark;
+
+                            placemark.addListener("click", function() {
+                                map.setZoom(17);
+                                map.setCenter(placemark.getPosition());
+                                balloon.close();
+                                balloon.setContent(variant.name);
+                                balloon.open(map, placemark);
+                            });
+
+                            return placemark;
+                        }
+                    }
                 }
 
                 function getCenter(variants) {
@@ -953,9 +1110,9 @@
                         }
                     });
 
-                    if (that.map) {
-                        that.map.refresh(active_variant_ids);
-                    }
+                    that.getMap().then( function(map) {
+                        map.refresh(active_variant_ids);
+                    });
 
                     // that.dialog.resize();
                 }
@@ -1025,9 +1182,13 @@
                         $variants_section.hide();
                         $details_section.show();
 
-                        if (variants.length === 1 && that.map.placemarks && that.map.placemarks[variants[0]]) {
-                            var placemark = that.map.placemarks[variants[0]];
-                            that.map.moveTo(placemark);
+                        if (variants.length === 1) {
+                            that.getMap().then( function(map) {
+                                if (map.placemarks && map.placemarks[variants[0]]) {
+                                    var placemark = map.placemarks[variants[0]];
+                                    map.moveTo(placemark);
+                                }
+                            });
                         }
                     } else {
                         $details_section.hide();
@@ -1039,7 +1200,7 @@
                 }
 
                 function getDetailsHTML(variant) {
-                    var template = that.scope.templates["map_details"];
+                    var template = that.templates["map_details"];
 
                     template = template.replace("%title%", variant.name).replace("%variant_id%", variant.variant_id);
 
@@ -1176,15 +1337,14 @@
             that.$form = that.$wrapper.find("form:first");
 
             // VARS
-            that.map_display = options["map_display"];
+            that.map = options["map"];
             that.templates = options["templates"];
             that.disabled = options["disabled"];
-            that.variants_array = options["variants"];
-            that.variants = construct(options["variants"], "variant_id");
-            that.active_variant = options["active_variant"];
+            that.variants_count = options["variants_count"];
             that.locales = options["locales"];
             that.errors = options["errors"];
             that.scope = options["scope"];
+            that.urls = options["urls"];
 
             // DYNAMIC VARS
             that.reload = true;
@@ -1223,6 +1383,11 @@
 
                         that.update({
                             reload: true
+                        }).then( function() {
+                            var $section = $("#js-delivery-variants-section");
+                            if ($section.length) {
+                                $section.find(".wa-dropdown-toggle").trigger("click");
+                            }
                         });
                     }
                 });
@@ -1241,13 +1406,13 @@
                     change_selector: ".wa-dropdown-item",
                     open: function(dropdown) {
                         var is_mobile = isMobile(),
-                            variants_count = that.variants_array.length;
+                            variants_count = that.variants_count;
 
-                        if (that.map_display === "always") {
+                        if (that.map.display === "always") {
                             showPickupDialog(dropdown, true);
                             return false;
 
-                        } else if (that.map_display === "desktop") {
+                        } else if (that.map.display === "desktop") {
                             showPickupDialog(dropdown, !is_mobile);
                             return false;
 
@@ -1273,10 +1438,6 @@
                         });
                     }
                 });
-
-                if (!$variant_field.val()) {
-                    dropdown.$button.trigger("click");
-                }
 
                 $types_section.on("click", ".wa-type-wrapper.is-active", function() {
                     dropdown.$button.trigger("click");
@@ -1316,34 +1477,76 @@
             }
 
             function showPickupDialog(dropdown, show_map) {
-                var template = that.templates["map_dialog"];
+                var href = that.urls["variants_dialog"],
+                    data = that.scope.getFormData();
 
-                new that.scope.ui.Dialog({
-                    $wrapper: $(template),
-                    onOpen: function($dialog, dialog) {
-                        new PickupDialog({
-                            $wrapper: $dialog,
-                            dialog: dialog,
-                            scope: that,
-                            show_map: show_map,
-                            set: function(variant_id) {
-                                if (that.variants[variant_id]) {
-                                    var variant = that.variants[variant_id];
-                                    var template = "<div class=\"wa-dropdown-item js-set-dropdown-item\" data-id=\"%variant_id%\"><div class=\"wa-delivery-variant\"><div class=\"wa-name\" data-name=\"%variant_name%\"></div></div></div>";
-                                    template = template.replace("%variant_id%", variant_id).replace("%variant_name%", variant.name);
-                                    dropdown.$menu.append(template);
+                loading(true);
 
-                                    var $target = dropdown.$menu.find(".js-set-dropdown-item[data-id=\"" + variant_id + "\"]");
-                                        $target.trigger("click");
+                $.post(href, data)
+                    .done( function(html) {
+                        var $wrapper = $(html);
+                        $wrapper.data("scope", that);
 
-                                } else {
-                                    that.scope.DEBUG("Variants is missing", "error", variant_id);
-                                }
+                        new that.scope.ui.Dialog({
+                            $wrapper: $wrapper,
+                            options: {
+                                dropdown: dropdown,
+                                show_map: show_map
                             }
                         });
+                    })
+                    .always( function() {
+                        loading(false);
+                    });
+
+                function loading(show) {
+                    if (show) {
+                        dropdown.lock(true);
+                    } else {
+                        dropdown.lock(false);
                     }
-                });
+                }
             }
+        };
+
+        Shipping.prototype.initPickupDialog = function(options) {
+            var that = this;
+
+            var $wrapper = options["$wrapper"],
+                variants_array = options["variants"],
+                active_variant = options["active_variant"],
+                variants = construct(variants_array, "variant_id"),
+                templates = options["templates"];
+
+            var dialog = $wrapper.data("dialog"),
+                show_map = dialog.options.show_map,
+                dropdown = dialog.options.dropdown;
+
+            new PickupDialog({
+                $wrapper: $wrapper,
+                dialog: dialog,
+
+                variants: variants,
+                active_variant: active_variant,
+                scope: that,
+                templates: templates,
+                show_map: show_map,
+
+                set: function(variant_id) {
+                    if (variants[variant_id]) {
+                        var variant = variants[variant_id];
+                        var template = "<div class=\"wa-dropdown-item js-set-dropdown-item\" data-id=\"%variant_id%\"><div class=\"wa-delivery-variant\"><div class=\"wa-name\" data-name=\"%variant_name%\"></div></div></div>";
+                        template = template.replace("%variant_id%", variant_id).replace("%variant_name%", variant.name);
+                        dropdown.$menu.append(template);
+
+                        var $target = dropdown.$menu.find(".js-set-dropdown-item[data-id=\"" + variant_id + "\"]");
+                        $target.trigger("click");
+
+                    } else {
+                        that.scope.DEBUG("Variants is missing", "error", variant_id);
+                    }
+                }
+            });
         };
 
         // REQUIRED
@@ -1511,7 +1714,7 @@
 
             that.reload = !!data.reload;
 
-            that.scope
+            return that.scope
                 .update({
                     sections: ["auth", "region", "shipping", "confirm"]
                 })
@@ -2230,12 +2433,15 @@
             that.$form = that.$wrapper.find("form:first");
 
             // VARS
+            that.templates = options["templates"];
+            that.channel = options["channel"];
             that.errors = options["errors"];
             that.scope = options["scope"];
-            that.templates = options["templates"];
+            that.urls = options["urls"];
 
             // DYNAMIC VARS
             that.reload = true;
+            that.is_locked = false;
 
             // INIT
             that.initClass();
@@ -2290,7 +2496,13 @@
 
             that.$wrapper.on("click", ".js-submit-order-button", function(event) {
                 event.preventDefault();
-                that.create();
+
+                if (!that.is_locked) {
+                    that.is_locked = true;
+                    that.create().always( function() {
+                        that.is_locked = false;
+                    });
+                }
             });
         };
 
@@ -2375,40 +2587,47 @@
         };
 
         Confirm.prototype.create = function() {
-            var that = this;
+            var that = this,
+                deferred = $.Deferred();
 
             var errors = that.scope.validate(that.scope.$wrapper, true);
             if (errors.length) {
                 that.scope.DEBUG("Errors:", "error", errors);
                 focus(errors[0]);
+                deferred.reject();
 
             } else {
-                that.scope.update({
-                    create: true,
-                    render_errors: true
-                }).then( function(api) {
-                    if (api.order_id) {
-                        that.scope.trigger("created", api);
-                        that.scope.lock(true);
-                        try {
-                            location.href = that.scope.urls.success;
-                        } catch (e) {
-                            that.scope.DEBUG(e.message, "error");
-                        }
-                    } else {
-                        var errors = that.scope.renderErrors(api);
-                        if (errors.length) {
-                            focus(errors[0]);
-                        }
-                    }
-                }, function(state, response) {
-                    if (state === "front_errors") {
-                        if (response.length) {
-                            focus(response[0]);
-                        }
-                    }
-                });
+                // if (that.channel.required !== "disabled") {
+                //     var href = that.urls["channel_dialog"],
+                //         data = {};
+                //
+                //     $.post(href, data).done( function(response) {
+                //         var html = response.data.confirmation_dialog;
+                //
+                //         var $wrapper = $(html);
+                //         $wrapper.data("scope", that);
+                //
+                //         var dialog = new that.scope.ui.Dialog({
+                //             $wrapper: $wrapper,
+                //             options: {
+                //                 onSuccess: function() {
+                //                     create(deferred);
+                //                 },
+                //                 onSkip: function() {
+                //                     create(deferred);
+                //                 }
+                //             },
+                //             onClose: function() {
+                //                 deferred.resolve();
+                //             }
+                //         });
+                //     })
+                // } else {
+                    create(deferred);
+                // }
             }
+
+            return deferred.promise();
 
             function focus(error) {
                 var scroll_top = 0,
@@ -2443,6 +2662,373 @@
                     return result;
                 }
             }
+
+            function create(deferred) {
+                return that.scope.update({
+                    create: true,
+                    render_errors: true
+                }).then( function(api) {
+                    if (api.order_id) {
+                        that.scope.trigger("created", api);
+                        that.scope.lock(true);
+                        try {
+                            location.href = that.scope.urls.success;
+                        } catch (e) {
+                            that.scope.DEBUG(e.message, "error");
+                        }
+                    } else {
+                        var errors = that.scope.renderErrors(api);
+                        if (errors.length) {
+                            focus(errors[0]);
+                        }
+                    }
+                    deferred.resolve(api);
+                }, function(state, response) {
+                    if (state === "front_errors") {
+                        if (response.length) {
+                            focus(response[0]);
+                        }
+                    }
+                    deferred.reject();
+                });
+            }
+        };
+
+        Confirm.prototype.initChannelConfirmDialog = function(options) {
+
+            var ChannelConfirmDialog = ( function($) {
+
+                ChannelConfirmDialog = function(options) {
+                    var that = this;
+
+                    // DOM
+                    that.$wrapper = options["$wrapper"];
+                    that.$code_field = that.$wrapper.find(".js-code-field");
+                    that.$value_field = that.$wrapper.find(".js-value-field");
+
+                    // VARS
+                    that.recode_timeout = options["recode_timeout"];
+                    that.dialog = that.$wrapper.data("dialog");
+                    that.scope = that.$wrapper.data("scope");
+                    that.locales = options["locales"];
+                    that.urls = options["urls"];
+                    that.type = options["type"];
+
+                    // DYNAMIC VARS
+
+                    // INIT
+                    that.init();
+                };
+
+                ChannelConfirmDialog.prototype.init = function() {
+                    var that = this;
+
+                    that.initSendCode();
+
+                    that.initSubmit();
+                };
+
+                ChannelConfirmDialog.prototype.initSendCode = function() {
+                    var that = this,
+                        is_locked = false,
+                        resend_locked = false,
+                        interval = 0;
+
+                    var $send_line = that.$wrapper.find(".js-send-line"),
+                        $code_line = that.$wrapper.find(".js-code-line"),
+                        $value_content = that.$wrapper.find(".js-value-content"),
+                        $submit_line = that.$wrapper.find(".js-submit-line"),
+                        $resend = $code_line.find(".js-resend-code"),
+                        $time_w = $code_line.find(".js-timer-wrapper"),
+                        $time =  $time_w.find(".wa-time");
+
+                    that.$wrapper.on("click", ".js-send-code", function(event) {
+                        event.preventDefault();
+
+                        var value = that.$value_field.val(),
+                            value_validate = validate(value, that.type);
+
+                        if (!value_validate) {
+                            that.renderError({
+                                $field: that.$value_field,
+                                text: that.locales["invalid"]
+                            });
+                            return false;
+                        }
+
+                        sendCode().then( function() {
+                            toggle(true);
+                            setTimer();
+                        }, function() {
+                            that.renderError({
+                                $field: that.$value_field,
+                                text: that.locales["required"]
+                            });
+                        });
+                    });
+
+                    that.$wrapper.on("click", ".js-resend-code", function(event) {
+                        event.preventDefault();
+
+                        if (!resend_locked) {
+                            resend_locked = true;
+
+                            sendCode().then( function() {
+                                setTimer();
+                                resend_locked = false;
+                            });
+                        }
+                    });
+
+                    that.$wrapper.on("click", ".js-edit-value", function(event) {
+                        event.preventDefault();
+                        $value_content.hide();
+                        toggle(false);
+                    });
+
+                    var value = that.$value_field.val(),
+                        value_validate = validate(value, that.type);
+
+                    if (value_validate) {
+                        toggle(true);
+                        that.$wrapper.find(".js-send-code").trigger("click");
+
+                    } else {
+                        that.renderError({
+                            $field: that.$value_field,
+                            text: that.locales["invalid"]
+                        });
+                    }
+
+                    function toggle(show) {
+                        if (show) {
+                            that.$value_field.attr("readonly", true);
+                            $send_line.hide();
+                            $code_line.show();
+                            $submit_line.show();
+
+                        } else {
+                            that.$value_field.attr("readonly", false);
+                            $send_line.show();
+                            $code_line.hide();
+                            $submit_line.hide();
+                        }
+                    }
+
+                    function timerToggle(show) {
+                        if (show) {
+                            $time_w.hide();
+                            $resend.show();
+                            $value_content.show();
+                        } else {
+                            $resend.hide();
+                            $time_w.show();
+                            $value_content.hide();
+                        }
+                    }
+
+                    function sendCode() {
+                        var deferred = $.Deferred(),
+                            value = that.$value_field.val();
+
+                        if (!value.length) {
+                            that.$value_field.focus();
+                            deferred.reject();
+
+                        } else if (!is_locked) {
+                            is_locked = true;
+
+                            var href = that.urls["code"],
+                                data = {
+                                    value: value
+                                };
+
+                            $.post(href, data)
+                                .done( function(response) {
+                                    deferred.resolve();
+                                })
+                                .fail( function() {
+                                    deferred.reject();
+                                })
+                                .always( function() {
+                                    is_locked = false;
+                                });
+                        }
+
+                        return deferred.promise();
+                    }
+
+                    function setTimer() {
+                        var deferred = $.Deferred(),
+                            interval_time = 0,
+                            time = that.recode_timeout;
+
+                        timerToggle(false);
+
+                        $time.html( getTimeString(time) );
+
+                        interval = setInterval( function() {
+                            interval_time++;
+
+                            if (!$.contains(document, $time[0])) {
+                                clearInterval(interval);
+                                deferred.reject();
+
+                            } else {
+                                if (interval_time >= time) {
+                                    clearInterval(interval);
+                                    timerToggle(true);
+                                    deferred.resolve();
+
+                                } else {
+                                    $time.html( getTimeString(time - interval_time) );
+                                }
+                            }
+                        }, 1000);
+
+                        return deferred.promise();
+
+                        function getTimeString(time) {
+                            time = parseInt(time);
+                            if ( !(time >= 0) ) { return ""; }
+
+                            var minutes = parseInt(time/60),
+                                seconds = time - (minutes * 60);
+
+                            if (minutes < 10) {
+                                minutes = "0" + minutes;
+                            }
+
+                            if (seconds < 10) {
+                                seconds = "0" + seconds;
+                            }
+
+                            return minutes + ":" + seconds;
+                        }
+                    }
+                };
+
+                ChannelConfirmDialog.prototype.initSubmit = function() {
+                    var that = this,
+                        is_locked = false;
+
+                    that.$wrapper.on("click", ".js-submit-confirm", function(event) {
+                        event.preventDefault();
+                        onSubmit();
+                    });
+
+                    that.$wrapper.on("click", ".js-skip-confirm", function(event) {
+                        event.preventDefault();
+                        that.dialog.close();
+                        that.dialog.options.onSkip();
+                    });
+
+                    function onSubmit() {
+                        if (!is_locked) {
+                            is_locked = true;
+
+                            var code = that.$code_field.val(),
+                                value = that.$value_field.val(),
+                                value_validate = validate(value, that.type);
+
+                            if (!code.length) {
+                                that.renderError({
+                                    $field: that.$code_field,
+                                    text: that.locales["code_empty"]
+                                });
+                                is_locked = false;
+                                return false;
+                            }
+
+                            if (!value_validate) {
+                                that.renderError({
+                                    $field: that.$value_field,
+                                    text: that.locales["invalid"]
+                                });
+                                is_locked = false;
+                                return false;
+                            }
+
+                            var href = that.urls["submit"],
+                                data = {
+                                    code: code,
+                                    value: value
+                                };
+
+                            $.post(href, data)
+                                .done( function(response) {
+                                    if (response.errors) {
+                                        that.renderError({
+                                            $field: that.$code_field,
+                                            text: that.locales["code_incorrect"]
+                                        });
+                                    } else {
+                                        that.dialog.close();
+                                        that.dialog.options.onSuccess();
+                                    }
+                                })
+                                .always( function() {
+                                    is_locked = false;
+                                });
+                        }
+                    }
+                };
+
+                ChannelConfirmDialog.prototype.renderError = function(error) {
+                    var that = this;
+                    var $error = $("<div class=\"wa-error-text\" />").text(error.text);
+                    var error_class = "wa-error";
+
+                    if (error.$field) {
+                        var $field = error.$field;
+
+                        if (!$field.hasClass(error_class)) {
+                            $field.addClass(error_class);
+
+                            var $field_wrapper = $field.closest(".wa-field-wrapper");
+                            if ($field_wrapper.length) {
+                                $field_wrapper.append($error);
+                            } else {
+                                $error.insertAfter($field);
+                            }
+
+                            $field.on("change keyup", removeFieldError);
+                        }
+                    }
+
+                    function removeFieldError() {
+                        $field.removeClass(error_class);
+                        $error.remove();
+                        $field.off("change", removeFieldError);
+                    }
+                };
+
+                return ChannelConfirmDialog;
+
+                /**
+                 * @param {String} value
+                 * @param {String} type
+                 * */
+                function validate(value, type) {
+                    var result = false;
+
+                    switch (type) {
+                        case "phone":
+                            result = window.waOrder.ui.validate.phone(value);
+                            break;
+                        case "email":
+                            result = window.waOrder.ui.validate.email(value);
+                            break;
+                        default:
+                            break;
+                    }
+
+                    return result;
+                }
+
+            })($);
+
+            new ChannelConfirmDialog(options);
         };
 
         return Confirm;

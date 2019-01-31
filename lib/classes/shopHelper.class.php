@@ -981,6 +981,7 @@ class shopHelper
      * @param bool $ensure_address Whether address fields must be included regardless of store's contact fields settings.
      * @param bool $checkout
      * @return waContactForm|shopContactForm
+     * @throws waException
      */
     public static function getCustomerForm($id = null, $ensure_address = false, $checkout = false)
     {
@@ -1002,8 +1003,14 @@ class shopHelper
             $settings = $config->getCheckoutSettings(true);
         }
 
-        $fields_config = ifset($settings['contactinfo']['fields'], array());
-        $address_config = ifset($fields_config['address'], array());
+        if ($contact instanceof waContact && $contact->get('is_company')) {
+            $fields_config = self::getCompanyFormFields();
+            $address_config = ifset($fields_config['address'], array());
+        } else {
+            $fields_config = ifset($settings['contactinfo']['fields'], array());
+            $address_config = ifset($fields_config['address'], array());
+        }
+
         unset($fields_config['address']);
 
         if ($ensure_address && !isset($fields_config['address.billing']) && !isset($fields_config['address.shipping'])) {
@@ -1063,6 +1070,44 @@ class shopHelper
         }
 
         return $form;
+    }
+
+    /**
+     * Required to draw the correct form for the company
+     * @return array
+     * @throws waException
+     */
+    protected static function getCompanyFormFields()
+    {
+        $storefronts = shopHelper::getStorefronts(true);
+        $checkout_hashes = [];
+        $form_fields = [
+            'address' => []
+        ];
+
+        // find all active checkout2
+        foreach ($storefronts as $storefront) {
+            if (ifset($storefront, 'route', 'checkout_version', false) == 2) {
+                $checkout_hashes[] = $storefront['route']['checkout_storefront_id'];
+            }
+        }
+
+        //get unique company fields
+        foreach ($checkout_hashes as $hash) {
+            $settlement = new shopCheckoutConfig($hash);
+            $type = ifset($settlement, 'customer', 'type', false);
+            $fields_company = ifset($settlement, 'customer', 'fields_company', []);
+
+            if (($type === 'company' || $type === 'person_and_company') && $fields_company) {
+                foreach ($fields_company as $name => $field) {
+                    $form_fields[$name] = [
+                        'require' => false
+                    ];
+                }
+            }
+        }
+
+        return $form_fields;
     }
 
     /**
@@ -1302,14 +1347,26 @@ SQL;
         return $hash;
     }
 
+    /**
+     * Generate signup url with prefilling hash
+     * Prefilling hash - it is secret hash will be bind with this customer and will pre-fill contact info in signup form
+     *
+     * @param int|shopCustomer $customer
+     * @param string $order_storefront
+     * @return string|null
+     * @throws waException
+     */
     public static function generateSignupUrl($customer, $order_storefront)
     {
-        $signup_url = '';
         if (wa_is_int($customer)) {
             $customer = new shopCustomer($customer);
-        } elseif (!($customer instanceof waContact)) {
-            $customer = new shopCustomer(0);
         }
+
+        if (!($customer instanceof waContact) || $customer->getId() <= 0) {
+            return '';
+        }
+
+        $signup_url = '';
 
         /** @var shopConfig $config */
         $config = wa('shop')->getConfig();
@@ -1321,7 +1378,7 @@ SQL;
             $signup_url = wa()->getRouteUrl($auth_app.'/signup', array(), true, $order_domain);
 
             if ($signup_url && $auth_app === 'shop') {
-                $hash = md5(uniqid($order_storefront.$customer->getId(), true));
+                $hash = md5(uniqid(mt_rand().$order_storefront.$customer->getId().mt_rand(), true));
                 $hash = substr($hash, 0, 16).$customer->getId().substr($hash, 16);
                 if (substr($signup_url, 0, -1) === '?') {
                     $signup_url .= '&';
@@ -1329,6 +1386,11 @@ SQL;
                     $signup_url .= '?';
                 }
                 $signup_url .= "prefilling={$hash}";
+
+                // IMPORTANT: associate this hash with this contact to check it in signup action
+                $customer->save(array(
+                    'signup_prefilling_hash' => $hash
+                ));
             }
         }
 

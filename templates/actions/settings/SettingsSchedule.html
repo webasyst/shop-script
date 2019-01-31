@@ -111,7 +111,7 @@
                         <div class="value">
                             <input id="processing_time" class="s-time" type="text" autocomplete="off" name="data[processing_time]" value="{$processing_time|escape}" />
 
-                            <div class="hint" style="margin: 10px 0 5px; max-width: 570px;">[`Is used to calculate estimated order shipping time only with in-cart checkout option. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later. Additional order picking time can be specified in individual shipping methods’ settings.`]</div>
+                            <div class="hint" style="margin: 10px 0 5px; max-width: 570px;">[`This value is used to calculate estimated order shipping time with in-cart checkout option, and may also work with multi-step checkout, if a shipping plugin can accept order ready time from the online store. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later. Additional order picking time can be specified in individual shipping methods’ settings.`]</div>
                             <div class="hint">[`The setting is used by default in all storefronts.`]</div>
                         </div>
                     </div>
@@ -149,7 +149,7 @@
 
                 <div class="field-group">
                     <div class="field">
-                        <div class="name">[`Extra weekend`]</div>
+                        <div class="name">[`Extra days off`]</div>
                         <div class="value js-extra-weekends-wrapper">
                             <table class="zebra" style="max-width: 160px;">
                                 <tbody class="js-days-list">

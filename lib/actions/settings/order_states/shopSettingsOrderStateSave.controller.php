@@ -296,7 +296,7 @@ class shopSettingsOrderStateSaveController extends waJsonController
             'payment_allowed'   => !!waRequest::post('payment_allowed'),
             'available_actions' => $this->getActions(),
         );
-        if (waRequest::post('new_id', '', waRequest::TYPE_STRING_TRIM)) {
+        if (waRequest::post('new_id', '', waRequest::TYPE_STRING_TRIM) && $add) {
             $info['new_id'] = waRequest::post('new_id', '', waRequest::TYPE_STRING_TRIM);
         }
         if ($add) {

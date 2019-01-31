@@ -28,18 +28,18 @@
             {/foreach}
             <div class="content left200px bordered-left s-selectable-features-box">
                 <div class="block not-padded right-padded left-padded">
-                    <div class="fields width100px">
+                    <div class="fields">
                         <div class="field superposition-count" style="margin-bottom: 20px;">
                             {$features_total_count = array_product($features_counts)}
                             <div class="name options">
                                 {if $features_counts}
-                                    {implode(' x ', $features_counts)} {_w('option', 'options', $features_total_count)}
+                                    {sprintf(_w('Parameters: %s'), implode(' x ', $features_counts))}
                                 {/if}
                             </div>
                             <div class="value bold no-shift skus">
                                 {if $features_counts}
                                     <span class="highlighted">
-                                        {_w('%d SKU in total', '%d SKUs in total', $features_total_count)}
+                                        {sprintf(_w('SKUs: %d'), $features_total_count)}
                                     </span>
                                 {/if}
                             </div>

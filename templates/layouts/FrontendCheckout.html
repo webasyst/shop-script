@@ -57,6 +57,10 @@
     {if !empty($design_settings.layout_background)}
         <style>html, body, .wa-order-header, .wa-order-footer { background: {$design_settings.layout_background} !important; }</style>
     {/if}
+
+    <!-- plugin hook: 'frontend_head' -->
+    {* @event frontend_head.%plugin_id% *}
+    {foreach $frontend_head as $_}{$_}{/foreach}
 </head>
 <body>
 
@@ -81,7 +85,7 @@
                 <div class="wa-phone-section">
 
                     <div class="wa-phone">
-                        <i class="wa-icon phone size-13"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#phone"></use></svg></i>
+                        <i class="wa-icon phone size-13"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg#phone"></use></svg></i>
                         <a href="tel:{$design_settings.phone|escape}">{$design_settings.phone|escape}</a>
                     </div>
 
@@ -95,6 +99,9 @@
 
     <main class="wa-order-body">
         <div class="container">
+            <!-- plugin hook: 'frontend_header' -->
+            {* @event frontend_header.%plugin_id% *}
+            {foreach $frontend_header as $_}{$_}{/foreach}
             {$content}
         </div>
     </main>
@@ -105,20 +112,23 @@
             <div class="wa-shop-details-section">
                 {if !empty($design_settings.address)}
                     <div class="wa-line">
-                        <i class="wa-icon location"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#location"></use></svg></i>
+                        <i class="wa-icon location"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg#location"></use></svg></i>
                         {$design_settings.address|escape}
                     </div>
                 {/if}
 
                 {if !empty($design_settings.working_hours)}
                     <div class="wa-line">
-                        <i class="wa-icon time size-11"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#time"></use></svg></i>
+                        <i class="wa-icon time size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg#time"></use></svg></i>
                         {$design_settings.working_hours|escape}
                     </div>
                 {/if}
             </div>
 
         </div>
+        <!-- plugin hook: 'frontend_footer' -->
+        {* @event frontend_footer.%plugin_id% *}
+        {foreach $frontend_footer as $_}{$_}{/foreach}
     </footer>
 
     <script>

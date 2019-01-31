@@ -157,8 +157,8 @@
         <div class="field">
             <div class="name">[`Enable default design`]</div>
             <div class="value">
-                <input type="hidden" name="data[design][custom]" value="0">
-                <input class="js-design-toggle" type="checkbox" name="data[design][custom]" value="1"{if $settings.custom} checked{/if}>
+                <input type="hidden" name="data[design][custom]" value="0" />
+                <input class="js-design-toggle" type="checkbox" name="data[design][custom]" value="1"{if $settings.custom} checked{/if} />
             </div>
             <div class="value js-design-values"{if !$settings.custom} style="display: none"{/if}>
                 {* Logo *}
@@ -287,21 +287,18 @@
         </div>
     </div>
 
-    {* Article change *}
-    {*
-    Will be used in the next versions of the Shop
+    {* Change sku *}
     <div class="field">
         <div class="name">[`SKU selection`]</div>
         <div class="value">
             <label>
-                <input type="hidden" name="data[cart][article_change]" value="0" />
-                <input type="checkbox" name="data[cart][article_change]"{if $settings.article_change} checked{/if} />
+                <input type="hidden" name="data[cart][change_sku]" value="0" />
+                <input type="checkbox" name="data[cart][change_sku]"{if $settings.change_sku} checked{/if} />
                 [`Allow customers to select other product SKUs in the shopping cart`]
             </label>
-            <div class="hint block-padded">[`Mainly used to change product properties such color or size`]</div>
+            <div class="hint block-padded">[`For example, to change product properties such as color or size`]</div>
         </div>
     </div>
-    *}
 
     {* Item discount *}
     <div class="field">
@@ -463,7 +460,7 @@
 
                             <div class="field-group">
                                 <div class="field">
-                                    <div class="name s-table-field-name">[`Extra weekend`]</div>
+                                    <div class="name s-table-field-name">[`Extra days off`]</div>
                                     <div class="value s-table-field-value js-extra-weekends-wrapper">
                                         <table class="zebra" style="max-width: 160px;">
                                             <tbody class="js-days-list">
@@ -851,7 +848,7 @@
                 </table>
                 <div class="hint" style="margin-top: 10px;">
                     <i class="icon10 edit"></i>
-                    {sprintf(_w('<a href="%s" target="_blank">Edit address fields</a> <i class="icon10 new-window"></i> in Settings app.'), "`$wa_backend_url`webasyst/settings/field/")}<br>
+                    {sprintf(_w('<a href="%s" target="_blank">Edit address fields</a> <i class="icon10 new-window"></i> in Settings app.'), "`$wa_backend_url`webasyst/settings/field/")}<br><br>
                     [`Address fields provided by shipping plugins will be displayed before custom fields that you may add.`]
                     <br><br>
                     [`Disable address fields which are not required for all shipping options. Shipping plugins will add required address fields during checkout, if necessary.`]
@@ -953,15 +950,11 @@
     </div>
 
     {* Order without auth *}
-    <div class="field">
+    <div class="field s-checkout-auth-with-code">
         <div class="name">[`Unauthorized checkout with existing customer profiles`]</div>
         <div class="value radio js-order-without-auth-wrapper">
             <input type="hidden" name="data[confirmation][auth_with_code]" value="0" />
             {foreach $confirmation_order_without_auth_variants as $_id => $_variant}
-                {* Someday we will make a confirmation. But it will not be today. *}
-                {if $_id == shopCheckoutConfig::ORDER_WITHOUT_AUTH_CONFIRM}
-                    {continue}
-                {/if}
                 <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
                     <label>
                         <input class="js-order-without-auth-variant" type="radio" name="data[confirmation][order_without_auth]" value="{$_id|escape}"{if $settings.order_without_auth === $_id} checked{/if} />
@@ -973,18 +966,20 @@
                     <div class="s-variant-params js-variant-params"></div>
                 </div>
             {/foreach}
-            {* Someday we will make a confirmation 2. *}
+
             {*
             <div class="s-auth-with-code js-auth-with-code">
                 <label>
                     <input type="checkbox" name="data[confirmation][auth_with_code]"{if $settings.auth_with_code} checked{/if}/>
-                    [`Ask to log in with a confirmation code`]
+                    [`Попросить подтвердить email-адрес или номер телефона`]
                 </label>
             </div>
+
             <div class="hint block-padded js-auth-with-code-hint">
-                [`A login confirmation code will be sent to a customer’s email address or phone.`]
-                [`Подтверждение можно пропустить и отпарвить заказ, но тогда данные существующего контакта будут обновлены данными покупателя, который не подтвержил свой email или телефон.`] TODO: locale: локализовать, когда пойму смысл этого
-                [`Upon confirmation, a customer will be authorized and will have access to their online account.`]
+                { TODO: Locale !!! }
+                [`Проверочный код для подтверждения будет отправлен на email-адрес или телефон покупателя в зависимости от настроек авторизации для этого сайта.`]<br><br>
+                [`После подтверждения покупатель будет авторизован и сможет войти в личный кабинет.`]<br><br>
+                <span class="s-skip-confirmation">[`Покупатель может пропустить подтверждение email-адрес или телефона.`]</span>
             </div>
             *}
         </div>

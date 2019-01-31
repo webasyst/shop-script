@@ -483,7 +483,7 @@ class shopConfig extends waAppConfig
 
         if (!$schedule || !is_array($schedule)) {
             // Load shop schedule
-            $schedule = json_decode(wa()->getSetting('schedule', '{}'), true);
+            $schedule = json_decode(wa()->getSetting('schedule', '{}', 'shop'), true);
             $schedule = is_array($schedule) ? $schedule : [];
         }
 
@@ -549,7 +549,7 @@ class shopConfig extends waAppConfig
         $date_validator = new waDateValidator();
         foreach ($workdays as $id => $day) {
             $date = ifset($day, 'date', null);
-            if (!$date || !$date_validator->isValid($date)) {
+            if (!$date || !$date_validator->isValid($date, false)) {
                 unset($workdays[$id]);
                 continue;
             }
@@ -580,9 +580,8 @@ class shopConfig extends waAppConfig
 
         // Weekends
         $weekends = ifset($schedule, 'extra_weekends', []);
-        $date_validator = new waDateValidator();
         foreach ($weekends as $id => $date) {
-            if (empty($date) || !$date_validator->isValid($date)) {
+            if (empty($date) || !$date_validator->isValid($date, false)) {
                 unset($weekends[$id]);
                 continue;
             }
@@ -614,7 +613,7 @@ class shopConfig extends waAppConfig
             $route = $this->getStorefrontRoute();
         }
 
-        $checkout_version = ifset($route, 'checkout_version', 1);
+        $checkout_version = (int) ifset($route, 'checkout_version', 1);
         $storefront_id = ifset($route, 'checkout_storefront_id', null);
 
         if ($checkout_version == 2 && $storefront_id) {

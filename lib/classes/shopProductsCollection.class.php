@@ -27,6 +27,13 @@ class shopProductsCollection
     protected $is_frontend;
 
     /**
+     * Map of join => alias
+     * Need for optimization - skip same JOIN with the same ON and WHERE that've been already processed.
+     * @var array
+     */
+    protected $unique_joins = array();
+
+    /**
      * Creates a new product collection.
      *
      * @param string|array $hash Product selection conditions. Examples:
@@ -99,98 +106,98 @@ class shopProductsCollection
 
     protected function prepare($add = false, $auto_title = true)
     {
-        if (!$this->prepared || $add) {
-            $type = $this->hash[0];
-            if ($this->is_frontend) {
-                $this->frontendConditions();
+        if ($this->prepared && !$add) {
+            return;
+        }
+
+        $type = $this->hash[0];
+        if ($this->is_frontend) {
+            $this->frontendConditions();
+        }
+        if ($sort = waRequest::get('sort')) {
+            if ($sort == 'stock') {
+                $sort = 'count';
             }
-            if ($sort = waRequest::get('sort')) {
-                if ($sort == 'stock') {
-                    $sort = 'count';
-                }
-                if (waRequest::get('order') == 'desc') {
-                    $order = 'DESC';
-                } else {
-                    $order = 'ASC';
-                }
-                $model = $this->getModel();
+            if (waRequest::get('order') == 'desc') {
+                $order = 'DESC';
+            } else {
+                $order = 'ASC';
+            }
+            $model = $this->getModel();
 
 
-                // Ordering by price is tricky!
-                // We must not order by price of a SKU that is excluded after filtering.
-                // When skus table is joined, we can't just order by shop_product.price
-                // We use actual SKU price for ordering instead.
-                if ($sort == 'price' && isset($this->join_index['ps'])) {
+            // Ordering by price is tricky!
+            // We must not order by price of a SKU that is excluded after filtering.
+            // When skus table is joined, we can't just order by shop_product.price
+            // We use actual SKU price for ordering instead.
+            if ($sort == 'price' && isset($this->join_index['ps'])) {
 
-                    // We use main SKU price if it's not filtered out;
-                    // otherwise min of all remaining SKU prices.
-                    $sku_price = 'MIN(ps1.primary_price)';
-                    $main_sku_price = 'MAX(IF(ps1.id=p.sku_id, ps1.primary_price, -1))';
-                    $main_sku_exists = '-1 < '.$main_sku_price;
-                    $this->order_by = "IF($main_sku_exists, $main_sku_price, $sku_price) $order";
+                // We use main SKU price if it's not filtered out;
+                // otherwise min of all remaining SKU prices.
+                $sku_price = 'MIN(ps1.primary_price)';
+                $main_sku_price = 'MAX(IF(ps1.id=p.sku_id, ps1.primary_price, -1))';
+                $main_sku_exists = '-1 < '.$main_sku_price;
+                $this->order_by = "IF($main_sku_exists, $main_sku_price, $sku_price) $order";
 
-                } elseif ($sort == 'stock_worth') {
+            } elseif ($sort == 'stock_worth') {
 
-                    $this->fields['order_by'] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
-                    $this->order_by = 'stock_worth '.$order;
-                } else {
-                    $order_by = array();
-                    $fields = array();
-                    foreach ((array)$sort as $_id => $_sort) {
-                        $_sort = trim((string)$_sort);
-                        if ($model->fieldExists($_sort)) {
-                            $order_by[$_id] = 'p.'.$_sort;
-                            $order_by[$_id] .= ' '.$order;
-                            if ($_sort == 'count') {
-                                $fields[$_id] = 'IF(p.count IS NULL, 1, 0) count_null';
-                                $order_by[$_id] = 'count_null '.$order.', '.$order_by[$_id];
-                            }
+                $this->fields['order_by'] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
+                $this->order_by = 'stock_worth '.$order;
+            } else {
+                $order_by = array();
+                $fields = array();
+                foreach ((array)$sort as $_id => $_sort) {
+                    $_sort = trim((string)$_sort);
+                    if ($model->fieldExists($_sort)) {
+                        $order_by[$_id] = 'p.'.$_sort;
+                        $order_by[$_id] .= ' '.$order;
+                        if ($_sort == 'count') {
+                            $fields[$_id] = 'IF(p.count IS NULL, 1, 0) count_null';
+                            $order_by[$_id] = 'count_null '.$order.', '.$order_by[$_id];
                         }
                     }
-                    if ($order_by) {
-                        $this->order_by = implode(', ', $order_by);
-                    }
-                    if ($fields) {
-                        $this->fields['order_by'] = implode(', ', $fields);
-                    }
                 }
-                //#
-            }
-            if ($type) {
-                $method = strtolower($type).'Prepare';
-                if (method_exists($this, $method)) {
-                    $this->$method(isset($this->hash[1]) ? $this->hash[1] : '', $auto_title);
-                } else {
-                    if (empty($this->options['no_plugins']) && empty($this->options['no_plugins_products_collection'])) {
-                        /**
-                         * @event products_collection
-                         * @param array [string]mixed $params
-                         * @param array [string]shopProductsCollection $params['collection']
-                         * @param array [string]boolean $params['auto_title']
-                         * @param array [string]boolean $params['add']
-                         * @return bool null if ignored, true when something changed in the collection
-                         */
-                        $processed = wa('shop')->event('products_collection', ref(array(
-                            'collection' => $this,
-                            'auto_title' => $auto_title,
-                            'add'        => $add,
-                        )));
-                    }
-                    if (empty($processed)) {
-                        throw new waException('Unknown collection hash type: '.htmlspecialchars($type));
-                    }
+                if ($order_by) {
+                    $this->order_by = implode(', ', $order_by);
                 }
-            } else {
-                if ($auto_title) {
-                    $this->addTitle(_w('All products'));
+                if ($fields) {
+                    $this->fields['order_by'] = implode(', ', $fields);
                 }
             }
-
-            if ($this->prepared) {
-                return;
-            }
-            $this->prepared = true;
+            //#
         }
+        if ($type) {
+            $method = strtolower($type).'Prepare';
+            if (method_exists($this, $method)) {
+                $this->$method(isset($this->hash[1]) ? $this->hash[1] : '', $auto_title);
+            } else {
+                if (empty($this->options['no_plugins']) && empty($this->options['no_plugins_products_collection'])) {
+                    /**
+                     * @event products_collection
+                     * @param array [string]mixed $params
+                     * @param array [string]shopProductsCollection $params['collection']
+                     * @param array [string]boolean $params['auto_title']
+                     * @param array [string]boolean $params['add']
+                     * @return bool null if ignored, true when something changed in the collection
+                     */
+                    $this->prepared = true;
+                    $processed = wa('shop')->event('products_collection', ref(array(
+                        'collection' => $this,
+                        'auto_title' => $auto_title,
+                        'add'        => $add,
+                    )));
+                }
+                if (empty($processed)) {
+                    throw new waException('Unknown collection hash type: '.htmlspecialchars($type));
+                }
+            }
+        } else {
+            if ($auto_title) {
+                $this->addTitle(_w('All products'));
+            }
+        }
+
+        $this->prepared = true;
     }
 
     protected function frontendConditions()
@@ -984,14 +991,21 @@ SQL;
                         if ($is_value_id) {
                             $value_id = array_map('intval', preg_split('@[,\s]+@', $parts[2]));
                             $values_id = $value_id;
-                            $value_id = implode(', ', $value_id);
+
+                            // need sort list of value ids in light of optimization
+                            // in case if hash looks like 'feature.value_id=1,2,3&feature=3,2,1'
+                            sort($values_id, SORT_NUMERIC);
+
+                            $value_id = implode(', ', $values_id);
                         } else {
                             $values_model = $feature_model->getValuesModel($feature['type']);
                             $value_id = (int)$values_model->getValueId($feature['id'], $parts[2]);
                             $values_id = [$value_id];
                         }
 
-                        $this->addJoin('shop_product_features', null, ':table.feature_id = '.$feature['id'].' AND :table.feature_value_id IN ('.$value_id.')');
+                        $join_where = ":table.feature_id = {$feature['id']} AND :table.feature_value_id IN ({$value_id})";
+                        $this->addUniqueJoin('shop_product_features', null, $join_where);
+
                         $this->filtered_by_features[$feature['id']] = $values_id;
                         $this->group_by = 'p.id';
                     }
@@ -2496,6 +2510,39 @@ SQL;
         }
         return $alias;
     }
+
+    /**
+     * Add join with checking for uniqueness
+     *
+     * Optimization reason - prevent adding the same join twice
+     * For example - in hierarchy of dynamic categories if conditions overlaps (see categoryPrepare)
+     *
+     * Almost all arguments required - because they will use for build lookup key for map
+     *
+     * Return alias of table
+     *
+     * @param string $table
+     * @param string $on
+     * @param string $where
+     * @param string|null $type - can be skipped. By default join is inner
+     *
+     * @return string
+     * @since 8.2.0
+     */
+    protected function addUniqueJoin($table, $on, $where, $type = null)
+    {
+        $join_key = join('+', func_get_args());
+        if (empty($this->unique_joins[$join_key])) {
+            $this->unique_joins[$join_key] = $this->addJoin(array(
+                'table' => $table,
+                'type' => $type,
+                'on' => $on,
+                'where' => $where
+            ));
+        }
+        return $this->unique_joins[$join_key];
+    }
+
 
     /**
      * Returns collection hash.

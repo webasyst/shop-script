@@ -174,12 +174,6 @@ $.extend($.settings || {}, {
             return false;
         });
 
-        // Link to modify id of existing custom state
-        $('#c-state-id-edit').click(function() {
-            $(this).closest('.hint').hide();
-            $('#c-state-id').show().attr('disabled', false);
-        });
-
         // Settings form for built-in Message action
         (function() {
             var $wrapper = $('#s-message-action-editor');

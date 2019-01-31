@@ -39,7 +39,7 @@ return array(
     ),
 
     'product_skus_features' => array(
-        'text' => 'Product variants, or SKUs, each with a unique combination of various features such as color, size etc. A shopper can see feature values on a product page instead of an SKU list. When the desired feature values are selected, the corresponding SKU is added to the cart.'
+        'text' => 'Product variants, or SKUs, each with a unique combination of various features such as color, size etc. A shopper can see feature values on a product page instead of an SKU list. When the desired feature values are selected, the corresponding SKU is added to the cart. For setup of selectable SKU parameters the values of “Multiple values (checkbox)” type features are used.'
     ),
 
     'product_descriptions' => array(

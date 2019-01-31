@@ -1164,14 +1164,14 @@ editClick:(function ($) {
 
             var counter = $this.find('.superposition-count');
             if (factors.length) {
-                counter.find('.options').text(factors.join(' x ') + ' ' + $_('options'));
+                counter.find('.options').text($_('Parameters: %s').replace('%s', factors.join(' x ')));
 
                 var count = 1;
                 for (var i = 0, n = factors.length; i < n; i += 1) {
                     count *= factors[i];
                 }
                 counter.find('.skus').html(
-                    '<span class="highlighted">' + $_('%d SKUs in total').replace('%d', count) + '</span>'
+                    '<span class="highlighted">' + $_('SKUs: %d').replace('%d', count) + '</span>'
                 );
 
             } else {
@@ -1266,6 +1266,9 @@ editClick:(function ($) {
             }).change();
 
             $.product.featureSelectableInit();
+
+            //Refresh the "Parameter Selector" after the page loads
+            $.product.editTabMainTypeChange($('.js-shop-product-set-type'));
         },
 
         informAboutUrlInUse: function (url_in_use) {

@@ -321,6 +321,12 @@ abstract class shopCheckoutStep
             if ($time_delta >= 1 && defined('SHOP_CHECKOUT2_PROFILING')) {
                 waLog::log($step_id.' -> '.round($time_delta, 3), 'checkout2-time.log');
             }
+
+            // Short-cut if asked to. In order to build certain dialogs
+            // we don't need data from later steps.
+            if (ifset($input, 'abort_after_step', null) === $step_id) {
+                break;
+            }
         }
 
         // pass errors to JS

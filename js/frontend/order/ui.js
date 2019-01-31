@@ -67,8 +67,14 @@
             if (that.$wrapper && that.$wrapper.length) {
                 // DOM
                 that.$block = that.$wrapper.find(".wa-dialog-body");
-                that.$body = $(window.top.document).find("body");
-                that.$window = $(window.top);
+                try {
+                    that.$body = $(window.top.document).find("body");
+                    that.$window = $(window.top);
+                } catch (e) {
+                    // This is for theme showcase when site runs in foreign origin iframe
+                    that.$body = $(document).find("body");
+                    that.$window = $(window);
+                }
 
                 // VARS
                 that.position = (options["position"] || false);
@@ -206,6 +212,8 @@
             //
             that.setPosition();
             //
+            that.$body.addClass(that.scroll_locked_class);
+            //
             that.onOpen(that.$wrapper, that);
         };
 
@@ -256,8 +264,6 @@
                     css.top = window_h - wrapper_h - pad;
                 }
 
-                that.$body.removeClass(that.scroll_locked_class);
-
             } else {
                 css.top = pad;
 
@@ -273,8 +279,6 @@
                         height: content_h + "px"
                     })
                     .show();
-
-                that.$body.addClass(that.scroll_locked_class);
             }
 
             $block.css(css);
@@ -326,6 +330,9 @@
             var that = this;
 
             $("<div />").append(that.$wrapper.hide());
+
+            that.$body.removeClass(that.scroll_locked_class);
+
             that.is_visible = false;
         };
 
@@ -336,8 +343,11 @@
             if (!is_exist) {
                 that.$body.append(that.$wrapper);
             }
+
             that.$wrapper.show();
             that.is_visible = true;
+
+            that.$body.addClass(that.scroll_locked_class);
 
             // update vars
             $(window).trigger("scroll");
@@ -382,6 +392,7 @@
             that.data = getData(that.$wrapper, options);
 
             // DYNAMIC VARS
+            that.is_locked = false;
             that.is_opened = false;
             that.$before = null;
             that.$active = null;
@@ -450,6 +461,8 @@
                 active_class = "is-opened";
 
             if (open) {
+                if (that.is_locked) { return false; }
+
                 var open_result = that.on.open(that);
                 if (open_result !== false) {
                     that.$wrapper
@@ -511,6 +524,20 @@
             that.$button.html( html );
         };
 
+        Dropdown.prototype.lock = function(lock) {
+            var that = this;
+
+            var locked_class = "is-locked";
+
+            if (lock) {
+                that.$wrapper.addClass(locked_class);
+                that.is_locked = true;
+            } else {
+                that.$wrapper.removeClass(locked_class);
+                that.is_locked = false;
+            }
+        };
+
         return Dropdown;
 
         function getData($wrapper, options) {
@@ -538,6 +565,119 @@
         }
 
     })($);
+
+    var load = function(sources) {
+        var deferred = $.Deferred();
+
+        loader(sources).then( function() {
+            deferred.resolve();
+        }, function(bad_sources) {
+            if (console && console.error) {
+                console.error("Error loading resource", bad_sources);
+            }
+            deferred.reject(bad_sources);
+        });
+
+        return deferred.promise();
+
+        function loader(sources) {
+            var deferred = $.Deferred(),
+                counter = sources.length;
+
+            var bad_sources = [];
+
+            $.each(sources, function(i, source) {
+                switch (source.type) {
+                    case "css":
+                        loadCSS(source).then(onLoad, onError);
+                        break;
+                    case "js":
+                        loadJS(source).then(onLoad, onError);
+                        break;
+                }
+            });
+
+            return deferred.promise();
+
+            function loadCSS(source) {
+                var deferred = $.Deferred(),
+                    promise = deferred.promise();
+
+                var $link = $("#" + source.id);
+                if ($link.length) {
+                    promise = $link.data("promise");
+
+                } else {
+                    $link = $("<link />", {
+                        id: source.id,
+                        rel: "stylesheet"
+                    }).appendTo("head")
+                        .data("promise", promise);
+
+                    $link
+                        .on("load", function() {
+                            deferred.resolve(source);
+                        }).on("error", function() {
+                        deferred.reject(source);
+                    });
+
+                    $link.attr("href", source.uri);
+                }
+
+                return promise;
+            }
+
+            function loadJS(source) {
+                var deferred = $.Deferred(),
+                    promise = deferred.promise();
+
+                var $script = $("#" + source.id);
+                if ($script.length) {
+                    promise = $script.data("promise");
+
+                } else {
+                    var script = document.createElement("script");
+                    document.getElementsByTagName("head")[0].appendChild(script);
+
+                    $script = $(script)
+                        .attr("id", source.id)
+                        .data("promise", promise);
+
+                    $script
+                        .on("load", function() {
+                            deferred.resolve(source);
+                        }).on("error", function() {
+                        deferred.reject(source);
+                    });
+
+                    $script.attr("src", source.uri);
+                }
+
+                return promise;
+            }
+
+            function onLoad(source) {
+                counter -= 1;
+                watcher();
+            }
+
+            function onError(source) {
+                bad_sources.push(source);
+                counter -= 1;
+                watcher();
+            }
+
+            function watcher() {
+                if (counter === 0) {
+                    if (!bad_sources.length) {
+                        deferred.resolve();
+                    } else {
+                        deferred.reject(bad_sources);
+                    }
+                }
+            }
+        }
+    };
 
     /**
      * @param {String} string
@@ -613,7 +753,7 @@
         if (!format) { return result; }
 
         try {
-            price = parseFloat(price);
+            price = parseFloat(price).toFixed(format.fraction_size);
 
             if ( (price >= 0) && format) {
                 var price_floor = Math.floor(price),
@@ -701,6 +841,7 @@
             phone: isPhone,
             number: isNumber
         },
+        load: load,
         formatPrice: formatPrice,
         initFormatPrice: initFormatPrice
     };

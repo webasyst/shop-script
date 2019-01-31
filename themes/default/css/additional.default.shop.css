@@ -304,6 +304,7 @@
 }
 .store-info .s-schedule-wrapper.is-open .s-hidden {
   display: block;
+  z-index: 1;
 }
 .store-info .s-schedule-wrapper .s-visible {
   text-align: center;

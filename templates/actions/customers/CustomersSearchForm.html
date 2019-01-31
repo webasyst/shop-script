@@ -301,7 +301,7 @@
                 $.each(hash, function(key, el) {
                     if (el.val) {
                         el.val = format(key, el);
-                        el.val = el.val.replace('/', '\\/');    // escape
+                        el.val = el.val.replace(/\//g, '\\/');// escape
                         hash_ar.push(el.val);
                     }
                 });

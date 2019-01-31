@@ -21,7 +21,8 @@
         {$_map_display = "desktop"}
     {/if}
 {/if}
-{$_variants_for_dialog = []}
+
+{$_variants_count = 0}
 
 {$_hide_shipping = !empty($shipping.disabled) || (empty($shipping.types) && empty($_errors))}
 
@@ -162,34 +163,7 @@
                                                 </div>
                                             {/if}
 
-                                            {if $_active_type.id === "pickup"}
-                                                {$_variant_for_dialog = [
-                                                    "name" => $_variant.name|escape,
-                                                    "type" => $_variant.type|escape,
-                                                    "service" => $_variant.service|default:""|escape,
-                                                    "variant_id" => $_variant.variant_id|escape,
-                                                    "formatted_date" => $_date,
-                                                    "formatted_price" => $_price
-                                                ]}
-
-                                                {if !empty($_variant.custom_data) && !empty($_variant.custom_data[$_variant.type])}
-                                                    {$_custom_data = $_variant.custom_data[$_variant.type]}
-                                                    {if !empty($_custom_data.description)}
-                                                        {$_variant_for_dialog["description"] = $_custom_data.description}
-                                                    {/if}
-                                                    {if !empty($_custom_data.storage.storage_days)}
-                                                        {$_variant_for_dialog["storage_days"] = $_custom_data.storage.storage_days}
-                                                    {/if}
-                                                    {if !empty($_custom_data.lat)}
-                                                        {$_variant_for_dialog["lat"] = $_custom_data.lat}
-                                                    {/if}
-                                                    {if !empty($_custom_data.lng)}
-                                                        {$_variant_for_dialog["lng"] = $_custom_data.lng}
-                                                    {/if}
-                                                {/if}
-
-                                                {$_variants_for_dialog[] = $_variant_for_dialog}
-                                            {/if}
+                                            {$_variants_count = $_variants_count + 1}
                                         {/if}
                                     {/foreach}
                                 </div>
@@ -280,6 +254,8 @@
                                                 {/if}
                                             </div>
                                         </div>
+
+                                        {$_variants_count = $_variants_count + 1}
                                     {/if}
                                 {/foreach}
                             </div>
@@ -308,8 +284,23 @@
     </form>
     </div>
 
-    {capture assign="_map_dialog"}{include file="./dialog/map.html" _variants=$_variants_for_dialog inline}{/capture}
-    {capture assign="_map_details"}{include file="./dialog/map.details.html" inline}{/capture}
+    {$_map = [
+        "display" => $_map_display,
+        "adapter" => null,
+        "api_uri" => null
+    ]}
+
+    {if !empty($shipping.map.adapter)}
+        {$_map["adapter"] = $shipping.map.adapter}
+
+        {if $shipping.map.adapter === "yandex"}
+            {$_api_uri = "//api-maps.yandex.ru/2.1/?lang=ru_RU&load=Geolink,Map,Placemark,Clusterer,Collection,geoObject.addon.balloon,control.FullscreenControl,control.GeolocationControl,control.SearchControl,control.ZoomControl"}
+            {if !empty($shipping.map.api_key)}
+                {$_api_uri = "`$_api_uri`&apikey=`$shipping.map.api_key`"}
+            {/if}
+            {$_map["api_uri"] = $_api_uri}
+        {/if}
+    {/if}
 
     <script>
         ( function($) {
@@ -320,14 +311,12 @@
             ready_promise.then( function(controller) {
                 controller.initShipping({
                     $wrapper: $section,
-                    map_display: {$_map_display|json_encode},
-                    variants: {waUtils::jsonEncode($_variants_for_dialog, $smarty.const.JSON_UNESCAPED_UNICODE)},
-                    active_variant: {if !empty($_active_variant)}{$_active_variant.variant_id|json_encode}{else}null{/if},
+                    map: {$_map|json_encode},
+                    variants_count: {$_variants_count|escape},
                     disabled: {if !empty($shipping.disabled)}true{else}false{/if},
                     errors: {$_errors|json_encode},
-                    templates: {
-                        map_dialog: {if !empty($_map_dialog)}{waUtils::jsonEncode($_map_dialog)}{else}null{/if},
-                        map_details: {if !empty($_map_details)}{waUtils::jsonEncode($_map_details)}{else}null{/if}
+                    urls: {
+                        variants_dialog: {$wa->getUrl('shop/frontendOrder/shippingDialog')|json_encode}
                     },
                     locales: {
                         type_required: {_w("Select a shipping type.")|json_encode},

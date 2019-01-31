@@ -574,11 +574,11 @@ class shopCheckoutViewHelper
             // Also see other checkout_* events in shopCheckoutStep::processAll()
             foreach ($config->getCheckoutSteps() as $step) {
                 $result['event_hook'][$step->getId()] = wa('shop')->event('checkout_render_'.$step->getId(), ref([
-                    'step_id' => $step->getId(),
-                    'data' => $process_data,
+                    'step_id'       => $step->getId(),
+                    'data'          => $process_data,
                     'error_step_id' => &$result['error_step_id'],
-                    'errors' => &$result['errors'],
-                    'vars' => &$result,
+                    'errors'        => &$result['errors'],
+                    'vars'          => &$result,
                 ]));
             }
 

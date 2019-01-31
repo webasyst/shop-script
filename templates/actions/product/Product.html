@@ -442,7 +442,7 @@
                             <strong class="js-type-name">{$product.type.name|escape}</strong>&nbsp;
                             <a href="#/product/{$product.id}/edit/main/type/select/" class="js-action gray inline-link"><b><i>[`Change type`]</i></b></a>
 
-                            <select name="product[type_id]" style="display:none;">
+                            <select name="product[type_id]" style="display:none;" class="js-shop-product-set-type">
                             {if empty($product.type.id)}
                             <option data-icon="{shopHelper::getIcon(null)|escape}" value="" selected="selected" disabled="disabled"></option>
                             {/if}
@@ -1137,9 +1137,11 @@
             var item = $(this);
             if (disabled) {
                 item.closest('li').removeClass('selected').addClass('gray');
+                item.siblings('a').addClass('s-disable-selling-mode');
                 item.attr('disabled', true);
             } else {
                 item.closest('li').removeClass('gray');
+                item.siblings('a').removeClass('s-disable-selling-mode');
                 if (item.closest('li').hasClass('selected')) {
                     item.attr('disabled', false);
                 }

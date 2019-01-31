@@ -275,7 +275,7 @@
                             {if !empty($_photos)}
                                 <div class="wa-line wa-photos-section" data-name="{$details.shipping_rate.name|escape}">
                                     <div class="wa-action left js-scroll-prev">
-                                        <i class="wa-icon arrow-left"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#arrow-left"></use></svg></i>
+                                        <i class="wa-icon arrow-left"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#arrow-left"></use></svg></i>
                                     </div>
                                     <div class="wa-photos-list">
                                         {foreach $_photos as $_photo}
@@ -289,7 +289,7 @@
                                         {/foreach}
                                     </div>
                                     <div class="wa-action right js-scroll-next">
-                                        <i class="wa-icon arrow-right"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#arrow-right"></use></svg></i>
+                                        <i class="wa-icon arrow-right"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#arrow-right"></use></svg></i>
                                     </div>
                                 </div>
                             {/if}

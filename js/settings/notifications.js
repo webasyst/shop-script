@@ -25,6 +25,7 @@
             } else {
                 this.notificationsEditAction(tail);
             }
+
         },
         notificationsAddAction : function() {
             $("#notifications-content").load("?module=settings&action=NotificationsAdd", this.notificationsLoad('add'));
@@ -33,12 +34,84 @@
         notificationsEditAction : function(id) {
             $("#notifications-content").load("?module=settings&action=NotificationsEdit&id=" + id, this.notificationsLoad(id));
         },
+        initElasticFooter:function() {
+            // DOM
+            var $window = $(window),
+                $wrapper = this.$container,
+                $header = $wrapper.find(".js-footer-block"),
+                $dummy = false,
+                is_set = false;
 
+            var active_class = "is-fixed-to-bottom";
+
+            var header_o, header_w, header_h;
+
+            clear();
+
+            $window.on("scroll", useWatcher);
+            $window.on("resize", onResize);
+
+            onScroll();
+
+            function useWatcher() {
+                var is_exist = $.contains(document, $header[0]);
+                if (is_exist) {
+                    onScroll();
+                } else {
+                    $window.off("scroll", useWatcher);
+                }
+            }
+
+            function onScroll() {
+                var scroll_top = $window.scrollTop(),
+                    use_scroll = header_o.top + header_h > scroll_top + $window.height();
+
+                if (use_scroll) {
+                    if (!is_set) {
+                        is_set = true;
+                        $dummy = $("<div />");
+
+                        $dummy.height(header_h).insertAfter($header);
+
+                        $header
+                            .css("left", header_o.left - 20)// Because parents are doing padding 20
+                            .width(header_w)
+                            .addClass(active_class);
+                    }
+
+                } else {
+                    clear();
+                }
+            }
+
+            function onResize() {
+                clear();
+                $window.trigger("scroll");
+            }
+
+            function clear() {
+                if ($dummy && $dummy.length) {
+                    $dummy.remove();
+                }
+                $dummy = false;
+
+                $header
+                    .removeAttr("style")
+                    .removeClass(active_class);
+
+                header_o = $header.offset();
+                header_w = $header.outerWidth() + 40; // Because parents are doing padding 20
+                header_h = $header.outerHeight();
+
+                is_set = false;
+            }
+        },
         notificationsLoad: function (tail) {
-            return function () {
+            var that = this;
 
+            return function () {
                 var form = $("#notification-form");
-                
+
                 var send_test_button = $('#send-test-button');
                 var send_button = $('#n-send-button');
                 var form_modified = false;
@@ -159,7 +232,7 @@
 
                 $('select', form).change(formModified);
                 $('input', form).change(formModified).keyup(formModified);
-
+                that.initElasticFooter();
 
             // Controller for sending tests
             (function() {
@@ -234,8 +307,8 @@
                     });
                     return false;
                 });
-                
-                
+
+
             })();
 
             };

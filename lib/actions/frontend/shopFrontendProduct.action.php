@@ -21,11 +21,14 @@ class shopFrontendProductAction extends shopFrontendAction
         $this->view->assign('root_category_id', $root_category_id);
     }
 
-    protected function prepareProduct(shopProduct $product)
+    protected function prepareProduct(shopProduct $product, $selected_sku_id = null)
     {
-        if (waRequest::get('sku')) {
-            if (isset($product->skus[waRequest::get('sku')])) {
-                $product['sku_id'] = waRequest::get('sku');
+        if (func_num_args() == 1) {
+            $selected_sku_id = waRequest::get('sku', null, 'int');
+        }
+        if ($selected_sku_id) {
+            if (isset($product->skus[$selected_sku_id])) {
+                $product['sku_id'] = $selected_sku_id;
                 $s = $product->skus[$product['sku_id']];
                 if ($s['image_id'] && isset($product->images[$s['image_id']])) {
                     $product['image_id'] = $s['image_id'];
@@ -121,42 +124,46 @@ class shopFrontendProductAction extends shopFrontendAction
             }
         }
 
-        $this->view->assign('product', $product);
+        $product->tags = array_map('htmlspecialchars', $product->tags);
+    }
 
-        if ($product->sku_type == shopProductModel::SKU_TYPE_SELECTABLE) {
-            $features_selectable = $product->features_selectable;
-            $this->view->assign('features_selectable', $features_selectable);
-
-            $product_features_model = new shopProductFeaturesModel();
-            $sku_features = $product_features_model->getSkuFeatures($product->id);
-
-            $sku_selectable = array();
-            foreach ($sku_features as $sku_id => $sf) {
-                if (!isset($product->skus[$sku_id])) {
-                    continue;
-                }
-                $sku_f = "";
-                foreach ($features_selectable as $f_id => $f) {
-                    if (isset($sf[$f_id])) {
-                        $sku_f .= $f_id.":".$sf[$f_id].";";
-                    }
-                }
-                $sku = $product->skus[$sku_id];
-                $sku_selectable[$sku_f] = array(
-                    'id'        => $sku_id,
-                    'price'     => (float)shop_currency($sku['price'], $product['currency'], null, false),
-                    'available' => $product->status && $sku['available'] &&
-                        ($this->getConfig()->getGeneralSettings('ignore_stock_count') || $sku['count'] === null || $sku['count'] > 0),
-                    'image_id'  => (int)$sku['image_id'],
-                );
-                if ($sku['compare_price']) {
-                    $sku_selectable[$sku_f]['compare_price'] = (float)shop_currency($sku['compare_price'], $product['currency'], null, false);
-                }
-            }
-            $product['sku_features'] = ifset($sku_features[$product->sku_id], array());
-            $this->view->assign('sku_features_selectable', $sku_selectable);
+    protected function assignFeaturesSelectable(shopProduct $product)
+    {
+        if ($product->sku_type != shopProductModel::SKU_TYPE_SELECTABLE) {
+            return;
         }
 
+        $features_selectable = $product->features_selectable;
+        $this->view->assign('features_selectable', $features_selectable);
+
+        $product_features_model = new shopProductFeaturesModel();
+        $sku_features = $product_features_model->getSkuFeatures($product->id);
+
+        $sku_selectable = array();
+        foreach ($sku_features as $sku_id => $sf) {
+            if (!isset($product->skus[$sku_id])) {
+                continue;
+            }
+            $sku_f = "";
+            foreach ($features_selectable as $f_id => $f) {
+                if (isset($sf[$f_id])) {
+                    $sku_f .= $f_id.":".$sf[$f_id].";";
+                }
+            }
+            $sku = $product->skus[$sku_id];
+            $sku_selectable[$sku_f] = array(
+                'id'        => $sku_id,
+                'price'     => (float)shop_currency($sku['price'], $product['currency'], null, false),
+                'available' => $product->status && $sku['available'] &&
+                    ($this->getConfig()->getGeneralSettings('ignore_stock_count') || $sku['count'] === null || $sku['count'] > 0),
+                'image_id'  => (int)$sku['image_id'],
+            );
+            if ($sku['compare_price']) {
+                $sku_selectable[$sku_f]['compare_price'] = (float)shop_currency($sku['compare_price'], $product['currency'], null, false);
+            }
+        }
+        $product['sku_features'] = ifset($sku_features[$product->sku_id], array());
+        $this->view->assign('sku_features_selectable', $sku_selectable);
     }
 
     public function execute()
@@ -187,6 +194,9 @@ class shopFrontendProductAction extends shopFrontendAction
         $product = new shopProduct($product, true);
         $this->ensureCanonicalUrl($product);
         $this->prepareProduct($product);
+
+        $this->view->assign('product', $product);
+        $this->assignFeaturesSelectable($product);
 
         if (!$is_cart) {
             $this->getBreadcrumbs($product);
@@ -225,8 +235,6 @@ class shopFrontendProductAction extends shopFrontendAction
 
             $this->view->assign('features', $features);
         }
-
-        $product->tags = array_map('htmlspecialchars', $product->tags);
 
         $this->view->assign('currency_info', $this->getCurrencyInfo());
         $this->view->assign('stocks', shopHelper::getStocks(true));

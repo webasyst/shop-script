@@ -364,9 +364,23 @@
             if ($.order_edit) {
                 $.order_edit.slideBack();
             }
+
             this.load('?module=order&id='+encodeURIComponent(id)+'&'+this.buildOrdersUrlComponent(params), function() {
-                $("#s-content").find('h1 .back.order-list').show();
+                // back link at order content
+                var $back_link = $("#s-content").find('h1 a.back.order-list');
+
+                $back_link.show();
+
+                // list item at sidebar menu
+                var $menu_item = $("#s-all-orders");
+                if ($menu_item.length && $menu_item.hasClass("selected")) {
+                    var $link = $menu_item.find("a:first");
+                    if ($link.length) {
+                        $back_link.attr("href", $link.attr("href"));
+                    }
+                }
             });
+
             if ($.order_list) {
                 $.order_list.finit();
             }

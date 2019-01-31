@@ -70,8 +70,7 @@
                         </div>
                         <div class="value">
                             {if $info.id != 'new_state'}
-                                <span class="hint">{$info.id|escape}<a href="javascript:void(0);" id="c-state-id-edit"><i class="icon10 edit"></i></a></span>
-                                <input type="text" name="new_id" class="small" disabled="disabled" value="{$info.id|escape}" style="display:none;" id="c-state-id">
+                                <span class="hint">{$info.id|escape}</span>
                             {else}
                                 <input type="text" name="new_id" class="small" value="" id="c-state-id">
                             {/if}

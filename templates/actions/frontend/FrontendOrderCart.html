@@ -2,6 +2,7 @@
 
 {$_locales = [
     "product_delete" => _w('Delete product from the cart'),
+    "product_disabled" => _w('This item is not available'),
     "quantity_empty" => _w("Out of stock"),
     "quantity_limit" => _w("No more items in stock"),
     "quantity_delete" => _w('Delete product from the cart'),
@@ -53,6 +54,11 @@
                         {$_is_more_than_limit = false}
                         {$_is_limit = false}
 
+                        {$_is_product_disabled = false}
+                        {if empty($_item.sku_available)}
+                            {$_is_product_disabled = true}
+                        {/if}
+
                         {if $_item.stock_count === null}
                             {$_is_in_stock = true}
                         {else}
@@ -76,8 +82,11 @@
                         {if !empty($_is_more_than_limit)}
                             {$_product_classes[] = "is-more-than-limit"}
                         {/if}
+                        {if !empty($_is_product_disabled)}
+                            {$_product_classes[] = "is-disabled"}
+                        {/if}
 
-                        <div class="wa-product {$_product_classes|join:" "}" data-id="{$_item.id}">
+                        <div class="wa-product {$_product_classes|join:" "}" data-id="{$_item.id|escape}" data-product-id="{$_item.product_id|escape}" data-sku-id="{$_item.sku_id|default:""|escape}">
 
                             <div class="wa-product-body">
                                 {* IMAGE *}
@@ -103,16 +112,14 @@
                                             {/if}
 
                                             <span class="wa-actions">
-                                                {*
-                                                <span class="wa-action js-edit-product">
-                                                    <span class="wa-tooltip is-inline bottom" data-title="[`Edit`]">
-                                                        <i class="wa-icon edit size-11"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#edit"></use></svg></i>
+                                                {if !empty($_config.change_sku) && $_item.product.sku_count > 1}
+                                                    <span class="wa-action js-edit-product">
+                                                        <i class="wa-icon edit size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#edit"></use></svg></i> [`Select another SKU`]
                                                     </span>
-                                                </span>
-                                                 *}
+                                                {/if}
                                                 <span class="wa-action js-delete-product">
                                                     <span class="wa-tooltip is-inline bottom" data-title="{$_locales["product_delete"]|escape}">
-                                                        <i class="wa-icon delete size-11"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#trash"></use></svg></i> [`Delete`]
+                                                        <i class="wa-icon delete size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#trash"></use></svg></i> [`Delete`]
                                                     </span>
                                                 </span>
                                             </span>
@@ -121,6 +128,7 @@
                                         {if !empty($_item.services)}
                                             <div class="wa-services">
                                                 {foreach $_item.services as $_service_id => $_service}
+                                                    <!-- {$_service|wa_dumpc} -->
                                                     {$_is_active = !empty($_service.id)}
                                                     <div class="wa-service {if !empty($_is_active)}is-active{/if}" data-id="{if !empty($_service.id)}{$_service.id}{/if}" data-service-id="{$_service_id}" data-enabled="{if !empty($_service.id)}1{else}0{/if}">
                                                         <label class="wa-label">
@@ -174,18 +182,20 @@
                                             {$_hint = $_locales["quantity_increase"]}
                                         {/if}
 
-                                        <div class="wa-quantity-box {if !empty($_is_out_of_stock)}disabled{/if}">
-                                            <span class="wa-button js-decrease">
-                                                <span class="wa-tooltip is-inline bottom" data-title="{if $_item.quantity == 1}{$_locales["quantity_delete"]|escape}{else}{$_locales["quantity_decrease"]|escape}{/if}"><i class="wa-icon minus size-12"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#minus"></use></svg></i></span>
+                                        <div class="wa-quantity-box {if !empty($_is_out_of_stock) || !empty($_is_product_disabled)}disabled{/if}">
+                                            <span class="wa-button js-decrease {if !empty($_is_product_disabled)}is-disabled{/if}">
+                                                <span class="wa-tooltip is-inline bottom" data-title="{if $_item.quantity == 1}{$_locales["quantity_delete"]|escape}{else}{$_locales["quantity_decrease"]|escape}{/if}"><i class="wa-icon minus size-12"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#minus"></use></svg></i></span>
                                             </span>
-                                            <input class="wa-input js-product-quantity {if !empty($_item.error)}wa-error-field{/if}" type="text" name="quantity[{$_item.id}]" value="{$_item.quantity}" data-max="{$_item.stock_count|default:""}" {if !empty($_is_out_of_stock)}disabled{/if}>
-                                            <span class="wa-button js-increase {if !empty($_is_more_than_limit) || !empty($_is_limit)}is-disabled{/if}">
-                                                <span class="wa-tooltip is-inline bottom" data-title="{$_hint|escape}"><i class="wa-icon plus size-12"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#plus"></use></svg></i></span>
+                                            <input class="wa-input js-product-quantity {if !empty($_item.error)}wa-error-field{/if}" type="text" name="quantity[{$_item.id}]" value="{$_item.quantity}" data-max="{$_item.stock_count|default:""}" {if !empty($_is_out_of_stock) || !empty($_is_product_disabled)}disabled{/if}>
+                                            <span class="wa-button js-increase {if !empty($_is_more_than_limit) || !empty($_is_product_disabled) || !empty($_is_limit)}is-disabled{/if}">
+                                                <span class="wa-tooltip is-inline bottom" data-title="{$_hint|escape}"><i class="wa-icon plus size-12"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#plus"></use></svg></i></span>
                                             </span>
                                         </div>
 
                                         {$_errors = []}
-                                        {if !empty($_is_out_of_stock)}
+                                        {if !empty($_is_product_disabled)}
+                                            {$_errors[] = $_locales["product_disabled"]}
+                                        {elseif !empty($_is_out_of_stock)}
                                             {$_errors[] = "[`Out of stock`]"}
                                         {elseif !empty($_is_more_than_limit)}
                                             {$_errors[] = sprintf($_locales["quantity_stock_error"], $_item.stock_count)}
@@ -205,16 +215,14 @@
 
                                     <div class="wa-quantity-actions">
                                         <div class="wa-actions">
-                                            {*
-                                            <div class="wa-action js-edit-product">
-                                                <div class="wa-tooltip is-inline bottom" data-title="[`Edit`]">
-                                                    <i class="wa-icon edit size-11"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#edit"></use></svg></i>
+                                            {if !empty($_config.change_sku) && $_item.product.sku_count > 1}
+                                                <div class="wa-action js-edit-product">
+                                                    <i class="wa-icon edit size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#edit"></use></svg></i>
                                                 </div>
-                                            </div>
-                                            *}
+                                            {/if}
                                             <div class="wa-action js-delete-product">
                                                 <div class="wa-tooltip is-inline bottom" data-title="{$_locales["product_delete"]|escape}">
-                                                    <i class="wa-icon delete size-11"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#trash"></use></svg></i>
+                                                    <i class="wa-icon delete size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#trash"></use></svg></i>
                                                 </div>
                                             </div>
                                         </div>
@@ -294,7 +302,7 @@
                                 <button class="wa-button gray js-use-coupon">[`Activate`]</button>
                             </div>
                             <div class="wa-active-state">
-                                <span class="wa-text"><i class="wa-icon yes size-13"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#yes"></use></svg></i>&nbsp;[`Coupon applied`]</span>
+                                <span class="wa-text"><i class="wa-icon yes size-13"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#yes"></use></svg></i>&nbsp;[`Coupon applied`]</span>
                                 <button class="wa-button transparent js-cancel-coupon">[`Undo`]</button>
                             </div>
 
@@ -319,7 +327,7 @@
                                         <button class="wa-button gray js-use-bonus">[`Use bonus`]</button>
                                     </div>
                                     <div class="wa-active-state">
-                                        <span class="wa-text"><i class="wa-icon yes size-13"><svg><use xlink:href="{$wa_app_static_url}img/frontend/order/svg/sprite.svg#yes"></use></svg></i>&nbsp;[`Bonus used`]</span>
+                                        <span class="wa-text"><i class="wa-icon yes size-13"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#yes"></use></svg></i>&nbsp;[`Bonus used`]</span>
                                         <button class="wa-button transparent js-cancel-bonus">[`Undo`]</button>
                                     </div>
                                 </div>
@@ -578,7 +586,8 @@
                         urls: {
                             "add": {$wa->getUrl('shop/frontendOrderCart/add')|json_encode},
                             "save": {$wa->getUrl('shop/frontendOrderCart/save')|json_encode},
-                            "refresh": {$wa->getUrl('shop/frontendOrderCart/render')|json_encode}
+                            "refresh": {$wa->getUrl('shop/frontendOrderCart/render')|json_encode},
+                            "product_edit": {$wa->getUrl('shop/frontendOrderCart/productdialog')|json_encode}
                         },
                         locales: {
                             coupon_invalid: {_w('Invalid coupon code')|json_encode},

@@ -91,15 +91,19 @@ class shopFrontendMyOrderAction extends shopFrontendAction
 
         $payment = '';
         if (!$order['paid_date'] && # order not paid
-            !empty($order['params']['payment_id']) && # order has related payment plugin
-            $order['state']->paymentAllowed() # order state allow payment
+            !empty($order['params']['payment_id']) # order has related payment plugin
         ) {
-            try {
-                $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
-                $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), false);
-            } catch (waException $ex) {
-                $payment = $ex->getMessage();
+            if ($order['state']->paymentAllowed()) { # order state allow payment
+                try {
+                    $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
+                    $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), false);
+                } catch (waException $ex) {
+                    $payment = $ex->getMessage();
+                }
+            } else {
+                $payment = _w('Payment option will be available in your customer account after your order has been verified.');
             }
+
         }
         $this->view->assign('payment', $payment);
 

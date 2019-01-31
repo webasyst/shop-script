@@ -2194,8 +2194,8 @@ msgstr "Выберите типы товаров, <br/>примеры котор
 msgid "Each type provides its own set of editable product<br/>features to publish detailed product descriptions on the website,<br/>and to set up filters and automated recommendations."
 msgstr "У каждого типа товаров будет<br/>свой набор характеристик — с их помощью можно подробно описать<br/>товары на витрине, настроить фильтры и автоматические рекомендации."
 
-msgid "You can import data from your existing online store<br/>based on another software platform."
-msgstr "Можно импортировать данные из своего старого магазина,<br/>работающего на другой платформе."
+msgid "You can import data from your existing online store<br/>based on another software platform"
+msgstr "Можно импортировать данные из вашего старого магазина,<br/>работающего на другой платформе"
 
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:25
 msgid "Other"
@@ -3405,6 +3405,9 @@ msgstr "Неизвестный формат данных от службы ав�
 #: /wa-apps/shop/lib/actions/frontend/shopFrontendCheckout.action.php:26
 msgid "Your shopping cart is empty. Please add some products to cart, and then proceed to checkout."
 msgstr "Ваша корзина пуста. Заполните корзину товарами, чтобы оформить заказ."
+
+msgid "We do not accept orders from clients registered as companies. To continue checkout, please <a href='?logout=%s'>log out</a> and log in again as a person."
+msgstr "Мы не принимаем заказы от организаций. Чтобы продолжить оформление заказа, пожалуйста, <a href='?logout=%s'>выйдите</a> и войдите снова — от своего имени."
 
 #: /wa-apps/shop/lib/config/site.php:18
 msgid "Homepage title <title>"
@@ -5042,7 +5045,6 @@ msgstr "Выбор характеристик"
 msgid "Best for multi-dimensional featured products, e.g. apparel or footwear which can vary in size and color. Flat SKU list is created automatically based on the combination of features offered for selection. Customer is prompted to choose preferable product feature values which unambiguously identifies SKU that is being added to shopping cart. "
 msgstr "Для товаров, которые лучше описываются выбором нескольких характеристик, чем выбором артикула (например, выбором размера и цвета). Список артикулов будет создан автоматически на основе всех возможных комбинаций выбранных характеристик. Покупатель выбирает на витрине магазина предпочтительные значения характеристик, и его выбор однозначным образом определяет артикул, который будет добавлен в корзину. "
 
-#: /wa-apps/shop/js/product/product.js:864
 msgid "option"
 msgid_plural "options"
 msgstr[0] "вариант"
@@ -5050,11 +5052,12 @@ msgstr[1] "варианта"
 msgstr[2] "вариантов"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:465
-msgid "%d SKU in total"
-msgid_plural "%d SKUs in total"
-msgstr[0] "Всего %d артикул"
-msgstr[1] "Всего %d артикула"
-msgstr[2] "Всего %d артикулов"
+msgid "SKUs: %d"
+msgstr "Артикулов: %d"
+
+#: /wa-apps/shop/js/product/product.js:864
+msgid "Parameters: %s"
+msgstr "Параметров: %s"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:482
 msgid "Base price is applied unless you override it for a particular SKU. A list of overrided SKUs is shown below. Stock level can be tracked on the level of individual SKUs only, not for the entire product."
@@ -5199,10 +5202,6 @@ msgstr "Только выбранные витрины"
 #: /wa-apps/shop/js/product/product.js:915
 msgid "options"
 msgstr "варианты"
-
-#: /wa-apps/shop/js/product/product.js:922
-msgid "%d SKUs in total"
-msgstr "всего %d артикулов"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:21
 msgid "An array containing information about the order"
@@ -10899,7 +10898,7 @@ msgstr "Часовой пояс"
 msgid "Extra workdays"
 msgstr "Дополнительные рабочие дни"
 
-msgid "Extra weekend"
+msgid "Extra days off"
 msgstr "Дополнительные выходные дни"
 
 msgid "Add day"
@@ -11049,8 +11048,8 @@ msgstr "Количество рабочих часов на обработку �
 msgid "Is used to calculate estimated order shipping time. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later. Additional order picking time can be specified in individual shipping methods’ settings."
 msgstr "Используется для расчета сроков доставки. Указанный период добавляется ко времени оформления заказа и учитывается при переносе обработки заказов на другой день — для заказов, оформленных в конце или после окончания текущего рабочего дня. Дополнительное время комплектации заказа можно указать в настройках отдельных способов доставки."
 
-msgid "Is used to calculate estimated order shipping time only with in-cart checkout option. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later. Additional order picking time can be specified in individual shipping methods’ settings."
-msgstr "Используется для расчета сроков доставки только в режиме оформления заказа в корзине. Указанный период добавляется ко времени оформления заказа и учитывается при переносе обработки заказов на другой день — для заказов, оформленных в конце или после окончания текущего рабочего дня. Дополнительное время комплектации заказа можно указать в настройках отдельных способов доставки."
+msgid "This value is used to calculate estimated order shipping time with in-cart checkout option, and may also work with multi-step checkout, if a shipping plugin can accept order ready time from the online store. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later. Additional order picking time can be specified in individual shipping methods’ settings."
+msgstr "Это значение используется для расчета сроков доставки в режиме оформления заказа в корзине и может также использоваться при пошаговом оформлении заказа, если плагин доставки учитывает время готовности заказа. Указанный период добавляется ко времени оформления заказа и учитывается при переносе обработки заказов на другой день — для заказов, оформленных в конце или после окончания текущего рабочего дня. Дополнительное время комплектации заказа можно указать в настройках отдельных способов доставки."
 
 msgid "Values in “%s” column denote the last hour of a workday before which orders are accepted for processing on the same day. Orders accepted after that hour are processed on the next workday."
 msgstr "Значения в столбце «%s» обозначают последний час рабочего дня, до которого заказы принимаются для обработки в течение дня. Заказы, оформленные после указанного часа, обрабатываются на следующий день."
@@ -11106,8 +11105,8 @@ msgstr "Смена артикула"
 msgid "Allow customers to select other product SKUs in the shopping cart"
 msgstr "Разрешить покупателям выбирать другой артикул товара в корзине"
 
-msgid "Mainly used to change product properties such color or size"
-msgstr "Чаще всего используется для изменения свойства товара, например, цвета или размера"
+msgid "For example, to change product properties such as color or size"
+msgstr "Например, для изменения свойств товара: цвета, размера и т. п."
 
 msgid "Discout information per product"
 msgstr "Отображение скидки на каждый товар"
@@ -11498,10 +11497,6 @@ msgstr "регион"
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:832
 msgid "city"
 msgstr "город"
-
-#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:971
-msgid "Подтверждение можно пропустить и отпарвить заказ, но тогда данные существующего контакта будут обновлены данными покупателя, который не подтвержил свой email или телефон."
-msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:29
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:31
@@ -11974,3 +11969,24 @@ msgstr "Общие настройки для всех витрин с пошаг
 
 msgid "Online store"
 msgstr "Интернет-магазин"
+
+msgid "Select another SKU"
+msgstr "Выбрать другой артикул"
+
+msgid "Payment option will be available in your customer account after your order has been verified."
+msgstr "Возможность оплаты будет доступна в вашем аккаунте покупателя после проверки заказа."
+
+msgid "This item is not available"
+msgstr "Товар недоступен для заказа"
+
+#: /wa-apps/shop/templates/actions/frontend/order/cart/dialog/product.edit.html:289
+msgid "Done"
+msgstr "Готово"
+
+#: /wa-apps/shop/lib/actions/settings/shopSettingsSystemPluginClone.controller.php:15
+msgid "Invalid plugin type."
+msgstr "Неверный тип плагина."
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfirmStep.class.php:64
+msgid "You have not accepted the terms of service."
+msgstr "Вы не подтвердили согласие с условиями предоставления услуг."

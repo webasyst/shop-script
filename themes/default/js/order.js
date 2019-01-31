@@ -61,6 +61,10 @@
                 }
             });
 
+            $(document).on("wa_order_dialog_open", function(event, $wrapper) {
+                initUI($wrapper);
+            });
+
             function initUI($wrapper) {
                 $wrapper = ($wrapper ? $wrapper : that.$wrapper);
 

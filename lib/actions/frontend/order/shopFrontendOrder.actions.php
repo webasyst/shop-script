@@ -1,4 +1,5 @@
 <?php
+
 /**
  * /order/calculate/ and /order/create/ in frontend:
  * JSON API for new single-page checkout.
@@ -171,6 +172,37 @@ class shopFrontendOrderActions extends waJsonActions
                 ];
             }
         }
+    }
+
+    /**
+     * Dialog to select shipping self-delivery point on a map
+     */
+    public function shippingDialogAction()
+    {
+        // Get input from POST or session
+        $input = waRequest::post();
+        if (empty($input)) {
+            $session_checkout = wa()->getStorage()->get('shop/checkout');
+            $input = (!empty($session_checkout['order']) && is_array($session_checkout['order'])) ? $session_checkout['order'] : [];
+        }
+
+        // Process checkout steps up to shipping
+        $input['abort_after_step'] = 'shipping';
+        $data = shopCheckoutStep::processAll('form', $this->makeOrderFromCart(), $input);
+
+        // Make sure no step before shipping errs
+        if (!empty($data['error_step_id']) && $data['error_step_id'] != 'shipping') {
+            throw new waException('Bad input', 400);
+        }
+
+        $view = wa('shop')->getView();
+        $view->assign($data['result'] + [
+            'config'  => $this->getCheckoutConfig(),
+            'contact' => $data['contact'],
+        ]);
+
+        echo $view->fetch(wa()->getAppPath('templates/actions/frontend/order/form/dialog/map.html', 'shop'));
+        exit;
     }
 
     /**
@@ -383,7 +415,7 @@ class shopFrontendOrderActions extends waJsonActions
             }
         }
 
-        $this->response['result'] = $result;
+        $this->response['result'] = array_unique($result, SORT_REGULAR);
     }
 
     protected function getCheckoutConfig()
@@ -413,6 +445,5 @@ class shopFrontendOrderActions extends waJsonActions
                 echo waUtils::jsonEncode(array('status' => 'fail', 'errors' => $this->errors), JSON_UNESCAPED_UNICODE);
             }
         }
-
     }
 }

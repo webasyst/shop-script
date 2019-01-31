@@ -499,7 +499,7 @@ class shopCustomersCollectionPreparator
                 }
             } else {
                 $val = $this->getModel()->escape($val);
-                $this->addJoin('shop_order_params', ":table.order_id = {$this->order_table_alias}.id AND :table.name = 'utm_campaign' AND value = '{$val}'");
+                $this->addJoin('shop_order_params', ":table.order_id = {$this->order_table_alias}.id AND :table.name = 'utm_campaign' AND :table.value = '{$val}'");
                 if ($auto_title) {
                     $this->addTitle(_w('UTM campaign') . '=' . $val);
                 }

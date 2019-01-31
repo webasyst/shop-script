@@ -12,7 +12,7 @@ class shopSettingsSystemPluginCloneController extends waJsonController
         $type = waRequest::post('type', null, waRequest::TYPE_STRING);
 
         if (!$type || ($type !== 'shipping' && $type !== 'payment')) {
-            $this->errors[] = _w('Invalid plugin type');
+            $this->errors[] = _w('Invalid plugin type.');
             return null;
         }
 

@@ -137,7 +137,7 @@
                             <div class="wa-field-wrapper is-agreement-field">
                                 <input type="hidden" name="auth[service_agreement]" value="0">
                                 <label class="wa-checkbox-wrapper">
-                                    <input class="wa-checkbox" type="checkbox" name="auth[service_agreement]" value="1" required>
+                                    <input class="wa-checkbox" type="checkbox" name="auth[service_agreement]" value="1" required{if !empty($auth.service_agreement)} checked="checked"{/if}>
                                     <span class="wa-text">{$_config["service_agreement_hint"]}</span>
                                 </label>
                             </div>

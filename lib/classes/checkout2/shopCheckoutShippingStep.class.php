@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Third checkout step. Determine shipping options based on region defined in previous step.
  * Accept user selection of one of available shipping options.
@@ -150,18 +151,6 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             }
             $type =& $shipping_types[$s['type']];
             $s = self::prepareShippingVariant($s, $currencies);
-            if (!empty($s['custom_data']['pickup']['schedule'])) {
-                if (is_array($s['custom_data']['pickup']['schedule'])) {
-                    if (!isset($timezones)) {
-                        $timezones = waDateTime::getTimeZones();
-                    }
-                    $plugin_timezone = ifset($s, 'custom_data', 'pickup', 'timezone', null);
-                    $s['pickup_schedule'] = self::formatPickupSchedule($s['custom_data']['pickup']['schedule'], $timezones, $config['schedule']['timezone'], $plugin_timezone);
-                    $s['pickup_schedule']['user_timezone'] = $contact->getTimezone();
-                } else {
-                    $s['pickup_schedule_html'] = $s['custom_data']['pickup']['schedule'];
-                }
-            }
 
             $s['is_selected'] = $selected_variant_id && $selected_variant_id == $s_id;
             if ($s['is_selected']) {
@@ -268,10 +257,16 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             $data['shipping']['selected_variant'] = $shipping_types[$selected_type_id]['variants'][$selected_variant_id];
         }
 
+        $map = [
+            'adapter' => 'yandex',
+            'api_key' => wa()->getMap('yandex')->getSettings('apikey'),
+        ];
+
         $result = $this->addRenderedHtml([
             'selected_type_id'    => $selected_type_id,
             'selected_variant_id' => $selected_variant_id,
             'types'               => $shipping_types,
+            'map'                 => $map
         ], $data, $errors);
 
         if ($data['origin'] !== 'form' && 'only' === ifset($data, 'input', 'shipping', 'html', null)) {
@@ -353,12 +348,20 @@ class shopCheckoutShippingStep extends shopCheckoutStep
      */
     public static function formatPickupSchedule($schedule, $timezones, $default_timezone, $timezone = null)
     {
+
+        static $weekday_names_full = null;
+        static $weekday_names_short = null;
+        static $server_timezone = null;
+        if ($weekday_names_full === null) {
+            $weekday_names_full = waDateTime::getWeekdayNames();
+            $weekday_names_short = waDateTime::getWeekdayNames('ucfirst', 'short');
+            $server_timezone = new DateTimeZone(waDateTime::getDefaultTimeZone());
+        }
+
         $timezone = $timezone ? $timezone : $default_timezone;
 
         $timezone_html = ifset($timezones, $timezone, $timezone);
         $days = [];
-        $weekday_names_full = waDateTime::getWeekdayNames();
-        $weekday_names_short = waDateTime::getWeekdayNames('ucfirst', 'short');
         foreach ($schedule['weekdays'] as $d) {
             list($date, $time_start) = explode(' ', $d['start_work']);
             list($_, $time_end) = explode(' ', $d['end_work']);
@@ -382,7 +385,7 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             }
 
             // pass in default time zone to make it not convert the time
-            $date_formatted = waDateTime::format('humandate', $date, waDateTime::getDefaultTimeZone());
+            $date_formatted = waDateTime::format('humandate', $date, $server_timezone);
             $date_formatted = str_replace(date('Y'), '', $date_formatted);
             if ($timestamp - time() < 3600 * 24 * 365 / 2) {
                 $date_formatted = str_replace(date('Y', strtotime('+1 year')), '', $date_formatted);

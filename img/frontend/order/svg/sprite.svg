@@ -54,4 +54,19 @@
     <symbol id="arrow-right" viewBox="0 0 6.34 11">
         <g><polyline style="fill:none; stroke:currentColor;" points="0.47 0.4 5.57 5.5 0.47 10.61"/></g>
     </symbol>
+
+    <symbol id="star-empty" viewBox="0 0 11 11">
+        <g><polygon style="fill: #b0b0b0;" points="5.5,0 7.2,3.6 11,4.2 8.2,7 8.9,11 5.5,9.1 2.1,11 2.8,7 0,4.2 3.8,3.6 " /></g>
+    </symbol>
+
+    <symbol id="star-half" viewBox="0 0 11 11">
+        <g>
+            <polygon style="fill: #b0b0b0;" points="5.5,0 7.2,3.6 11,4.2 8.2,7 8.9,11 5.5,9.1 2.1,11 2.8,7 0,4.2 3.8,3.6 "/>
+            <polygon style="fill: #ffbb36;" points="5.5,9.1 5.5,0 3.8,3.6 0,4.2 2.8,7 2.1,11 "/>
+        </g>
+    </symbol>
+
+    <symbol id="star" viewBox="0 0 11 11">
+        <g><polygon style="fill: #ffbb36;" points="5.5,0 7.2,3.6 11,4.2 8.2,7 8.9,11 5.5,9.1 2.1,11 2.8,7 0,4.2 3.8,3.6 " /></g>
+    </symbol>
 </svg>

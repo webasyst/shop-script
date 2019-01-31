@@ -6033,10 +6033,8 @@ msgstr[1] ""
 #: /wa-apps/shop/templates/actions/product/ProductFeaturesSelectable.html:89
 #: /wa-apps/shop/lib/actions/backend/shopBackendLoc.action.php:61
 #: /wa-apps/shop/lib/actions/product/shopProductSave.controller.php:183
-msgid "%d SKU in total"
-msgid_plural "%d SKUs in total"
-msgstr[0] ""
-msgstr[1] ""
+msgid "SKUs: %d"
+msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/Product.html:85
 #: /wa-apps/shop/lib/actions/product/shopProductSave.controller.php:152
@@ -6046,10 +6044,8 @@ msgstr ""
 #: /wa-apps/shop/templates/actions/product/ProductFeaturesSelectable.html:83
 #: /wa-apps/shop/lib/actions/backend/shopBackendLoc.action.php:60
 #: /wa-apps/shop/lib/actions/product/shopProductSave.controller.php:182
-msgid "option"
-msgid_plural "options"
-msgstr[0] ""
-msgstr[1] ""
+msgid "Parameters: %s"
+msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductReviews.html:16
 #: /wa-apps/shop/templates/actions/product/ProductReviews.html:19
@@ -6180,10 +6176,6 @@ msgstr ""
 
 #: /wa-apps/shop/js/product/product.js:1021
 msgid "options"
-msgstr ""
-
-#: /wa-apps/shop/js/product/product.js:1028
-msgid "%d SKUs in total"
 msgstr ""
 
 #: /wa-apps/shop/js/product/product.js:1827
@@ -11769,7 +11761,7 @@ msgid "Each type provides its own set of editable product<br/>features to publis
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:65
-msgid "You can import data from your existing online store<br/>based on another software platform."
+msgid "You can import data from your existing online store<br/>based on another software platform"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:85
@@ -11917,7 +11909,7 @@ msgid "Allow customers to select other product SKUs in the shopping cart"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:302
-msgid "Mainly used to change product properties such color or size"
+msgid "For example, to change product properties such as color or size"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:309
@@ -12003,7 +11995,7 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:465
 #: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:152
-msgid "Extra weekend"
+msgid "Extra days off"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:491
@@ -12155,10 +12147,6 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:970
 msgid "A login confirmation code will be sent to a customer’s email address or phone."
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:971
-msgid "Подтверждение можно пропустить и отпарвить заказ, но тогда данные существующего контакта будут обновлены данными покупателя, который не подтвержил свой email или телефон."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:979
@@ -13267,22 +13255,6 @@ msgstr ""
 msgid "<br>Product URLs: /<strong>product-name/</strong><br>Category URLs: /category/<strong>category-name/subcategory-name/subcategory-name/</strong>"
 msgstr ""
 
-#: /wa-apps/shop/lib/config/site.php:195
-msgid "Вид оформления заказа"
-msgstr ""
-
-#: /wa-apps/shop/lib/config/site.php:199
-msgid "Оформление заказа в корзине"
-msgstr ""
-
-#: /wa-apps/shop/lib/config/site.php:200
-msgid "В случае, если ваша тема не поддерживает \"оформление заказа в корзине\", для страницы оформления будет включен стандартный дизайн темы \"Дефолт\". <a href=\"%s\">Настройте</a> <i class=\"icon16 new-window\"></i>оформление заказа в корзине"
-msgstr ""
-
-#: /wa-apps/shop/lib/config/site.php:212
-msgid "<a href=\"%s\">Настройте</a> <i class=\"icon16 new-window\"></i>пошаговое оформление заказа"
-msgstr ""
-
 #: /wa-apps/shop/lib/config/site.php:266
 msgid "Returns HTML rendering cart block for new one-page checkout"
 msgstr ""
@@ -13566,61 +13538,6 @@ msgstr ""
 msgid "by SKU code"
 msgstr ""
 
-#: /wa-apps/shop/lib/config/checkout2/default.php:17
-#: /wa-apps/shop/themes/default/order.html:35
-msgid "Корзина"
-msgstr ""
-
-#: /wa-apps/shop/lib/config/checkout2/default.php:18
-msgid "В вашей корзине пусто"
-msgstr ""
-
-#: /wa-apps/shop/lib/config/checkout2/default.php:29
-#: /wa-apps/shop/themes/default/order.html:57
-msgid "Оформление"
-msgstr ""
-
-#: /wa-apps/shop/lib/config/checkout2/default.php:40
-msgid "Покупатель"
-msgstr ""
-
-#: /wa-apps/shop/lib/config/checkout2/default.php:40
-msgid "Вход упрощает работу с магазином: все заказы сохраняются в истории личного кабинета, а при повторных заказах не нужно заполнять поля покупателя"
-msgstr ""
-
-#: /wa-apps/shop/lib/config/checkout2/default.php:43
-#: /wa-apps/shop/lib/config/checkout2/default.php:49
-msgid "Выйдите, если вы хотите оформить заказ от имени другого пользователя"
-msgstr ""
-
-#: /wa-apps/shop/lib/config/checkout2/default.php:48
-msgid "Физ. лица"
-msgstr ""
-
-#: /wa-apps/shop/lib/config/checkout2/default.php:49
-msgid "Юр. лица"
-msgstr ""
-
-#: /wa-apps/shop/lib/config/checkout2/default.php:54
-msgid "Принимаю <a href=\"\">условия работы</a>"
-msgstr ""
-
-#: /wa-apps/shop/lib/config/checkout2/default.php:61
-msgid "Доставка"
-msgstr ""
-
-#: /wa-apps/shop/lib/config/checkout2/default.php:61
-msgid "Курьер"
-msgstr ""
-
-#: /wa-apps/shop/lib/config/checkout2/default.php:62
-msgid "Самовывоз"
-msgstr ""
-
-#: /wa-apps/shop/lib/config/checkout2/default.php:64
-msgid "Почта"
-msgstr ""
-
 #: /wa-apps/shop/lib/config/data/workflow.php:160
 #: /wa-apps/shop/lib/config/data/workflow.php:170
 #: /wa-apps/shop/lib/config/data/workflow.php:139
@@ -13886,4 +13803,155 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsRegions.html:6
 msgid "You can set up countries and regions in “<a href=\"%s\">Settings</a>” app."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/category/ProductsCategory.html:301
+msgid "Manual product sorting may work inconsistently in this mode. Select other sorting options for stable results."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:557
+msgid "Use a fixed list of <strong>shipping areas</strong> if you deliver orders to a limited list of locations. Customers can quickly select a location from a list without having to select a country and region first."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:558
+msgid "A <strong>country is required</strong> to be selected in shipping area properties. If a region or a city name are not specified, they will be requested from a customer."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:559
+msgid "If <strong>no shipping areas have been set up</strong>, customers will have to select a country and a region, and to enter a city name to view available shipping options."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:560
+msgid "If you set up <strong>only one shipping area</strong>, with <strong>country</strong>, <strong>region</strong>, and <strong>city</strong> specified, then customers will see at once all shipping options available for that area only, without an option to change location."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:621
+msgid "Customer types"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:834
+msgid "locality"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:852
+msgid "Address fields provided by shipping plugins will be displayed before custom fields that you may add."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:854
+msgid "Disable address fields which are not required for all shipping options. Shipping plugins will add required address fields during checkout, if necessary."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:974
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:15
+msgid "Common settings for all storefronts with multi-step checkout."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:16
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2.html:23
+msgid "In <a href=\"%s\" target=\"_blank\">storefront settings <i class=\"icon16 new-window\"></i></a> you can switch between <strong>multi-step checkout</strong> and <strong>in-cart checkout</strong>."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsSchedule.html:114
+msgid "This value is used to calculate estimated order shipping time with in-cart checkout option, and may also work with multi-step checkout, if a shipping plugin can accept order ready time from the online store. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later. Additional order picking time can be specified in individual shipping methods’ settings."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2.html:20
+msgid "https://www.shop-script.com/help/29577/in-cart-checkout-settings/"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2.html:20
+msgid "Setup instructions"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:206
+msgid "Site URL"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:117
+msgid "Select another SKU"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:212
+msgid "item"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:5
+msgid "This item is not available"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/cart/dialog/product.edit.html:289
+msgid "Done"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/shipping.html:322
+msgid "Select a shipping type."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/shipping.html:323
+msgid "Select a shipping option."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/region.html:290
+msgid "Shipping area"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/map.details.html:46
+msgid "Select a point"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/map.html:103
+msgid "Pickup option selection"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/map.html:107
+msgid "List"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/map.html:108
+msgid "Map"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/map.html:128
+msgid "Shipping services"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/shopSettingsSystemPluginClone.controller.php:15
+msgid "Invalid plugin type."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/shopFrontendCheckout.action.php:154
+#: /wa-apps/shop/lib/actions/frontend/my/shopFrontendMyOrder.action.php:104
+msgid "Payment option will be available in your customer account after your order has been verified."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutContactinfo.class.php:24
+msgid "We do not accept orders from clients registered as companies. To continue checkout, please <a href='?logout=%s'>log out</a> and log in again as a person."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfirmStep.class.php:64
+msgid "You have not accepted the terms of service."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:218
+msgid "Compare at price without discount and discount amount"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:244
+msgid "Shipping options are not grouped by types—“courier”, “pickup”, “post”. There is no option to select a pickup point on a map."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:260
+msgid "A small map with one pickup point will be shown by a click on an address in the pickup point selection dialog."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:200
+msgid "If your design theme does not support “in-cart checkout”, standard checkout design of “Default” theme can be used. <a href=\"%s\" target=\"_blank\">Set up</a> <i class=\"icon16 new-window\"></i>in-cart checkout."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:200
+msgid "Read <a href=\"https://www.shop-script.com/help/29297/in-cart-checkout/\" target=\"_blank\">user manual</a> before enabling this checkout option."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:204
+msgid "<a href=\"%s\" target=\"_blank\">Set up</a> <i class=\"icon16 new-window\"></i>multi-step checkout"
 msgstr ""

@@ -43,6 +43,7 @@ $.extend($.settings = $.settings || {}, {
         });
 
         $('.js-old-checkout').addClass('selected');
+        $('#s-settings-menu').find('a[href="?action=settings#/checkout/"]').parent().addClass('selected');
 
         // checkout steps
         $("#checkout-steps td div.float-right").on('click', 'a.link-options', function() {

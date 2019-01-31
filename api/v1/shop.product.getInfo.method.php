@@ -41,7 +41,13 @@ class shopProductGetInfoMethod extends shopApiMethod
         $this->response['features'] = array();
         foreach ($p->features as $f => $v) {
             if (is_array($v)) {
-                $this->response['features'][$f] = array_values($v);
+                foreach ($v as $feature) {
+                    if ($feature instanceof shopColorValue) {
+                        $this->response['features'][$f][] = $feature->getRaw();
+                    } else {
+                        $this->response['features'][$f][] = $feature;
+                    }
+                }
             } else {
                 $this->response['features'][$f] = (string)$v;
             }

@@ -866,9 +866,13 @@ JS;
      * @param string|shopCsvReader $reader
      * @param array $params
      * @return null|shopCsvReader
+     * @throws waException
      */
     public static function snapshot($reader, &$params = array())
     {
+        if (waConfig::get('is_template')) {
+            throw new waException('shopCsvReader::snapshot() is not allowed in template context');
+        }
         if (is_object($reader) && (get_class($reader) == __CLASS__)) {
             $snapshot = array(
                 'params' => $params,

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Represents all settings of new checkout for a single settlement.
  */
@@ -81,12 +82,17 @@ class shopCheckoutConfig implements ArrayAccess
 
     /**
      * shopCheckoutConfig constructor.
-     * @param string|array $storefront string - checkout_storefront_id value from routing.php
-     *                                 array  - the config itself
+     * @param string|array|true $storefront string - checkout_storefront_id value from routing.php
+     *                                      array  - the config itself (ex. for tests)
+     *                                      true   - get config for current route
      * @throws waException
      */
     public function __construct($storefront)
     {
+        if ($storefront === true) {
+            $storefront = ifset(ref(wa()->getRouting()->getRoute()), 'checkout_storefront_id', null);
+        }
+
         $this->loadDefaultConfig();
         if (empty(self::$static_cache['default'])) {
             throw new waException('Error loading the default settings of the storefront.', 502);
@@ -112,7 +118,7 @@ class shopCheckoutConfig implements ArrayAccess
 
     public function isDefault()
     {
-        return (bool) $this->is_default;
+        return (bool)$this->is_default;
     }
 
     //
@@ -187,7 +193,7 @@ class shopCheckoutConfig implements ArrayAccess
     public function getFieldWidthVariants()
     {
         return [
-            self::FIELD_WIDTH_MINI    => [
+            self::FIELD_WIDTH_MINI   => [
                 'name' => _w('Mini'),
             ],
             self::FIELD_WIDTH_SMALL  => [
@@ -196,7 +202,7 @@ class shopCheckoutConfig implements ArrayAccess
             self::FIELD_WIDTH_MEDIUM => [
                 'name' => _w('Medium'),
             ],
-            self::FIELD_WIDTH_LARGE   => [
+            self::FIELD_WIDTH_LARGE  => [
                 'name' => _w('Large'),
             ],
         ];
@@ -250,7 +256,7 @@ class shopCheckoutConfig implements ArrayAccess
                 'name' => _w('Only on screens over 760 pixels wide'),
             ],
             self::PICKUPPOINT_MAP_TYPE_NEVER          => [
-                'name' => _w('Never show'),
+                'name'        => _w('Never show'),
                 'description' => _w('A small map with one pickup point will be shown by a click on an address in the pickup point selection dialog.'),
             ],
         ];
@@ -295,12 +301,14 @@ class shopCheckoutConfig implements ArrayAccess
                 'name' => _w('Create new customer profile for every guest order'),
             ],
             self::ORDER_WITHOUT_AUTH_EXISTING => [
-                'name' => _w('Add an order to existing customer profile with the same phone number or email address'),
+                'name'        => _w('Add an order to existing customer profile with the same phone number or email address'),
                 'description' => _w('Existing customer’s data will be updated by the data from a new order.'),
             ],
+            /*
             self::ORDER_WITHOUT_AUTH_CONFIRM  => [
                 'name' => _w('Checkout is not allowed without email address or phone number confirmation'),
             ],
+            */
         ];
     }
 
@@ -309,7 +317,8 @@ class shopCheckoutConfig implements ArrayAccess
         return [
             self::SCHEDULE_MODE_DEFAULT => [
                 'name'        => _w('Common working schedule'),
-                'description' => sprintf(_w('Section “<a href="?action=settings#/schedule/" target="_blank">%s</a>” <i class="icon16 new-window"></i> settings are used'), _w('Working schedule')),
+                'description' => sprintf(_w('Section “<a href="?action=settings#/schedule/" target="_blank">%s</a>” <i class="icon16 new-window"></i> settings are used'),
+                    _w('Working schedule')),
             ],
             self::SCHEDULE_MODE_CUSTOM  => [
                 'name'        => _w('Custom working schedule for this storefront'),
@@ -327,7 +336,7 @@ class shopCheckoutConfig implements ArrayAccess
      */
     public function getStorage()
     {
-        return new waPrefixStorage(['namespace'=>'shop_checkout2']);
+        return new waPrefixStorage(['namespace' => 'shop_checkout2']);
     }
 
     /**
@@ -410,7 +419,35 @@ class shopCheckoutConfig implements ArrayAccess
             }
         }
         unset($r);
+        $result = $this->postProcessingShippingMethods($result);
+
         return $result;
+    }
+
+
+    protected function postProcessingShippingMethods($methods)
+    {
+        //Convert and rounding rate to storefront currency
+
+        if (!$methods || !is_array($methods)) {
+            return $methods;
+        }
+        $storefront_currency = wa('shop')->getConfig()->getCurrency(false);
+
+        foreach ($methods as $variant_id => &$variant_data) {
+            $variant_data['original_currency'] = $variant_currency = ifset($variant_data, 'currency', null);
+            $variant_data['original_rate'] = $rate = ifset($variant_data, 'rate', null);
+
+            if ($storefront_currency !== $variant_currency) {
+                $rate = shop_currency($variant_data['rate'], $variant_currency, $storefront_currency, false);
+                $variant_data['currency'] = $storefront_currency;
+            }
+
+            $variant_data['rate'] = shopRounding::roundCurrency($rate, $storefront_currency);
+        }
+        unset($variant_data);
+
+        return $methods;
     }
 
     // Overridden in unit tests
@@ -418,7 +455,7 @@ class shopCheckoutConfig implements ArrayAccess
     {
         $call_limit = 0.2;
         if (defined('SHOP_SHIPPING_PLUGINS_CACHE_TIME_LIMIT')) {
-            $call_limit = (float) SHOP_SHIPPING_PLUGINS_CACHE_TIME_LIMIT;
+            $call_limit = (float)SHOP_SHIPPING_PLUGINS_CACHE_TIME_LIMIT;
         }
         $time_start = microtime(true);
         $function_cache = new waFunctionCache(['shopHelper', 'getShippingMethods'], [
@@ -431,7 +468,8 @@ class shopCheckoutConfig implements ArrayAccess
         $result = $function_cache->call($address, $items, $params);
         $time_delta = round(microtime(true) - $time_start, 3);
         if (defined('SHOP_CHECKOUT2_PROFILING')) {
-            waLog::log('getShippingMethods('.(isset($params['shipping']['id']) ? 'single' : 'all').') - '.$function_cache->last_call_cache_status.' - '.$time_delta, 'checkout2-time.log');
+            waLog::log('getShippingMethods('.(isset($params['shipping']['id']) ? 'single' : 'all').') - '.$function_cache->last_call_cache_status.' - '.$time_delta,
+                'checkout2-time.log');
         }
         return $result;
     }
@@ -439,8 +477,8 @@ class shopCheckoutConfig implements ArrayAccess
     /**
      * Available payment options based on selected shipping plugin.
      *
-     * @param int|null    $selected_shipping_plugin_id
-     * @param string      $customer_type
+     * @param int|null $selected_shipping_plugin_id
+     * @param string $customer_type
      * @param string|null $shipping_type
      * @return array
      */
@@ -500,7 +538,7 @@ class shopCheckoutConfig implements ArrayAccess
 
         // Payment plugins can be enabled or disabled based on selected shipping option
         $options = [
-            'customer_type'                => $customer_type,
+            'customer_type' => $customer_type,
         ];
         if ($selected_shipping_plugin_id) {
             $options[shopPluginModel::TYPE_SHIPPING] = $selected_shipping_plugin_id;
@@ -545,6 +583,7 @@ class shopCheckoutConfig implements ArrayAccess
     /**
      * @param array $variant as returned by shopCheckoutShippingStep::prepareShippingVariant()
      * @return waShipping
+     * @throws waException
      */
     public function getShippingPluginByRate($variant)
     {
@@ -1146,7 +1185,7 @@ class shopCheckoutConfig implements ArrayAccess
             'cart'         => [
                 'block_name'       => self::SETTING_TYPE_SCALAR,
                 'empty_text'       => self::SETTING_TYPE_SCALAR,
-                'article_change'   => self::SETTING_TYPE_BOOL,
+                'change_sku'       => self::SETTING_TYPE_BOOL,
                 'discount_item'    => self::SETTING_TYPE_VARIANT,
                 'discount_general' => self::SETTING_TYPE_VARIANT,
             ],
@@ -1208,7 +1247,6 @@ class shopCheckoutConfig implements ArrayAccess
         ];
     }
 
-    //
 
     protected function getConfigPath()
     {

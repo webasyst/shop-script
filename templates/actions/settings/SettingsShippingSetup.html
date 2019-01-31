@@ -75,17 +75,6 @@
                 <p class="hint">[`HTML. Shipping option description is shown to customer during the checkout.`]</p>
             </div>
         </div>
-        {*
-        <div class="field">
-            <div class="name">
-                [`Delivery info`]
-            </div>
-            <div class="value">
-                <textarea name="shipping[email_description]">{$plugin.email_description|default:''|escape}</textarea>
-                <p class="hint">[`Optional text to be sent to customer with the order notification email. Plain text, no HTML allowed.`]</p>
-            </div>
-        </div>
-        *}
     </div>
 
     <div class="field-group">
@@ -109,7 +98,7 @@
         {$settings_html}
     </div>
 
-    <div class="field-group">
+    <div class="field-group js-footer-block">
         <div class="field">
             <div class="value submit">
                 <input type="submit" class="button green" value="[`Save`]"> [`or`] <a href="#/shipping/" class="inline-link">[`cancel`]</a>
