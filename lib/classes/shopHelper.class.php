@@ -898,12 +898,20 @@ class shopHelper
             return $cache_all;
         }
     }
-
+    
+    /**
+    * @deprecated
+    */
+    public static function fillVirtulStock($sku_stock)
+    {
+        self::fillVirtualStock($sku_stock)    
+    }
+    
     /**
      * @param $sku_stock array stock_id => count (for real stocks)
      * @return array stock_id => count (for both real and virtual stocks; virtual stock_id keys are strings prefixed with 'v')
      */
-    public static function fillVirtulStock($sku_stock)
+    public static function fillVirtualStock($sku_stock)
     {
         $result = array_map('intval', $sku_stock);
         foreach (shopHelper::getStocks() as $virtualstock_id => $s) {
