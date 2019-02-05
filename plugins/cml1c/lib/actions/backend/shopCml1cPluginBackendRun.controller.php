@@ -426,6 +426,8 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
         $this->data['export_orders_mask'] = $this->pluginSettings('export_orders_mask');
 
+        $this->data['export_contacts_mask'] = $this->pluginSettings('export_contacts_mask');
+
         $this->data['stock_id'] = max(0, $this->pluginSettings('stock'));
 
         $export = waRequest::post('export');
@@ -588,6 +590,14 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         $this->data['configure'] = !!waRequest::post('configure');
 
         $this->data['expert'] = !!waRequest::post('expert') || !!$this->pluginSettings('expert');
+
+        $this->data['empty_count']= array(
+            null,
+        );
+
+        if ($this->pluginSettings('stock_setup') || $this->pluginSettings('stock_complement')) {
+            $this->data['empty_count'][] = 0;
+        }
 
         $this->initImportStocks();
         $this->initImportFeatures();
@@ -2957,11 +2967,7 @@ HTML;
         while (($chunk-- > 0) && ($order = reset($orders))) {
 
             $order['id_str'] = shopHelper::encodeOrderId($order['id']);
-            if (!empty($this->data['export_orders_mask']) && (strpos($this->data['export_orders_mask'], '{$order.id}') !== false)) {
-                $order['id_guid'] = str_replace('{$order.id}', $order['id'], $this->data['export_orders_mask']);
-            } else {
-                $order['id_guid'] = $order['id'];
-            }
+            $order['id_guid'] = $this->formatOrderId($order['id']);
 
             $order['status_comment'] = ''; //TODO
 
@@ -3034,7 +3040,8 @@ HTML;
             }
 
             if (empty($guid)) {
-                $guid = $order['contact_id'];
+                $order['contact_id'];
+                $guid = $this->formatContactId($order['contact_id']);
             }
 
             $w->writeElement('Ид', $guid);
@@ -4519,10 +4526,14 @@ SQL;
         return $product;
     }
 
+    /**
+     * @param $sku
+     * @return bool
+     */
     private function isDummySku($sku)
     {
         $count = true;
-        if ($sku['count'] === null) {
+        if (in_array($sku['count'], $this->data['empty_count'], true)) {
             $count = false;
         } elseif (is_array($sku['count'])) {
             if (count($sku['count']) == 0) {
@@ -4530,7 +4541,7 @@ SQL;
             } else {
                 $count = false;
                 foreach ($sku['count'] as $sku_count) {
-                    if ($sku_count !== 0) {
+                    if (!in_array($sku_count, $this->data['empty_count'], true)) {
                         $count = true;
                         break;
                     }
@@ -4538,7 +4549,14 @@ SQL;
             }
         }
 
-        return (!$count) && ($sku['name'] === '') && (!$sku['price']);
+        $dummy = (!$count)//
+            && ($sku['sku'] === '') // empty sku
+            && ($sku['name'] === '')//empty name
+            && empty($sku['price']) //empty price
+            && empty($sku['purchase_price']) //empty price
+            && empty($sku['compare_price']) //empty price
+        ;
+        return $dummy;
     }
 
     /**
@@ -5041,9 +5059,15 @@ SQL;
                     unset($sku['name']);
                 }
 
+                $deleted = false;
+
                 if (self::attribute($element, 'Статус', 'l_string') === 'удален') {
-                    $sku['available'] = false;
+                    $deleted = true;
                 } elseif (self::field($element, 'Статус', 'l_string') === 'удален') {
+                    $deleted = true;
+                }
+
+                if ($deleted) {
                     $sku['available'] = false;
                 }
 
@@ -5235,6 +5259,11 @@ SQL;
 
                 $this->fixSkuBasePriceSelectable($product, $skus);
                 $product->skus = $skus;
+
+                if (!$deleted && $this->pluginSettings('product_show')) {
+                    $product->status = 1;
+                }
+
                 shopProductStocksLogModel::setContext(shopProductStocksLogModel::TYPE_IMPORT, 'Обмен через CommerceML');
 
                 $product->save();
@@ -5945,17 +5974,15 @@ SQL;
         //TODO f: ignore|extend|override
         $skus = $product->skus;
         if (!count($skus) || count($sku_features) || ($subject == self::STAGE_PRODUCT)) {
-            if (count($sku_features)) {
-                $name = $update_fields['name'].' ('.implode(', ', $sku_features).')';
-            } else {
-                $name = '';
-            }
             $skus[-1] = array(
-                'sku'       => self::field($element, 'Артикул'),
-                'name'      => $name,
                 'available' => ($subject == self::STAGE_PRODUCT) ? ($deleted ? false : true) : 1,
                 'id_1c'     => end($uuid),
             );
+
+            if (count($sku_features)) {
+                $skus[-1]['name'] = $update_fields['name'].' ('.implode(', ', $sku_features).')';
+                $skus[-1]['sku'] = self::field($element, 'Артикул');
+            }
         }
 
         $target = 'update';
@@ -5963,6 +5990,7 @@ SQL;
             # update name/summary/description only for new items
 
             $product->status = ($this->pluginSettings('product_hide')) ? 0 : 1;
+            $skus[-1]['available'] = 0;
 
             if ($deleted) {
                 if ($subject == self::STAGE_PRODUCT) {
@@ -6003,6 +6031,8 @@ SQL;
             }
 
         } else {
+            // set available if it dummy SKU
+            $skus[-1]['available'] = 0;
             if ($deleted) {
                 if ($subject == self::STAGE_PRODUCT) {
                     $product->status = 0;
@@ -6251,6 +6281,7 @@ SQL;
                 $_sku = $skus[-1];
                 unset($skus[-1]);
 
+                //update available property if it specified as boolean
                 if (in_array($_sku['available'], array(false, true), true)) {
                     $_sku['available'] = intval($_sku['available']);
                 } else {
@@ -6827,6 +6858,28 @@ SQL;
             $uuid = $id;
         }
         return $uuid;
+    }
+
+    private function formatOrderId($order_id)
+    {
+        if (!empty($this->data['export_orders_mask']) && (strpos($this->data['export_orders_mask'], '{$order.id}') !== false)) {
+            $guid = str_replace('{$order.id}', $order_id, $this->data['export_orders_mask']);
+        } else {
+            $guid = $order_id;
+        }
+
+        return $guid;
+    }
+
+    private function formatContactId($contact_id)
+    {
+        if (!empty($this->data['export_contacts_mask']) && (strpos($this->data['export_contacts_mask'], '{$order.contact_id}') !== false)) {
+            $guid = str_replace('{$order.contact_id}', $contact_id, $this->data['export_contacts_mask']);
+        } else {
+            $guid = $contact_id;
+        }
+
+        return $guid;
     }
 
     private static function getGuid($data, $default = null)

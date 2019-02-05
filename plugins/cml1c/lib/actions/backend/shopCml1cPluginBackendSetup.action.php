@@ -10,10 +10,8 @@ class shopCml1cPluginBackendSetupAction extends waViewAction
     {
         static $plugin;
         if (!$plugin) {
+            /** @var shopCml1cPlugin $plugin */
             $plugin = wa()->getPlugin('cml1c');
-            /**
-             * @var shopCml1cPlugin $plugin
-             */
         }
         return $plugin;
     }
@@ -33,5 +31,8 @@ class shopCml1cPluginBackendSetupAction extends waViewAction
         $runner = new shopCml1cPluginBackendRunController();
         $this->view->assign('map', $runner->mapSetting());
         $this->view->assign('expert', $this->plugin()->getSettings('expert'));
+
+        //$stock_model = new shopStockModel();
+        //$this->view->assign('stocks', $stock_model->getAll('id'));
     }
 }
