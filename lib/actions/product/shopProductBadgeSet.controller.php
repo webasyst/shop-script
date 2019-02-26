@@ -12,15 +12,15 @@ class shopProductBadgeSetController extends waJsonController
         $product_model = new shopProductModel();
 
         $hash = waRequest::post('hash', '', 'string');
-        $products_id = null;
+        $all_product_ids = null;
 
         if (!$hash) {
-            $products_id = waRequest::request('product_id', array(), waRequest::TYPE_ARRAY_INT);
-            if (!$products_id) {
-                $products_id = waRequest::get('id', array(), waRequest::TYPE_ARRAY_INT);
+            $all_product_ids = waRequest::request('product_id', array(), waRequest::TYPE_ARRAY_INT);
+            if (!$all_product_ids) {
+                $all_product_ids = waRequest::get('id', array(), waRequest::TYPE_ARRAY_INT);
             }
 
-            $product = $product_model->getById($products_id);
+            $product = $product_model->getById($all_product_ids);
 
             if (!$product) {
                 throw new waException(_w("Unknown product"));
@@ -28,13 +28,13 @@ class shopProductBadgeSetController extends waJsonController
             if (!$product_model->checkRights(reset($product))) {
                 throw new waException(_w("Access denied"));
             }
-            $hash = 'id/'.join(',', $products_id);
+            $hash = 'id/'.join(',', $all_product_ids);
         }
-
+        
         /**
          * Attaches stickers to products in bulk and single edits. Get data before changes
          *
-         * @param array|string $products_id Products id(s)
+         * @param array|string $all_product_ids Products id(s)
          * @param string $code Badge code
          * @param string $hash Collection Hash
          *
@@ -42,7 +42,7 @@ class shopProductBadgeSetController extends waJsonController
          */
         $params = array(
             'code'        => $code,
-            'products_id' => $products_id,
+            'products_id' => $all_product_ids,
             'hash'        => $hash,
         );
         wa('shop')->event('product_badge_set.before', $params);
@@ -52,16 +52,16 @@ class shopProductBadgeSetController extends waJsonController
         $collection = new shopProductsCollection($hash);
         $total_count = $collection->count();
         while ($offset < $total_count) {
-            $products_id = array_keys($collection->getProducts('*', $offset, $count));
+            $product_ids = array_keys($collection->getProducts('*', $offset, $count));
             // !!! check access rights?..
-            $product_model->updateById($products_id, array('badge' => $code));
-            $offset += count($products_id);
+            $product_model->updateById($product_ids, array('badge' => $code));
+            $offset += count($product_ids);
         }
 
         /**
          * Attaches stickers to products in bulk and single edits
          *
-         * @param array|string $products_id Products id(s)
+         * @param array|string $all_product_ids Products id(s)
          * @param string $code Badge code
          * @param string $hash Collection Hash
          *
@@ -69,7 +69,7 @@ class shopProductBadgeSetController extends waJsonController
          */
         $params = array(
             'code'        => $code,
-            'products_id' => $products_id,
+            'products_id' => $all_product_ids,
             'hash'        => $hash,
         );
         wa('shop')->event('product_badge_set.after', $params);

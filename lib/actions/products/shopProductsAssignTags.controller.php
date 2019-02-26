@@ -16,12 +16,12 @@ class shopProductsAssignTagsController extends waJsonController
         }
 
         $hash = waRequest::post('hash', '');
-        $products_id = null;
+        $all_product_ids = null;
 
         // delete tags of selected products
         if (!$hash) {
-            $products_id = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
-            $hash = 'id/'.join(',', $products_id);
+            $all_product_ids = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
+            $hash = 'id/'.join(',', $all_product_ids);
         }
 
         /**
@@ -38,7 +38,7 @@ class shopProductsAssignTagsController extends waJsonController
             'delete_tags' => $delete_tags,
             'tags'        => $tags,
             'hash'        => $hash,
-            'products_id' => $products_id
+            'products_id' => $all_product_ids
         );
         wa('shop')->event('products_tags_set.before', $params);
 
@@ -54,19 +54,19 @@ class shopProductsAssignTagsController extends waJsonController
         }
 
         while ($offset < $total_count) {
-            $products_id = array_keys($collection->getProducts('*', $offset, $count));
+            $product_ids = array_keys($collection->getProducts('*', $offset, $count));
 
             // delete tags
             if ($delete_tags) {
-                $product_tags_model->delete($products_id, $delete_tags);
+                $product_tags_model->delete($product_ids, $delete_tags);
             }
 
             // assign tags
             if ($tag_ids) {
-                $product_tags_model->assign($products_id, $tag_ids);
+                $product_tags_model->assign($product_ids, $tag_ids);
             }
 
-            $offset += count($products_id);
+            $offset += count($product_ids);
         }
 
         if ($tag_model->countAll() > 100) {
@@ -91,7 +91,7 @@ class shopProductsAssignTagsController extends waJsonController
             'delete_tags' => $delete_tags,
             'tags'        => $tags,
             'hash'        => $hash,
-            'products_id' => $products_id
+            'products_id' => $all_product_ids
         );
         wa('shop')->event('products_tags_set.after', $params);
 

@@ -3,6 +3,7 @@
 class shopBackendContactFormController extends waJsonController
 {
     protected $form;
+
     public function execute()
     {
         $id = (int)waRequest::get('id');
@@ -11,13 +12,39 @@ class shopBackendContactFormController extends waJsonController
         }
     }
 
-    public function display()
+    protected function getHtml()
     {
         if ($this->form) {
-            echo $this->form->html();
+            return $this->form->html();
         } else {
-            echo '';
+            return '';
         }
-        exit;
+    }
+
+    protected function getInfo()
+    {
+        $id = (int)waRequest::get('id');
+        $contact = new waContact($id);
+        if (!$contact->exists()) {
+            return null;
+        }
+        return array(
+            'email' => $contact->get('email'),
+            'phone' => $contact->get('phone')
+        );
+    }
+
+    public function display()
+    {
+        if (!waRequest::get('json')) {
+            die($this->getHtml());
+        }
+
+        $this->response['html'] = $this->getHtml();
+        if (waRequest::get('get_info')) {
+            $this->response['info'] = $this->getInfo();
+        }
+        parent::display();
+
     }
 }

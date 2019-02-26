@@ -38,6 +38,12 @@
 {/if}
 {foreach $products as $p}
     {$available = $wa->shop->settings('ignore_stock_count') || $p.count === null || $p.count > 0}
+
+    {if !empty($p.skus) && !empty($p.skus[$p.sku_id])}
+        {$sku = $p.skus[$p.sku_id]}
+        {if empty($sku.available) && (count($p.skus) === 1)}{$available = false}{/if}
+    {/if}
+
     <li itemscope itemtype ="http://schema.org/Product">
 
         <a href="{$p.frontend_url}" title="{$p.name}">

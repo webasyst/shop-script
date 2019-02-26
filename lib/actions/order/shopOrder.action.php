@@ -43,18 +43,8 @@ class shopOrderAction extends waViewAction
 
         $params = $_order->params;
 
-        // Customer info
-        $main_contact_info = array();
-        foreach (array('email', 'phone', 'im') as $f) {
-            $v = $_order->wa_contact->get($f, 'top,html');
-            if ($v) {
-                $main_contact_info[] = array(
-                    'id'    => $f,
-                    'name'  => waContactFields::get($f)->getName(),
-                    'value' => is_array($v) ? implode(', ', $v) : $v,
-                );
-            }
-        }
+        // Main customer info - top fields
+        $main_contact_info = shopCustomer::getCustomerTopFields($_order->wa_contact);
 
         list($customer_delivery_date, $customer_delivery_time) = shopHelper::getOrderCustomerDeliveryTime($params);
         list($shipping_date, $shipping_time_start, $shipping_time_end) = shopHelper::getOrderShippingInterval($params);
@@ -156,29 +146,15 @@ class shopOrderAction extends waViewAction
             return array();
         }
 
-        $similar_contacts = array();
-        // by email
-        $v = $customer_contact->get('email', 'default');
-        $contact_emails_model = new waContactEmailsModel();
-        $sql = 'SELECT count(*) FROM '.$contact_emails_model->getTableName().' e
-                JOIN shop_customer c ON e.contact_id = c.contact_id
-                WHERE e.contact_id != i:0 AND e.email = s:1';
-        $similar_contacts['email'] = array(
-            'value' => $v,
-            'count' => $contact_emails_model->query($sql, $customer_contact->getId(), $v)->fetchField(),
-        );
-        // by phone
-        $v = $customer_contact->get('phone', 'default');
-        $contact_data_model = new waContactDataModel();
-        $sql = 'SELECT count(*) FROM '.$contact_data_model->getTableName()." d
-                JOIN shop_customer c ON d.contact_id = c.contact_id
-                WHERE d.contact_id != i:0 AND d.field = 'phone' AND d.value = s:1";
-        $similar_contacts['phone'] = array(
-            'value' => $v,
-            'count' => $contact_emails_model->query($sql, $customer_contact->getId(), $v)->fetchField(),
-        );
+        if ($customer_contact instanceof waContact) {
+            $contact_id = $customer_contact->getId();
+        } elseif (wa_is_int($customer_contact)) {
+            $contact_id = $customer_contact;
+        } else {
+            $contact_id = 0;
+        }
 
-        return $similar_contacts;
+        return shopCustomer::getDuplicateStats($contact_id);
     }
 
     protected function formatSalesChannel($params)
@@ -283,7 +259,7 @@ class shopOrderAction extends waViewAction
             }
 
             // product and existing sku
-            if (isset($skus[$item['sku_id']])) {
+            if ($item['type'] === 'product' && isset($skus[$item['sku_id']])) {
                 $s = $skus[$item['sku_id']];
 
                 // for that counts that lower than low_count-thresholds show icon

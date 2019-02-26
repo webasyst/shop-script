@@ -200,57 +200,64 @@
                 </span>
             <span class="s-orders-stock-icon"></span>
             {% } else { %}
-            {%#product.icon%}
+                {%#product.icon%}
             {% } %}
 
             <p>
                 {% if (sku_count > 1) { %}
-            <ul class="menu-v compact small s-orders-skus">
-                {% var sku_id, sku_id_iterator = $.shop.iterator(sku_ids); %}
-                {% while (sku_id = sku_id_iterator.next()) { %}
-                {% var sku = product.skus[sku_id]; %}
-                {% var checked = sku.checked; %}
-                {% if (checked) { %}
-                {% chosen_sku_id = sku_id; %}
-                {% } %}
-                <li>
-                    <label>
+                    <ul class="menu-v compact small s-orders-skus">
+                        {% var sku_id, sku_id_iterator = $.shop.iterator(sku_ids); %}
+                        {% while (sku_id = sku_id_iterator.next()) { %}
+                            {% var sku = product.skus[sku_id]; %}
+                            {% var checked = sku.checked; %}
+                            {% if (checked) { %}
+                                {% chosen_sku_id = sku_id; %}
+                            {% } %}
+                            <li>
+                                <label>
 
-                        <input type="radio"
-                               name="sku[add][{%#index%}]"
-                               value="{%#sku_id%}"
-                               {% if (checked) { %} checked="checked" {% } %}>
-                        {%=sku.name%}
+                                    <input type="radio"
+                                           name="sku[add][{%#index%}]"
+                                           value="{%#sku_id%}"
+                                           {% if (checked) { %} checked="checked" {% } %}>
 
-                        {% if (sku.sku) { %}
-                        <span class="gray">{%=sku.sku%}</span>
-                        {% } %}
+                                    {%=sku.name%}
 
-                        <strong>{%#sku.price_html%}</strong>
+                                    {% if (sku.sku) { %}
+                                        <span class="gray">{%=sku.sku%}</span>
+                                    {% } %}
 
-                        {% if (sku.compare_price && sku.compare_price > 0) { %}
-                            <span class="hint compare-price">(<span style="text-decoration: line-through">{%=Number(Math.round((sku.compare_price)*100)/100)%}</span> {%#currency%})</span>
-                        {% } %}
+                                    <strong>{%#sku.price_html%}</strong>
 
-                        <span class="s-orders-stock-icon-aggregate">
+                                    {% if (sku.compare_price && sku.compare_price > 0) { %}
+                                        <span class="hint compare-price">(<span style="text-decoration: line-through">{%=Number(Math.round((sku.compare_price)*100)/100)%}</span> {%#currency%})</span>
+                                    {% } %}
+
+                                    <span class="s-orders-stock-icon-aggregate">
                                         {%#sku.icon%}
                                     </span>
-                        <span class="s-orders-stock-icon" style="display:none;"></span>
-                        <div class="s-orders-sku-stock-place">
-                            {% if (checked) { %}
-                            {% include('template-order-stocks-add', { sku: sku, stocks: stocks, index: index }); %}
-                            {% } %}
-                        </div>
-                    </label>
-                </li>
+                                    <span class="s-orders-stock-icon" style="display:none;"></span>
+                                    <div class="s-orders-sku-stock-place">
+                                        {% if (checked) { %}
+                                            {% include('template-order-stocks-add', { sku: sku, stocks: stocks, index: index }); %}
+                                        {% } %}
+                                    </div>
+                                </label>
+                            </li>
+                        {% } %}
+                    </ul>
+                {% } else { %}
+
+                    {% var sku = product.skus[product.sku_id]; %}
+                    {% if ( sku && !sku.fake && (typeof sku.sku === 'string' && sku.sku.length > 0) ) { %}
+                        <span class="hint">{%=sku.sku%}</span>
+                    {% } %}
+
+                    <div class="s-orders-sku-stock-place">
+                        {% include('template-order-stocks-add', { sku: product.skus[product.sku_id], stocks: stocks, index: index }); %}
+                    </div>
+                    <input type="hidden" name="sku[add][{%#index%}]" value="{%#product.sku_id%}">
                 {% } %}
-            </ul>
-            {% } else { %}
-            <div class="s-orders-sku-stock-place">
-                {% include('template-order-stocks-add', { sku: product.skus[product.sku_id], stocks: stocks, index: index }); %}
-            </div>
-            <input type="hidden" name="sku[add][{%#index%}]" value="{%#product.sku_id%}">
-            {% } %}
             </p>
 
             {% if (!$.isEmptyObject(product.services)) { %}

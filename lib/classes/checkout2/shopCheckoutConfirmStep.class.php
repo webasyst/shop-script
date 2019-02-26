@@ -52,11 +52,17 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
                     'section' => 'cart',
                 ];
             }
+
+
+            //todo нужно для подтверждения каналов
+/*            $confirmation_errors = $this->confirmationChannelErrors($data);
+            if ($confirmation_errors) {
+                $errors[] = $confirmation_errors;
+            }*/
         }
 
         $result['comment'] = ifset($data, 'input', 'confirm', 'comment', '');
         $result['terms'] = ifset($data, 'input', 'confirm', 'terms', '');
-        $result['channel'] = $this->getChannelData();
 
         if ($this->checkout_config['confirmation']['terms'] && !$result['terms']) {
             $errors[] = [
@@ -112,37 +118,70 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
         return ifset($cart_vars, 'cart', 'items', []);
     }
 
-    protected function getChannelData()
+    protected function confirmationChannelErrors($data)
     {
-        $result = [
-            'status'             => $this->getChannelStatus(),
-            'order_without_auth' => $this->checkout_config['confirmation']['order_without_auth'],
-            'auth_with_code'     => $this->checkout_config['confirmation']['auth_with_code'],
-        ];
+        $errors = null;
+        $data = shopConfirmationChannel::parseData($data);
+        $confirmation = new shopConfirmationChannel($data);
 
-        return $result;
+        $confirmation_channel = $confirmation->getConfirmationChannel();
+
+        if ($confirmation_channel)  {
+            $errors =  [
+                'id'   => 'confirm_channel',
+                'text' => _w('Todo Требуется подтвердить канал'),
+                'type' => $confirmation_channel,
+            ];
+        }
+
+        return $errors;
     }
 
-    protected function getChannelStatus()
+    protected function confirmationChannelErrors1($verifiable_channels)
     {
-        $user = wa()->getUser();
+        $confirmation = shopConfirmationChannel::getInstance();
 
-        if ($user->isAuth()) {
-            $auth_type = 'email';
-            if ($auth_type === 'email') {
-                $channel = $user->get('email');
-            } elseif ($auth_type === 'sms') {
-                $channel = $user->get('phone');
+        $order_without_auth = $this->checkout_config['confirmation']['order_without_auth'];
+
+        $errors = null;
+
+        // If voluntary and mandatory confirmation is off
+        $is_confirm_channels = $confirmation->isConfirmChannels($verifiable_channels);
+
+        if ($is_confirm_channels || ($order_without_auth !== 'confirm_contact')) {
+            return $errors;
+        }
+
+        $channels = $confirmation->getChannels();
+
+        //Просим подтвердить каналы. Устанавливаем проверяемый канал.
+        foreach ($channels as $channel_type => &$channel_data) {
+
+            //Skip channel off
+            if (!isset($verifiable_channels[$channel_type])) {
+                continue;
             }
 
-            $status = ifset($channel, '0', 'status', null);
-        }
+            $channel_status = $channel_data['status'];
 
-        if (empty($status)) {
-            $status = wa('shop')->getStorage()->get('channel_confirmation');
-            $status = $status ? $status : 'unconfirmed';
-        }
+            if (is_null($channel_status) || ($channel_status !== true && $order_without_auth === 'confirm_contact')) {
+                $errors = [
+                    'id'   => 'confirm_channel',
+                    'text' => _w('Todo Требуется подтвердить канал'),
+                    'type' => $channel_type,
+                ];
+                // Mark that asked to confirm the channel
+                $channel_data['status'] = false;
+                $confirmation->setStorage($channels, 'channels');
 
-        return $status;
+                // Set active transport
+                $confirmation->setStorage($channel_type, 'transport');
+                break;
+            }
+        }
+        unset($channel_data);
+        return $errors;
     }
+
+
 }

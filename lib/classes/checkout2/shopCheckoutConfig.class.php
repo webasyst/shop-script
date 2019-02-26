@@ -296,19 +296,28 @@ class shopCheckoutConfig implements ArrayAccess
 
     public function getConfirmationOrderWithoutAuthVariants()
     {
+        $locales = array(
+            "locale_1" => _w("TODO: Нет диалога подтверждения email или телефона."),
+            "locale_2" => _w("TODO: Нет автоматической авторизации и регистрации после оформления заказа."),
+            "locale_3" => _w("TODO: Если с таким же номером телефона или email-адресом есть покупатель, то заказ будет привязан к старому покупателю и он будет автоматически авторизован, но только после обязательного подтверждения кодом еmail или телефона или их обоих (зависит от включенных способов авторизации для данного сайта)."),
+            "locale_4" => _w("TODO: Если с таким же номером телефона или email-адресом нет покупателя, то будет создан новый покупатель без автоматической авторизации и регистрации после оформления заказа."),
+            "locale_5" => _w("TODO: Если с таким же номером телефона или email-адресом есть покупатель, то заказ нельзя создать без подтверждения кодом еmail или телефона или их обоих (зависит от включенных способов авторизации для данного сайта). После оформления заказа покупатель будет автоматически авторизован."),
+            "locale_6" => _w("TODO: Если с таким же номером телефона или email-адресом нет покупателя, то будет создан новый покупатель и после обязательного подтверждения кодом еmail или телефона или их обоих (зависит от включенных способов авторизации для данного сайта) он будет автоматически авторизаван и зарегистрирован."),
+        );
+
         return [
             self::ORDER_WITHOUT_AUTH_CREATE   => [
                 'name' => _w('Create new customer profile for every guest order'),
+//                'description' => $locales["locale_1"] . "<br>". $locales["locale_2"],
             ],
             self::ORDER_WITHOUT_AUTH_EXISTING => [
                 'name'        => _w('Add an order to existing customer profile with the same phone number or email address'),
-                'description' => _w('Existing customer’s data will be updated by the data from a new order.'),
+//                'description' => $locales["locale_3"] . "<br><br>" . $locales["locale_4"],
             ],
-            /*
-            self::ORDER_WITHOUT_AUTH_CONFIRM  => [
-                'name' => _w('Checkout is not allowed without email address or phone number confirmation'),
-            ],
-            */
+//            self::ORDER_WITHOUT_AUTH_CONFIRM  => [
+//                'name' => _w('Checkout is not allowed without email address or phone number confirmation'),
+//                'description' => $locales["locale_5"] . "<br><br>" . $locales["locale_6"]
+//            ],
         ];
     }
 
@@ -427,11 +436,18 @@ class shopCheckoutConfig implements ArrayAccess
 
     protected function postProcessingShippingMethods($methods)
     {
-        //Convert and rounding rate to storefront currency
+        // Convert and rounding rate to storefront currency
 
         if (!$methods || !is_array($methods)) {
             return $methods;
         }
+
+        // Do not convert if globally disabled for shipping methods
+        $round_shipping = wa()->getSetting('round_shipping', false, 'shop');
+        if (!$round_shipping) {
+            return $methods;
+        }
+
         $storefront_currency = wa('shop')->getConfig()->getCurrency(false);
 
         foreach ($methods as $variant_id => &$variant_data) {
@@ -441,9 +457,9 @@ class shopCheckoutConfig implements ArrayAccess
             if ($storefront_currency !== $variant_currency) {
                 $rate = shop_currency($variant_data['rate'], $variant_currency, $storefront_currency, false);
                 $variant_data['currency'] = $storefront_currency;
+                $variant_data['rate'] = shopRounding::roundCurrency($rate, $storefront_currency);
             }
 
-            $variant_data['rate'] = shopRounding::roundCurrency($rate, $storefront_currency);
         }
         unset($variant_data);
 
@@ -743,6 +759,14 @@ class shopCheckoutConfig implements ArrayAccess
                             $type = 'radio';
                             break;
                         case 'waContactBranchField':
+                            if (!empty($field_info['branch_hide'])) {
+                                // field-hiding functionality of branch field is not supported
+                                continue 3;
+                            } else {
+                                // other than that, it's a simple radio selector
+                                $type = 'radio';
+                            }
+                            break;
                         case 'waContactChecklistField':
                         case 'waContactCategoriesField':
                         default:
@@ -845,7 +869,6 @@ class shopCheckoutConfig implements ArrayAccess
         $this->ensureOrderLocationsListConsistency();
         $this->ensureCustomerFieldsConsistency();
         $this->ensureShippingAddressFieldsConsistency();
-        $this->ensureOrderWithoutAuthConsistency();
     }
 
     protected function ensureDesignLogoConsistency()
@@ -995,14 +1018,6 @@ class shopCheckoutConfig implements ArrayAccess
         if (!empty($this->config['shipping']['ask_zip']) && isset($this->config['shipping']['address_fields']['zip'])) {
             $this->config['shipping']['address_fields']['zip']['used'] = true;
             $this->config['shipping']['address_fields']['zip']['required'] = true;
-        }
-    }
-
-    protected function ensureOrderWithoutAuthConsistency()
-    {
-        $order_without_auth = $this->getValue('confirmation', 'order_without_auth');
-        if ($order_without_auth == self::ORDER_WITHOUT_AUTH_CONFIRM) {
-            $this->setValue('confirmation', 'auth_with_code', true);
         }
     }
 
@@ -1239,7 +1254,6 @@ class shopCheckoutConfig implements ArrayAccess
                 'terms'              => self::SETTING_TYPE_BOOL,
                 'terms_text'         => self::SETTING_TYPE_SCALAR,
                 'order_without_auth' => self::SETTING_TYPE_VARIANT,
-                'auth_with_code'     => self::SETTING_TYPE_BOOL,
                 'recode_timeout'     => self::SETTING_TYPE_SCALAR,
                 'thankyou_header'    => self::SETTING_TYPE_SCALAR,
                 'thankyou_content'   => self::SETTING_TYPE_SCALAR,

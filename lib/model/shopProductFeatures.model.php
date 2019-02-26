@@ -313,23 +313,30 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         /**
          * composite fields workaround
          */
+
+        $value_pattern = '(\d+|[\.,]\d+|\d+[\.,]\d+)';
+        $multi_pattern = '[XxХх×✕✖\*\s]+';
+        $unit_pattern = '(\s+.+)?';
+
         $composite_codes = array();
         foreach ($data as $code => $value) {
-            if (!preg_match('/\.[0-3]$/', $code) && isset($features[$code]) && preg_match('/^([23])d\\./', $features[$code]['type'], $matches)) {
+            if (!preg_match('/\.[0-3]$/', $code)
+                && isset($features[$code])
+                && preg_match('/^([23])d\\./', $features[$code]['type'], $matches)
+            ) {
                 $n = $matches[1];
-                $pattern = '/^'.implode('\\s*[×xX\\*]?\\s*', array_fill(0, $n, '([^\\s]+)')).'(\\s+.+)?$/u';
+                $pattern = '/^'.implode($multi_pattern, array_fill(0, $n, $value_pattern)).$unit_pattern.'$/ui';
                 if (preg_match($pattern, trim($value), $matches)) {
                     $unit = ifset($matches[$n + 1]);
                     for ($i = 0; $i < $n; $i++) {
                         $c_code = $code.'.'.$i;
-                        $data[$c_code] = $matches[$i + 1].$unit;
+                        $data[$c_code] = str_replace(',', '.', $matches[$i + 1]).$unit;
                         $composite_codes[] = $c_code;
                     }
                     unset($features[$code]);
                 } else {
-                    /**
-                     * invalid complex feature format
-                     */
+                    waLog::log(sprintf('Error during parse %dD feature value [%s]', $n, $value), 'shop/features.error.log');
+
                 }
                 unset($data[$code]);
             }

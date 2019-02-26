@@ -24,7 +24,7 @@ class shopProductsAddToCategoriesController extends waJsonController
         }
 
         $category_ids = waRequest::post('category_id', array(), waRequest::TYPE_ARRAY_INT);
-        $product_ids = null;
+        $all_product_ids = null;
 
         // create new category
         $new_category_id = null;
@@ -42,10 +42,10 @@ class shopProductsAddToCategoriesController extends waJsonController
         // add products to categories
         $hash = $this->getHash();
         if (!$hash) {
-            $products_id = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
-            $hash = 'id/'.join(',', $products_id);
+            $all_product_ids = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
+            $hash = 'id/'.join(',', $all_product_ids);
         }
-
+        
         /**
          * Adds a product to the category. Get data before changes
          *
@@ -60,9 +60,10 @@ class shopProductsAddToCategoriesController extends waJsonController
             'new_category_id' => $new_category_id,
             'category_ids'    => $category_ids,
             'hash'            => $hash,
-            'products_id'     => $product_ids,
+            'products_id'     => $all_product_ids,
         );
         wa('shop')->event('products_set_categories.before', $params);
+        waLog::dump($params, 'products_set_categories.log');
 
         // add all products of collection with this hash
         $collection = new shopProductsCollection($hash);
@@ -89,9 +90,10 @@ class shopProductsAddToCategoriesController extends waJsonController
             'new_category_id' => $new_category_id,
             'category_ids'    => $category_ids,
             'hash'            => $hash,
-            'products_id'     => $product_ids,
+            'products_id'     => $all_product_ids,
         );
         wa('shop')->event('products_set_categories.after', $params);
+        waLog::dump($params, 'products_set_categories.log');
 
         // form a response
         $categories = $this->category_model->getByField('id', $category_ids, 'id');

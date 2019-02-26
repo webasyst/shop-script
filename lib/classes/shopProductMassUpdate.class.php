@@ -191,7 +191,7 @@ class shopProductMassUpdate
                 'primary_price' => $row['primary_price'],
                 'price' => $row['price'],
                 'count' => $count,
-                'product_currency' => $old_product_data[$row['product_id']]['currency'],
+                'product_currency' => ifset($old_product_data, $row['product_id'], 'currency', null),
                 'available' => $row['available'],
             );
         }

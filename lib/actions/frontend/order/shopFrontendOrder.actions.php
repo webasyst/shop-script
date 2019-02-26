@@ -22,27 +22,25 @@ class shopFrontendOrderActions extends waJsonActions
         $session_checkout['order'] = $input;
         wa()->getStorage()->set('shop/checkout', $session_checkout);
 
-        $data = shopCheckoutStep::processAll('calculate', $this->makeOrderFromCart(), $input);
-        $this->response = $data['result'];
-
         $format = strtolower(waRequest::request('response', 'json', 'string'));
-        if ($format == 'json') {
+        $data = shopCheckoutStep::processAll($format === 'html' ? 'form' : 'calculate', $this->makeOrderFromCart(), $input);
+        if ($format === 'json') {
+            $this->response = $data['result'];
             return;
         }
 
         // Render FrontendOrderForm.html
         $view = wa('shop')->getView();
         $old_vars = $view->getVars();
+
         $opts = waRequest::post('opts', [], 'array');
-        $config = $this->getCheckoutConfig();
-        $view->assign($this->response + [
-                'config'  => $config,
-                'contact' => $data['contact'],
+        $view->assign((new shopCheckoutViewHelper())->prepareFormVars($data) + [
                 'options' => [
                     'DEBUG'   => ifset($opts, 'DEBUG', false),
                     'wrapper' => ifset($opts, 'wrapper', ''),
                 ],
             ]);
+
         $html = $view->fetch(wa()->getAppPath('templates/actions/frontend/FrontendOrderForm.html', 'shop'));
         $view->clearAllAssign();
         $view->assign($old_vars);
@@ -51,12 +49,15 @@ class shopFrontendOrderActions extends waJsonActions
             exit;
         }
 
+        // $format == 'both'
+        $this->response = $data['result'];
         $this->response['html'] = $html;
     }
 
     public function createAction()
     {
         $data = shopCheckoutStep::processAll('create', $this->makeOrderFromCart(), waRequest::post());
+
         if ($data['error_step_id']) {
             $this->response = $data['result'];
             return;
@@ -159,10 +160,22 @@ class shopFrontendOrderActions extends waJsonActions
             $saved_order = $order->save();
             $this->response['order_id'] = $saved_order->getId();
 
-            // Clear cart anc checkout data
+            /*            if (!$contact_id) {
+                            //For a new user, need to send registration letters
+                            $confirmation->sendRegisterMail($saved_order['contact_id']);
+                        }
+                        $confirmation->authorize($saved_order['contact_id']);*/
+
+            // Clear cart and checkout data
+            // Remove everything from cart
             (new shopCart())->clear();
+            // Remove data we kept during checkout process
             wa()->getStorage()->remove('shop/checkout');
+            // This tells checkout/success page to show proper order number
             wa()->getStorage()->set('shop/order_id', $this->response['order_id']);
+            // This tells checkout/success to add google analytics code (separate key to only add it once)
+            // see shopFrontendCheckoutAction->addGoogleAnalytics()
+            wa()->getStorage()->set('shop/success_order_id', $this->response['order_id']);
         } catch (waException $ex) {
             $this->errors['shop_order'] = $order->errors();
             if (!$this->errors['shop_order']) {
@@ -173,6 +186,60 @@ class shopFrontendOrderActions extends waJsonActions
             }
         }
     }
+
+    /*    protected function getMinContactIdByAddress($contact_fields, $data)
+        {
+            $confirmation = shopConfirmationChannel::getInstance();
+
+            $contact_id = null;
+            $is_company = (int)$data['contact']['is_company'];
+            $channels = $confirmation->getChannels();
+            $is_confirmed = $confirmation->isAllChannelConfirmed();
+
+            // For new contact, $data guarantees
+            // 1) that there's at most one phone and one email in contact details.
+            // 2) if set up to `confirm_contact`, all channels
+            //    inside $contact_field_values are confirmed.
+
+            $old_ids = [];
+            foreach ($channels as $channel_type => $channel_data) {
+                $saved_c_id = null;
+                $field_id = $channel_type;
+
+                if (empty($contact_fields[$channel_type])) {
+                    continue;
+                }
+
+                //Cleaning up the channel from garbage using waContact methods
+                $contact = new waContact();
+                $contact[$channel_type] = $contact_fields[$channel_type];
+                $source = ifset($contact, $channel_type, 0, 'value', null);
+
+                //Because there is no sms field
+                if ($channel_type === waVerificationChannelModel::TYPE_SMS) {
+                    $field_id = 'phone';
+                }
+
+                //Check on the company is needed so that users and companies do not merge
+                $contact = new waContactsCollection('search/'.$field_id.'='.str_replace('&', '\\&', $source).'&is_company='.$is_company);
+                $contact->orderBy('id');
+                if (!$is_confirmed) {
+                    $contact->addWhere('is_user = 0');
+                }
+
+                $contact = reset(ref($contact->getContacts('id,is_company', 0, 1)));
+
+                if (!empty($contact['id'])) {
+                    $old_ids[] = $contact['id'];
+                }
+            }
+
+            if ($old_ids) {
+                $contact_id = min($old_ids);
+            }
+
+            return $contact_id;
+        }*/
 
     /**
      * Dialog to select shipping self-delivery point on a map
@@ -197,9 +264,9 @@ class shopFrontendOrderActions extends waJsonActions
 
         $view = wa('shop')->getView();
         $view->assign($data['result'] + [
-            'config'  => $this->getCheckoutConfig(),
-            'contact' => $data['contact'],
-        ]);
+                'config'  => $this->getCheckoutConfig(),
+                'contact' => $data['contact'],
+            ]);
 
         echo $view->fetch(wa()->getAppPath('templates/actions/frontend/order/form/dialog/map.html', 'shop'));
         exit;

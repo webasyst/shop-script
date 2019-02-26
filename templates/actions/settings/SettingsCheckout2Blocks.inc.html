@@ -953,7 +953,6 @@
     <div class="field s-checkout-auth-with-code">
         <div class="name">[`Unauthorized checkout with existing customer profiles`]</div>
         <div class="value radio js-order-without-auth-wrapper">
-            <input type="hidden" name="data[confirmation][auth_with_code]" value="0" />
             {foreach $confirmation_order_without_auth_variants as $_id => $_variant}
                 <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
                     <label>
@@ -968,13 +967,6 @@
             {/foreach}
 
             {*
-            <div class="s-auth-with-code js-auth-with-code">
-                <label>
-                    <input type="checkbox" name="data[confirmation][auth_with_code]"{if $settings.auth_with_code} checked{/if}/>
-                    [`Попросить подтвердить email-адрес или номер телефона`]
-                </label>
-            </div>
-
             <div class="hint block-padded js-auth-with-code-hint">
                 { TODO: Locale !!! }
                 [`Проверочный код для подтверждения будет отправлен на email-адрес или телефон покупателя в зависимости от настроек авторизации для этого сайта.`]<br><br>
@@ -986,7 +978,6 @@
     </div>
 
     {* Recode timeout *}
-    {*
     <div class="field">
         <div class="name">
             <label for="confirmation_recode_timeout">[`You can request a code again in`]</label>
@@ -999,7 +990,6 @@
             </div>
         </div>
     </div>
-    *}
 
     {* Thank you header *}
     <div class="field">

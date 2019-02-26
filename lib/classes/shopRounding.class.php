@@ -16,7 +16,7 @@ class shopRounding
     public static function round($amount, $rounding, $round_up_only)
     {
         $rounding = (float)$rounding;
-        if (!$rounding) {
+        if (!$rounding || !$amount) {
             return $amount;
         }
 

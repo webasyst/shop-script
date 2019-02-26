@@ -6,27 +6,27 @@ class shopProductBadgeDeleteController extends waJsonController
     {
         $product_model = new shopProductModel();
         $hash = waRequest::post('hash', '', 'string');
-        $products_id = null;
+        $all_product_ids = null;
 
         if (!$hash) {
-            $products_id = waRequest::request('product_id', array(), waRequest::TYPE_ARRAY_INT);
-            if (!$products_id) {
-                $products_id = waRequest::get('id', array(), waRequest::TYPE_ARRAY_INT);
+            $all_product_ids = waRequest::request('product_id', array(), waRequest::TYPE_ARRAY_INT);
+            if (!$all_product_ids) {
+                $all_product_ids = waRequest::get('id', array(), waRequest::TYPE_ARRAY_INT);
             }
-            $hash = 'id/'.join(',', $products_id);
+            $hash = 'id/'.join(',', $all_product_ids);
         }
-
+        
         /**
          * Removes stickers from products with bulk and single changes. Get data before changes
          *
-         * @param array|string $products_id Products id(s)
+         * @param array|string $all_product_ids Products id(s)
          * @param string $hash Collection Hash
          *
          * @event product_badge_set.before
          */
         $params = array(
-            'products_id' => $products_id,
-            'hash'       => $hash,
+            'products_id' => $all_product_ids,
+            'hash'        => $hash,
         );
         wa('shop')->event('product_badge_delete.before', $params);
 
@@ -36,15 +36,15 @@ class shopProductBadgeDeleteController extends waJsonController
         $total_count = $collection->count();
         while ($offset < $total_count) {
             $products = $collection->getProducts('id, type_id', $offset, $count);
-            $products_id = [];
+            $product_ids = [];
             $type_ids = [];
 
             foreach ($products as $product) {
                 $type_ids[] = $product['type_id'];
-                $products_id[] = $product['id'];
+                $product_ids[] = $product['id'];
             };
 
-            $type_ids = array_unique($products_id);
+            $type_ids = array_unique($product_ids);
 
             foreach ($type_ids as $type_id) {
                 $right = $product_model->checkRights($type_id);
@@ -54,21 +54,21 @@ class shopProductBadgeDeleteController extends waJsonController
                 }
             }
 
-            $product_model->updateById($products_id, array('badge' => null));
-            $offset += count($products_id);
+            $product_model->updateById($product_ids, array('badge' => null));
+            $offset += count($product_ids);
         }
 
         /**
          * Removes stickers from products with bulk and single changes
          *
-         * @param array|string $products_id Products id(s)
+         * @param array|string $all_product_ids Products id(s)
          * @param string $hash Collection Hash
          *
          * @event product_badge_delete.after
          */
         $params = array(
-            'products_id' => $products_id,
-            'hash'       => $hash,
+            'products_id' => $all_product_ids,
+            'hash'        => $hash,
         );
         wa('shop')->event('product_badge_delete.after', $params);
     }

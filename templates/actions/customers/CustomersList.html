@@ -9,13 +9,23 @@
                 <a href="#/id/{$c.id}"><img src="{$c.photo|escape}" class="userpic"></a>
             </td>
             <td class="align-left">
-                <h3 class="large name"><a href="#/id/{$c.id}">{$c.name|escape}
-                    {foreach $c.categories as $cc}
-                        {if $cc.icon}
-                            {$wa->shop->icon16($cc.icon)}
-                        {/if}
-                    {/foreach}
-                </a></h3>
+                <h3 class="large name">
+                    <a href="#/id/{$c.id}">
+                        {$c.name|escape}
+                        {foreach $c.categories as $cc}
+                            {if $cc.icon}
+                                {$wa->shop->icon16($cc.icon)}
+                            {/if}
+                        {/foreach}
+                    </a>
+                </h3>
+
+                {include file="./include.top_fields.html"
+                    top=$c['top']
+                    similar_contacts=$c['similar_contacts']
+                    need_other_values=false
+                inline}
+
                 <p>
                     {if !empty($c.address.country)}
                         <i class="icon16 country" style="{*/**}background-image: url('{$wa_url}wa-content/img/country/{strtolower($c.address.country)|escape}.gif');{**/*}"></i>

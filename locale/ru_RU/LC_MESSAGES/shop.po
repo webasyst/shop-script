@@ -8414,20 +8414,26 @@ msgstr[1] "Последний заказ %d дня назад"
 msgstr[2] "Последний заказ %d дней назад"
 
 #: /wa-apps/shop/templates/actions/order/Order.html:132
-msgid "with same email found"
-msgstr "с таким же email"
+msgid "Number of customers with the same email address"
+msgstr "Количество покупателей с таким же email-адресом"
 
 #: /wa-apps/shop/templates/actions/order/Order.html:136
-msgid "with same phone found"
-msgstr "с таким же номером телефона"
+msgid "Number of customers with the same phone number"
+msgstr "Количество покупателей с таким же номером телефона"
 
 #: /wa-apps/shop/templates/actions/order/Order.html:132
 #: /wa-apps/shop/templates/actions/order/Order.html:136
-msgid "%d more customer"
-msgid_plural "%d more customers"
-msgstr[0] "%d покупатель"
-msgstr[1] "%d покупателя"
-msgstr[2] "%d покупателей"
+msgid "%d more customer found with the same email address"
+msgid_plural "%d more customers found with the same email address"
+msgstr[0] "%d покупатель найден с таким же email-адресом"
+msgstr[1] "%d покупателя найдено с таким же email-адресом"
+msgstr[2] "%d покупателей найдено с таким же email-адресом"
+
+msgid "%d more customer found with the same phone number"
+msgid_plural "%d more customers found with the same phone number"
+msgstr[0] "%d покупатель найден с таким же номером телефона"
+msgstr[1] "%d покупателя найдено с таким же номером телефона"
+msgstr[2] "%d покупателей найдено с таким же номером телефона"
 
 #: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:25
 msgid "A/B testing in Shop-Script is a great way to compare several versions of your site content and to find out which one impacts sales the most."
@@ -11990,3 +11996,6 @@ msgstr "Неверный тип плагина."
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfirmStep.class.php:64
 msgid "You have not accepted the terms of service."
 msgstr "Вы не подтвердили согласие с условиями предоставления услуг."
+
+msgid "More contact information"
+msgstr "Больше контактных данных"

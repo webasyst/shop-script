@@ -15,7 +15,7 @@ class shopCouponsAction extends waViewAction
 
         $coupm = new shopCouponModel();
         $coupons = $coupm->order('id DESC')->fetchAll('code');
-        foreach($coupons as &$c) {
+        foreach ($coupons as &$c) {
             $c['enabled'] = self::isEnabled($c);
             $c['hint'] = self::formatValue($c, $currencies);
         }
@@ -40,9 +40,9 @@ class shopCouponsAction extends waViewAction
 
         if ($c['type'] == '$FS') {
             return _w('Free shipping');
-        } else if ($c['type'] === '%') {
+        } elseif ($c['type'] === '%') {
             return waCurrency::format('%0', $c['value'], 'USD').'%';
-        } else if (!empty($currencies[$c['type']])) {
+        } elseif (!empty($currencies[$c['type']])) {
             return waCurrency::format('%0{s}', $c['value'], $c['type']);
         } else {
             // Coupon of unknown type. Possibly from a plugin?..
@@ -56,4 +56,3 @@ class shopCouponsAction extends waViewAction
         return $result && ($c['expire_datetime'] === null || strtotime($c['expire_datetime']) > time());
     }
 }
-

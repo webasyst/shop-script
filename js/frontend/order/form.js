@@ -372,7 +372,11 @@
             fieldWatcher($zip_field);
 
             if ($city_field.length && $city_field.hasClass("js-city-autocomplete")) {
-                initAutocomplete($city_field);
+                // hack for IE 11
+                setTimeout( function() {
+                    initAutocomplete($city_field);
+                }, 100);
+
             } else {
                 fieldWatcher($city_field, [$zip_field]);
             }
@@ -898,74 +902,96 @@
                 }
 
                 function initGoogleMap() {
-                    var center = getCenter(that.variants);
+                    var placemarks = {},
+                        center = getCenter(that.variants);
 
                     var map = new google.maps.Map(document.getElementById("wa-shipping-map"), {
                         center: {lat: center[0], lng: center[1]},
-                        zoom: 10
+                        zoom: 10,
+                        maxZoom: 18
                     });
 
-                    var placemarks = {},
-                        balloon = new google.maps.InfoWindow();
+                    var placemarks_array = renderPlacemarks();
 
-                    var cluster = initCluster();
+                    var balloon = new google.maps.InfoWindow(),
+                        cluster = initCluster(placemarks_array);
 
-                    var moveTo = function(placemark) {
-                        var is_mobile = isMobile();
-                        if (!is_mobile) {
-                            console.log("TODO: moveTo", placemark);
+                    // set placemark if we have an active variant
+                    if (that.active_variant && placemarks[that.active_variant]) {
+                        var active_placemark = placemarks[that.active_variant];
 
-                            // map.setCenter(placemark.geometry.getCoordinates(), 17).then( function() {
-                            //     active_balloon = placemark.balloon;
-                            //
-                            //     var state = cluster.getObjectState(placemark);
-                            //
-                            //     if (!state.isClustered && state.isShown) {
-                            //         if (!active_balloon.isOpen()) {
-                            //             active_balloon.open();
-                            //         }
-                            //     }
-                            // });
-                        }
-                    };
+                        setTimeout( function() {
+                            moveTo(active_placemark);
+                        }, 1000);
+                    }
 
                     that.map_deferred.resolve({
                         placemarks: placemarks,
                         refresh: function(variant_ids) {
-                            console.log("TODO: refresh");
+                            var placemarks_array = [];
 
-                            // var placemarks_array = [];
-                            //
-                            // $.each(variant_ids, function(i, variant_id) {
-                            //     if (variant_id && placemarks[variant_id]) {
-                            //         placemarks_array.push(placemarks[variant_id]);
-                            //     }
-                            // });
-                            //
-                            // cluster.removeAll();
-                            // cluster.add(placemarks_array);
+                            $.each(variant_ids, function(i, variant_id) {
+                                if (variant_id && placemarks[variant_id]) {
+                                    placemarks_array.push(placemarks[variant_id]);
+                                }
+                            });
+
+                            cluster = initCluster(placemarks_array);
                         },
                         reset: function() {
-                            console.log("TODO: reset");
-
-                            // map.setCenter(center, 10);
-                            // if (active_balloon) {
-                            //     if (active_balloon.isOpen()) {
-                            //         active_balloon.close();
-                            //     }
-                            //     active_balloon = null;
-                            // }
+                            map.setCenter(center);
+                            map.setZoom(10);
+                            balloon.close();
                         },
                         moveTo: function(placemark) {
                             return moveTo(placemark);
                         }
                     });
 
-                    function initCluster(cluster) {
-                        if (cluster) {
-                            cluster.clearMarkers();
-                        }
+                    function moveTo(placemark) {
+                        var is_mobile = isMobile();
+                        if (!is_mobile) {
+                            var variant = that.variants[placemark.variant_id];
 
+                            map.setZoom(17);
+                            map.setCenter(placemark.getPosition());
+
+                            balloon.close();
+                            balloon.setContent(variant.name);
+                            balloon.open(map, placemark);
+                        }
+                    }
+
+                    function initCluster(placemarks) {
+                        if (cluster) { cluster.clearMarkers(); }
+
+                        cluster = new MarkerClusterer(map, placemarks, {
+                            maxZoom: 18,
+                            imagePath: '//developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
+                        });
+
+                        cluster.addListener("clusterclick", function(clust) {
+                            var zoom = map.getZoom();
+                            if (zoom >= 17) {
+
+                                var markets_array = clust.getMarkers(),
+                                    variants_array = [];
+
+                                $.each(markets_array, function(i, marker) {
+                                    variants_array.push(marker.variant_id);
+                                });
+
+                                if (variants_array.length) {
+                                    exitFullscreen();
+                                    that.$wrapper.trigger("show_variant_details", [variants_array, null]);
+                                }
+                            }
+                        });
+
+                        return cluster;
+                    }
+
+                    function renderPlacemarks() {
                         var placemarks_array = [];
 
                         $.each(that.variants, function(id, variant) {
@@ -973,18 +999,7 @@
                             if (placemark) { placemarks_array.push(placemark); }
                         });
 
-                        cluster = new MarkerClusterer(map, placemarks_array, {
-                            imagePath: '//developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
-                        });
-
-                        // set placemark if we have an active variant
-                        if (that.active_variant && placemarks[that.active_variant]) {
-                            var active_placemark = placemarks[that.active_variant];
-
-                            console.log( "TODO: move_to", active_placemark );
-                        }
-
-                        return cluster;
+                        return placemarks_array;
 
                         function addPlacemark(variant) {
                             var lat = null,
@@ -1012,13 +1027,29 @@
                             placemark.addListener("click", function() {
                                 map.setZoom(17);
                                 map.setCenter(placemark.getPosition());
+
                                 balloon.close();
                                 balloon.setContent(variant.name);
                                 balloon.open(map, placemark);
+
+                                exitFullscreen();
+                                that.$wrapper.trigger("show_variant_details", [[variant.variant_id], null]);
                             });
 
                             return placemark;
                         }
+                    }
+
+                    function exitFullscreen() {
+                        try {
+                            if (document.exitFullscreen) {
+                                document.exitFullscreen();
+                            } else if (document.mozCancelFullScreen) {
+                                document.mozCancelFullScreen();
+                            } else if (document.webkitCancelFullScreen) {
+                                document.webkitCancelFullScreen();
+                            }
+                        } catch(e) {}
                     }
                 }
 
@@ -1137,12 +1168,13 @@
                 });
 
                 that.$wrapper.on("show_variant_details", function(event, variants) {
-                    var is_mobile = isMobile();
-                    if (is_mobile) {
-                        set(variants[0]);
-                    } else {
-                        toggle(variants);
-                    }
+                    toggle(variants);
+                    // var is_mobile = isMobile();
+                    // if (is_mobile) {
+                    //     set(variants[0]);
+                    // } else {
+                    //     toggle(variants);
+                    // }
                 });
 
                 that.$wrapper.on("click", ".js-show-variants-list", function(event) {
@@ -1167,6 +1199,8 @@
                 }
 
                 function toggle(variants) {
+                    var show_class = "is-shown";
+
                     if (variants) {
                         var details_html = "";
 
@@ -1180,7 +1214,7 @@
 
                         $details_body.html(details_html);
                         $variants_section.hide();
-                        $details_section.show();
+                        $details_section.addClass(show_class);
 
                         if (variants.length === 1) {
                             that.getMap().then( function(map) {
@@ -1191,12 +1225,12 @@
                             });
                         }
                     } else {
-                        $details_section.hide();
+                        $details_section.removeClass(show_class);
                         $details_body.html("");
                         $variants_section.show();
-                    }
 
-                    // that.dialog.resize();
+                        that.dialog.resize();
+                    }
                 }
 
                 function getDetailsHTML(variant) {
@@ -1204,9 +1238,15 @@
 
                     template = template.replace("%title%", variant.name).replace("%variant_id%", variant.variant_id);
 
-                    if (that.show_map) {
-                        template = template.replace("ymaps-geolink", "");
+                    var geolink = "";
+                    if (!that.show_map) {
+                        if (that.scope.map.adapter === "yandex") {
+                            geolink = "ymaps-geolink";
+                        } else if (that.scope.map.adapter === "google") {
+                            geolink = "google-geolink";
+                        }
                     }
+                    template = template.replace("%geolink%", geolink);
 
                     if (variant.formatted_price) {
                         template = template.replace("%shipping_cost_style%", "").replace("%shipping_cost%", variant.formatted_price);
@@ -1233,7 +1273,13 @@
                     }
 
                     if (variant.description) {
-                        template = template.replace("%address_style%", "").replace("%address%", variant.description);
+                        var address = variant.description;
+                        if (!that.show_map && that.scope.map.adapter === "google") {
+                            var link = '<a class="google-geolink" target="_blank" href="//maps.google.com/maps?q=%encode_address%">' + variant.description + '</a>';
+                            address = link.replace("%encode_address%", encodeURIComponent(variant.description));
+                        }
+
+                        template = template.replace("%address_style%", "").replace("%address%", address);
                     } else {
                         template = template.replace("%address_style%", "display: none;");
                     }
@@ -1270,6 +1316,13 @@
                             }
                         }
                     });
+
+                    var $list_toggle = toggle.$wrapper.find("[data-id=\"list\"]");
+                    if ($list_toggle.length) {
+                        that.$wrapper.on("show_variant_details", function(event, variants) {
+                            $list_toggle.trigger("click");
+                        });
+                    }
 
                 } else {
                     $type_toggle.hide();
@@ -2431,10 +2484,10 @@
             // DOM
             that.$wrapper = options["$wrapper"];
             that.$form = that.$wrapper.find("form:first");
+            that.$submit_button = that.$wrapper.find(".js-submit-order-button");
 
             // VARS
             that.templates = options["templates"];
-            that.channel = options["channel"];
             that.errors = options["errors"];
             that.scope = options["scope"];
             that.urls = options["urls"];
@@ -2442,6 +2495,7 @@
             // DYNAMIC VARS
             that.reload = true;
             that.is_locked = false;
+            that.is_channel_confirm_skiped = false;
 
             // INIT
             that.initClass();
@@ -2494,7 +2548,7 @@
                 }
             });
 
-            that.$wrapper.on("click", ".js-submit-order-button", function(event) {
+            that.$submit_button.on("click", function(event) {
                 event.preventDefault();
 
                 if (!that.is_locked) {
@@ -2562,16 +2616,55 @@
          * */
         Confirm.prototype.renderErrors = function(errors) {
             var that = this,
-                result = [];
+                result = [],
+                focus = true;
+
+            var fatal_errors = [];
+            var simple_errors = [];
 
             $.each(errors, function(i, error) {
                 if (error.id === "cart_invalid") {
-                    that.$wrapper.trigger("wa_order_cart_invalid");
+                    fatal_errors.push(error);
+                } else {
+                    simple_errors.push(error);
                 }
-                result.push(error);
             });
 
+            if (fatal_errors.length) {
+                render(fatal_errors);
+            } else if (simple_errors.length) {
+                render(simple_errors);
+                result = simple_errors;
+            }
+
+            result.focus = focus;
+
             return result;
+
+            function render(errors) {
+                $.each(errors, function(i, error) {
+                    switch (error.id) {
+                        case "cart_invalid":
+                            that.$wrapper.trigger("wa_order_cart_invalid");
+                            break;
+
+                        case "confirm_channel":
+                            var type = error.type,
+                                required = !!error.auth_with_code;
+
+                            that.showChannelConfirmDialog(type, required);
+                            focus = false;
+                            break;
+
+                        default:
+                            break;
+                    }
+                });
+            }
+
+            function showConfirmDialog(error) {
+
+            }
         };
 
         // PROTECTED
@@ -2597,34 +2690,7 @@
                 deferred.reject();
 
             } else {
-                // if (that.channel.required !== "disabled") {
-                //     var href = that.urls["channel_dialog"],
-                //         data = {};
-                //
-                //     $.post(href, data).done( function(response) {
-                //         var html = response.data.confirmation_dialog;
-                //
-                //         var $wrapper = $(html);
-                //         $wrapper.data("scope", that);
-                //
-                //         var dialog = new that.scope.ui.Dialog({
-                //             $wrapper: $wrapper,
-                //             options: {
-                //                 onSuccess: function() {
-                //                     create(deferred);
-                //                 },
-                //                 onSkip: function() {
-                //                     create(deferred);
-                //                 }
-                //             },
-                //             onClose: function() {
-                //                 deferred.resolve();
-                //             }
-                //         });
-                //     })
-                // } else {
-                    create(deferred);
-                // }
+                create(deferred);
             }
 
             return deferred.promise();
@@ -2678,7 +2744,7 @@
                         }
                     } else {
                         var errors = that.scope.renderErrors(api);
-                        if (errors.length) {
+                        if (errors.length && errors.focus) {
                             focus(errors[0]);
                         }
                     }
@@ -2694,7 +2760,81 @@
             }
         };
 
-        Confirm.prototype.initChannelConfirmDialog = function(options) {
+        Confirm.prototype.showChannelConfirmDialog = function(type) {
+            var that = this;
+
+            var href = that.urls["channel_dialog"],
+                data = {
+                    source: getSource()
+                };
+
+            that.scope.lock(true);
+
+            $.post(href, data).done( function(response) {
+                if (response.status === "ok") {
+                    var html = response.data.confirmation_dialog;
+
+                    var $wrapper = $(html);
+                    $wrapper.data("scope", that);
+
+                    var dialog = new that.scope.ui.Dialog({
+                        $wrapper: $wrapper,
+                        options: {
+                            onSuccess: function(data) {
+                                if (data.type === "sms") {
+                                    var $phone_field = $("input[name='auth[data][phone]']");
+                                    if ($phone_field.length) {
+                                        $phone_field.val(data.value);
+                                    }
+
+                                } else if (data.type === "email") {
+                                    var $email_field = $("input[name='auth[data][email]']");
+                                    if ($email_field.length) {
+                                        $email_field.val(data.value);
+                                    }
+                                }
+
+                                create();
+                            },
+                            onSkip: function() {
+                                that.is_channel_confirm_skiped = true;
+                                create();
+                            }
+                        },
+                        onClose: function () {
+                            that.scope.lock(false);
+                        }
+                    });
+                } else {
+                    that.scope.DEBUG("Channel confirm dialog error", "error");
+                }
+            });
+
+            function getSource() {
+                var result = "";
+
+                if (type === "sms") {
+                    var $phone_field = $("input[name='auth[data][phone]']");
+                    if ($phone_field.length) {
+                        result = $phone_field.val();
+                    }
+
+                } else if (type === "email") {
+                    var $email_field = $("input[name='auth[data][email]']");
+                    if ($email_field.length) {
+                        result = $email_field.val();
+                    }
+                }
+
+                return result;
+            }
+
+            function create() {
+                that.$submit_button.trigger("click");
+            }
+        };
+
+        Confirm.prototype.initChannelConfirm = function(options) {
 
             var ChannelConfirmDialog = ( function($) {
 
@@ -2705,6 +2845,7 @@
                     that.$wrapper = options["$wrapper"];
                     that.$code_field = that.$wrapper.find(".js-code-field");
                     that.$value_field = that.$wrapper.find(".js-value-field");
+                    that.$errors_w = that.$wrapper.find(".js-errors-wrapper");
 
                     // VARS
                     that.recode_timeout = options["recode_timeout"];
@@ -2736,7 +2877,7 @@
 
                     var $send_line = that.$wrapper.find(".js-send-line"),
                         $code_line = that.$wrapper.find(".js-code-line"),
-                        $value_content = that.$wrapper.find(".js-value-content"),
+                        // $value_content = that.$wrapper.find(".js-value-content"),
                         $submit_line = that.$wrapper.find(".js-submit-line"),
                         $resend = $code_line.find(".js-resend-code"),
                         $time_w = $code_line.find(".js-timer-wrapper"),
@@ -2759,11 +2900,8 @@
                         sendCode().then( function() {
                             toggle(true);
                             setTimer();
-                        }, function() {
-                            that.renderError({
-                                $field: that.$value_field,
-                                text: that.locales["required"]
-                            });
+                        }, function(errors) {
+                            that.renderErrors(errors);
                         });
                     });
 
@@ -2776,29 +2914,17 @@
                             sendCode().then( function() {
                                 setTimer();
                                 resend_locked = false;
+                            }, function(errors) {
+                                that.renderErrors(errors);
                             });
                         }
                     });
 
                     that.$wrapper.on("click", ".js-edit-value", function(event) {
                         event.preventDefault();
-                        $value_content.hide();
                         toggle(false);
+                        // $value_content.hide();
                     });
-
-                    var value = that.$value_field.val(),
-                        value_validate = validate(value, that.type);
-
-                    if (value_validate) {
-                        toggle(true);
-                        that.$wrapper.find(".js-send-code").trigger("click");
-
-                    } else {
-                        that.renderError({
-                            $field: that.$value_field,
-                            text: that.locales["invalid"]
-                        });
-                    }
 
                     function toggle(show) {
                         if (show) {
@@ -2819,11 +2945,11 @@
                         if (show) {
                             $time_w.hide();
                             $resend.show();
-                            $value_content.show();
+                            // $value_content.show();
                         } else {
                             $resend.hide();
                             $time_w.show();
-                            $value_content.hide();
+                            // $value_content.hide();
                         }
                     }
 
@@ -2840,12 +2966,24 @@
 
                             var href = that.urls["code"],
                                 data = {
-                                    value: value
+                                    source: value,
+                                    type: that.type
                                 };
 
                             $.post(href, data)
                                 .done( function(response) {
-                                    deferred.resolve();
+                                    if (response.status === "ok") {
+                                        deferred.resolve();
+                                    } else {
+                                        var errors = [];
+
+                                        if (response.errors) {
+                                            errors = response.errors;
+                                        }
+
+                                        deferred.reject(errors);
+                                    }
+
                                 })
                                 .fail( function() {
                                     deferred.reject();
@@ -2958,13 +3096,13 @@
                             $.post(href, data)
                                 .done( function(response) {
                                     if (response.errors) {
-                                        that.renderError({
-                                            $field: that.$code_field,
-                                            text: that.locales["code_incorrect"]
-                                        });
+                                        that.renderErrors(response.errors);
                                     } else {
                                         that.dialog.close();
-                                        that.dialog.options.onSuccess();
+                                        that.dialog.options.onSuccess({
+                                            type: that.type,
+                                            value: value
+                                        });
                                     }
                                 })
                                 .always( function() {
@@ -2972,6 +3110,23 @@
                                 });
                         }
                     }
+                };
+
+                ChannelConfirmDialog.prototype.renderErrors = function(errors) {
+                    var that = this;
+
+                    that.$errors_w.html("");
+
+                    if (errors.length) {
+                        $.each(errors, function(i, error) {
+                            if (error.text) {
+                                var $error = $("<div class=\"wa-error-text\" />").text(error.text);
+                                that.$errors_w.append($error);
+                            }
+                        });
+                    }
+
+                    that.scope.scope.DEBUG("ERRORS:", "error", errors);
                 };
 
                 ChannelConfirmDialog.prototype.renderError = function(error) {
@@ -3013,13 +3168,14 @@
                     var result = false;
 
                     switch (type) {
-                        case "phone":
+                        case "sms":
                             result = window.waOrder.ui.validate.phone(value);
                             break;
                         case "email":
                             result = window.waOrder.ui.validate.email(value);
                             break;
                         default:
+                            result = true;
                             break;
                     }
 
@@ -3095,12 +3251,12 @@
 
             that.$wrapper.removeAttr("style").removeClass("is-not-ready");
             that.$outer_wrapper.data("controller", that);
-            that.trigger("ready", that);
 
             // START
 
             var ready_promise = that.$wrapper.data("ready");
             ready_promise.resolve(that);
+            that.trigger("ready", that);
 
             that.$wrapper.on("region_change", onRegionChange);
             function onRegionChange() {

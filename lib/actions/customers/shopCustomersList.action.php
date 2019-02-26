@@ -21,7 +21,7 @@ class shopCustomersListAction extends waViewAction
         $hash = $this->getHash();
 
         $collection = $this->getCollection($hash, $order);
-        $customers = $collection->getCustomers('*,order.create_datetime AS last_order_datetime', $offset, $limit);
+        $customers = $collection->getCustomers('*,email.*,im,phone,order.create_datetime AS last_order_datetime', $offset, $limit);
         $this->workupList($customers);
 
         $total_count = $this->getTotalCount($collection);
@@ -206,13 +206,23 @@ class shopCustomersListAction extends waViewAction
         $use_gravatar = $config->getGeneralSettings('use_gravatar');
         $gravatar_default = $config->getGeneralSettings('gravatar_default');
 
+        $duplicate_stats = shopCustomer::getDuplicateStats(array_keys($customers));
+
         $countries = array();
 
+        $all_tops = shopCustomer::getCustomersTopFields($customers);
+
         foreach ($customers as &$c) {
-            $c['email'] = !empty($c['email']) ? reset($c['email']) : null;
+
+            $default_email = null;
+            if ($c['email']) {
+                $email = reset($c['email']);
+                $default_email = $email['email'];
+            }
+
             $c['affiliate_bonus'] = (float)$c['affiliate_bonus'];
             if (!$c['photo'] && $use_gravatar) {
-                $c['photo'] = shopHelper::getGravatar(!empty($c['email']) ? $c['email'] : '', 50, $gravatar_default);
+                $c['photo'] = shopHelper::getGravatar($default_email ? $default_email : '', 50, $gravatar_default);
             } else {
                 $c['photo'] = waContact::getPhotoUrl($c['id'], $c['photo'], 50, 50);
             }
@@ -221,6 +231,20 @@ class shopCustomersListAction extends waViewAction
                 $countries[$c['address']['country']] = array();
             }
             $c['name'] = waContactNameField::formatName($c);
+
+            $c['top'] = array();
+            if (isset($all_tops[$c['id']])) {
+                $c['top'] = $all_tops[$c['id']];
+            }
+
+
+            $c['email'] = $default_email;
+
+            $c['similar_contacts'] = array();
+            if (isset($duplicate_stats[$c['id']])) {
+                $c['similar_contacts'] = $duplicate_stats[$c['id']];
+            }
+
         }
         unset($c);
 
@@ -268,7 +292,7 @@ class shopCustomersListAction extends waViewAction
     public function getCols()
     {
         return array(
-            'name'             => _w('Customer name'),
+            'name'             => _w('Customer'),
             'total_spent'      => _w('Total spent'),
             'affiliate_bonus'  => _w('Affiliate bonus'),
             'number_of_orders' => _w('Number of orders'),

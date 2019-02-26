@@ -204,7 +204,16 @@
                                             <div class="wa-name">[`Address`]</div>
                                         </div>
                                         <div class="wa-cell wa-cell-value">
-                                            <span class="ymaps-geolink" data-description="{$details.shipping_rate.name|escape}">{$_address|escape}</span>
+                                            {$_adapter = ""}
+                                            {if !empty($details.map.adapter)}{$_adapter = $details.map.adapter}{/if}
+
+                                            {if $_adapter === "yandex"}
+                                                <span class="ymaps-geolink" data-description="{$details.shipping_rate.name|escape}">{$_address|escape}</span>
+                                            {elseif $_adapter === "google"}
+                                                <a class="google-geolink" target="_blank" href="//maps.google.com/maps?q={$_address|urlencode}">{$_address|escape}</a>
+                                            {else}
+                                                {$_address|escape}
+                                            {/if}
                                         </div>
                                     </div>
                                 {/if}

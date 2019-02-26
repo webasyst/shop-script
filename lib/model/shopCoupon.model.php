@@ -21,10 +21,15 @@ class shopCouponModel extends waModel
 
     public function countActive()
     {
-        $sql = "SELECT COUNT(*) FROM {$this->table}
-                WHERE ((`limit` IS NULL) OR (`used` < `limit`))
-                    AND ((`expire_datetime` IS NULL) OR (`expire_datetime` > ?))";
-        return (int) $this->query($sql, date('Y-m-d H:i:s'))->fetchField();
+        $sql = <<<SQL
+SELECT COUNT(*)
+FROM {$this->table}
+WHERE
+((`limit` IS NULL ) OR (`used` < `limit`))
+AND
+((`expire_datetime` IS NULL ) OR (`expire_datetime` > ?))
+SQL;
+        return (int)$this->query($sql, date('Y-m-d H:i:s'))->fetchField();
     }
 
     public function delete($id)
@@ -33,18 +38,20 @@ class shopCouponModel extends waModel
         if ($coupon) {
             $opm = new shopOrderParamsModel();
             $order_ids = array_keys($opm->getByField(array(
-                'name' => 'coupon_id', 'value' => $id
+                'name'  => 'coupon_id',
+                'value' => $id,
             ), 'order_id'));
             if ($order_ids) {
                 $opm->set($order_ids, array(
-                    'coupon_code' => $coupon['code']
+                    'coupon_code' => $coupon['code'],
                 ), false);
             }
             $this->deleteById($id);
         }
     }
 
-    public function getById($value, $with_empty_rows = false) {
+    public function getById($value, $with_empty_rows = false)
+    {
         $res = parent::getById($value);
         if ($with_empty_rows && is_array($value)) {
             $empty = $this->getEmptyRow();
@@ -58,5 +65,21 @@ class shopCouponModel extends waModel
         return $res;
     }
 
+    public function getActiveCoupons($timestamp = null)
+    {
+        $sql = <<<SQL
+SELECT *
+FROM {$this->table}
+WHERE
+((`limit` IS NULL ) OR (`used` < `limit`))
+AND
+((`expire_datetime` IS NULL ) OR (`expire_datetime` > ?))
+SQL;
+        if ($timestamp) {
+            $datetime = date('Y-m-d H:i:s', $timestamp);
+        } else {
+            $datetime = date('Y-m-d H:i:s');
+        }
+        return $this->query($sql, $datetime)->fetchAll($this->id);
+    }
 }
-

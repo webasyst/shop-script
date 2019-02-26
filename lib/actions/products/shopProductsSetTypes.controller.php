@@ -25,24 +25,24 @@ class shopProductsSetTypesController extends waJsonController
         }
 
         $hash = waRequest::post('hash', '', waRequest::TYPE_STRING_TRIM);
-        $products_id = null;
+        $all_product_ids = null;
 
         if (!$hash) {
-            $products_id = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
-            $hash = 'id/'.join(',', $products_id);
+            $all_product_ids = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
+            $hash = 'id/'.join(',', $all_product_ids);
         }
 
         /**
          * Attaches a product to the types. Get data before changes
          *
-         * @param array[string]int $products_id[%id][id] Product id(s)
+         * @param array[string]int $all_product_ids[%id][id] Product id(s)
          * @param string $type_id product type id
          * @param string $hash Collection Hash
          * @event products_types_set.before
          */
         $params = array(
             'type_id'     => $type_id,
-            'products_id' => $products_id,
+            'products_id' => $all_product_ids,
             'hash'        => $hash,
         );
         wa('shop')->event('products_types_set.before', $params);
@@ -53,10 +53,10 @@ class shopProductsSetTypesController extends waJsonController
             $count = 100;
             $total_count = $collection->count();
             while ($offset < $total_count) {
-                $products_id = array_keys($collection->getProducts('*', $offset, $count));
-                $filtered = $this->product_model->filterAllowedProductIds($products_id);
+                $product_ids = array_keys($collection->getProducts('*', $offset, $count));
+                $filtered = $this->product_model->filterAllowedProductIds($product_ids);
                 $this->product_model->updateType($filtered, $type_id);
-                $offset += count($products_id);
+                $offset += count($product_ids);
             }
         } else {
             $this->product_model->changeType(substr($hash, 5), $type_id);
@@ -65,14 +65,14 @@ class shopProductsSetTypesController extends waJsonController
         /**
          * Attaches a product to the types
          *
-         * @param array[string]int $products_id[%id][id] Product id(s)
+         * @param array[string]int $all_product_ids[%id][id] Product id(s)
          * @param string $type_id product type id
          * @param hash $hash Collection Hash
          * @event products_types_set.after
          */
         $params = array(
             'type_id'     => $type_id,
-            'products_id' => $products_id,
+            'products_id' => $all_product_ids,
             'hash'        => $hash,
         );
         wa('shop')->event('products_types_set.after', $params);

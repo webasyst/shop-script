@@ -1076,6 +1076,46 @@ SQL;
     }
 
     /**
+     * @param int $contact_id
+     * @param string $type
+     * @param array $options Extra options, reserved for future
+     * @return string
+     */
+    public function backendContactUrl($contact_id, $type = 'default', $options = array())
+    {
+        if (wa()->getEnv() !== 'backend') {
+            return '';
+        }
+
+        $is_template = waConfig::get('is_template');
+        waConfig::set('is_template', null);
+
+        if (wa()->appExists('crm')) {
+            if ($type === 'edit') {
+                $url = wa('crm')->getAppUrl('crm') . "contact/{$contact_id}/edit/";
+            } elseif ($type === 'delete') {
+                $url = wa('crm')->getAppUrl('crm') . "contact/{$contact_id}/delete/";
+            } elseif ($type === 'info') {
+                $url = wa('crm')->getAppUrl('crm') . "contact/{$contact_id}/info/";
+            } else {
+                $url = wa('crm')->getAppUrl('crm') . "contact/{$contact_id}/";
+            }
+        } else {
+            if ($type === 'edit') {
+                $url = wa()->getAppUrl('contacts') . "#/contact/{$contact_id}/contact/edit/";
+            } elseif ($type === 'delete') {
+                $url = wa()->getAppUrl('contacts') . "#/contact/{$contact_id}/contact/delete/";
+            } else {
+                $url = wa()->getAppUrl('contacts') . "#/contact/{$contact_id}/";
+            }
+        }
+
+        waConfig::set('is_template', $is_template);
+
+        return $url;
+    }
+
+    /**
      * @return shopConfig
      */
     protected function shopConfig()

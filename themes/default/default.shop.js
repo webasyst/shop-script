@@ -22,8 +22,8 @@ $(document).ready(function () {
     // $('.homepage-bxslider').bxSlider( { auto : $('.homepage-bxslider li').length > 1, pause : 7000, autoHover : true, pager: $('.homepage-bxslider li').length > 1 });
     // $('.homepage-bxslider').css('height','auto');
 
-    $('.related-bxslider').bxSlider( { minSlides: 1, maxSlides: 4, slideWidth: 146, slideMargin: 10, infiniteLoop: true, pager: false });
-    $('.onsale-bxslider').bxSlider( { minSlides: 1, maxSlides: 6, slideWidth: 146, slideMargin: 10, infiniteLoop: true, pager: false });
+    $('.related-bxslider').bxSlider( { minSlides: 1, maxSlides: 4, slideWidth: 146, slideMargin: 10, infiniteLoop: true, pager: false, onSliderLoad: function(){ $('.related-bxslider img').retina(); } });
+    $('.onsale-bxslider').bxSlider( { minSlides: 1, maxSlides: 6, slideWidth: 146, slideMargin: 10, infiniteLoop: true, pager: false, onSliderLoad: function(){ $('.onsale-bxslider img').retina(); } });
 
     // SIDEBAR HEADER click (smartphones only)
     if ( (!!('ontouchstart' in window)) && MatchMedia("only screen and (max-width: 760px)") ) {

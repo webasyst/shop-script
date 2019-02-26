@@ -2579,6 +2579,7 @@ SQL;
                 $this->group_by = null;
                 $this->joins = null;
                 $this->join_index = array();
+                $this->unique_joins = array();
 
                 $this->post_fields = array();
                 $this->prepared = false;

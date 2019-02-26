@@ -257,10 +257,26 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             $data['shipping']['selected_variant'] = $shipping_types[$selected_type_id]['variants'][$selected_variant_id];
         }
 
+
+        $adapter = null;
+        $apikey = null;
+        try{
+            $adapter = wa()->getMap()->getId();
+            if ($adapter === 'yandex') {
+                $apikey = 'apikey';
+            } else {
+                $apikey = 'key';
+            }
+            $apikey = wa()->getMap()->getSettings($apikey);
+        } catch (Exception $e) {
+
+        }
+
         $map = [
-            'adapter' => 'yandex',
-            'api_key' => wa()->getMap('yandex')->getSettings('apikey'),
+            'adapter' => $adapter,
+            'api_key' => $apikey
         ];
+
 
         $result = $this->addRenderedHtml([
             'selected_type_id'    => $selected_type_id,

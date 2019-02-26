@@ -25,7 +25,7 @@ class shopProductsAddToSetsController extends waJsonController
         }
 
         $set_ids = waRequest::post('set_id', array());
-        $product_ids = null;
+        $all_product_ids = null;
 
         // create new set
         $new_set_id = null;
@@ -43,8 +43,8 @@ class shopProductsAddToSetsController extends waJsonController
         // add products to sets
         $hash = waRequest::post('hash', '');
         if (!$hash) {
-            $products_id = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
-            $hash = 'id/'.join(',', $products_id);
+            $all_product_ids = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
+            $hash = 'id/'.join(',', $all_product_ids);
         }
 
         /**
@@ -58,10 +58,10 @@ class shopProductsAddToSetsController extends waJsonController
          * @event products_add_sets.before
          */
         $params = array(
-            'set_ids'    => $set_ids,
-            'new_set_id' => $new_set_id,
-            'hash'       => $hash,
-            'products_id' => $product_ids,
+            'set_ids'     => $set_ids,
+            'new_set_id'  => $new_set_id,
+            'hash'        => $hash,
+            'products_id' => $all_product_ids,
         );
         wa('shop')->event('products_add_sets.before', $params);
 
@@ -94,10 +94,10 @@ class shopProductsAddToSetsController extends waJsonController
          * @event products_add_sets.after
          */
         $params = array(
-            'set_ids'    => $set_ids,
-            'new_set_id' => $new_set_id,
-            'hash'       => $hash,
-            'products_id' => $product_ids,
+            'set_ids'     => $set_ids,
+            'new_set_id'  => $new_set_id,
+            'hash'        => $hash,
+            'products_id' => $all_product_ids,
         );
         wa('shop')->event('products_add_sets.after', $params);
 

@@ -1,36 +1,23 @@
 {strip}
 
-{$_type = $channel[0]}
-
-{$_config = $checkout_config["confirmation"]}
-
-{$_skip_enabled = false}
-
-{if !empty($_config.order_without_auth) && $_config.order_without_auth === "create_contact" && !empty($_config.auth_with_code)}
-    {$_skip_enabled = true}
-{/if}
-
-{$_source = "phone"}
-{if $_type === "email"}{$_source = "email"}{/if}
-
-{$_value = ""}
-{if $_source === "phone"}
-    {if !empty($phone)}{$_value = $phone}{/if}
-
+{if $type === "sms"}
     {$_locales = [
         "type" => _w("Phone"),
         "header" => _w("Пожалуйста, подтвердите телефон"),
         "footer" => _w("Завершить без подтверждения телефона"),
         "hint" => _w("отправлен на телефон")
     ]}
-{elseif $_source === "email"}
-    {if !empty($email)}{$_value = $email}{/if}
-
+{elseif $type === "email"}
     {$_locales = [
         "type" => _w("Email"),
         "header" => _w("Пожалуйста, подтвердите email"),
         "footer" => _w("Завершить без подтверждения email"),
         "hint" => _w("отправлен на email")
+    ]}
+{else}
+    {$_locales = [
+        "header" => _w("Ошибка"),
+        "content" => _w("Канал для подтвержения отсутствует")
     ]}
 {/if}
 
@@ -45,70 +32,76 @@
         </header>
 
         <div class="wa-dialog-content">
-            <div class="wa-line js-value-line">
-                <div class="wa-field-wrapper with-content">
-                    <label class="wa-label">{$_locales["type"]}</label>
-                    <input class="wa-input js-value-field" type="text" value="{$_value}">
-                    <div class="wa-content js-value-content" style="display: none;">
-                        <a class="js-edit-value" href="javascript:void(0);" style="color: inherit;">
-                            <i class="wa-icon edit size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#edit"></use></svg></i> [`Изменить`]
-                        </a>
+            {if !empty($type)}
+                <div class="wa-line js-value-line">
+                    <div class="wa-field-wrapper with-content">
+                        <label class="wa-label">{$_locales["type"]}</label>
+                        <input class="wa-input js-value-field" type="text" value="{$source}">
+                        {*
+                        <div class="wa-content js-value-content" style="display: none;">
+                            <a class="js-edit-value" href="javascript:void(0);" style="color: inherit;">
+                                <i class="wa-icon edit size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#edit"></use></svg></i> [`Изменить`]
+                            </a>
+                        </div>
+                        *}
                     </div>
                 </div>
-            </div>
 
-            <div class="wa-line js-code-line" style="display: none;">
-                <div class="wa-field-wrapper with-content wa-code-field">
-                    <label class="wa-label">[`Проверочный код`] ({$_locales["hint"]})</label>
-                    <input class="wa-input js-code-field" type="text" value="">
-                    <div class="wa-content js-code-content">
+                <div class="wa-line js-code-line" style="display: none;">
+                    <div class="wa-field-wrapper with-content wa-code-field">
+                        <label class="wa-label">[`Проверочный код`] ({$_locales["hint"]})</label>
+                        <input class="wa-input js-code-field" type="text" value="">
+                        <div class="wa-content js-code-content">
 
-                        <span class="wa-timer-wrapper js-timer-wrapper">{sprintf("Новый код можно будет запросить через %s", "<span class=\"wa-time\"></span>")}</span>
-                        <a class="js-resend-code" href="javascript:void(0);" style="display: none;">[`Выслать ещё раз`]</a>
+                            <span class="wa-timer-wrapper js-timer-wrapper">{sprintf("Новый код можно будет запросить через %s", "<span class=\"wa-time\"></span>")}</span>
+                            <a class="js-resend-code" href="javascript:void(0);" style="display: none;">[`Выслать ещё раз`]</a>
 
+                        </div>
                     </div>
                 </div>
-            </div>
+            {else}
+                <div class="wa-line">{$_locales["content"]|escape}</div>
+            {/if}
+
+            <div class="wa-line js-errors-wrapper"></div>
         </div>
 
         <div class="wa-dialog-footer">
-            <div class="js-send-line">
-                <button class="wa-button is-large js-send-code">[`Выслать код`]</button>
-            </div>
-
-            <div class="js-submit-line" style="display: none;">
-                <button class="wa-button is-large js-submit-confirm">[`Завершить оформление`]</button>
-            </div>
-
-            {if !empty($_skip_enabled)}
-                <div class="wa-line">
-                    <a class="js-skip-confirm" href="javascript:void(0);">{$_locales["footer"]|escape}</a>
+            {if !empty($type)}
+                <div class="js-send-line">
+                    <button class="wa-button is-large js-send-code">[`Выслать код`]</button>
                 </div>
+
+                <div class="js-submit-line" style="display: none;">
+                    <button class="wa-button is-large js-submit-confirm">[`Завершить оформление`]</button>
+                </div>
+
+                {if empty($require_confirmation)}
+                    <div class="wa-line">
+                        <a class="js-skip-confirm" href="javascript:void(0);">{$_locales["footer"]|escape}</a>
+                    </div>
+                {/if}
+            {else}
+                <button class="js-close-dialog">[`Close`]</button>
             {/if}
         </div>
     </div>
-
-    {$_recode_timeout = 60}
-    {if !empty($_config.recode_timeout) && $_config.recode_timeout > 0}
-        {$_recode_timeout = $_config.recode_timeout}
-    {/if}
 
     <script>
         ( function($) {
             var $dialog = $("#js-channel-confirmation-dialog"),
                 scope = $dialog.data("scope");
 
-            scope.initChannelConfirmDialog({
+            scope.initChannelConfirm({
                 $wrapper: $dialog,
-                type: {$_source|json_encode},
-                recode_timeout: {$_recode_timeout|json_encode},
+                type: {$type|json_encode},
+                recode_timeout: {$recode_timeout|json_encode},
                 urls: {
-                    "code": {$wa->getUrl('shop/frontendOrder/sendConfirmationCode')|json_encode},
-                    "submit": {$wa->getUrl('shop/frontendOrder/validateConfirmationCode')|json_encode}
+                    "code": {$wa->getUrl('shop/frontendOrderConfirmation/sendConfirmationCode')|json_encode},
+                    "submit": {$wa->getUrl('shop/frontendOrderConfirmation/validateConfirmationCode')|json_encode}
                 },
                 locales: {
-                    "code_empty": {_w("Чтобы завершить оформление введите проверочный код.")|json_encode},
-                    "code_incorrect": {_w("Введён неверный проверочный код. Попробуйте ещё раз или запросите новый.")|json_encode},
+                    code_empty: {_w("Чтобы завершить оформление введите проверочный код.")|json_encode},
                     invalid: {_w("Incorrect value")|json_encode},
                     required: {_w("Required field")|json_encode}
                 }

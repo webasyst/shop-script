@@ -48,6 +48,9 @@ class shopOrderSaveController extends waJsonController
         try {
             $saved_order = $order->save();
             $this->response['order'] = $saved_order->getData();
+
+            $this->applyConfirmationCheckboxes($saved_order->contact);
+
         } catch (waException $ex) {
             $this->errors = $order->errors();
         }
@@ -90,5 +93,54 @@ class shopOrderSaveController extends waJsonController
         $_ = explode('.', $shipping_id, 2);
 
         return waRequest::post('shipping_'.$_[0], null);
+    }
+
+    /**
+     * @param waContact $contact
+     * @throws waException
+     */
+    protected function applyConfirmationCheckboxes($contact)
+    {
+        $customer = $this->getRequest()->post('customer');
+
+        if (isset($customer['email'])) {
+            $email = $contact->get("email");
+            $email_from_post = $customer['email'];
+            if (is_array($email_from_post)) {
+                $email_from_post = ifset($email_from_post, 0, null);
+            }
+            if (isset($email[0]) && trim($email[0]['value']) === trim($email_from_post)) {
+
+                $cem = new waContactEmailsModel();
+
+                if (!empty($customer['email_confirmed'])) {
+                    $status = waContactEmailsModel::STATUS_CONFIRMED;
+                } else {
+                    $status = waContactEmailsModel::STATUS_UNKNOWN;
+                }
+
+                $cem->updateContactEmailStatus($contact->getId(), $email[0]['value'], $status);
+            }
+        }
+
+        if (isset($customer['phone'])) {
+            $phone = $contact->get("phone");
+            $phone_from_post = $customer['phone'];
+            if (is_array($phone_from_post)) {
+                $phone_from_post = ifset($phone_from_post, 0, null);
+            }
+            if (isset($phone[0]) && waContactPhoneField::isPhoneEquals($phone[0]['value'], $phone_from_post)) {
+
+                $cdm = new waContactDataModel();
+
+                if (!empty($customer['phone_confirmed'])) {
+                    $status = waContactDataModel::STATUS_CONFIRMED;
+                } else {
+                    $status = waContactDataModel::STATUS_UNKNOWN;
+                }
+
+                $cdm->updateContactPhoneStatus($contact->getId(), $phone[0]['value'], $status);
+            }
+        }
     }
 }

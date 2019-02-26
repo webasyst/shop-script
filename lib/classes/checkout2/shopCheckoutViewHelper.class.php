@@ -558,21 +558,37 @@ class shopCheckoutViewHelper
             /** @var shopOrder $order */
             $order = (new shopFrontendOrderActions())->makeOrderFromCart();
             $process_data = shopCheckoutStep::processAll('form', $order, $session_input);
-            $config = new shopCheckoutConfig(ifset(ref(wa()->getRouting()->getRoute()), 'checkout_storefront_id', null));
-            $result = array_merge([
-                'config' => $config,
-            ], $process_data['result']);
 
-            if (!isset($result['error_step_id'])) {
-                $result['error_step_id'] = null;
-            }
-            if (!isset($result['errors'])) {
-                $result['errors'] = null;
-            }
+            $result = $this->prepareFormVars($process_data);
+            waConfig::set('is_template', $old_is_template);
+        }
+        return $result;
+    }
 
-            // Run all the checkout_render_* events
-            // Also see other checkout_* events in shopCheckoutStep::processAll()
-            foreach ($config->getCheckoutSteps() as $step) {
+    /**
+     * Turns result of shopCheckoutStep::processAll() into list of variables
+     * suited for FrontendOrderForm.html template.
+     * Used in ::formVars() above, as well as in shopFrontendOrderActions for order/calculate
+     */
+    public function prepareFormVars($process_data)
+    {
+        $config = new shopCheckoutConfig(true);
+        $result = array_merge([
+            'config' => $config,
+            'contact' => ifset($process_data, 'contact', null),
+        ], $process_data['result']);
+
+        if (!isset($result['error_step_id'])) {
+            $result['error_step_id'] = null;
+        }
+        if (!isset($result['errors'])) {
+            $result['errors'] = null;
+        }
+
+        // Run all the checkout_render_* events
+        // Also see other checkout_* events in shopCheckoutStep::processAll()
+        foreach ($config->getCheckoutSteps() as $step) {
+            if (empty($result['event_hook'][$step->getId()])) {
                 $result['event_hook'][$step->getId()] = wa('shop')->event('checkout_render_'.$step->getId(), ref([
                     'step_id'       => $step->getId(),
                     'data'          => $process_data,
@@ -581,9 +597,8 @@ class shopCheckoutViewHelper
                     'vars'          => &$result,
                 ]));
             }
-
-            waConfig::set('is_template', $old_is_template);
         }
+
         return $result;
     }
 

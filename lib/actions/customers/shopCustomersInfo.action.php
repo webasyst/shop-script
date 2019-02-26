@@ -22,19 +22,7 @@ class shopCustomersInfoAction extends waViewAction
 
         $contact_categories = $this->getContactCategories($id);
 
-        $contacts_url = wa()->getAppUrl('contacts');
-
-        // Info above tabs
-        $top = array();
-        foreach (array('email', 'phone', 'im') as $f) {
-            if (($v = $contact->get($f, 'top,html'))) {
-                $top[] = array(
-                    'id'    => $f,
-                    'name'  => waContactFields::get($f)->getName(),
-                    'value' => is_array($v) ? implode(', ', $v) : $v,
-                );
-            }
-        }
+        $top = shopCustomer::getCustomerTopFields($contact);
 
         // Get photo
         $photo = $contact->get('photo');
@@ -97,8 +85,8 @@ class shopCustomersInfoAction extends waViewAction
         $this->view->assign('orders_html', $this->getOrdersHtml($id));
         $this->view->assign('reviews', $reviews);
         $this->view->assign('contact', $contact);
+        $this->view->assign('similar_contacts', $this->getSimilarContacts($contact));
         $this->view->assign('customer', $customer);
-        $this->view->assign('contacts_url', $contacts_url);
         $this->view->assign('affiliate_history', $affiliate_history);
         $this->view->assign('contact_categories', $contact_categories);
         $this->view->assign('def_cur_tmpl', str_replace('0', '%s', waCurrency::format('%{h}', 0, $primary_currency)));
@@ -228,5 +216,22 @@ class shopCustomersInfoAction extends waViewAction
         $view->clearAllAssign();
         $view->assign($old_vars);
         return $html;
+    }
+
+    protected function getSimilarContacts($customer_contact)
+    {
+        if (!$this->getUser()->getRights('shop', 'customers')) {
+            return array();
+        }
+
+        if ($customer_contact instanceof waContact) {
+            $contact_id = $customer_contact->getId();
+        } elseif (wa_is_int($customer_contact)) {
+            $contact_id = $customer_contact;
+        } else {
+            $contact_id = 0;
+        }
+
+        return shopCustomer::getDuplicateStats($contact_id);
     }
 }

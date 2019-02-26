@@ -1,4 +1,5 @@
 <?php
+
 /**
  * First checkout step: user auth or gathering of essencial customer contact data.
  */
@@ -113,7 +114,7 @@ class shopCheckoutAuthStep extends shopCheckoutStep
                         $base_value = '';
                     }
                 }
-                $base_values[$field_id] = (string) $base_value;
+                $base_values[$field_id] = (string)$base_value;
             }
 
             // Customer-supplied values from POST
@@ -135,7 +136,7 @@ class shopCheckoutAuthStep extends shopCheckoutStep
             }
 
             if (!$contact_id) {
-                $contact['is_company'] = (int) ($selected_mode == shopCheckoutConfig::CUSTOMER_TYPE_COMPANY);
+                $contact['is_company'] = (int)($selected_mode == shopCheckoutConfig::CUSTOMER_TYPE_COMPANY);
             }
         } else {
             $errors[] = [
@@ -168,5 +169,20 @@ class shopCheckoutAuthStep extends shopCheckoutStep
     public function getTemplatePath()
     {
         return 'auth.html';
+    }
+
+    protected function getConfirmationErrors($data)
+    {
+        $data = shopConfirmationChannel::parseData($data);
+        $confirmation = new shopConfirmationChannel($data);
+        $errors = [];
+
+        if ($confirmation->isBannedContact()) {
+            $errors[] = _w("TODO!!! Контакт забанен");
+        } elseif ($confirmation->isAdminError() || $confirmation->isForbiddenAddress()) {
+            $errors[] = _w("TODO!!! Запрещено использовать эти данные");
+        }
+
+        return $errors;
     }
 }

@@ -9504,17 +9504,22 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: /wa-apps/shop/templates/actions/order/Order.html:132
-msgid "with same email found"
+msgid "Number of customers with the same email address"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/order/Order.html:136
-msgid "with same phone found"
+msgid "Number of customers with the same phone number"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/order/Order.html:132
 #: /wa-apps/shop/templates/actions/order/Order.html:136
-msgid "%d more customer"
-msgid_plural "%d more customers"
+msgid "%d more customer found with the same email address"
+msgid_plural "%d more customers found with the same email address"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d more customer found with the same phone number"
+msgid_plural "%d more customers found with the same phone number"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -13954,4 +13959,8 @@ msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:204
 msgid "<a href=\"%s\" target=\"_blank\">Set up</a> <i class=\"icon16 new-window\"></i>multi-step checkout"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/customers/include.top_fields.html:67
+msgid "More contact information"
 msgstr ""

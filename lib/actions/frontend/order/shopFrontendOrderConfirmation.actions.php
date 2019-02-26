@@ -2,22 +2,33 @@
 
 class shopFrontendOrderConfirmationActions extends waJsonActions
 {
+    protected $channels = null;
 
-    protected $is_change_info = [];
 
     public function defaultDialogAction()
     {
+        $confirmation = shopConfirmationChannel::getInstance();
+        $invalid_transport = $confirmation->getTransportError();
+        if ($invalid_transport) {
+            $this->errors[] = $invalid_transport;
+            return null;
+        }
+
         $checkout_config = new shopCheckoutConfig(true);
+
+        if ($checkout_config['confirmation']['order_without_auth'] === 'confirm_contact') {
+            $require_confirmation = true;
+        } else {
+            $require_confirmation = false;
+        }
 
         $view = wa('shop')->getView();
 
         $view->assign(array(
-            'email'              => waRequest::post('email', '', waRequest::TYPE_STRING),
-            'phone'              => waRequest::post('phone', '', waRequest::TYPE_STRING),
-            'checkout_config'    => $checkout_config,
-            'auth_with_code'     => $this->getAuthWitCodeStatus($checkout_config),
-            'recode_timeout'     => $checkout_config['confirmation']['recode_timeout'],
-            'channels'           => $this->getRawChannels(),
+            'source'               => waRequest::post('source', '', waRequest::TYPE_STRING),
+            'type'                 => $confirmation->getTransport(),
+            'recode_timeout'       => $checkout_config['confirmation']['recode_timeout'],
+            'require_confirmation' => $require_confirmation
         ));
 
         $html = $view->fetch(wa()->getAppPath('templates/actions/frontend/order/form/dialog/channel_confirmation.html', 'shop'));
@@ -25,111 +36,96 @@ class shopFrontendOrderConfirmationActions extends waJsonActions
         $this->response['confirmation_dialog'] = $html;
     }
 
-
-    protected function getAuthWitCodeStatus($checkout_config)
+    public function sendConfirmationCodeAction()
     {
-        $order_without_auth = $checkout_config['confirmation']['auth_with_code'];
-        $is_change_info = $this->isUserChangeContactInfo();
+        $confirmation = shopConfirmationChannel::getInstance();
+        $source = waRequest::post('source', '', waRequest::TYPE_STRING);
+        $source = $confirmation->cleanSource($source, $confirmation->getTransport());
 
-        if (!$is_change_info) {
-            $order_without_auth = false;
+        $invalid_transport = $confirmation->getTransportError();
+        if ($invalid_transport) {
+            $this->errors[] = $invalid_transport;
+            return null;
         }
 
-        return $order_without_auth;
-    }
+        $timeout_left = $confirmation->getSendTimeout();
+        if ($timeout_left > 0) {
+            $this->errors[] = [
+                'id'   => 'timeout_error',
+                'text' => sprintf(_w('Todo Подождите %d секунд'), $timeout_left)
+            ];
 
-    public function isUserChangeContactInfo()
-    {
-        if (is_array($this->is_change_info)) {
-            return $this->is_change_info;
+            return null;
         }
 
-        $user = wa()->getUser();
-        $result = [];
-
-        if (!$user->isAuth()) {
-            return $result;
+        if (!$source || !$confirmation->isValidateSource($source)) {
+            $this->errors[] = [
+                'id'   => 'source_error',
+                'text' => _w('TODO Неправильно указан источник')
+            ];
+            return null;
         }
 
-        $new_email = waRequest::post('email', '', waRequest::TYPE_STRING);
-        $new_phone = waContactPhoneField::cleanPhoneNumber(waRequest::post('phone', '', waRequest::TYPE_STRING));
-        $channels = $this->getRawChannels();
-
-        foreach ($channels as $channel) {
-            switch ($channel->getType()){
-                case 'sms': {
-                    $saved_phone_data = $user->get('phone');
-                    $saved_phone = waContactPhoneField::cleanPhoneNumber(ifset($saved_phone_data, 'value', null));
-                    $saved_phone_status = ifset($saved_phone_data, 'status', waContactDataModel::STATUS_UNCONFIRMED);
-
-                    if (!$saved_phone || $saved_phone_status !== waContactDataModel::STATUS_CONFIRMED || $saved_phone !== $new_phone) {
-                        $result[] = 'phone';
-                    }
-                }
-                case 'email': {
-                    $saved_email_data = $user->get('email');
-                    $saved_email = ifset($saved_email_data, 'value', null);
-                    $saved_email_status = ifset($saved_email_data, 'status', waContactEmailsModel::STATUS_UNCONFIRMED);
-
-                    if (!$saved_email || $saved_email_status !== waContactEmailsModel::STATUS_CONFIRMED || $saved_email !== $new_email) {
-                        $result[] = 'email';
-                    }
-                }
-            }
+        if (!$confirmation->sendCode($source)) {
+            $this->errors[] = [
+                'id'   => 'send_error',
+                'text' => _w('TODO Ошибка отправки кода')
+            ];
+            return null;
         }
 
+        $verification = [
+            'source'   => $source,
+            'attempts' => $confirmation::ATTEMPTS_TO_VERIFY_CODE,
+        ];
 
-        $this->is_change_info = $result;
-
-        return $result;
-    }
-
-    public function getRawChannels()
-    {
-        return waDomainAuthConfig::factory()->getVerificationChannelInstances();
+        $confirmation->setStorage($verification, 'verification');
+        $confirmation->setStorage(time(), 'send_time');
     }
 
     public function validateConfirmationCodeAction()
     {
-        //После подтверждения поставить статус подтвержден
-    }
+        $confirmation = shopConfirmationChannel::getInstance();
+        $code = waRequest::post('code', '', waRequest::TYPE_STRING);
 
-    /**
-     * Проверить телефон или имейл, что они не пренадлежат юзерам бекенда
-     * Вернуть Марку флаг, что нельзя пропускать подтверждение
-     */
-    public function sendConfirmationCodeAction()
-    {
-        $source = waRequest::post('source', null, waRequest::TYPE_STRING);
+        $invalid_transport = $confirmation->getTransportError();
+        if ($invalid_transport) {
+            $this->errors[] = $invalid_transport;
+            return null;
+        }
 
+        $verification = $confirmation->getStorage('verification');
+        if (!$verification) {
+            $this->errors[] = [
+                'id'   => 'storage_error',
+                'text' => _w('TODO Код не отправлен')
+            ];
+            return null;
+        }
 
-        /*
-                $channels = waDomainAuthConfig::factory()->getVerificationChannelInstances();
+        $result = $confirmation->isValidateCode($code);
+        if (!$result) {
+            $attempts = $verification['attempts'];
+            $attempts = $attempts - 1;
 
-                $is_email = (new waEmailValidator())->isValid($source);
-                $is_phone = (new waPhoneNumberValidator())->isValid($source);
-                $result = false;
-                $address = null;
+            if ($attempts <= 0) {
+                $this->errors[] = [
+                    'id'   => 'code_attempts_error',
+                    'text' => _w('TODO У вас закончились попытки ввода. Отправьте смс еще раз')
+                ];
+                $confirmation->delStorage('verification');
+            } else {
+                $this->errors[] = [
+                    'id'   => 'code_error',
+                    'text' => sprintf(_w('TODO Вы ввели не верный код. У вас осталось %d попыток'), $attempts)
+                ];
 
-
-                foreach ($channels as $channel) {
-                    $type = $channel->getType();
-                    if (($type === 'email' && $is_email) || ($type === 'sms' && $is_phone)) {
-                        $address = $source;
-                    }
-
-                    if ($address) {
-                        $result = $channel->sendConfirmationCodeMessage($address, array(
-                            'use_session' => true    // не хотим заморачиваться с хранением где-то asset_id - просто юзаем сессию
-                        ));
-
-                        if ($result) {
-                            break;
-                        }
-                    }
-                }*/
-
-        //Установить время отправки
+                $verification['attempts'] = $attempts;
+                $confirmation->setStorage($verification, 'verification');
+            }
+        } else {
+            $confirmation->verifyTransportStatus();
+        }
     }
 
 }

@@ -497,7 +497,8 @@
         ignore_stock_count: {if $ignore_stock_count}true{else}false{/if},
         title: title,
         float_delimeter: {if strpos((string)3.14, ",") !== false}","{else}"."{/if},
-        price_edit: true
+        price_edit: true,
+        contact_info: {json_encode($contact_info)}
     });
 
     {if !empty($order.id) && !$has_contacts_rights}

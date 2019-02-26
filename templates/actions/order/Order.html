@@ -88,21 +88,13 @@
                                 {/if}
                             </h3>
                             {if $main_contact_info}
-                                <ul class="menu-v with-icons compact">
-                                    {foreach $main_contact_info as $top_field}
-                                        <li>{if $top_field.id != 'im'}<i class="icon16 {$top_field.id}"></i>{/if}{$top_field.value}
-                                            {if $top_field.id == 'email' && !empty($similar_contacts.email.count)}
-                                                <span class="similar hint">
-                                                    {if $customers_rights}<a href="?action=customers#/search/email={urlencode($similar_contacts.email.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer', '%d more customers', $similar_contacts.email.count)}{if $customers_rights}</a>{/if} [`with same email found`]
-                                                </span>
-                                            {elseif $top_field.id == 'phone' && !empty($similar_contacts.phone.count)}
-                                                <span class="similar hint">
-                                                    {if $customers_rights}<a href="?action=customers#/search/phone={urlencode($similar_contacts.phone.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer', '%d more customers', $similar_contacts.phone.count)}{if $customers_rights}</a>{/if} [`with same phone found`]
-                                                </span>
-                                            {/if}
-                                        </li>
-                                    {/foreach}
-                                </ul>
+
+                                {include file="./../customers/include.top_fields.html"
+                                    top=$main_contact_info
+                                    similar_contacts=$similar_contacts
+                                    need_other_values=true
+                                inline}
+
                             {/if}
                         </div>
                     </div>

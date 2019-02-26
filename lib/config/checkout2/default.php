@@ -69,7 +69,6 @@ return array(
         'terms'              => false,
         'terms_text'         => '',
         'order_without_auth' => shopCheckoutConfig::ORDER_WITHOUT_AUTH_CREATE,
-        'auth_with_code'     => true,
         'recode_timeout'     => 60, // In seconds
         'thankyou_header'    => _wd('shop', 'We have received your order. Thank you!'),
         'thankyou_content'   => _wd('shop', 'We will contact you soon. Your order No. is $order_id.'),

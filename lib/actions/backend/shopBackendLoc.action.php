@@ -75,7 +75,8 @@ class shopBackendLocAction extends waViewAction
             'Sorting in the common list is disabled. Drag-and-drop features into product types.',
             'Select parameters to be available to customers for ordering this product in the storefront.',
             'Nothing selected',
-            'Matching features were not found or are already selected.'
+            'Matching features were not found or are already selected.',
+            'Confirmed'
         ) as $s) {
             $strings[$s] = _w($s);
         }

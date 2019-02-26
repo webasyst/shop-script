@@ -1,4 +1,9 @@
 function Product(form, options) {
+    var that = this;
+
+    that.is_dialog = ( options["is_dialog"] || false );
+    that.images = ( options["images"] || [] );
+
     this.form = $(form);
     this.add2cart = this.form.find(".add2cart");
     this.button = this.add2cart.find("input[type=submit]");
@@ -34,9 +39,8 @@ function Product(form, options) {
     });
 
     this.form.find(".skus input[type=radio]").click(function () {
-        if ($(this).data('image-id')) {
-            $("#product-image-" + $(this).data('image-id')).click();
-        }
+        var image_id = $(this).data('image-id');
+        that.setImage(image_id);
         if ($(this).data('disabled')) {
             self.button.attr('disabled', 'disabled');
         } else {
@@ -60,9 +64,7 @@ function Product(form, options) {
         });
         var sku = self.features[key];
         if (sku) {
-            if (sku.image_id) {
-                $("#product-image-" + sku.image_id).click();
-            }
+            that.setImage(sku.image_id);
             self.updateSkuServices(sku.id);
             if (sku.available) {
                 self.button.removeAttr('disabled');
@@ -283,7 +285,7 @@ Product.prototype.updatePrice = function (price, compare_price) {
         }
     });
     this.add2cart.find(".price").html(this.currencyFormat(price));
-}
+};
 
 Product.prototype.cartButtonVisibility = function (visible) {
     //toggles "Add to cart" / "%s is now in your shopping cart" visibility status
@@ -307,7 +309,25 @@ Product.prototype.cartButtonVisibility = function (visible) {
                 $('.cart-to-checkout').slideDown(200);
         }
     }
-}
+};
+
+Product.prototype.setImage = function(image_id) {
+    var that = this;
+
+    if (that.is_dialog) {
+        if (that.images) {
+            image_id = (image_id ? image_id : "default");
+            var image = that.images[image_id];
+            if (image) {
+                $("#product-image").attr("src", image.uri_200);
+            }
+        }
+    } else {
+        if (image_id) {
+            $("#product-image-" + image_id).trigger("click");
+        }
+    }
+};
 
 $(function () {
 

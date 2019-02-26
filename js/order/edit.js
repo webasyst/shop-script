@@ -75,6 +75,7 @@ $.order_edit = {
 
     initView: function () {
         var options = this.options;
+
         this.initCustomerForm(this.id ? 'edit' : 'add');
 
         // helpers and handlers here
@@ -922,7 +923,7 @@ $.order_edit = {
                                 }
                             }
                         }
-                        
+
                         el.val(el_selected);
 
                         //If there is a problematic delivery, choose it.
@@ -1169,8 +1170,13 @@ $.order_edit = {
         $('.error').removeClass('error');
         $('#s-order-edit-customer .errormsg').empty();
         if (validate_errors && validate_errors.customer) {
+
             var customer_errors = validate_errors.customer;
             $.order_edit.customer_fields.find('.field-group:first').html(customer_errors.html);
+
+            // Add "confirmed" checkboxes for email and phone
+            $.order_edit.addConfirmedCheckboxes();
+
             delete customer_errors.html;
             for (var customer_field in customer_errors) {
                 $.order_edit.customer_fields.find('.s-error-customer-' + customer_field).each(function () {
@@ -1246,10 +1252,77 @@ $.order_edit = {
         $.order_edit.customer_fields.find('.s-error-customer-name:last').after('<em class="errormsg s-error-customer-name"></em>');
     },
 
+    /**
+     * @param contact_info - initial contact info about statuses to pre fill checkboxes
+     *   If customer_form is not new and statuses already remembered - initial contact info will not be used
+     */
+    addConfirmedCheckboxes: function(contact_info) {
+        var $customer_form = $('#s-order-edit-customer'),
+            $email_field = $customer_form.find('.field-email:eq(0)'),
+            $phone_field = $customer_form.find('.field-phone:eq(0)'),
+            confirmed_str = $_('Confirmed');
+
+        contact_info = contact_info || {};
+
+        var email_confirmed_checkbox_html = '<p><label><input type="checkbox" name="customer[email_confirmed]" {$attr} class="s-confirmation-checkbox">' + confirmed_str + '</p></label>',
+            phone_confirmed_checkbox_html = '<p><label><input type="checkbox" name="customer[phone_confirmed]" {$attr} class="s-confirmation-checkbox">'  + confirmed_str + '</p></label>';
+
+        var is_checked = false;
+
+        // define checked status: from data var or from contact_info
+         if ($customer_form.data('customer[email_confirmed]') !== undefined) {
+            is_checked = !!$customer_form.data('customer[email_confirmed]');
+        } else {
+            is_checked = contact_info.email && $.isArray(contact_info.email) && contact_info.email[0] &&
+            $.isPlainObject(contact_info.email[0]) && contact_info.email[0].status === 'confirmed';
+        }
+
+        if (is_checked) {
+            email_confirmed_checkbox_html = email_confirmed_checkbox_html.replace('{$attr}', 'checked="checked"');
+        } else {
+            email_confirmed_checkbox_html = email_confirmed_checkbox_html.replace('{$attr}', '');
+        }
+
+        // remember initial check status
+        $customer_form.data('customer[email_confirmed]', is_checked);
+
+        // define checked status: from data var or from contact_info
+        if ($customer_form.data('customer[phone_confirmed]') !== undefined) {
+            is_checked = !!$customer_form.data('customer[phone_confirmed]');
+        } else {
+            is_checked = contact_info.phone && $.isArray(contact_info.phone) && contact_info.phone[0] &&
+                $.isPlainObject(contact_info.phone[0]) && contact_info.phone[0].status === 'confirmed';
+        }
+
+        if (is_checked) {
+            phone_confirmed_checkbox_html = phone_confirmed_checkbox_html.replace('{$attr}', 'checked="checked"');
+        } else {
+            phone_confirmed_checkbox_html = phone_confirmed_checkbox_html.replace('{$attr}', '');
+        }
+
+        // remember initial check status
+        $customer_form.data('customer[phone_confirmed]', is_checked);
+
+        $email_field.find('.value').children().first().after(email_confirmed_checkbox_html);
+        $phone_field.find('.value').children().first().after(phone_confirmed_checkbox_html);
+
+        $customer_form.off('click.s-confirmation-checkbox', '.s-confirmation-checkbox')
+            .on('click.s-confirmation-checkbox', '.s-confirmation-checkbox', function () {
+                var $checkbox = $(this),
+                    name = $checkbox.attr('name');
+                // save checked status
+                // cause in validation errors fields of form re-draws but we have to not checked status for this checkboxes
+                $customer_form.data(name, $checkbox.is(':checked'))
+            })
+    },
+
     initCustomerForm: function (editing_mode) {
         editing_mode = typeof editing_mode === 'undefined' ? 'add' : editing_mode;
 
         $.order_edit.bindValidateErrorPlaceholders();
+
+        // Add "confirmed" checkboxes for email and phone
+        $.order_edit.addConfirmedCheckboxes($.extend({}, $.order_edit.options.contact_info || {}));
 
         // editing mode (no autocomplete)
         if (editing_mode !== 'add') {
@@ -1353,10 +1426,18 @@ $.order_edit = {
                 };
 
                 if (item.value) {
-                    $.get('?action=contactForm&id=' + item.value, function (html) {
+                    $.get('?action=contactForm', { id: item.value, get_info: 1, json: 1 }, function (res) {
+
+                        var html = res && res.data && res.data.html ? res.data.html : 'Error on loading contact form',
+                            info = res && res.data && res.data.info ? res.data.info : {};
+
                         $.order_edit.customer_fields.find('.field-group:first').html(html);
                         $.order_edit.customer_inputs = $.order_edit.customer_fields.find(':input');
                         $('#s-customer-id').val(item.value);
+
+                        // Add "confirmed" checkboxes for email and phone
+                        $.order_edit.addConfirmedCheckboxes(info);
+
                         activate();
                         // autocomplete make focus for its input. That brakes out plan!
                         // setTimout-hack for fix it

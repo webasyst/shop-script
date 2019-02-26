@@ -569,7 +569,6 @@ var ShopSettingsCheckout2 = ( function($) {
         
         // Order without auth
         var $order_without_auth_wrapper = that.$confirmation_block.find('.js-order-without-auth-wrapper'),
-            $auth_code_checkbox = $order_without_auth_wrapper.find('.js-auth-with-code').detach(),
             $hint = $order_without_auth_wrapper.find('.js-auth-with-code-hint').detach();
 
         ensureOrderWithoutAuthConsistency();
@@ -588,8 +587,7 @@ var ShopSettingsCheckout2 = ( function($) {
             if ($current_radio.val() == 'confirm_contact') {
                 $current_variant.find('.js-variant-params').html($hint);
             } else {
-                $current_variant.find('.js-variant-params').html($auth_code_checkbox);
-                $auth_code_checkbox.append($hint);
+                $current_variant.append($hint);
             }
             $(window).trigger('scroll');
         }

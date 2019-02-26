@@ -112,20 +112,6 @@
         </form>
     </div>
 
-    {$_channel = [
-        "status" => "error",
-        "required" => "disabled"
-    ]}
-
-    {if !empty($_config.order_without_auth)}
-        {if $_config.order_without_auth === "create_contact" && !empty($_config.auth_with_code)}
-            {$_channel["required"] = "optional"}
-        {/if}
-        {if $_config.order_without_auth === "confirm_contact"}
-            {$_channel["required"] = "required"}
-        {/if}
-    {/if}
-
     <script>
         ( function($) {
             var $step = $("#wa-step-confirm-section"),
@@ -136,13 +122,11 @@
                 controller.initConfirm({
                     $wrapper: $step,
                     errors: {$_errors|json_encode},
-                    channel: {$_channel|json_encode},
                     templates: {
                         terms_dialog: {waUtils::jsonEncode(trim(ifset($_terms_dialog, '')))}
                     },
                     urls: {
-                        "channel_dialog": {$wa->getUrl('shop/frontendOrderConfirmation/defaultDialog')|json_encode},
-                        "channel_confirm": {$wa->getUrl('shop/frontendOrder/confirmationDialog')|json_encode}
+                        "channel_dialog": {$wa->getUrl('shop/frontendOrderConfirmation/defaultDialog/')|json_encode}
                     }
                 });
             });

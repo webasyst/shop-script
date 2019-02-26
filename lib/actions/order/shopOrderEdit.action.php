@@ -84,6 +84,10 @@ class shopOrderEditAction extends waViewAction
             'discount'                     => $order->discount,
             'discount_description'         => $order->discount_description,
             'items_discount'               => $item_discount,
+            'contact_info'                 => array(
+                'email' => $order->contact->get('email'),
+                'phone' => $order->contact->get('phone')
+            ),
         ));
     }
 

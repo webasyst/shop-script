@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Fourth checkout step. Render address fields we didn't receive at Region step.
  * Render custom shipping plugin fields for shipping option selected by user on previous step.
@@ -16,8 +17,8 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
                 'disabled' => true,
             ], $data, []);
             return array(
-                'result' => $result,
-                'errors' => [],
+                'result'       => $result,
+                'errors'       => [],
                 'can_continue' => true,
             );
         }
@@ -25,29 +26,29 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
         // Paranoid checks...
         if (empty($data['shipping']['selected_variant']) || empty($data['shipping']['address']) || empty($data['contact'])) {
             return array(
-                'data' => $data,
-                'result' => $this->addRenderedHtml([], $data, []),
-                'errors' => array(),
+                'data'         => $data,
+                'result'       => $this->addRenderedHtml([], $data, []),
+                'errors'       => array(),
                 'can_continue' => false,
             );
         }
 
         // Previous checkout step - shipping - promises to save selected shipping variant into $data.
         $selected_variant = $data['shipping']['selected_variant'];
-        list($shop_plugin_id, $internal_variant_id) = explode('.', $selected_variant['variant_id'], 2) + [1=>''];
+        list($shop_plugin_id, $internal_variant_id) = explode('.', $selected_variant['variant_id'], 2) + [1 => ''];
 
         // Instantiate proper shipping plugin
         $plugin = $config->getShippingPluginByRate($selected_variant);
         if (!$plugin) {
             $errors[] = [
-                'id' => 'general',
-                'text' => _w('Unknown shipping method.'),
+                'id'      => 'general',
+                'text'    => _w('Unknown shipping method.'),
                 'section' => $this->getId(),
             ];
             return array(
-                'data' => $data,
-                'result' => $this->addRenderedHtml([], $data, $errors),
-                'errors' => $errors,
+                'data'         => $data,
+                'result'       => $this->addRenderedHtml([], $data, $errors),
+                'errors'       => $errors,
                 'can_continue' => false,
             );
         }
@@ -76,7 +77,7 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
             if (is_array($base_value)) {
                 $base_value = '';
             }
-            $base_values[$field_id] = (string) $base_value;
+            $base_values[$field_id] = (string)$base_value;
         }
 
         // Customer-supplied values from POST for shipping address
@@ -103,8 +104,8 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
             if (!empty($field_info['required']) && !strlen($address[$field_id])) {
                 if ($field_info['affects_rate']) {
                     $errors[] = [
-                        'name' => "details[shipping_address][{$field_id}]",
-                        'text' => _w('This field is required.'),
+                        'name'    => "details[shipping_address][{$field_id}]",
+                        'text'    => _w('This field is required.'),
                         'section' => $this->getId(),
                     ];
                 } else {
@@ -156,8 +157,8 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
             if (isset($rates[$selected_variant['variant_id']]['error'])) {
                 // Shipping plugin returned an error
                 $errors[] = [
-                    'id' => 'shipping',
-                    'text' => $rates[$selected_variant['variant_id']]['error'],
+                    'id'      => 'shipping',
+                    'text'    => $rates[$selected_variant['variant_id']]['error'],
                     'section' => $this->getId(),
                 ];
             } elseif (isset($rates[$selected_variant['variant_id']])) {
@@ -185,8 +186,8 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
                     // Shipping plugin didn't return a single final rate.
                     // This is exceptional. This should not happen.
                     $errors[] = [
-                        'id' => 'shipping',
-                        'text' => _w('Unable to calculate a shipping rate.'),
+                        'id'      => 'shipping',
+                        'text'    => _w('Unable to calculate a shipping rate.'),
                         'section' => $this->getId(),
                     ];
                 }
@@ -194,8 +195,8 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
                 // Shipping plugin didn't return rate that user asked for.
                 // This is exceptional. This should not happen.
                 $errors[] = [
-                    'id' => 'shipping',
-                    'text' => _w('Unable to calculate a shipping rate.'),
+                    'id'      => 'shipping',
+                    'text'    => _w('Unable to calculate a shipping rate.'),
                     'section' => $this->getId(),
                 ];
             }
@@ -222,6 +223,25 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
             $data['details']['delayed_errors'] = $delayed_errors;
         }
 
+        $adapter = null;
+        $apikey = null;
+        try {
+            $adapter = wa()->getMap()->getId();
+            if ($adapter === 'yandex') {
+                $apikey = 'apikey';
+            } else {
+                $apikey = 'key';
+            }
+            $apikey = wa()->getMap()->getSettings($apikey);
+        } catch (Exception $e) {
+
+        }
+
+        $map = [
+            'adapter' => $adapter,
+            'api_key' => $apikey
+        ];
+
         return array(
             'data'         => $data,
             'result'       => $this->addRenderedHtml([
@@ -231,6 +251,7 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
                 'plugin_custom_fields_order'    => array_keys($plugin_custom_fields),
                 'preliminary_shipping_rate'     => $selected_variant,
                 'shipping_rate'                 => $updated_selected_variant,
+                'map'                           => $map,
             ], $data, $errors),
             'errors'       => $errors,
             'can_continue' => true,

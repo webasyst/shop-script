@@ -406,14 +406,14 @@
                                     <input value="{$settings.meta_title|default:''|escape}"
                                            id="s-meta-title"
                                            name="meta_title"
-                                           placeholder="{shopCategoryModel::getDefaultMetaTitle($settings)}" class="long bold">
+                                           placeholder="{shopCategoryModel::getDefaultMetaTitle($settings)|escape}" class="long bold">
                                 </div>
                             </div>
                             <div class="field">
                                 <div class="name">[`META Keywords`]</div>
                                 <div class="value">
             <textarea name="meta_keywords"
-                      placeholder="{shopCategoryModel::getDefaultMetaKeywords($settings)}">{$settings.meta_keywords|default:''|escape}</textarea>
+                      placeholder="{shopCategoryModel::getDefaultMetaKeywords($settings)|escape}">{$settings.meta_keywords|default:''|escape}</textarea>
                                 </div>
                             </div>
                             <div class="field">

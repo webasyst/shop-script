@@ -2,19 +2,22 @@
 
 class shopImportexportHelper
 {
+    /** @var string */
+    const PROMO_TYPE_PROMO_CODE = 'code';
+    /** @var string */
+    const PROMO_TYPE_GIFT = 'gift';
+    /** @var string */
+    const PROMO_TYPE_FLASH_DISCOUNT = 'discount';
+    /** @var string */
+    const PROMO_TYPE_N_PLUS_M = 'npm';
+    /** @var string */
 
-    /**
-     * @var shopImportexportModel
-     */
+    /** @var shopImportexportModel */
     private $model;
-    /**
-     * @var string
-     */
+    /** @var string */
     private $plugin;
 
-    /**
-     * @var array
-     */
+    /** @var array available profiles */
     private $collection;
 
     private $name;
@@ -44,34 +47,16 @@ class shopImportexportHelper
         return $config;
     }
 
-    private function getId($id = null)
-    {
-        if (!$id) {
-            if ($raw = waRequest::request('profile')) {
-                if (is_array($raw)) {
-                    $id = intval(ifset($raw['id']));
-                    if (!empty($raw['name'])) {
-                        $this->name = trim($raw['name']);
-                    }
-                } else {
-                    $id = intval($raw);
-                }
-            } elseif (!empty($this->collection)) {
-                reset($this->collection);
-                $id = key($this->collection);
-            }
-        }
-        return $id;
-    }
-
+    /**
+     * @param array $config
+     * @param int   $id
+     * @return bool|int|null|resource|string
+     */
     public function setConfig($config = array(), $id = null)
     {
         $id = $this->getId($id);
         if ($id <= 0) {
-            $name = wa('shop')->getConfig()->getGeneralSettings('name');
-            if (!$name) {
-                $name = date('c');
-            }
+            $name = self::getDefaultName();
             $description = '';
             if (($raw = waRequest::request('profile')) && (is_array($raw))) {
                 if (!empty($raw['name'])) {
@@ -101,10 +86,7 @@ class shopImportexportHelper
     public function addConfig($name = '', $description = '', $config = array())
     {
         if (empty($name)) {
-            $name = wa('shop')->getConfig()->getGeneralSettings('name');
-            if (!$name) {
-                $name = date('c');
-            }
+            $name = self::getDefaultName();
         }
         $data = array(
             'plugin'      => $this->plugin,
@@ -127,6 +109,9 @@ class shopImportexportHelper
         return $this->model->deleteByField($fields);
     }
 
+    /**
+     * @return array of available profiles
+     */
     public function getList()
     {
         if (!isset($this->collection)) {
@@ -149,7 +134,7 @@ class shopImportexportHelper
 
         $info = array(
             'type' => array_shift($raw),
-            'name' => wa('shop')->getConfig()->getGeneralSettings('name'),
+            'name' => self::getDefaultName(),
 
         );
         if (!$info['name']) {
@@ -308,5 +293,124 @@ class shopImportexportHelper
             }
             $profiles->setConfig($raw_profile, $profile_id);
         }
+    }
+
+    /**
+     * @since 8.3.0
+     * @param array $options
+     * @return array
+     */
+    public function getPromoRules($options = array())
+    {
+        $list = array();
+
+        $default_promo = array(
+            'type'              => self::PROMO_TYPE_PROMO_CODE, # promo type
+            'name'              => '', # Public name
+            'description'       => '', # Public description
+            'url'               => '', # Public URL of promo's description
+            'start_datetime'    => null, # Start datetime (unix timestamp)
+            'end_datetime'      => null, # End datetime (unix timestamp)
+            'settings'          => '', # Setup link
+            'source'            => null, # Internal name
+            'hint'              => null, # Internal description
+            'hash'              => '*', # shop products collection hash
+            'promo_code'        => '', # Promo code (for PROMO_TYPE_PROMO_CODE)
+            'discount_unit'     => null, # % symbol o currency ISO3 code (for PROMO_TYPE_PROMO_CODE, PROMO_TYPE_FLASH_DISCOUNT)
+            'discount_value'    => null, # Discount value (for PROMO_TYPE_PROMO_CODE, PROMO_TYPE_FLASH_DISCOUNT)
+            'required_quantity' => 1,  # Minimal required items quantity
+            'free_quantity'     => null, # Free items quantity (for PROMO_TYPE_N_PLUS_M)
+            'gifts_hash'        => null, # shop products collection hash (for PROMO_TYPE_GIFT)
+        );
+
+        # coupons
+        $coupon_model = new shopCouponModel();
+        $coupons = $coupon_model->getActiveCoupons();
+        foreach ($coupons as $id => $coupon) {
+            if ($coupon['type'] != '$FS') {
+                $promo = array(
+                    'type'           => self::PROMO_TYPE_PROMO_CODE,
+                    'name'           => _w('Coupon discount'),
+                    'description'    => sprintf('%s: %s', _w('Coupon discount'), shopCouponsAction::formatValue($coupon)),
+                    'settings'       => sprintf('./#/coupons/%d', $id),
+                    'source'         => _w('Discount coupons'),
+                    'hint'           => $coupon['comment'],
+                    'promo_code'     => $coupon['code'],
+                    'discount_unit'  => $coupon['type'],
+                    'discount_value' => $coupon['value'],
+                    'end_date'       => strtotime($coupon['expire_datetime']),
+                    'start_date'     => strtotime($coupon['create_datetime']),
+                );
+                $promo_id = sprintf('shop.coupons.%s', $id);
+                $list[$promo_id] = $promo + $default_promo;
+            }
+        }
+
+        # plugins
+        $params = array(
+            'plugin' => $this->plugin,
+            'list'   => !empty($options['list']),
+        );
+        /**
+         * @since 8.3.0
+         * @event promo_rules Get all available promo rules
+         * @param mixed[] $params
+         * @param string  $params ['plugin'] Plugin id
+         * @param bool    $params ['list']
+         */
+        $data = wa('shop')->event('promo_rules', $params);
+
+
+        foreach ($data as $plugin => $plugin_data) {
+            $plugin_id = preg_replace('@\-plugin$@', '', $plugin);
+            foreach ($plugin_data as $id => $promo) {
+                $promo_id = sprintf('plugins.%s.%s', $plugin_id, $id);
+                if (empty($promo['settings'])) {
+                    $promo['settings'] = sprintf('?action=plugins#/%s/', $plugin_id);
+                }
+                if (empty($promo['source'])) {
+                    try {
+                        $plugin_instance = wa('shop')->getPlugin($plugin_id);
+                        $promo['source'] = $plugin_instance->getName();
+                    } catch (waException $ex) {
+                        $promo['source'] = $plugin_id;
+                    }
+                }
+                $list[$promo_id] = $promo + $default_promo;
+            }
+        }
+
+        return $list;
+    }
+
+    private function getId($id = null)
+    {
+        if (!$id) {
+            if ($raw = waRequest::request('profile')) {
+                if (is_array($raw)) {
+                    $id = intval(ifset($raw['id']));
+                    if (!empty($raw['name'])) {
+                        $this->name = trim($raw['name']);
+                    }
+                } else {
+                    $id = intval($raw);
+                }
+            } elseif (!empty($this->collection)) {
+                reset($this->collection);
+                $id = key($this->collection);
+            }
+        }
+        return $id;
+    }
+
+    protected static function getDefaultName()
+    {
+        /** @var shopConfig $config */
+        $config = wa('shop')->getConfig();
+        $name = $config->getGeneralSettings('name');
+        if (!$name) {
+            $name = date('c');
+        }
+        return $name;
     }
 }

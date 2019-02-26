@@ -3,6 +3,24 @@
     {$_cart_url = $wa->shop->checkout()->cartUrl()}
 {/if}
 
+{$_is_dialog = false}
+{if $wa->get('cart')}{$_is_dialog = true}{/if}
+
+{* THUMBS *}
+{$_images = []}
+{$_images["default"] = [
+    "id" => "default",
+    "uri_200" => $wa->shop->productImgUrl($product, "200")
+]}
+{if $product.images}
+    {foreach $product.images as $_image}
+        {$_images[$_image.id] = [
+            "id" => $_image.id,
+            "uri_200" => $wa->shop->imgUrl($_image, "200")
+        ]}
+    {/foreach}
+{/if}
+
 <form id="cart-form{if $wa->get('cart')}-dialog{/if}" method="post" action="{$wa->getUrl('/frontendCart/add')}">
 
     <h4>{sprintf('[`Buy %s`]',$product.name|escape)}</h4>
@@ -203,6 +221,8 @@
         $.getScript("{$wa_theme_url}product.js?v{$wa_theme_version}", function() {
             if (typeof Product === "function") {
                 new Product('#cart-form{if $wa->get('cart')}-dialog{/if}', {
+                    is_dialog: {$_is_dialog|json_encode},
+                    images: {if !empty($_is_dialog)}{$_images|json_encode}{else}[]{/if},
                     currency: {json_encode($currency_info)}
                     {if count($product.skus) > 1 or $product.sku_type}
                         ,services: {json_encode($sku_services)}

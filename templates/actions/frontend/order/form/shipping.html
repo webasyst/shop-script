@@ -300,6 +300,14 @@
             {/if}
             {$_map["api_uri"] = $_api_uri}
         {/if}
+
+        {if $shipping.map.adapter === "google"}
+            {$_api_uri = "//maps.googleapis.com/maps/api/js"}
+            {if !empty($shipping.map.api_key)}
+                {$_api_uri = "`$_api_uri`?key=`$shipping.map.api_key`"}
+            {/if}
+            {$_map["api_uri"] = $_api_uri}
+        {/if}
     {/if}
 
     <script>

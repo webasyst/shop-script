@@ -17,8 +17,8 @@
                 <!-- plugin hook: 'backend_customer.action_link' -->
                 {* @event backend_customer.%plugin_id%.action_link *}
                 {if !empty($backend_customer)}{foreach $backend_customer as $_}{if (!empty($_.action_link))}<li>{$_.action_link}</li>{/if}{/foreach}{/if}
-                <li><a href="{$contacts_url}#/contact/{$contact.id}/contact/edit"><i class="icon16 edit"></i>[`Edit contact`]</a></li>
-                <li><a href="{$contacts_url}#/contact/{$contact.id}/contact/delete"><i class="icon16 delete"></i>[`Delete contact`]</a></li>
+                <li><a href="{$wa->shop->backendContactUrl($contact.id, 'edit')}"><i class="icon16 edit"></i>[`Edit contact`]</a></li>
+                <li><a href="{$wa->shop->backendContactUrl($contact.id, 'delete')}"><i class="icon16 delete"></i>[`Delete contact`]</a></li>
             </ul>
         </div>
 
@@ -97,13 +97,11 @@
                     <img src="{$contact.photo}" class="userpic">
                 </div>
                 <div class="details">
-                    <ul class="menu-v with-icons compact">
-                        {if $top}
-                            {foreach from=$top item=top_field}
-                                <li>{if $top_field.id != 'im'}<i class="icon16 {$top_field.id}"></i>{/if}{$top_field.value}</li>
-                            {/foreach}
-                        {/if}
-                    </ul>
+                    {include file="./include.top_fields.html"
+                        top=$top
+                        similar_contacts=$similar_contacts
+                        need_other_values=true
+                    inline}
                     <p></p>
                 </div>
             </div>
