@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="clear" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:clear" version="1.1.11">
+<theme id="clear" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:clear" version="1.2.0">
     <name locale="en_US">Clear</name>
     <name locale="ru_RU">Clear</name>
     <files>
@@ -8,7 +8,7 @@
         </file>
         <file path="clear.css" parent="1">
         </file>
-        <file path="clear.shop.css">
+        <file path="css/clear.shop.css">
             <description locale="en_US">Core storefront CSS</description>
             <description locale="ru_RU">Основной CSS интернет-магазина</description>
         </file>
@@ -156,6 +156,13 @@
             <description locale="en_US">Reviews JS</description>
             <description locale="ru_RU">Скрипты отзывов</description>
         </file>
+
+        <file path="css/order.css">
+        </file>
+        <file path="js/order.js">
+        </file>
+        <file path="order.html">
+        </file>
     </files>
     <about locale="en_US">
 <![CDATA[
@@ -174,6 +181,11 @@
 ]]>
     </about>
     <settings>
+        <setting var="shop_divider_1" control_type="group_divider">
+            <value></value>
+            <name locale="en_US">Shop settings</name>
+            <name locale="ru_RU">Настройки магазина</name>
+        </setting>
         <setting var="ajax_filters" control_type="checkbox">
             <value>1</value>
             <name locale="en_US">AJAX-enabled product by-feature filtering</name>
@@ -192,4 +204,10 @@
         <thumb>400</thumb>
         <thumb>970</thumb>
     </thumbs>
+    <locales>
+        <locale>
+            <msgid>Delete all products</msgid>
+            <msgstr locale="ru_RU">Удалить все товары</msgstr>
+        </locale>
+    </locales>
 </theme>

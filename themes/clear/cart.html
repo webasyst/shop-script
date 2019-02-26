@@ -33,7 +33,7 @@
                         <div class="col w1 item-thumb"><a href="{$wa->shop->productUrl($item.product)}" title="{$item.product.name|escape}">{$wa->shop->productImgHtml($item.product, '48x48', ['default' => "`$wa_theme_url`img/dummy48.png"])}</a>&nbsp;</div>
                         <div class="col w9 item-name">
                             <a href="{$wa->shop->productUrl($item.product)}" class="bold">{$item.product.name|escape}</a>
-                            {if $item.sku_name && $item.sku_name != $item.product.name}{$item.sku_name|escape}{/if}
+                            {if isset($item.sku_name) && strlen($item.sku_name) && $item.sku_name != $item.product.name}{$item.sku_name|escape}{/if}
                         </div>
                         <div class="col w2 item-qty align-center nowrap"><span class="gray">&times;</span> <input type="text" name="quantity[{$item.id}]" value="{$item.quantity}" class="qty{if !empty($item.error)} error{/if}"></div>
                         <div class="col w1 item-remove"><a class="delete" href="#" title="[`Remove from cart`]"><i class="icon16 remove"></i></a></div>                        

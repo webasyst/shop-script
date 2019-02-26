@@ -1,3 +1,8 @@
+{$_cart_url = $wa->getUrl('shop/frontend/cart')}
+{if method_exists($wa->shop, 'checkout')}
+    {$_cart_url = $wa->shop->checkout()->cartUrl()}
+{/if}
+
 <form id="cart-form{if $wa->get('cart')}-dialog{/if}" method="post" action="{$wa->getUrl('/frontendCart/add')}">
 
     <!-- sku -->
@@ -152,7 +157,7 @@
                             &times; <input type="text" name="quantity" value="1">
                         </span>
             <input type="submit" {if !$product_available}disabled="disabled"{/if} value="[`Add to cart`]">
-            <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $product.name|escape, $wa->getUrl('shop/frontend/cart'))}</span>
+            <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $product.name|escape, $_cart_url)}</span>
         </div>
 
     </div>

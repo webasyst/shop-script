@@ -9,14 +9,132 @@
         <a href=":url" title=":title">:name</a>' collapsible_class='collapsible' selected=$wa->param('page_id')}
         </div>
     {/if}
-    
+
+    {if !empty($theme_settings.use_shop_schedule) && method_exists($wa->shop, 'schedule')}
+        {$_schedule = $wa->shop->schedule()}
+
+        <div class="float-right schedule">
+            <div class="s-schedule-wrapper" id="js-home-schedule-wrapper">
+                <div class="s-visible">
+                    <div class="s-label-wrapper js-show-schedule" title="{_wd("shop", "Business hours")}">
+                        {_wd("shop", "Business hours")} <i class="s-icon"></i>
+                    </div>
+                </div>
+                <div class="s-hidden bottom right">
+                    <div class="s-days-wrapper">
+                        {foreach $_schedule.current_week as $_day}
+                            <div class="s-day-wrapper">
+                                <div class="s-date">{$_day.name|escape}</div>
+                                <div class="s-value">
+                                    {if !empty($_day.work)}
+                                        <div class="s-time">{$_day.start_work|escape} — {$_day.end_work|escape}</div>
+                                    {else}
+                                        <div class="s-text">{_wd("shop", "day off")}</div>
+                                    {/if}
+                                </div>
+                            </div>
+                        {/foreach}
+                    </div>
+                    <i class="s-close-icon js-close-schedule" title="[`Close`]"></i>
+                </div>
+                <script>
+                    ( function($) {
+
+                        var ScheduleSection = ( function($) {
+
+                            ScheduleSection = function(options) {
+                                var that = this;
+
+                                // DOM
+                                that.$wrapper = options["$wrapper"];
+
+                                // VARS
+
+                                // DYNAMIC VARS
+
+                                // INIT
+                                that.initClass();
+                            };
+
+                            ScheduleSection.prototype.initClass = function() {
+                                var that = this,
+                                    $wrapper = that.$wrapper;
+
+                                var open_class = "is-open";
+
+                                $wrapper.on("click", ".js-show-schedule", function(event) {
+                                    event.preventDefault();
+                                    $wrapper.toggleClass(open_class);
+                                });
+
+                                $wrapper.on("click", ".js-close-schedule", function(event) {
+                                    event.preventDefault();
+                                    $wrapper.removeClass(open_class);
+                                });
+
+                                $(document).on("click", clickWatcher);
+                                function clickWatcher(event) {
+                                    var is_exist = $.contains(document, $wrapper[0]);
+                                    if (is_exist) {
+                                        var is_target = $.contains($wrapper[0], event.target);
+                                        if (!is_target) {
+                                            if ($wrapper.hasClass(open_class)) {
+                                                $wrapper.removeClass(open_class);
+                                            }
+                                        }
+                                    } else {
+                                        $(document).off("click", clickWatcher);
+                                    }
+                                }
+
+                                $(document).on("keyup", keyWatcher);
+                                function keyWatcher(event) {
+                                    var is_exist = $.contains(document, $wrapper[0]);
+                                    if (is_exist) {
+                                        var is_escape = (event.keyCode === 27);
+                                        if (is_escape) {
+                                            if ($wrapper.hasClass(open_class)) {
+                                                $wrapper.removeClass(open_class);
+                                            }
+                                        }
+                                    } else {
+                                        $(document).off("click", keyWatcher);
+                                    }
+                                }
+                            };
+
+                            return ScheduleSection;
+
+                        })($);
+
+                        new ScheduleSection({
+                            $wrapper: $("#js-home-schedule-wrapper")
+                        });
+                    })(jQuery);
+                </script>
+            </div>
+        </div>
+    {elseif !empty($theme_settings.manual_schedule)}
+        {strip}
+        <div class="float-right schedule">
+            <div class="s-schedule-wrapper">
+                <div class="s-visible">
+                    <div class="s-label-wrapper">
+                        <span class="s-text">{$theme_settings.manual_schedule|escape}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {/strip}
+    {/if}
+
     <!-- phone number -->
     {if $wa->shop->settings('phone')}
         <div class="float-right static-text">
             {$wa->shop->settings('phone')}
         </div>
-    {/if}    
-    
+    {/if}
+
     {if isset($category)}{$selected_category=$category.id}{else}{$selected_category=null}{/if}
     {$categories = $wa->shop->categories(0, null, true)}
     <ul class="menu-h dropdown">
@@ -26,7 +144,7 @@
             {wa_print_tree tree=$categories selected=$selected_category unfolded=true collapsible_class='collapsible' class="menu-v category-tree" elem ='<a href=":url" title=":name">:name</a>'}
         </li>
         {if $cloud = $wa->shop->tags()}
-            <!-- tags -->            
+            <!-- tags -->
             <li class="collapsible">
                 <a href="#" onClick="return false">[`Tags`]</a>
                 <div class="inner shadowed">
@@ -46,7 +164,7 @@
                     {if substr($_key, -7) == '-plugin'}{$wa->pluginName(substr($_key, 0, -7))}{else}[`More`]{/if}
                 </a>
                 <div class="inner">
-                    {$_}          
+                    {$_}
                 </div>
             </li>
         {/foreach}
@@ -62,8 +180,8 @@
             </div>
         </li>
         {/foreach}
-    </ul>    	
-	
+    </ul>
+
 	<div class="clear-both"></div>
-	
+
 </div>
