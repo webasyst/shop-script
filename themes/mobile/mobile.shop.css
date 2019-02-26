@@ -897,6 +897,9 @@ input[type="radio"] {
 .wa-shop-wrapper .product-page-wrapper .tab-content-wrapper .tab-content-item.is-shown {
   display: block;
 }
+.wa-shop-wrapper .product-page-wrapper .tab-content-wrapper .tab-content-item img {
+  max-width: 100%;
+}
 .wa-shop-wrapper .product-page-wrapper .rating-text .star,
 .wa-shop-wrapper .product-page-wrapper .rating-text .star-half,
 .wa-shop-wrapper .product-page-wrapper .rating-text .star-full,
