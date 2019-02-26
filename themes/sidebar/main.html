@@ -1,38 +1,43 @@
 <!-- plugin hook: 'frontend_header' -->
 {* @event frontend_header.%plugin_id% *}
-{foreach $frontend_header as $_}{$_}{/foreach}            
+{foreach $frontend_header as $_}{$_}{/foreach}
+
+{$_cart_url = $wa->getUrl('shop/frontend/cart')}
+{if method_exists($wa->shop, 'checkout')}
+    {$_cart_url = $wa->shop->checkout()->cartUrl()}
+{/if}
 
 {if !$wa->globals('isMyAccount')}
     <nav class="app-navigation" role="navigation">
-       
+
         <!-- cart -->
         {$cart_total = $wa->shop->cart->total()}
         <div id="cart" class="float-right{if !$cart_total} empty{/if}">
             <i class="icon16 cart"></i>
-            <a href="{$wa->getUrl('shop/frontend/cart')}" class="cart-total">
+            <a href="{$_cart_url}" class="cart-total">
                 {wa_currency_html($cart_total, $wa->shop->currency())}
             </a>
         </div>
-        
+
         <!-- product search -->
         <form method="get" action="{$wa->getUrl('shop/frontend/search')}" class="search float-right">
             <input type="search" name="query" {if !empty($query)}value="{$query}"{/if} id="search" placeholder="[s`Find products`]">
         </form>
-        
+
         {if $shop_pages = $wa->shop->pages()}
             <ul class="menu-h dropdown">
-            
-                <!-- static page list -->                
+
+                <!-- static page list -->
                 {foreach $shop_pages as $page}
                     <li{if strlen($page.url)>1 && $wa->currentUrl()|strstr:$page.url} class="selected"{/if}><a href="{$page.url}">{$page.name}</a></li>
-                {/foreach}        
-            
+                {/foreach}
+
             </ul>
         {/if}
-    	
+
     </nav>
 {/if}
-   
+
 <div class="container">
     <main class="content">
         <!-- integrnal navigation breadcrumbs -->
@@ -49,7 +54,7 @@
                 {/foreach}
             </div>
         {/if}
-        {$content}  
+        {$content}
     </main>
 </div>
 

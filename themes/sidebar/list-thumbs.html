@@ -1,5 +1,10 @@
 <!-- products thumbnail list view -->
 
+{$_cart_url = $wa->getUrl('shop/frontend/cart')}
+{if method_exists($wa->shop, 'checkout')}
+    {$_cart_url = $wa->shop->checkout()->cartUrl()}
+{/if}
+
 {if !empty($sorting)}
     <!-- sorting -->
     {$sort_fields = [
@@ -54,7 +59,7 @@
                     <input type="hidden" name="product_id" value="{$p.id}">
                     <input type="submit" value="{if !$wa->shop->cart->total()}[`Buy now`]{else}[`Add to cart`]{/if}">
                     <i class="adding2cart"></i>
-                    <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $p.name, $wa->getUrl('shop/frontend/cart'))}</span>
+                    <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $p.name, $_cart_url)}</span>
                 </form>
                 <link itemprop="availability" href="http://schema.org/InStock" />
             {else}
