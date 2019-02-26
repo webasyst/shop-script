@@ -1,3 +1,8 @@
+{$_cart_url = $wa->getUrl('shop/frontend/cart')}
+{if method_exists($wa->shop, 'checkout')}
+    {$_cart_url = $wa->shop->checkout()->cartUrl()}
+{/if}
+
 <form id="cart-form{if $wa->get('cart')}-dialog{/if}" method="post" action="{$wa->getUrl('/frontendCart/add')}">
 
     {if !empty($product.summary)}
@@ -78,37 +83,41 @@
     {if $product_available || count($product.skus) > 1}
     <div class="stocks">
         {function name=in_stock n=0 low=5 critical=2}
-        {if $n > $low or $n === null}
-        <strong class="stock-high"><i class="icon16 stock-green"></i>[`In stock`]</strong>
-        {elseif $n > $critical}
-        <strong class="stock-low"><i class="icon16 stock-yellow"></i>{_w("Only %d left in stock", "Only %d left in stock", $n)}</strong>
-        {elseif $n > 0}
-        <strong class="stock-critical"><i class="icon16 stock-red"></i>{_w("Only %d left in stock", "Only %d left in stock", $n)}</strong>
-        {else}
-        <strong class="stock-none"><i class="icon16 stock-transparent"></i>{if $wa->shop->settings('ignore_stock_count')}[`Pre-order only`]{else}[`Out of stock`]{/if}</strong>
-        {/if}
+            {if $n > $low or $n === null}
+                <strong class="stock-high"><i class="icon16 stock-green"></i>[`In stock`]</strong>
+            {elseif $n > $critical}
+                <strong class="stock-low"><i class="icon16 stock-yellow"></i>{_w("Only %d left in stock", "Only %d left in stock", $n)}
+                </strong>
+            {elseif $n > 0}
+                <strong class="stock-critical"><i class="icon16 stock-red"></i>{_w("Only %d left in stock", "Only %d left in stock", $n)}
+                </strong>
+            {else}
+                <strong class="stock-none"><i class="icon16 stock-transparent"></i>{if $wa->shop->settings('ignore_stock_count')}[`Pre-order only`]{else}[`Out of stock`]{/if}
+                </strong>
+            {/if}
         {/function}
         {foreach $product.skus as $sku}
-        <div {if $sku.id != $product.sku_id}style="display:none"{/if} class="sku-{$sku.id}-stock">
-        {if $sku.stock}
-        {foreach $stocks as $stock_id => $stock}
-        {if isset($sku.stock[$stock_id])}
-        {$stock_count = $sku.stock[$stock_id]}
-        {else}
-        {$stock_count = null}
-        {/if}
-        {$stock.name}: {in_stock n=$stock_count low=$stock.low_count critical=$stock.critical_count}<br>
+            <div {if $sku.id != $product.sku_id}style="display:none"{/if} class="sku-{$sku.id}-stock">
+                {if $sku.stock}
+                    {foreach $stocks as $stock_id => $stock}
+                        {if isset($sku.stock[$stock_id])}
+                            {$stock_count = $sku.stock[$stock_id]}
+                        {else}
+                            {$stock_count = null}
+                        {/if}
+                        {$stock.name}: {in_stock n=$stock_count low=$stock.low_count critical=$stock.critical_count}
+                        <br>
+                    {/foreach}
+                {else}
+                    {in_stock n=$sku.count}
+                {/if}
+            </div>
         {/foreach}
-        {else}
-        {in_stock n=$sku.count}
+        {if $product.sku_type}
+            <div class="sku-no-stock">
+                <strong class="stock-none">[`Product with the selected option combination is not available for purchase`]</strong>
+            </div>
         {/if}
-    </div>
-    {/foreach}
-    {if $product.sku_type}
-    <div class="sku-no-stock">
-        <strong class="stock-none">[`Product with the selected option combination is not available for purchase`]</strong>
-    </div>
-    {/if}
     </div>
     {/if}
 
@@ -145,7 +154,7 @@
                             &times; <input type="text" name="quantity" value="1">
                         </span>
             <input type="submit" {if !$product_available}disabled="disabled"{/if} value="[`Add to cart`]">
-            <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $product.name|escape, $wa->getUrl('shop/frontend/cart'))}</span>
+            <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $product.name|escape, $_cart_url)}</span>
         </div>
 
     </div>
