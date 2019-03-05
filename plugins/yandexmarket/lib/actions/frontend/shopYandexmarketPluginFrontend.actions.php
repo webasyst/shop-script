@@ -14,7 +14,7 @@ class shopYandexmarketPluginFrontendActions extends waActions
         list($path, $profile_id) = $plugin->getInfoByHash(waRequest::param('hash'));
         if ($profile_id) {
             $profile = $profile_helper->getConfig($profile_id);
-            if (!$profile) {
+            if (empty($profile) || empty($profile['id'])) {
                 throw new waException('Profile not found', 404);
             }
             $lifetime = max(0, ifset($profile['config']['lifetime'], 0));

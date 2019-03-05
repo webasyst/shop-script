@@ -1,5 +1,6 @@
 {strip}
-<div class="block double-padded" id="s-yandexmarket-form">
+
+<div class="block double-padded ymarket-setup-page" id="s-yandexmarket-form">
     <p>Экспорт каталога товаров в формате YML, прием заказов (CPC, CPA)</p>
     <div class="block">
         <a href="https://www.shop-script.ru/help/276/shop-script-5-yandexmarket/" target="_blank" class="underline">
@@ -70,7 +71,7 @@
         </div>
 
         <div class="field-group block top-padded">
-            <h2 class="gray">1. Данные магазина</h2>
+            <h2>1. Данные магазина</h2>
             <div class="field">
                 <div class="name">Название магазина</div>
                 <div class="value">
@@ -100,7 +101,7 @@
         </div>
 
         <div class="field-group block top-padded">
-            <h2 class="gray">2. Настройки URL</h2>
+            <h2>2. Настройки URL</h2>
 
             <div class="field">
                 <div class="name">
@@ -184,11 +185,11 @@
 
         <div class="clear-left"></div>
     <div class="field-group block top-padded">
-        <h2 class="gray">3. Экспорт товаров</h2>
+        <h2>3. Экспорт товаров</h2>
         {$hash = $profile.config.hash}
 {*BEGIN*}
 
-        {*
+{*
 @var array $set array of available sets
 @var array $types array of available product types
 @var array $hint array of hash hints
@@ -273,7 +274,7 @@
                 <p class="hint"><i class="icon10 exclamation"></i> Если товар не принадлежит ни к одной категории, то он не будет экспортирован в YML-файл.</p>
             </div>
 
-    
+
 
             <div class="value">
                 <label><input type="checkbox" name="trace" value="1"{if !empty($trace)} checked="checked"{/if}>&nbsp;<span class="hint">Логировать предложения, не попавшие в выгрузку, в файл <tt>wa-log/shop/plugins/yandexmarket/export.trace.{$profile.id}.log</tt>.</span></label>
@@ -410,7 +411,7 @@
     </div>
 
     <div class="field-group block top-padded">
-        <h2 class="gray">4. Общие параметры доставки</h2>
+        <h2>4. Общие параметры доставки</h2>
         <div class="field">
             <div class="name">
                 Покупка в офлайне
@@ -518,7 +519,7 @@
     </div>
 
     <div class="block top-padded">
-        <h2 class="gray">5. Условия доставки (домашний регион)</h2>
+        <h2>5. Условия доставки (домашний регион)</h2>
 
         <div class="field">
             <div class="name">Доставка включена</div>
@@ -535,7 +536,7 @@
     </div>
 
     <div class="field-group block top-padded">
-        <h2 class="gray">6. Экспорт характеристик товаров</h2>
+        <h2>6. Экспорт характеристик товаров</h2>
         <p class="hint">Базовое соответствие характеристик магазина параметрам товарных предложений «Яндекс.Маркета». Для отдельных групп товарных предложений «Яндекс.Маркета» можно ниже задать дополнительные правила соответствий.</p>
         {if !empty($custom_map)}
             <p class="hint">
@@ -577,7 +578,7 @@
                 {$map=$type_info.fields}
                 {$_params=false}
                 <div class="field-group" style="margin-top: 30px;">
-                    <h3 class="gray"><label>{*3.{$type_info@iteration-1}. *}<input type="checkbox" class="js-types" value="{$type_id}"{if !empty($types_map[$type_id])} checked="checked"{/if}> {$type_info.name|escape}</label></h3>
+                    <h3><label>{*3.{$type_info@iteration-1}. *}<input type="checkbox" class="js-types" value="{$type_id}"{if !empty($types_map[$type_id])} checked="checked"{/if}> {$type_info.name|escape}</label></h3>
 
                     <div class="field">
                         <div class="name">Типы товаров, относящиеся к этой группе товарных предложений «Яндекс.Маркета»</div>
@@ -621,6 +622,87 @@
             {/if}
         {/foreach}
     </div>
+
+    <section class="field-group block top-padded ymarket-promos-section">
+        <h2>7. Промоакции</h2>
+        <p class="hint">Информация о промоакциях появляется из 2 источников: из Shop-Script и из специальных плагинов. Описание экспорта промоакций и список подходящих плагинов смотрите в <a href="https://support.webasyst.ru/shop-script/276/shop-script-5-yandexmarket/#promo" target="_blank">инструкции</a>. Включите доступные промоакции в списке ниже.</p>
+        {if !isset($promo_rules)}
+            <p><i class="icon16 no"></i>Текущая версия Shop-Script не поддерживает промоакции.</p>
+        {elseif empty($promo_rules)}
+            <p><i class="icon16 exclamation"></i>Нет доступных промоакций.</p>
+        {else}
+
+            {$_flash_discount = []}
+            {$_gift = []}
+            {$_promo_code = []}
+            {$_n_plus_m = []}
+            {foreach $promo_rules as $id =>  $promo}
+                {if $promo.type eq shopImportExportHelper::PROMO_TYPE_FLASH_DISCOUNT}
+                    {capture append="_flash_discount"}{include file="./promoRule.html" inline}{/capture}
+                {/if}
+                {if $promo.type eq shopImportExportHelper::PROMO_TYPE_GIFT}
+                    {capture append="_gift"}{include file="./promoRule.html" inline}{/capture}
+                {/if}
+                {if $promo.type eq shopImportExportHelper::PROMO_TYPE_PROMO_CODE}
+                    {capture append="_promo_code"}{include file="./promoRule.html" promo_name="`$promo.promo_code`" inline}{/capture}
+                {/if}
+                {if $promo.type eq shopImportExportHelper::PROMO_TYPE_N_PLUS_M}
+                    {capture append="_n_plus_m"}{include file="./promoRule.html" inline}{/capture}
+                {/if}
+            {/foreach}
+
+            <div class="field s-promo-section">
+                <div class="name">Специальная цена</div>
+                <div class="value">
+                    {if !empty($_flash_discount)}
+                        <table class="zebra">{$_flash_discount|join:""}</table>
+                    {else}
+                        <p>Промоакции со специальными ценами не найдены.</p>
+                        <p class="hint">Для работы акций типа «Специальная цена» нужно установить и настроить плагин, который обеспечивает такую функциональность.</p>
+                    {/if}
+                </div>
+            </div>
+
+            <div class="field s-promo-section">
+                <div class="name">Подарки</div>
+                <div class="value">
+                    {if !empty($_gift)}
+                        <table class="zebra">{$_gift|join:""}</table>
+                    {else}
+                        <p>Промоакции с подарками не найдены.</p>
+                        <p class="hint">Для работы акций типа «Подарок» нужно установить и настроить плагин, который обеспечивает такую функциональность.</p>
+                    {/if}
+                </div>
+            </div>
+
+            <div class="field s-promo-section">
+                <div class="name">Промокоды</div>
+                <div class="value">
+                    {if !empty($_promo_code)}
+                        <table class="zebra">{$_promo_code|join:""}</table>
+                    {else}
+                        <p>Промоакции с промокодами не найдены.</p>
+                        <p class="hint">Для работы акций типа «Подарок» нужно установить и настроить плагин, который обеспечивает такую функциональность, или настроить купоны на скидку.</p>
+                    {/if}
+                </div>
+            </div>
+
+            <div class="field s-promo-section">
+                <div class="name">
+                    <div style="margin: 0 0 .5em;">N + M</div>
+                    <p class="hint">При покупке N товаров M таких же товаров бесплатно.</p>
+                </div>
+                <div class="value">
+                    {if !empty($_n_plus_m)}
+                        <table class="zebra">{$_n_plus_m|join:""}</table>
+                    {else}
+                        <p>Промоакции типа «N + M» не найдены.</p>
+                        <p class="hint">Для работы акций типа «N + M» нужно установить и настроить плагин, который обеспечивает такую функциональность.</p>
+                    {/if}
+                </div>
+            </div>
+        {/if}
+    </section>
     <div class="clear-left"></div>
 
     <div class="field-group" id="plugin-yandexmarket-submit">
@@ -668,24 +750,153 @@
 </div>
 
 <div class="clear"></div>
+
 {/strip}
-<script type="text/javascript">
+
+<script>
     if ($.importexport.plugins.yandexmarket) {
         $.importexport.plugins.yandexmarket.init({$params|json_encode});
-    } else {
 
-        $.getScript('{$wa_app_static_url}plugins/yandexmarket/js/yandexmarket.js',function(){
+    } else {
+        $.getScript('{$wa_app_static_url}plugins/yandexmarket/js/yandexmarket.js', function () {
             $.importexport.plugins.yandexmarket.init({$params|json_encode});
         });
     }
+
     {* generic code for plugins with profiles support *}
     $.importexport.profiles.set('yandexmarket',{$profiles|json_encode});
+
+    {* Smart loader for sources *}
+    (function ($) {
+
+        load([
+            {
+                id: "wa-plugin-yandexmarket-css",
+                type: "css",
+                uri: "{$wa_app_static_url}plugins/yandexmarket/css/yandexmarket.css"
+            }
+        ]).then();
+
+        function load(sources) {
+            var deferred = $.Deferred();
+
+            loader(sources).then(function () {
+                deferred.resolve();
+            }, function (bad_sources) {
+                if (console && console.error) {
+                    console.error("Error loading resource", bad_sources);
+                }
+                deferred.reject(bad_sources);
+            });
+
+            return deferred.promise();
+
+            function loader(sources) {
+                var deferred = $.Deferred(),
+                    counter = sources.length;
+
+                var bad_sources = [];
+
+                $.each(sources, function (i, source) {
+                    switch (source.type) {
+                        case "css":
+                            loadCSS(source).then(onLoad, onError);
+                            break;
+                        case "js":
+                            loadJS(source).then(onLoad, onError);
+                            break;
+                    }
+                });
+
+                return deferred.promise();
+
+                function loadCSS(source) {
+                    var deferred = $.Deferred(),
+                        promise = deferred.promise();
+
+                    var $link = $("#" + source.id);
+                    if ($link.length) {
+                        promise = $link.data("promise");
+
+                    } else {
+                        $link = $("<link />", {
+                            id: source.id,
+                            rel: "stylesheet"
+                        }).appendTo("head")
+                            .data("promise", promise);
+
+                        $link
+                            .on("load", function () {
+                                deferred.resolve(source);
+                            }).on("error", function () {
+                            deferred.reject(source);
+                        });
+
+                        $link.attr("href", source.uri);
+                    }
+
+                    return promise;
+                }
+
+                function loadJS(source) {
+                    var deferred = $.Deferred(),
+                        promise = deferred.promise();
+
+                    var $script = $("#" + source.id);
+                    if ($script.length) {
+                        promise = $script.data("promise");
+
+                    } else {
+                        var script = document.createElement("script");
+                        document.getElementsByTagName("head")[0].appendChild(script);
+
+                        $script = $(script)
+                            .attr("id", source.id)
+                            .data("promise", promise);
+
+                        $script
+                            .on("load", function () {
+                                deferred.resolve(source);
+                            }).on("error", function () {
+                            deferred.reject(source);
+                        });
+
+                        $script.attr("src", source.uri);
+                    }
+
+                    return promise;
+                }
+
+                function onLoad(source) {
+                    counter -= 1;
+                    watcher();
+                }
+
+                function onError(source) {
+                    bad_sources.push(source);
+                    counter -= 1;
+                    watcher();
+                }
+
+                function watcher() {
+                    if (counter === 0) {
+                        if (!bad_sources.length) {
+                            deferred.resolve();
+                        } else {
+                            deferred.reject(bad_sources);
+                        }
+                    }
+                }
+            }
+        }
+
+    })(jQuery);
 </script>
 
-{foreach $smarty.capture as $name => $template} {if strpos($name,'template-js')}
-    <!-- begin {$name} -->
-    <script type="text/x-jquery-tmpl" id="{$name}">
-{$template|regex_replace:'@(^.*-->)|(<!\-\-.*$)@m':''|replace:'</':'<\/'}
-</script>
-    <!-- end {$name} -->
-{/if} {/foreach}
+{foreach $smarty.capture as $name => $template}
+    {if strpos($name,'template-js')}
+        <!-- begin {$name} -->
+        <script type="text/x-jquery-tmpl" id="{$name}">{$template|regex_replace:'@(^.*-->)|(<!\-\-.*$)@m':''|replace:'</':'<\/'}</script>
+        <!-- end {$name} -->
+    {/if}
+{/foreach}

@@ -3,9 +3,7 @@
 class shopYandexmarketPluginSettingsActions extends waViewActions
 {
     private $plugin_id = 'yandexmarket';
-    /**
-     * @var shopYandexmarketPlugin
-     */
+    /** @var shopYandexmarketPlugin */
     private $plugin;
 
     protected function preExecute()
@@ -202,7 +200,7 @@ class shopYandexmarketPluginSettingsActions extends waViewActions
             $address = $address['data'];
         }
         $shipping_methods = shopHelper::getShippingMethods($address, $items, $shipping_params);
-        $shipping_methods = array_filter($shipping_methods, create_function('$m', 'return empty($m["external"]);'));
+        $shipping_methods = array_filter($shipping_methods, wa_lambda('$m', 'return empty($m["external"]);'));
         return $shipping_methods;
     }
 

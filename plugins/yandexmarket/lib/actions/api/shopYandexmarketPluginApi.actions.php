@@ -4,9 +4,7 @@ class shopYandexmarketPluginApiActions extends waActions
 {
     private $format = 'application/json';
 
-    /**
-     * @var array
-     */
+    /** @var array */
     private $campaign;
     private static $templates = array(
         'shipping' => 'shipping.%s.%s',

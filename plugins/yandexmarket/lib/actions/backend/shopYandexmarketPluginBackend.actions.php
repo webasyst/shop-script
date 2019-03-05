@@ -3,13 +3,15 @@
 class shopYandexmarketPluginBackendActions extends waViewActions
 {
     private $plugin_id = 'yandexmarket';
+    /** @var shopImportexportHelper */
+    private $profile_helper = null;
 
     private function getProfile()
     {
-        $profile_helper = new shopImportexportHelper($this->plugin_id);
-        $this->view->assign('profiles', $list = $profile_helper->getList());
+        $this->profile_helper = new shopImportexportHelper($this->plugin_id);
+        $this->view->assign('profiles', $list = $this->profile_helper->getList());
 
-        $profile = $profile_helper->getConfig();
+        $profile = $this->profile_helper->getConfig();
 
         $profile['config'] += array(
             'profile_id'   => $profile['id'],
@@ -66,6 +68,12 @@ class shopYandexmarketPluginBackendActions extends waViewActions
         $this->view->assign('company_phone', ifempty($profile['config']['company_phone']));
         $this->view->assign('default_phone', $config->getGeneralSettings('phone'));
 
+        $app_settings_model = new waAppSettingsModel();
+        $app_settings = array(
+            'ignore_stock_count' => $app_settings_model->get('shop', 'ignore_stock_count', 0),
+        );
+        $this->view->assign('app_settings', $app_settings);
+
         $type_model = new shopTypeModel();
         $this->view->assign('types', $type_model->getAll());
         $profile_map = ifset($profile['config']['map'], array());
@@ -85,6 +93,10 @@ class shopYandexmarketPluginBackendActions extends waViewActions
                 }
                 if (!empty($type_map['fields']['param.*'])) {
                     $params[$type] = -1;
+                }
+                if (isset($type_map['fields']['available']) && !empty($app_settings['ignore_stock_count'])) {
+                    $type_map['fields']['available']['description'] .= "\n";
+                    $type_map['fields']['available']['description'] .= 'Покупатель может оформить заказ, даже если товара нет в наличии — рекомендуется выбрать фиксированне значение true';
                 }
                 unset($type_map);
             }
@@ -113,11 +125,6 @@ class shopYandexmarketPluginBackendActions extends waViewActions
 
         $this->view->assign('types_map', ifset($profile['config']['types'], array()));
 
-        $app_settings_model = new waAppSettingsModel();
-        $app_settings = array(
-            'ignore_stock_count' => $app_settings_model->get('shop', 'ignore_stock_count', 0),
-        );
-        $this->view->assign('app_settings', $app_settings);
         $cron_template = 'php %s/cli.php shop yandexmarketPluginExport %d';
         $this->view->assign('cron_command', sprintf($cron_template, wa()->getConfig()->getRootPath(), $profile['id']));
 
@@ -132,7 +139,7 @@ class shopYandexmarketPluginBackendActions extends waViewActions
             'file_name'   => _w('Attachment'),
             'count'       => _w('In stock'),
             'type_id'     => _w('Product type'),
-            'tax_id'     => _w('Tax rates'),
+            'tax_id'      => _w('Tax rates'),
         );
 
         $stock_model = new shopStockModel();
@@ -150,6 +157,16 @@ class shopYandexmarketPluginBackendActions extends waViewActions
         }
 
         $this->view->assign('fields', $fields);
+
+        if (method_exists($this->profile_helper, 'getPromoRules')) {
+            $promo_rules = $this->profile_helper->getPromoRules(true);
+
+            foreach ($promo_rules as &$promo_rule) {
+                $promo_rule['valid'] = $this->plugin()->validatePromoRule($promo_rule);
+                unset($promo_rule);
+            }
+            $this->view->assign('promo_rules', $promo_rules);
+        }
     }
 
     public function shippingAction(&$profile = null)
@@ -210,7 +227,7 @@ class shopYandexmarketPluginBackendActions extends waViewActions
             );
 
             $shipping_methods = shopHelper::getShippingMethods($address['data'], $items, $shipping_params);
-            $shipping_methods = array_filter($shipping_methods, create_function('$m', 'return empty($m["external"]);'));
+            $shipping_methods = array_filter($shipping_methods, wa_lambda('$m', 'return empty($m["external"]);'));
             $this->view->assign('shipping_methods', $shipping_methods);
         }
         $this->view->assign('profile', $profile);
@@ -227,6 +244,89 @@ class shopYandexmarketPluginBackendActions extends waViewActions
         } catch (waException $ex) {
             $this->view->assign('error', $ex->getMessage());
         }
+    }
+
+    protected function productsAction()
+    {
+        if ($id = waRequest::get('promo_rule')) {
+            $promo_rule = $this->getPromoRule($id);
+            if ($promo_rule) {
+                $hash = $promo_rule['hash'];
+                $info = shopImportexportHelper::parseHash($hash);
+                switch ($info['type']) {
+                    case 'id':
+                        $ids = array_unique(array_map('intval', explode(',', $hash)));
+                        sort($ids);
+                        $info['product_ids'] = implode(',', $ids);
+                        break;
+                    case 'set':
+                        $info['set_id'] = trim($hash);
+                        break;
+                    case 'type':
+                        $info['type_id'] = intval($hash);
+                        break;
+                    case 'category':
+                        $ids = array_unique(array_map('intval', explode(',', $hash)));
+                        sort($ids);
+                        $info['category_ids'] = implode(',', $ids);
+                        break;
+                    default:
+                        try {
+                            if ($hash == '*') {
+                                $hash = '';
+                            }
+                            $collection = new shopProductsCollection($hash);
+                            $limit = min(500, $collection->count());
+                            $products = $collection->getProducts('id', 0, $limit, false);
+                            $ids = array();
+                            foreach ($products as $product) {
+                                $ids[] = intval($product['id']);
+                            }
+                            $ids = array_unique($ids);
+                            sort($ids);
+                            $info['product_ids'] = implode(',', $ids);
+                            $info['type'] = 'id';
+                        } catch (waException $ex) {
+                            $error = $ex->getMessage();
+
+                        }
+                        break;
+                }
+
+                switch ($info['type']) {
+                    case 'id':
+                        $url = sprintf('/products/hash=id/:%s', $info['product_ids']);
+                        break;
+                    case 'set':
+                        $url = sprintf('/products/set_id=%s', $info['set_id']);
+                        break;
+                    case 'type':
+                        $url = sprintf('/products/type_id=%d', $info['type_id']);
+                        break;
+                    case 'category':
+                        $url = sprintf('/products/category_id=%d', $info['type_id']);
+                        break;
+                }
+
+            }
+        }
+        if (empty($url)) {
+            throw new waException('Empty hash', 404);
+        } else {
+            $this->redirect(sprintf('?action=products#%s', $url));
+        }
+    }
+
+    private function getPromoRule($id)
+    {
+        static $promo_rules;
+        if (!isset($promo_rules)) {
+            $profile_helper = new shopImportexportHelper('yandexmarket');
+            if (method_exists($profile_helper, 'getPromoRules')) {
+                $promo_rules = $profile_helper->getPromoRules();
+            }
+        }
+        return isset($promo_rules[$id]) ? $promo_rules[$id] : false;
     }
 
     protected function getTemplate()
@@ -247,16 +347,14 @@ class shopYandexmarketPluginBackendActions extends waViewActions
     {
         static $plugin;
         if (!$plugin) {
+            /** @var shopYandexmarketPlugin $plugin */
             $plugin = wa()->getPlugin($this->plugin_id);
-            /**
-             * @var shopYandexmarketPlugin $plugin
-             */
         }
         return $plugin;
     }
 
     /**
-     * @param array $profile
+     * @param array     $profile
      * @param waRouting $routing
      * @return array
      */

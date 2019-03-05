@@ -8,6 +8,7 @@
 class shopYandexmarketPlugin extends shopPlugin
 {
     private $types;
+    private $promos;
     private $api_limits;
 
     private $api_url = 'https://api.partner.market.yandex.ru/v2/';
@@ -68,6 +69,38 @@ class shopYandexmarketPlugin extends shopPlugin
         }
     }
 
+    public function getPromosMap()
+    {
+        if (!isset($this->promos)) {
+            $app_config = wa('shop');
+            $files = array(
+                $app_config->getConfigPath('shop/plugins/yandexmarket').'/map.php',
+                $app_config->getAppPath('plugins/yandexmarket', 'shop').'/lib/config/map.php',
+            );
+
+
+            $this->promos = array();
+
+            foreach ($files as $file_path) {
+                if (file_exists($file_path)) {
+                    $data = include($file_path);
+                    if (is_array($data) && isset($data['promos'])) {
+                        /** @var $data array */
+                        foreach ($data['promos'] as $type => $fields) {
+                            if (!isset($this->promos[$type])) {
+                                $this->promos[$type] = array();
+                            }
+
+                            $this->promos[$type] += $fields;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        return $this->promos;
+    }
+
     public static function getConfigParam($param = null)
     {
         static $config = null;
@@ -94,8 +127,8 @@ class shopYandexmarketPlugin extends shopPlugin
 
     /**
      * @param array $post
-     * @param null $types
-     * @param bool $sort
+     * @param null  $types
+     * @param bool  $sort
      * @return array[]
      */
     public function map($post = array(), $types = null, $sort = false)
@@ -789,10 +822,10 @@ HTML;
 
     /**
      * @param array $options
-     * @param bool [string] $options['offers']
-     * @param bool [string] $options['outlets']
-     * @param bool [string] $options['balance']
-     * @param bool [string] $options['orders']
+     * @param       bool [string] $options['offers']
+     * @param       bool [string] $options['outlets']
+     * @param       bool [string] $options['balance']
+     * @param       bool [string] $options['orders']
      * @return null
      * @throws waException
      */
@@ -1052,7 +1085,7 @@ HTML;
 
     private static function isMatchedDomain($domain, $campaign_domain)
     {
-        $settlement_domain =self::cleanupSettlementDomain($domain);
+        $settlement_domain = self::cleanupSettlementDomain($domain);
         $l = strlen($campaign_domain) + 1;
         $settlement_parent_domain = substr($settlement_domain, -$l);
         $matched = false;
@@ -1097,7 +1130,7 @@ HTML;
     }
 
     /**
-     * @param int $campaign_id
+     * @param int    $campaign_id
      * @param string $start_date
      * @param string $end_date
      * @param string $group_period
@@ -1345,7 +1378,7 @@ HTML;
     }
 
     /**
-     * @param $campaign_id
+     * @param      $campaign_id
      * @param bool $flush
      * @return array
      * @throws waException
@@ -1367,7 +1400,7 @@ HTML;
     }
 
     /**
-     * @param $region_id
+     * @param      $region_id
      * @param bool $flush
      * @return array
      * @throws waException
@@ -1442,12 +1475,12 @@ HTML;
 
     /**
      * @throws waException
-     * @param mixed [string] $data
-     * @param int [string] $data[order_id]        Номер заказа
-     * @param string [string] $data[action_id]       ID действия
-     * @param string [string] $data[before_state_id] ID статуса до выполнения действия
-     * @param string [string] $data[after_state_id]  ID статуса после выполнения действия
-     * @param int [string] $data[id]              ID записи в логе истории заказа
+     * @param        mixed  [string] $data
+     * @param        int    [string] $data[order_id]        Номер заказа
+     * @param        string [string] $data[action_id]       ID действия
+     * @param        string [string] $data[before_state_id] ID статуса до выполнения действия
+     * @param        string [string] $data[after_state_id]  ID статуса после выполнения действия
+     * @param        int    [string] $data[id]              ID записи в логе истории заказа
      * @param string $event_name
      * @link https://tech.yandex.ru/market/partner/doc/dg/reference/put-campaigns-id-orders-id-status-docpage/
      */
@@ -1680,5 +1713,108 @@ HTML;
             $html .= "</select>";
             return $html;
         }
+    }
+
+    /**
+     * Валидация промоакций
+     * @param $promo_rule
+     * @return bool
+     */
+    public function validatePromoRule(&$promo_rule)
+    {
+        $requirements = array();
+
+        $promo_rule['errors'] = array();
+        switch ($promo_rule['type']) {
+            case shopImportexportHelper::PROMO_TYPE_PROMO_CODE:
+
+                $requirements['promo_code'] = array(
+                    'max_length' => 20,
+                    'required'   => true,
+                );
+
+                if ($promo_rule['discount_unit'] == '%') {
+                    if ($promo_rule['discount_value'] > 95) {
+                        $promo_rule['errors']['discount'] = 'Скидка превышает 95%.';
+                    } elseif ($promo_rule['discount_value'] < 5) {
+                        $promo_rule['errors']['discount'] = 'Скидка менее 5%.';
+                    } elseif (($promo_rule['discount_value'] != intval($promo_rule['discount_value']))) {
+                        $promo_rule['errors']['discount'] = 'Ожидается целочисленная скидка в процентах.';
+                    }
+                } else {
+                    if ($promo_rule['discount_value'] % 100) {
+                        $promo_rule['errors']['discount'] = sprintf('Ожидается скидка, кратная 100 %s.', $promo_rule['discount_unit']);
+                    } elseif ($promo_rule['discount_value'] < 100) {
+                        $promo_rule['errors']['discount'] = 'Ожидается ненулевая скидка.';
+                    }
+                }
+
+                break;
+            case shopImportexportHelper::PROMO_TYPE_FLASH_DISCOUNT:
+
+                if (empty($promo_rule['end_datetime'])) {
+                    $promo_rule['errors']['end_datetime'] = 'Отсутствует дата окончания акции.';
+                } else {
+                    $end_date = is_int($promo_rule['end_datetime']) ? $promo_rule['end_datetime'] : strtotime($promo_rule['end_datetime']);
+                    if (empty($end_date)) {
+                        $promo_rule['errors']['end_datetime'] = 'Неверная дата окончания акции.';
+                    }
+                }
+
+                if (empty($promo_rule['start_datetime'])) {
+                    $promo_rule['errors']['start_datetime'] = 'Отсутствует дата начала акции.';
+                } elseif (!empty($end_date)) {
+                    if ($end_date <= time()) {
+                        $promo_rule['errors']['interval'] = 'Период проведения акции заканчивается.';
+                    } else {
+                        $start_date = is_int($promo_rule['start_datetime']) ? $promo_rule['start_datetime'] : strtotime($promo_rule['start_datetime']);
+                        if (empty($start_date)) {
+                            $promo_rule['errors']['end_datetime'] = 'Неверная дата начала акции.';
+                        } else {
+                            $interval = $end_date - $start_date;
+                        }
+                    }
+                }
+                if (!empty($interval) && ($interval > (7 * 24 * 3600))) {
+                    $promo_rule['errors']['interval'] = 'Продолжительность акции не может превышать 7 дней.';
+                }
+                break;
+            case shopImportexportHelper::PROMO_TYPE_GIFT:
+                $requirements['required_quantity'] = array(
+                    'max_value' => 24,
+                    'min_value' => 1,
+                    'required'  => true,
+                );
+                break;
+            case shopImportexportHelper::PROMO_TYPE_N_PLUS_M:
+                $requirements['required_quantity'] = array(
+                    'max_value' => 24,
+                    'min_value' => 1,
+                    'required'  => true,
+                );
+                $requirements['free_quantity'] = array(
+                    'max_value' => 24,
+                    'min_value' => 1,
+                    'required'  => true,
+                );
+                break;
+        }
+
+        foreach ($requirements as $field => $requirement) {
+            if (!empty($requirement['required']) && empty($promo_rule[$field])) {
+                $promo_rule['errors'][$field] = sprintf('Поле %s обязательное', $field);
+            } elseif (isset($promo_rule[$field])) {
+                $value = $promo_rule[$field];
+                if (isset($requirement['max_length']) && (strlen($value) > $requirement['max_length'])) {
+                    $promo_rule['errors'][$field] = sprintf('Длина поля %s превышает %d символов', $field, $requirement['max_length']);
+                } elseif (isset($requirement['max_value']) && ($value > $requirement['max_value'])) {
+                    $promo_rule['errors'][$field] = sprintf('Значение %d поля %s превышает %d', $value, $field, $requirement['max_value']);
+                } elseif (isset($requirement['min_value']) && ($value < $requirement['min_value'])) {
+                    $promo_rule['errors'][$field] = sprintf('Значение %d поля %s меньше %d', $value, $field, $requirement['min_value']);
+                }
+            }
+        }
+
+        return $promo_rule['errors'] ? false : true;
     }
 }

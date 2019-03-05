@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Class shopYandexmarketPluginRunController
+ * @method shopConfig getConfig()
+ */
 class shopYandexmarketPluginRunController extends waLongActionController
 {
     const PRODUCT_PER_REQUEST = 500;
+
+    /** @var string */
     private $encoding = 'utf-8'; //windows-1251
 
+    /** @var shopProductsCollection */
     private $collection;
-    /**
-     *
-     * @var DOMDocument
-     */
+
+    /** @var DOMDocument */
     private $dom;
 
     protected function preExecute()
@@ -40,7 +45,6 @@ class shopYandexmarketPluginRunController extends waLongActionController
         $app_id = $this->getAppId();
         $domain_routes = $routing->getByApp($app_id);
         $success = false;
-        $current_domain = $routing->getDomain();
         foreach ($domain_routes as $domain => $routes) {
             foreach ($routes as $route) {
                 if ($domain.'/'.$route['url'] == $this->data['domain']) {
@@ -67,10 +71,10 @@ class shopYandexmarketPluginRunController extends waLongActionController
     }
 
     /**
-     * @param array $items
-     * @param int $profile_id
+     * @param array  $items
+     * @param int    $profile_id
      * @param string $currency
-     * @param array $profile
+     * @param array  $profile
      * @return array
      */
     public static function getCartItems($items, $profile_id, $currency, &$profile)
@@ -230,10 +234,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
         $this->data['hash'] = $hash;
         $this->data['currency'] = array($currency);
         $this->data['primary_currency'] = reset($this->data['currency']);
-        /**
-         * @var shopConfig $config
-         */
-        $config = wa('shop')->getConfig();
+        $config = $this->getConfig();
         $this->data['default_currency'] = $config->getCurrency();
         $this->createDom($profile_config, true);
         return $profile_config;
@@ -310,6 +311,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
             'min_price'         => 0.5,
             'skip_ignored'      => false,
             'shipping_methods'  => array(),
+            'promo_rules'       => array(),
         );
 
         $backend = (wa()->getEnv() == 'backend');
@@ -412,6 +414,17 @@ class shopYandexmarketPluginRunController extends waLongActionController
             unset($offer_map);
         }
 
+        $this->data['promos_map'] = $this->plugin()->getPromosMap();
+
+        $app_settings_model = new waAppSettingsModel();
+        $app_settings = array(
+            'ignore_stock_count' => $app_settings_model->get('shop', 'ignore_stock_count', 0),
+        );
+
+        $magic = array(
+            'forced_stocks' => false,
+        );
+
         $taxes = false;
 
         $feature_model = new shopFeatureModel();
@@ -451,10 +464,30 @@ class shopYandexmarketPluginRunController extends waLongActionController
                                     }
                                     break;
                                 case 'field':
-                                    if ($value == 'tax_id') {
-                                        $taxes = true;
+                                    switch ($value) {
+                                        case 'tax_id':
+                                            $taxes = true;
+                                            break;
+                                        case 'count':
+                                            if (!empty($magic['forced_stocks']) && !empty($app_settings['ignore_stock_count'])) {
+                                                $info['source'] = 'value:true';
+                                            }
+                                            break;
                                     }
                                     break;
+                            }
+                        }
+                        if (strpos($info['source'], '@')) {
+                            $options = explode('@', $info['source']);
+                            $info['source'] = array_shift($options);
+                            $info['options'] = array();
+                            foreach ($options as $option) {
+                                if (strpos($option, ':')) {
+                                    list($name, $value) = explode(':', $option, 2);
+                                    $info['options'][$name] = $value;
+                                } else {
+                                    $info['options'][$option] = true;
+                                }
                             }
                         }
                     }
@@ -510,14 +543,14 @@ class shopYandexmarketPluginRunController extends waLongActionController
 
         // Rates by zip code override rates by region, when applicable
         $main_country = wa()->getSetting('country', null, 'shop');
-        foreach (array('shipping', 'billing') as $addr_type) {
+        foreach (array('shipping', 'billing') as $address_type) {
             // ZIP-based rates are only applied to main shop country
             if (empty($address['zip']) || (!empty($address['country']) && $address['country'] !== $main_country)) {
                 continue;
             }
 
-            $tzcm = new shopTaxZipCodesModel();
-            foreach ($tzcm->getByZip($address['zip'], $addr_type, $tax_ids) as $tax_id => $rate) {
+            $tax_zip_codes_model = new shopTaxZipCodesModel();
+            foreach ($tax_zip_codes_model->getByZip($address['zip'], $address_type, $tax_ids) as $tax_id => $rate) {
                 $result[$tax_id]['rate'] = $rate;
                 $result[$tax_id]['name'] = $taxes[$tax_id]['name'];
             }
@@ -539,10 +572,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
         unset($available_currencies['front']);
 
         $primary_currency = $this->plugin()->getSettings('primary_currency');
-        /**
-         * @var shopConfig $config
-         */
-        $config = wa('shop')->getConfig();
+        $config = $this->getConfig();
         $this->data['default_currency'] = $config->getCurrency();
         switch ($primary_currency) {
             case 'auto':
@@ -615,24 +645,18 @@ XML;
         $this->dom->lastChild->appendChild($shop);
 
         if (!$fast) {
-            /**
-             * @var shopConfig $config
-             */
-            $config = wa('shop')->getConfig();
+            $config = $this->getConfig();
             $name = ifempty($profile_config['company_name'], $config->getGeneralSettings('name'));
-            $name = str_replace('&', '&amp;', $name);
-            $name = str_replace("'", '&apos;', $name);
             $this->addDomValue($shop, 'name', $name);
 
-            $company = str_replace('&', '&amp;', $profile_config['company']);
-            $company = str_replace("'", '&apos;', $company);
-            $this->addDomValue($shop, 'company', $company);
+            $this->addDomValue($shop, 'company', $profile_config['company']);
 
             $url = wa()->getRouteUrl('shop/frontend', array(), true);
-            $this->addDomValue($shop, 'url', preg_replace('@^https?://@', $this->data['schema'], $url));
+            $url = preg_replace('@^https?://@', $this->data['schema'], $url);
+            $this->addDomValue($shop, 'url', $url);
             $phone = !empty($profile_config['company_phone']) ? $profile_config['company_phone'] : $config->getGeneralSettings('phone');
             if ($phone) {
-                $shop->appendChild($this->dom->createElement('phone', $phone));
+                $shop->appendChild($this->dom->createElement('phone', $this->escapeValue($phone)));
             }
 
             $this->addDomValue($shop, 'platform', 'Shop-Script');
@@ -736,7 +760,8 @@ XML;
                 try {
                     $address = $this->plugin()->getAddress($profile_config);
                 } catch (waException $ex) {
-                    $this->error($ex->getMessage());
+                    $error = $ex->getMessage();
+                    $this->error('Error occurred at %s: %s', __METHOD__, $error);
                     $address = array('data' => array());
                 }
 
@@ -805,6 +830,13 @@ XML;
         // create yml_catalog/offers
         $shop->appendChild($this->dom->createElement('offers'));
 
+        if ($this->data['count']['promo_rules']) {
+            if ($this->data['count']['gifts']) {
+                $shop->appendChild($this->dom->createElement('gifts'));
+            }
+            $shop->appendChild($this->dom->createElement('promos'));
+        }
+
         if (!$fast) {
             $this->data['path'] = array(
                 'offers' => shopYandexmarketPlugin::path($profile_config['profile_id'].'.xml'),
@@ -853,7 +885,22 @@ SQL;
             'category'         => (int)$model->query($sql, $params)->fetchField('cnt'),
             'delivery_options' => 0,//
             'product'          => $this->getCollection()->count(),
+            'gifts'            => 0,
+            'promo_rules'      => count(array_filter($this->data['export']['promo_rules'])),
         );
+
+        if ($this->data['count']['promo_rules']) {
+            $promo_rules = array_keys($this->data['export']['promo_rules']);
+
+            foreach ($promo_rules as $promo_rule_id) {
+                $promo_rule = $this->getPromoRule($promo_rule_id);
+                if ($promo_rule['type'] === shopImportexportHelper::PROMO_TYPE_GIFT) {
+                    $this->data['count']['gifts'] = $this->data['count']['promo_rules'];
+                    break;
+                }
+            }
+        }
+
         $stages = array_keys($this->data['count']);
 
         $this->data['current'] = array_fill_keys($stages, 0);
@@ -862,6 +909,10 @@ SQL;
         $this->data['stage_name'] = $this->getStageName($this->data['stage']);
         $this->data['memory'] = memory_get_peak_usage();
         $this->data['memory_avg'] = memory_get_usage();
+
+        if (!empty($this->data['count']['promo_rules'])) {
+            $this->data['offers_map'] = array();
+        }
     }
 
     private function getStageName($stage)
@@ -877,6 +928,9 @@ SQL;
             case 'product':
                 $name = 'Товарные предложения';
                 break;
+            case 'promo_rules':
+                $name = 'Промоакции';
+                break;
         }
         return $name;
     }
@@ -887,13 +941,16 @@ SQL;
         if (ifempty($count[$stage])) {
             switch ($stage) {
                 case 'category':
-                    $info = _w('%d категория', '%d категорий', $count[$stage]);
+                    $info = _wp('%d категория', '%d категорий', $count[$stage]);
                     break;
                 case 'delivery_options':
-                    $info = _w('%d способ доставки', '%d способа доставки', $count[$stage]);
+                    $info = _wp('%d способ доставки', '%d способа доставки', $count[$stage]);
                     break;
                 case 'product':
-                    $info = _w('%d товарное предложение', '%d товарных предложения', $count[$stage]);
+                    $info = _wp('%d товарное предложение', '%d товарных предложения', $count[$stage]);
+                    break;
+                case 'promo_rules':
+                    $info = _wp('%d промоакция', '%d промоакций', $count[$stage]);
                     break;
             }
         }
@@ -973,12 +1030,14 @@ SQL;
     /**
      * @uses shopYandexmarketPluginRunController::stepCategory()
      * @uses shopYandexmarketPluginRunController::stepProduct()
+     * @uses shopYandexmarketPluginRunController::stepGifts()
+     * @uses shopYandexmarketPluginRunController::stepPromoRules()
      */
     protected function step()
     {
         $stage = $this->data['stage'];
 
-        $method_name = 'step'.ucfirst($stage);
+        $method_name = $this->getMethodName($stage);
         try {
             if (method_exists($this, $method_name)) {
                 $this->{$method_name}($this->data['current'][$stage], $this->data['count'], $this->data['processed_count'][$stage]);
@@ -987,8 +1046,8 @@ SQL;
                 $this->data['current'][$stage] = $this->data['count'][$stage];
             }
         } catch (Exception $ex) {
-            sleep(5);
             $this->error($stage.': '.$ex->getMessage()."\n".$ex->getTraceAsString());
+            sleep(5);
         }
         return true;
     }
@@ -1248,6 +1307,21 @@ SQL;
         $this->collection = null;
     }
 
+    private function getCommonCollection($hash)
+    {
+        $options = array(
+            'frontend' => true,
+        );
+
+        if (!empty($this->data['export']['skip_ignored'])) {
+            $options['params'] = true;
+        }
+        if ($hash == '*') {
+            $hash = '';
+        }
+        return new shopProductsCollection($hash, $options);
+    }
+
     /**
      *
      * @internal param string $hash
@@ -1303,10 +1377,8 @@ SQL;
     {
         static $plugin;
         if (!$plugin) {
-            $plugin = wa()->getPlugin('yandexmarket');
-            /**
-             * @var shopYandexmarketPlugin $plugin
-             */
+            /** @var shopYandexmarketPlugin $plugin */
+            $plugin = wa()->getPlugin('yandexmarket', true);
         }
         return $plugin;
     }
@@ -1356,7 +1428,7 @@ SQL;
             if (empty($category['parent_id']) # это родительская категория
                 || isset($this->data['categories'][$category['parent_id']]) # или родители этой категории попали в выборке
             ) {
-                $category_xml = $this->dom->createElement("category", str_replace('&', '&amp;', $category['name']));
+                $category_xml = $this->dom->createElement("category", $this->escapeValue($category['name']));
                 $category['id'] = intval($category['id']);
                 $category_xml->setAttribute('id', $category['id']);
                 if ($category['parent_id']) {
@@ -1438,7 +1510,7 @@ SQL;
                                     $virtualstock_id = intval(preg_replace('@^[^\.]+\.@', '', $param));
                                     if (class_exists('shopVirtualstockStocksModel')) {
                                         $model = new shopVirtualstockStocksModel();
-                                        foreach ($model->getByField('virtualstock_id', $virtualstock_id) as $row) {
+                                        foreach ($model->getByField('virtualstock_id', $virtualstock_id, true) as $row) {
                                             $stock_id = intval($row['stock_id']);
                                             $this->data['stock_id'][$stock_id] = $stock_id;
                                             $this->data['stock_map'][$type][$stock_id] = $stock_id;
@@ -1713,10 +1785,11 @@ SQL;
                                 $product['sku'] = $sku['sku'];
                                 $product['count'] = $sku['count'];
                                 $increment = false;
+                                unset($sku['name']);
                             } else {
                                 $increment = true;
                             }
-                            $this->addOffer($product, (count($skus) > 1) ? $sku : null);
+                            $this->addOffer($product, (count($skus) > 1) ? $sku : $sku);
                             ++$processed;
                             if ($increment) {
                                 ++$count['product'];
@@ -1735,6 +1808,121 @@ SQL;
             array_shift($products);
             ++$current_stage;
         }
+    }
+
+    private function stepGifts(&$current_stage, &$count, &$processed)
+    {
+        $promo_rule = null;
+        $id = sprintf('#%d', $current_stage);
+        $promo_rules = array_keys($this->data['export']['promo_rules']);
+        if (isset($promo_rules[$current_stage])) {
+            $id = $promo_rules[$current_stage];
+            $promo_rule = $this->getPromoRule($id);
+        }
+
+        if ($promo_rule) {
+            if ($promo_rule['valid'] && $promo_rule['type'] === shopImportexportHelper::PROMO_TYPE_GIFT) {
+                if ($this->addGifts($promo_rule)) {
+                    ++$processed;
+                }
+                if (!$promo_rule['valid']) {
+                    $errors = implode("\n\t", $promo_rule['errors']);
+                    $this->error("Promo rule export gift %s skipped due errors:\n\t%s", $id, $errors);
+                }
+
+            }
+        } else {
+            $this->error('Promo rule %s not found', $id);
+        }
+        ++$current_stage;
+    }
+
+    private function getPromoRule($id)
+    {
+        static $promo_rules;
+        if (!isset($promo_rules)) {
+            $profile_helper = new shopImportexportHelper('yandexmarket');
+            if (method_exists($profile_helper, 'getPromoRules')) {
+                $promo_rules = $profile_helper->getPromoRules();
+
+                foreach ($promo_rules as $rule_id => &$promo_rule) {
+                    $promo_rule['id'] = $rule_id;
+                    $promo_rule['valid'] = $this->plugin()->validatePromoRule($promo_rule);
+                    switch ($promo_rule['type']) {
+                        case shopImportexportHelper::PROMO_TYPE_GIFT:
+                            $promo_rule['promos_type'] = 'gift with purchase';
+                            break;
+                        case shopImportexportHelper::PROMO_TYPE_N_PLUS_M:
+                            $promo_rule['promos_type'] = 'n plus m';
+                            break;
+                        case shopImportexportHelper::PROMO_TYPE_FLASH_DISCOUNT:
+                            $promo_rule['promos_type'] = 'flash discount';
+                            break;
+                        case shopImportexportHelper::PROMO_TYPE_PROMO_CODE:
+                            $promo_rule['promos_type'] = 'promo code';
+                            break;
+                        default:
+                            break;
+                    }
+
+                    //XXX remove it once
+                    if (isset($promo_rule['start_date']) && empty($promo_rule['start_datetime'])) {
+                        $promo_rule['start_datetime'] = $promo_rule['start_date'];
+                        unset($promo_rule['start_date']);
+                    }
+                    if (isset($promo_rule['end_date']) && empty($promo_rule['end_datetime'])) {
+                        $promo_rule['end_datetime'] = $promo_rule['end_date'];
+                        unset($promo_rule['end_date']);
+                    }
+                    unset($promo_rule);
+                }
+            }
+        }
+        return isset($promo_rules[$id]) ? $promo_rules[$id] : false;
+    }
+
+    private function stepPromoRules(&$current_stage, &$count, &$processed)
+    {
+        $promo_rule = null;
+        $promo_rules = array_keys($this->data['export']['promo_rules']);
+        $id = sprintf('#%d', $current_stage);
+        if (isset($promo_rules[$current_stage])) {
+            $id = $promo_rules[$current_stage];
+            $promo_rule = $this->getPromoRule($id);
+        }
+
+        if ($promo_rule) {
+            if ($promo_rule['valid']) {
+                if ($this->addPromo($promo_rule)) {
+                    ++$processed;
+                }
+            }
+
+            if (!$promo_rule['valid']) {
+                $error = implode("\n\t", $promo_rule['errors']);
+                $this->error("Promo rule export %s skipped due errors:\n\t%s", $id, $error);
+            }
+
+        } else {
+            $this->error('Promo rule %s not found', $id);
+        }
+        ++$current_stage;
+    }
+
+
+    private function getPromoValue($promo_rule, $field, $info = array())
+    {
+        $value = null;
+
+        $source = ifset($info, 'source', false);
+        if ($source !== false) {
+            $value = isset($promo_rule[$source]) ? $promo_rule[$source] : null;
+            if (!in_array($value, array(null, false, ''), true)) {
+                $value = $this->formatPromo($field, $value, $info);
+            }
+        }
+
+        return $value;
     }
 
     private function getValue(&$product, $sku, $field, $info)
@@ -2035,36 +2223,278 @@ SQL;
             $nodes = $this->dom->getElementsByTagName('offers');
             $offers = $nodes->item(0);
         }
+
         $product_xml = $this->dom->createElement("offer");
+
         $data = array();
+
         foreach ($offer as $field_id => $value) {
+            $value_map = ifset($map, $field_id, array());
             $field = preg_replace('/\\..*$/', '', $field_id);
-            if (!empty($map[$field_id]['callback'])) {
+
+            if (!empty($value_map['callback'])) {
                 $data[$field.'.raw'] = $value;
                 $value = $this->format($field, $value, array(), $offer);
             }
 
             if (!in_array($value, array(null, false, ''), true)) {# non empty value
-                $virtual = !empty($map[$field_id]['virtual']) && empty($map[$field_id]['callback']);
+
+                $virtual = !empty($value_map['virtual']) && empty($value_map['callback']);
+
                 if (!$virtual) {
-                    if (!empty($map[$field_id]['path']) && (is_array($value) && !empty($value['path']))) {
-                        $field = preg_replace('@\[[^\]]+\]@', '', $map[$field_id]['path']);
+                    if (!empty($value_map['path']) && (is_array($value) && !empty($value['path']))) {
+                        $field = preg_replace('@\[[^\]]+\]@', '', $value_map['path']);
                         unset($value['path']);
                     }
-                    $this->addDomValue($product_xml, $field, $value, $map[$field_id]['attribute']);
+
+                    $this->addDomValue($product_xml, $field, $value, $value_map['attribute']);
                     $data[$field] = $value;
                 }
             }
         }
         $offers->appendChild($product_xml);
+        $this->setOffer($offer);
+
         return $data;
+    }
+
+    private function setOffer($offer)
+    {
+        if (isset($this->data['offers_map'])) {
+            if (strpos($offer['id'], 's')) {
+                list($id, $sku_id) = explode('s', $offer['id'], 2);
+            } else {
+                $sku_id = 0;
+                $id = $offer['id'];
+            }
+            if (!isset($this->data['offers_map'][$id])) {
+                $this->data['offers_map'][$id] = array(
+                    'currency' => $offer['currencyId'],
+                    'price'    => array(
+                        $sku_id => $offer['price'],
+                    ),
+                );
+            } elseif ($sku_id) {
+                $this->data['offers_map'][$id]['price'][$sku_id] = $offer['price'];
+            }
+        }
+    }
+
+    private function getOffer($id)
+    {
+        $offer = null;
+        if ($pos = strpos($id, 's')) {
+            $id = intval(substr($id, 0, $pos));
+        }
+
+        if (isset($this->data['offers_map'][$id])) {
+            $offer = $this->data['offers_map'][$id];
+            $offer += compact('id');
+        }
+        return $offer;
+    }
+
+    private function setGift($gift)
+    {
+        if (isset($this->data['gifts_map'])) {
+            $this->data['gifts_map'][$gift['id']] = array(
+                'price'    => $gift['price'],
+                'currency' => $gift['currencyId'],
+            );
+        }
+    }
+
+    private function getGift($id)
+    {
+        $gift = null;
+        if (isset($this->data['gifts_map'][$id])) {
+            $gift = $this->data['gifts_map'][$id];
+            $gift += compact('id');
+        }
+        return $gift;
+    }
+
+    private function cleanupFieldName($field_id)
+    {
+        return preg_replace('/\\..*$/', '', $field_id);
+    }
+
+    /**
+     * @param  DOMElement $node
+     * @param             $data
+     * @param             $map
+     * @param array       $child_nodes
+     */
+    private function addDomNode($node, $data, $map, $child_nodes = array())
+    {
+        $result_data = array();
+
+        foreach ($data as $field_id => $value) {
+            $value_map = ifset($map, $field_id, array());
+            $field = $this->cleanupFieldName($field_id);
+
+            if (!in_array($value, array(null, false, ''), true)) {# non empty value
+
+                $virtual = !empty($value_map['virtual']) && empty($value_map['callback']);
+
+                if (!$virtual) {
+                    if (!empty($value_map['path'])) {
+                        $field = preg_replace('@\[[^\]]+\]@', '', $value_map['path']);
+                    }
+
+                    if (strpos($field, '/')) {
+                        list($parent_field, $field) = explode('/', $field, 2);
+                        if (!isset($child_nodes[$parent_field])) {
+                            $child_nodes[$parent_field] = $this->dom->createElement($parent_field);
+                        }
+                        $this->addDomValue($child_nodes[$parent_field], $field, $value, $value_map['attribute']);
+                    } else {
+                        $this->addDomValue($node, $field, $value, $value_map['attribute']);
+                    }
+                    $result_data[$field] = $value;
+                }
+            }
+        }
+
+        foreach ($child_nodes as $child_node) {
+            $node->appendChild($child_node);
+        }
+    }
+
+    private function addGifts(&$promo_rule)
+    {
+        $type = $promo_rule['type'];
+        $count = 0;
+        if (isset($this->data['promos_map'][$type]) && ($type === shopImportexportHelper::PROMO_TYPE_GIFT)) {
+            try {
+                $collection = $this->getCommonCollection($promo_rule['gifts_hash']);
+                $limit = 12;
+                $gifts = $collection->getProducts('id, name, images', 0, $limit, false);
+                foreach ($gifts as $gift) {
+                    if ($this->getOffer($gift['id'])) {
+                        $this->trace('Gift %d already exists as offer', $gift['id']);
+                    } elseif ($this->getGift($gift['id'])) {
+                        $this->trace('Gift %d already exists as gift', $gift['id']);
+                    } else {
+                        $this->setGift($gift);
+                        $this->addGiftDom($gift);
+                        ++$count;
+                    }
+                }
+            } catch (waException $ex) {
+                $error = $ex->getMessage();
+                $this->error('Error occurred at %s: %s', __METHOD__, $error);
+            }
+        }
+        return $count;
+    }
+
+
+    private function addGiftDom($gift)
+    {
+        static $node;
+        if (empty($node)) {
+            $nodes = $this->dom->getElementsByTagName('gifts');
+            $node = $nodes->item(0);
+        }
+
+        $data = array(
+            'id'    => $gift['id'],
+            '@name' => $gift['name'],
+
+
+        );
+        if (!empty($gift['images'])) {
+            $gift['images'] = $this->format('picture', $gift['images']);
+            $data['@picture'] = reset($gift['images']);
+        }
+
+        $this->addDomValue($node, 'gift', $data);
+    }
+
+    private function addPromo(&$promo_rule)
+    {
+        $type = $promo_rule['type'];
+        if (isset($this->data['promos_map'][$type])) {
+            $promo_map = $this->data['promos_map'][$type];
+        } else {
+            $types = !empty($this->data['promos_map']) ? array_keys($this->data['promos_map']) : array();
+            $promo_rule['valid'] = false;
+            $promo_rule['errors'][] = sprintf(
+                "Unsupported promo type [%s], expect on of [%s]",
+                $type,
+                implode(', ', $types)
+            );
+            return false;
+        }
+        $promo = array();
+        $map = array();
+        foreach ($promo_map as $field_id => $info) {
+            $field = preg_replace('/\\..*$/', '', $field_id);
+            if (!empty($info['source'])) {
+                $value = $this->getPromoValue($promo_rule, $field, $info);
+                if (!in_array($value, array(null, false, ''), true)) {
+                    $promo[$field_id] = $value;
+                    $map[$field_id] = array(
+                        'attribute' => !empty($info['attribute']),
+                        'callback'  => !empty($info['callback']),
+                    );
+                    if (!empty($info['path'])) {
+                        $map[$field_id]['path'] = $info['path'];
+                    }
+                    if (!empty($info['virtual'])) {
+                        $map[$field_id]['virtual'] = $info['virtual'];
+                    }
+                }
+            }
+
+            if (!empty($info['required']) && empty($promo[$field_id])) {
+                $promo_rule['valid'] = false;
+                $promo_rule['errors'][] = sprintf("Empty required field [%s]", $field_id);
+            }
+        }
+
+        if ($promo && $promo_rule['valid']) {
+            $this->addPromoDom($promo, $map);
+            return true;
+        }
+        return null;
+    }
+
+    /**
+     * @param $promo
+     * @param $map
+     * @return DOMElement
+     */
+    private function addPromoDom($promo, $map)
+    {
+        static $promos;
+        if (empty($promos)) {
+            $nodes = $this->dom->getElementsByTagName('promos');
+            $promos = $nodes->item(0);
+        }
+        $promo_xml = $this->dom->createElement("promo");
+
+        $data = array();
+        foreach ($promo as $field_id => &$value) {
+            $field = preg_replace('/\\..*$/', '', $field_id);
+            $field_map = $map[$field_id];
+            if (!empty($field_map['callback'])) {
+                $data[$field.'.raw'] = $value;
+                $value = $this->formatPromo($field, $value, array(), $promo);
+            }
+            unset($value);
+        }
+        $this->addDomNode($promo_xml, $promo, $map);
+        $promos->appendChild($promo_xml);
+        return $promo_xml;
     }
 
     /**
      * @param DOMElement $dom
-     * @param string $field
-     * @param mixed $value
-     * @param bool $is_attribute
+     * @param string     $field
+     * @param mixed      $value
+     * @param bool       $is_attribute
      */
     private function addDomValue(&$dom, $field, $value, $is_attribute = false)
     {
@@ -2073,25 +2503,36 @@ SQL;
             if (!preg_match('@^\d+$@', key($value))) {
                 $path = explode('/', $field);
                 $field = array_pop($path);
-                $element = $this->dom->createElement($field, trim(ifset($value['value'])));
+                $element = $this->dom->createElement($field, $this->escapeValue(ifset($value['value'])));
                 unset($value['value']);
                 foreach ($value as $attribute => $attribute_value) {
-                    if (is_array($attribute_value)) {
-                        $attribute_value = reset($attribute_value);
+                    if (strpos($attribute, '@') === 0) {
+                        $this->addDomValue($element, substr($attribute, 1), $attribute_value);
+                    } elseif (strpos($attribute, '&') === 0) {
+                        continue;
+                    } else {
+                        if (is_array($attribute_value)) {
+                            $attribute_value = reset($attribute_value);
+                        }
+
+                        $element->setAttribute($attribute, $this->escapeValue($attribute_value));
                     }
-                    $element->setAttribute($attribute, $attribute_value);
                 }
+
                 while ($field = array_pop($path)) {
                     $parent = $this->dom->createElement($field);
                     $parent->appendChild($element);
                     $element = $parent;
                 }
+
                 $dom->appendChild($element);
+                unset($element);
             } else {
                 foreach ($value as $value_item) {
-                    $dom->appendChild($this->dom->createElement($field, trim($value_item)));
+                    $this->addDomValue($dom, $field, $value_item);
                 }
             }
+
         } elseif (!$is_attribute) {
             $path = explode('/', $field);
             $field = array_pop($path);
@@ -2100,7 +2541,7 @@ SQL;
                 $cdata = $this->dom->createCDATASection(trim($value));
                 $element->appendChild($cdata);
             } else {
-                $element = $this->dom->createElement($field, trim($value));
+                $element = $this->dom->createElement($field, $this->escapeValue($value));
             }
             while ($field = array_pop($path)) {
                 $parent = $this->dom->createElement($field);
@@ -2109,7 +2550,7 @@ SQL;
             }
             $dom->appendChild($element);
         } else {
-            $dom->setAttribute($field, trim($value));
+            $dom->setAttribute($field, $this->escapeValue($value));
         }
     }
 
@@ -2154,10 +2595,10 @@ SQL;
 
     /**
      * @param string $field
-     * @param mixed $value
-     * @param array $info
-     * @param array $data
-     * @param null $sku_data
+     * @param mixed  $value
+     * @param array  $info
+     * @param array  $data
+     * @param null   $sku_data
      * @return mixed|string
      */
     private function format($field, $value, $info = array(), $data = array(), $sku_data = null)
@@ -2213,7 +2654,7 @@ SQL;
                 $html = !empty($info['options']['html']);
                 $value = preg_replace('@(<br\s*/?>)+@', $html ? '<br/>' : "\n", $value);
                 $value = preg_replace("@[\r\n]+@", "\n", $value);
-                $value = strip_tags($value, $html ? '<h3><p><ul><li><br>' : null);
+                $value = strip_tags($value, $html ? '<ul><li><br><p><h3>' : null);
 
                 $value = trim($value);
                 if (mb_strlen($value) > 3000) {
@@ -2335,9 +2776,7 @@ SQL;
                 if (is_object($value)) {
                     switch (get_class($value)) {
                         case 'shopBooleanValue':
-                            /**
-                             * @var $value shopBooleanValue
-                             */
+                            /** @var $value shopBooleanValue */
                             $value = $value->value ? 'true' : 'false';
                             break;
                     }
@@ -2374,9 +2813,7 @@ SQL;
                 if (is_object($value)) {
                     switch (get_class($value)) {
                         case 'shopBooleanValue':
-                            /**
-                             * @var $value shopBooleanValue
-                             */
+                            /** @var $value shopBooleanValue */
                             $value = $value->value ? 'true' : null;
                             break;
                     }
@@ -2395,9 +2832,7 @@ SQL;
                 if (is_object($value)) {
                     switch (get_class($value)) {
                         case 'shopBooleanValue':
-                            /**
-                             * @var $value shopBooleanValue
-                             */
+                            /** @var $value shopBooleanValue */
                             $value = $value->value ? 'true' : 'false';
                             break;
                     }
@@ -2413,6 +2848,9 @@ SQL;
                  * @see https://yandex.ru/support/partnermarket/elements/vat.html
                  */
                 switch ($value) {
+                    case 20:
+                        $value = 'VAT_20';
+                        break;
                     case 18:
                         $value = 'VAT_18';
                         break;
@@ -2436,10 +2874,7 @@ SQL;
                 }
                 while (is_array($value) && ($image = array_shift($value)) && $limit--) {
                     if (!$size) {
-                        $shop_config = wa('shop')->getConfig();
-                        /**
-                         * @var $shop_config shopConfig
-                         */
+                        $shop_config = $this->getConfig();
                         $size = $shop_config->getImageSize('big');
                     }
                     $values[] = ifempty($this->data['schema'], 'http://').ifempty($this->data['base_url'], 'localhost').shopImage::getUrl($image, $size);
@@ -2459,15 +2894,11 @@ SQL;
                 $class = is_object($value) ? get_class($value) : false;
                 switch ($class) {
                     case 'shopBooleanValue':
-                        /**
-                         * @var $value shopBooleanValue
-                         */
+                        /** @var $value shopBooleanValue */
                         $value = $value->value ? 'true' : 'false';
                         break;
                     case 'shopDimensionValue':
-                        /**
-                         * @var $value shopDimensionValue
-                         */
+                        /** @var $value shopDimensionValue */
                         $value = $value->convert('s', false);
                         /**
                          * @var $value int
@@ -2517,9 +2948,7 @@ SQL;
                 if (is_object($value)) {
                     switch (get_class($value)) {
                         case 'shopDimensionValue':
-                            /**
-                             * @var $value shopDimensionValue
-                             */
+                            /** @var $value shopDimensionValue */
                             $value = $value->convert('s', false);
                             break;
                         default:
@@ -2540,11 +2969,12 @@ SQL;
                 if (is_object($value)) {
                     switch (get_class($value)) {
                         case 'shopDimensionValue':
-                            /**
-                             * @var $value shopDimensionValue
-                             */
+                            /** @var $value shopDimensionValue */
                             if ($value->type == 'weight') {
                                 $value = $value->convert('kg', '%0.3f');
+                            } else {
+                                $this->error(sprintf('Invalid dimension type [%s] for [%s] field', $value->type, $field));
+                                $value = $value->value_base_unit;
                             }
                             break;
                         default:
@@ -2574,17 +3004,13 @@ SQL;
                 $class = is_object($value) ? get_class($value) : false;
                 switch ($class) {
                     case 'shopCompositeValue':
-                        /**
-                         * @var $value shopCompositeValue
-                         */
+                        /** @var $value shopCompositeValue */
                         for ($i = 0; $i < 3; $i++) {
                             $value_item = $value[$i];
                             $class_item = is_object($value_item) ? get_class($value_item) : false;
                             switch ($class_item) {
                                 case 'shopDimensionValue':
-                                    /**
-                                     * @var $value_item shopDimensionValue
-                                     */
+                                    /** @var $value_item shopDimensionValue */
                                     if ($value_item->type == '3d.length') {
                                         $parsed_value[] = $value_item->convert('cm', '%0.4f');
                                     } else {
@@ -2618,11 +3044,12 @@ SQL;
                 if (is_object($value)) {
                     switch (get_class($value)) {
                         case 'shopDimensionValue':
-                            /**
-                             * @var $value shopDimensionValue
-                             */
+                            /** @var $value shopDimensionValue */
                             if ($value->type == 'time') {
                                 $value = $value->convert('month', false);
+                            } else {
+                                $this->error(sprintf('Invalid dimension type [%s] for field [%s]', $value->type, $field));
+                                $value = $value->value_base_unit;
                             }
                             break;
                         default:
@@ -2631,16 +3058,14 @@ SQL;
                     }
 
                 } else {
-                    /**
-                     * @var $value shopDimensionValue
-                     */
-                    if (preg_match('@^(year|month)s?:(\d+)$@', trim($value), $matches)) {
+                    /** @var $value string */
+                    if (preg_match('@^(year|month)s?:(\d+)$@', trim((string)$value), $matches)) {
                         $value = array(
                             'unit'  => $matches[1],
                             'value' => intval($matches[2]),
                         );
                     } else {
-                        $value = intval($value);
+                        $value = intval((string)$value);
                     }
                 }
 
@@ -2791,18 +3216,14 @@ SQL;
                         $dimension_unit = $_value->unit;
                         $values = array();
                         foreach ($value as $_value) {
-                            /**
-                             * @var shopDimensionValue $_value
-                             */
+                            /** @var shopDimensionValue $_value */
                             $values[] = $_value->convert($dimension_unit, '%s');
                         }
                         $value = implode(', ', $values);
                     } elseif ($_value instanceof shopColorValue) {
                         $values = array();
                         foreach ($value as $_value) {
-                            /**
-                             * @var shopColorValue $_value
-                             */
+                            /** @var shopColorValue $_value */
                             $values[] = (string)$_value->value;
                         }
                         $value = implode(', ', $values);
@@ -2843,15 +3264,12 @@ SQL;
                 break;
         }
         $format = ifempty($info['format'], '%s');
+
         if (is_array($value)) {
-            /**
-             * @var $value array
-             */
+            /** @var $value array */
             reset($value);
             if (key($value) == 0) {
-                foreach ($value as & $item) {
-                    $item = str_replace('&nbsp;', ' ', $item);
-                    $item = str_replace('&', '&amp;', $item);
+                foreach ($value as &$item) {
                     $item = $this->sprintf($format, $item);
                 }
                 unset($item);
@@ -2859,17 +3277,192 @@ SQL;
 
             # XXX use map.php for configure this fields
             # implode values for non multiple and non complex fields
-            if (!in_array($field, array('email', 'picture', 'dataTour', 'additional', 'barcode', 'param', 'related_offer', 'local_delivery_cost', 'available','age'))) {
+            if (!in_array($field, array('email', 'picture', 'dataTour', 'additional', 'barcode', 'param', 'related_offer', 'local_delivery_cost', 'available', 'age'))) {
                 $value = implode(', ', $value);
             }
         } elseif ($value !== null) {
-            /**
-             * @var $value string
-             */
-            $value = str_replace('&nbsp;', ' ', $value);
-            $value = str_replace('&', '&amp;', $value);
+            /** @var $value string */
             $value = $this->sprintf($format, $value);
         }
+        return $value;
+    }
+
+    private function formatPromo($field, $value, $info = array(), $data = array())
+    {
+        switch ($field) {
+            case 'id':
+                $value = str_replace(array('shop.', 'plugins.'), array('s', 'p'), $value);
+                $value = preg_replace('@[^\da-zA-Z]@', '', $value);
+                break;
+            case 'start-date':
+            case 'end-date':
+                $value = date('Y-m-d H:i:sO', $value);
+                break;
+
+            case 'discount':
+
+                if (empty($info)) {
+                    $value = array(
+                        'value' => $value,
+                    );
+
+                    if ($data['discount_unit'] !== '%') {
+                        $value['unit'] = 'currency';
+                        $value['currency'] = $data['discount_unit'];
+                    } else {
+                        $value['unit'] = 'percent';
+                    }
+                } else {
+                    $value = intval($value);
+                }
+                break;
+            case 'product':
+                if (empty($info)) {
+                    $products =$value;
+                    $value = array();
+                    foreach ($products as $product) {
+                        if (isset($product['&offer'])) {
+                            $offer = $product['&offer'];
+                            unset($product['&offer']);
+                            $value['@discount-price'] = array(
+                                'currency' => $offer['currency'],
+                                'value'    => $offer['price'],
+                            );
+
+                        } else {
+                            $value[] = $product;
+                        }
+                    }
+                } else {
+                    $params = array();
+                    $hash = $value;
+                    $parsed_hash = shopImportexportHelper::parseHash($hash, $params);
+                    $value = array();
+                    switch ($parsed_hash['type']) {
+                        case 'category':
+                            $category_ids = explode(',', $parsed_hash['category_ids']);
+                            foreach ($category_ids as $id) {
+                                $value[] = array(
+                                    'category-id' => $id,
+                                );
+                            }
+                            break;
+                        case 'id':
+                            $product_ids = explode(',', $parsed_hash['product_ids']);
+                            foreach ($product_ids as $id) {
+                                if ($offer = $this->getOffer($id)) {
+                                    foreach ($offer['price'] as $sku_id => $price) {
+                                        $_offer = $offer;
+                                        $_offer['price'] = $price;
+
+                                        if ($sku_id) {
+                                            $_offer['id'] .= 's'.$sku_id;
+                                        }
+                                        $value[] = array(
+                                            'offer-id' => $_offer['id'],
+                                            '&offer'   => $_offer,
+                                        );
+                                    }
+                                }
+                            }
+                            break;
+                        default:
+                            try {
+                                $collection = $this->getCommonCollection($hash);
+                                //TODO use steps;
+                                $limit = $collection->count();
+                                $products = $collection->getProducts('id', 0, $limit, false);
+                                foreach ($products as $product) {
+                                    if ($offer = $this->getOffer($product['id'])) {
+                                        foreach ($offer['price'] as $sku_id => $price) {
+                                            $_offer = $offer;
+                                            $_offer['price'] = $price;
+
+                                            if ($sku_id) {
+                                                $_offer['id'] .= 's'.$sku_id;
+                                            }
+                                            $value[] = array(
+                                                'offer-id' => $_offer['id'],
+                                                '&offer'   => $_offer,
+                                            );
+                                        }
+                                    }
+                                }
+                            } catch (waException $ex) {
+                                $error = $ex->getMessage();
+                                $this->error('Error occurred at %s: %s', __METHOD__, $error);
+                            }
+                            break;
+                    }
+                }
+                break;
+            case 'promo-gift':
+                $hash = $value;
+                $value = array();
+                try {
+                    $collection = $this->getCommonCollection($hash);
+                    $limit = 12;
+                    //TODO allow per SKU gifts
+                    $products = $collection->getProducts('id', 0, $limit, false);
+                    foreach ($products as $product) {
+                        if ($offer = $this->getOffer($product['id'])) {
+                            foreach ($offer['price'] as $sku_id => $price) {
+                                $_value = $offer;
+                                if ($sku_id) {
+                                    $_value['id'] .= 's'.$sku_id;
+                                }
+                                if (--$limit >= 0) {
+                                    $value[] = array(
+                                        'offer-id' => $_value['id'],
+                                    );
+                                }
+                                unset($_value);
+                            }
+                        } elseif ($gift = $this->getGift($product['id'])) {
+                            if (--$limit >= 0) {
+                                $value[] = array(
+                                    'gift-id' => $gift['id'],
+                                );
+                            }
+                        }
+                    }
+                } catch (waException $ex) {
+                    $error = $ex->getMessage();
+                    $this->error('Error occurred at %s: %s', __METHOD__, $error);
+                }
+                break;
+        }
+
+        if ($info) {
+
+            $format = ifempty($info, 'format', '%s');
+
+            if (is_array($value)) {
+                /** @var $value array */
+                reset($value);
+                if (key($value) == 0) {
+                    foreach ($value as &$item) {
+                        if (!is_array($item)) {
+                            $item = $this->sprintf($format, $item);
+                        }
+                    }
+                    unset($item);
+                }
+            } elseif ($value !== null) {
+                /** @var $value string */
+                $value = $this->sprintf($format, $value);
+            }
+        }
+        return $value;
+    }
+
+    private function escapeValue($value)
+    {
+        $flags = ENT_QUOTES;
+        if (defined('ENT_XML1')) {
+            $flags |= constant('ENT_XML1');
+        }
+        $value = htmlspecialchars(trim($value), $flags, $this->encoding);
         return $value;
     }
 
@@ -2940,6 +3533,7 @@ SQL;
             $report .= sprintf("\nПотребление памяти:\t%0.3f МБ", $memory);
         }
         $chunks = array();
+        $this->plugin();
         foreach ($this->data['processed_count'] as $stage => $count) {
             if ($data = $this->getStageReport($stage, $this->data['processed_count'])) {
                 $chunks[] = htmlentities($data, ENT_QUOTES, 'utf-8');
@@ -2963,6 +3557,7 @@ SQL;
             }
             $value = str_replace(',', '.', sprintf($format, (double)$value));
         } else {
+            $value = str_replace('&nbsp;', ' ', $value);
             $value = sprintf($format, $value);
         }
         return $value;
@@ -2977,7 +3572,7 @@ SQL;
         } elseif (is_array($message)) {
             $message = var_export($message, true);
         }
-        $path = wa()->getConfig()->getPath('log');
+        $path = $this->getConfig()->getPath('log');
         waFiles::create($path.'/shop/plugins/yandexmarket/export.error.log');
         waLog::log($message, 'shop/plugins/yandexmarket/export.error.log');
     }
@@ -2991,7 +3586,7 @@ SQL;
         } elseif (is_array($message)) {
             $message = var_export($message, true);
         }
-        $path = wa()->getConfig()->getPath('log');
+        $path = $this->getConfig()->getPath('log');
         $file = sprintf('/shop/plugins/yandexmarket/export.trace.%d.log', $this->data['profile_id']);
         waFiles::create($path.$file);
         waLog::log($message, $file);
@@ -3000,5 +3595,21 @@ SQL;
     private static function rawurlencode($a)
     {
         return rawurlencode(reset($a));
+    }
+
+    protected function getMethodName($name, $template = 'step%s')
+    {
+        if (strpos($template, '%s') === 0) {
+            $pattern = '@(_)([a-z])@';
+        } else {
+            $pattern = '@(^|_)([a-z])@';
+        }
+        $camel_name = preg_replace_callback($pattern, array(__CLASS__, 'camelCase'), $name);
+        return sprintf($template, $camel_name);
+    }
+
+    private static function camelCase($m)
+    {
+        return strtoupper($m[2]);
     }
 }

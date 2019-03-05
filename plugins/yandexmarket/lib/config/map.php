@@ -593,9 +593,9 @@ return array(
             'source' => 'field:type_id',
         ),
         'sales_notes'           => array(
-            'type'        => 'adjustable',
-            'name'        => 'Примечания',
-            'description' => 'Информация о минимальной сумме заказа, минимальной партии товара или необходимости предоплаты, а также описания акций, скидок и распродаж',
+            'type'              => 'adjustable',
+            'name'              => 'Примечания',
+            'description'       => 'Информация о минимальной сумме заказа, минимальной партии товара или необходимости предоплаты, а также описания акций, скидок и распродаж',
             'available_options' => array(
                 'format' => array(
                     'description' => 'Формат для вывода значения:',
@@ -611,8 +611,8 @@ return array(
                     ),
                 ),
             ),
-            'format'      => '%50s',
-            'function'    => array(
+            'format'            => '%50s',
+            'function'          => array(
                 'prepaid' => 'Заказ товара по предоплате (для товаров, которых нет в наличии)',
             ),
         ),
@@ -1104,6 +1104,179 @@ return array(
                 .' атрибута <tt>unit</tt> или добавьте нужную единицу в скобках в названии характеристики в настройках магазина.<br>'
                 .'Если в названии характеристики есть слово в скобках, но в «Яндекс.Маркет» не нужно экспортировать атрибут <tt>unit</tt>,'
                 .' введите пробел в поле для этого атрибута.',
+        ),
+    ),
+
+    'promos' => array(
+        'code'     => array(
+            'id'            => array(
+                'source'    => 'id',
+                'required'  => true,
+                'attribute' => true,
+            ),
+            'type'          => array(
+                'source'    => 'promos_type',
+                'required'  => true,
+                'attribute' => true,
+            ),
+            'start-date'    => array(
+                'source'   => 'start_datetime',
+                'required' => false,
+            ),
+            'end-date'      => array(
+                'source'   => 'end_datetime',
+                'required' => false,
+            ),
+            'description'   => array(
+                'source'   => 'description',
+                'required' => false,
+            ),
+            'url'           => array(
+                'source'   => 'url',
+                'required' => false,
+            ),
+            'promo-code'    => array(
+                'source'     => 'promo_code',
+                'required'   => true,
+                'max_length' => 20,
+            ),
+            'discount_unit' => array(
+                'source'    => 'discount_unit',
+                'required'  => true,
+                'path'      => 'discount[unit]',
+                'attribute' => true,
+                'virtual'   => true,
+            ),
+            'discount'      => array(
+                'source'   => 'discount_value',
+                'required' => true,
+                'callback' => true,
+            ),
+            'product'       => array(
+                'source'   => 'hash',
+                'required' => true,
+                'path'     => 'purchase/product',
+            ),
+        ),
+        'npm'      => array(
+            'id'                => array(
+                'source'    => 'id',
+                'required'  => true,
+                'attribute' => true,
+            ),
+            'type'              => array(
+                'source'    => 'promos_type',
+                'required'  => true,
+                'attribute' => true,
+            ),
+            'start-date'        => array(
+                'source'   => 'start_datetime',
+                'required' => false,
+            ),
+            'end-date'          => array(
+                'source'   => 'end_datetime',
+                'required' => false,
+            ),
+            'description'       => array(
+                'source'   => 'description',
+                'required' => false,
+            ),
+            'url'               => array(
+                'source'   => 'url',
+                'required' => false,
+            ),
+            'required-quantity' => array(
+                'source'   => 'required_quantity',
+                'required' => true,
+                'path'     => 'purchase/required-quantity',
+            ),
+            'free-quantity'     => array(
+                'source'   => 'free_quantity',
+                'required' => true,
+                'path'     => 'purchase/free-quantity',
+            ),
+            'product'           => array(
+                'source'   => 'hash',
+                'required' => true,
+                'path'     => 'purchase/product',
+            ),
+        ),
+        'discount' => array(
+            'id'          => array(
+                'source'    => 'id',
+                'required'  => true,
+                'attribute' => true,
+            ),
+            'type'        => array(
+                'source'    => 'promos_type',
+                'required'  => true,
+                'attribute' => true,
+            ),
+            'start-date'  => array(
+                'source'   => 'start_datetime',
+                'required' => true,
+            ),
+            'end-date'    => array(
+                'source'   => 'end_datetime',
+                'required' => true,
+            ),
+            'description' => array(
+                'source'   => 'description',
+                'required' => false,
+            ),
+            'url'         => array(
+                'source'   => 'url',
+                'required' => false,
+            ),
+            'product'     => array(
+                'source'   => 'hash',
+                'required' => true,
+                'callback' => true,
+                'path'     => 'purchase/product',
+            ),
+        ),
+        'gift'     => array(
+            'id'                => array(
+                'source'    => 'id',
+                'required'  => true,
+                'attribute' => true,
+            ),
+            'type'              => array(
+                'source'    => 'promos_type',
+                'required'  => true,
+                'attribute' => true,
+            ),
+            'start-date'        => array(
+                'source'   => 'start_datetime',
+                'required' => false,
+            ),
+            'end-date'          => array(
+                'source'   => 'end_datetime',
+                'required' => false,
+            ),
+            'description'       => array(
+                'source'   => 'description',
+                'required' => false,
+            ),
+            'url'               => array(
+                'source'   => 'url',
+                'required' => false,
+            ),
+            'required-quantity' => array(
+                'source'   => 'required_quantity',
+                'required' => true,
+                'path'     => 'purchase/required-quantity',
+            ),
+            'product'           => array(
+                'source'   => 'hash',
+                'required' => true,
+                'path'     => 'purchase/product',
+            ),
+            'promo-gift'        => array(
+                'source'   => 'gifts_hash',
+                'required' => true,
+                'path'     => 'promo-gifts/promo-gift',
+            ),
         ),
     ),
 );

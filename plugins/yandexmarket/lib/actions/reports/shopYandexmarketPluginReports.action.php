@@ -2,9 +2,7 @@
 
 class shopYandexmarketPluginReportsAction extends waViewAction
 {
-    /**
-     * @var shopYandexmarketPlugin
-     */
+    /** @var shopYandexmarketPlugin */
     private $plugin;
 
     public function execute()
