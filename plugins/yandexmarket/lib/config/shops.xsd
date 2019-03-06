@@ -31,8 +31,10 @@
                     <xs:element ref="cpa"/>
                     <xs:element ref="fee"/>
                     <xs:element ref="delivery-options"/>
+                    <xs:element ref="offers"/>
+                    <xs:element ref="gifts"/>
+                    <xs:element ref="promos"/>
                 </xs:choice>
-                <xs:element ref="offers"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -88,6 +90,22 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element maxOccurs="unbounded" ref="offer"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="gifts">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element minOccurs="0" maxOccurs="unbounded" ref="gift"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="promos">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element minOccurs="0"  maxOccurs="unbounded" ref="promo"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -165,7 +183,6 @@
                 <xs:element ref="sales_notes"/>
                 <xs:element ref="min-quantity"/>
                 <xs:element ref="step-quantity"/>
-                <xs:element ref="promo"/>
                 <xs:element ref="manufacturer_warranty"/>
                 <xs:element ref="seller_warranty"/>
                 <xs:element ref="country_of_origin"/>
@@ -212,6 +229,102 @@
             <xs:attribute name="cbid" type="xs:string"/>
             <xs:attribute name="sbid" type="xs:string"/>
             <xs:attribute name="fee" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="gift">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="name"/>
+                <xs:element ref="picture"/>
+            </xs:choice>
+            <xs:attribute name="id" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="promo">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="start-date"/>
+                <xs:element ref="end-date"/>
+                <xs:element ref="description"/>
+                <xs:element ref="url"/>
+                <xs:element ref="promo-code"/>
+                <xs:element ref="discount"/>
+                <xs:element ref="purchase"/>
+                <xs:element ref="promo-gifts"/>
+            </xs:choice>
+            <xs:attribute name="id" type="xs:string"/>
+            <xs:attribute name="type">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="gift with purchase"/>
+                        <xs:enumeration value="n plus m"/>
+                        <xs:enumeration value="flash discount"/>
+                        <xs:enumeration value="promo code"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="promo-gifts">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="promo-gift"/>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+
+
+    <xs:element name="promo-gift">
+        <xs:complexType>
+            <xs:attribute name="offer-id" type="xs:string"/>
+            <xs:attribute name="gift-id" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="discount">
+        <xs:complexType mixed="true">
+            <xs:attribute name="unit">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="percent"/>
+                        <xs:enumeration value="currency"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="currency" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="purchase">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="required-quantity"/>
+                <xs:element ref="free-quantity"/>
+                <xs:element ref="product"/>
+            </xs:choice>
+            <xs:attribute name="unit">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="percent"/>
+                        <xs:enumeration value="currency"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="currency" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="product">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="discount-price"/>
+            </xs:choice>
+            <xs:attribute name="offer-id" type="xs:string"/>
+            <xs:attribute name="category-id" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="discount-price">
+        <xs:complexType mixed="true">
+            <xs:attribute name="currency" type="xs:string"/>
         </xs:complexType>
     </xs:element>
     <xs:element name="url" type="xs:string"/>
@@ -279,6 +392,7 @@
                 <xs:enumeration value="VAT_0"/>
                 <xs:enumeration value="VAT_10"/>
                 <xs:enumeration value="VAT_18"/>
+                <xs:enumeration value="VAT_20"/>
             </xs:restriction>
         </xs:simpleType>
     </xs:element>
@@ -340,7 +454,6 @@
     <xs:element name="sales_notes" type="xs:string"/>
     <xs:element name="min-quantity" type="xs:integer"/>
     <xs:element name="step-quantity" type="xs:integer"/>
-    <xs:element name="promo" type="xs:string"/>
     <xs:element name="aliases" type="xs:string"/>
     <xs:element name="provider" type="xs:string"/>
     <xs:element name="tarifplan" type="xs:string"/>
@@ -427,4 +540,10 @@
     <xs:element name="is_kids" type="xs:string"/>
     <xs:element name="date" type="xs:string"/>
     <xs:element name="purchase_price" type="xs:string"/>
+    <xs:element name="start-date" type="xs:string"/>
+    <xs:element name="end-date" type="xs:string"/>
+    <xs:element name="promo-code" type="xs:string"/>
+    <xs:element name="required-quantity" type="xs:integer"/>
+    <xs:element name="free-quantity" type="xs:integer"/>
+
 </xs:schema>

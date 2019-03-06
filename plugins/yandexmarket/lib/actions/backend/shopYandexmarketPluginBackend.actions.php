@@ -295,7 +295,7 @@ class shopYandexmarketPluginBackendActions extends waViewActions
 
                 switch ($info['type']) {
                     case 'id':
-                        $url = sprintf('/products/hash=id/:%s', $info['product_ids']);
+                        $url = sprintf('/products/hash=id/%s', $info['product_ids']);
                         break;
                     case 'set':
                         $url = sprintf('/products/set_id=%s', $info['set_id']);

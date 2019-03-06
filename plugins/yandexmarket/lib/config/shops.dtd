@@ -68,8 +68,8 @@
         start-date?,end-date?,description,url?,promo-code?,discount?,purchase,promo-gifts?
         )>
 <!ATTLIST promo
-        id CDATA #IMPLIED
-        type (promo code | flash discount | n plus m | gift with purchase) #IMPLIED>
+        id CDATA #REQUIRED
+        type CDATA #REQUIRED>
 <!ELEMENT purchase (required-quantity?,free-quantity?,product+)>
 <!ELEMENT promo-gifts (promo-gift+)>
 
