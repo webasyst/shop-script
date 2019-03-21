@@ -5,7 +5,7 @@ return array(
     'description'     => 'Экспорт каталога товаров в формате YML, прием заказов (CPA)',
     'img'             => 'img/yandexmarket.png',
     'vendor'          => 'webasyst',
-    'version'         => '2.3.1',
+    'version'         => '2.3.2',
     'importexport'    => 'profiles',
     'export_profile'  => true,
     'custom_settings' => true,

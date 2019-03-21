@@ -896,6 +896,7 @@ SQL;
                 $promo_rule = $this->getPromoRule($promo_rule_id);
                 if ($promo_rule['type'] === shopImportexportHelper::PROMO_TYPE_GIFT) {
                     $this->data['count']['gifts'] = $this->data['count']['promo_rules'];
+                    $this->data['gifts_map'] = array();
                     break;
                 }
             }
