@@ -7,23 +7,24 @@ class shopSettingsOrderStatesAction extends waViewAction
     public function execute()
     {
         $id = $this->getId();
+        $workflow = new shopWorkflow();
 
-        //If create new State temporarily save the user's settings to send to the template.
+        // If create new State temporarily save the user's settings to send to the template.
         if (waRequest::post()) {
             if ($id === 'new_state') {
                 $_POST['name'] = uniqid('new_status_');
             }
-            //This shopSettingsOrderStateSave.controller. Save old config to $this->config.
-            $this->savePreview();
+            // Make fake workflow config to prepare data for template
+            $modified_config = $this->getModifiedConfig();
+            $workflow->setTemporaryConfig($modified_config);
             if ($id === 'new_state') {
-                $config = shopWorkflow::getConfig();
-                $states = array_keys(array_reverse($config['states'], true));
+                // fake id of newly created state
+                $states = array_keys(array_reverse($modified_config['states'], true));
                 $id = $states[0];
             }
         }
 
         //Get data with new state
-        $workflow = new shopWorkflow();
         $states = $workflow->getAllStates();
         $actions = $workflow->getAvailableActions();
         $info = $states ? $this->getStateInfo($id) : $this->getDummyStateInfo();
@@ -45,11 +46,8 @@ class shopSettingsOrderStatesAction extends waViewAction
 
         ));
 
-        //Restore workflow config from $this->config.
-        //Because if the user wants to save a new state, the request will go to the shopSettingsOrderStateSave.controller directly ¯\_(ツ)_/¯
-        if (waRequest::post()) {
-            $this->restoreConfig();
-        }
+        // Restore unmodified workflow config (being paranoid)
+        $workflow->setTemporaryConfig(null);
     }
 
     public function getId()
@@ -105,18 +103,12 @@ class shopSettingsOrderStatesAction extends waViewAction
         );
     }
 
-    public function savePreview()
+    public function getModifiedConfig()
     {
-        $this->config = shopWorkflow::getConfig();
         $controller = new shopSettingsOrderStateSaveController();
+        $controller->skip_save = true;
         $controller->execute();
-    }
-
-    public function restoreConfig()
-    {
-        if ($this->config) {
-            shopWorkflow::setConfig($this->config);
-        }
+        return $controller->config;
     }
 
     public function getButtons($actions, $info)

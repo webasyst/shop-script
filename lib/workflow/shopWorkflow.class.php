@@ -14,17 +14,22 @@ class shopWorkflow extends waWorkflow
             }
             if (file_exists($file)) {
                 self::$config = include($file);
-                foreach (self::$config['states'] as &$data) {
-                    if (!isset($data['classname'])) {
-                        $data['classname'] = 'shopWorkflowState';
-                    }
-                }
-                unset($data);
+                self::workupConfig();
             } else {
                 self::$config = array();
             }
         }
         return self::$config;
+    }
+
+    protected static function workupConfig()
+    {
+        foreach (self::$config['states'] as &$data) {
+            if (!isset($data['classname'])) {
+                $data['classname'] = 'shopWorkflowState';
+            }
+        }
+        unset($data);
     }
 
     protected function getOriginalConfig()
@@ -42,9 +47,24 @@ class shopWorkflow extends waWorkflow
 
     public static function setConfig(array $config)
     {
+        if (waConfig::get('is_template')) {
+            return;
+        }
         $file = wa()->getConfig()->getConfigPath('workflow.php', true, 'shop');
         self::$config = null;
         return waUtils::varExportToFile($config, $file);
+    }
+
+    public static function setTemporaryConfig(array $config = null)
+    {
+        if (waConfig::get('is_template')) {
+            return;
+        }
+        self::$config = $config;
+        if ($config) {
+            self::workupConfig();
+        }
+        return true;
     }
 
     public function getAvailableStates()
