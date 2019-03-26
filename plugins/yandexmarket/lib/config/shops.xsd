@@ -97,7 +97,7 @@
     <xs:element name="gifts">
         <xs:complexType>
             <xs:sequence>
-                <xs:element minOccurs="0" maxOccurs="unbounded" ref="gift"/>
+                <xs:element minOccurs="1" maxOccurs="unbounded" ref="gift"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -105,7 +105,7 @@
     <xs:element name="promos">
         <xs:complexType>
             <xs:sequence>
-                <xs:element minOccurs="0"  maxOccurs="unbounded" ref="promo"/>
+                <xs:element minOccurs="1"  maxOccurs="unbounded" ref="promo"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>

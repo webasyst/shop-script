@@ -484,9 +484,12 @@ class shopYandexmarketPluginRunController extends waLongActionController
                             foreach ($options as $option) {
                                 if (strpos($option, ':')) {
                                     list($name, $value) = explode(':', $option, 2);
-                                    $info['options'][$name] = $value;
                                 } else {
-                                    $info['options'][$option] = true;
+                                    $name = $option;
+                                    $value = true;
+                                }
+                                if (strlen($name)) {
+                                    $info['options'][$name] = $value;
                                 }
                             }
                         }
@@ -895,9 +898,8 @@ SQL;
             foreach ($promo_rules as $promo_rule_id) {
                 $promo_rule = $this->getPromoRule($promo_rule_id);
                 if ($promo_rule['type'] === shopImportexportHelper::PROMO_TYPE_GIFT) {
-                    $this->data['count']['gifts'] = $this->data['count']['promo_rules'];
+                    ++$this->data['count']['gifts'];
                     $this->data['gifts_map'] = array();
-                    break;
                 }
             }
         }
@@ -929,6 +931,9 @@ SQL;
             case 'product':
                 $name = 'Товарные предложения';
                 break;
+            case 'gifts':
+                $name = 'Подарки';
+                break;
             case 'promo_rules':
                 $name = 'Промоакции';
                 break;
@@ -950,13 +955,16 @@ SQL;
                 case 'product':
                     $info = _wp('%d товарное предложение', '%d товарных предложения', $count[$stage]);
                     break;
+                case 'gifts':
+                    $gifts_count = count($this->data['gifts_map']);
+                    $info = _wp('%d подарок', '%d подарков', $gifts_count);
+                    break;
                 case 'promo_rules':
                     $info = _wp('%d промоакция', '%d промоакций', $count[$stage]);
                     break;
             }
         }
         return $info;
-
     }
 
     public function execute()
@@ -1032,7 +1040,10 @@ SQL;
      * @uses shopYandexmarketPluginRunController::stepCategory()
      * @uses shopYandexmarketPluginRunController::stepProduct()
      * @uses shopYandexmarketPluginRunController::stepGifts()
+     * @uses shopYandexmarketPluginRunController::completeGifts()
      * @uses shopYandexmarketPluginRunController::stepPromoRules()
+     * @uses shopYandexmarketPluginRunController::completePromoRules()
+     *
      */
     protected function step()
     {
@@ -1041,7 +1052,19 @@ SQL;
         $method_name = $this->getMethodName($stage);
         try {
             if (method_exists($this, $method_name)) {
-                $this->{$method_name}($this->data['current'][$stage], $this->data['count'], $this->data['processed_count'][$stage]);
+                $this->{$method_name}(
+                    $this->data['current'][$stage],
+                    $this->data['count'],
+                    $this->data['processed_count'][$stage]
+                );
+                if ($this->data['current'][$stage]
+                    && ($this->data['current'][$stage] ===  $this->data['count'][$stage])
+                ) {
+                    $complete_method_name = $this->getMethodName($stage, 'complete%s');
+                    if (method_exists($this, $complete_method_name)) {
+                        $this->{$complete_method_name}($this->data['count'], $this->data['processed_count'][$stage]);
+                    }
+                }
             } else {
                 $this->error("Unsupported stage [%s]", $stage);
                 $this->data['current'][$stage] = $this->data['count'][$stage];
@@ -1838,6 +1861,17 @@ SQL;
         ++$current_stage;
     }
 
+    private function completeGifts($count, $processed)
+    {
+        if (empty($processed)) {
+            $elements = $this->dom->getElementsByTagName('gifts');
+            if ($elements->length) {
+                $element = $elements->item(0);
+                $element->parentNode->removeChild($element);
+            }
+        }
+    }
+
     private function getPromoRule($id)
     {
         static $promo_rules;
@@ -1911,6 +1945,19 @@ SQL;
     }
 
 
+
+    private function completePromoRules($count, $processed)
+    {
+        if (empty($processed)) {
+            $elements = $this->dom->getElementsByTagName('promos');
+            if ($elements->length) {
+                $element = $elements->item(0);
+                $element->parentNode->removeChild($element);
+            }
+        }
+    }
+
+
     private function getPromoValue($promo_rule, $field, $info = array())
     {
         $value = null;
@@ -1932,7 +1979,11 @@ SQL;
         $value = null;
         list($source, $param) = explode(':', $info['source'], 2);
 
-        $info['options'] = shopYandexmarketPlugin::parseMapOptions($param);
+        $info += array(
+            'options' => array(),
+        );
+
+        $info['options'] = array_merge($info['options'], shopYandexmarketPlugin::parseMapOptions($param));
         if (empty($info['options'])) {
             unset($info['options']);
         }
@@ -2298,10 +2349,7 @@ SQL;
     private function setGift($gift)
     {
         if (isset($this->data['gifts_map'])) {
-            $this->data['gifts_map'][$gift['id']] = array(
-                'price'    => $gift['price'],
-                'currency' => $gift['currencyId'],
-            );
+            $this->data['gifts_map'][$gift['id']] = array();
         }
     }
 
@@ -3319,7 +3367,7 @@ SQL;
                 break;
             case 'product':
                 if (empty($info)) {
-                    $products =$value;
+                    $products = $value;
                     $value = array();
                     foreach ($products as $product) {
                         if (isset($product['&offer'])) {

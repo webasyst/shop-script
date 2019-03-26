@@ -62,10 +62,10 @@
         bid CDATA #IMPLIED
         cbid CDATA #IMPLIED>
 
-<!ELEMENT promos (promo*)>
+<!ELEMENT promos (promo+)>
 
 <!ELEMENT promo (
-        start-date?,end-date?,description,url?,promo-code?,discount?,purchase,promo-gifts?
+        start-date?,end-date?,description?,url?,promo-code?,discount?,purchase,promo-gifts?
         )>
 <!ATTLIST promo
         id CDATA #REQUIRED
@@ -94,7 +94,7 @@
         gift-id CDATA #IMPLIED
         >
 
-<!ELEMENT gifts (gift*)>
+<!ELEMENT gifts (gift+)>
 <!ELEMENT gift (name,picture)>
 <!ATTLIST gift
         id CDATA #IMPLIED

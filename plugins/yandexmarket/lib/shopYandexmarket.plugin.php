@@ -230,7 +230,9 @@ class shopYandexmarketPlugin extends shopPlugin
                     if (strpos($option_data, ':')) {
                         list($option_data, $value) = explode(':', $option_data, 2);
                     }
-                    $options[$option_data] = $value;
+                    if (strlen($option_data)) {
+                        $options[$option_data] = $value;
+                    }
                 }
             }
         }
