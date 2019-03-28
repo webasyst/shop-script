@@ -172,7 +172,7 @@ SQL;
                     $product['skus'][$sku_id]['name'] = $name_of_fake_sku;
                 }
 
-                $current_product_name = $product['name'];
+                $current_product_name = ifset($product, 'name','');
                 if (!empty($product['skus'][$sku_id]['name'])) {
                     $current_product_name .= ' ('.$product['skus'][$sku_id]['name'].')';
                 }
