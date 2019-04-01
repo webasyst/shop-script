@@ -217,7 +217,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             $settings[$name] = $value;
             $this->plugin()->saveSettings($settings);
 
-            $log = array($name=>$value);
+            $log = array($name => $value);
         } elseif (is_array($name)) {
             $settings = $name;
             $settings += $this->plugin()->getSettings();
@@ -236,8 +236,8 @@ class shopCml1cPluginBackendRunController extends waLongActionController
     }
 
     /**
-     * @uses self::initExport()
-     * @uses self::initImport()
+     * @uses shopCml1cPluginBackendRunController::initExport()
+     * @uses shopCml1cPluginBackendRunController::initImport()
      */
     protected function init()
     {
@@ -335,7 +335,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
     }
 
     /**
-     * @param string[] $code
+     * @param string[]    $code
      * @param shopProduct $product
      * @return mixed
      */
@@ -591,7 +591,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
         $this->data['expert'] = !!waRequest::post('expert') || !!$this->pluginSettings('expert');
 
-        $this->data['empty_count']= array(
+        $this->data['empty_count'] = array(
             null,
         );
 
@@ -1146,8 +1146,12 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
     /**
      * @return bool
-     * @uses self::stepImport
-     * @uses self::stepExport
+     * @uses shopCml1cPluginBackendRunController::stepImport()
+     * @uses shopCml1cPluginBackendRunController::stepExportCategory()
+     * @uses shopCml1cPluginBackendRunController::stepExportProduct()
+     * @uses shopCml1cPluginBackendRunController::stepExportOffer()
+     * @uses shopCml1cPluginBackendRunController::stepExportOrder()
+     * @uses shopCml1cPluginBackendRunController::stepExportVirtualProduct()
      */
     protected function step()
     {
@@ -1171,7 +1175,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
     }
 
     /**
-     * @param string $method_name
+     * @param string                $method_name
      * @param Exception|waException $ex
      * @throws Exception|waException
      */
@@ -1552,7 +1556,7 @@ HTML;
 
 
     /**
-     * @param $name
+     * @param       $name
      * @param array $params
      * @return string
      */
@@ -3637,14 +3641,14 @@ SQL;
 
 
     /**
-     * @param mixed [string] $product
+     * @param mixed  [string] $product
      * @param string [string] $product['sku_id']
      * @param string [string] $product['id_1c']
      * @param string [string] $product['name']
-     * @param int [string] $product['quantity']
+     * @param int    [string] $product['quantity']
      * @param double [string] $product['price']
      * @param double [string] $product['tax']
-     * @param bool [string] $product['tax_included']
+     * @param bool   [string] $product['tax_included']
      * @param $discount_rate
      * @param $tax
      */
@@ -3752,14 +3756,14 @@ SQL;
 
 
     /**
-     * @param mixed [string] $product
+     * @param mixed  [string] $product
      * @param string [string] $product['sku_id']
      * @param string [string] $product['id_1c']
      * @param string [string] $product['name']
-     * @param int [string] $product['quantity']
+     * @param int    [string] $product['quantity']
      * @param double [string] $product['price']
      * @param double [string] $product['tax']
-     * @param bool [string] $product['tax_included']
+     * @param bool   [string] $product['tax_included']
      * @param $sku
      * @param $tax
      */
@@ -3829,7 +3833,7 @@ SQL;
     }
 
     /**
-     * @param $service
+     * @param           $service
      * @param float|int $discount_rate
      * @internal param $mixed [string] $service
      * @internal param $string [string] $service['id_1c']
@@ -3838,7 +3842,7 @@ SQL;
      * @internal param $double [string] $service['price']
      * @internal param $double [string] $service['tax'] default is null
      * @internal param $bool [string] $service['tax_included'] default is null
-     * @param float $rate
+     * @param float     $rate
      */
     private function writeOrderService($service, $discount_rate = 0, $rate = 1.0)
     {
@@ -3987,7 +3991,7 @@ SQL;
 
     /**
      * @param SimpleXMLElement $element
-     * @param string $xpath
+     * @param string           $xpath
      * @return SimpleXMLElement[]
      */
     private function xpath($element, $xpath)
@@ -4004,7 +4008,7 @@ SQL;
 
     /**
      * @param SimpleXMLElement|mixed $value
-     * @param string $type
+     * @param string                 $type
      * @return float|int|mixed|string
      */
     private static function castValue($value, $type = 'string')
@@ -4049,8 +4053,8 @@ SQL;
      *
      *
      * @param SimpleXMLElement $element
-     * @param string|string[] $field
-     * @param string $type
+     * @param string|string[]  $field
+     * @param string           $type
      *
      * @return mixed
      */
@@ -4088,8 +4092,8 @@ SQL;
 
     /**
      * @param SimpleXMLElement $element
-     * @param string|string[] $attribute
-     * @param string $type
+     * @param string|string[]  $attribute
+     * @param string           $type
      * @return string
      */
     private static function attribute(&$element, $attribute, $type = 'string')
@@ -4148,7 +4152,23 @@ SQL;
      *
      * @throws waException
      * @return bool
-     * @uses shopCml1cPluginBackendRunController::stepImportCategory
+     * @uses shopCml1cPluginBackendRunController::stepImportStockConfigure()
+     * @uses shopCml1cPluginBackendRunController::completeImportStockConfigure()
+     * @uses shopCml1cPluginBackendRunController::stepImportPriceConfigure()
+     * @uses shopCml1cPluginBackendRunController::stepImportPrice()
+     * @uses shopCml1cPluginBackendRunController::completeImportPrice()
+     * @uses shopCml1cPluginBackendRunController::stepImportImage()
+     * @uses shopCml1cPluginBackendRunController::stepImportCategory()
+     * @uses shopCml1cPluginBackendRunController::stepImportFeature()
+     * @uses shopCml1cPluginBackendRunController::stepImportFeatureConfigure()
+     * @uses shopCml1cPluginBackendRunController::stepImportProductConfigure()
+     * @uses shopCml1cPluginBackendRunController::completeImportProductConfigure()
+     * @uses shopCml1cPluginBackendRunController::stepImportProduct()
+     * @uses shopCml1cPluginBackendRunController::completeImportProduct()
+     * @uses shopCml1cPluginBackendRunController::stepImportOfferConfigure()
+     * @uses shopCml1cPluginBackendRunController::completeImportOfferConfigure()
+     * @uses shopCml1cPluginBackendRunController::stepImportOffer()
+     * @uses shopCml1cPluginBackendRunController::completeImportOffer()
      */
     private function stepImport(&$current_stage, &$count, &$processed)
     {
@@ -4561,7 +4581,7 @@ SQL;
 
     /**
      * @param string $name
-     * @param array $data
+     * @param array  $data
      * @param string $xpath
      * @return string feature code
      */
@@ -4600,7 +4620,7 @@ SQL;
                         ->fetchAll('cml1c_id', true);
 
                     foreach ($data['values'] as $value_uuid => &$value) {
-                        $value_id =ifset($uuid_map[$value_uuid]);
+                        $value_id = ifset($uuid_map[$value_uuid]);
                         $row = $values_model->addValue($feature['id'], $value, $value_id, $feature['type']);
                         if (!empty($row['error'])) {
                             if (!empty($row['error']['original_id'])) {
@@ -4737,7 +4757,7 @@ SQL;
 
 
     /**
-     * @param string $name
+     * @param string      $name
      * @param shopProduct $product
      * @return array|mixed|null|string
      */
@@ -5184,7 +5204,9 @@ SQL;
                 }
 
                 # import stock counts
+
                 $stock = false;
+
                 if (isset($this->data['stock_map']) && !empty($this->data['stock_map'])) {
                     $xpaths = array(
                         '//Склад',
@@ -5220,8 +5242,32 @@ SQL;
                     }
                 }
 
+                $total = self::field($element, 'Количество', 'intval');
+
                 if (!count($sku['stock']) && !$stock) {
-                    $sku['stock'][$this->data['stock_id']] = self::field($element, 'Количество', 'intval');
+
+                    if (isset($this->data['stock_map'])) {
+                        # настроена карта распределения складов
+                        if ($total === 0) {
+                            # обнуляем остатки на всех сопоставленных складах
+                            foreach ($this->data['stock_map'] as $stock_uuid => $stock_id) {
+                                if (is_array($stock_id)) {
+                                    $stock_id = $stock_id['stock_id'];
+                                }
+                                # < 0 — не импортировать остатки
+                                # == 0 — импорт в общие остатки
+                                if ($stock_id > 0) {
+                                    $sku['stock'][$stock_id] = 0;
+                                }
+                            }
+                        } else {
+                            # остатки сохраняются для склада, указанного в настройках плагина
+                            $sku['stock'][$this->data['stock_id']] = $total;
+                        }
+                    } else {
+                        # остатки сохраняются для склада, указанного в настройках плагина
+                        $sku['stock'][$this->data['stock_id']] = $total;
+                    }
                 }
 
                 foreach ($sku['stock'] as $stock_id => $stock_count) {
@@ -5232,7 +5278,12 @@ SQL;
 
                 if (empty($sku['stock'])) {
                     unset($sku['stock']);
-                } elseif (!empty($this->data['stock_complement'])) {
+                } elseif (!empty($this->data['stock_complement']) &&
+                    (
+                        (count($sku['stock']) > 1)
+                        || !isset($sku['stock'][0])
+                    )
+                ) {
                     $sku['stock'] += array_fill_keys($this->data['stock_complement'], 0);
                 }
 
@@ -5451,7 +5502,7 @@ SQL;
                         if (!$expert) {
                             break;
                         }
-                        //no break
+                    //no break
                     default:
                         $code = $this->findFeature($property_name);
 
@@ -5569,6 +5620,8 @@ SQL;
                     }
 
                 } else {
+                    /** @var string $value */
+                    $value = (string)$value;
                     if (isset($data['values'][$value])) {
                         $value = $data['values'][$value];
                     }
@@ -5584,6 +5637,8 @@ SQL;
                         unset($_value);
                     }
                 } else {
+                    /** @var string $value */
+                    $value = (string)$value;
                     if (!preg_match('@\d\s+\w+@', $value)) {
                         $value = doubleval($value).' '.$target['dimension'];
                     }
@@ -5977,11 +6032,11 @@ SQL;
             $skus[-1] = array(
                 'available' => ($subject == self::STAGE_PRODUCT) ? ($deleted ? false : true) : 1,
                 'id_1c'     => end($uuid),
+                'sku'       => self::field($element, 'Артикул'),
             );
 
             if (count($sku_features)) {
                 $skus[-1]['name'] = $update_fields['name'].' ('.implode(', ', $sku_features).')';
-                $skus[-1]['sku'] = self::field($element, 'Артикул');
             }
         }
 
@@ -5991,6 +6046,8 @@ SQL;
 
             $product->status = ($this->pluginSettings('product_hide')) ? 0 : 1;
             $skus[-1]['available'] = 0;
+
+            $skus[-1]['stock'][0] = 0;
 
             if ($deleted) {
                 if ($subject == self::STAGE_PRODUCT) {
@@ -6306,11 +6363,17 @@ SQL;
 
         if (isset($skus[-1])) {
             $skus[-1]['available'] = !!$skus[-1]['available'];
+            if (!empty($this->data['stock_setup'])) {
+                if (isset($skus[-1]['stock'])) {
+                    if (!isset($skus[-1]['stock'][0])) {
+                        $skus[-1]['stock'] += array_fill_keys($this->data['stock_setup'], 0);
+                    }
+                } else {
+                    $skus[-1]['stock'] = 0;
+                }
+            }
             if (!isset($skus[-1]['stock'])) {
                 $skus[-1]['stock'] = array();
-            }
-            if (!empty($this->data['stock_setup'])) {
-                $skus[-1]['stock'] += array_fill_keys($this->data['stock_setup'], 0);
             }
         }
         return $skus;
@@ -6560,7 +6623,7 @@ SQL;
 
     /**
      * @param shopProduct $product
-     * @param $sku
+     * @param             $sku
      */
     private function writeOffer($product, $sku)
     {
@@ -6616,8 +6679,8 @@ SQL;
     }
 
     /**
-     * @param $field
-     * @param $contact
+     * @param           $field
+     * @param           $contact
      * @param waContact $c
      * @return null|string
      */
@@ -6769,7 +6832,7 @@ SQL;
 
     /**
      * @param shopProduct $p
-     * @param array $skus
+     * @param array       $skus
      */
     private function fixSkuBasePriceSelectable(&$p, &$skus)
     {

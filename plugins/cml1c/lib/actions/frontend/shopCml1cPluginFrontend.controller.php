@@ -31,9 +31,7 @@ class shopCml1cPluginFrontendController extends waController
      */
     private function runner($force = false)
     {
-        /**
-         * @var shopCml1cPluginBackendRunController $runner
-         */
+        /** @var shopCml1cPluginBackendRunController $runner */
         static $runner;
         if (!$runner || $force) {
             if ($runner) {
@@ -46,15 +44,19 @@ class shopCml1cPluginFrontendController extends waController
         return $runner;
     }
 
+    public function preExecute()
+    {
+        parent::preExecute();
+        $this->use_reflection = version_compare(PHP_VERSION, '5.3.2', '>=');
+    }
+
     public function execute()
     {
         @set_time_limit(0);
         wa()->setLocale('ru_RU');
         ignore_user_abort(true);
 
-        /**
-         * @var shopCml1cPlugin $plugin
-         */
+        /** @var shopCml1cPlugin $plugin */
         $plugin = wa()->getPlugin('cml1c');
         $uuid = $plugin->uuid();
         if (empty($uuid) || (waRequest::param('hash') != $uuid)) {
@@ -160,6 +162,34 @@ class shopCml1cPluginFrontendController extends waController
         $options = $s->getOptions();
 
         $this->response("success", ifset($options['session_name'], session_name()), ifset($options['session_id'], session_id()));
+    }
+
+    private function checkIP()
+    {
+        $ip = waRequest::getIp(true);
+        $masks = array();
+        $valid = false;
+        foreach ($masks as $mask) {
+            $mask = trim($mask);
+            if (strpos($mask, '-')) {
+                //IP interval
+                $interval = array_map('ip2long', array_map('trim', explode('-', $mask, 2)));
+                if (($ip <= max($interval)) && ($ip >= min($interval))) {
+                    $valid = true;
+                }
+            } elseif (preg_match('@^(\d+\.\d+.\d+\.\d+)(/(\d+))?$', $mask, $matches)) {
+                if (!empty($matches[2])) {
+                    //mask
+                } else {
+                    $valid = (ip2long($mask) == $ip);
+                }
+            } else {
+                //invalid mask
+            }
+            if ($valid) {
+                break;
+            }
+        }
     }
 
     private function initFile($clean = false)
@@ -409,7 +439,7 @@ class shopCml1cPluginFrontendController extends waController
                 waLog::log(sprintf('Error while export sales', $out, 'shop/plugins/cml1c.error.log'));
             }
             return $is_done;
-        } else {
+        } elseif (true) {
 
             $limit = 100;
             do {
@@ -425,6 +455,8 @@ class shopCml1cPluginFrontendController extends waController
                 $this->sleep();
             } while (--$limit && !$ready);
             return $ready;
+        } else {
+            $this->runner()->fastExecute();
         }
     }
 
