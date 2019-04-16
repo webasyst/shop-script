@@ -294,14 +294,14 @@ class shopOrdersCollection
             $where = $statements['where'];
         }
 
-        $order_by = '';
-        if (isset($statements['order_by']) && is_scalar($statements['order_by'])) {
-            $order_by = (string)$statements['order_by'];
-        }
-
         $group_by = '';
         if (isset($statements['group_by']) && is_scalar($statements['group_by'])) {
             $group_by = (string)$statements['group_by'];
+        }
+
+        $order_by = '';
+        if (isset($statements['order_by']) && is_scalar($statements['order_by'])) {
+            $order_by = (string)$statements['order_by'];
         }
 
         $having = array();
