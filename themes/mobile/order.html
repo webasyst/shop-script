@@ -6,7 +6,7 @@
     <style>
         .s-cart-empty-wrapper { padding: 100px 0; text-align: center; }
         .s-cart-empty-wrapper .s-image-wrapper { margin: 0 0 20px; }
-        .s-cart-empty-wrapper .s-image-wrapper img { vertical-align: top; width: 100%; max-height: 160px; }
+        .s-cart-empty-wrapper .s-image-wrapper img { vertical-align: top; max-width: 100%; max-height: 160px; }
         .s-cart-empty-wrapper .s-description { margin: 20px 0 0; }
         .s-cart-empty-wrapper .s-actions-wrapper { margin: 30px 0 0; color: #006bd8; }
     </style>
@@ -40,6 +40,22 @@
                         "DEBUG" => true,
                         "wrapper" => "#js-order-cart"
                     ])}
+                </div>
+                <div class="s-section-footer">
+                    <div class="s-back-link">
+                        {$_url = $wa->getUrl('shop/frontend/')}
+                        {$_refer_url = waRequest::server('HTTP_REFERER')}
+                        {if !empty($_refer_url)}
+                            {$_refer_host = $_refer_url|parse_url:$smarty.const.PHP_URL_HOST}
+                            {$_current_url = $wa->currentUrl(true)}
+                            {$_current_host = $_current_url|parse_url:$smarty.const.PHP_URL_HOST}
+
+                            {if $_refer_host === $_current_host}
+                                {$_url = $_refer_url}
+                            {/if}
+                        {/if}
+                        <a href="{$_url|escape}">&larr; [`Back to shopping`]</a>
+                    </div>
                 </div>
             </section>
 

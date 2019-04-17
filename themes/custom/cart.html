@@ -19,9 +19,9 @@
 
     <!-- general welcome text -->
     <div class="content right300px">
-    
+
         <h1>[`Shopping cart`]</h1>
-    
+
         <form method="post">
             <table class="table cart">
                 <!-- products -->
@@ -59,13 +59,17 @@
                         <td><a class="delete" href="#" title="[`Remove from cart`]"><i class="icon16 remove"></i></a></td>
                     </tr>
                 {/foreach}
-                
+
                 <!-- discount coupon -->
                 <tr class="no-border" {if !shopDiscounts::isEnabled('coupons') && !$discount}style="display:none"{/if}>
                     <td colspan="2" class="no-border">
                         {if shopDiscounts::isEnabled('coupons')}
                         [`Discount coupon (if you have one)`]:
                         <input type="text" name="coupon_code" value="{$coupon_code|escape}"> <input type="submit"  value="[`Apply`]">
+                        {/if}
+
+                        {if $coupon_code && empty($coupon_discount) && empty($coupon_free_shipping)}
+                            <div class="error-message">[`Invalid coupon code`]</div>
                         {/if}
                     </td>
                     <td class="align-center">[`Discount`]</td>
@@ -88,14 +92,14 @@
                     <td>&nbsp;</td>
                 </tr>
                 {/if}
-                
+
                 <!-- TOTAL -->
                 <tr class="large no-border">
                     <td colspan="3">[`Total`]</td>
                     <td class="cart-total align-center total bold nowrap">{shop_currency_html($cart.total, true)}</td>
                     <td>&nbsp;</td>
                 </tr>
-                
+
                 <!-- checkout -->
                 <tr class="no-border">
                     <td colspan="3">
@@ -109,17 +113,17 @@
                     </td>
                     <td>&nbsp;</td>
                 </tr>
-                
-                
-                
+
+
+
             </table>
 
             <!-- plugin hook: 'frontend_cart' -->
             {* @event frontend_cart.%plugin_id% *}
-            {foreach $frontend_cart as $_}{$_}{/foreach}                    
+            {foreach $frontend_cart as $_}{$_}{/foreach}
 
         </form>
-        
+
     </div>
 
 {/if}

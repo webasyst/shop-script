@@ -1,3 +1,6 @@
+.error-message {
+  color: #f00;
+}
 .currency-toggle {
   margin-right: 20px;
 }

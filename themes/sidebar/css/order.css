@@ -147,6 +147,12 @@
   border-radius: 5px;
   background: #fff;
 }
+.s-checkout-order-page .s-back-link {
+  text-align: right;
+}
+.s-checkout-order-page .s-order-section > .s-section-footer {
+  padding: 18px 20px 17px 20px;
+}
 .s-checkout-order-page .s-order-section > .s-section-header {
   border: solid #ccc;
   border-width: 1px 1px 0;
