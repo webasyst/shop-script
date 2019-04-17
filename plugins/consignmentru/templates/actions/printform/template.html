@@ -1,556 +1,656 @@
 {*
 @param waOrder $order
 *}
-<style type="text/css">
-{include file="./css/printform.css" inline}
-</style>
-</head>
-<table cellpadding="0" cellspacing="0" border="0" width="100%">
-    <tr>
-        <td class=reportSmallFont align=right>Унифицированная форма №
-        Торг-12<br>Утверждена Постановлением Госкомстата России
-        <br>от 25.12.1998 г. за №132
-        </td>
-    </tr>
-    <tr>
-        <td>&nbsp;</td>
-    </tr>
-</table>
-<table cellpadding="0" cellspacing="0" border="0" width="100%">
-    <tr>
-        <td valign=top width="90%">
-        <table cellpadding="0" cellspacing="0" border="0" width="100%"	class="mainTable">
-            <tr>
-                <td class=underlined align=center><b>
-{$settings.COMPANYNAME|default:"Продавец"|escape},&nbsp;{if !empty($settings.INN)}{"ИНН `$settings.INN`"|escape},&nbsp;{/if}{$settings.COMPANYADDRESS|default:"город, улица, дом"|escape},&nbsp;(тел.:{$settings.COMPANYPHONE|default:"+7 495 1234567"|escape})</b>
-                </td>
-            </tr>
-            <tr>
-                <td class=underlined align=center><b>
-{"р/счет №`$settings.BANK_ACCOUNT_NUMBER` в `$settings.BANKNAME`, кор/счет `$settings.BANK_KOR_NUMBER`, БИК `$settings.BIK`"|escape}
-                </b></td>
-            </tr>
-            <tr>
-                <td class="reportSmallFont underlined cellComment" align="center"	style="padding-top: 1mm; padding-bottom: 5mm">
-                    грузоотправитель, адрес, номер телефона, банковские реквизиты</td>
-            </tr>
-            <tr>
-                <td class="reportSmallFont cellComment" align="center" style="padding-top: 1mm; padding-bottom: 2mm">
-                    структурное	подразделение
-                </td>
-            </tr>
-        </table>
 
-        <table cellpadding="0" cellspacing="0" border="0" width="100%">
-            <tr>
-                <td class="reportSmallFont name_cell">Грузополучатель</td>
-                <td width="100%" class="reportSmallFont underlined"><b class="inline_edit">
-                {$company = $order->contact_company}
-                {$company = ifempty($company,$order.shipping_address.name)}
-                {$company = ifempty($company,$order.contact_name)}
-{if !empty($company)}
-{$company|escape},&nbsp;{/if}
-{if !empty($order.shipping_address.region_name)}{$order.shipping_address.region_name|escape},&nbsp;{/if}
-{if !empty($order.shipping_address.city)}{$order.shipping_address.city|escape},&nbsp;{/if}
-{if !empty($order.shipping_address.zip)}{$order.shipping_address.zip|escape},&nbsp;{/if}
-{if !empty($order.shipping_address.street)}{$order.shipping_address.street|escape},&nbsp;{/if}
-{if $order->contact_phone}тел.: {$order->contact_phone|escape}{/if}
-                </b></td>
-            </tr>
-            <tr>
-                <td class="reportSmallFont name_cell">Поставщик</td>
-                <td width="100%" class="reportSmallFont underlined"><b>
-                {$settings.COMPANYNAME|default:"Продавец"|escape},&nbsp;{if !empty($settings.INN)}{"ИНН `$settings.INN`"|escape},&nbsp;{/if}
-{$settings.COMPANYADDRESS|default:"город, улица, дом"|escape},&nbsp;(тел.:{$settings.COMPANYPHONE|default:"-"|escape})
-{", р/счет №`$settings.BANK_ACCOUNT_NUMBER` в `$settings.BANKNAME`, кор/счет	№`$settings.BANK_KOR_NUMBER`, БИК `$settings.BIK`"|escape}</b></td>
+{$_section_id = uniqid("s-incoice-form-section")}
 
-            </tr>
-            <tr>
-                <td class="reportSmallFont name_cell">Плательщик</td>
-                <td width="100%" class="reportSmallFont underlined">
-                <b class="inline_edit">
-{$company = $order->contact_company}
-                {$company = ifempty($company,$order.billing_address.name)}
-                {$company = ifempty($company,$order.contact_name)}
-{if !empty($company)}
-{$company|escape},&nbsp;{/if}
-{if !empty($order.billing_address.address)}
-{if !empty($order.billing_address.region_name)}{$order.billing_address.region_name|escape},&nbsp;{/if}
-{if !empty($order.billing_address.city)}{$order.billing_address.city|escape},&nbsp;{/if}
-{if !empty($order.billing_address.zip)}{$order.billing_address.zip|escape},&nbsp;{/if}
-{if !empty($order.billing_address.street)}{$order.billing_address.street|escape},&nbsp;{/if}
-{else}
-{$company = ifempty($company,$order.shipping_address.name)}
-{if !empty($order.shipping_address.region_name)}{$order.shipping_address.region_name|escape},&nbsp;{/if}
-{if !empty($order.shipping_address.city)}{$order.shipping_address.city|escape},&nbsp;{/if}
-{if !empty($order.shipping_address.zip)}{$order.shipping_address.zip|escape},&nbsp;{/if}
-{if !empty($order.shipping_address.street)}{$order.shipping_address.street|escape},&nbsp;{/if}
-{/if}
-{if $order->contact_phone}тел.: {$order->contact_phone|escape}{/if}
-                </b></td>
-            </tr>
-            <tr>
-                <td class="reportSmallFont name_cell">Основание</td>
-                <td width="100%" class="reportSmallFont underlined"><b class="inline_edit">По заказу {$order.id_str|default:'###'} от {if $order.datetime}{$order.datetime|date_format:'d.m.Y'}{else}'%datetime%{/if} г.</b></td>
-            </tr>
-            <tr>
-                <td colspan=2>&nbsp;</td>
-        </table>
+<div class="s-form-section" id="{$_section_id}">
+    <style type="text/css">{include file="./css/printform.css" inline}</style>
 
-        <table cellpadding="0" cellspacing="0" border="0" width="100%">
-            <tr>
-                <td align=center>
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+            <td class=reportSmallFont align=right>Унифицированная форма №
+            Торг-12<br>Утверждена Постановлением Госкомстата России
+            <br>от 25.12.1998 г. за №132
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+        </tr>
+    </table>
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+            <td valign=top width="90%">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%"	class="mainTable">
+                <tr>
+                    <td class=underlined align=center><b>
+    {$settings.COMPANYNAME|default:"Продавец"|escape},&nbsp;{if !empty($settings.INN)}{"ИНН `$settings.INN`"|escape},&nbsp;{/if}{$settings.COMPANYADDRESS|default:"город, улица, дом"|escape},&nbsp;(тел.:{$settings.COMPANYPHONE|default:"+7 495 1234567"|escape})</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class=underlined align=center><b>
+    {"р/счет №`$settings.BANK_ACCOUNT_NUMBER` в `$settings.BANKNAME`, кор/счет `$settings.BANK_KOR_NUMBER`, БИК `$settings.BIK`"|escape}
+                    </b></td>
+                </tr>
+                <tr>
+                    <td class="reportSmallFont underlined cellComment" align="center"	style="padding-top: 1mm; padding-bottom: 5mm">
+                        грузоотправитель, адрес, номер телефона, банковские реквизиты</td>
+                </tr>
+                <tr>
+                    <td class="reportSmallFont cellComment" align="center" style="padding-top: 1mm; padding-bottom: 2mm">
+                        структурное	подразделение
+                    </td>
+                </tr>
+            </table>
 
-                <table cellpadding="0" cellspacing="0" border="0">
-                    <tr>
-                        <td rowspan=2 class="reportSmallFont docNameLabels" valign=bottom>
-                        <b>ТОВАРНАЯ	НАКЛАДНАЯ&nbsp;</b>
-                        </td>
-                        <td class="reportSmallFont docNameLabels b_top b_left b_right" align="center">
-                            Номер<br>документа
-                        </td>
-                        <td class="reportSmallFont docNameLabels b_top b_right" align="center">
-                            Дата<br>составления
-                        </td>
-                    </tr>
+            <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                    <td class="reportSmallFont name_cell">Грузополучатель</td>
+                    <td width="100%" class="reportSmallFont underlined"><b class="inline_edit js-editable">
+                    {$company = $order->contact_company}
+                    {$company = ifempty($company,$order.shipping_address.name)}
+                    {$company = ifempty($company,$order.contact_name)}
+    {if !empty($company)}
+    {$company|escape},&nbsp;{/if}
+    {if !empty($order.shipping_address.region_name)}{$order.shipping_address.region_name|escape},&nbsp;{/if}
+    {if !empty($order.shipping_address.city)}{$order.shipping_address.city|escape},&nbsp;{/if}
+    {if !empty($order.shipping_address.zip)}{$order.shipping_address.zip|escape},&nbsp;{/if}
+    {if !empty($order.shipping_address.street)}{$order.shipping_address.street|escape},&nbsp;{/if}
+    {if $order->contact_phone}тел.: {$order->contact_phone|escape}{/if}
+                    </b></td>
+                </tr>
+                <tr>
+                    <td class="reportSmallFont name_cell">Поставщик</td>
+                    <td width="100%" class="reportSmallFont underlined"><b>
+                    {$settings.COMPANYNAME|default:"Продавец"|escape},&nbsp;{if !empty($settings.INN)}{"ИНН `$settings.INN`"|escape},&nbsp;{/if}
+    {$settings.COMPANYADDRESS|default:"город, улица, дом"|escape},&nbsp;(тел.:{$settings.COMPANYPHONE|default:"-"|escape})
+    {", р/счет №`$settings.BANK_ACCOUNT_NUMBER` в `$settings.BANKNAME`, кор/счет	№`$settings.BANK_KOR_NUMBER`, БИК `$settings.BIK`"|escape}</b></td>
 
-                    <tr>
-                        <td
-                            class="reportSmallFont docNameLabels b_top b_left b_bottom b_right docNameValues"
-                            align=center>
-                            <b class="inline_edit">{$order.id_str|default:"###"}</b>
-                        </td>
-                        <td
-                            class="reportSmallFont docNameLabels b_top b_right b_bottom docNameValues"
-                            align=center>
-                            <b class="inline_edit">{time()|wa_date:'date':null:'ru_RU'}</b>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td colspan=3 class=separatorCell>&nbsp;</td>
-                    </tr>
-                </table>
-
-                </td>
-            </tr>
-        </table>
-        </td>
-
-        <td valign=top align=right>
-
-        <table cellpadding="0" cellspacing="0" border="0">
-            <tr>
-                <td colspan=2 class=reportSmallFont>&nbsp;</td>
-                <td style="width: 20mm"
-                    class="item_cell b_left b_bottom b_top b_right reportSmallFont"
-                    align=center>Код</td>
-            </tr>
-            <tr>
-                <td class="reportSmallFont name_cell nobr" colspan=2 align=right>Форма
-                по ОКУД</td>
-                <td style="width: 20mm"
-                    class="item_cell b_left b_bottom b_right reportSmallFont"
-                    align=center>0330212</td>
-            </tr>
-            <tr>
-                <td class="reportSmallFont name_cell nobr" colspan=2 align=right>по
-                ОКПО</td>
-                <td style="width: 20mm"
-                    class="item_cell b_left b_bottom b_right reportSmallFont"
-                    align=center>&nbsp;</td>
-            </tr>
-            <tr>
-                <td class="reportSmallFont name_cell nobr" colspan=2 align=right>Вид
-                деятельности по ОКДП</td>
-                <td style="width: 20mm"
-                    class="item_cell b_left b_bottom b_right reportSmallFont"
-                    align=center>&nbsp;</td>
-            </tr>
-            <tr>
-                <td class="reportSmallFont name_cell nobr" colspan=2 align=right>по
-                ОКПО</td>
-                <td style="width: 20mm"
-                    class="item_cell b_left b_bottom b_right reportSmallFont"
-                    align=center>&nbsp;</td>
-            </tr>
-            <tr>
-                <td class="reportSmallFont name_cell nobr" colspan=2 align=right>по
-                ОКПО</td>
-                <td style="width: 20mm"
-                    class="item_cell b_left b_bottom b_right reportSmallFont"
-                    align=center>&nbsp;</td>
-            </tr>
-            <tr>
-                <td class="reportSmallFont">&nbsp;</td>
-                <td class="reportSmallFont name_cell b_bottom nobr" align=right>по
-                ОКПО</td>
-                <td style="width: 20mm"
-                    class="item_cell b_left b_bottom b_right reportSmallFont"
-                    align=center>&nbsp;</td>
-            </tr>
-            <tr>
-                <td rowspan="2">&nbsp;</td>
-                <td style="width: 20mm"
-                    class="name_cell item_cell b_left b_bottom reportSmallFont"
-                    align=right>номер</td>
-                <td style="width: 20mm"
-                    class="item_cell b_left b_bottom b_right reportSmallFont inline_edit"
-                    align=center>{$order.id_str|default:"&nbsp;"}</td>
-            </tr>
-            <tr>
-                <td style="width: 20mm"
-                    class="name_cell item_cell b_left b_bottom reportSmallFont"
-                    align=right>дата</td>
-                <td style="width: 20mm"
-                    class="item_cell b_left b_bottom b_right reportSmallFont inline_edit"
-                    align=center>{$order.paid_date|default:time()|date_format:'d.m.Y'}</td>
-            </tr>
-            <tr>
-                <td class="reportSmallFont name_cell nobr" rowspan="2" valign="top">Транспортная
-                накладная</td>
-                <td style="width: 20mm"
-                    class="name_cell item_cell b_left b_bottom reportSmallFont"
-                    align=right>номер</td>
-                <td style="width: 20mm"
-                    class="item_cell b_left b_bottom b_right reportSmallFont"
-                    align=center>&nbsp;</td>
-            </tr>
-            <tr>
-                <td style="width: 20mm"
-                    class="name_cell item_cell b_left b_bottom reportSmallFont"
-                    align=right>дата</td>
-                <td style="width: 20mm"
-                    class="item_cell b_left b_bottom b_right reportSmallFont"
-                    align=center>&nbsp;</td>
-            </tr>
-            <tr>
-                <td class="reportSmallFont name_cell nobr" colspan=2 align=right>Вид
-                операции</td>
-                <td style="width: 20mm"
-                    class="item_cell b_left b_bottom b_right reportSmallFont"
-                    align=center>&nbsp;</td>
-            </tr>
-        </table>
-
-        </td>
-    </tr>
-</table>
-
-<table width="100%" border="0" cellpadding=0 cellspacing=0
-    class="mainTable">
-    <tr>
-        <td rowspan="2" class="b_top b_left"><b>№<br>
-        п/п</b></td>
-        <td colspan="2" class="b_top b_left b_bottom"><b>Товар</b></td>
-        <td colspan="2" class="b_top b_left b_bottom"><b>Ед. изм.</b></td>
-        <td rowspan="2" class="b_top b_left"><b>Вид<br>упа-<br>ков-<br>ки</b></td>
-        <td colspan="2" class="b_top b_left b_bottom"><b>Количество</b></td>
-        <td rowspan="2" class="b_top b_left"><b>Масса<br>брутто</b></td>
-        <td rowspan="2" class="b_top b_left"><b>Количество<br>(масса<br>нетто)</b></td>
-        <td rowspan="2" class="b_top b_left"><b>Цена, руб.<br>коп.</b></td>
-        <td rowspan="2" class="b_top b_left"><b>Сумма без<br>учета НДС<br>руб. коп.</b></td>
-        <td colspan="2" class="b_top b_left b_bottom"><b>НДС</b></td>
-        <td rowspan="2" class="b_top b_left b_right"><b>Сумма с<br>учетом НДС<br>руб. коп.</b></td>
-    </tr>
-    <tr>
-        <td class="b_left">наименование, характеристика,<br>сорт, артикул товара</td>
-        <td class="b_left">Код</td>
-        <td class="b_left">Наиме-<br>нование</td>
-        <td class="b_left">код<br>по<br>ОКЕИ</td>
-        <td class="b_left">в од-<br>ном<br>месте</td>
-        <td class="b_left">мест,<br>штук</td>
-        <td class="b_left">ставка, %</td>
-        <td class="b_left">сумма руб.<br>коп.</td>
-    </tr>
-    <tr class=boldborders>
-        <td class="b_left b_top b_bottom">1</td>
-        <td class="b_left b_top b_bottom">2</td>
-        <td class="b_left b_top b_bottom">3</td>
-        <td class="b_left b_top b_bottom">4</td>
-        <td class="b_left b_top b_bottom">5</td>
-        <td class="b_left b_top b_bottom">6</td>
-        <td class="b_left b_top b_bottom">7</td>
-        <td class="b_left b_top b_bottom">8</td>
-        <td class="b_left b_top b_bottom">9</td>
-        <td class="b_left b_top b_bottom">10</td>
-        <td class="b_left b_top b_bottom">11</td>
-        <td class="b_left b_top b_bottom">12</td>
-        <td class="b_left b_top b_bottom">13</td>
-        <td class="b_left b_top b_bottom">14</td>
-        <td class="b_left b_top b_bottom b_right">15</td>
-    </tr>
-    {$total_total=0.0}
-    {$total_tax=0.0}
-    {$total_amount=0.0}
-    {foreach $items as $id => $item}
-
-    {if !empty($item.tax_included) && !empty($item.tax)}
-        {$total_tax=$total_tax+$item.tax}
-        {$item.total_without_tax = $item.total-$item.tax}
-        {$item.price_without_tax = $item.price-round($item.tax/$item.quantity,2)}
+                </tr>
+                <tr>
+                    <td class="reportSmallFont name_cell">Плательщик</td>
+                    <td width="100%" class="reportSmallFont underlined">
+                    <b class="inline_edit js-editable">
+    {$company = $order->contact_company}
+                    {$company = ifempty($company,$order.billing_address.name)}
+                    {$company = ifempty($company,$order.contact_name)}
+    {if !empty($company)}
+    {$company|escape},&nbsp;{/if}
+    {if !empty($order.billing_address.address)}
+    {if !empty($order.billing_address.region_name)}{$order.billing_address.region_name|escape},&nbsp;{/if}
+    {if !empty($order.billing_address.city)}{$order.billing_address.city|escape},&nbsp;{/if}
+    {if !empty($order.billing_address.zip)}{$order.billing_address.zip|escape},&nbsp;{/if}
+    {if !empty($order.billing_address.street)}{$order.billing_address.street|escape},&nbsp;{/if}
     {else}
-        {$item.total_without_tax = $item.total}
-        {$item.price_without_tax = $item.price}
+    {$company = ifempty($company,$order.shipping_address.name)}
+    {if !empty($order.shipping_address.region_name)}{$order.shipping_address.region_name|escape},&nbsp;{/if}
+    {if !empty($order.shipping_address.city)}{$order.shipping_address.city|escape},&nbsp;{/if}
+    {if !empty($order.shipping_address.zip)}{$order.shipping_address.zip|escape},&nbsp;{/if}
+    {if !empty($order.shipping_address.street)}{$order.shipping_address.street|escape},&nbsp;{/if}
     {/if}
-        {$total_amount=$total_amount+$item.total}
-        {$total_total=$total_total+$item.total_without_tax}
+    {if $order->contact_phone}тел.: {$order->contact_phone|escape}{/if}
+                    </b></td>
+                </tr>
+                <tr>
+                    <td class="reportSmallFont name_cell">Основание</td>
+                    <td width="100%" class="reportSmallFont underlined"><b class="inline_edit js-editable">По заказу {$order.id_str|default:'###'} от {if $order.datetime}{$order.datetime|date_format:'d.m.Y'}{else}'%datetime%{/if} г.</b></td>
+                </tr>
+                <tr>
+                    <td colspan=2>&nbsp;</td>
+            </table>
 
-    <tr>
-        <td class="b_left b_bottom">{$id+1}</td>
-        <td class="b_left b_bottom leftAlign inline_edit">{$item.name|default:"&nbsp;"}{if $item.sku} ({$item.sku}){/if}</td>
-        <td class="b_left b_bottom">&nbsp;</td>
-        <td class="b_left b_bottom">шт.</td>
-        <td class="b_left b_bottom">796</td>
-        <td class="b_left b_bottom">&nbsp;</td>
-        <td class="b_left b_bottom">&nbsp;</td>
-        <td class="b_left b_bottom rightAlign">&nbsp;</td>
-        <td class="b_left b_bottom">&nbsp;</td>
-        <td class="b_left b_bottom rightAlign">{$item.quantity|string_format:"%0.3f"}</td>
-        <td class="b_left b_bottom rightAlign nobr">{$item.price_without_tax|wa_format_amount:$order.currency:'%2'}</td>
-        <td class="b_left b_bottom rightAlign nobr">{$item.total_without_tax|default:0|wa_format_amount:$order.currency:'%2'}</td>
-        <td class="b_left b_bottom">{$item.tax_percent|string_format:"%d"}</td>
-        <td class="b_left b_bottom rightAlign">{$item.tax|default:0|wa_format_amount:$order.currency:'%2'}</td>
-        <td class="b_left b_bottom b_right rightAlign nobr">{$item.total|wa_format_amount:$order.currency:'%2'}</td>
+            <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                    <td align=center>
 
-    </tr>
-    {/foreach}
-    {$total_quantity = $order.total_quantity}
+                    <table cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                            <td rowspan=2 class="reportSmallFont docNameLabels" valign=bottom>
+                            <b>ТОВАРНАЯ	НАКЛАДНАЯ&nbsp;</b>
+                            </td>
+                            <td class="reportSmallFont docNameLabels b_top b_left b_right" align="center">
+                                Номер<br>документа
+                            </td>
+                            <td class="reportSmallFont docNameLabels b_top b_right" align="center">
+                                Дата<br>составления
+                            </td>
+                        </tr>
 
-    <tr>
-        <td colspan="7" align="right" class="rightAlign">Итого</td>
-        <td class="b_left b_bottom">X</td>
-        <td class="b_left b_bottom">X</td>
-        <td class="b_left b_bottom rightAlign nobr">{$total_quantity|string_format:"%0.3f"}</td>
-        <td class="b_left b_bottom">X</td>
-        <td class="b_left b_bottom rightAlign nobr">{$total_total|wa_format_amount:$order.currency:'%2'}</td>
-        <td class="b_left b_bottom">X</td>
-        <td class="b_left b_bottom rightAlign nobr">{$total_tax|wa_format_amount:$order.currency:'%2'}</td>
-        <td class="b_left b_bottom b_right rightAlign nobr">{$total_amount|wa_format_amount:$order.currency:'%2'}</td>
-    </tr>
-    <tr class=totals>
-        <td colspan="7" align="right" class="rightAlign normalFont ">Всего
-        по накладной</td>
-        <td class="b_left b_bottom">&nbsp;</td>
-        <td class="b_left b_bottom">&nbsp;</td>
-        <td class="b_left b_bottom rightAlign">{$total_quantity|string_format:"%0.3f"}</td>
-        <td class="b_left b_bottom normalFont">X</td>
-        <td class="b_left b_bottom rightAlign nobr">{$total_total|wa_format_amount:$order.currency:'%2'}</td>
-        <td class="b_left b_bottom normalFont">X</td>
-        <td class="b_left b_bottom rightAlign">{$total_tax|wa_format_amount:$order.currency:'%2'}</td>
-        <td class="b_left b_bottom b_right rightAlign nobr">{$total_amount|wa_format_amount:$order.currency:'%2'}</td>
-    </tr>
-</table>
+                        <tr>
+                            <td
+                                class="reportSmallFont docNameLabels b_top b_left b_bottom b_right docNameValues"
+                                align=center>
+                                <b class="inline_edit js-editable">{$order.id_str|default:"###"}</b>
+                            </td>
+                            <td
+                                class="reportSmallFont docNameLabels b_top b_right b_bottom docNameValues"
+                                align=center>
+                                <b class="inline_edit js-editable">{time()|wa_date:'date':null:'ru_RU'}</b>
+                            </td>
+                        </tr>
 
-<table width="100%" border="0" cellpadding=0 cellspacing=0
-    class="mainTable">
-    <tr>
-        <td class=separatorCell>&nbsp;</td>
-    </tr>
-</table>
+                        <tr>
+                            <td colspan=3 class=separatorCell>&nbsp;</td>
+                        </tr>
+                    </table>
 
-<table width="100%" border="0" cellpadding=0 cellspacing=0
-    class="mainTable">
-    <tr>
-        <td class="nobr">Товарная накладная имеет приложение на</td>
-        <td style="width: 40%" class="underlined">&nbsp;</td>
-        <td class="nobr">и содержит</td>
-        <td style="width: 40%" class=underlined title="{count($order.items)}"><b>{waCurrency::getIntInWords(count($order.items))}</b></td>
-        <td class="nobr">порядковых номеров записей</td>
-    </tr>
-    <tr>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-        <td class="reportSmallFont cellComment">прописью</td>
-        <td>&nbsp;</td>
-    </tr>
-</table>
+                    </td>
+                </tr>
+            </table>
+            </td>
 
-<table width="100%" border="0" cellpadding=0 cellspacing=0
-    class="mainTable">
-    <tr>
-        <td class=separatorCell>&nbsp;</td>
-    </tr>
-</table>
+            <td valign=top align=right>
 
-<table width="100%" border="0" cellpadding=0 cellspacing=0
-    class="mainTable">
-    <tr>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-        <td class="rightAlign">Масса груза (нетто)</td>
-        <td class=underlined><b>&nbsp;</b></td>
-        <td class="b_top b_left b_bottom b_right" style="width: 30mm">&nbsp;</td>
-        <td class="leftAlign" style="width: 20mm">кг</td>
-    </tr>
-    <tr>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-        <td class=cellComment>прописью</td>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-    </tr>
-    <tr>
-        <td style="width: 20mm" class="leftAlign nobr">Всего мест</td>
-        <td style="width: 50%" class=underlined><b>&nbsp;</b></td>
-        <td class="rightAlign">Масса груза (брутто)</td>
-        <td class=underlined><b>&nbsp;</b></td>
-        <td class="b_top b_left b_bottom b_right" style="width: 30mm">&nbsp;</td>
-        <td class="leftAlign" style="width: 20mm">кг</td>
-    </tr>
-    <tr>
-        <td>&nbsp;</td>
-        <td class=cellComment>прописью</td>
-        <td>&nbsp;</td>
-        <td class=cellComment>прописью</td>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-    </tr>
-</table>
+            <table cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                    <td colspan=2 class=reportSmallFont>&nbsp;</td>
+                    <td style="width: 20mm"
+                        class="item_cell b_left b_bottom b_top b_right reportSmallFont"
+                        align=center>Код</td>
+                </tr>
+                <tr>
+                    <td class="reportSmallFont name_cell nobr" colspan=2 align=right>Форма
+                    по ОКУД</td>
+                    <td style="width: 20mm"
+                        class="item_cell b_left b_bottom b_right reportSmallFont"
+                        align=center>0330212</td>
+                </tr>
+                <tr>
+                    <td class="reportSmallFont name_cell nobr" colspan=2 align=right>по
+                    ОКПО</td>
+                    <td style="width: 20mm"
+                        class="item_cell b_left b_bottom b_right reportSmallFont"
+                        align=center>&nbsp;</td>
+                </tr>
+                <tr>
+                    <td class="reportSmallFont name_cell nobr" colspan=2 align=right>Вид
+                    деятельности по ОКДП</td>
+                    <td style="width: 20mm"
+                        class="item_cell b_left b_bottom b_right reportSmallFont"
+                        align=center>&nbsp;</td>
+                </tr>
+                <tr>
+                    <td class="reportSmallFont name_cell nobr" colspan=2 align=right>по
+                    ОКПО</td>
+                    <td style="width: 20mm"
+                        class="item_cell b_left b_bottom b_right reportSmallFont"
+                        align=center>&nbsp;</td>
+                </tr>
+                <tr>
+                    <td class="reportSmallFont name_cell nobr" colspan=2 align=right>по
+                    ОКПО</td>
+                    <td style="width: 20mm"
+                        class="item_cell b_left b_bottom b_right reportSmallFont"
+                        align=center>&nbsp;</td>
+                </tr>
+                <tr>
+                    <td class="reportSmallFont">&nbsp;</td>
+                    <td class="reportSmallFont name_cell b_bottom nobr" align=right>по
+                    ОКПО</td>
+                    <td style="width: 20mm"
+                        class="item_cell b_left b_bottom b_right reportSmallFont"
+                        align=center>&nbsp;</td>
+                </tr>
+                <tr>
+                    <td rowspan="2">&nbsp;</td>
+                    <td style="width: 20mm"
+                        class="name_cell item_cell b_left b_bottom reportSmallFont"
+                        align=right>номер</td>
+                    <td style="width: 20mm"
+                        class="item_cell b_left b_bottom b_right reportSmallFont inline_edit js-editable"
+                        align=center>{$order.id_str|default:"&nbsp;"}</td>
+                </tr>
+                <tr>
+                    <td style="width: 20mm"
+                        class="name_cell item_cell b_left b_bottom reportSmallFont"
+                        align=right>дата</td>
+                    <td style="width: 20mm"
+                        class="item_cell b_left b_bottom b_right reportSmallFont inline_edit js-editable"
+                        align=center>{$order.paid_date|default:time()|date_format:'d.m.Y'}</td>
+                </tr>
+                <tr>
+                    <td class="reportSmallFont name_cell nobr" rowspan="2" valign="top">Транспортная
+                    накладная</td>
+                    <td style="width: 20mm"
+                        class="name_cell item_cell b_left b_bottom reportSmallFont"
+                        align=right>номер</td>
+                    <td style="width: 20mm"
+                        class="item_cell b_left b_bottom b_right reportSmallFont"
+                        align=center>&nbsp;</td>
+                </tr>
+                <tr>
+                    <td style="width: 20mm"
+                        class="name_cell item_cell b_left b_bottom reportSmallFont"
+                        align=right>дата</td>
+                    <td style="width: 20mm"
+                        class="item_cell b_left b_bottom b_right reportSmallFont"
+                        align=center>&nbsp;</td>
+                </tr>
+                <tr>
+                    <td class="reportSmallFont name_cell nobr" colspan=2 align=right>Вид
+                    операции</td>
+                    <td style="width: 20mm"
+                        class="item_cell b_left b_bottom b_right reportSmallFont"
+                        align=center>&nbsp;</td>
+                </tr>
+            </table>
 
-<table width="100%" border="0" cellpadding=0 cellspacing=0
-    class="mainTable">
-    <tr>
-        <td class=separatorCell>&nbsp;</td>
-    </tr>
-</table>
+            </td>
+        </tr>
+    </table>
 
-<table border=0 cellpadding=0 cellspacing=0 width="100%">
-    <tr>
+    <table width="100%" border="0" cellpadding=0 cellspacing=0
+        class="mainTable">
+        <tr>
+            <td rowspan="2" class="b_top b_left"><b>№<br>
+            п/п</b></td>
+            <td colspan="2" class="b_top b_left b_bottom"><b>Товар</b></td>
+            <td colspan="2" class="b_top b_left b_bottom"><b>Ед. изм.</b></td>
+            <td rowspan="2" class="b_top b_left"><b>Вид<br>упа-<br>ков-<br>ки</b></td>
+            <td colspan="2" class="b_top b_left b_bottom"><b>Количество</b></td>
+            <td rowspan="2" class="b_top b_left"><b>Масса<br>брутто</b></td>
+            <td rowspan="2" class="b_top b_left"><b>Количество<br>(масса<br>нетто)</b></td>
+            <td rowspan="2" class="b_top b_left"><b>Цена, руб.<br>коп.</b></td>
+            <td rowspan="2" class="b_top b_left"><b>Сумма без<br>учета НДС<br>руб. коп.</b></td>
+            <td colspan="2" class="b_top b_left b_bottom"><b>НДС</b></td>
+            <td rowspan="2" class="b_top b_left b_right"><b>Сумма с<br>учетом НДС<br>руб. коп.</b></td>
+        </tr>
+        <tr>
+            <td class="b_left">наименование, характеристика,<br>сорт, артикул товара</td>
+            <td class="b_left">Код</td>
+            <td class="b_left">Наиме-<br>нование</td>
+            <td class="b_left">код<br>по<br>ОКЕИ</td>
+            <td class="b_left">в од-<br>ном<br>месте</td>
+            <td class="b_left">мест,<br>штук</td>
+            <td class="b_left">ставка, %</td>
+            <td class="b_left">сумма руб.<br>коп.</td>
+        </tr>
+        <tr class=boldborders>
+            <td class="b_left b_top b_bottom">1</td>
+            <td class="b_left b_top b_bottom">2</td>
+            <td class="b_left b_top b_bottom">3</td>
+            <td class="b_left b_top b_bottom">4</td>
+            <td class="b_left b_top b_bottom">5</td>
+            <td class="b_left b_top b_bottom">6</td>
+            <td class="b_left b_top b_bottom">7</td>
+            <td class="b_left b_top b_bottom">8</td>
+            <td class="b_left b_top b_bottom">9</td>
+            <td class="b_left b_top b_bottom">10</td>
+            <td class="b_left b_top b_bottom">11</td>
+            <td class="b_left b_top b_bottom">12</td>
+            <td class="b_left b_top b_bottom">13</td>
+            <td class="b_left b_top b_bottom">14</td>
+            <td class="b_left b_top b_bottom b_right">15</td>
+        </tr>
 
-        <td width="50%">
+        {$total_total = 0}
+        {$total_tax = null}
+        {$total_amount = 0}
+        {foreach $items as $id => $item}
 
-        <table width="100%" border="0" cellpadding=0 cellspacing=0
-            class="mainTable">
-            <tr>
-                <td class="nobr">Приложение (паспорта, сертификаты, и т.п.)</td>
-                <td width="80%" class=underlined>&nbsp;</td>
-                <td>листах</td>
+         {* For rate 0 there must be a total tax price *}
+        {if !is_null($item.tax_percent) && is_null($total_tax)}
+            {$total_tax = 0}
+        {/if}
+
+        {if !empty($item.tax_included) && !empty($item.tax)}
+            {$total_tax=$total_tax + round($item.tax, 2)}
+            {$item.total_without_tax = $item.total - round($item.tax, 2)}
+            {$item.price_without_tax = $item.price - round($item.tax/$item.quantity, 2)}
+        {else}
+            {$item.total_without_tax = round($item.total, 2)}
+            {$item.price_without_tax = round($item.price, 2)}
+        {/if}
+
+        {$total_amount = $total_amount + round($item.total, 2)}
+        {$total_total = $total_total + round($item.total_without_tax, 2)}
+
+            <tr class="js-product-line">
+                <td class="b_left b_bottom">{$id+1}</td>
+                <td class="b_left b_bottom leftAlign inline_edit js-editable">{$item.name|default:"&nbsp;"}{if $item.sku} ({$item.sku}){/if}</td>
+                <td class="b_left b_bottom">&nbsp;</td>
+                <td class="b_left b_bottom">шт.</td>
+                <td class="b_left b_bottom">796</td>
+                <td class="b_left b_bottom">&nbsp;</td>
+                <td class="b_left b_bottom">&nbsp;</td>
+                <td class="b_left b_bottom rightAlign">&nbsp;</td>
+                <td class="b_left b_bottom">&nbsp;</td>
+                <td class="js-column-10 b_left b_bottom rightAlign">{$item.quantity|string_format:"%0.3f"}</td>
+                <td class="js-column-11 b_left b_bottom rightAlign nobr">{$item.price_without_tax|wa_format_amount:$order.currency:'%2'}</td>
+                <td class="js-column-12 b_left b_bottom rightAlign nobr">{$item.total_without_tax|default:0|wa_format_amount:$order.currency:'%2'}</td>
+                <td class="js-column-13 b_left b_bottom">
+                    {if is_null($item.tax_percent)}
+                        Без НДС
+                    {else}
+                        {$item.tax_percent|string_format:"%d"}
+                    {/if}
+                </td>
+                <td class="js-column-14 b_left b_bottom rightAlign">
+                    {strip}
+                    <div class="inline_edit js-editable">
+                        {$_tax = 0}
+                        {if !is_null($item.tax_percent) && !empty($item.tax)}
+                            {$_tax = $item.tax}
+                        {/if}
+                        {$_tax|wa_format_amount:$order.currency:'%2'}
+                    </div>
+                    {/strip}
+                </td>
+                <td class="js-column-15 b_left b_bottom b_right rightAlign nobr">{$item.total|wa_format_amount:$order.currency:'%2'}</td>
             </tr>
-        </table>
+        {/foreach}
+        {$total_quantity = $order.total_quantity}
 
-        <table width="100%" border="0" cellpadding=0 cellspacing=0
-            class="mainTable">
-            <tr>
-                <td class=leftAlign>Всего отпущено на сумму</td>
-            </tr>
-            <tr>
-                <td class="underlined leftAlign"><b>{waCurrency::format('%.W{n0} %.2{f0}', $total_amount, $order.currency, 'ru_RU')}, {if !empty($total_tax)}в т.ч. НДС{else}без налога (НДС){/if}</b></td>
-            </tr>
-            <tr>
-                <td class=separatorCell>&nbsp;</td>
-            </tr>
-        </table>
+        <tr class="js-subtotal-line">
+            <td colspan="7" align="right" class="rightAlign">Итого</td>
+            <td class="b_left b_bottom">X</td>
+            <td class="b_left b_bottom">X</td>
+            <td class="js-column-10 b_left b_bottom rightAlign nobr">{$total_quantity|string_format:"%0.3f"}</td>
+            <td class="js-column-11 b_left b_bottom">X</td>
+            <td class="js-column-12 b_left b_bottom rightAlign nobr">{$total_total|wa_format_amount:$order.currency:'%2'}</td>
+            <td class="js-column-13 b_left b_bottom">X</td>
+            <td class="js-column-14 b_left b_bottom rightAlign nobr">
+                {$_tax = 0}
+                {if !empty($total_tax)}
+                    {$_tax = $total_tax}
+                {/if}
 
-        <table width="100%" border="0" cellpadding=0 cellspacing=0
-            class="mainTable">
-            <tr>
-                <td class="leftAlign nobr">Отпуск разрешил</td>
-                <td class=underlined style="width: 30%">Директор</td>
-                <td>&nbsp;</td>
-                <td class=underlined style="width: 30%">&nbsp;</td>
-                <td>&nbsp;</td>
-                <td class=underlined><b>{$settings.CEO_NAME|escape|default:"&nbsp;"}</b></td>
-            </tr>
-            <tr>
-                <td>&nbsp;</td>
-                <td class=cellComment>должность</td>
-                <td>&nbsp;</td>
-                <td class=cellComment>подпись</td>
-                <td>&nbsp;</td>
-                <td class="cellComment nobr">расшифровка подписи</td>
-            </tr>
-            <tr>
-                <td class=leftAlign>&nbsp;</td>
-                <td class=underlined>Гл. Бухгалтер</td>
-                <td>&nbsp;</td>
-                <td class=underlined>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td class=underlined><b>{$settings.BUH_NAME|escape|default:"&nbsp;"}</b></td>
-            </tr>
-            <tr>
-                <td>&nbsp;</td>
-                <td class=cellComment>должность</td>
-                <td>&nbsp;</td>
-                <td class=cellComment>подпись</td>
-                <td>&nbsp;</td>
-                <td class="cellComment nobr">расшифровка подписи</td>
-            </tr>
-        </table>
+                {$_tax|wa_format_amount:$order.currency:'%2'}
+            </td>
+            <td class="js-column-15 b_left b_bottom b_right rightAlign nobr">{$total_amount|wa_format_amount:$order.currency:'%2'}</td>
+        </tr>
+        <tr class="js-total-line totals">
+            <td colspan="7" align="right" class="rightAlign normalFont ">Всего
+            по накладной</td>
+            <td class="b_left b_bottom">&nbsp;</td>
+            <td class="b_left b_bottom">&nbsp;</td>
+            <td class="js-column-10 b_left b_bottom rightAlign">{$total_quantity|string_format:"%0.3f"}</td>
+            <td class="js-column-11 b_left b_bottom normalFont">X</td>
+            <td class="js-column-12 b_left b_bottom rightAlign nobr">{$total_total|wa_format_amount:$order.currency:'%2'}</td>
+            <td class="js-column-13 b_left b_bottom normalFont">X</td>
+            <td class="js-column-14 b_left b_bottom rightAlign">
+                {$_tax = 0}
+                {if !empty($total_tax)}
+                    {$_tax = $total_tax}
+                {/if}
 
-        <table border="0" cellpadding=0 cellspacing=0
-            class="mainTable">
-            <tr>
-                <td width="90">М.П.</td>
-                <td style="padding-left:100px;" class="inline_edit">{$order.paid_date|default:time()|date_format:'d.m.Y'}</td>
-            </tr>
-        </table>
+                {$_tax|wa_format_amount:$order.currency:'%2'}
+            </td>
+            <td class="js-column-15 b_left b_bottom b_right rightAlign nobr">{$total_amount|wa_format_amount:$order.currency:'%2'}</td>
+        </tr>
+    </table>
 
-        </td>
+    <table width="100%" border="0" cellpadding=0 cellspacing=0
+        class="mainTable">
+        <tr>
+            <td class=separatorCell>&nbsp;</td>
+        </tr>
+    </table>
 
-        <td style="padding-left: 5px">&nbsp;</td>
+    <table width="100%" border="0" cellpadding=0 cellspacing=0
+        class="mainTable">
+        <tr>
+            <td class="nobr">Товарная накладная имеет приложение на</td>
+            <td style="width: 40%" class="underlined">&nbsp;</td>
+            <td class="nobr">и содержит</td>
+            <td style="width: 40%" class=underlined title="{count($order.items)}"><b>{waCurrency::getIntInWords(count($order.items))}</b></td>
+            <td class="nobr">порядковых номеров записей</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+            <td class="reportSmallFont cellComment">прописью</td>
+            <td>&nbsp;</td>
+        </tr>
+    </table>
 
-        <td width="50%" valign=top>
+    <table width="100%" border="0" cellpadding=0 cellspacing=0
+        class="mainTable">
+        <tr>
+            <td class=separatorCell>&nbsp;</td>
+        </tr>
+    </table>
 
-        <table width="100%" border="0" cellpadding=0 cellspacing=0
-            class="mainTable">
-            <tr>
-                <td class="leftAlign nobr">По доверенности №</td>
-                <td class=underlined style="width: 85%">&nbsp;</td>
-            </tr>
-            <tr>
-                <td class=separatorCell>&nbsp;</td>
-                <td class=separatorCell>&nbsp;</td>
-            </tr>
-        </table>
+    <table width="100%" border="0" cellpadding=0 cellspacing=0
+        class="mainTable">
+        <tr>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+            <td class="rightAlign">Масса груза (нетто)</td>
+            <td class=underlined><b>&nbsp;</b></td>
+            <td class="b_top b_left b_bottom b_right" style="width: 30mm">&nbsp;</td>
+            <td class="leftAlign" style="width: 20mm">кг</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+            <td class=cellComment>прописью</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td style="width: 20mm" class="leftAlign nobr">Всего мест</td>
+            <td style="width: 50%" class=underlined><b>&nbsp;</b></td>
+            <td class="rightAlign">Масса груза (брутто)</td>
+            <td class=underlined><b>&nbsp;</b></td>
+            <td class="b_top b_left b_bottom b_right" style="width: 30mm">&nbsp;</td>
+            <td class="leftAlign" style="width: 20mm">кг</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td class=cellComment>прописью</td>
+            <td>&nbsp;</td>
+            <td class=cellComment>прописью</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+        </tr>
+    </table>
 
-        <table width="100%" border="0" cellpadding=0 cellspacing=0
-            class="mainTable">
-            <tr>
-                <td class=leftAlign>Выданной</td>
-                <td class=underlined style="width: 90%">&nbsp;</td>
-            </tr>
-            <tr>
-                <td>&nbsp;</td>
-                <td class="cellComment nobr">кем, кому (организация,
-                должность, фамилия, и.о.)</td>
-            </tr>
-        </table>
+    <table width="100%" border="0" cellpadding=0 cellspacing=0
+        class="mainTable">
+        <tr>
+            <td class=separatorCell>&nbsp;</td>
+        </tr>
+    </table>
 
-        <table width="100%" border="0" cellpadding=0 cellspacing=0
-            class="mainTable">
-            <tr>
-                <td class="leftAlign nobr">Груз принял</td>
-                <td class=underlined style="width: 90%">&nbsp;</td>
-            </tr>
-        </table>
+    <table border=0 cellpadding=0 cellspacing=0 width="100%">
+        <tr>
 
-        <table width="100%" border="0" cellpadding=0 cellspacing=0
-            class="mainTable">
-            <tr>
-                <td class=separatorCell>&nbsp;</td>
-                <td class=separatorCell>&nbsp;</td>
-            </tr>
-            <tr>
-                <td align=left class="nobr">Груз получил грузополучатель</td>
-                <td class=underlined style="width: 90%">&nbsp;</td>
-            </tr>
-        </table>
+            <td width="50%">
 
-        <table border="0" cellpadding=0 cellspacing=0
-            class="mainTable">
-            <tr>
-                <td colspan="2">&nbsp;</td>
-            </tr>
-            <tr>
-                <td width="90">М.П.</td>
-                <td style="padding-left:100px;" class="inline_edit">{$order.paid_date|default:"&nbsp;"}</td>
-            </tr>
-        </table>
+            <table width="100%" border="0" cellpadding=0 cellspacing=0
+                class="mainTable">
+                <tr>
+                    <td class="nobr">Приложение (паспорта, сертификаты, и т.п.)</td>
+                    <td width="80%" class=underlined>&nbsp;</td>
+                    <td>листах</td>
+                </tr>
+            </table>
 
-        </td>
+            <table width="100%" border="0" cellpadding=0 cellspacing=0
+                class="mainTable">
+                <tr>
+                    <td class=leftAlign>Всего отпущено на сумму</td>
+                </tr>
+                <tr>
+                    <td class="underlined leftAlign"><b>{waCurrency::format('%.W{n0} %.2{f0}', $total_amount, $order.currency, 'ru_RU')}, {if !empty($total_tax)}в т.ч. НДС{else}без налога (НДС){/if}</b></td>
+                </tr>
+                <tr>
+                    <td class=separatorCell>&nbsp;</td>
+                </tr>
+            </table>
 
-    </tr>
-</table>
+            <table width="100%" border="0" cellpadding=0 cellspacing=0
+                class="mainTable">
+                <tr>
+                    <td class="leftAlign nobr">Отпуск разрешил</td>
+                    <td class=underlined style="width: 30%">Директор</td>
+                    <td>&nbsp;</td>
+                    <td class=underlined style="width: 30%">&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td class=underlined><b>{$settings.CEO_NAME|escape|default:"&nbsp;"}</b></td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                    <td class=cellComment>должность</td>
+                    <td>&nbsp;</td>
+                    <td class=cellComment>подпись</td>
+                    <td>&nbsp;</td>
+                    <td class="cellComment nobr">расшифровка подписи</td>
+                </tr>
+                <tr>
+                    <td class=leftAlign>&nbsp;</td>
+                    <td class=underlined>Гл. Бухгалтер</td>
+                    <td>&nbsp;</td>
+                    <td class=underlined>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td class=underlined><b>{$settings.BUH_NAME|escape|default:"&nbsp;"}</b></td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                    <td class=cellComment>должность</td>
+                    <td>&nbsp;</td>
+                    <td class=cellComment>подпись</td>
+                    <td>&nbsp;</td>
+                    <td class="cellComment nobr">расшифровка подписи</td>
+                </tr>
+            </table>
+
+            <table border="0" cellpadding=0 cellspacing=0
+                class="mainTable">
+                <tr>
+                    <td width="90">М.П.</td>
+                    <td style="padding-left:100px;" class="inline_edit js-editable">{$order.paid_date|default:time()|date_format:'d.m.Y'}</td>
+                </tr>
+            </table>
+
+            </td>
+
+            <td style="padding-left: 5px">&nbsp;</td>
+
+            <td width="50%" valign=top>
+
+            <table width="100%" border="0" cellpadding=0 cellspacing=0
+                class="mainTable">
+                <tr>
+                    <td class="leftAlign nobr">По доверенности №</td>
+                    <td class=underlined style="width: 85%">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td class=separatorCell>&nbsp;</td>
+                    <td class=separatorCell>&nbsp;</td>
+                </tr>
+            </table>
+
+            <table width="100%" border="0" cellpadding=0 cellspacing=0
+                class="mainTable">
+                <tr>
+                    <td class=leftAlign>Выданной</td>
+                    <td class=underlined style="width: 90%">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                    <td class="cellComment nobr">кем, кому (организация,
+                    должность, фамилия, и.о.)</td>
+                </tr>
+            </table>
+
+            <table width="100%" border="0" cellpadding=0 cellspacing=0
+                class="mainTable">
+                <tr>
+                    <td class="leftAlign nobr">Груз принял</td>
+                    <td class=underlined style="width: 90%">&nbsp;</td>
+                </tr>
+            </table>
+
+            <table width="100%" border="0" cellpadding=0 cellspacing=0
+                class="mainTable">
+                <tr>
+                    <td class=separatorCell>&nbsp;</td>
+                    <td class=separatorCell>&nbsp;</td>
+                </tr>
+                <tr>
+                    <td align=left class="nobr">Груз получил грузополучатель</td>
+                    <td class=underlined style="width: 90%">&nbsp;</td>
+                </tr>
+            </table>
+
+            <table border="0" cellpadding=0 cellspacing=0
+                class="mainTable">
+                <tr>
+                    <td colspan="2">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td width="90">М.П.</td>
+                    <td style="padding-left:100px;" class="inline_edit js-editable">{$order.paid_date|default:"&nbsp;"}</td>
+                </tr>
+            </table>
+
+            </td>
+
+        </tr>
+    </table>
+
+    <script>
+        ( function($, printform) {
+            var $wrapper = $("#{$_section_id}");
+
+            $wrapper.on("edited", function(event, node) {
+                calculate();
+            });
+
+            function calculate() {
+                var col_12_sum = 0,
+                    col_14_sum = 0,
+                    col_15_sum = 0;
+
+                $wrapper.find(".js-product-line").each( function() {
+                    var $line = $(this),
+                        $col_10 = $line.find(".js-column-10"),
+                        $col_11 = $line.find(".js-column-11"),
+                        $col_12 = $line.find(".js-column-12"),
+                        $col_13 = $line.find(".js-column-13"),
+                        $col_14 = $line.find(".js-column-14"),
+                        $col_15 = $line.find(".js-column-15");
+
+                    // static
+                    var col_10_value = printform.parseString($col_10.text()),
+                        col_15_value = printform.parseString($col_15.text());
+
+                    // editable
+                    var col_14_value = printform.parseString($col_14.text());
+
+                    // dependent
+                    var col_12_value = col_15_value - col_14_value;
+                    var col_11_value = col_12_value/col_10_value;
+
+                    var $col_14_text_w = $col_14.find(".js-editable");
+                    if (!$col_14_text_w.length) { $col_14_text_w = $col_14; }
+                    $col_14_text_w.text( printform.formatPrice(col_14_value) );
+
+                    $col_11.text( printform.formatPrice(col_11_value) );
+                    $col_12.text( printform.formatPrice(col_12_value) );
+                    $col_15.text( printform.formatPrice(col_15_value) );
+
+                    col_12_sum += parseFloat(col_12_value.toFixed(2));
+                    col_14_sum += col_14_value;
+                    col_15_sum += col_15_value;
+                });
+
+                $wrapper.find(".js-total-line, .js-subtotal-line").each( function() {
+                    var $line = $(this),
+                        $total_col_12 = $line.find(".js-column-12"),
+                        $total_col_14 = $line.find(".js-column-14"),
+                        $total_col_15 = $line.find(".js-column-15");
+
+                    $total_col_12.text( printform.formatPrice(col_12_sum) );
+                    $total_col_14.text( printform.formatPrice(col_14_sum) );
+                    $total_col_15.text( printform.formatPrice(col_15_sum) );
+                });
+            }
+
+        })(jQuery, window.Printform);
+    </script>
+</div>

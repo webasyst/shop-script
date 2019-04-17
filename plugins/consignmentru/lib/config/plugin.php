@@ -5,7 +5,7 @@ return array(
     'description'    => 'Для использования на территории РФ.',
     'img'            => 'img/invoice16.png',
     'vendor'         => 'webasyst',
-    'version'        => '1.0.3',
+    'version'        => '1.0.4',
     'printform'      => true,
     'emailprintform' => false,
     'handlers'       => array(),

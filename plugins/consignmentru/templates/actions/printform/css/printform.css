@@ -6,8 +6,13 @@
         height: auto;
     }
 
+    .inline_edit {
+        min-height: 1em;
+        background-color: #fafae7;
+    }
+
     .inline_edit input.text {
-        background-color: #FAFAE7;
+        background-color: #fafae7;
     }
 
     .printable {
