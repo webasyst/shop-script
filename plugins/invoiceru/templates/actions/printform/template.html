@@ -4,9 +4,11 @@
 @param mixed[string][] $items
 @param string[string] $contact
 *}
-<style type="text/css">{include file="./css/printform.css" inline}</style>
 
-<section class="s-form-section">
+{$_section_id = uniqid("s-incoice-form-section")}
+
+<section class="s-form-section" id="{$_section_id}">
+    <style type="text/css">{include file="./css/printform.css" inline}</style>
 
     <header class="s-header-wrapper">
         <div class="s-header-notation">
@@ -51,7 +53,6 @@
             </table>
         </div>
     </header>
-
     <section class="s-details-section">
         <table>
             <tr>
@@ -262,7 +263,7 @@
                     <td class="b_left b_top" rowspan="2">Сумма<br>налога,<br>предъявляемая<br>покупателю
                     </td>
                     <td class="b_left b_top" rowspan="2">
-                        Стоимость товаров<br>(работ, услуг),<br>имущественных прав,<br>без налога — всего
+                        Стоимость товаров<br>(работ, услуг),<br>имущественных прав,<br>всего с учетом налога
                     </td>
                     <td class="b_left b_top" colspan="2">Страна происхож-<br>дения товара</td>
                     <td class="b_left b_top b_right" rowspan="2">Регистра-<br>ционный<br>номер<br>таможенной<br>декларации</td>
@@ -291,15 +292,16 @@
                 </tr>
             </thead>
             <tbody>
-                {$total_total=0.0}
-                {$total_tax=0.0}
-                {$total_amount=0.0}
+                {$total_without_tax = 0}
+                {$total_tax = 0}
+                {$total_amount = 0}
                 {foreach $order.items as $id => $order_item}
                     {if $order_item.tax_included}
-                        {$total_tax=$total_tax+$order_item.tax}
+                        {$total_tax = $total_tax + round($order_item.tax, 2)}
                     {/if}
-                    {$total_amount=$total_amount+$order_item.total}
-                    <tr>
+                    {$total_amount = $total_amount + round($order_item.total, 2)}
+
+                    <tr class="js-product-line">
                         <td class="s-column-1 b_left b_top left">
                             <div class="s-name s-editable js-editable">{$order_item.name|default:"&nbsp;"}{if $order_item.sku} ({$order_item.sku}){/if}</div>
                         </td>
@@ -312,15 +314,30 @@
                         <td class="b_left b_top center">
                             <div class="s-editable js-editable">шт</div>
                         </td>
-                        <td class="b_left b_top right">{$order_item.quantity|string_format:"%d"}</td>
-                        <td class="b_left b_top right nowrap">{$order_item.price|wa_format_amount:$order.currency:'%2'}</td>
-                        <td class="b_left b_top right nowrap">{if $order_item.tax_included}{($order_item.total-$order_item.tax)|wa_format_amount:$order.currency:'%2'}{else}{$order_item.total|wa_format_amount:$order.currency:'%2'}{/if}</td>
+                        <td class="js-column-3 b_left b_top right">{$order_item.quantity|string_format:"%d"}</td>
+                        <td class="js-column-4 b_left b_top right nowrap">{$order_item.price|wa_format_amount:$order.currency:'%2'}</td>
+
+                        <td class="js-column-5 b_left b_top right nowrap">
+                            {$_value_5 = $order_item.total}
+                            {if $order_item.tax_included}{$_value_5 = ($order_item.total-$order_item.tax)}{/if}
+                            {$total_without_tax = $total_without_tax + round($_value_5, 2)}
+                            {$_value_5|wa_format_amount:$order.currency:'%2'}
+                        </td>
+
                         <td class="b_left b_top right">
                             <div class="s-editable js-editable">без акциза</div>
                         </td>
-                        <td class="b_left b_top right">{$order_item.tax_percent|string_format:"%0.2f"}%</td>
-                        <td class="b_left b_top right">{$order_item.tax|wa_format_amount:$order.currency:'%2'}</td>
-                        <td class="b_left b_top right nowrap">{$order_item.total|wa_format_amount:$order.currency:'%2'}</td>
+                        <td class="js-column-7 b_left b_top right">
+                            {if is_null($order_item.tax_percent)}
+                                Без НДС
+                            {else}
+                                {$order_item.tax_percent|string_format:"%0.2f"}%
+                            {/if}
+                        </td>
+                        <td class="js-column-8 b_left b_top right">
+                            <div class="s-editable js-editable">{$order_item.tax|wa_format_amount:$order.currency:'%2'}</div>
+                        </td>
+                        <td class="js-column-9 b_left b_top right nowrap">{$order_item.total|wa_format_amount:$order.currency:'%2'}</td>
                         <td class="b_left b_top">
                             <div class="s-editable js-editable"></div>
                         </td>
@@ -334,10 +351,12 @@
                 {/foreach}
                 {if $order.shipping > 0}
                     {if !empty($order.params.shipping_tax_included) && !empty($order.params.shipping_tax)}
-                        {$total_tax=$total_tax+$order.params.shipping_tax}
+                        {$total_tax = $total_tax + round($order.params.shipping_tax, 2)}
                     {/if}
-                    <tr>
-                        {$total_amount=$total_amount+$order.shipping}
+                    {$total_amount = $total_amount + round($order.shipping, 2)}
+                    {$total_without_tax = $total_without_tax + round($order.shipping, 2)}
+
+                    <tr class="js-product-line">
                         <td class="s-column-1 b_left b_top left">
                             <div class="s-name">доставка {$order.shipping_name|escape}</div>
                         </td>
@@ -346,37 +365,45 @@
                         </td>
                         <td class="b_left b_top center">796</td>
                         <td class="b_left b_top center">шт</td>
-                        <td class="b_left b_top right">1</td>
-                        <td class="b_left b_top right nowrap">{$order.shipping|wa_format_amount:$order.currency:'%2'}</td>
-                        <td class="b_left b_top right nowrap">{$order.shipping|wa_format_amount:$order.currency:'%2'}</td>
+                        <td class="js-column-3 b_left b_top right">1</td>
+                        <td class="js-column-4 b_left b_top right nowrap">{$order.shipping|wa_format_amount:$order.currency:'%2'}</td>
+                        <td class="js-column-5 b_left b_top right nowrap">{$order.shipping|wa_format_amount:$order.currency:'%2'}</td>
                         <td class="b_left b_top right">
                             <div class="s-editable js-editable">без акциза</div>
                         </td>
-                        <td class="b_left b_top right">{$order.params.shipping_tax_percent|default:0|string_format:"%0.2f"}%</td>
-                        <td class="b_left b_top right">{$order.params.shipping_tax|default:0|wa_format_amount:$order.currency:'%2'}</td>
-                        <td class="b_left b_top right nowrap">{$order.shipping|wa_format_amount:$order.currency:'%2'}</td>
+                        <td class="js-column-7 b_left b_top right">
+                            {if is_null($order.params.shipping_tax_percent)}
+                                Без НДС
+                            {else}
+                                {$order.params.shipping_tax_percent|string_format:"%0.2f"}%
+                            {/if}
+                        </td>
+                        <td class="js-column-8 b_left b_top right">
+                            <div class="s-editable js-editable">{$order.params.shipping_tax|default:0|wa_format_amount:$order.currency:'%2'}</div>
+                        </td>
+                        <td class="js-column-9 b_left b_top right nowrap">{$order.shipping|wa_format_amount:$order.currency:'%2'}</td>
                         <td class="b_left b_top">&nbsp;</td>
                         <td class="b_left b_top">&nbsp;</td>
                         <td class="b_top b_left b_right">&nbsp;</td>
                     </tr>
                 {/if}
-
-                <tr class="tfoot totals">
+            </tbody>
+            <tfoot>
+                <tr class="js-total-line tfoot totals">
                     <td colspan="6" class="b_left b_top b_bottom nowrap">Всего к оплате</td>
-                    <td class="b_left b_top b_bottom right nowrap">
-                        {$total_amount|wa_format_amount:$order.currency:'%2'}
+                    <td class="js-column-5 b_left b_top b_bottom right nowrap">
+                        {$total_without_tax|wa_format_amount:$order.currency:'%2'}
                     </td>
                     <td class="b_left b_top b_bottom center" colspan="2">X</td>
-                    <td class="b_left b_top b_bottom right">{$total_tax|wa_format_amount:$order.currency:'%2'}</td>
-                    <td class="b_left b_top b_bottom right nowrap">{$total_amount|wa_format_amount:$order.currency:'%2'}</td>
+                    <td class="js-column-8 b_left b_top b_bottom right">{$total_tax|wa_format_amount:$order.currency:'%2'}</td>
+                    <td class="js-column-9 b_left b_top b_bottom right nowrap">{$total_amount|wa_format_amount:$order.currency:'%2'}</td>
                     <td class="b_left b_top">&nbsp;</td>
                     <td class="b_top">&nbsp;</td>
                     <td class="b_top">&nbsp;</td>
                 </tr>
-            </tbody>
+            </tfoot>
         </table>
     </section>
-
     <section class="s-form-footer">
 
         <div class="s-layout fixed">
@@ -449,4 +476,62 @@
         </div>
 
     </section>
+
+    <script>
+        ( function($, printform) {
+            var $wrapper = $("#{$_section_id}");
+
+            $wrapper.on("edited", function(event, node) {
+                calculate();
+            });
+
+            function calculate() {
+                var col_5_sum = 0,
+                    col_8_sum = 0,
+                    col_9_sum = 0;
+
+                $wrapper.find(".js-product-line").each( function() {
+                    var $line = $(this),
+                        $col_3 = $line.find(".js-column-3"),
+                        $col_4 = $line.find(".js-column-4"),
+                        $col_5 = $line.find(".js-column-5"),
+                        $col_7 = $line.find(".js-column-7"),
+                        $col_8 = $line.find(".js-column-8"),
+                        $col_9 = $line.find(".js-column-9");
+
+                    // static
+                    var col_3_value = printform.parseString($col_3.text()),
+                        col_9_value = printform.parseString($col_9.text());
+
+                    // editable
+                    var col_8_value = printform.parseString($col_8.text());
+
+                    // dependent
+                    var col_5_value = col_9_value - col_8_value;
+                    var col_4_value = col_5_value/col_3_value;
+
+                    var $col_8_text_w = $col_8.find(".js-editable");
+                    if (!$col_8_text_w.length) { $col_8_text_w = $col_8; }
+                    $col_8_text_w.text( printform.formatPrice(col_8_value) );
+
+                    $col_4.text( printform.formatPrice(col_4_value) );
+                    $col_5.text( printform.formatPrice(col_5_value) );
+
+                    col_5_sum += parseFloat(col_5_value.toFixed(2));
+                    col_8_sum += col_8_value;
+                    col_9_sum += col_9_value;
+                });
+
+                var $total_line = $wrapper.find(".js-total-line"),
+                    $total_col_5 = $total_line.find(".js-column-5"),
+                    $total_col_8 = $total_line.find(".js-column-8"),
+                    $total_col_9 = $total_line.find(".js-column-9");
+
+                $total_col_5.text( printform.formatPrice(col_5_sum) );
+                $total_col_8.text( printform.formatPrice(col_8_sum) );
+                $total_col_9.text( printform.formatPrice(col_9_sum) );
+            }
+
+        })(jQuery, window.Printform);
+    </script>
 </section>

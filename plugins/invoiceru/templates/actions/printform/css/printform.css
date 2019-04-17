@@ -1,6 +1,5 @@
 html,
 body {
-  height: 100%;
   margin: 0;
   padding: 5px;
   background-color: #fff;
@@ -252,6 +251,9 @@ h1 {
   .s-form-section .noprint {
     display: inline;
     height: auto;
+  }
+  .s-form-section .s-editable {
+    background: #fafae7;
   }
   .s-form-section .s-editable:hover {
     background: #fafae7;

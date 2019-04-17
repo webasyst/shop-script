@@ -6,22 +6,18 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
     {if empty($strict)}
-    {literal}
-        <script type="text/javascript">
-            var lang_strings = {
-                'edit_link': 'Редактировать',
-                'field_title': 'Корректировка перед печатью',
-                'save_link': 'OK'
-            };
-            {/literal}
-            var page_url = '';
+        <script src="{$wa_url}wa-content/js/jquery/jquery-1.8.2.min.js"></script>
+        <script>
+            var page_url = '',
+                lang_strings = {
+                    'edit_link': 'Редактировать',
+                    'field_title': 'Щелкните дважды, чтобы изменить значение',
+                    'save_link': 'OK'
+                };
         </script>
-        <script type="text/javascript">
-            {include file="./js/printform.js" inline}
-        </script>
+        <script>{include file="./js/printform.js" inline}</script>
     {/if}
+
 </head>
-<body{if empty($strict)} onload="Printform.init('js-editable');"{/if}>
-{$content}
-</body>
+<body {if empty($strict)}onload="Printform.init('js-editable');"{/if}>{$content}</body>
 </html>

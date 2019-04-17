@@ -1,6 +1,7 @@
 /**
  * {literal}
  */
+
 if (!lang_strings) {
     var lang_strings = {
         'edit_link': 'edit link',
@@ -8,7 +9,8 @@ if (!lang_strings) {
         'save_link': 'save'
     }
 }
-Printform = {
+
+window.Printform = {
     edit: function (node) {
         if (node.edited != 'edited') {
             node.edited = 'edited';
@@ -55,6 +57,8 @@ Printform = {
             node.edited = '';
             node.innerHTML = node.firstChild.value.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\s+/g, '&nbsp;');
             node.style.backgroundColor = '';
+
+            if (jQuery) { jQuery(node).trigger("edited", node); }
         }
 
     },
@@ -154,6 +158,109 @@ Printform = {
             window.document.body.onbeforeprint = function () {
                 Printform.saveAll(class_name);
             }
+        }
+    },
+
+    /**
+     * @description convert price string to number
+     * @param {String} string
+     * @return {Null|Number}
+     * */
+    parseString: function(string) {
+        string = string.replace(/\s/g, "").replace(/,/g,".");
+
+        var result = parseFloat(string);
+
+        return ( Math.abs(result) >= 0 ? result : null );
+    },
+
+    /**
+     * @description based on russian locale
+     * @param {Number} price
+     * @param {Boolean?} text
+     * @return {Null|String}
+     * */
+    formatPrice: function (price, text) {
+        var result = null,
+            format = {
+                "fraction_divider":",",
+                "fraction_size": 2,
+                "group_divider":" ",
+                "group_size": 3,
+                "pattern_html": "%s",
+                "pattern_text": "%s"
+            };
+
+        try {
+            price = parseFloat(price);
+
+            if ( (price >= 0) && format) {
+                var price_floor = Math.floor(price),
+                    price_string = getGroupedString("" + price_floor, format.group_size, format.group_divider),
+                    fraction_string = getFractionString(price - price_floor);
+
+                result = ( text ? format.pattern_text : format.pattern_html ).replace("%s", price_string + fraction_string );
+            }
+
+        } catch(e) {
+            if (console && console.log) {
+                console.log(e.message, price);
+            }
+        }
+
+        return result;
+
+        function getGroupedString(string, size, divider) {
+            var result = "";
+
+            if (!(size && string && divider)) {
+                return string;
+            }
+
+            var string_array = string.split("").reverse();
+
+            var groups = [];
+            var group = [];
+
+            for (var i = 0; i < string_array.length; i++) {
+                var letter = string_array[i],
+                    is_first = (i === 0),
+                    is_last = (i === string_array.length - 1),
+                    delta = (i % size);
+
+                if (delta === 0 && !is_first) {
+                    groups.unshift(group);
+                    group = [];
+                }
+
+                group.unshift(letter);
+
+                if (is_last) {
+                    groups.unshift(group);
+                }
+            }
+
+            for (i = 0; i < groups.length; i++) {
+                var is_last_group = (i === groups.length - 1),
+                    _group = groups[i].join("");
+
+                result += _group + ( is_last_group ? "" : divider );
+            }
+
+            return result;
+        }
+
+        function getFractionString(number) {
+            var result = "";
+
+            if (number >= 0) {
+                number = number.toFixed(format.fraction_size + 1);
+                number = Math.floor(number * Math.pow(10, format.fraction_size))/Math.pow(10, format.fraction_size);
+                var string = number.toFixed(format.fraction_size);
+                result = string.replace("0.", format.fraction_divider);
+            }
+
+            return result;
         }
     }
 };
