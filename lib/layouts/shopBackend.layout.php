@@ -54,6 +54,11 @@ class shopBackendLayout extends waLayout
 
         $module = waRequest::get('module', 'backend');
         $page = waRequest::get('action', ($module == 'backend') ? $default_page : 'default');
+
+        if ($page === 'reports') {
+            $this->reportPagePrepare();
+        }
+
         if ($module != 'backend') {
             $page = $module.':'.$page;
         }
@@ -66,6 +71,19 @@ class shopBackendLayout extends waLayout
         }
 
         return $page;
+    }
+
+    protected function reportPagePrepare()
+    {
+        $list = new shopStorefrontList();
+        $list->addFilter(function ($storefront) {
+            $checkout_version = ifset($storefront, 'route', 'checkout_version', false);
+            return $checkout_version < 2;
+        });
+
+        $this->view->assign(array(
+            'need_checkout_flow_section' => $list->count() > 0
+        ));
     }
 
     protected function backendMenuEvent()

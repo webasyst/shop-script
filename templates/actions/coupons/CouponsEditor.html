@@ -84,6 +84,12 @@
                         <p class="hint">[`Optional comment for your convenience. Will never be shown to customers.`]</p>
                     </div>
                 </div>
+                {include
+                    file="templates/includes/productSelector.html"
+                    hash=$coupon.products_hash
+                    types=$product_types
+                    sets=$product_sets
+                }
                 <div class="field">
                     <div class="value submit">
                         {if $coupon.id}
@@ -143,8 +149,14 @@
     </div>
 {/if}
 
+{wa_js file="js/importexport/importexport.min.js"}
+{$wa_app_static_url}js/importexport/importexport.js
+{/wa_js}
+
 <script>$(function() { "use strict";
     var form = $('#coupon-editor-form');
+
+    $.importexport.products.init(form);
 
     {if $coupon.id}
         // Deletion link
@@ -176,18 +188,20 @@
     $('select[name="coupon[type]"]').change(function() {
         var select = $(this);
         var type = select.val();
-        if (type == '$FS') {
+        if (type === '$FS') {
             $('#value-input-wrapper').hide();
             $('#free-shipping-message').show();
+            form.find('.js-product-selector-field').hide();
         } else {
             var wr = $('#value-input-wrapper').show();
             $('#free-shipping-message').hide();
-            if (type == '%') {
+            if (type === '%') {
                 wr.children('span').text('%');
             } else {
                 var t = $.trim(select.children('[value="'+type+'"]').text());
                 wr.children('span').text(t.substr(0, t.length-3));
             }
+            form.find('.js-product-selector-field').show();
         }
     }).change();
 

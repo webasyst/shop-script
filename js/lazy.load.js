@@ -96,8 +96,8 @@
 
         function initHandler()
         {
-            var interval = 350;
-            var timerId = setTimeout(function() {
+            var interval = 350, h;
+            var timerId = setTimeout(h = function() {
                 if (settings.stopped) {
                     clearTimeout(timerId);
                     return;
@@ -113,13 +113,13 @@
                     var r = distanceBetweenBottoms(container, win);
                     if (distanceBetweenBottoms(container, win) <= settings.distance) {
                         settings.load();
-                        timerId = setTimeout(arguments.callee, interval);
+                        timerId = setTimeout(h, interval);
                     } else {
                         win.get(0).onscroll = scrollHandler;
                         clearTimeout(timerId);
                     }
                 } else {
-                    timerId = setTimeout(arguments.callee, interval);
+                    timerId = setTimeout(h, interval);
                 }
             }, interval);
         }

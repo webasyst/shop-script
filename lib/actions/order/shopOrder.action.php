@@ -264,18 +264,17 @@ class shopOrderAction extends waViewAction
 
                 // for that counts that lower than low_count-thresholds show icon
 
-                if ($s['count'] !== null) {
-                    if (isset($item['stock'])) {
-                        if (isset($sku_stocks[$s['id']][$item['stock']['id']])) {
-                            $count = $sku_stocks[$s['id']][$item['stock']['id']]['count'];
-                            if ($count <= $item['stock']['low_count']) {
-                                $item['stock_icon'] = shopHelper::getStockCountIcon($count, $item['stock']['id'], true);
-                            }
+                if (isset($item['stock'])) {
+                    if (isset($sku_stocks[$s['id']][$item['stock']['id']])) {
+                        $count = $sku_stocks[$s['id']][$item['stock']['id']]['count'];
+                        if ($count <= $item['stock']['low_count']) {
+                            $item['stock_icon'] = shopHelper::getStockCountIcon($count, $item['stock']['id'], true);
                         }
-                    } elseif ($s['count'] <= shopStockModel::LOW_DEFAULT) {
-                        $item['stock_icon'] = shopHelper::getStockCountIcon($s['count'], null, true);
                     }
+                } elseif ($s['count'] !== null && $s['count'] <= shopStockModel::LOW_DEFAULT) {
+                    $item['stock_icon'] = shopHelper::getStockCountIcon($s['count'], null, true);
                 }
+
             }
 
 

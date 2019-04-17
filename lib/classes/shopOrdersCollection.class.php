@@ -329,12 +329,12 @@ class shopOrdersCollection
             $sql .= "\nWHERE ".join("\n\tAND ", $where);
         }
 
-        if ($order_by) {
-            $sql .= "\nORDER BY ".trim($order_by);
-        }
-
         if ($group_by) {
             $sql .= "\nGROUP BY ".trim($group_by);
+        }
+
+        if ($order_by) {
+            $sql .= "\nORDER BY ".trim($order_by);
         }
 
         if ($having) {

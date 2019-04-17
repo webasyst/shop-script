@@ -1,0 +1,139 @@
+{$class_id = "s-customer-form-wrapper"}
+{$wrapper_id = uniqid($class_id)}
+
+{* $contact is ALWAYS instanceof waContact *}
+{* $contact_info is ALWAYS array *}
+
+{* string | null *}
+{$namespace = $form_options.namespace|default:null}
+
+{capture assign="_html"}
+
+    {* Radio selector for choose type of contact - actaul only for new contacts *}
+    {if $contact.id <= 0}
+
+        {$_input_name = 'contact_type'}
+        {if $namespace}
+            {$_input_name = $namespace|cat:"[":$_input_name:"]"}
+        {/if}
+
+        <div class="s-order-form-contact-type-selector-wrapper">
+            <label>
+                <input type="radio" name="{$_input_name}" value="{shopCustomer::TYPE_PERSON}"
+                       {if !$contact_type_selector_info[shopCustomer::TYPE_PERSON].enabled}disabled="disabled"{/if}
+                       {if $contact_type_selector_info[shopCustomer::TYPE_PERSON].checked}checked="checked"{/if}> [`Person`]
+            </label>
+            <label>
+                <input type="radio" name="{$_input_name}" value="{shopCustomer::TYPE_COMPANY}"
+                       {if !$contact_type_selector_info[shopCustomer::TYPE_COMPANY].enabled}disabled="disabled"{/if}
+                       {if $contact_type_selector_info[shopCustomer::TYPE_COMPANY].checked}checked="checked"{/if}> [`Company`]
+            </label>
+            <span>
+                <i class="icon16 loading" style="display: none;"></i>
+            </span>
+        </div>
+    {/if}
+
+    <div class="s-contact-form-wrapper" data-contact-type="{$contact_info.type}">
+        {$form}
+    </div>
+
+    {* Here is extra controls that will be move by JS into proper places *}
+    <div class="s-extra-controls" style="display: none">
+
+        <div class="s-customer-email-confirmed-control">
+
+            {* Define checked status of confirmed checkbox *}
+
+            {$_checked = false}
+
+            {if $post && isset($post['email_confirmed'])}
+                {$_checked = $post['email_confirmed']|default:false}
+            {elseif $contact}
+                {$_email = $contact['email']|default:[]}
+                {$_main_email = $_email[0]|default:[]}
+                {$_main_email_status = $_main_email.status|default:null}
+                {if $_main_email_status === waContactEmailsModel::STATUS_CONFIRMED}
+                    {$_checked = true}
+                {/if}
+            {/if}
+
+            {$_input_name = 'email_confirmed'}
+            {if $namespace}
+                {$_input_name = $namespace|cat:'[':$_input_name:']'}
+            {/if}
+
+            <label><input type="checkbox" name="{$_input_name}" class="s-confirmation-checkbox" {if $_checked}checked="checked"{/if}> [`Confirmed`]</label>
+        </div>
+
+        <div class="s-customer-phone-confirmed-control">
+
+            {* Define checked status of confirmed checkbox *}
+
+            {$_checked = false}
+
+            {if $post && isset($post['phone_confirmed'])}
+                {$_checked = $post['phone_confirmed']|default:false}
+            {elseif $contact}
+                {$_phone = $contact['phone']|default:[]}
+                {$_main_phone = $_phone[0]|default:[]}
+                {$_main_phone_status = $_main_phone.status|default:null}
+                {if $_main_phone_status === waContactDataModel::STATUS_CONFIRMED}
+                    {$_checked = true}
+                {/if}
+            {/if}
+
+            {$_input_name = 'phone_confirmed'}
+            {if $namespace}
+                {$_input_name = $namespace|cat:'[':$_input_name:']'}
+            {/if}
+
+            <label><input type="checkbox" name="{$_input_name}" class="s-confirmation-checkbox" {if $_checked}checked="checked"{/if}> [`Confirmed`]</label>
+        </div>
+
+        <div class="s-customer-more-shipping-addresses-control">
+            <a class="inline-link js-toggle-button" href="javascript:void(0);">
+                <i class="svg-icon size-10 arrow-toggle" style="padding: 0 7px 0 5px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 5">
+                        <polyline style="fill:none; stroke: currentColor; stroke-linecap:round; stroke-linejoin:round;" points="0.5 0.5 4.5 4.5 8.5 0.5"/>
+                    </svg>
+                </i>
+                <b><i>[`More shipping addresses`]</i></b>
+            </a>
+        </div>
+
+        <div class="s-customer-more-billing-addresses-control">
+            <a class="inline-link js-toggle-button" href="javascript:void(0);">
+                <i class="svg-icon size-10 arrow-toggle" style="padding: 0 7px 0 5px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 5">
+                        <polyline style="fill:none; stroke: currentColor; stroke-linecap:round; stroke-linejoin:round;" points="0.5 0.5 4.5 4.5 8.5 0.5"/>
+                    </svg>
+                </i>
+                <b><i>[`More billing addresses`]</i></b>
+            </a>
+        </div>
+
+    </div>
+
+{/capture}
+
+<div class="{$class_id}" id="{$wrapper_id}">
+
+    {$_html}
+
+    <script>
+        (function ($) {
+            new ShopBackendCustomerForm($('#{$wrapper_id}'), {
+                contact: {$contact_info|json_encode},
+                namespace: {$namespace|json_encode},
+                locales: {
+                    "main_shipping_address":  {_w("Order shipping address")|json_encode},
+                    "main_billing_address":   {_w("Billing address")|json_encode},
+                    "extra_shipping_address": {_w("Extra shipping address")|json_encode},
+                    "extra_billing_address":  {_w("Extra billing address")|json_encode}
+                }
+            });
+        })(jQuery);
+    </script>
+</div>
+

@@ -9,8 +9,10 @@ class shopCsvProductuploadController extends shopUploadController
 
     public static function getMapFields($flat = false, $extra_fields = false)
     {
+        //TODO пометить поля, допускающий множественные значения (валидация)
         $fields = array(
             'product'               => array(
+                'id'               => _w('Product ID'),
                 'name'             => _w('Product name'), //1
                 'currency'         => _w('Currency'), //4
                 'summary'          => _w('Summary'),
@@ -32,6 +34,7 @@ class shopCsvProductuploadController extends shopUploadController
             ),
             'product_custom_fields' => array(),
             'sku'                   => array(
+                'skus:-1:id'             => _w('SKU ID'), //2
                 'skus:-1:name'           => _w('SKU name'), //2
                 'skus:-1:sku'            => _w('SKU code'), //3
                 'skus:-1:price'          => _w('Price'),
@@ -39,7 +42,7 @@ class shopCsvProductuploadController extends shopUploadController
                 'skus:-1:compare_price'  => _w('Compare at price'),
                 'skus:-1:purchase_price' => _w('Purchase price'),
                 'skus:-1:stock:0'        => _w('In stock'),
-                'skus:-1:_primary'        => _w('Primary SKU'),
+                'skus:-1:_primary'       => _w('Primary SKU'),
             ),
             'sku_custom_fields'     => array(),
         );
@@ -52,7 +55,7 @@ class shopCsvProductuploadController extends shopUploadController
                 'sku'     => $sku_model->getMetadata(),
             );
             $black_list = array(
-                'id',
+               // 'id',
                 'contact_id',
                 'create_datetime',
                 'edit_datetime',
@@ -206,8 +209,7 @@ class shopCsvProductuploadController extends shopUploadController
         } else {
             $auto_complete = true;
             $header = array_unique(array_map('mb_strtolower', $this->reader->header()));
-            //XXX optimize it for big tables
-            $header = array_slice($header, 0, $limit);
+            $header = array_slice($header, 0, max(4096, $limit));
             $features = $feature_model->getFeatures('name', $header);
         }
         foreach ($features as $id => $feature) {
@@ -218,8 +220,7 @@ class shopCsvProductuploadController extends shopUploadController
 
         foreach ($features as $code => $feature) {
             $code = $feature['code'];
-            if (
-                !preg_match('/\.\d$/', $code)
+            if (!preg_match('/\.\d$/', $code)
                 &&
                 ($feature['type'] != shopFeatureModel::TYPE_DIVIDER)
             ) {
@@ -252,8 +253,7 @@ class shopCsvProductuploadController extends shopUploadController
 
             $group = 'feature+';
             foreach (shopFeatureModel::getTypes() as $f) {
-                if (
-                    $f['available']
+                if ($f['available']
                     &&
                     ($f['type'] != shopFeatureModel::TYPE_DIVIDER)
                 ) {

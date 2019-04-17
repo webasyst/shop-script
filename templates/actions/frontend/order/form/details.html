@@ -3,13 +3,6 @@
 {$_errors = []}
 {if !empty($error_step_id) && $error_step_id === "details"}{$_errors = $errors}{/if}
 
-{$_is_default_mode = true}
-{$_is_minimal_mode = false}
-{if $config.order.mode == shopCheckoutConfig::ORDER_MODE_TYPE_MINIMUM}
-    {$_is_default_mode = false}
-    {$_is_minimal_mode = true}
-{/if}
-
 {$_hide_details = empty($details) || !empty($details.disabled)}
 
 <section class="wa-step-section wa-step-details-section" id="wa-step-details-section" style="{if !empty($_hide_details)}display:none;{/if}">
@@ -168,7 +161,7 @@
                                     <div class="wa-cell wa-cell-value">
                                         <span class="wa-delivery-price">
                                             {if $details.shipping_rate.rate > 0}
-                                                {shop_currency($details.shipping_rate.rate, ['in_currency' => $details.shipping_rate.currency,'extended_format' => '%t{h}'])}
+                                                {shop_currency($details.shipping_rate.rate, ['in_currency' => $details.shipping_rate.currency,'format' => 'h'])}
                                             {else}
                                                 [`free`]
                                             {/if}

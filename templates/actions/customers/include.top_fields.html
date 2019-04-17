@@ -10,10 +10,10 @@
             {foreach $top as $top_field}
                 <li class="s-customer-top-field-default-value-item">
                     {if $top_field.id !== 'im'}
-                        <i class="icon16 {$top_field.id}{if $top_field.is_confirmed}-confirmed ss{/if}" {if $top_field.is_confirmed}title="[`Confirmed`]"{/if} />
+                        <i class="icon16 {$top_field.id}{if $top_field.default_value.is_confirmed}-confirmed ss{/if}" {if $top_field.default_value.is_confirmed}title="[`Confirmed`]"{/if} />
                     {/if}
 
-                    {$top_field.default_value}
+                    {$top_field.default_value.formatted}
 
                     {if $top_field.id == 'email' && !empty($similar_contacts.email.count)}
                         <span class="similar hint">
@@ -40,16 +40,16 @@
 
             {if $need_other_values}
                 {foreach $top as $top_field}
-                    {foreach $top_field.other_values as $v}
+                    {foreach $top_field.other_values as $value}
                         {if empty($_has_hidden_fields)}{$_has_hidden_fields = true}{/if}
 
                         <li class="s-customer-top-field-other-value-item" style="display: none;">
 
                             {if $top_field.id !== 'im'}
-                                <i class="icon16 {$top_field.id}" />
+                                <i class="icon16 {$top_field.id}{if $value.is_confirmed}-confirmed ss{/if}" {if $value.is_confirmed}title="[`Confirmed`]"{/if} />
                             {/if}
 
-                            {$v}
+                            {$value.formatted}
                         </li>
                     {/foreach}
                 {/foreach}

@@ -30,6 +30,7 @@ class shopOrderCalculateMethod extends shopApiMethod
         if ($post) {
             $so = new shopOrder($post, array(
                 'items_format' => 'tree',
+                'items_extend_round' => true,
             ));
 
             $data['items'] = $this->formalize($so->items);
@@ -73,7 +74,7 @@ class shopOrderCalculateMethod extends shopApiMethod
         }
 
         // 'true' is the legacy version of the API
-        if ($post['discount'] == 'true') {
+        if (ifset($post, 'discount', null) == 'true') {
             $post['discount'] = 'calculate';
         }
 

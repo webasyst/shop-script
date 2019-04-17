@@ -243,7 +243,7 @@
             >
         </td>
         <td class="valign-top s-orders-product-price nowrap align-right">
-            <input type="text" name="price[edit][{$product.item.id}]" value="{$product.item.price}" class="short numerical"><span style="padding-top: 2px;">{$currency}</span><br/>
+            <input type="text" name="price[edit][{$product.item.id}]" value="{$product.item.price}" class="short numerical js-order-edit-item-price"><span style="padding-top: 2px;">{$currency}</span><br/>
             <span class="hint js-item-total-discount" data-discount-id="{$index}">
                 {if !empty($product.item.total_discount)}
                 {shop_currency_html(-$product.item.total_discount,$currency,$currency)|string_format:"[`Total discount for this order item: %s.`]"}{/if}
@@ -266,7 +266,12 @@
             <select id="order-storefront" name="storefront">
                 <option value="">[`Manual order`]</option>
                 {foreach $storefronts as $storefront}
-                    <option value="{$storefront['url']}"{if $storefront['url'] == $order_storefront} selected{/if}>{$storefront['url_decoded']}</option>
+                    <option value="{$storefront['url']}"
+                            {if $storefront['contact_type'][shopCustomer::TYPE_PERSON]['enabled']}data-{shopCustomer::TYPE_PERSON}="1"{/if}
+                            {if $storefront['contact_type'][shopCustomer::TYPE_COMPANY]['enabled']}data-{shopCustomer::TYPE_COMPANY}="1"{/if}
+                            {if $storefront['url'] == $order_storefront}selected="selected" data-order-storefront="1"{/if}>
+                        {$storefront['url_decoded']}
+                    </option>
                 {/foreach}
             </select>
         </div>
@@ -394,6 +399,14 @@
                     <td class="align-right" colspan="2">
                         <i class="icon16 info" style="display:none;" id="discount-tooltip-icon"></i>
                         [`Discount`]
+
+                        {*Coupon show/remove*}
+                        {if !empty($order.coupon)}
+                                <a href="#/coupons/{$order.coupon.id|escape}" class="s-order-edit-coupon" target="_blank">
+                                    <input type="hidden" id="coupon_id" name="coupon_id" value="{$order.coupon.id}">
+                                    <i class="icon16 ss coupon"></i><strong>{$order.coupon.code|escape}</strong>
+                                </a>
+                        {/if}
                     </td>
                     <td class="align-right nowrap">
                         &minus; <input type="text" class="numerical short" id="discount" name="discount" {if !empty($order.id)}value="{$order.discount}"{/if}{if !empty($order.items_total_discount)} style="display:none;" {/if}>
@@ -485,20 +498,32 @@
     if (title && count_new) {
         title = '(' + count_new + ') ' + title;
     }
+
     $.order_edit.init({
         id:    {if !empty($order.id)}{$order.id}{else}0{/if},
         mode: '{if !empty($order.id)}edit{else}add{/if}',
         container: '#s-content',
         form: '#order-edit-form',
-        autocomplete_url: '?action=autocomplete&type=contact',
         currency: '{$currency}',
         stocks: {json_encode(array_values($stocks))},
         customer_sources: {$customer_sources|default:[]|json_encode},
         ignore_stock_count: {if $ignore_stock_count}true{else}false{/if},
         title: title,
         float_delimeter: {if strpos((string)3.14, ",") !== false}","{else}"."{/if},
-        price_edit: true,
-        contact_info: {json_encode($contact_info)}
+        price_edit: true
+    });
+
+    {$contact_type = shopCustomer::TYPE_PERSON}
+    {if $contact.is_company}
+        {$contact_type = shopCustomer::TYPE_COMPANY}
+    {/if}
+
+    $.order_edit.initCustomerForm({
+        autocomplete_url: '?action=autocomplete&type=contact',
+        contact: {
+            id:   {$contact.id|json_encode},
+            type: {$contact_type|json_encode}
+        }
     });
 
     {if !empty($order.id) && !$has_contacts_rights}

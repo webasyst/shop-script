@@ -57,6 +57,6 @@ abstract class shopUploadController extends waJsonController
     {
         $this->getResponse()->addHeader('Content-type', 'application/json');
         $this->getResponse()->sendHeaders();
-        echo json_encode($this->response);
+        echo waUtils::jsonEncode($this->response);
     }
 }

@@ -817,7 +817,7 @@
             if (number > 0) {
                 number = number.toFixed(format.fraction_size + 1);
                 number = Math.round(number * Math.pow(10, format.fraction_size))/Math.pow(10, format.fraction_size);
-                var string = parseFloat(number.toFixed(format.fraction_size)) + "";
+                var string = number.toFixed(format.fraction_size);
                 result = string.replace("0.", format.fraction_divider);
             }
 

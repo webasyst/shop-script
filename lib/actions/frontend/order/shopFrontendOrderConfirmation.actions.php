@@ -4,43 +4,55 @@ class shopFrontendOrderConfirmationActions extends waJsonActions
 {
     protected $channels = null;
 
-
     public function defaultDialogAction()
     {
-        $confirmation = shopConfirmationChannel::getInstance();
-        $invalid_transport = $confirmation->getTransportError();
-        if ($invalid_transport) {
-            $this->errors[] = $invalid_transport;
-            return null;
-        }
+        $source = waRequest::post('source', '', waRequest::TYPE_STRING);
 
+        $confirmation = new shopConfirmationChannel();
         $checkout_config = new shopCheckoutConfig(true);
 
-        if ($checkout_config['confirmation']['order_without_auth'] === 'confirm_contact') {
-            $require_confirmation = true;
-        } else {
-            $require_confirmation = false;
-        }
+        $confirmation->validateSource($source);
 
         $view = wa('shop')->getView();
-
         $view->assign(array(
-            'source'               => waRequest::post('source', '', waRequest::TYPE_STRING),
-            'type'                 => $confirmation->getTransport(),
-            'recode_timeout'       => $checkout_config['confirmation']['recode_timeout'],
-            'require_confirmation' => $require_confirmation
+            'source'         => $source,
+            'type'           => $confirmation->getActiveType(),
+            'recode_timeout' => $checkout_config['confirmation']['recode_timeout'],
+            'is_last_channel' => $this->isLastChannelToConfirm(),
         ));
 
         $html = $view->fetch(wa()->getAppPath('templates/actions/frontend/order/form/dialog/channel_confirmation.html', 'shop'));
-
         $this->response['confirmation_dialog'] = $html;
     }
 
+    /**
+     * @return bool
+     */
+    protected function isLastChannelToConfirm()
+    {
+        $confirmation = new shopConfirmationChannel();
+        $last_channel = true;
+
+        $confirmed = $confirmation->getStorage('confirmed');
+        $unconfirmed = $confirmation->getStorage('unconfirmed');
+
+        if (count($unconfirmed) - count($confirmed) > 1) {
+            $last_channel = false;
+        }
+
+        return $last_channel;
+    }
+
+    /**
+     * @return null |null
+     */
     public function sendConfirmationCodeAction()
     {
-        $confirmation = shopConfirmationChannel::getInstance();
+        $confirmation = new shopConfirmationChannel();
+
         $source = waRequest::post('source', '', waRequest::TYPE_STRING);
-        $source = $confirmation->cleanSource($source, $confirmation->getTransport());
+        $source = $confirmation->cleanSource($source, $confirmation->getActiveType());
+        $confirmation->validateSource($source);
 
         $invalid_transport = $confirmation->getTransportError();
         if ($invalid_transport) {
@@ -52,7 +64,7 @@ class shopFrontendOrderConfirmationActions extends waJsonActions
         if ($timeout_left > 0) {
             $this->errors[] = [
                 'id'   => 'timeout_error',
-                'text' => sprintf(_w('Todo Подождите %d секунд'), $timeout_left)
+                'text' => _w('Wait for %d second', 'Wait for %d seconds', $timeout_left)
             ];
 
             return null;
@@ -61,7 +73,7 @@ class shopFrontendOrderConfirmationActions extends waJsonActions
         if (!$source || !$confirmation->isValidateSource($source)) {
             $this->errors[] = [
                 'id'   => 'source_error',
-                'text' => _w('TODO Неправильно указан источник')
+                'text' => _w('Incorrect data specified to send a code')
             ];
             return null;
         }
@@ -69,14 +81,14 @@ class shopFrontendOrderConfirmationActions extends waJsonActions
         if (!$confirmation->sendCode($source)) {
             $this->errors[] = [
                 'id'   => 'send_error',
-                'text' => _w('TODO Ошибка отправки кода')
+                'text' => _w('Code sending error')
             ];
             return null;
         }
 
         $verification = [
             'source'   => $source,
-            'attempts' => $confirmation::ATTEMPTS_TO_VERIFY_CODE,
+            'attempts' => shopConfirmationChannel::ATTEMPTS_TO_VERIFY_CODE,
         ];
 
         $confirmation->setStorage($verification, 'verification');
@@ -85,7 +97,7 @@ class shopFrontendOrderConfirmationActions extends waJsonActions
 
     public function validateConfirmationCodeAction()
     {
-        $confirmation = shopConfirmationChannel::getInstance();
+        $confirmation = new shopConfirmationChannel();
         $code = waRequest::post('code', '', waRequest::TYPE_STRING);
 
         $invalid_transport = $confirmation->getTransportError();
@@ -98,33 +110,28 @@ class shopFrontendOrderConfirmationActions extends waJsonActions
         if (!$verification) {
             $this->errors[] = [
                 'id'   => 'storage_error',
-                'text' => _w('TODO Код не отправлен')
+                'text' => _w('Code has not been sent')
             ];
             return null;
         }
 
-        $result = $confirmation->isValidateCode($code);
-        if (!$result) {
-            $attempts = $verification['attempts'];
-            $attempts = $attempts - 1;
+        $result = $confirmation->validateCode($code);
 
-            if ($attempts <= 0) {
+        if (!$result['status']) {
+            if (is_null($result['details']['rest_tries']) || $result['details']['rest_tries'] == 0) {
                 $this->errors[] = [
                     'id'   => 'code_attempts_error',
-                    'text' => _w('TODO У вас закончились попытки ввода. Отправьте смс еще раз')
+                    'text' => _w('You have run out of available attempts. Please send a new SMS.')
                 ];
                 $confirmation->delStorage('verification');
             } else {
                 $this->errors[] = [
                     'id'   => 'code_error',
-                    'text' => sprintf(_w('TODO Вы ввели не верный код. У вас осталось %d попыток'), $attempts)
+                    'text' => _w('You have entered an incorrect code. %d more attempt is available.', 'You have entered an incorrect code. %d more attempts are available.', $result['details']['rest_tries']), 
                 ];
-
-                $verification['attempts'] = $attempts;
-                $confirmation->setStorage($verification, 'verification');
             }
         } else {
-            $confirmation->verifyTransportStatus();
+            $confirmation->setConfirmed();
         }
     }
 

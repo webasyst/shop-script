@@ -56,7 +56,7 @@
 
             {elseif $_field.content_type == "phone"}
                 {$_field_class = "wa-phone"}
-                {$_field_type = "phone"}
+                {$_field_type = "tel"}
 
             {elseif $_field.content_type == "url"}
                 {$_field_class = "wa-url"}
@@ -118,11 +118,10 @@
         {$_is_active = ($_field.value == 1)}
 
         <div class="wa-field-wrapper size-large">
-            <div class="wa-label">{$_label}</div>
             <input type="hidden" name="{$_field.name|escape}" value="0">
             <label class="wa-checkbox-wrapper">
                 <input class="wa-checkbox" type="checkbox" name="{$_field.name|escape}" value="1" {if !empty($_is_active)}checked{/if} {if !empty($_field.required)}required{/if}>
-                <span class="wa-text">{$_field.label|escape}</span>
+                <span class="wa-text">{$_label}</span>
             </label>
         </div>
 

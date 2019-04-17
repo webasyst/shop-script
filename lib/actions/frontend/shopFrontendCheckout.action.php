@@ -151,7 +151,7 @@ class shopFrontendCheckoutAction extends waViewAction
                         $payment = $ex->getMessage();
                     }
                 } else {
-                    $payment = _w('Payment option will be available in your customer account after your order has been verified.');
+                    $payment = $state->paymentNotAllowedText();
                 }
             }
             $order['id'] = shopHelper::encodeOrderId($order_id);

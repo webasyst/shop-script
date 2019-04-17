@@ -28,9 +28,9 @@ class shopSettingsCheckout2SaveController extends waJsonController
     {
         $this->validateDesign(ifset($this->data, 'design', []));
         // Locations list
-        $order_mode = ifset($this->data, 'order', 'mode', shopCheckoutConfig::ORDER_MODE_TYPE_DEFAULT);
-        if ($order_mode !== shopCheckoutConfig::ORDER_MODE_TYPE_DEFAULT) {
-            $this->validateOrder(ifset($this->data, 'order', []));
+        $shipping_mode = ifset($this->data, 'shipping', 'mode', shopCheckoutConfig::SHIPPING_MODE_TYPE_DEFAULT);
+        if ($shipping_mode !== shopCheckoutConfig::SHIPPING_MODE_TYPE_DEFAULT) {
+            $this->validateShipping(ifset($this->data, 'shipping', []));
         }
 
         // Schedule
@@ -90,19 +90,19 @@ class shopSettingsCheckout2SaveController extends waJsonController
         }
     }
 
-    protected function validateOrder($order)
+    protected function validateShipping($shipping)
     {
-        $this->validateOrderLocationsList(ifset($order, 'locations_list', []));
+        $this->validateShippingLocationsList(ifset($shipping, 'locations_list', []));
     }
 
-    protected function validateOrderLocationsList(array $locations_list)
+    protected function validateShippingLocationsList(array $locations_list)
     {
         foreach ($locations_list as $i => $location) {
             if (empty($location['name'])) {
-                $this->insertError("[order][locations_list][{$i}][name]", _w('Empty value'));
+                $this->insertError("[shipping][locations_list][{$i}][name]", _w('Empty value'));
             }
             if (empty($location['country'])) {
-                $this->insertError("[order][locations_list][{$i}][country]", _w('Empty value'));
+                $this->insertError("[shipping][locations_list][{$i}][country]", _w('Empty value'));
             }
         }
     }

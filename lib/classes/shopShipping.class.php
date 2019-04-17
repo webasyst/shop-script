@@ -349,6 +349,33 @@ class shopShipping extends waAppShipping
         }
     }
 
+    public static function extractItemsTotal($order_params, $format = false)
+    {
+        $total = array();
+        $dimension_fields = array_fill_keys(array('height', 'width', 'length'), 'length');
+        $dimension_fields['weight'] = 'weight';
+        foreach ($dimension_fields as $field => $type) {
+            $total_field = sprintf('package_total_%s', $field);
+            if (isset($order_params[$total_field])) {
+                $value = $order_params[$total_field];
+                if ($format) {
+                    $unit = shopDimension::getBaseUnit($type);
+                    $row = array(
+                        'value_base_unit' => $value,
+                        'value'           => $value,
+                        'type'            => $type,
+                        'unit'            => $unit['value'],
+                    );
+                    $value = new shopDimensionValue($row);
+                    $total[$total_field] = $value->html;
+                } else {
+                    $total[$total_field] = $order_params[$total_field];
+                }
+            }
+        }
+        return $total;
+    }
+
     public static function getItemsTotal($items)
     {
         $total = array();

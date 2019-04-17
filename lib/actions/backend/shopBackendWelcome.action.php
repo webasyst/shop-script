@@ -72,6 +72,7 @@ class shopBackendWelcomeAction extends waViewAction
         }
 
         $this->setupTypes();
+
         $this->setupBasicSets();
         $this->setupBasicNotifications();
         $this->setupBasicPromos();

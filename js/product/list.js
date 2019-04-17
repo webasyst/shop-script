@@ -1284,6 +1284,9 @@
                     case 'duplicate':
                         $.product_list.duplicateProducts(products, $(this));
                         break;
+                    case 'coupon':
+                        $.product_list.createCoupon(products);
+                        break;
                     case 'set-badge':
                     case 'delete-badge':
                     //case 'set-custom-badge':
@@ -1669,6 +1672,30 @@
                 window.location = url;
             } else if (ids.length) {
                 url += '/hash/id/' + ids.join(',');
+                window.location = url;
+            }
+        },
+
+        createCoupon: function (products) {
+            var ids = [];
+            var product;
+            var hash = false;
+            while (product = products.serialized.pop()) {
+                if (product.name) {
+                    if (product.name == 'product_id[]') {
+                        ids.push(parseInt(product.value, 10));
+                    } else if (product.name == 'hash') {
+                        hash = product.value;
+                    }
+                }
+            }
+
+            var url = '?action=orders#/coupons/';
+            if (hash) {
+                url += 'hash/' + hash;
+                window.location = url;
+            } else if (ids.length) {
+                url += 'hash/id/' + ids.join(',');
                 window.location = url;
             }
         },

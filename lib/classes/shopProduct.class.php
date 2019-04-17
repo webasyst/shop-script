@@ -77,6 +77,7 @@ class shopProduct implements ArrayAccess
     protected $is_dirty = array();
     protected static $data_storages = array();
     protected $is_frontend = false;
+    protected $options = [];
 
     /**
      * @var shopProductModel
@@ -87,12 +88,20 @@ class shopProduct implements ArrayAccess
      * Creates a new product object or a product object corresponding to existing product.
      *
      * @param int|array $data Product id or product data array
-     * @param boolean $is_frontend
+     * @param boolean|array $options If the value is boolean, then the old $ is_frontend is passed.
      */
-    public function __construct($data = array(), $is_frontend = false)
+    public function __construct($data = array(), $options = false)
     {
+        if (is_bool($options)) {
+            $is_frontend = $options;
+        } else {
+            $is_frontend = isset($options['is_frontend']) ? $options['is_frontend'] : false;
+        }
+
         $this->is_frontend = $is_frontend;
+        $this->options = $options;
         $this->model = new shopProductModel();
+
         if ($data instanceof shopProduct) {
             $this->data = $data->data;
             $this->is_frontend = func_num_args() > 1 ? $is_frontend : $data->is_frontend;
@@ -106,6 +115,11 @@ class shopProduct implements ArrayAccess
         if ($is_frontend) {
             $tmp = array(&$this->data);
             shopRounding::roundProducts($tmp);
+        }
+
+        if (isset($options['round_currency'])) {
+            $tmp = array(&$this->data);
+            shopRounding::roundProducts($tmp, $options['round_currency']);
         }
     }
 
@@ -211,7 +225,37 @@ class shopProduct implements ArrayAccess
         $category = null;
 
         if ($this->categories) {
-            $categories = $this->categories;
+            $categories = $this->getCategoriesByRoute($route);
+            $this->categories = $categories;
+
+            if ($this->category_id && isset($categories[$this->category_id])) {
+                $category = $categories[$this->category_id];
+            }  else {
+                $this->category_id = null;
+            }
+        }
+
+        if ($category) {
+            $this['category_url'] = (ifset($route['url_type']) == 1) ? $category['url'] : $category['full_url'];
+        } else {
+            $this['category_url'] = null;
+        }
+
+        return $category;
+    }
+
+    /**
+     * Searches for all categories that fit current route
+     *
+     * @param null $route
+     * @return array
+     */
+    protected function getCategoriesByRoute($route = null)
+    {
+        $category = null;
+        $categories = $this->categories;
+
+        if ($categories) {
             if ($route === null) {
                 $route = wa()->getRouting()->getRoute();
                 $route['full_url'] = wa()->getRouting()->getDomain(null, true).'/'.$route['url'];
@@ -230,27 +274,9 @@ class shopProduct implements ArrayAccess
                     unset($categories[$c['id']]);
                 }
             }
-
-            $this->categories = $categories;
-
-            if ($this->category_id && isset($categories[$this->category_id])) {
-                $category = $categories[$this->category_id];
-            } elseif ($categories) {
-                //maybe set first category?
-                //$category = reset($categories);
-                $this->category_id = null;
-            } else {
-                $this->category_id = null;
-            }
         }
 
-        if ($category) {
-            $this['category_url'] = (ifset($route['url_type']) == 1) ? $category['url'] : $category['full_url'];
-        } else {
-            $this['category_url'] = null;
-        }
-
-        return $category;
+        return $categories;
     }
 
     public function getCategoryUrl($route = null)
@@ -280,15 +306,19 @@ class shopProduct implements ArrayAccess
         if (empty($route)) {
             $route = wa('shop')->getRouting()->getRoute();
         }
-
         $short_url_type = ifset($route['url_type']) == 1;
-        $category = $this->canonical_category;
-
         $routing = wa()->getRouting();
+
+        //Search canonical or first suitable category
+        $categories = $this->getCategoriesByRoute();
+        if ($this->category_id && isset($categories[$this->category_id])) {
+            $category = $categories[$this->category_id];
+        }  else {
+            $category = reset($categories);
+        }
 
         if ($category) {
             $category_model = new shopCategoryModel();
-
             $path = $category_model->getPath($category['id']);
             if ($path) {
                 $path = array_reverse($path);
@@ -341,9 +371,9 @@ class shopProduct implements ArrayAccess
      *     Acceptable values: 'big', 'default', 'thumb', 'crop', 'crop_small'. If empty, 'crop' is assumed by default.
      * @param bool $absolute Whether absolute or relative image URLs must be returned.
      *
+     * @return array Array containing sub-arrays of individual product images
      * @see shopConfig::$image_sizes — actual image size values correspondings to size ids
      *
-     * @return array Array containing sub-arrays of individual product images
      */
     public function getImages($sizes = array(), $absolute = false)
     {
@@ -452,6 +482,11 @@ class shopProduct implements ArrayAccess
         if ($this->is_frontend) {
             shopRounding::roundSkus($data, array($this->data));
         }
+
+        if (isset($this->options['round_currency'])) {
+            shopRounding::roundSkus($data, array($this->data), $this->options['round_currency']);
+        }
+
         return $data;
     }
 
@@ -680,6 +715,7 @@ class shopProduct implements ArrayAccess
      *
      * @param string $name Property name
      * @return mixed|null Property value or null on failure
+     * @throws waException
      */
     public function __get($name)
     {
@@ -762,6 +798,7 @@ class shopProduct implements ArrayAccess
      * @param mixed $offset an offset to check for.
      * @return boolean true on success or false on failure.
      * The return value will be casted to boolean if non-boolean was returned.
+     * @throws waException
      */
     public function offsetExists($offset)
     {
@@ -778,6 +815,7 @@ class shopProduct implements ArrayAccess
      * @link http://php.net/manual/en/arrayaccess.offsetget.php
      * @param mixed $offset The offset to retrieve.
      * @return mixed Can return all value types.
+     * @throws waException
      */
     public function offsetGet($offset)
     {
@@ -851,6 +889,7 @@ class shopProduct implements ArrayAccess
      * @param bool $available_only Whether only products with positive or unlimited stock count must be returned
      *
      * @return array Array of upselling products' data sub-arrays
+     * @throws waException
      */
     public function upSelling($limit = 5, $available_only = false)
     {
@@ -887,6 +926,7 @@ class shopProduct implements ArrayAccess
      * @param array $exclude
      *
      * @return array Array of cross-selling products' data sub-arrays
+     * @throws waException
      */
     public function crossSelling($limit = 5, $available_only = false, $exclude = array())
     {
@@ -936,9 +976,9 @@ class shopProduct implements ArrayAccess
     /**
      * Returns estimated information on product's sales based on specified sales rate
      *
-     * @deprecated use getNextForecast instead
      * @param double $rate Average number of product's sales per day
      * @return array
+     * @deprecated use getNextForecast instead
      */
     public function getRunout($rate)
     {
@@ -1114,8 +1154,8 @@ class shopProduct implements ArrayAccess
     /**
      * Verifies current user's access rights to product by its type id.
      *
-     * @throws waException
      * @return boolean
+     * @throws waException
      */
     public function checkRights()
     {

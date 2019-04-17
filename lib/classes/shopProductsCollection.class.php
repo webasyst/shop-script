@@ -45,6 +45,8 @@ class shopProductsCollection
      *     'search/tag=style' — search results by tag 'style'
      *     'tag/style' — alternative form of search by tag
      *     'search/type_id=1' — search results by any field of shop_product table; e.g., type_id
+     *     'search/sku_id=1,2,42' - search by specified sku_ids, use field 'skus_filtered' to get exact skus only
+     *     'search/category_id=1,2,42' - search by product's primary category_ids
      *     'type/2' — search by type_id
      *     'search/name=SuperProduct' — search by 'name' field (exact match)
      *     'search/color.value_id=6' — search by value with id=6 of 'checkboxes'-type feature with code 'color'
@@ -264,6 +266,7 @@ class shopProductsCollection
      *     'price_min'         => minimum price limit
      *     'price_max'         => maximum price limit
      *     '%feature_code%'    => feature value
+     * @throws waException
      */
     public function filters($data)
     {
@@ -422,6 +425,7 @@ SQL;
     /**
      * @param int $id - ID of the category
      * @param bool $auto_title
+     * @throws waException
      */
     protected function categoryPrepare($id, $auto_title = true)
     {
@@ -872,9 +876,20 @@ SQL;
                         $this->where[] = 'p.category_id IS NULL';
                         $title[] = 'without category';
                     } else {
-                        $this->addJoin('shop_category_products', null, ':table.category_id'.$this->getExpression($parts[1], $parts[2]));
+                        $this->addJoin(
+                            'shop_category_products',
+                            null,
+                            $this->getArrayExpression(':table.category_id', $parts[1], $parts[2])
+                        );
                         $title[] = "category_id ".$parts[1].$parts[2];
                     }
+                } elseif ($parts[0] == 'sku_id') {
+                    $this->addJoin(
+                        'shop_product_skus',
+                        ':table.product_id = p.id',
+                        $this->getArrayExpression(':table.id', $parts[1], $parts[2])
+                    );
+                    $title[] = "sku_id ".$parts[1].$parts[2];
                 } elseif ($parts[0] == 'query') {
 
                     if (!wa('shop')->getConfig()->getOption('search_smart')) {
@@ -1120,6 +1135,76 @@ SQL;
     }
 
     /**
+     * Returns expression for SQL
+     *
+     * @param string $op    - operand ==, >=, etc
+     * @param string $value - value comma separated integer values
+     * @return string
+     */
+    protected function getArrayExpression($field, $op, $value)
+    {
+        $values = preg_split('@[,\s]+@', trim($value, ', '));
+        $values = array_unique(array_filter(array_map('intval', $values)));
+        if (!$values) {
+            switch ($op) {
+                case '>':
+                case '>=':
+                case '<':
+                case '<=':
+                case "==":
+                case "=":
+                    return '1=0';
+                case '!=':
+                    return '1=1';
+            }
+        }
+
+        switch ($op) {
+            case "^=":
+            case "$=":
+            case "*=":
+                // backward compatibility for strange use case
+                $model = $this->getModel();
+                $value = $model->escape($value, 'like');
+                break;
+            case '>':
+            case '>=':
+                $value = max($values);
+                break;
+            case '<':
+            case '<=':
+                $value = min($values);
+                break;
+            case '!=':
+            case "==":
+            case "=":
+            default:
+                $value = implode(',', $values);
+                break;
+        }
+
+        switch ($op) {
+            case "^=":
+                return $field." LIKE '".$value."%'";
+            case "$=":
+                return $field." LIKE '%".$value."'";
+            case "*=":
+                return $field." LIKE '%".$value."%'";
+            case '>':
+            case '>=':
+            case '<':
+            case '<=':
+                return $field." ".$op." '".$value."'";
+            case '!=':
+                return $field." NOT IN (".$value.")";
+            case "==":
+            case "=":
+            default:
+                return $field." IN (".$value.")";
+        }
+    }
+
+    /**
      * Returns fields for SELECT clause
      *
      * @param string|array $fields
@@ -1259,6 +1344,7 @@ SQL;
      *     array($field, $order) — in this case $order parameter is ignored
      * @param string $order 'ASC' or 'DESC' modifier
      * @return string New ORDER BY clause or empty string (for 'rand()' $field value)
+     * @throws waException
      */
     public function orderBy($field, $order = 'ASC')
     {
@@ -1342,7 +1428,7 @@ SQL;
         $this->prepare();
 
 
-        if(!$this->prepared_event) {
+        if (!$this->prepared_event) {
             /**
              * Products collection after prepare
              *
@@ -1379,6 +1465,7 @@ SQL;
      * Returns number of products included in collection.
      *
      * @return int
+     * @throws waException
      */
     public function count()
     {
@@ -1422,6 +1509,7 @@ SQL;
      * @param bool $escape Whether product names and urls must be escaped using htmlspecialchars() function, defaults to true
      *
      * @return array Array of collection products' sub-arrays
+     * @throws waException
      */
     public function getProducts($fields = "*", $offset = 0, $limit = null, $escape = true)
     {
@@ -1473,6 +1561,7 @@ SQL;
      * Sets $p['category_url'] for each product in list,
      * based on its $p['category_id']
      * @param mixed[] $products
+     * @throws waException
      */
     protected function updateCategoryUrls(&$products)
     {
@@ -1825,6 +1914,8 @@ SQL;
                                     if (!empty($skus[$row['sku_id']])) {
                                         // A single sku matches the filter by a single feature
                                         $skus[$row['sku_id']]['matches_feature'][$row['feature_id']] = true;
+                                        // Remember that this product has a SKU that matches this feature
+                                        $products[$row['product_id']]['feature_has_sku_match'][$row['feature_id']] = true;
                                     }
                                 } else {
                                     // The whole product matches filter by a feature
@@ -1835,15 +1926,17 @@ SQL;
                             // Remove SKUs that do not match all the conditions
                             $match_count_needed = count($feature_conditions);
                             foreach ($skus as $sku_id => $sku) {
-                                $match_count = 0;
-                                if (isset($sku['matches_feature'])) {
-                                    $match_count += count($sku['matches_feature']);
-                                }
-                                $p = $products[$sku['product_id']];
-                                if (isset($p['matches_feature'])) {
-                                    $match_count += count($p['matches_feature']);
-                                }
-                                if ($match_count < $match_count_needed) {
+                                // Take into account SKU matches of a feature
+                                $sku_matches = ifset($sku, 'matches_feature', []);
+
+                                // Take into account match of a product (in case SKU does not match)
+                                $product_matches = ifset($products, $sku['product_id'], 'matches_feature', []);
+                                // Ignore match of a product if another SKU of this product matches a feature
+                                $ignore_product_matches = ifset($products, $sku['product_id'], 'feature_has_sku_match', []);
+                                $product_matches = array_diff_key($product_matches, $ignore_product_matches);
+
+                                // Remove SKU if it matches less features than we filtered for
+                                if (count($sku_matches + $product_matches) < $match_count_needed) {
                                     unset($skus[$sku_id]);
                                 }
                             }
@@ -1945,6 +2038,7 @@ SQL;
                         // Write SKU to product
                         $products[$s['product_id']]['skus'][$s['id']] = $s;
                     }
+                    $products = $this->updateMainProductImage($products);
                 }
                 if (isset($fields['sku'])) {
                     $sku_ids = array();
@@ -2267,6 +2361,35 @@ SQL;
         }
     }
 
+    /**
+     * Updates the main product image, if used filtering by SKU
+     *
+     * @param array $products
+     * @return array
+     */
+    protected function updateMainProductImage($products = array())
+    {
+        if ($this->filtered_by_features) {
+            foreach ($products as &$product) {
+                // Updates only if 1 sku is found.
+                if (isset($product['skus']) && count($product['skus']) == 1) {
+                    $main_sku = reset($product['skus']);
+
+                    $image_id = ifset($main_sku, 'image_id', null);
+                    if ($image_id && $product['image_id'] !== $image_id) {
+                        $product['image_id'] = $image_id;
+                        $product['ext'] = $main_sku['ext'];
+                        $product['image_filename'] = $main_sku['image_filename'];
+                        $product['image_description'] = $main_sku['image_description'];
+                    }
+                }
+            }
+            unset($product);
+        }
+
+        return $products;
+    }
+
     protected function sortSkus($a, $b)
     {
         if ($a['sort'] == $b['sort']) {
@@ -2384,6 +2507,7 @@ SQL;
      * Returns collection title.
      *
      * @return string
+     * @throws waException
      */
     public function getTitle()
     {
@@ -2397,6 +2521,7 @@ SQL;
      * Returns various useful information about collection.
      *
      * @return array
+     * @throws waException
      */
     public function getInfo()
     {
@@ -2535,8 +2660,8 @@ SQL;
         if (empty($this->unique_joins[$join_key])) {
             $this->unique_joins[$join_key] = $this->addJoin(array(
                 'table' => $table,
-                'type' => $type,
-                'on' => $on,
+                'type'  => $type,
+                'on'    => $on,
                 'where' => $where
             ));
         }
@@ -2613,6 +2738,7 @@ SQL;
      *    'min' => MIN PRICE,
      *    'max' => MAX PRICE
      * )
+     * @throws waException
      */
     public function getPriceRange()
     {

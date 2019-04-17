@@ -69,21 +69,9 @@ class shopHinter
         $template_path = isset($this->options['template']) ? $this->options['template'] :
             wa()->getAppPath('lib/config/hints/template.html', 'shop');
 
-        return $this->renderTemplate($template_path, array(
+        return wa()->getView()->renderTemplate($template_path, array(
             'hint' => $hint,
             'locale' => $this->locale
         ));
-    }
-
-    protected function renderTemplate($template_path, $assign = array())
-    {
-        $view = wa()->getView();
-        $old_vars = $view->getVars();
-        $view->clearAllAssign();
-        $view->assign($assign);
-        $html = $view->fetch($template_path);
-        $view->clearAllAssign();
-        $view->assign($old_vars);
-        return $html;
     }
 }

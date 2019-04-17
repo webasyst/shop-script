@@ -26,7 +26,7 @@
 
 {$_is_default_mode = true}
 {$_is_minimal_mode = false}
-{if $config.order.mode == shopCheckoutConfig::ORDER_MODE_TYPE_MINIMUM}
+{if $config.shipping.mode == shopCheckoutConfig::SHIPPING_MODE_TYPE_MINIMUM}
     {$_is_default_mode = false}
     {$_is_minimal_mode = true}
 {/if}

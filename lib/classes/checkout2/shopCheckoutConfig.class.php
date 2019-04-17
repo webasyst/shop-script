@@ -23,8 +23,8 @@ class shopCheckoutConfig implements ArrayAccess
     const DISCOUNT_GENERAL_TYPE_AMOUNT = 'total_amount';
     const DISCOUNT_GENERAL_TYPE_SEPARATION = 'separation_amount';
 
-    const ORDER_MODE_TYPE_DEFAULT = 'default';
-    const ORDER_MODE_TYPE_MINIMUM = 'minimum';
+    const SHIPPING_MODE_TYPE_DEFAULT = 'default';
+    const SHIPPING_MODE_TYPE_MINIMUM = 'minimum';
 
     const PICKUPPOINT_MAP_TYPE_ALWAYS = 'always';
     const PICKUPPOINT_MAP_TYPE_EXCEPT_GADGETS = 'except_gadgets';
@@ -109,6 +109,7 @@ class shopCheckoutConfig implements ArrayAccess
         }
         $this->ensureConsistency();
         $this->prepareConfig();
+        $this->prepareAliases();
     }
 
     public function getStorefront()
@@ -152,6 +153,25 @@ class shopCheckoutConfig implements ArrayAccess
         $this->config = $config;
     }
 
+    protected function prepareAliases()
+    {
+        $aliases_map = $this->getAliasesMap();
+        foreach ($aliases_map as $item) {
+            $this->config[$item['alias'][0]][$item['alias'][1]] = $this->config[$item['setting'][0]][$item['setting'][1]];
+        }
+    }
+
+    protected function removeAliasesBeforeCommit()
+    {
+        $aliases_map = $this->getAliasesMap();
+
+        foreach ($aliases_map as $item) {
+            unset($this->config[$item['alias'][0]][$item['alias'][1]]);
+        }
+    }
+
+    //
+
     protected function getValue($element, $key)
     {
         $method = $this->getMethodByKey('get', $element, $key);
@@ -175,6 +195,8 @@ class shopCheckoutConfig implements ArrayAccess
         $this->ensureConsistency();
 
         unset($this->config['design']['logo_url']);
+
+        $this->removeAliasesBeforeCommit();
 
         $path = $this->getConfigPath();
         if (file_exists($path)) {
@@ -232,32 +254,29 @@ class shopCheckoutConfig implements ArrayAccess
         ];
     }
 
-    public function getOrderModeVariants()
+    public function getShippingModeVariants()
     {
         return [
-            self::ORDER_MODE_TYPE_DEFAULT => [
-                'name'        => _w('Default'),
-                'description' => _w('Available shipping options are grouped by type—“courier”, “pickup”, “post”.'),
+            self::SHIPPING_MODE_TYPE_DEFAULT => [
+                'name' => _w('Default'),
             ],
-            self::ORDER_MODE_TYPE_MINIMUM => [
-                'name'        => _w('Minimal'),
-                'description' => _w('Shipping options are not grouped by types—“courier”, “pickup”, “post”. There is no option to select a pickup point on a map.'),
+            self::SHIPPING_MODE_TYPE_MINIMUM => [
+                'name' => _w('Minimal'),
             ],
         ];
     }
 
-    public function getOrderShowPickuppointMapVariants()
+    public function getShippingShowPickuppointMapVariants()
     {
         return [
             self::PICKUPPOINT_MAP_TYPE_ALWAYS         => [
-                'name' => _w('Always show'),
+                'name' => _w('Offer selection of shipping type and show pickup point selection map.'),
             ],
             self::PICKUPPOINT_MAP_TYPE_EXCEPT_GADGETS => [
-                'name' => _w('Only on screens over 760 pixels wide'),
+                'name' => _w('Offer selection of shipping type. Show pickup point selection map only on screens over 760 pixels wide.'),
             ],
             self::PICKUPPOINT_MAP_TYPE_NEVER          => [
-                'name'        => _w('Never show'),
-                'description' => _w('A small map with one pickup point will be shown by a click on an address in the pickup point selection dialog.'),
+                'name' => _w('Do not offer selection of shipping type or show pickup point selection map.'),
             ],
         ];
     }
@@ -297,27 +316,29 @@ class shopCheckoutConfig implements ArrayAccess
     public function getConfirmationOrderWithoutAuthVariants()
     {
         $locales = array(
-            "locale_1" => _w("TODO: Нет диалога подтверждения email или телефона."),
-            "locale_2" => _w("TODO: Нет автоматической авторизации и регистрации после оформления заказа."),
-            "locale_3" => _w("TODO: Если с таким же номером телефона или email-адресом есть покупатель, то заказ будет привязан к старому покупателю и он будет автоматически авторизован, но только после обязательного подтверждения кодом еmail или телефона или их обоих (зависит от включенных способов авторизации для данного сайта)."),
-            "locale_4" => _w("TODO: Если с таким же номером телефона или email-адресом нет покупателя, то будет создан новый покупатель без автоматической авторизации и регистрации после оформления заказа."),
-            "locale_5" => _w("TODO: Если с таким же номером телефона или email-адресом есть покупатель, то заказ нельзя создать без подтверждения кодом еmail или телефона или их обоих (зависит от включенных способов авторизации для данного сайта). После оформления заказа покупатель будет автоматически авторизован."),
-            "locale_6" => _w("TODO: Если с таким же номером телефона или email-адресом нет покупателя, то будет создан новый покупатель и после обязательного подтверждения кодом еmail или телефона или их обоих (зависит от включенных способов авторизации для данного сайта) он будет автоматически авторизаван и зарегистрирован."),
+            "locale_1" => _w("Non-authorized customers do not need to confirm their email address or phone number."),
+            "locale_2" => _w("Authorized customers cannot use an email address or phone number from other customers’ or backend users’ profiles."),
+            "locale_3" => _w("Non-authorized customers must confirm their email address or phone number before checkout completion, only if those data have been found in other registered customers’ profiles or in only one backend user profile. Such customers are automatically logged in right after confirmation or get signed up, if not registered, and receive a corresponding notification."),
+            "locale_4" => _w("Authorized customers can change their email address or phone number to those found in other registered customers’ profiles or in one backend user profile, only after confirmation."),
+            "locale_5" => _w("A customer cannot place an order with the use of an email address or phone number found in multiple backend user profiles."),
+            "locale_6" => _w("Non-authorized customers must confirm their email address or phone number before checkout completion. Such customers are automatically logged in right after confirmation or get signed up, if not registered, and receive a corresponding notification."),
+            "locale_7" => _w("Authorized customers can change their email address or phone number to those found in other registered customers’ profiles or in one backend user profile, only after confirmation."),
+            "locale_8" => _w("A customer cannot place an order with the use of an email address or phone number found in multiple backend user profiles."),
         );
 
         return [
             self::ORDER_WITHOUT_AUTH_CREATE   => [
-                'name' => _w('Create new customer profile for every guest order'),
-//                'description' => $locales["locale_1"] . "<br>". $locales["locale_2"],
+                'name' => _w('Create a new customer profile for every guest order'),
+                'description' => $locales["locale_1"] . "<br><br>". $locales["locale_2"],
             ],
             self::ORDER_WITHOUT_AUTH_EXISTING => [
-                'name'        => _w('Add an order to existing customer profile with the same phone number or email address'),
-//                'description' => $locales["locale_3"] . "<br><br>" . $locales["locale_4"],
+                'name'        => _w('Add an order to existing customer profile with the same email address or phone number'),
+                'description' => $locales["locale_3"] . "<br><br>" . $locales["locale_4"] . "<br><br>" . $locales["locale_5"],
             ],
-//            self::ORDER_WITHOUT_AUTH_CONFIRM  => [
-//                'name' => _w('Checkout is not allowed without email address or phone number confirmation'),
-//                'description' => $locales["locale_5"] . "<br><br>" . $locales["locale_6"]
-//            ],
+            self::ORDER_WITHOUT_AUTH_CONFIRM  => [
+               'name' => _w('Checkout with mandatory email address or phone number confirmation'),
+                'description' => $locales["locale_6"] . "<br><br>" . $locales["locale_7"] . "<br><br>" . $locales["locale_8"]
+            ],
         ];
     }
 
@@ -454,9 +475,11 @@ class shopCheckoutConfig implements ArrayAccess
             $variant_data['original_currency'] = $variant_currency = ifset($variant_data, 'currency', null);
             $variant_data['original_rate'] = $rate = ifset($variant_data, 'rate', null);
 
-            if ($storefront_currency !== $variant_currency) {
-                $rate = shop_currency($variant_data['rate'], $variant_currency, $storefront_currency, false);
-                $variant_data['currency'] = $storefront_currency;
+            if ($rate) {
+                if ($storefront_currency !== $variant_currency) {
+                    $rate = shop_currency($rate, $variant_currency, $storefront_currency, false);
+                    $variant_data['currency'] = $storefront_currency;
+                }
                 $variant_data['rate'] = shopRounding::roundCurrency($rate, $storefront_currency);
             }
 
@@ -649,7 +672,7 @@ class shopCheckoutConfig implements ArrayAccess
         return $result;
     }
 
-    /**
+   /**
      * Return settings of address fields used in Details step (after shipping variant is selected).
      *
      * @param array $plugin_required_address_fields as returned by waShipping->requestedAddressFieldsForService()
@@ -899,7 +922,7 @@ class shopCheckoutConfig implements ArrayAccess
     protected function ensureOrderFixedDeliveryAreaConsistency()
     {
         $countries = $this->getCountries();
-        $fixed_delivery_area = $this->getValue('order', 'fixed_delivery_area');
+        $fixed_delivery_area = $this->getValue('shipping', 'fixed_delivery_area');
 
         $invalid_country = !isset($fixed_delivery_area['country']) || !is_string($fixed_delivery_area['country']) || !isset($countries[$fixed_delivery_area['country']]);
         if ($invalid_country) {
@@ -916,13 +939,13 @@ class shopCheckoutConfig implements ArrayAccess
             $fixed_delivery_area['city'] = null;
         }
 
-        $this->setValue('order', 'fixed_delivery_area', $fixed_delivery_area);
+        $this->setValue('shipping', 'fixed_delivery_area', $fixed_delivery_area);
     }
 
     protected function ensureOrderLocationsListConsistency()
     {
         $countries = $this->getCountries();
-        $locations = $this->getValue('order', 'locations_list');
+        $locations = $this->getValue('shipping', 'locations_list');
 
         foreach ($locations as $i => &$location) {
             if (!isset($location['name']) || !is_scalar($location['name']) || empty($location['name'])) {
@@ -949,7 +972,7 @@ class shopCheckoutConfig implements ArrayAccess
         }
         unset($location);
 
-        $this->setValue('order', 'locations_list', $locations);
+        $this->setValue('shipping', 'locations_list', $locations);
     }
 
     protected function ensureCustomerFieldsConsistency()
@@ -1213,11 +1236,11 @@ class shopCheckoutConfig implements ArrayAccess
                 'extra_weekends'  => self::SETTING_TYPE_ARRAY,
             ],
             'order'        => [
-                'block_name'           => self::SETTING_TYPE_SCALAR,
-                'mode'                 => self::SETTING_TYPE_VARIANT,
-                'fixed_delivery_area'  => self::SETTING_TYPE_ARRAY,
-                'show_pickuppoint_map' => self::SETTING_TYPE_VARIANT,
-                'locations_list'       => self::SETTING_TYPE_ARRAY,
+                'block_name' => self::SETTING_TYPE_SCALAR,
+                // 'mode'                 => self::SETTING_TYPE_VARIANT,  @deprecated: available as an alias for [shipping][mode]                 - read only
+                // 'fixed_delivery_area'  => self::SETTING_TYPE_ARRAY,    @deprecated: available as an alias for [shipping][fixed_delivery_area]  - read only
+                // 'show_pickuppoint_map' => self::SETTING_TYPE_VARIANT,  @deprecated: available as an alias for [shipping][show_pickuppoint_map] - read only
+                // 'locations_list'       => self::SETTING_TYPE_ARRAY,    @deprecated: available as an alias for [shipping][locations_list]       - read only
             ],
             'customer'     => [
                 'block_name'             => self::SETTING_TYPE_SCALAR,
@@ -1236,6 +1259,10 @@ class shopCheckoutConfig implements ArrayAccess
             'shipping'     => [
                 'used'                   => self::SETTING_TYPE_BOOL,
                 'block_name'             => self::SETTING_TYPE_SCALAR,
+                'mode'                   => self::SETTING_TYPE_VARIANT, // moved from order block
+                'fixed_delivery_area'    => self::SETTING_TYPE_ARRAY,   // moved from order block
+                'show_pickuppoint_map'   => self::SETTING_TYPE_VARIANT, // moved from order block
+                'locations_list'         => self::SETTING_TYPE_ARRAY,   // moved from order block
                 'ask_zip'                => self::SETTING_TYPE_BOOL,
                 'courier_name'           => self::SETTING_TYPE_SCALAR,
                 'pickuppoint_name'       => self::SETTING_TYPE_SCALAR,
@@ -1257,6 +1284,35 @@ class shopCheckoutConfig implements ArrayAccess
                 'recode_timeout'     => self::SETTING_TYPE_SCALAR,
                 'thankyou_header'    => self::SETTING_TYPE_SCALAR,
                 'thankyou_content'   => self::SETTING_TYPE_SCALAR,
+            ],
+        ];
+    }
+
+    /**
+     * When we decide to transfer settings from one block to another - need to ensure backward compatibility of keys.
+     * Format:
+     *  setting - actual setting key
+     *  alias   - deprecated setting key
+     * @return array
+     */
+    protected function getAliasesMap()
+    {
+        return [
+            [
+                'setting' => ['shipping', 'mode'],
+                'alias'   => ['order', 'mode'],
+            ],
+            [
+                'setting' => ['shipping', 'fixed_delivery_area'],
+                'alias'   => ['order', 'fixed_delivery_area'],
+            ],
+            [
+                'setting' => ['shipping', 'show_pickuppoint_map'],
+                'alias'   => ['order', 'show_pickuppoint_map'],
+            ],
+            [
+                'setting' => ['shipping', 'locations_list'],
+                'alias'   => ['order', 'locations_list'],
             ],
         ];
     }
@@ -1363,12 +1419,21 @@ class shopCheckoutConfig implements ArrayAccess
     protected function getContactFields($contact_type)
     {
         if (empty($this->contact_fields["contact_{$contact_type}_fields"])) {
-            $person_fields = waContactFields::getAll($contact_type);
+
             $fields = [];
-            foreach ($person_fields as $field) {
+            $contact_fields = waContactFields::getAll($contact_type);
+            foreach ($contact_fields as $field) {
+
+                // for company Name fields not any sense
+                // because it is alias for 'company' field, but could cause problems when it is and 'company' are in form at the same time
+                if ($field->getId() === 'name' && $contact_type === self::CUSTOMER_TYPE_COMPANY) {
+                    continue;
+                }
+
                 /** @var waContactField $field */
                 $fields[$field->getId()] = $field;
             }
+
             $this->contact_fields["contact_{$contact_type}_fields"] = $fields;
         }
 

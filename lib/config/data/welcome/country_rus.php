@@ -13,7 +13,7 @@ return array(
             'countries'    => array(
 
                 'rus' => array(
-                    'global_rate' => 18, // %
+                    'global_rate' => 20, // %
                 ),
 
                 // Use special codes instead of country ISO3 for country groups:

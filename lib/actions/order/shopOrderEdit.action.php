@@ -3,47 +3,77 @@
 class shopOrderEditAction extends waViewAction
 {
     private $crop_size = null;
+
     /**
-     * @var shopOrderModel
+     * @var shopOrder
      */
-    private $order_model;
+    protected $order;
+
+    /**
+     * @var array
+     */
+    protected $order_data;
+
+    /**
+     * @var int|null
+     */
+    protected $new_order_customer_contact_id;
 
     public function __construct($params = null)
     {
-        $this->order_model = new shopOrderModel();
-        return parent::__construct($params);
+        parent::__construct($params);
+
+        // init shop order info - after that $this->order, $this->order_data and $this->new_order_customer_contact_id is available
+        $this->initShopOrderInfo();
+    }
+
+    /**
+     * Init shop order info and set it into property ot this action
+     *
+     * shopOrder $this->order
+     * int|null  $this->new_order_customer_contact_id
+     *
+     * @throws waException
+     */
+    protected function initShopOrderInfo()
+    {
+        $form = new shopBackendCustomerForm();
+
+        $order_id = waRequest::get('id', null, waRequest::TYPE_INT);
+
+        if ($order_id) {
+            $this->new_order_customer_contact_id = null;
+            $this->order = new shopOrder($order_id, array(
+                'customer_form' => $form
+            ));
+            $this->order_data = $this->getOrderData($this->order);
+        } else {
+            $this->order_data = array();
+            $this->new_order_customer_contact_id = waRequest::get('customer_id', null, waRequest::TYPE_INT);
+            $this->order = new shopOrder(array(
+                'contact_id' => $this->new_order_customer_contact_id,
+            ), array(
+                'customer_form' => $form
+            ));
+        }
     }
 
     public function execute()
     {
-        $order_id = waRequest::get('id', null, waRequest::TYPE_INT);
-
-        if ($order_id) {
-            $new_order_customer_contact_id = null;
-            $order = new shopOrder($order_id);
-            $order_data = $this->getOrderData($order);
-        } else {
-            $order_data = array();
-            $new_order_customer_contact_id = waRequest::get('customer_id', null, waRequest::TYPE_INT);
-            $order = new shopOrder(array(
-                'contact_id' => $new_order_customer_contact_id,
-            ));
-        }
-
         /**
          * Backend order edit page
          * @event backend_order_edit
          * @param array $order
          * @return array[string][string] $return[%plugin_id%] html output
          */
-        $this->view->assign('backend_order_edit', wa()->event('backend_order_edit', $order_data));
-        $shipping_address = $order->shipping_address;
-        $shipping_methods = $this->getShipMethods($shipping_address, $order_data);
+        $this->view->assign('backend_order_edit', wa()->event('backend_order_edit', $this->order_data));
+        $shipping_address = $this->order->shipping_address;
+        $shipping_methods = $this->getShipMethods($shipping_address, $this->order_data);
 
 
         //Calculate total items discount
         $items_total_discount = null;
-        $item_discount = $order->items;
+        $item_discount = $this->order->items;
         if (!empty($item_discount)) {
             foreach ($item_discount as $item) {
                 $items_total_discount += (int)$item['total_discount'];
@@ -51,12 +81,13 @@ class shopOrderEditAction extends waViewAction
         }
 
         $order_data_array = array();
-        if ($order_data) {
-            $order_data_array = $order->dataArray();
-            $order_data_array['contact'] = $order->contact_essentials;
-            $order_data_array['shipping_id'] = $order['shipping_id'];
-            $order_data_array['items'] = $order_data['items'];
+        if ($this->order_data) {
+            $order_data_array = $this->order->dataArray();
+            $order_data_array['contact'] = $this->order->contact_essentials;
+            $order_data_array['shipping_id'] = $this->order['shipping_id'];
+            $order_data_array['items'] = $this->order_data['items'];
             $order_data_array['items_total_discount'] = $items_total_discount;
+            $order_data_array['coupon'] = $this->order->coupon;
         }
 
         $tax_model = new shopTaxModel();
@@ -65,32 +96,39 @@ class shopOrderEditAction extends waViewAction
         $sales_model = new shopSalesModel();
         $customer_sources = $sales_model->getAllSalesChannels();
 
+        $order_model = new shopOrderModel();
+
+        $customer_form = $this->order->customerForm();
+
         $this->view->assign(array(
-            'form'                         => $order->customerForm(),
-            'order_storefront'             => $this->getOrderStorefront($order_data),
+            'form'                         => $customer_form,
+            'form_namespace'               => $customer_form->opt('namespace'),
+            'order_storefront'             => $this->getOrderStorefront($this->order_data),
             'order'                        => $order_data_array,
             'stocks'                       => $stock_model->getAll('id'),
-            'currency'                     => $order->currency,
-            'count_new'                    => $this->order_model->getStateCounters('new'),
+            'currency'                     => $this->order->currency,
+            'count_new'                    => $order_model->getStateCounters('new'),
             'taxes_count'                  => $tax_model->countAll(),
-            'shipping_address'             => $order->shipping_address,
+            'shipping_address'             => $this->order->shipping_address,
             'has_contacts_rights'          => true,
             'customer_validation_disabled' => wa()->getSetting('disable_backend_customer_form_validation'),
             'shipping_methods'             => $shipping_methods,
             'ignore_stock_count'           => wa()->getSetting('ignore_stock_count'),
-            'storefronts'                  => shopHelper::getStorefronts(true),
-            'new_order_for_client'         => $new_order_customer_contact_id,
+            'storefronts'                  => $this->getStorefronts(),
+            'new_order_for_client'         => $this->new_order_customer_contact_id,
             'customer_sources'             => $customer_sources,
-            'discount'                     => $order->discount,
-            'discount_description'         => $order->discount_description,
+            'discount'                     => $this->order->discount,
+            'discount_description'         => $this->order->discount_description,
             'items_discount'               => $item_discount,
-            'contact_info'                 => array(
-                'email' => $order->contact->get('email'),
-                'phone' => $order->contact->get('phone')
-            ),
+            'contact'                      => $this->order->contact
         ));
     }
 
+    /**
+     * @param shopOrder $order
+     * @return array
+     * @throws waException
+     */
     private function getOrderData($order)
     {
         $order_id = $order['id'];
@@ -188,18 +226,6 @@ class shopOrderEditAction extends waViewAction
         return shopHelper::getShippingMethods($shipping_address, $order_items, $params);
     }
 
-    private function getCropSize()
-    {
-        if ($this->crop_size === null) {
-            $config = $this->getConfig();
-            /**
-             * @var shopConfig $config
-             */
-            $this->crop_size = $config->getImageSize('crop_small');
-        }
-        return $this->crop_size;
-    }
-
     private function workupItems(&$item, $sku_stocks)
     {
         $item['quantity'] = $item['item']['quantity'];
@@ -245,6 +271,65 @@ class shopOrderEditAction extends waViewAction
             }
         }
         unset($sku);
+
+        $this->roundingItemsData($item);
+    }
+
+    protected function roundingItemsData(&$item)
+    {
+        if (!isset($item['services'])) {
+            return null;
+        }
+
+        $out_currency = $this->order->currency;
+
+        if ($item['currency'] != $out_currency) {
+            foreach (array('price', 'min_price', 'max_price') as $key) {
+                $item[$key] = shopRounding::roundCurrency($item[$key], $out_currency);
+            }
+
+            if ($item['min_price'] == $item['max_price']) {
+                $item['price_str'] = wa_currency($item['min_price'], $out_currency);
+                $item['price_html'] = wa_currency_html($item['min_price'], $out_currency);
+            } else {
+                $item['price_str'] = wa_currency($item['min_price'], $out_currency).'...'.wa_currency($item['max_price'], $out_currency);
+                $item['price_html'] = wa_currency_html($item['min_price'], $out_currency).'...'.wa_currency_html($item['max_price'], $out_currency);
+            }
+
+            foreach ($item['skus'] as &$sku) {
+                $sku['price'] = shopRounding::roundCurrency($sku['price'], $out_currency);
+                $sku['price_str'] = ($sku['price'] >= 0 ? '+' : '-').wa_currency($sku['price'], $out_currency);
+                $sku['price_html'] = ($sku['price'] >= 0 ? '+' : '-').wa_currency_html($sku['price'], $out_currency);
+            }
+        }
+
+        foreach ($item['services'] as $service_id => &$service) {
+            $service_currency = $service['currency'];
+
+            foreach ($service['variants'] as &$variant) {
+                // Always round off interest and if currency conversion occurs.
+                if (($service_currency == '%' || $service_currency != $out_currency) && wa()->getSetting('round_services')) {
+                    $variant['price'] = shopRounding::roundCurrency($variant['price'], $out_currency);
+                }
+                $variant['price_str'] = ($variant['price'] >= 0 ? '+' : '-').wa_currency($variant['price'], $out_currency);
+                $variant['price_html'] = ($variant['price'] >= 0 ? '+' : '-').wa_currency_html($variant['price'], $out_currency);
+            }
+            unset($variant);
+
+            // Sets the default price for the service.
+            $default_variant = ifset($service, 'variants', $service['variant_id'], []);
+            if (isset($default_variant['price'])) {
+                $service['price'] = $default_variant['price'];
+                if (isset($default_variant['percent_price'])) {
+                    $service['percent_price'] = $default_variant['percent_price'];
+                }
+            } else {
+                // Invalid database state.
+                unset($item['services'][$service_id]);
+            }
+        }
+
+        unset($service);
     }
 
     public function getOrderStorefront($order)
@@ -256,98 +341,22 @@ class shopOrderEditAction extends waViewAction
         return $storefront;
     }
 
-    /**
-     * Convert tree-like structure where services are part of products
-     * into flat list where services and products are on the same level.
-     */
-    protected function itemsForDiscount($order_currency, $items_tree)
+    private function getCropSize()
     {
-        $items = array();
-
-        foreach ($items_tree as $index => $i) {
-            $product = $i;
-            $items[] = $this->workupProductItem($i['item'], $product, $order_currency, $index);
-
-            if (!empty($i['services'])) {
-                foreach ($i['services'] as $service) {
-                    if (!empty($service['item'])) {
-                        $items[] = $this->workupServiceItem($service, $product, $index);
-                    }
-                }
-            }
+        if ($this->crop_size === null) {
+            $config = $this->getConfig();
+            /**
+             * @var shopConfig $config
+             */
+            $this->crop_size = $config->getImageSize('crop_small');
         }
-
-        return $items;
+        return $this->crop_size;
     }
 
-    private function workupProductItem($i, &$product, $order_currency, $index)
+    protected function getStorefronts()
     {
-        unset($product['item']);
-        if (!empty($product['services'])) {
-            foreach ($product['services'] as &$s) {
-                unset($s['item']);
-            }
-            unset($s);
-        }
-
-        $product_id = $i['product_id'];
-        $sku_id = $i['sku_id'];
-        unset($i['services']);
-
-        $i += array(
-            'type'               => 'product',
-            'service_id'         => null,
-            'service_variant_id' => null,
-            'purchase_price'     => 0,
-            'sku_code'           => '',
-            'name'               => 'product_id='.$product_id,
-        );
-
-        if (!empty($product['skus'][$sku_id])) {
-            $sku = $product['skus'][$sku_id];
-
-            if (!empty($sku['name'])) {
-                $i['name'] = sprintf('%s (%s)', ifempty($product['name'], $i['name']), $sku['name']);
-            } else {
-                $i['name'] = ifempty($product['name'], $i['name']);
-            }
-
-            if (empty($sku['fake'])) {
-                $i['purchase_price'] = shop_currency($sku['purchase_price'], $product['currency'], $order_currency, false);
-                $i['sku_code'] = $sku['sku'];
-            } else {
-                $i['purchase_price'] = 0;
-                $i['sku_code'] = null;
-            }
-
-            $i['product'] = $product;
-            $i['_index'] = $index;
-        }
-        return $i;
-    }
-
-    private function workupServiceItem($service, $product, $index)
-    {
-        $s = $service['item'];
-        unset($service['item']);
-
-        $s = array(
-                'type'               => 'service',
-                'price'              => $s['price'],
-                'service_id'         => $service['id'],
-                'service_variant_id' => 0,
-                'purchase_price'     => 0,
-                'name'               => 'service_id='.$s['service_id'],
-            ) + $s;
-
-
-        $variant = reset($service['variants']);
-        $s['name'] = $service['name'].($variant['name'] ? ' ('.$variant['name'].')' : '');
-        $s['service_variant_id'] = $variant['id'];
-        $s['service'] = $service;
-        $s['product'] = $product;
-        $s['_parent_index'] = $index;
-
-        return $s;
+        $list = new shopStorefrontList();
+        $storefronts = $list->fetchAll(array('contact_type'));
+        return $storefronts;
     }
 }

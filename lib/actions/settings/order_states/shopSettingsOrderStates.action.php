@@ -83,6 +83,7 @@ class shopSettingsOrderStatesAction extends waViewAction
         $info['actions'] = array_keys($state->getActions(null, $state->id));
         $info['original'] = $state->original;
         $info['payment_allowed'] = $state->paymentAllowed();
+        $info['payment_not_allowed_text'] = $state->paymentNotAllowedText();
         return $info;
     }
 
@@ -99,6 +100,7 @@ class shopSettingsOrderStatesAction extends waViewAction
             ),
             'original'        => false,
             'payment_allowed' => true,
+            'payment_not_allowed_text' => shopWorkflowState::paymentNotAllowedDefaultText(),
             'actions'         => array(),
         );
     }

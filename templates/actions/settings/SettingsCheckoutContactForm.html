@@ -303,6 +303,68 @@
     })();
 
     //
+    // UI logic about alternative checking name(s) field(s)
+    //
+    (function () {
+
+        // Query selector for checkbox of name field
+        var name_qs = '.field-row[data-field-id="name"] :checkbox:first';
+
+        // Query selector for checkboxes of alternative name fields
+        var alt_names_qs = [
+            '.field-row[data-field-id="firstname"] :checkbox:first',
+            '.field-row[data-field-id="middlename"] :checkbox:first',
+            '.field-row[data-field-id="lastname"] :checkbox:first'
+        ].join(',');
+
+        var isChecked = function(qs) {
+            var checked = false;
+            wrapper.find(qs).each(function () {
+                checked = checked || $(this).is(':checked');
+            });
+            return checked;
+        };
+
+        var onClick = function() {
+            var field_id = $(this).closest('.field-row').data('fieldId'),
+                disabled = null,
+                other_qs = null,
+                $other = null;
+
+            if (field_id === 'name') {
+                other_qs = alt_names_qs;
+                disabled = isChecked(name_qs);
+            } else {
+                other_qs = name_qs;
+                disabled = isChecked(alt_names_qs);
+            }
+
+            $other = wrapper.find(other_qs);
+
+            // if checked name - disable and un-check alt-name(s)
+            // if checked alt-name(s) - disable and un-check name
+
+            $other.attr('disabled', disabled);
+            if (disabled) {
+                $other.attr('checked', false);
+            }
+
+        };
+
+        wrapper.on('click', name_qs + ',' + alt_names_qs, onClick);
+
+        var name_is_checked = isChecked(name_qs),
+            alt_name_is_checked = isChecked(alt_names_qs);
+
+        if (name_is_checked && !alt_name_is_checked) {
+            onClick.call(wrapper.find(name_qs).get(0));
+        } else if (alt_name_is_checked && !name_is_checked) {
+            onClick.call(wrapper.find(alt_name_is_checked).get(0));
+        }
+
+    })();
+
+    //
     // Controller for shipping and billing address blocks
     //
     (function() {

@@ -9,6 +9,12 @@ class shopWorkflowState extends waWorkflowState
     protected $frontend_style_html;
     protected $available_actions = array();
     protected $payment_allowed = true;
+
+    /**
+     * @var string|null
+     */
+    protected $payment_not_allowed_text = null;
+
     public $original = false;
 
     /**
@@ -27,6 +33,9 @@ class shopWorkflowState extends waWorkflowState
         }
         if (isset($options['payment_allowed'])) {
             $this->payment_allowed = !!$options['payment_allowed'];
+        }
+        if (isset($options['payment_not_allowed_text']) && is_scalar($options['payment_not_allowed_text'])) {
+            $this->payment_not_allowed_text = (string)$options['payment_not_allowed_text'];
         }
     }
 
@@ -104,5 +113,22 @@ class shopWorkflowState extends waWorkflowState
             return null;
         }
         return $this->payment_allowed;
+    }
+
+    /**
+     * @return string
+     */
+    public function paymentNotAllowedText()
+    {
+        if ($this->payment_not_allowed_text !== null) {
+            return $this->payment_not_allowed_text;
+        } else {
+            return self::paymentNotAllowedDefaultText();
+        }
+    }
+
+    public static function paymentNotAllowedDefaultText()
+    {
+        return _w('Payment option will be available in your customer account after your order has been verified.');
     }
 }

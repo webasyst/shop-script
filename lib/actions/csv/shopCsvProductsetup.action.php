@@ -8,7 +8,7 @@ class shopCsvProductsetupAction extends waViewAction
         $profile_helper = new shopImportexportHelper('csv:product:'.$direction);
         $this->view->assign('profiles', $profile_helper->getList());
         $profile = $profile_helper->getConfig();
-        if ($direction == 'export') { //export section TODO
+        if ($direction == 'export') { //export section
 
 
             $profile['config'] += array(
@@ -83,6 +83,16 @@ class shopCsvProductsetupAction extends waViewAction
             $this->view->assign('upload_path', waSystem::getSetting('csv.upload_path', 'path/to/folder/with/source/images/'));
             $this->view->assign('upload_app', waSystem::getSetting('csv.upload_app', 'shop'));
             $this->view->assign('app_path', $app_path);
+
+            $product_model = new shopProductModel();
+            $sku_model = new shopProductSkusModel();
+
+            $meta_fields = array(
+                'product' => $product_model->getMetadata(),
+                'sku'     => $sku_model->getMetadata(),
+            );
+
+            $this->view->assign('meta_fields', $meta_fields);
         }
 
         $this->view->assign('profile', $profile);

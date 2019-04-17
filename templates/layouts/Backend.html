@@ -256,9 +256,12 @@
                                             <a href="#/products/">[`Products`]</a>
                                         </li>
                                     {/if}
-                                    <li>
-                                        <a href="#/checkoutflow/">[`Checkout funnel`]</a>
-                                    </li>
+
+                                    {if $need_checkout_flow_section}
+                                        <li>
+                                            <a href="#/checkoutflow/">[`Checkout funnel`]</a>
+                                        </li>
+                                    {/if}
 
                                     <!-- plugin hook: 'backend_reports.menu_li' -->
                                     {* @event backend_reports.%plugin_id%.menu_li *}

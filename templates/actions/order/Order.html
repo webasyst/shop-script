@@ -137,6 +137,17 @@
                                 </p>
                             {/if}
 
+                        {/if}
+                        {$_package = shopShipping::extractItemsTotal($order.params, true)}
+                        {if $_package}
+                            {if !empty($_package.package_total_weight)}
+                                <p style="padding-left: 20px;">[`Total order weight`]: {$_package.package_total_weight}</p>
+                            {/if}
+                            {if !empty($_package)}
+                                <p style="padding-left: 20px;" title="[`Width × length × height`]">[`Total order dimensions`]: {$_package.package_total_width}&times;{$_package.package_total_length}×{$_package.package_total_height}</p>
+                            {/if}
+                        {/if}
+                        {if $shipping_address}
                             {if !empty($courier)}
                                 <!-- Courier -->
                                 <h3>

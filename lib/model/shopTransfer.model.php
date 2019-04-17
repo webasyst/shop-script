@@ -344,34 +344,54 @@ class shopTransferModel extends waModel
     private function applyStockDiffs($diff_map, $transfer_id)
     {
         $stock_model = new shopStockModel();
+
         $all_stocks = $stock_model->getAll('id');
+
         foreach ($diff_map as $product_id => $sku_diff_map) {
             $product = new shopProduct($product_id);
 
-            $data = array();
-            foreach ($sku_diff_map as $sku_id => $stock_diff_map) {
-                if (!isset($product->skus[$sku_id]) && empty($product->skus[$sku_id]['stock'])) {
+            // IMPORTANT: shopProduct works correctly only with full list of skus
+            // Otherwise there are some side-effects: change of sorts, change of MAIN sku (change of product.sku_id)
+            // That is why we get ALL skus and than workup each sku
+            $data = $product->skus;
+
+            // if not changed, do not call ->save
+            $changed = false;
+
+            foreach ($data as $sku_id => &$sku) {
+
+                if (empty($sku['stock'])) {
                     continue;
                 }
+
+                if (!isset($sku_diff_map[$sku_id])) {
+                    continue;
+                }
+
+                $stock_diff_map = $sku_diff_map[$sku_id];
                 foreach ($stock_diff_map as $stock_id => $diff) {
                     if (!isset($all_stocks[$stock_id])) {
                         continue;
                     }
-                    $diff = (int) $diff;
+
+                    $diff = (int)$diff;
                     if ($diff == 0) {
                         continue;
                     }
-                    if (isset($product->skus[$sku_id]['stock'][$stock_id])) {
-                        $data[$sku_id]['stock'][$stock_id] = $product->skus[$sku_id]['stock'][$stock_id] + $diff;
+                    
+                    if (isset($sku['stock'][$stock_id])) {
+                        $sku['stock'][$stock_id] += $diff;
                     } else {
-                        $data[$sku_id]['stock'][$stock_id] = $diff;
+                        $sku['stock'][$stock_id] = $diff;
                     }
-                }
-                // crazy, but without it available will be reset %)
-                $data[$sku_id]['available'] = $product->skus[$sku_id]['available'];
-            }
 
-            if ($data) {
+                    $changed = true;
+
+                }
+            }
+            unset($sku);
+
+            if ($changed) {
                 shopProductStocksLogModel::setContext(
                     shopProductStocksLogModel::TYPE_TRANSFER,
                     /*_w*/
@@ -380,7 +400,9 @@ class shopTransferModel extends waModel
                         'transfer_id' => $transfer_id
                     )
                 );
+
                 $product->save(array('skus' => $data));
+
                 shopProductStocksLogModel::clearContext();
             }
 

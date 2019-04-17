@@ -509,6 +509,9 @@ SQL;
         if (!empty($data['order']['params']['storefront'])) {
             $idna = new waIdna();
             $data['order']['params']['storefront_decoded'] = $idna->decode($data['order']['params']['storefront']);
+        } else {
+            $data['order']['params']['storefront_decoded'] = '';
+            $data['order']['params']['storefront'] = '';
         }
 
         $view = wa()->getView();

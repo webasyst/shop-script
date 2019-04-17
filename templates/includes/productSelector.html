@@ -5,7 +5,7 @@
 @var string $hash
 @var boolean $subcategory
 *}
-<div class="field">
+<div class="field js-product-selector-field">
     <div class="name">
         {_wd('shop',"Select products")}
     </div>
@@ -44,13 +44,14 @@
             </ul>
         </div>
         <div class="value js-hash-values js-hash-" style="width: 400px;">
-            <div class="bordered-left" style="padding-left: 20px;">
+            <div class="bordered-left" style="padding-left: 20px; min-height: 130px;">
+                <ul class="menu-v"><li>&nbsp;</li></ul>
                 {if !empty($hints.all)}<br/><span class="small">{$hints.all}</span>{/if}
             </div>
         </div>
 
         <div class="value js-hash-values js-hash-set" style="width: 400px;">
-            <div class="bordered-left" style="padding-left: 20px;">
+            <div class="bordered-left" style="padding-left: 20px; min-height: 130px;">
                 <ul class="menu-v with-icons">
                     {foreach $sets as $set}
                         <li>
@@ -67,7 +68,7 @@
             </div>
         </div>
         <div class="value js-hash-values js-hash-type" style="width: 400px;">
-            <div class="bordered-left" style="padding-left: 20px;">
+            <div class="bordered-left" style="padding-left: 20px; min-height: 130px;">
                 <ul class="menu-v with-icons">
                     {foreach $types as $type}{if $type.count}
                         <li>
@@ -84,8 +85,10 @@
         </div>
         {if $hash.type eq 'id'}
         <div class="value js-hash-values js-hash-id" style="width: 400px;">
-            <div class="bordered-left" style="padding-left: 20px;">
-                <a href="?action=products#/products/hash={"id/`$hash.product_ids`"|escape:'url'}" target="_blank">{_wd('shop','%d product','%d products',$hash.count)|escape}<i class="icon16 new-window"></i></a>
+            <div class="bordered-left" style="padding-left: 20px; min-height: 130px;">
+                <ul class="menu-v">
+                    <li><a href="?action=products#/products/hash={"id/`$hash.product_ids`"|escape:'url'}" target="_blank" class="inline-link">{_wd('shop','%d product','%d products',$hash.count)|escape}<i class="icon16 new-window"></i></a></li>
+                </ul>
                 {if !empty($hints.id)}<br/><span class="small">{$hints.id}</span>{/if}
             </div>
         </div>

@@ -20,7 +20,7 @@ class shopSettingsOrderStateSaveController extends waJsonController
         if (!$this->validate($data, $add)) {
             return;
         }
-        $this->save($data);
+        $this->save($data, $add);
         $this->response = array(
             'id'     => $data['state']['id'],
             'new_id' => !empty($data['state']['new_id']) ? $data['state']['new_id'] : null,
@@ -28,7 +28,7 @@ class shopSettingsOrderStateSaveController extends waJsonController
         );
     }
 
-    public function save($data)
+    public function save($data, $add = false)
     {
         $available_states = $this->getWorkflow()->getAvailableStates();
 
@@ -43,6 +43,14 @@ class shopSettingsOrderStateSaveController extends waJsonController
 
         if (!empty($data['state']['new_id'])) {
             unset($data['state']['new_id']);
+        }
+
+        if (!$add && $data['state']['payment_not_allowed_text'] === null) {  // not change in this case
+            $text = null;
+            if (isset($this->config['states'][$id]['payment_not_allowed_text'])) {
+                $text = $this->config['states'][$id]['payment_not_allowed_text'];
+            }
+            $data['state']['payment_not_allowed_text'] = $text;
         }
 
         $this->config['states'][$id] = $data['state'];
@@ -96,8 +104,6 @@ class shopSettingsOrderStateSaveController extends waJsonController
                 $this->errors['state']['new_id'] = _w('Same state ID already exists');
             }
         }
-
-        $ids = !empty($this->config['new_actions']) ? array_keys($this->config['new_actions']) : array();
 
         if (!empty($data['edited_actions'])) {
             foreach ($data['edited_actions'] as $action_id => $action) {
@@ -169,19 +175,19 @@ class shopSettingsOrderStateSaveController extends waJsonController
         return $actions;
     }
 
-    protected function getActionClassname(&$action)
+    protected function getActionClassname(&$action, $current_action = array())
     {
-        $classname = null;
-        if (!empty($action['extends'])) {
+        if (isset($action['extends'])) {
             $extends = shopWorkflow::getExtendsActions();
             if (isset($extends[$action['extends']])) {
                 $extend_action = $this->getWorkflow()->getActionById($action['extends']);
                 $classname = get_class($extend_action);
+            } else {
+                $classname = 'shopWorkflowAction';
+                $action['extends'] = '';
             }
-        }
-        if (empty($classname)) {
-            $classname = 'shopWorkflowAction';
-            $action['extends'] = '';
+        } else {
+            $classname = ifempty($current_action, 'classname', 'shopWorkflowAction');
         }
         return $classname;
     }
@@ -212,7 +218,7 @@ class shopSettingsOrderStateSaveController extends waJsonController
         $edited_actions = array();
         foreach ($actions as $action_id => $action) {
             if (isset($available_actions[$action_id])) {
-                $action['classname'] = $this->getActionClassname($action);
+                $action['classname'] = $this->getActionClassname($action, $available_actions[$action_id]);
 
                 foreach ($action as $key => $value) {
                     if ($key === 'options') {
@@ -299,8 +305,10 @@ class shopSettingsOrderStateSaveController extends waJsonController
                 'icon'  => $this->getIcon(),
             ),
             'payment_allowed'   => !!waRequest::post('payment_allowed'),
+            'payment_not_allowed_text' => waRequest::post('payment_not_allowed_text'),
             'available_actions' => $this->getActions(),
         );
+
         if (waRequest::post('new_id', '', waRequest::TYPE_STRING_TRIM) && $add) {
             $info['new_id'] = waRequest::post('new_id', '', waRequest::TYPE_STRING_TRIM);
         }

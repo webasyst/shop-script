@@ -418,7 +418,7 @@
                         if (current.nextAll(drSelector).length > 0) {
                             return nearby;
                         }
-                        return arguments.callee(nearby, current.parent().closest('li'));
+                        return addBelow(nearby, current.parent().closest('li'));
                     };
 
                     // widen all spaces above the current li and below the prev li (which may be on another tree level)

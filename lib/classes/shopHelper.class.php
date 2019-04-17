@@ -1299,31 +1299,14 @@ SQL;
         return $store_email;
     }
 
+    /**
+     * @deprecated
+     * @param bool $verbose
+     * @return array
+     */
     public static function getStorefronts($verbose = false)
     {
-        $storefronts = array();
-        $idna = new waIdna();
-        $routing = new waRouting(wa());
-        foreach ($routing->getByApp('shop') as $domain => $domain_routes) {
-            foreach ($domain_routes as $route) {
-                $url = rtrim($domain.'/'.$route['url'], '/*');
-                if (strpos($url, '/') !== false) {
-                    $url .= '/';
-                }
-                if ($verbose) {
-                    $storefronts[] = array(
-                        'domain'      => $domain,
-                        'route'       => $route,
-                        'url'         => $url,
-                        'url_decoded' => $idna->decode($url),
-                    );
-                } else {
-                    $storefronts[] = $url;
-                }
-            }
-        }
-
-        return $storefronts;
+        return shopStorefrontList::getAllStorefronts($verbose);
     }
 
     public static function getStorefrontCheckoutHash($storefront)

@@ -30,6 +30,30 @@ $view = wa()->getView();
 $template = wa()->getAppPath('templates/includes/checkoutVersionRouteMoveSetting.html', 'shop');
 $checkout_version_move_setting = $view->fetch($template);
 
+// $route is var outside current file, that is include file
+$new_route_rule = empty($route);
+
+$checkout_version_params = array(
+    'name'  => _w('Checkout mode'),
+    'type'  => 'radio_select',
+    'items' => array(
+        2 => array(
+            'name'        => sprintf(_w('<span class="checkout-2-background">%s</span> (may be not supported by some design themes; please check your theme’s description or checkout settings after selecting this mode)'), _w('In-cart checkout')),
+            'description' => '<br>'.sprintf(_w('If your design theme does not support “in-cart checkout”, standard checkout design of “Default” theme can be used. <a href="%s" target="_blank">Set up</a> <i class="icon16 new-window"></i>in-cart checkout.'), wa()->getAppUrl('shop/?action=settings#/checkout')) . '<br><strong>'. _w('Read <a href="https://www.shop-script.com/help/29297/in-cart-checkout/" target="_blank">user manual</a> before enabling this checkout option.') . '</strong><br><br>',
+        ),
+        1 => array(
+            'name'        => _w('Multi-step checkout'),
+            'description' => '<br>'.sprintf(_w('<a href="%s" target="_blank">Set up</a> <i class="icon16 new-window"></i>multi-step checkout'), wa()->getAppUrl('shop/?action=settings#/checkout&r=1')) . $checkout_version_move_setting,
+        ),
+    ),
+    'original_name' => true,
+);
+
+// for new route rule choose version 2 as default,
+if ($new_route_rule) {
+    $checkout_version_params['default'] = 2;
+}
+
 return array(
     'params' => array(
         _w('Homepage'),
@@ -191,22 +215,8 @@ return array(
         'checkout_storefront_id' => array(
             'type' => 'hidden',
         ),
-        'checkout_version' => array(
-            'name'  => _w('Checkout mode'),
-            'type'  => 'radio_select',
-            'items' => array(
-                2 => array(
-                    'name'        => sprintf(_w('<span class="checkout-2-background">%s</span> (may be not supported by some design themes; please check your theme’s description or checkout settings after selecting this mode)'), _w('In-cart checkout')),
-                    'description' => '<br>'.sprintf(_w('If your design theme does not support “in-cart checkout”, standard checkout design of “Default” theme can be used. <a href="%s" target="_blank">Set up</a> <i class="icon16 new-window"></i>in-cart checkout.'), wa()->getAppUrl('shop/?action=settings#/checkout')) . '<br><strong>'. _w('Read <a href="https://www.shop-script.com/help/29297/in-cart-checkout/" target="_blank">user manual</a> before enabling this checkout option.') . '</strong><br><br>',
-                ),
-                1 => array(
-                    'name'        => _w('Multi-step checkout'),
-                    'description' => '<br>'.sprintf(_w('<a href="%s" target="_blank">Set up</a> <i class="icon16 new-window"></i>multi-step checkout'), wa()->getAppUrl('shop/?action=settings#/checkout&r=1')) . $checkout_version_move_setting,
-                ),
-            ),
-            'default' => 2,
-            'original_name' => true,
-        ),
+
+        'checkout_version' => $checkout_version_params,
     ),
 
     'vars' => array(

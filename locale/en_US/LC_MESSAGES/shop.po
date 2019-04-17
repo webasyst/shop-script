@@ -10,7 +10,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 1.8.7.1\n"
 "Plural-Forms: nplurals=2; plural=n == 1 ? 0 : 1;\n"
 "Language: en_US\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -9667,11 +9667,11 @@ msgid "Guest checkout"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:92
-msgid "Create new customer profile for every guest order"
+msgid "Create a new customer profile for every guest order"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:98
-msgid "Add an order to existing customer profile with the same phone number or email address"
+msgid "Add an order to existing customer profile with the same email address or phone number"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/reports/shopReportsCohorts.action.php:126
@@ -11188,7 +11188,7 @@ msgid "Condition"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/transfer/Transfer.html:80
-msgid "Start typing name of an existing product or SKU"
+msgid "Enter a product name, an SKU name, or an SKU code"
 msgstr ""
 
 #: /wa-apps/shop/templates/mail/Order.create.html:109
@@ -12143,7 +12143,7 @@ msgid "If this field is completed, customers will see a link to the conditions a
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:948
-msgid "Unauthorized checkout with existing customer profiles"
+msgid "Customer profiles updating &amp; auto-signup"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:965
@@ -12320,7 +12320,7 @@ msgid "Payment option availability"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:122
-msgid "customers can pay for orders in this state in their personal accounts"
+msgid "customers can pay for orders in this state"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:176
@@ -13188,10 +13188,6 @@ msgstr ""
 msgid "Default"
 msgstr ""
 
-#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:221
-msgid "Available shipping options are grouped by type—“courier”, “pickup”, “post”."
-msgstr ""
-
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:225
 msgid "Minimal"
 msgstr ""
@@ -13229,7 +13225,7 @@ msgid "Unauthorized customer can place orders, and they will be connected with a
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:287
-msgid "Checkout is not allowed without email address or phone number confirmation"
+msgid "Checkout with mandatory email address or phone number confirmation"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:297
@@ -13827,7 +13823,7 @@ msgid "If <strong>no shipping areas have been set up</strong>, customers will ha
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:560
-msgid "If you set up <strong>only one shipping area</strong>, with <strong>country</strong>, <strong>region</strong>, and <strong>city</strong> specified, then customers will see at once all shipping options available for that area only, without an option to change location."
+msgid "If you set up <strong>only one shipping area</strong>, with <strong>country</strong>, <strong>region</strong>, and <strong>city</strong> specified, then customers will see at once all shipping options available for that area only, without an option to change location. If you do not complete the region or locality fields in the single available shipping area’s properties, then only those empty fields will be visible during checkout."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:621
@@ -13941,10 +13937,6 @@ msgstr ""
 msgid "Compare at price without discount and discount amount"
 msgstr ""
 
-#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:244
-msgid "Shipping options are not grouped by types—“courier”, “pickup”, “post”. There is no option to select a pickup point on a map."
-msgstr ""
-
 #: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:260
 msgid "A small map with one pickup point will be shown by a click on an address in the pickup point selection dialog."
 msgstr ""
@@ -13963,4 +13955,243 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/customers/include.top_fields.html:67
 msgid "More contact information"
+msgstr ""
+
+#: /wa-apps/shop/templates/form/customer/backend.html:24
+msgid "Person"
+msgstr ""
+
+#: /wa-apps/shop/templates/form/customer/backend.html:29
+msgid "Company"
+msgstr ""
+
+#: /wa-apps/shop/templates/form/customer/backend.html:101
+msgid "More shipping addresses"
+msgstr ""
+
+#: /wa-apps/shop/templates/form/customer/backend.html:112
+msgid "More billing addresses"
+msgstr ""
+
+#: /wa-apps/shop/templates/form/customer/backend.html:130
+msgid "Order shipping address"
+msgstr ""
+
+#: /wa-apps/shop/templates/form/customer/backend.html:132
+msgid "Extra shipping address"
+msgstr ""
+
+#: /wa-apps/shop/templates/form/customer/backend.html:133
+msgid "Extra billing address"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:690
+msgid "Shipping area selection"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:983
+msgid "<a href=\"%s\" target=\"_blank\">How to choose the correct option for this setting</a>."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:983
+msgid "https://www.shop-script.com/help/29297/in-cart-checkout/#customer-profiles-updating"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:129
+msgid "Show this message on checkout completion and in customers’ personal accounts if setting “<strong>%s</strong>” is disabled."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:62
+msgid "Individual tax values are first calculated per order item and and their sum is obtained as the final result. Such a sum may differ from a common tax value if calculated for the total order amount, and you can correct that in printable documents, if necessary."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCheckoutflow.html:4
+msgid "This report is generated only for storefronts with multi-step checkout."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCheckoutflow.html:50
+msgid "Multi-step checkout storefronts"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.export.html:99
+msgid "Product &amp; category descriptions"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.export.html:102
+msgid "Export descriptions"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.import.html:79
+msgid "Product ID"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.import.html:84
+msgid "(skip products and categories, import only SKUs)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.import.html:102
+msgid "SKU ID"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/Order.html:144
+msgid "Total order weight"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/Order.html:147
+msgid "Width × length × height"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/Order.html:147
+msgid "Total order dimensions"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderForm.html:27
+msgid "Selecting shipping and payment options for selected items"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:40
+msgid "Generating a shopping cart from selected items"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:364
+#: /wa-apps/shop/templates/actions/frontend/order/form/confirm.html:49
+msgid "Rounded discount value"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/channel_confirmation.html:55
+msgid "Confirmation code"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/channel_confirmation.html:60
+msgid "Re-send"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/channel_confirmation.html:75
+msgid "Send code"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/channel_confirmation.html:6
+msgid "Please confirm your phone number"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/channel_confirmation.html:7
+msgid "sent to your phone"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/channel_confirmation.html:12
+msgid "Please confirm your email address"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/channel_confirmation.html:13
+msgid "sent by email"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/channel_confirmation.html:18
+msgid "Unsupported contact data type"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/channel_confirmation.html:24
+msgid "Complete checkout"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/channel_confirmation.html:101
+msgid "Enter a confirmation code to complete checkout."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:16
+msgid "Product id"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:38
+msgid "SKU id"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/orders/shopOrdersGetProduct.controller.php:257
+msgid "Unknown sku"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderConfirmation.actions.php:67
+msgid "Wait for %d second"
+msgid_plural "Wait for %d seconds"
+msgstr[0] ""
+msgstr[1] ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderConfirmation.actions.php:130
+msgid "You have entered an incorrect code. %d more attempt is available."
+msgid_plural "You have entered an incorrect code. %d more attempts are available."
+msgstr[0] ""
+msgstr[1] ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderConfirmation.actions.php:76
+msgid "Incorrect data specified to send a code"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderConfirmation.actions.php:84
+msgid "Code sending error"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderConfirmation.actions.php:113
+msgid "Code has not been sent"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderConfirmation.actions.php:124
+msgid "You have run out of available attempts. Please send a new SMS."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfirmStep.class.php:133
+msgid "Please confirm your contact data."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutAuthStep.class.php:216
+msgid "You cannot use these values."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopConfirmationChannel.class.php:939
+msgid "You do not need to confirm this value any more."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:319
+msgid "Non-authorized customers do not need to confirm their email address or phone number."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:320
+msgid "Authorized customers cannot use an email address or phone number from other customers’ or backend users’ profiles."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:321
+msgid "Non-authorized customers must confirm their email address or phone number before checkout completion, only if those data have been found in other registered customers’ profiles or in only one backend user profile. Such customers are automatically logged in right after confirmation or get signed up, if not registered, and receive a corresponding notification."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:322
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:325
+msgid "Authorized customers can change their email address or phone number to those found in other registered customers’ profiles or in one backend user profile, only after confirmation."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:323
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:326
+msgid "A customer cannot place an order with the use of an email address or phone number found in multiple backend user profiles."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:324
+msgid "Non-authorized customers must confirm their email address or phone number before checkout completion. Such customers are automatically logged in right after confirmation or get signed up, if not registered, and receive a corresponding notification."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:273
+msgid "Offer selection of shipping type and show pickup point selection map."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:276
+msgid "Offer selection of shipping type. Show pickup point selection map only on screens over 760 pixels wide."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout2/shopCheckoutConfig.class.php:279
+msgid "Do not offer selection of shipping type or show pickup point selection map."
+msgstr ""
+
+#: /wa-apps/shop/themes/default/order.html:38
+msgid "Delete all products"
+msgstr ""
+
+#: /wa-apps/shop/themes/default/order.html:60
+msgid "Back to shopping"
 msgstr ""

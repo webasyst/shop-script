@@ -32,10 +32,17 @@ class shopCouponsEditorAction extends waViewAction
         if (waRequest::post()) {
             $post_coupon = waRequest::post('coupon');
             if (is_array($post_coupon)) {
+                $hash = shopImportexportHelper::getCollectionHash();
+                $post_coupon['products_hash'] = $hash['hash'];
+                if ($post_coupon['products_hash'] === '*') {
+                    $post_coupon['products_hash'] = '';
+                }
+
                 $post_coupon = array_intersect_key($post_coupon, $coupon) + array(
                     'code' => '',
                     'type' => '%',
                 );
+
                 if (empty($post_coupon['limit'])) {
                     $post_coupon['limit'] = null;
                 }
@@ -54,30 +61,33 @@ class shopCouponsEditorAction extends waViewAction
                 if ($post_coupon['type'] == '%') {
                     $post_coupon['value'] = min(max($post_coupon['value'], 0), 100);
                 }
-                
-                if ($id) {
-                    $coupm->updateById($id, $post_coupon);
-                    echo '<script>window.location.hash = "#/coupons/'.$id.'";$.orders.dispatch();</script>';
-                    exit;
-                } else {
-                    $post_coupon['create_contact_id'] = wa()->getUser()->getId();
-                    $post_coupon['create_datetime'] = date('Y-m-d H:i:s');
-                    try {
+                try {
+
+                    if ($id) {
+                        $coupm->updateById($id, $post_coupon);
+                        echo '<script>window.location.hash = "#/coupons/'.$id.'";$.orders.dispatch();</script>';
+                        exit;
+                    } else {
+                        $post_coupon['create_contact_id'] = wa()->getUser()->getId();
+                        $post_coupon['create_datetime'] = date('Y-m-d H:i:s');
                         $id = $coupm->insert($post_coupon);
                         echo '<script>'.
-                                    'var counter = $("#s-coupons .count");'.
-                                    'var cnt = parseInt(counter.text(), 10) || 0;'.
-                                    'counter.text(cnt + 1);'.
-                                    'window.location.hash = "#/coupons/'.$id.'";'.
-                                '</script>';
+                            'var counter = $("#s-coupons .count");'.
+                            'var cnt = parseInt(counter.text(), 10) || 0;'.
+                            'counter.text(cnt + 1);'.
+                            'window.location.hash = "#/coupons/'.$id.'";'.
+                            '</script>';
                         exit;
-                    } catch (waDbException $e) {
-                        // Duplicate code. Show error in form.
-                        $coupon = $post_coupon + $coupon;
-                        $duplicate_code_error = true;
                     }
+                } catch (waDbException $ex) {
+                    // Duplicate code. Show error in form.
+                    $coupon = $post_coupon + $coupon;
+                    $duplicate_code_error = true;
                 }
             }
+        } elseif (!$id) {
+            $hash = shopImportexportHelper::getCollectionHash(waRequest::get('products_hash'));
+            $coupon['products_hash'] = $hash['hash'];
         }
 
         // Coupon types
@@ -94,12 +104,12 @@ class shopCouponsEditorAction extends waViewAction
             $cm = new shopCurrencyModel();
             $orders = $om->getByCoupon($coupon['id']);
             shopHelper::workupOrders($orders);
-            foreach($orders as &$o) {
-                $discount = ifset($o['params']['coupon_discount'], 0);
+            foreach ($orders as &$o) {
+                $discount = (float)ifset($o['params']['coupon_discount'], 0);
                 $o['coupon_discount_formatted'] = waCurrency::format('%{h}', $discount, $o['currency']);
                 if ($discount) {
                     $overall_discount += $cm->convert($discount, $o['currency'], $cm->getPrimaryCurrency());
-                    $o['coupon_discount_percent'] = round($discount*100.0 / ($discount + $o['total']), 1);
+                    $o['coupon_discount_percent'] = round($discount * 100.0 / ($discount + $o['total']), 1);
                 } else {
                     $o['coupon_discount_percent'] = 0;
                 }
@@ -107,6 +117,13 @@ class shopCouponsEditorAction extends waViewAction
             unset($o);
             $overall_discount_formatted = waCurrency::format('%{h}', $overall_discount, $cm->getPrimaryCurrency());
         }
+
+        $set_model = new shopSetModel();
+        $this->view->assign('product_sets', $set_model->getByField('type', shopSetModel::TYPE_STATIC, $set_model->getTableId()));
+
+        $type_model = new shopTypeModel();
+        $this->view->assign('product_types', $type_model->getTypes());
+
         $this->view->assign('types', $types);
         $this->view->assign('orders', $orders);
         $this->view->assign('coupon', $coupon);
@@ -122,7 +139,7 @@ class shopCouponsEditorAction extends waViewAction
         $result = array(
             '%' => _w('% Discount'),
         );
-        foreach($currencies as $c) {
+        foreach ($currencies as $c) {
             $info = waCurrency::getInfo($c['code']);
             $result[$c['code']] = $info['sign'].' '.$c['code'];
         }
@@ -134,10 +151,9 @@ class shopCouponsEditorAction extends waViewAction
     {
         $alphabet = "QWERTYUIOPASDFGHJKLZXCVBNM1234567890";
         $result = '';
-        while(strlen($result) < 8) {
-            $result .= $alphabet{mt_rand(0, strlen($alphabet)-1)};
+        while (strlen($result) < 8) {
+            $result .= $alphabet{mt_rand(0, strlen($alphabet) - 1)};
         }
         return $result;
     }
 }
-

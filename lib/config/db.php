@@ -167,6 +167,7 @@ return array(
         'expire_datetime' => array('datetime'),
         'create_datetime' => array('datetime', 'null' => 0),
         'create_contact_id' => array('int', 11, 'unsigned' => 1, 'null' => 0, 'default' => '0'),
+        'products_hash' => array('text'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'code' => array('code', 'unique' => 1),

@@ -393,6 +393,22 @@ HTML;
             $wa_order = shopShipping::getOrderData($order, $shipping_plugin);
             if (method_exists($shipping_plugin, 'setPackageState')) {
                 try {
+                    $total = array();
+                    if (isset($order['params']['package_total_weight'])) {
+                        $total['total_weight'] = $order['params']['package_total_weight'];
+                    }
+                    if (isset($order['params']['package_total_height'])
+                        && isset($order['params']['package_total_width'])
+                        && isset($order['params']['package_total_length'])
+                    ) {
+                        $total['total_height'] = $order['params']['package_total_height'];
+                        $total['total_width'] = $order['params']['package_total_width'];
+                        $total['total_length'] = $order['params']['package_total_length'];
+                    }
+
+                    if (!empty($total)) {
+                        $params += shopShipping::convertTotalDimensions($total, $shipping_plugin);
+                    }
 
                     $data = $shipping_plugin->setPackageState($wa_order, $state, $params);
                     if ($data !== null) {

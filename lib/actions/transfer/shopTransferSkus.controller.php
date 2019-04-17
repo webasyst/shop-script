@@ -13,6 +13,8 @@ class shopTransferSkusController extends waController
         $offset = (int) $offset;
         $limit = (int) $limit;
 
+        $term = trim($term);
+
         $model = new waModel();
         $q = $model->escape($term, 'like');
 
@@ -33,7 +35,6 @@ class shopTransferSkusController extends waController
         }
 
         $sql = $this->stringifySql($sql_map, array(":Q" => "{$q}%"));
-
         $skus = $model->query($sql)->fetchAll('id');
 
         $skus_count = count($skus);
@@ -41,6 +42,38 @@ class shopTransferSkusController extends waController
             $sql_map['LIMIT'] = $limit - $skus_count;
             $sql = $this->stringifySql($sql_map, array(":Q" => "%{$q}%"));
             $skus += $model->query($sql)->fetchAll('id');
+        }
+
+        $skus_count = count($skus);
+        if ($skus_count < $limit) {
+            $term_parts = explode(' ', $term);
+            if (count($term_parts) > 1) {
+                $sq = trim(array_pop($term_parts));
+                $sq = trim($sq, '()');      // in case if someone type name of sku in brackets
+                $pq = join(' ', $term_parts);
+                $pq = trim($pq);
+
+                $sq = $model->escape($sq, 'like');
+                $pq = $model->escape($pq, 'like');
+
+                $sql_map["WHERE"] = "(p.name LIKE ':PQ' AND (s.name LIKE ':SQ' OR s.sku LIKE ':SQ'))";
+                if ($stock_id) {
+                    $sql_map['WHERE']  .= "AND ps.stock_id = {$stock_id}";
+                }
+                $sql_map['LIMIT'] = $limit - $skus_count;
+
+                $sql = $this->stringifySql($sql_map, array(":PQ" => "{$pq}%", ":SQ" => "{$sq}%"));
+                $skus += $model->query($sql)->fetchAll('id');
+
+                $skus_count = count($skus);
+                if ($skus_count < $limit) {
+                    $sql_map['LIMIT'] = $limit - $skus_count;
+
+                    $sql = $this->stringifySql($sql_map, array(":PQ" => "%{$pq}%", ":SQ" => "%{$sq}%"));
+
+                    $skus += $model->query($sql)->fetchAll('id');
+                }
+            }
         }
 
         $skus = self::workupSkus($skus);

@@ -17,6 +17,7 @@ class shopOrderSaveController extends waJsonController
                 'storefront'         => $storefront,
                 'referer_host'       => waRequest::post('customer_source', null, waRequest::TYPE_STRING_TRIM),
                 'departure_datetime' => shopDepartureDateTimeFacade::getDeparture(null, $storefront),
+                'coupon_id'          => waRequest::post('coupon_id', 0),
             ),
             'comment'              => waRequest::post('comment', null, waRequest::TYPE_STRING_TRIM),
             'shipping'             => waRequest::post('shipping', 0),
@@ -40,16 +41,23 @@ class shopOrderSaveController extends waJsonController
 
         $this->workupData($data);
 
+        $form = new shopBackendCustomerForm();
+        $form->setStorefront($storefront, true);
+        $form->setContactType(ifset($data, 'customer', 'contact_type', null), true);
+
         $options = array(
             'items_format'          => 'flat',
             'ignore_count_validate' => true,
+            'customer_form'         => $form
         );
+
         $order = new shopOrder($data, $options);
+
         try {
             $saved_order = $order->save();
             $this->response['order'] = $saved_order->getData();
 
-            $this->applyConfirmationCheckboxes($saved_order->contact);
+            $this->applyConfirmationMarks($saved_order->contact);
 
         } catch (waException $ex) {
             $this->errors = $order->errors();
@@ -67,7 +75,7 @@ class shopOrderSaveController extends waJsonController
             if ($info && !empty($info['options']['assembly_time'])) {
                 /** @var shopDepartureDateTimeFacade $departure */
                 $departure = &$data['params']['departure_datetime'];
-                $departure->setExtraProcessingTime($info['options']['assembly_time']*3600);
+                $departure->setExtraProcessingTime($info['options']['assembly_time'] * 3600);
                 unset($departure);
             }
         }
@@ -99,48 +107,16 @@ class shopOrderSaveController extends waJsonController
      * @param waContact $contact
      * @throws waException
      */
-    protected function applyConfirmationCheckboxes($contact)
+    protected function applyConfirmationMarks($contact)
     {
-        $customer = $this->getRequest()->post('customer');
-
-        if (isset($customer['email'])) {
-            $email = $contact->get("email");
-            $email_from_post = $customer['email'];
-            if (is_array($email_from_post)) {
-                $email_from_post = ifset($email_from_post, 0, null);
-            }
-            if (isset($email[0]) && trim($email[0]['value']) === trim($email_from_post)) {
-
-                $cem = new waContactEmailsModel();
-
-                if (!empty($customer['email_confirmed'])) {
-                    $status = waContactEmailsModel::STATUS_CONFIRMED;
-                } else {
-                    $status = waContactEmailsModel::STATUS_UNKNOWN;
-                }
-
-                $cem->updateContactEmailStatus($contact->getId(), $email[0]['value'], $status);
-            }
+        $customer = $contact instanceof shopCustomer ? $contact : new shopCustomer($contact->getId());
+        $post = $this->getRequest()->post('customer');
+        $post = is_array($post) ? $post : array();
+        if (isset($post['email'])) {
+            $customer->markMainEmailAsConfirmed(ifset($post['email_confirmed']), $post['email']);
         }
-
-        if (isset($customer['phone'])) {
-            $phone = $contact->get("phone");
-            $phone_from_post = $customer['phone'];
-            if (is_array($phone_from_post)) {
-                $phone_from_post = ifset($phone_from_post, 0, null);
-            }
-            if (isset($phone[0]) && waContactPhoneField::isPhoneEquals($phone[0]['value'], $phone_from_post)) {
-
-                $cdm = new waContactDataModel();
-
-                if (!empty($customer['phone_confirmed'])) {
-                    $status = waContactDataModel::STATUS_CONFIRMED;
-                } else {
-                    $status = waContactDataModel::STATUS_UNKNOWN;
-                }
-
-                $cdm->updateContactPhoneStatus($contact->getId(), $phone[0]['value'], $status);
-            }
+        if (isset($post['phone'])) {
+            $customer->markMainPhoneAsConfirmed(ifset($post['phone_confirmed']), $post['phone']);
         }
     }
 }

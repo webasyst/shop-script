@@ -106,7 +106,7 @@ class shopWebPushNotifications
 
     public function isActive()
     {
-        return $this->settings['active'];
+        return !empty($this->settings['active']);
     }
 
     public function isBrowserSupported()

@@ -1,24 +1,27 @@
 {strip}
 
-{if $type === "sms"}
+{if $type === "phone"}
     {$_locales = [
         "type" => _w("Phone"),
-        "header" => _w("Пожалуйста, подтвердите телефон"),
-        "footer" => _w("Завершить без подтверждения телефона"),
-        "hint" => _w("отправлен на телефон")
+        "header" => _w("Please confirm your phone number"),
+        "hint" => _w("sent to your phone")
     ]}
 {elseif $type === "email"}
     {$_locales = [
         "type" => _w("Email"),
-        "header" => _w("Пожалуйста, подтвердите email"),
-        "footer" => _w("Завершить без подтверждения email"),
-        "hint" => _w("отправлен на email")
+        "header" => _w("Please confirm your email address"),
+        "hint" => _w("sent by email")
     ]}
 {else}
     {$_locales = [
-        "header" => _w("Ошибка"),
-        "content" => _w("Канал для подтвержения отсутствует")
+        "header" => _w("Error"),
+        "content" => _w("Unsupported contact data type")
     ]}
+{/if}
+
+{$_locales["submit_button"] = _w("Done")}
+{if !empty($is_last_channel)}
+    {$_locales["submit_button"] = _w("Complete checkout")}
 {/if}
 
 <div class="wa-order-dialog wa-channel-confirmation-dialog" id="js-channel-confirmation-dialog">
@@ -49,12 +52,12 @@
 
                 <div class="wa-line js-code-line" style="display: none;">
                     <div class="wa-field-wrapper with-content wa-code-field">
-                        <label class="wa-label">[`Проверочный код`] ({$_locales["hint"]})</label>
+                        <label class="wa-label">[`Confirmation code`] ({$_locales["hint"]})</label>
                         <input class="wa-input js-code-field" type="text" value="">
                         <div class="wa-content js-code-content">
 
-                            <span class="wa-timer-wrapper js-timer-wrapper">{sprintf("Новый код можно будет запросить через %s", "<span class=\"wa-time\"></span>")}</span>
-                            <a class="js-resend-code" href="javascript:void(0);" style="display: none;">[`Выслать ещё раз`]</a>
+                            <span class="wa-timer-wrapper js-timer-wrapper">{sprintf("You can request new confirmation code in %s", "<span class=\"wa-time\"></span>")}</span>
+                            <a class="js-resend-code" href="javascript:void(0);" style="display: none;">[`Re-send`]</a>
 
                         </div>
                     </div>
@@ -69,18 +72,12 @@
         <div class="wa-dialog-footer">
             {if !empty($type)}
                 <div class="js-send-line">
-                    <button class="wa-button is-large js-send-code">[`Выслать код`]</button>
+                    <button class="wa-button is-large js-send-code">[`Send code`]</button>
                 </div>
 
                 <div class="js-submit-line" style="display: none;">
-                    <button class="wa-button is-large js-submit-confirm">[`Завершить оформление`]</button>
+                    <button class="wa-button is-large js-submit-confirm">{$_locales["submit_button"]|escape}</button>
                 </div>
-
-                {if empty($require_confirmation)}
-                    <div class="wa-line">
-                        <a class="js-skip-confirm" href="javascript:void(0);">{$_locales["footer"]|escape}</a>
-                    </div>
-                {/if}
             {else}
                 <button class="js-close-dialog">[`Close`]</button>
             {/if}
@@ -101,7 +98,7 @@
                     "submit": {$wa->getUrl('shop/frontendOrderConfirmation/validateConfirmationCode')|json_encode}
                 },
                 locales: {
-                    code_empty: {_w("Чтобы завершить оформление введите проверочный код.")|json_encode},
+                    code_empty: {_w("Enter a confirmation code to complete checkout.")|json_encode},
                     invalid: {_w("Incorrect value")|json_encode},
                     required: {_w("Required field")|json_encode}
                 }

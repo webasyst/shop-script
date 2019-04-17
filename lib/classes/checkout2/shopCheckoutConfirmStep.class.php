@@ -53,12 +53,7 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
                 ];
             }
 
-
-            //todo нужно для подтверждения каналов
-/*            $confirmation_errors = $this->confirmationChannelErrors($data);
-            if ($confirmation_errors) {
-                $errors[] = $confirmation_errors;
-            }*/
+            $errors = array_merge($errors, $this->confirmationChannelErrors($data));
         }
 
         $result['comment'] = ifset($data, 'input', 'confirm', 'comment', '');
@@ -120,68 +115,27 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
 
     protected function confirmationChannelErrors($data)
     {
-        $errors = null;
-        $data = shopConfirmationChannel::parseData($data);
-        $confirmation = new shopConfirmationChannel($data);
+        $options = [
+            'is_company' => (int)$data['contact']['is_company'],
+            'address'    => [
+                'email' => ifset($data, 'result', 'auth', 'fields', 'email', 'value', null),
+                'phone' => ifset($data, 'result', 'auth', 'fields', 'phone', 'value', null),
+            ]
+        ];
+        $errors = [];
 
-        $confirmation_channel = $confirmation->getConfirmationChannel();
+        $confirmation = new shopConfirmationChannel($options);
+        $confirm_channel = $confirmation->getConfirmChannel();
 
-        if ($confirmation_channel)  {
-            $errors =  [
+        if ($confirm_channel) {
+            $errors[] = [
                 'id'   => 'confirm_channel',
-                'text' => _w('Todo Требуется подтвердить канал'),
-                'type' => $confirmation_channel,
+                'text' => _w('Please confirm your contact data.'),
+                'type' => $confirm_channel,
             ];
         }
 
         return $errors;
     }
-
-    protected function confirmationChannelErrors1($verifiable_channels)
-    {
-        $confirmation = shopConfirmationChannel::getInstance();
-
-        $order_without_auth = $this->checkout_config['confirmation']['order_without_auth'];
-
-        $errors = null;
-
-        // If voluntary and mandatory confirmation is off
-        $is_confirm_channels = $confirmation->isConfirmChannels($verifiable_channels);
-
-        if ($is_confirm_channels || ($order_without_auth !== 'confirm_contact')) {
-            return $errors;
-        }
-
-        $channels = $confirmation->getChannels();
-
-        //Просим подтвердить каналы. Устанавливаем проверяемый канал.
-        foreach ($channels as $channel_type => &$channel_data) {
-
-            //Skip channel off
-            if (!isset($verifiable_channels[$channel_type])) {
-                continue;
-            }
-
-            $channel_status = $channel_data['status'];
-
-            if (is_null($channel_status) || ($channel_status !== true && $order_without_auth === 'confirm_contact')) {
-                $errors = [
-                    'id'   => 'confirm_channel',
-                    'text' => _w('Todo Требуется подтвердить канал'),
-                    'type' => $channel_type,
-                ];
-                // Mark that asked to confirm the channel
-                $channel_data['status'] = false;
-                $confirmation->setStorage($channels, 'channels');
-
-                // Set active transport
-                $confirmation->setStorage($channel_type, 'transport');
-                break;
-            }
-        }
-        unset($channel_data);
-        return $errors;
-    }
-
 
 }

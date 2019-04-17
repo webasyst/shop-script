@@ -18,7 +18,7 @@
             that.contact_id = options["contact_id"];
 
             // DYNAMIC VARS
-            that.reload = false;
+            that.reload = true;
 
             // INIT
             that.initClass();
@@ -27,12 +27,24 @@
         Auth.prototype.initClass = function() {
             var that = this;
 
+            console.log(that.errors);
+
             if (typeof that.errors === "object" && Object.keys(that.errors).length ) {
                 that.scope.DEBUG("Errors:", "error", that.errors);
+                that.renderErrors(that.errors);
             }
 
             that.$form.on("submit", function(event) {
                 event.preventDefault();
+            });
+
+            that.$wrapper.on("focus", "select, textarea, input", function(event) {
+                var $field = $(this),
+                    has_error = $field.hasClass("wa-error");
+
+                if (has_error) {
+                    $field.data("reload", true);
+                }
             });
 
             that.$wrapper.on("change", "select, textarea, input", function(event) {
@@ -57,6 +69,7 @@
                     //     }
                     // }
                 }
+
             });
 
             that.initType();
@@ -300,10 +313,47 @@
                 result = [];
 
             $.each(errors, function(i, error) {
+                if (error.name && error.text) {
+                    var $field = that.$wrapper.find("[name=\"" + error.name + "\"]");
+                    if ($field.length) {
+                        error.$field = $field;
+                        renderError(error);
+                    }
+                }
+
                 result.push(error);
             });
 
             return result;
+
+            function renderError(error) {
+                var $error = $("<div class=\"wa-error-text\" />").text(error.text);
+                var error_class = "wa-error";
+
+                if (error.$field) {
+                    var $field = error.$field;
+
+                    if (!$field.hasClass(error_class)) {
+                        $field.addClass(error_class);
+
+                        var $field_wrapper = $field.closest(".wa-field-wrapper");
+                        if ($field_wrapper.length) {
+                            $field_wrapper.append($error);
+                        } else {
+                            $error.insertAfter($field);
+                        }
+
+                        $field.on("change keyup", removeFieldError);
+                    }
+                }
+
+                function removeFieldError() {
+                    $field.removeClass(error_class);
+                    $error.remove();
+
+                    $field.off("change", removeFieldError);
+                }
+            }
         };
 
         // PROTECTED
@@ -315,7 +365,9 @@
                 that.reload = true;
             }
 
-            return that.scope.update();
+            return that.scope.update().always( function() {
+                that.reload = true;
+            });
         };
 
         return Auth;
@@ -1474,8 +1526,7 @@
                             return false;
 
                         } else {
-                            var lift = ( is_mobile ? 55 : 0 );
-                            $("html, body").scrollTop( $variants_section.offset().top - lift);
+                            scrollContent($variants_section);
                         }
                     },
                     change: function(event, target, dropdown) {
@@ -1508,8 +1559,7 @@
                     change_title: false,
                     change_selector: ".wa-dropdown-item",
                     open: function(dropdown) {
-                        var lift = ( isMobile() ? 55 : 0 );
-                        $("html, body").scrollTop( $short_variants_section.offset().top - lift);
+                        scrollContent($short_variants_section);
                     },
                     change: function(event, target, dropdown) {
                         var $target = $(target),
@@ -1559,6 +1609,21 @@
                         dropdown.lock(false);
                     }
                 }
+            }
+
+            function scrollContent($wrapper) {
+                var lift = ( isMobile() ? 55 : 10 ),
+                    top = $wrapper.offset().top;
+
+                if ($(window).height() >= 600) {
+                    try {
+                        top = that.scope.sections["region"].$wrapper.offset().top;
+                    } catch(error) {
+
+                    }
+                }
+
+                $("html, body").scrollTop(top - lift);
             }
         };
 
@@ -2781,7 +2846,7 @@
                         $wrapper: $wrapper,
                         options: {
                             onSuccess: function(data) {
-                                if (data.type === "sms") {
+                                if (data.type === "phone") {
                                     var $phone_field = $("input[name='auth[data][phone]']");
                                     if ($phone_field.length) {
                                         $phone_field.val(data.value);
@@ -2813,7 +2878,7 @@
             function getSource() {
                 var result = "";
 
-                if (type === "sms") {
+                if (type === "phone") {
                     var $phone_field = $("input[name='auth[data][phone]']");
                     if ($phone_field.length) {
                         result = $phone_field.val();
@@ -3168,7 +3233,7 @@
                     var result = false;
 
                     switch (type) {
-                        case "sms":
+                        case "phone":
                             result = window.waOrder.ui.validate.phone(value);
                             break;
                         case "email":
@@ -3249,7 +3314,11 @@
             var that = this,
                 $document = $(document);
 
-            that.$wrapper.removeAttr("style").removeClass("is-not-ready");
+            var invisible_class = "js-invisible-content";
+            that.$wrapper.find(".wa-form-body > .wa-form-loader").remove();
+            that.$wrapper.removeClass("is-not-ready")
+                .find("." + invisible_class).removeAttr("style").removeClass(invisible_class);
+
             that.$outer_wrapper.data("controller", that);
 
             // START

@@ -57,6 +57,16 @@ class shopFrontendOrderActions extends waJsonActions
     public function createAction()
     {
         $data = shopCheckoutStep::processAll('create', $this->makeOrderFromCart(), waRequest::post());
+        $config = $this->getCheckoutConfig();
+
+        $options = [
+            'is_company' => (int)$data['contact']['is_company'],
+            'address'    => [
+                'email' => ifset($data, 'result', 'auth', 'fields', 'email', 'value', null),
+                'phone' => ifset($data, 'result', 'auth', 'fields', 'phone', 'value', null),
+            ]
+        ];
+        $confirmation = new shopConfirmationChannel($options);
 
         if ($data['error_step_id']) {
             $this->response = $data['result'];
@@ -75,32 +85,11 @@ class shopFrontendOrderActions extends waJsonActions
         // create new contact for this order or use an existing contact?
         $contact_id = $data['contact']['id'];
         if (!$contact_id) {
-            $config = $this->getCheckoutConfig();
             switch ($config['confirmation']['order_without_auth']) {
-                case 'confirm_contact':
-                    // Must be authorised.
-                    $this->errors = [
-                        'please_log_in' => [_w('You must be logged in to complete this order.')],
-                    ];
-                    return;
                 case 'existing_contact':
-                    // Attempt to find existing contact by phone and then by email
-                    // !!! TODO: should probably look into which auth scheme is currently preferred...
-                    foreach (['phone', 'email'] as $field_id) {
-                        if (!empty($contact_field_values[$field_id])) {
-                            $c = new waContact();
-                            $c[$field_id] = $contact_field_values[$field_id];
-                            $value = ifset($c, $field_id, 0, 'value', null);
-                            if ($value) {
-                                $c = new waContactsCollection('search/'.$field_id.'='.str_replace('&', '\\&', $value).'&is_company='.((int)$data['contact']['is_company']));
-                                $c = reset(ref($c->getContacts('id,is_company', 0, 1)));
-                                if (!empty($c['id'])) {
-                                    $contact_id = $c['id'];
-                                    break;
-                                }
-                            }
-                        }
-                    }
+                case 'confirm_contact':
+                    $saved_contact_id = $confirmation->getContact();
+                    $contact_id = $saved_contact_id['id'] ? $saved_contact_id['id'] : $contact_id;
                     break;
                 case 'create_contact':
                 default:
@@ -133,6 +122,7 @@ class shopFrontendOrderActions extends waJsonActions
             'customer_validation_disabled' => true,
             'customer_is_company'          => $data['contact']['is_company'],
             'customer_form_fields'         => array_keys($contact_field_values),
+            'customer_add_multifields'     => true,
             'ignore_stock_validate'        => true,
         ];
 
@@ -159,12 +149,11 @@ class shopFrontendOrderActions extends waJsonActions
         try {
             $saved_order = $order->save();
             $this->response['order_id'] = $saved_order->getId();
-
-            /*            if (!$contact_id) {
-                            //For a new user, need to send registration letters
-                            $confirmation->sendRegisterMail($saved_order['contact_id']);
-                        }
-                        $confirmation->authorize($saved_order['contact_id']);*/
+            //In the one-time contact mode, you do not need to register them.
+            if ($config['confirmation']['order_without_auth'] !== 'create_contact') {
+                $this->sendRegisterMail($saved_order['contact_id']);
+            }
+            $confirmation->postConfirm($saved_order['contact_id'], $contact_id);
 
             // Clear cart and checkout data
             // Remove everything from cart
@@ -187,59 +176,40 @@ class shopFrontendOrderActions extends waJsonActions
         }
     }
 
-    /*    protected function getMinContactIdByAddress($contact_fields, $data)
-        {
-            $confirmation = shopConfirmationChannel::getInstance();
+    protected function sendRegisterMail($contact_id)
+    {
+        $contact = new waContact($contact_id);
+        $result = $password = $template_variables = null;
+        $template_variables = array();
 
-            $contact_id = null;
-            $is_company = (int)$data['contact']['is_company'];
-            $channels = $confirmation->getChannels();
-            $is_confirmed = $confirmation->isAllChannelConfirmed();
+        // If there is a password, do not need to register
+        if ($contact['password']) {
+            return $result;
+        }
 
-            // For new contact, $data guarantees
-            // 1) that there's at most one phone and one email in contact details.
-            // 2) if set up to `confirm_contact`, all channels
-            //    inside $contact_field_values are confirmed.
+        //Having a password is a sign that the contact can log in.
+        $password = waContact::generatePassword();
+        $contact->setPassword($password);
+        $contact->save();
 
-            $old_ids = [];
-            foreach ($channels as $channel_type => $channel_data) {
-                $saved_c_id = null;
-                $field_id = $channel_type;
+        $auth_config = waDomainAuthConfig::factory();
+        $channels = $auth_config->getVerificationChannelInstances();
 
-                if (empty($contact_fields[$channel_type])) {
-                    continue;
-                }
+        // You do not need to transfer the password in the one-time password mode
+        if ($auth_config->getAuthType() !== $auth_config::AUTH_TYPE_ONETIME_PASSWORD) {
+            $template_variables = ['password' => $password];
+        }
 
-                //Cleaning up the channel from garbage using waContact methods
-                $contact = new waContact();
-                $contact[$channel_type] = $contact_fields[$channel_type];
-                $source = ifset($contact, $channel_type, 0, 'value', null);
-
-                //Because there is no sms field
-                if ($channel_type === waVerificationChannelModel::TYPE_SMS) {
-                    $field_id = 'phone';
-                }
-
-                //Check on the company is needed so that users and companies do not merge
-                $contact = new waContactsCollection('search/'.$field_id.'='.str_replace('&', '\\&', $source).'&is_company='.$is_company);
-                $contact->orderBy('id');
-                if (!$is_confirmed) {
-                    $contact->addWhere('is_user = 0');
-                }
-
-                $contact = reset(ref($contact->getContacts('id,is_company', 0, 1)));
-
-                if (!empty($contact['id'])) {
-                    $old_ids[] = $contact['id'];
-                }
+        foreach ($channels as $channel) {
+            $result = $channel->sendSignUpSuccessNotification($contact, $template_variables);
+            if ($result) {
+                break;
             }
+        }
 
-            if ($old_ids) {
-                $contact_id = min($old_ids);
-            }
+        return $result;
+    }
 
-            return $contact_id;
-        }*/
 
     /**
      * Dialog to select shipping self-delivery point on a map

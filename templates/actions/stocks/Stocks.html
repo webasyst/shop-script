@@ -68,6 +68,13 @@
             loadTab(tab, params);
         });
 
+        var $body = $("body"),
+            locked_class = "is-locked";
+
+        $body.on("close", function() {
+            $body.removeClass(locked_class);
+        });
+
         // new transfer
         $('#s-transfer-product').click(function () {
             var d = $('#s-transfer-product-dialog');
@@ -77,6 +84,7 @@
             var p = $('<div></div>').appendTo('body');
             p.load('?module=transfer', function() {
                 var d = $(this).find('.dialog');
+                $body.addClass(locked_class);
                 d.on('afterSubmit', function(e, r) {
                     var $list = $('.s-stocks-transfers');
                     if ($list.data('empty')) {

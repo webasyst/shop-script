@@ -44,10 +44,25 @@ class shopOrderTotalController extends waJsonController
     {
         $data = waRequest::post();
         $data['id'] = ifset($data, 'order_id', null);
+
+        //If the coupon is not transferred, then it was not there or dropped it.
+        $data['params']['coupon_id'] = ifset($data, 'params', 'coupon_id', 0);
         unset($data['order_id']);
 
-        return new shopOrder($data, array(
-            'items_format' => 'tree',
+        $form = new shopBackendCustomerForm();
+
+        $storefront = waRequest::post('storefront', null, waRequest::TYPE_STRING_TRIM);
+        if ($storefront) {
+            $form->setStorefront($storefront, true);
+        }
+
+        $order = new shopOrder($data, array(
+            'items_format'   => 'tree',
+            'shipping_round' => true,
+            'customer_form'  => $form
         ));
+
+
+        return $order;
     }
 }

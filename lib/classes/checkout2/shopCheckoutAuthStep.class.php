@@ -150,6 +150,8 @@ class shopCheckoutAuthStep extends shopCheckoutStep
             $data['auth']['delayed_errors'] = $delayed_errors;
         }
 
+        $errors = array_merge($errors, $this->getConfirmationErrors($data));
+
         $result = $this->addRenderedHtml([
             'contact_id'        => $contact_id,
             'selected_mode'     => $selected_mode,
@@ -171,16 +173,51 @@ class shopCheckoutAuthStep extends shopCheckoutStep
         return 'auth.html';
     }
 
+    /**
+     * @param $data
+     * @return array
+     * @throws waException
+     */
     protected function getConfirmationErrors($data)
     {
-        $data = shopConfirmationChannel::parseData($data);
-        $confirmation = new shopConfirmationChannel($data);
         $errors = [];
 
-        if ($confirmation->isBannedContact()) {
-            $errors[] = _w("TODO!!! Контакт забанен");
-        } elseif ($confirmation->isAdminError() || $confirmation->isForbiddenAddress()) {
-            $errors[] = _w("TODO!!! Запрещено использовать эти данные");
+        //If we create a buyer, then we can not validate the entered data
+        if (!wa()->getUser()->isAuth() && $this->checkout_config['confirmation']['order_without_auth'] === 'create_action') {
+            return $errors;
+        }
+
+        $options = [
+            'is_company' => (int)$data['contact']['is_company'],
+            'address'    => array(
+                'email' => ifset($data, 'input', 'auth', 'data', 'email', null),
+                'phone' => ifset($data, 'input', 'auth', 'data', 'phone', null),
+            )
+        ];
+
+        $confirmation = new shopConfirmationChannel($options);
+
+        foreach (['banned_error', 'admin_error', 'forbidden_error'] as $error_type) {
+            $raw_errors = [];
+            if ($error_type === 'banned_error') {
+                $raw_errors = $confirmation->getBannedErrorFields();
+            } elseif ($error_type === 'admin_error') {
+                $raw_errors = $confirmation->getAdminErrorFields();
+            } elseif ($error_type === 'forbidden_error' && $this->checkout_config['confirmation']['order_without_auth'] === 'create_contact') {
+                //The user cannot use the data of another user in mode 1. Because there is no possibility to confirm the channel.
+                $raw_errors = $confirmation->getForbiddenAddress();
+            }
+
+            if ($raw_errors) {
+                foreach ($raw_errors as $field => $value) {
+                    $errors[] = [
+                        'name' => "auth[data][$field]",
+                        'id'   => $error_type,
+                        'text' => _w("You cannot use these values.")
+                    ];
+                }
+                break;
+            }
         }
 
         return $errors;

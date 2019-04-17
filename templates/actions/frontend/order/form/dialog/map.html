@@ -40,7 +40,7 @@
             {$_price = null}
             {if isset($_variant.rate_min) && $_variant.rate_min !== null}
                 {if $_variant.rate_min > 0}
-                    {$_price = shop_currency($_variant.rate_min, ['in_currency' => $_variant.currency, 'extended_format' => '%t{h}'])}
+                    {$_price = shop_currency($_variant.rate_min, ['in_currency' => $_variant.currency, 'format' => 'h'])}
                     {if !(isset($_variant.rate_max) && $_variant.rate_min === $_variant.rate_max)}
                         {$_price = "[`from`] `$_price`"}
                     {/if}

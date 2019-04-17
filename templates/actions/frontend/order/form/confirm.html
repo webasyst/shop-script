@@ -31,7 +31,7 @@
                     <div class="wa-item">
                         <div class="wa-name">[`Items cost`]</div>
                         <div class="wa-value">
-                            <span class="wa-price">{shop_currency($confirm.subtotal, ['in_currency' => true, 'extended_format' => '%t{h}'])}</span>
+                            <span class="wa-price">{shop_currency($confirm.subtotal, ['in_currency' => true, 'format' => 'h'])}</span>
                         </div>
                     </div>
 
@@ -40,7 +40,16 @@
                         <div class="wa-item">
                             <div class="wa-name">[`Discount`]</div>
                             <div class="wa-value">
-                                <span class="wa-price">{shop_currency($confirm.discount, ['in_currency' => true, 'extended_format' => '%t{h}'])}</span>
+                                {capture assign="_discout_html"}
+                                    <span class="wa-price">{shop_currency($confirm.discount, ['in_currency' => true, 'format' => 'h'])}</span>
+                                {/capture}
+
+                                {$_round_discounts = $wa->shop->settings('round_discounts')}
+                                {if !empty($_round_discounts)}
+                                    <span class="wa-tooltip is-inline top with-underline" data-title="[`Rounded discount value`]">{$_discout_html}</span>
+                                {else}
+                                    {$_discout_html}
+                                {/if}
                             </div>
                         </div>
                     {/if}
@@ -50,7 +59,7 @@
                         <div class="wa-item">
                             <div class="wa-name">[`Tax`]</div>
                             <div class="wa-value">
-                                <span class="wa-price">{shop_currency($confirm.tax, ['in_currency' => true, 'extended_format' => '%t{h}'])}</span>
+                                <span class="wa-price">{shop_currency($confirm.tax, ['in_currency' => true, 'format' => 'h'])}</span>
                             </div>
                         </div>
                     {/if}
@@ -61,7 +70,7 @@
                         <div class="wa-value">
                             {if $confirm.shipping !== null}
                                 {if $confirm.shipping > 0}
-                                    <span class="wa-price">{shop_currency($confirm.shipping, ['in_currency' => true, 'extended_format' => '%t{h}'])}</span>
+                                    <span class="wa-price">{shop_currency($confirm.shipping, ['in_currency' => true, 'format' => 'h'])}</span>
                                 {else}
                                     [`free`]
                                 {/if}
@@ -75,7 +84,7 @@
                     <div class="wa-item wa-item-total">
                         <div class="wa-name">{if !empty($confirm.shipping)}[`Total`]{else}[`Total less shipping cost`]{/if}</div>
                         <div class="wa-value">
-                            <span class="wa-price">{shop_currency($confirm.total, ['in_currency' => true, 'extended_format' => '%t{h}'])}</span>
+                            <span class="wa-price">{shop_currency($confirm.total, ['in_currency' => true, 'format' => 'h'])}</span>
                         </div>
                     </div>
                 </div>

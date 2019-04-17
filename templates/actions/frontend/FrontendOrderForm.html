@@ -14,7 +14,7 @@
     {$_form_classes[] = "with-adaptive"}
 {/if}
 
-<div class="wa-order-form-wrapper is-not-ready {$_form_classes|join:" "}" id="wa-order-form-wrapper" style="visibility: hidden;">
+<div class="wa-order-form-wrapper is-not-ready {$_form_classes|join:" "}" id="wa-order-form-wrapper">
     <script>
         ( function($) {
             $("#wa-order-form-wrapper").data("ready", $.Deferred());
@@ -23,34 +23,40 @@
 
     <div class="wa-form-body">
 
-        {include file="./order/form/auth.html" inline}
+        <div class="wa-form-loader">
+            <p>[`Selecting shipping and payment options for selected items`]...</p>
+        </div>
 
-        {$_hide_region = false}
-        {$_form_globals = $wa->globals("wa_order_form")}
-        {if !empty($_form_globals["auth"]["locked"])}
-            {$_hide_region = true}
-        {/if}
+        <div class="wa-form-content js-invisible-content" style="display: none;">
+            {include file="./order/form/auth.html" inline}
 
-        {include file="./order/form/region.html" _hide_region=$_hide_region inline}
+            {$_hide_region = false}
+            {$_form_globals = $wa->globals("wa_order_form")}
+            {if !empty($_form_globals["auth"]["locked"])}
+                {$_hide_region = true}
+            {/if}
 
-        {include file="./order/form/shipping.html" inline}
+            {include file="./order/form/region.html" _hide_region=$_hide_region inline}
 
-        {include file="./order/form/details.html" inline}
+            {include file="./order/form/shipping.html" inline}
 
-        {include file="./order/form/payment.html" inline}
+            {include file="./order/form/details.html" inline}
 
-        {$_confirm_locked = false}
-        {$_form_globals = $wa->globals("wa_order_form")}
-        {if !empty($_form_globals["auth"]["locked"])}
-            {$_confirm_locked = true}
-        {/if}
+            {include file="./order/form/payment.html" inline}
 
-        {include file="./order/form/confirm.html" _confirm_locked=$_confirm_locked inline}
+            {$_confirm_locked = false}
+            {$_form_globals = $wa->globals("wa_order_form")}
+            {if !empty($_form_globals["auth"]["locked"])}
+                {$_confirm_locked = true}
+            {/if}
+
+            {include file="./order/form/confirm.html" _confirm_locked=$_confirm_locked inline}
+        </div>
 
     </div>
 
     {if !empty($config["shipping"]["service_agreement"])}
-        <footer class="wa-form-footer js-form-footer">
+        <footer class="wa-form-footer js-form-footer js-invisible-content" style="display: none;">
             <div class="wa-line">
                 {$config["shipping"]["service_agreement_hint"]|default:""}
             </div>

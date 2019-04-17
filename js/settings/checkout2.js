@@ -21,8 +21,8 @@ var ShopSettingsCheckout2 = ( function($) {
         that.domain = options["domain"];
         that.route_id = options["route_id"];
         that.storefront_id = options["storefront_id"];
-        that.order_location_template = options["order_location_template"];
-        that.order_no_locations_template = options["order_no_locations_template"];
+        that.shipping_location_template = options["shipping_location_template"];
+        that.shipping_no_locations_template = options["shipping_no_locations_template"];
         that.schedule_extra_workday_template = options["schedule_extra_workday_template"];
         that.schedule_extra_weekend_template = options["schedule_extra_weekend_template"];
         that.demo_terms = options["demo_terms"];
@@ -106,7 +106,8 @@ var ShopSettingsCheckout2 = ( function($) {
             } else {
                 $design_values.hide();
             }
-            that.$button.removeClass('green').addClass('yellow');
+            that.buttonViewToggle(true);
+
             $(window).trigger('scroll');
         });
 
@@ -170,7 +171,7 @@ var ShopSettingsCheckout2 = ( function($) {
             $logo_field.val('');
             $logo_preview_wrapper.hide();
             $logo_preview.removeAttr('src');
-            that.$button.removeClass('green').addClass('yellow');
+            that.buttonViewToggle(true);
         });
 
         // Colorpickers
@@ -191,7 +192,7 @@ var ShopSettingsCheckout2 = ( function($) {
             });
 
             $input.on('keydown', function () {
-                that.$button.removeClass('green').addClass('yellow');
+                that.buttonViewToggle(true);
             });
 
             var timer_id;
@@ -253,74 +254,8 @@ var ShopSettingsCheckout2 = ( function($) {
 
     ShopSettingsCheckout2.prototype.initOrderBlock = function() {
         var that = this,
-            $block = that.$order_block,
-            $order_mode_wrapper = $block.find('.js-order-mode-wrapper'),
-            $locations_table = $order_mode_wrapper.find('.js-locations-table');
+            $block = that.$order_block;
 
-        // Change mode
-        $order_mode_wrapper.on('change', '.js-order-mode-variant', function () {
-            var $current_radio = $order_mode_wrapper.find('.js-order-mode-variant:checked'),
-                $current_variant = $current_radio.parents('.js-variant');
-
-            $order_mode_wrapper.find('.js-variant-params').hide(); // Close all
-            $current_variant.find('.js-variant-params').show();    // Show current
-        });
-
-        // Edit fixed location item
-        $locations_table.on('click', '.js-edit-location', function () {
-            var $location = $(this).parents('tr.js-location');
-
-            $(this).remove();
-            $location.find('.js-preview').remove();
-            $location.find('.js-editor').show();
-        });
-
-        // Delete fixed location item
-        $locations_table.on('click', '.js-delete-location', function () {
-            $(this).parents('tr.js-location').remove();
-            if (!$locations_table.find('.js-location').length) {
-                var $no_locations = $(that.order_no_locations_template).clone();
-                $locations_table.append($no_locations);
-            }
-        });
-
-        // Ensure regions with country consistency
-        // in fix delivery
-        var $fix_delivery_country = $block.find('.js-fix-delivery-country'),
-            $fix_delivery_region = $block.find('.js-fix-delivery-region'),
-            $fix_delivery_city = $block.find('.js-fix-delivery-city');
-
-        that.syncRegionsWithCountry($fix_delivery_country, $fix_delivery_region, $fix_delivery_city);
-        $block.on('change', '.js-fix-delivery-country, .js-fix-delivery-region', function () {
-            that.syncRegionsWithCountry($fix_delivery_country, $fix_delivery_region, $fix_delivery_city);
-        });
-
-        // in locations list
-        syncLocations();
-
-        // add fixed location
-        $block.on('click', '.js-add-location', function () {
-            var $empty_location = $(that.order_location_template).clone();
-
-            $locations_table.find('.js-no-locations').remove();
-            $locations_table.append($empty_location);
-            $empty_location.find('.js-edit-location').click();
-            syncLocations();
-        });
-
-        function syncLocations() {
-            $locations_table.find('tr.js-location').each(function () {
-                var $location = $(this),
-                    $location_country = $location.find('.js-location-country'),
-                    $location_region = $location.find('.js-location-region'),
-                    $location_city = $location.find('.js-location-city');
-
-                that.syncRegionsWithCountry($location_country, $location_region, $location_city);
-                $location.on('change', '.js-location-country, .js-location-region', function () {
-                    that.syncRegionsWithCountry($location_country, $location_region, $location_city);
-                });
-            });
-        }
     };
 
     ShopSettingsCheckout2.prototype.initScheduleBlock = function () {
@@ -427,6 +362,8 @@ var ShopSettingsCheckout2 = ( function($) {
             $person_fields_editor = $type_wrapper.find('.js-fields-editor[data-type="person"]').detach(),
             $company_fields_editor = $type_wrapper.find('.js-fields-editor[data-type="company"]').detach();
 
+        initNamesFieldChecking($block, 'person', ['firstname', 'middlename', 'lastname']);
+
         ensureFieldEditorsConsistency();
         $type_wrapper.on('change', '.js-customer-type-variant', ensureFieldEditorsConsistency);
 
@@ -461,6 +398,89 @@ var ShopSettingsCheckout2 = ( function($) {
 
             // Reinit sortable
             that.initSortTables();
+
+            //
+            $block.trigger('on_render_fields');
+        }
+
+        /**
+         * Helper that helps implement that logic:
+         *   - If we check NAME-field checkbox, alternative NAME-field(s) then will be disabled and un-checked
+         *   - If we check one of alternative NAME-field(s), NAME-field then will be disabled and un-checked
+         * @param {jQuery} $block - customer block where are all editors
+         * @param {String} type - type of editor
+         * @param {String|String[]} alt_names - alternative name field(s)
+         */
+        function initNamesFieldChecking($block, type, alt_names) {
+
+            var buidQuerySelector = function (field_id) {
+                var field_ids = $.isArray(field_id) ? field_id : [field_id];
+                return $.map(field_ids, function (id) {
+                    return '.js-field[data-id="' + id + '"] :checkbox[data-name="used"]';
+                }).join(',');
+            };
+
+            // Query selector for checkbox of name field
+            var name_qs = buidQuerySelector('name');
+
+            // Query selector for checkboxes of alternative name fields
+            var alt_names_qs = buidQuerySelector(alt_names);
+
+            //
+            var editor_qs = '.js-fields-editor[data-type="' + type + '"]';
+
+            var isChecked = function(qs) {
+                var checked = false;
+                $block.find(editor_qs).find(qs).each(function () {
+                    checked = checked || $(this).is(':checked');
+                });
+                return checked;
+            };
+
+            var onClick = function() {
+                var field_id = $(this).closest('.js-field').data('id'),
+                    disabled = null,
+                    other_qs = null,
+                    $other = null;
+
+                if (field_id === 'name') {
+                    other_qs = alt_names_qs;
+                    disabled = isChecked(name_qs);
+                } else {
+                    other_qs = name_qs;
+                    disabled = isChecked(alt_names_qs);
+                }
+
+                $other = $block.find(editor_qs).find(other_qs);
+
+                // if checked name - disable and un-check alt-name(s)
+                // if checked alt-name(s) - disable and un-check name
+
+                $other.attr('disabled', disabled);
+                if (disabled) {
+                    $other.attr('checked', false);
+                }
+
+            };
+
+            $block.on('click', editor_qs + ' ' + name_qs + ',' + alt_names_qs, onClick);
+
+            // when we append fields into block, handle init states of checking
+            $block.on('on_render_fields', function () {
+
+                if (!$block.find(editor_qs).length) {
+                    return;
+                }
+
+                var name_is_checked = isChecked(name_qs),
+                    alt_name_is_checked = isChecked(alt_names_qs);
+
+                if (name_is_checked && !alt_name_is_checked) {
+                    onClick.call($block.find(editor_qs).find(name_qs).get(0));
+                } else if (alt_name_is_checked && !name_is_checked) {
+                    onClick.call($block.find(editor_qs).find(alt_name_is_checked).get(0));
+                }
+            });
         }
 
         // Customer service agreement
@@ -509,6 +529,11 @@ var ShopSettingsCheckout2 = ( function($) {
             $service_agreement = $service_agreement_wrapper.find('.js-shipping-service-agreement'),
             $service_agreement_hint = $service_agreement_wrapper.find('.js-shipping-service-agreement-hint');
 
+        //
+        initLocationsType();
+        //
+        initMapVariants();
+
         // Init service agreement
         $service_agreement.on('change', function () {
             if (this.checked) {
@@ -531,6 +556,8 @@ var ShopSettingsCheckout2 = ( function($) {
             ensureFieldZipConsistency();
         });
 
+        // FUNCTIONS
+
         function ensureFieldZipConsistency() {
             if ($ask_zip.is(':checked')) {
                 $zip_used.prop('disabled', false).prop('checked', true).prop('disabled', true);
@@ -543,6 +570,91 @@ var ShopSettingsCheckout2 = ( function($) {
             }
             $(window).trigger('scroll');
         }
+
+        function initLocationsType() {
+            var $shipping_mode_wrapper = $block.find('.js-shipping-mode-wrapper'),
+                $locations_table = $shipping_mode_wrapper.find('.js-locations-table');
+
+            // Change mode
+            $shipping_mode_wrapper.on('change', '.js-shipping-mode-variant', function () {
+                var $current_radio = $shipping_mode_wrapper.find('.js-shipping-mode-variant:checked'),
+                    $current_variant = $current_radio.parents('.js-variant');
+
+                $shipping_mode_wrapper.find('.js-variant-params').hide(); // Close all
+                $current_variant.find('.js-variant-params').show();    // Show current
+            });
+
+            // Edit fixed location item
+            $locations_table.on('click', '.js-edit-location', function () {
+                var $location = $(this).parents('tr.js-location');
+
+                $(this).remove();
+                $location.find('.js-preview').remove();
+                $location.find('.js-editor').show();
+            });
+
+            // Delete fixed location item
+            $locations_table.on('click', '.js-delete-location', function () {
+                $(this).parents('tr.js-location').remove();
+
+                if (!$locations_table.find('.js-location').length) {
+                    var $no_locations = $(that.shipping_no_locations_template).clone();
+                    $locations_table.append($no_locations);
+                }
+
+                that.buttonViewToggle(true);
+            });
+
+            // Ensure regions with country consistency
+            // in fix delivery
+            var $fix_delivery_country = $block.find('.js-fix-delivery-country'),
+                $fix_delivery_region = $block.find('.js-fix-delivery-region'),
+                $fix_delivery_city = $block.find('.js-fix-delivery-city');
+
+            that.syncRegionsWithCountry($fix_delivery_country, $fix_delivery_region, $fix_delivery_city);
+            $block.on('change', '.js-fix-delivery-country, .js-fix-delivery-region', function () {
+                that.syncRegionsWithCountry($fix_delivery_country, $fix_delivery_region, $fix_delivery_city);
+            });
+
+            // in locations list
+            syncLocations();
+
+            // add fixed location
+            $block.on('click', '.js-add-location', function () {
+                var $empty_location = $(that.shipping_location_template).clone();
+
+                $locations_table.find('.js-no-locations').remove();
+                $locations_table.append($empty_location);
+                $empty_location.find('.js-edit-location').click();
+                syncLocations();
+            });
+
+            function syncLocations() {
+                $locations_table.find('tr.js-location').each(function () {
+                    var $location = $(this),
+                        $location_country = $location.find('.js-location-country'),
+                        $location_region = $location.find('.js-location-region'),
+                        $location_city = $location.find('.js-location-city');
+
+                    that.syncRegionsWithCountry($location_country, $location_region, $location_city);
+                    $location.on('change', '.js-location-country, .js-location-region', function () {
+                        that.syncRegionsWithCountry($location_country, $location_region, $location_city);
+                    });
+                });
+            }
+        }
+
+        function initMapVariants() {
+            var $wrapper = $block.find('.js-map-mode-wrapper');
+
+            // Change mode
+            $wrapper.on("change", ".js-radio", function() {
+                $wrapper.find('.js-variant-params').hide();
+
+                var $_radio = $wrapper.find(".js-radio:checked");
+                $_radio.parents(".js-variant").find('.js-variant-params').show();
+            });
+        }
     };
 
     ShopSettingsCheckout2.prototype.initConfirmationBlock = function () {
@@ -552,7 +664,7 @@ var ShopSettingsCheckout2 = ( function($) {
             $terms_checkbox = $terms_wrapper.find('.js-confirmation-terms'),
             $terms_textarea = $terms_text_wrapper.find('.js-confirmation-terms-text'),
             $terms_generete = $terms_text_wrapper.find('.js-confirmation-terms-generate');
-        
+
         // Terms and terms text
         $terms_checkbox.on('change', function () {
             if ($(this).is(':checked')) {
@@ -566,7 +678,7 @@ var ShopSettingsCheckout2 = ( function($) {
         $terms_generete.on('click', function () {
             $terms_textarea.val(that.demo_terms);
         });
-        
+
         // Order without auth
         var $order_without_auth_wrapper = that.$confirmation_block.find('.js-order-without-auth-wrapper'),
             $hint = $order_without_auth_wrapper.find('.js-auth-with-code-hint').detach();
@@ -838,7 +950,7 @@ var ShopSettingsCheckout2 = ( function($) {
 
             $.post(href, data, function (res) {
                 if (res.status === 'ok') {
-                    that.$button.removeClass('yellow').addClass('green');
+                    that.buttonViewToggle(false);
                     that.$loading.removeClass('loading').addClass('yes');
                     setTimeout(function(){
                         that.$loading.hide();
@@ -898,7 +1010,7 @@ var ShopSettingsCheckout2 = ( function($) {
         });
 
         that.$form.on('input', function () {
-            that.$button.removeClass('green').addClass('yellow');
+            that.buttonViewToggle(true);
         });
 
         function setNames() {
@@ -907,7 +1019,7 @@ var ShopSettingsCheckout2 = ( function($) {
             setCustomerNames('person');
             setCustomerNames('company');
             setShippingAddressNames();
-            setOrderLocationNames();
+            setShippingLocationNames();
         }
 
         function setScheduleExtraWorkdayNames() {
@@ -960,18 +1072,35 @@ var ShopSettingsCheckout2 = ( function($) {
             });
         }
 
-        function setOrderLocationNames() {
-            var $order_block = that.$order_block,
-                $wrapper = $order_block.find('.js-locations-table'),
+        function setShippingLocationNames() {
+            var $shipping_block = that.$shipping_block,
+                $wrapper = $shipping_block.find('.js-locations-table'),
                 $fields = $wrapper.find('.js-location');
 
             $fields.each(function (i, field) {
                 var $field = $(field);
 
                 $field.find('*[data-name]').each(function () {
-                    $(this).attr('name', 'data[order][locations_list]['+ i +']['+ $(this).data('name') +']');
+                    $(this).attr('name', 'data[shipping][locations_list]['+ i +']['+ $(this).data('name') +']');
                 });
             });
+        }
+    };
+
+    ShopSettingsCheckout2.prototype.buttonViewToggle = function(show) {
+        var that = this,
+            default_class = "green",
+            active_class = "yellow";
+
+        if (show) {
+            that.$button
+                .removeClass(default_class)
+                .addClass(active_class);
+
+        } else {
+            that.$button
+                .removeClass(active_class)
+                .addClass(default_class);
         }
     };
 

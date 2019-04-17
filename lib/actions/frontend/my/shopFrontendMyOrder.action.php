@@ -88,7 +88,7 @@ class shopFrontendMyOrderAction extends shopFrontendAction
                 $contact[$field_id] = $value;
             }
         }
-
+        
         $payment = '';
         if (!$order['paid_date'] && # order not paid
             !empty($order['params']['payment_id']) # order has related payment plugin
@@ -101,10 +101,10 @@ class shopFrontendMyOrderAction extends shopFrontendAction
                     $payment = $ex->getMessage();
                 }
             } else {
-                $payment = _w('Payment option will be available in your customer account after your order has been verified.');
+                $payment = $order['state']->paymentNotAllowedText();
             }
-
         }
+
         $this->view->assign('payment', $payment);
 
         $tracking = '';

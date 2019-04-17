@@ -306,19 +306,19 @@ class shopImportexportHelper
 
         $default_promo = array(
             'type'              => self::PROMO_TYPE_PROMO_CODE, # promo type
-            'name'              => '', # Public name
-            'description'       => '', # Public description
-            'url'               => '', # Public URL of promo's description
+            'name'              => '',   # Public name
+            'description'       => '',   # Public description
+            'url'               => '',   # Public URL of promo's description
             'start_datetime'    => null, # Start datetime (unix timestamp)
             'end_datetime'      => null, # End datetime (unix timestamp)
-            'settings'          => '', # Setup link
+            'settings'          => '',   # Setup link
             'source'            => null, # Internal name
             'hint'              => null, # Internal description
-            'hash'              => '*', # shop products collection hash
-            'promo_code'        => '', # Promo code (for PROMO_TYPE_PROMO_CODE)
+            'hash'              => '*',  # shop products collection hash
+            'promo_code'        => '',   # Promo code (for PROMO_TYPE_PROMO_CODE)
             'discount_unit'     => null, # % symbol o currency ISO3 code (for PROMO_TYPE_PROMO_CODE, PROMO_TYPE_FLASH_DISCOUNT)
             'discount_value'    => null, # Discount value (for PROMO_TYPE_PROMO_CODE, PROMO_TYPE_FLASH_DISCOUNT)
-            'required_quantity' => 1,  # Minimal required items quantity
+            'required_quantity' => 1,    # Minimal required items quantity
             'free_quantity'     => null, # Free items quantity (for PROMO_TYPE_N_PLUS_M)
             'gifts_hash'        => null, # shop products collection hash (for PROMO_TYPE_GIFT)
         );
@@ -336,10 +336,11 @@ class shopImportexportHelper
                     'source'         => _w('Discount coupons'),
                     'hint'           => $coupon['comment'],
                     'promo_code'     => $coupon['code'],
+                    'hash'           => ifempty($coupon, 'products_hash', '*'),
                     'discount_unit'  => $coupon['type'],
                     'discount_value' => $coupon['value'],
-                    'end_date'       => strtotime($coupon['expire_datetime']),
-                    'start_date'     => strtotime($coupon['create_datetime']),
+                    'end_datetime'   => strtotime($coupon['expire_datetime']),
+                    'start_datetime' => strtotime($coupon['create_datetime']),
                 );
                 $promo_id = sprintf('shop.coupons.%s', $id);
                 $list[$promo_id] = $promo + $default_promo;

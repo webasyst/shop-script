@@ -99,6 +99,7 @@ class shopOrder implements ArrayAccess
         'items_escape'          => false,
         'items_format'          => 'raw', # one of `raw`,`tree` or `flat`
         'items_extend_round'    => false,
+        'shipping_round'        => false,
         'fields'                => '*',
         'product_fields'        => '*',
         'sku_fields'            => '*',
@@ -146,51 +147,51 @@ class shopOrder implements ArrayAccess
     );
 
     protected static $readonly_fields = array(
-        'id',
-        'create_datetime',
-        'update_datetime',
-        'state_id',
-        'rate',
-        'paid_year',
-        'paid_quarter',
-        'paid_month',
-        'paid_date',
-        'is_first',
-        'total',
-        'unsettled',
-        'shipping_datetime',
-        'log',
-        'last_action_datetime',
-        'subtotal',
-        'products',
+        'actions',
+        'billing_address_text',
         'contact',
         'contact_essentials',
-        'shop_customer',
-        'wa_contact',
-        'customer_id',
-        'id_str',
-        'total_str',
-        'create_datetime_str',
-        'icon',
-        'style',
-        'items_extended',
-        'shipping_name',
-        'payment_name',
-        'state',
-        'actions',
-        'workflow_action_elements',
-        'shipping_plugin',
-        'shipping_address_text',
-        'tracking',
-        'courier',
-        'map',
-        'shipping_methods',
-        'shipping_id',
-        'payment_plugin',
-        'billing_address_text',
-        'source',
-        'printforms',
         'coupon',
+        'courier',
+        'create_datetime',
+        'create_datetime_str',
+        'customer_id',
+        'icon',
+        'id',
+        'id_str',
+        'is_first',
+        'items_extended',
+        'last_action_datetime',
+        'log',
+        'map',
+        'paid_date',
+        'paid_month',
+        'paid_quarter',
+        'paid_year',
+        'payment_name',
+        'payment_plugin',
+        'printforms',
+        'products',
+        'rate',
+        'shipping_address_text',
+        'shipping_datetime',
+        'shipping_id',
+        'shipping_methods',
+        'shipping_name',
+        'shipping_plugin',
+        'shop_customer',
+        'source',
+        'state',
+        'state_id',
+        'style',
+        'subtotal',
+        'total',
+        'total_str',
+        'tracking',
+        'unsettled',
+        'update_datetime',
+        'wa_contact',
+        'workflow_action_elements',
     );
 
     protected static $once_edit_fields = array(
@@ -570,6 +571,9 @@ class shopOrder implements ArrayAccess
         $this->__set($offset, null);
     }
 
+    /**
+     * @return array
+     */
     public function dataArray()
     {
         $this->contact;
@@ -968,7 +972,7 @@ class shopOrder implements ArrayAccess
             // In case we didn't force stock_id during validation,
             // let workflow.create determine them
             if ($this->options(null, 'ignore_stock_validate')) {
-                foreach($data['items'] as &$item) {
+                foreach ($data['items'] as &$item) {
                     unset($item['stock_id']);
                 }
                 unset($item);
@@ -995,6 +999,7 @@ class shopOrder implements ArrayAccess
     /**
      * Force validation of internal data before save.
      * @return array of errors
+     * @throws waException
      */
     public function validate()
     {
@@ -1009,8 +1014,10 @@ class shopOrder implements ArrayAccess
 
         // Validation for customer form
         if ($customer_id !== null) {
+
             $contact = new waContact($customer_id);
-            $form = shopHelper::getCustomerForm($customer_id);
+            $form = $this->customerForm();
+
             $customer_validation_disabled = wa()->getSetting('disable_backend_customer_form_validation', '', 'shop');
             if (!$customer_validation_disabled) {
                 if (!$form->isValid($contact)) {
@@ -1277,8 +1284,39 @@ class shopOrder implements ArrayAccess
         return $customer_model->getById($this->contact_id);
     }
 
-    /** @return null|shopContactForm|waContactForm */
+    /**
+     * @return shopContactForm|waContactForm|shopBackendCustomerForm
+     * @throws waException
+     */
     public function customerForm()
+    {
+        $form = ifset($this->options['customer_form']);
+        if ($form instanceof shopBackendCustomerForm) {
+            if ($this->contact_id > 0) {
+                $form->setContact($this->contact);
+            } else {
+                $namespace = $form->getNamespace();
+                if (isset($this->data[$namespace]['contact_type'])) {
+                    $form->setContactType($this->data[$namespace]['contact_type']);
+                }
+            }
+
+            $storefront = isset($this->data['params']['storefront']) ? $this->data['params']['storefront'] : null;
+            $form->setStorefront($storefront);
+
+            $this->options['customer_is_company'] = $form->getContactType() == shopCustomer::TYPE_COMPANY;
+
+            return $form;
+        }
+        return $this->getDefaultCustomerForm();
+    }
+
+    /**
+     * Return some default customer form
+     * @return shopContactForm|waContactForm|null
+     * @throws waException
+     */
+    protected function getDefaultCustomerForm()
     {
         $form = null;
         if ($this->id) { #Existing order
@@ -1422,6 +1460,12 @@ class shopOrder implements ArrayAccess
                     }
                 }
             }
+
+            // Need for shopBackendCustomerForm, to define with contact type we will deal with
+            if (isset($data['contact_type'])) {
+                $post['contact_type'] = $data['contact_type'];
+            }
+
             if ($post) {
                 $form->post = $post;
             }
@@ -1462,6 +1506,19 @@ class shopOrder implements ArrayAccess
                     continue;
                 }
 
+                // Option to never delete old values saved in contact even when
+                // not present in data that came from form
+                $add_values_as_new = false;
+                if (!empty($this->options['customer_add_multifields'])) {
+                    $contact_field = waContactFields::get($fld_id);
+                    // Only makes sense for present multi-fields; can't do for composite fields
+                    if ($contact_field && $contact_field->isMulti() && !($contact_field instanceof waContactCompositeField)) {
+                        $old_values = $this->contact[$fld_id];
+                        $add_values_as_new = true;
+                    }
+                }
+
+                // Whether multiple values came from form
                 $multiple = is_array($fld_data) && count(array_filter(array_keys($fld_data), 'is_int')) > 1;
 
                 if ($multiple) {
@@ -1475,6 +1532,12 @@ class shopOrder implements ArrayAccess
                     }
                     $this->contact[$fld_id] = $fld_data;
                 }
+
+                // Add back old values saved in contact and then filter out duplicates, if any
+                if ($add_values_as_new) {
+                    $this->contact[$fld_id] = $this->removeContactDataDuplicates(array_merge($this->contact[$fld_id], $old_values));
+                    unset($old_values);
+                }
             }
 
             $customer_validation_disabled = ifset($this->options, 'customer_validation_disabled', false);
@@ -1485,7 +1548,7 @@ class shopOrder implements ArrayAccess
             if (!$this->contact->getId() && !empty($this->options['customer_is_company'])) {
                 $this->contact['is_company'] = 1;
             }
-
+            
             if (!empty($customer_validation_disabled)) {
                 $this->contact->save();
             } else {
@@ -1508,6 +1571,33 @@ class shopOrder implements ArrayAccess
         if ($this->errors) {
             throw new waException('Order validation error');
         }
+    }
+
+    protected function removeContactDataDuplicates($data)
+    {
+        $result = [];
+        foreach ($data as $old_row) {
+            if (!isset($old_row['value'])) {
+                continue;
+            }
+            if (!isset($result[$old_row['value']])) {
+                $result[$old_row['value']] = $old_row;
+            } else {
+                $new_row =& $result[$old_row['value']];
+                // Use newer ext if set
+                if (isset($old_row['ext']) && (!isset($new_row['ext']) || !strlen($new_row['ext']))) {
+                    $new_row['ext'] = $old_row['ext'];
+                }
+                // Use confirmed status if anything has confirmed status; otherwise use newer one
+                if (ifset($old_row, 'status', '') === 'confirmed' || !isset($new_row['status'])) {
+                    $new_row['status'] = ifset($old_row, 'status', null);
+                }
+                unset($old_row);
+            }
+
+        }
+
+        return array_values($result);
     }
 
     protected function saveContactAddress(waContact $contact, $ext, $new_address)
@@ -1549,6 +1639,12 @@ class shopOrder implements ArrayAccess
         // Look for $old_order_address in $old_customer_addresses_ext
         $match_index = $this->findAddressInList($old_order_address, $old_customer_addresses_ext);
 
+        // In case old address is not present in contact, we try to find the new one there.
+        // This avoids creating duplicates.
+        if ($match_index === null) {
+            $match_index = $this->findAddressInList($new_address, $old_customer_addresses_ext);
+        }
+
         if ($match_index !== null) {
             // In case we found address in contact, we replace it
             $customer_addresses[$match_index] = array(
@@ -1577,6 +1673,10 @@ class shopOrder implements ArrayAccess
             }
             $match = true;
             foreach ($old_address as $k => $v) {
+                // Coordinates in old addresses should not break the match
+                if ($k === 'lat' || $k === 'lng') {
+                    continue;
+                }
                 if (!array_key_exists($k, $address) || $v !== $address[$k]) {
                     $match = false;
                     break;
@@ -1736,9 +1836,19 @@ class shopOrder implements ArrayAccess
                 }
             }
 
-            $total = shopShipping::getItemsTotal($this->data['items']);
+            if ($this->is_changed['items'] || empty($this->id)) {
+                $total = shopShipping::getItemsTotal($this->data['items']);
+                foreach ($total as $field => $value) {
+                    $params['package_'.$field] = $value;
+                }
+            } else {
+                $total = shopShipping::extractItemsTotal($params) + shopShipping::getItemsTotal($this->data['items']);
+            }
+
             $plugin_params += shopShipping::convertTotalDimensions($total, $units);
             $rates = $plugin->getRates($this->data['items'], $shipping_address, $plugin_params);
+
+
 
             $params['shipping_plugin'] = $plugin->getId();
             if (($plugin_info = $this->pluginInfo($shipping_id, shopPluginModel::TYPE_SHIPPING))) {
@@ -1935,6 +2045,7 @@ class shopOrder implements ArrayAccess
             );
         }
 
+        $order['discount_rounding'] = true;
         $discount = shopDiscounts::calculate($order, $apply, $discount_description);
 
         $this->calculated_discounts = $order;
@@ -2829,9 +2940,14 @@ class shopOrder implements ArrayAccess
 
             $product = $this->itemProduct($item);
             if ($this->options('items', 'extend_round')) {
-                shopRounding::roundProducts(ref([&$product]));
-                if (!empty($product['services'])) {
-                    shopRounding::roundServices($product['services']);
+
+                // Apply rounding to product prices
+                shopRounding::roundProducts(ref([&$product]), $this->currency);
+
+                if (!empty($product['services']) && shopRounding::isEnabled('services')) {
+                    // Note that this does not touch services in currency that matches output currency - this is intended.
+                    // This does not touch %-based services too - for this see extendServiceItem() below.
+                    shopRounding::roundServices($product['services'], $this->currency);
                 }
             }
             switch ($item['type']) {
@@ -3173,6 +3289,9 @@ class shopOrder implements ArrayAccess
             } else {
                 $item['price'] = (float)$this->currency_model->convertByRate($price, 1, $this->rate);
             }
+            if ($item['price'] > 0 && shopRounding::isEnabled('services')) {
+                $item['price'] = shopRounding::roundCurrency($item['price'], $this->currency);
+            }
         }
 
         //Check service variant name. If not found, set main service name
@@ -3214,9 +3333,9 @@ class shopOrder implements ArrayAccess
     }
 
     /**
-     * @deprecated move it into shopOrderEditAction
      * @param $data
      * @return array
+     * @deprecated move it into shopOrderEditAction
      */
     protected function castItemsFlat($data)
     {
@@ -3372,7 +3491,7 @@ class shopOrder implements ArrayAccess
 
         $items = $this->items;
 
-        shopShipping::convertItemsDimensions($items,$units);
+        shopShipping::convertItemsDimensions($items, $units);
 
         foreach ($items as $i) {
             $shipping_items[] = array(
@@ -3725,6 +3844,16 @@ HTML;
         //Calculate all discount
         if (!$this->calculated_discounts) {
             $this->calculateDiscount();
+        }
+
+        // Round shipping cost
+        if (wa()->getSetting('round_shipping')) {
+            foreach ($shipping_methods as &$method) {
+                if (isset($method['rate'])) {
+                    $method['rate'] = shopRounding::roundCurrency($method['rate'], $method['currency']);
+                }
+            }
+            unset($method);
         }
 
         # set shipping cost

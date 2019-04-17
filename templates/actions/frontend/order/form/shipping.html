@@ -6,11 +6,14 @@
 
 {$_types_sort = ["todoor", "pickup", "post"]}
 
-{$_is_default_mode = true}
-{$_is_minimal_mode = false}
-{if $config.order.mode == shopCheckoutConfig::ORDER_MODE_TYPE_MINIMUM}
-    {$_is_default_mode = false}
-    {$_is_minimal_mode = true}
+{$_is_default_mode = false}
+{$_is_minimal_mode = true}
+{if $config.order.show_pickuppoint_map === shopCheckoutConfig::PICKUPPOINT_MAP_TYPE_ALWAYS}
+    {$_is_default_mode = true}
+    {$_is_minimal_mode = false}
+{elseif $config.order.show_pickuppoint_map === shopCheckoutConfig::PICKUPPOINT_MAP_TYPE_EXCEPT_GADGETS}
+    {$_is_default_mode = true}
+    {$_is_minimal_mode = false}
 {/if}
 
 {$_map_display = "none"}
@@ -63,12 +66,12 @@
                                 {$_price = null}
                                 {if isset($_type.rate_min) && $_type.rate_min !== null}
                                     {if $_type.rate_min > 0}
-                                        {$_price = shop_currency($_type.rate_min, ['in_currency' => $_type.currency, 'extended_format' => '%t{h}'])}
+                                        {$_price = shop_currency($_type.rate_min, ['in_currency' => $_type.currency, 'format' => 'h'])}
                                         {if !(isset($_type.rate_max) && $_type.rate_min === $_type.rate_max)}
                                             {$_price = "[`from`] `$_price`"}
                                         {/if}
                                     {elseif $_type.rate_min !== $_type.rate_max}
-                                        {$_price = shop_currency($_type.rate_min, ['in_currency' => $_type.currency, 'extended_format' => '%t{h}'])}
+                                        {$_price = shop_currency($_type.rate_min, ['in_currency' => $_type.currency, 'format' => 'h'])}
                                         {$_price = "[`from`] `$_price`"}
                                     {else}
                                         {$_price = _w("Free")}
@@ -132,7 +135,7 @@
                                         {$_price = null}
                                         {if isset($_variant.rate_min) && $_variant.rate_min !== null}
                                             {if $_variant.rate_min > 0}
-                                                {$_price = shop_currency($_variant.rate_min, ['in_currency' => $_variant.currency, 'extended_format' => '%t{h}'])}
+                                                {$_price = shop_currency($_variant.rate_min, ['in_currency' => $_variant.currency, 'format' => 'h'])}
                                                 {if !(isset($_variant.rate_max) && $_variant.rate_min === $_variant.rate_max)}
                                                     {$_price = "[`from`] `$_price`"}
                                                 {/if}
@@ -227,7 +230,7 @@
                                     {$_price = null}
                                     {if isset($_variant.rate_min) && $_variant.rate_min !== null}
                                         {if $_variant.rate_min > 0}
-                                            {$_price = shop_currency($_variant.rate_min, ['in_currency' => $_variant.currency, 'extended_format' => '%t{h}'])}
+                                            {$_price = shop_currency($_variant.rate_min, ['in_currency' => $_variant.currency, 'format' => 'h'])}
                                             {if !(isset($_variant.rate_max) && $_variant.rate_min === $_variant.rate_max)}
                                                 {$_price = "[`from`] `$_price`"}
                                             {/if}

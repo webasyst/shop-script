@@ -4,145 +4,539 @@ class shopConfirmationChannel
 {
     const ATTEMPTS_TO_VERIFY_CODE = 3;
 
-    protected $options = [];
+    // The maximum number of contacts that we get from the collection of one type
+    const MAX_CONTACT_PER_REQUEST = 5000;
 
-    protected $is_dirty = null;
+    protected static $options = [];
 
+    protected static $contacts = null;
+
+    protected $contact = [];
+
+    protected $count = [];
+
+    protected $channels = [];
+
+
+    /**
+     * $options array - parameter list
+     *  $address array:
+     *      $email string checkout phone or phone to confirm
+     *      $phone string email from checkout form or email that needs to be confirmed
+     *  $is_company int from whom the order is executed
+     *
+     *
+     * shopConfirmationChannel constructor.
+     * @param array $options
+     */
     public function __construct($options = [])
     {
-        $this->options = $options;
+        $new_options = $this->parseOptions($options);
 
-        $this->updateStorageStatus();
-    }
-
-    public function __get($name)
-    {
-
+        if ($new_options != self::$options) {
+            self::$options = $new_options;
+            self::$contacts = null;
+        }
     }
 
     /**
-     * Не работает. Если хотите выстрелить себе в ногу, убедитесь, что сбросили кэш из памяти
-     * @param $name
-     * @param $value
+     *
+     * @param null $type
+     * @param bool $all
+     * @return null
+     * @throws waException
      */
-    public function __set($name, $value)
+    protected function getContacts($type = null, $all = false)
     {
-
-    }
-
-    public function searchContact()
-    {
-        // Сравнить чтобы в сессии жил актуальный контакт
-
-        // Найти контакты по телефону
-
-        // Найти контакты по имейлу
-
-        // найти самый старый подходящий по типу
-
-        // сохранить в объект все результаты поиска
-
-        // вернуть все найденные контакты
-    }
-
-    public function getContact()
-    {
-        // получить все контакты
-
-        // найти нужный контакт
-
-        // записать его в память и вернуть
-
-        // вернуть его
-    }
-
-    public function issetAdmin()
-    {
-        //Проверка, можно ли авторизовать как админа
-    }
-
-    public function isBannedContact()
-    {
-        //Получить контакт под запрос, проверить что он не забанен, вернуть булево
-    }
-
-    public function isAdminError()
-    {
-        // получить список контактов, если среди них есть админ, то ошибка
-
-        // Если включен шаг 1 и мы нашли 1 админа, то тоже ошибка
-
-        // Если авторизованный пользователь, решил указать данные админа, то тоже будет ошибка
-    }
-
-    public function isForbiddenAddress()
-    {
-        // Если пользователь вводит свои данные, то все ок.
-
-        // Если пользователь или гость вводит чужие данные, то все не ок.
-    }
-
-    public function getConfirmationChannel()
-    {
-        // Получить все каналы, которые нужно подтверидть
-
-        // Получить все включенные поля в чекауте
-
-        // Сравнить с уже заполненными данными.
-
-        // Сбросить если изменились данные
-
-        // Вернуть название канала, который нужно подтверджать
-    }
-
-
-    public static function parseData($data)
-    {
-        $result = [
-            'is_company' => (int)$data['contact']['is_company']
-        ];
-
-        if (isset($data['result']['auth']['fields']['email'])) {
-            $result['email'] = $data['result']['auth']['fields']['email']['value'];
+        // Do not search for contacts again
+        if (is_null(self::$contacts)) {
+            $this->searchContacts();
         }
+        $result = [];
 
-        if (isset($data['result']['auth']['fields']['phone'])) {
-            $result['sms'] = waContactPhoneField::cleanPhoneNumber($data['result']['auth']['fields']['phone']['value']);
+        $contacts = self::$contacts;
+        foreach ($contacts as $c_id => $contact) {
+            $is_company = self::$options['is_company'];
+
+            if (!$all && !is_null($is_company) && $contact['is_company'] != $is_company) {
+                continue;
+            }
+
+            if ($type == 'admins' && $contact['is_user'] > 0) {
+                $result[$c_id] = $contact;
+                continue;
+            } elseif (is_null($type)) {
+                $result[$c_id] = $contact;
+            }
         }
 
         return $result;
     }
 
-
-    ########
-    # INIT #
-    ########
-
-
-    protected function updateStorageStatus()
+    /**
+     * @throws waException
+     */
+    protected function searchContacts()
     {
-        //Получить каналы из сессии
-        $old_channels = $this->getChannels();
+        self::$contacts = [];
+        $channels = $this->getChannels();
+
+        foreach ($channels as $channel => $source) {
+            $field_id = $channel;
+
+            $collection = new waContactsCollection('search/'.$field_id.'='.str_replace('&', '\\&', $source));
+
+            // First of all, we are looking for those who have a password. This reduces the chance to clear the password from the admin.
+            $collection->orderBy('password', 'desc');
+
+            //Because email is returned in a different format
+            if ($channel === waVerificationChannelModel::TYPE_EMAIL) {
+                $field_id = 'email.*';
+            }
+            $result = $collection->getContacts('id,is_user,password,login,is_company'.",$field_id", 0, self::MAX_CONTACT_PER_REQUEST);
+
+            $this->setContacts($result);
+        }
+    }
+
+    /**
+     * @param $contacts
+     */
+    protected function setContacts($contacts)
+    {
+        foreach ($contacts as $c_id => $contact) {
+            if (isset(self::$contacts[$c_id])) {
+                self::$contacts[$c_id] = array_merge(self::$contacts[$c_id], $contact);
+            } else {
+                self::$contacts[$c_id] = $contact;
+            }
+        }
+    }
+
+    /**
+     * Returns channels that need to be confirmed.
+     * @return array
+     */
+    public function getChannels()
+    {
+        if ($this->channels) {
+            return $this->channels;
+        }
 
         $raw_channels = $this->getRawChannels();
-        $new_channels = [];
+        $channels = [];
 
         foreach ($raw_channels as $raw_channel) {
             $type = $raw_channel->getType();
 
-            if (isset($old_channels[$type])) {
-                $new_channels[$type] = $old_channels[$type];
-            } else {
-                $new_channels[$type] = [
-                    'status' => null,
-                    'source' => null,
-                ];
+            if ($type === waVerificationChannelModel::TYPE_SMS) {
+                $type = 'phone';
+            }
+
+            // return only those channels for which the user has filled in data.
+            if (isset(self::$options['address'][$type])) {
+                $channels[$type] = self::$options['address'][$type];
             }
         }
 
-        $new_channels = $this->updateTransportStatus($new_channels);
+        $this->channels = $channels;
+        return $this->channels;
+    }
 
-        $this->setStorage($new_channels, 'channels');
+    /**
+     * @param $contact
+     * @return string|null
+     */
+    protected function getContactType($contact)
+    {
+        $type = null;
+
+        // Find banned users
+        // Banned admins are entered into the ban and we clean them with a password. God help them.
+        if ($contact['is_user'] < 0) {
+            $type = 'banned';
+        }
+
+        // Find admins
+        if ($contact['is_user'] > 0) {
+            $type = 'admins';
+        }
+
+        if (is_null($type)) {
+            // looking for users and buyers
+            if (!empty($contact['password'])) {
+                $type = 'users';
+            } else {
+                $type = 'buyers';
+            }
+        }
+
+        return $type;
+    }
+
+    /**
+     * Get the number of users by type and channel
+     * @param string $type
+     * @param string $channel
+     * @param bool $all
+     * @return int
+     * @throws waException
+     */
+    protected function getCount($type = '', $channel = '', $all = false)
+    {
+        //Update counter
+        $contacts = $this->getContacts(null, $all);
+        $count = 0;
+
+        foreach ($contacts as $contact) {
+            if ($type === 'users' && $this->getContactType($contact) == 'buyers') {
+                continue;
+            } elseif ($type === 'buyers' && $this->getContactType($contact) != 'buyers') {
+                continue;
+            }
+
+            if (!$channel || ($channel && isset($contact[$channel]))) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    /**
+     * Returns the contact to which you want to attach the order.
+     * First, he searches among users (those who have a password) and then among customers
+     *
+     * @return array
+     * @throws waException
+     */
+    public function getContact()
+    {
+        if ($this->contact) {
+            return $this->contact;
+        }
+        $contacts = $this->getContacts();
+        $user = null;
+        $buyers = null;
+
+        foreach ($contacts as $c_id => $contact) {
+            $options_is_company = self::$options['is_company'];
+
+            if (!is_null($options_is_company) && $contact['is_company'] != $options_is_company) {
+                continue;
+            }
+
+            $type = $this->getContactType($contact);
+            if ($type != 'buyers' && (!$user || $contact['id'] < $user['id'])) {
+                $user = $contact;
+            } elseif ($type == 'buyers' && (!$buyers || $contact['id'] < $buyers['id'])) {
+                $buyers = $contact;
+            }
+        }
+
+        if ($user) {
+            $result = $user;
+        } elseif ($buyers) {
+            $result = $buyers;
+        } else {
+            $result = [
+                'id'         => null,
+                'is_user'    => null,
+                'password'   => null,
+                'is_company' => null
+            ];
+        }
+
+        $this->contact = $result;
+        return $this->contact;
+    }
+
+    /**
+     * If the user is banned, we return the fields for which he was found.
+     *
+     * @return array
+     * @throws waException
+     */
+    public function getBannedErrorFields()
+    {
+        $contact = $this->getContact();
+        $result = [];
+
+        if ($contact['is_user'] < 0) {
+            $channels = $this->getChannels();
+
+            foreach ($channels as $channel => $source) {
+                if (isset($contact[$channel])) {
+                    $result[$channel] = $source;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns the fields for which admins found
+     *
+     * @return array
+     * @throws waException
+     */
+    public function getAdminErrorFields()
+    {
+        $result = [];
+        $admins = $this->getContacts('admins', true);
+
+        // Everything is bad if we try to reset the password to the admin.
+        if (wa()->getUser()->getId()) {
+            // We are the user, and there is an admin (who is not us)
+            unset($admins[wa()->getUser()->getId()]);
+            $should_fail = (bool)$admins;
+        } else {
+            // We are a guest and there are several candidates, one of them is admin
+            $should_fail = $admins && $this->getCount() > 1;
+        }
+
+        if ($should_fail) {
+            $channels = $this->getChannels();
+            //Check all admins, looking for what field they were found
+            foreach ($admins as $contact) {
+                foreach ($channels as $channel => $source) {
+                    if (isset($contact[$channel])) {
+                        $result[$channel] = $source;
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * If an authorized user enters someone else's data, then returns the fields in which he entered them
+     *
+     * @return array
+     * @throws waException
+     */
+    public function getForbiddenAddress()
+    {
+        $result = [];
+
+        $user = wa()->getUser();
+        $channels = $this->getChannels();
+
+        // The address can be banned only if the personal account is enabled and if the order is made by the user
+        if (!$channels || !$user->isAuth()) {
+            return $result;
+        }
+
+        $user_from_memory = $this->getUserFromMemory();
+
+        foreach ($channels as $channel => $source) {
+            // If the data from the POST is not in the cache, then this data does not belong to the user.
+            // if other users have this data an error
+            if (!isset($user_from_memory[$channel]) && $this->getCount('users', $channel, true)) {
+                $result[$channel] = $source;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * If the sample was the current contact, then return it.
+     *
+     * @return array|null
+     * @throws waException
+     */
+    protected function getUserFromMemory()
+    {
+        $user = null;
+        $contacts = $this->getContacts();
+        if (isset($contacts[wa()->getUser()->getId()])) {
+            $user = $contacts[wa()->getUser()->getId()];
+        }
+
+        return $user;
+    }
+
+    /**
+     * Returns the type of address to confirm.
+     *
+     * @return string
+     * @throws waException
+     */
+    public function getConfirmChannel()
+    {
+        $result = '';
+        $unconfirmed = $this->getUnconfirmedChannels();
+        $current = $this->getStorage('current_confirm');
+
+        // If started to confirm the channel and it still needs to be confirmed - confirm further
+        if ($current && isset($unconfirmed[$current['type']]) && $unconfirmed[$current['type']] === $current['source']) {
+            $result = $current['type'];
+        } elseif ($unconfirmed) {
+            // Take the first one, they will already be sorted
+            $confirm = [
+                'source' => reset($unconfirmed),
+                'type'   => key($unconfirmed)
+            ];
+
+            $this->setStorage($confirm, 'current_confirm');
+            $result = $confirm['type'];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns channels to confirm
+     * Does not include channels that have already been confirmed and are in session.
+     *
+     * @return array
+     * @throws waException
+     */
+    public function getUnconfirmedChannels()
+    {
+        if (wa()->getUser()->isAuth()) {
+            $confirm_addresses = $this->getChannelForUser();
+        } else {
+            $confirm_addresses = $this->getChannelForGuest();
+        }
+
+        $confirmed = $this->getStorage('confirmed');
+
+        // check, maybe we have already confirmed this channel
+        foreach ($confirmed as $type => $source) {
+            if (isset($confirm_addresses[$type])) {
+                if ($confirm_addresses[$type] == $source) {
+                    unset($confirm_addresses[$type]);
+                } else {
+                    // If we have a confirmed channel, but its value does not agree with what needs to be confirmed, such a channel needs to be dropped from the session.
+                    unset($confirmed[$type]);
+                    $this->setStorage($confirmed, 'confirmed');
+                }
+            }
+        }
+
+        $this->setStorage($confirm_addresses, 'unconfirmed');
+
+        return $confirm_addresses;
+    }
+
+    /**
+     * Compare the source from the session and the one that is in the confirmation form.
+     *
+     * @param $source
+     */
+    public function validateSource($source)
+    {
+        $storage = $this->getStorage();
+        $current_source = ifset($storage, 'current_confirm', 'source', null);
+
+        if ($current_source && $current_source !== $source) {
+            // Change the current confirmed channel
+            $storage['current_confirm']['source'] = $source;
+            //Update Unapproved
+            $storage['unconfirmed'][$this->getActiveType()] = $source;
+
+            //If such a channel has been confirmed - delete
+            unset($storage['confirmed'][$this->getActiveType()]);
+
+            $this->setStorage($storage);
+        }
+    }
+
+    /**
+     * Returns the channels that the active user must confirm
+     *
+     * @return array
+     * @throws waException
+     */
+    protected function getChannelForUser()
+    {
+        $config = $this->getCheckoutConfig();
+        $forbidden = $this->getForbiddenAddress();
+
+        $result = [];
+        $order_without_auth = $config['confirmation']['order_without_auth'];
+
+        if ($order_without_auth === 'existing_contact') {
+            // we need to confirm only those data that belong to other users.
+            // If the data was saved by the user and other users have it - we do not confirm
+            $result = $forbidden;
+        } elseif ($order_without_auth === 'confirm_contact') {
+            // See method documentation.
+            $user_from_memory = $this->getUserFromMemory();
+            if ($user_from_memory) {
+                //Be sure to confirm not your data.
+                $result = $forbidden;
+
+                $channels = $this->getChannels();
+                foreach ($channels as $channel => $source) {
+                    $status = ifset($user_from_memory, $channel, 0, 'status', null);
+
+                    // If the user does not have this channel, or it is not confirmed, it must be confirmed.
+                    if (!$status || $status !== $this->getConfirmedStatus($channel)) {
+                        $result[$channel] = $source;
+                    }
+                }
+            } else {
+                // No user - confirm all channels
+                // Validation in the authorization step ensures that the channel can be confirmed for it.
+                $result = $this->getChannels();
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns the channels to be confirmed to the guest.
+     *
+     * @return array
+     * @throws waException
+     */
+    protected function getChannelForGuest()
+    {
+        $config = $this->getCheckoutConfig();
+
+        $channels = [];
+        $order_without_auth = $config['confirmation']['order_without_auth'];
+
+        // If step 'existing_contact' need to confirm if found another contact
+        // If step 'confirm_contact' is always confirmed
+        $contact = $this->getContact();
+        if (($order_without_auth === 'existing_contact' && $contact['id']) || $order_without_auth === 'confirm_contact') {
+            $channels = $this->getChannels();
+        }
+
+        return $channels;
+    }
+
+    public function parseOptions($options)
+    {
+        $fake_contact = new waContact();
+
+        if (isset($options['address'])) {
+            foreach ($options['address'] as $address_type => $address_value) {
+                if ($address_value) {
+                    $fake_contact->set($address_type, $address_value);
+                    $clear_value = $fake_contact->get($address_type);
+                    $options['address'][$address_type] = $clear_value[0]['value'];
+                } else {
+                    unset($options['address'][$address_type]);
+                }
+            }
+        }
+
+        $options['is_company'] = ifset($options, 'is_company', null);
+
+        return $options;
+    }
+
+    protected function getCheckoutConfig()
+    {
+        return new shopCheckoutConfig(true);
     }
 
     ############
@@ -150,93 +544,66 @@ class shopConfirmationChannel
     ############
 
     /**
-     * Что должно делать?
-     * Проверить, что телефон и имейл из запроса, соответстуюет тем что в сессии
-     * Проверить источник подтвержден
-     * поставить флаг, что источник нужно сохранить
+     * Uses standard framework validators
      *
-     * @param $verifiable_channels
+     * @param $source
      * @return bool
      */
-    public function isConfirmChannels($verifiable_channels)
-    {
-        $channels = $this->getChannels();
-        $is_verified_flag = true;
-
-        foreach ($channels as $channel_type => &$channel_data) {
-            $requested_source = ifset($verifiable_channels, $channel_type, null);
-            $channel_source = $channel_data['source'];
-            $channel_status = $channel_data['status'];
-
-            //Do not make an extra request in the database if everything converges and is confirmed.
-            //If the values ​​do not converge, then reset the status.
-            if ($requested_source === $channel_source && $channel_status === true) {
-                continue;
-            } elseif ($requested_source !== $channel_source) {
-                $channel_data['status'] = null;
-            }
-
-            if (wa()->getUser()->isAuth()) {
-                $saved_channel_data = $this->getSavedChannelStatus($requested_source, $channel_type);
-
-                if ($saved_channel_data === waContactEmailsModel::STATUS_CONFIRMED) {
-                    // Always check for a constant from the email. Because they have the same essence, and the code is simpler.
-                    // For those who want to do something with  waContactDataModel::STATUS_CONFIRMED!!!
-                    $channel_data['status'] = true;
-                }
-            }
-
-            if ($channel_data['status'] !== true) {
-                $is_verified_flag = false;
-            }
-
-            //Set the session to the actual source
-            $channel_data['source'] = $requested_source;
-        }
-
-        $this->setStorage($channels, 'channels');
-
-        return $is_verified_flag;
-    }
-
     public function isValidateSource($source)
     {
         $result = true;
-        $transport = $this->getTransport();
+        $channel_type = $this->getActiveType();
 
-        if ($transport === waVerificationChannelModel::TYPE_SMS) {
+        if ($channel_type === 'phone') {
             $result = (new waPhoneNumberValidator())->isValid($source);
-        } elseif ($transport === waVerificationChannelModel::TYPE_EMAIL) {
+        } elseif ($channel_type === 'email') {
             $result = (new waEmailValidator())->isValid($source);
         }
 
         return $result;
     }
 
-    public function isValidateCode($code)
+    /**
+     * Checks if the verification code is entered correctly
+     *
+     * @param $code
+     * @return array|bool
+     * @throws waException
+     */
+    public function validateCode($code)
     {
-        $transport = $this->getTransport();
         $verification = $this->getStorage('verification');
 
         if (!$verification || empty($verification['source'])) {
             return false;
         }
 
-        $channel = waDomainAuthConfig::factory()->getVerificationChannelInstance($transport);
+        $channel = waDomainAuthConfig::factory()->getVerificationChannelInstance($this->getTransport());
         $result = $channel->validateConfirmationCode($code, array(
-            'recipient' => $verification['source']
+            'recipient'   => $verification['source'],
+            'check_tries' => [
+                'count' => self::ATTEMPTS_TO_VERIFY_CODE,
+                'clean' => true,
+            ]
         ));
 
-        return $result['status'];
+        return $result;
     }
 
-    public function isAllChannelConfirmed()
+    /**
+     * Checks if all channels are verified.
+     *
+     * @return bool
+     */
+    protected function isAllChannelConfirmed()
     {
         $channels = $this->getChannels();
+        $confirmed = $this->getStorage('confirmed');
+
         $result = true;
 
-        foreach ($channels as $channel_type => $channel_data) {
-            if ($channel_data['status'] !== true || empty($channel_data['source'])) {
+        foreach ($channels as $channel => $source) {
+            if (empty($confirmed[$channel]) || $confirmed[$channel] !== $source) {
                 $result = false;
                 break;
             }
@@ -248,46 +615,34 @@ class shopConfirmationChannel
     ########
     # SEND #
     ########
+    /**
+     * Send code to the current channel
+     *
+     * @param $source
+     * @return mixed
+     */
     public function sendCode($source)
     {
         $channel = waDomainAuthConfig::factory()->getVerificationChannelInstance($this->getTransport());
 
         $result = $channel->sendConfirmationCodeMessage($source, [
-            'use_session' => true
+            'use_session' => true,
         ]);
 
         return $result;
     }
 
-    public function sendRegisterMail($contact_id)
-    {
-        $contact = new waContact($contact_id);
-        $result = $password = null;
-
-        if (waDomainAuthConfig::factory()->getAuthType() !== waAuthConfig::AUTH_TYPE_ONETIME_PASSWORD) {
-            $password = waContact::generatePassword();
-            $contact->setPassword($password);
-            $contact->save();
-        }
-
-        $channels = waDomainAuthConfig::factory()->getVerificationChannelInstances();
-        foreach ($channels as $channel) {
-            $result = $channel->sendSignUpSuccessNotification($contact, ['password' => $password]);
-            if ($result) {
-                break;
-            }
-        }
-
-        return $result;
-    }
-
+    /**
+     * Returns the time which need to wait before the next message is sent.
+     * @return int
+     */
     public function getSendTimeout()
     {
         $send_time = $this->getStorage('send_time');
         $timeout_left = 0;
 
         if ($send_time) {
-            $checkout_config = new shopCheckoutConfig(true);
+            $checkout_config = $this->getCheckoutConfig();
 
             $timeout_left = $send_time + $checkout_config['confirmation']['recode_timeout'] - time();
         }
@@ -299,67 +654,51 @@ class shopConfirmationChannel
     # VERIFY #
     ##########
 
-    public function verifyTransportStatus()
+    /**
+     * The current confirmed channel is recorded as confirmed.
+     * @return bool
+     */
+    public function setConfirmed()
     {
-        $channels = $this->getStorage('channels');
-        $verification = $this->getStorage('verification');
-        $transport = $this->getTransport();
+        $current = $this->getStorage('current_confirm');
 
-        if (empty($channels[$transport])) {
+        if (!$current) {
             return false;
-        } else {
-            $channels[$transport]['status'] = true;
-            $channels[$transport]['source'] = $verification['source'];
-            $this->updateUserAddress($channels[$transport]['source'], $transport);
-
-            $this->delStorage();
-
-            $this->setStorage($channels, 'channels');
         }
+
+        $confirmed = $this->getStorage('confirmed');
+        $confirmed[$current['type']] = $current['source'];
+
+        //reset storage
+        $this->delStorage();
+
+        //set confirmed channel
+        $this->setStorage($confirmed, 'confirmed');
 
         return true;
     }
 
-
-    protected function updateTransportStatus($storage)
-    {
-        $transport = $this->getTransport();
-        $channel = waDomainAuthConfig::factory()->getVerificationChannelInstance($transport);
-
-        //Дропаем значения для канала. не дропаем все, чтобы не просить подтверждать еще раз
-        if ($channel instanceof waVerificationChannelNull) {
-            unset($storage['transport']);
-            unset($storage['verification']);
-            unset($storage['channels'][$transport]);
-        }
-
-        return $storage;
-    }
-
-    protected function updateUserAddress($new_source, $transport)
+    /**
+     * Update the status or insert confirmed data to an authorized user.
+     * @param $type
+     * @param $new_source
+     * @return bool
+     * @throws waException
+     */
+    protected function updateUserAddress($type, $new_source)
     {
         $contact = wa()->getUser();
         if (!$contact->isAuth()) {
             return false;
         }
 
-        // Because phone !== sms =(
-        if ($transport === waVerificationChannelModel::TYPE_SMS) {
-            $get_field = 'phone';
-        } elseif ($transport === waVerificationChannelModel::TYPE_EMAIL) {
-            $get_field = 'email';
-        } else {
-            return false;
-        }
-
         $is_update = false;
-        $saved = $contact->get($get_field);
-        $new_source = $this->cleanSource($new_source, $transport);
+        $saved = $contact->get($type);
 
         //find saved number
         foreach ($saved as $id => $source) {
             if ($source['value'] === $new_source) {
-                $saved[$id]['status'] = waContactEmailsModel::STATUS_CONFIRMED;
+                $saved[$id]['status'] = $this->getConfirmedStatus($type);
                 $is_update = true;
                 break;
             }
@@ -369,11 +708,11 @@ class shopConfirmationChannel
         if (!$is_update) {
             $saved[] = [
                 'value'  => $new_source,
-                'status' => waContactEmailsModel::STATUS_CONFIRMED,
+                'status' => $this->getConfirmedStatus($type),
             ];
         }
 
-        $contact->set($get_field, $saved);
+        $contact->set($type, $saved);
         $contact->save();
 
         return true;
@@ -383,24 +722,92 @@ class shopConfirmationChannel
     # AUTHORIZE #
     #############
 
-    public function authorize($contact_id)
+    /**
+     * Performs authorization, clears passwords, sets data in contact
+     *
+     * @param int $contact_id
+     * @param bool $new_contact
+     *
+     * @return bool
+     * @throws waAuthConfirmEmailException
+     * @throws waAuthConfirmPhoneException
+     * @throws waAuthException
+     * @throws waAuthInvalidCredentialsException
+     * @throws waException
+     */
+    public function postConfirm($contact_id, $new_contact)
     {
-        $checkout_config = new shopCheckoutConfig(true);
+        $config = $this->getCheckoutConfig();
+        $order_without_auth = $config['confirmation']['order_without_auth'];
+        $unconfirmed = $this->getUnconfirmedChannels();
 
-        if (wa()->getUser()->isAuth() ||
-            //You can not authorize the old user who did not confirm all channels
-            ($checkout_config['confirmation']['order_without_auth'] === 'existing_contact' && !$this->isAllChannelConfirmed())) {
-            return false;
+        // can only authorize if all channels have been confirmed or this is a new contact.
+        if (!wa()->getUser()->isAuth() && $order_without_auth !== 'create_contact' && (!$unconfirmed || $new_contact)) {
+            $this->authorize($contact_id);
         }
 
-        wa()->getAuth()->auth(array('id' => $contact_id));
+        // can reset passwords only if the user has confirmed all channels.
+        if (!$unconfirmed && $order_without_auth !== 'create_contact') {
+            $this->dropPasswords($contact_id);
+        }
 
-        $channels = $this->getChannels();
+        if (wa()->getUser()->isAuth()) {
+            // Get all channels that have been confirmed
+            $confirmed = $this->getStorage('confirmed');
 
-        foreach ($channels as $channel_type => $channel_data) {
-            if ($channel_data['status'] === true) {
-                $this->updateUserAddress($channel_data['source'], $channel_type);
+            // Update/set data.
+            foreach ($confirmed as $type => $source) {
+                $this->updateUserAddress($type, $source);
             }
+        }
+
+        // Clear all data from session
+        $this->delStorage();
+
+        return true;
+    }
+
+    /**
+     * Authorize user by id
+     *
+     * @param $contact_id
+     * @throws waAuthConfirmEmailException
+     * @throws waAuthConfirmPhoneException
+     * @throws waAuthException
+     * @throws waAuthInvalidCredentialsException
+     * @throws waException
+     */
+    protected function authorize($contact_id)
+    {
+        wa()->getAuth()->auth(array('id' => $contact_id));
+    }
+
+    /**
+     * Reset your password to all contacts who are on the search terms.
+     * Do not reset the password to admins!
+     *
+     * @param $contact_id
+     * @return bool
+     * @throws waException
+     */
+    protected function dropPasswords($contact_id)
+    {
+        $contact_ids = [];
+
+        // Collect all contact id
+        $contacts = $this->getContacts(null, true);
+        foreach ($contacts as $c_id => $contact) {
+            if ($contact['is_user'] > 0 || $contact['id'] == $contact_id) {
+                //You can not reset the password admin.
+                //No need to reset the password to the found user
+                continue;
+            }
+            $contact_ids[] = $c_id;
+        }
+
+        if ($contact_ids) {
+            $wa_contact_model = new waContactModel();
+            $wa_contact_model->updateByField('id', $contact_ids, ['password' => null]);
         }
 
         return true;
@@ -450,11 +857,10 @@ class shopConfirmationChannel
     {
         $storage = wa()->getStorage()->get($this->getStorageKey());
         if ($key) {
-
             if ($key === 'transport') {
-                $storage = $this->getTransport();
+                $storage = $this->getActiveType();
             } else {
-                $storage = ifset($storage, $key, null);
+                $storage = ifset($storage, $key, []);
             }
         }
 
@@ -474,34 +880,42 @@ class shopConfirmationChannel
     ##########
 
     /**
-     * Return the current active transport
+     * Return the current active channel type
      * @return mixed
      */
-    public function getTransport()
+    public function getActiveType()
     {
-
-        //todo проверить, чтобы транспорт был актуальный
-        return $this->getStorage('transport');
+        $current = $this->getStorage('current_confirm');
+        return ifset($current, 'type', '');
     }
 
     /**
-     * Return channels with statuses from the session
-     * @return mixed
+     * Converts an address type from a checkout form (phone, email) to a verification channel type
+     * @return string
      */
-    public function getChannels()
+    public function getTransport()
     {
-        return $this->getStorage('channels');
+        $type = $this->getActiveType();
+        $result = '';
+
+        if ($type === 'phone') {
+            $result = waVerificationChannelModel::TYPE_SMS;
+        } elseif ($type === 'email') {
+            $result = waVerificationChannelModel::TYPE_EMAIL;
+        }
+
+        return $result;
     }
 
     /**
      * Prepare source for clean condition
      * @param string $source
-     * @param string $transport
+     * @param string $type
      * @return string
      */
-    public function cleanSource($source, $transport)
+    public function cleanSource($source, $type)
     {
-        if ($transport === waVerificationChannelModel::TYPE_SMS) {
+        if ($type === 'phone' || $type === 'sms') {
             $source = waContactPhoneField::cleanPhoneNumber($source);
         }
 
@@ -515,12 +929,14 @@ class shopConfirmationChannel
     public function getTransportError()
     {
         $transport = $this->getTransport();
+        $channel = waDomainAuthConfig::factory()->getVerificationChannelInstance($transport);
+
         $errors = [];
 
-        if (!$transport) {
+        if ($channel instanceof waVerificationChannelNull) {
             $errors = [
-                'id'   => 'transport_error',
-                'text' => _w('TODO Больше не нужно подтверждать этот канал')
+                'id'   => 'channel_error',
+                'text' => _w('You do not need to confirm this value any more.')
             ];
         }
 
@@ -528,11 +944,14 @@ class shopConfirmationChannel
     }
 
     /**
+     * Returns all included channels for personal account
      * @return waVerificationChannel[]
      */
     protected function getRawChannels()
     {
         $channels = [];
+
+        // If the personal account is turned off, then we are not looking for contacts
         if (waDomainAuthConfig::factory()->getAuth()) {
             $channels = waDomainAuthConfig::factory()->getVerificationChannelInstances();
         }
@@ -540,27 +959,25 @@ class shopConfirmationChannel
     }
 
     /**
-     * @param string $requested_source
-     * @param string $channel_type
-     * @return string|null
-     * @throws waException
+     * Returns the status "confirmed" for different types of channels
+     * @param $type
+     * @return string
      */
-    protected function getSavedChannelStatus($requested_source, $channel_type)
+    protected function getConfirmedStatus($type)
     {
-        if ($channel_type === waVerificationChannelModel::TYPE_SMS) {
-            $saved_data = (new waContactDataModel())->getByField([
-                'contact_id' => wa()->getUser()->getId(),
-                'value'      => $requested_source
-            ]);
-        } elseif ($channel_type === waVerificationChannelModel::TYPE_EMAIL) {
-            $saved_data = (new waContactEmailsModel())->getByField([
-                'contact_id' => wa()->getUser()->getId(),
-                'email'      => $requested_source
-            ]);
+        $result = '';
+        if ($type === 'phone' || $type === 'sms') {
+            $result = waContactDataModel::STATUS_CONFIRMED;
+        } elseif ($type === 'email') {
+            $result = waContactEmailsModel::STATUS_CONFIRMED;
         }
 
-        $channel_status = ifset($saved_data, 'status', null);
+        return $result;
+    }
 
-        return $channel_status;
+    public static function clear()
+    {
+        self::$options = [];
+        self::$contacts = null;
     }
 }

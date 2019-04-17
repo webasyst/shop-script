@@ -218,6 +218,17 @@ SQL;
         return $data;
     }
 
+    /**
+     * @deprecated
+     *
+     * If you need to scale this method, remove it from the model.
+     *
+     * @param $product_id
+     * @param null $sku_id
+     * @param null $order_id
+     * @param null $currency
+     * @return array
+     */
     private function getProductInfo($product_id, $sku_id = null, $order_id = null, $currency = null)
     {
         static $cache = array();
@@ -271,6 +282,19 @@ SQL;
         return $data;
     }
 
+    /**
+     * @deprecated
+     *
+     * If you need to scale this method, remove it from the model.
+     *
+     * shopOrdersGetProductController->getServices analogue of this method
+     *
+     * @param $product
+     * @param $sku_id
+     * @param $rate
+     * @param $sku_price
+     * @return array
+     */
     private function getServices($product, $sku_id, $rate, $sku_price)
     {
         $currency_model = $this->getModel('currency');
@@ -306,6 +330,15 @@ SQL;
         return $data;
     }
 
+    /**
+     * @deprecated
+     *
+     * If you need to scale this method, remove it from the model.
+     *
+     * @param $product
+     * @param null $order_id
+     * @param null $currency
+     */
     private function workupProduct(&$product, $order_id = null, $currency = null)
     {
         if (!$currency) {
@@ -340,6 +373,17 @@ SQL;
         }
     }
 
+    /**
+     * @deprecated
+     *
+     * If you need to scale this method, remove it from the model.
+     *
+     * shopOrdersGetProductController->getServices analogue of this method
+     *
+     * @param $services
+     * @param $order_id
+     * @param $currency
+     */
     private function workupServices(&$services, $order_id, $currency)
     {
         if ($order_id) {
@@ -352,6 +396,11 @@ SQL;
             if (!isset($service['currency'])) {
                 $service['currency'] = $currency;
             }
+
+            // The search logic "default price" is deprecated
+            // Previously, they wanted to show the service, even if there is no variant for it
+            // Now the service always has the variants
+
             foreach ($service['variants'] as &$variant) {
                 $variant['price'] = waCurrency::round($variant['price'], $currency);
                 $variant['price_str'] = ($variant['price'] >= 0 ? '+' : '-').wa_currency($variant['price'], $currency);
@@ -534,6 +583,7 @@ SQL;
      *
      * @param array $items
      * @param int $order_id
+     * @throws waException
      */
     public function update($items, $order_id)
     {
@@ -667,6 +717,7 @@ SQL;
     /**
      * @param array $data
      * @param int [int][int] $data[$sku_id][$stock_id]
+     * @throws waException
      */
     public function updateStockCount($data)
     {

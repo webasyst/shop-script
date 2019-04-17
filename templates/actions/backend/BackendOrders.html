@@ -6,6 +6,8 @@
 {$wa_app_static_url}js/orders.js
 {$wa_app_static_url}js/order/list.js
 {$wa_app_static_url}js/order/edit.js
+{$wa_app_static_url}js/form/customer/backend.js
+{$wa_app_static_url}js/order/form/customer.js
 {/wa_js}
 
 <link href="{$wa_app_static_url}js/order/timepicker/jquery.timepicker.css?v{$wa->version()}" rel="stylesheet" type="text/css" />
@@ -283,7 +285,7 @@
             <span>{%#product.skus[chosen_sku_id].price_html%}</span>
             <input type="hidden" name="price[add][{%#index%}][product]" value="{%#''+product.skus[chosen_sku_id].price%}" class="short">
             {% } else { %}
-            <input type="text" name="price[add][{%#index%}][product]" value="{%#''+product.skus[chosen_sku_id].price%}" class="short"><span style="padding-top: 2px;">{%#currency%}</span>
+            <input type="text" name="price[add][{%#index%}][product]" value="{%#''+product.skus[chosen_sku_id].price%}" class="short js-order-edit-item-price"><span style="padding-top: 2px;">{%#currency%}</span>
             {% } %}
             <br/><span class="hint js-item-total-discount" data-discount-id="{%#index%}"></span>
         </td>

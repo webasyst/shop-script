@@ -129,7 +129,7 @@ HTML;
         $discount = shop_currency($discount, $currency, $currency, false);
         // Round the discount if set up to do so
         if ($discount
-            && (wa()->getEnv() == 'frontend')
+            && (wa()->getEnv() == 'frontend' || !empty($order['discount_rounding']))
             && waSystem::getSetting('round_discounts', '', 'shop')
             && ($discount < ifset($order['total'], 0))
         ) {
@@ -316,93 +316,270 @@ HTML;
         return null;
     }
 
-    /** Coupon discounts implementation.
-     * @param array $order
-     * @param waContact $contact
-     * @param boolean $apply
-     * @return mixed
-     */
-    protected static function byCoupons(&$order, $contact, $apply)
+
+    protected static function getCoupon($order)
     {
+        $result = [];
         $cm = new shopCouponModel();
+
         if (!empty($order['id'])) {
-            // Recalculating existing order: take coupon code from order params
+            // If the order has already been created, look for the saved coupon.
 
             if (!isset($order['params']) || !isset($order['params']['coupon_id'])) {
                 $order_params_model = new shopOrderParamsModel();
-                $order['params'] = ifset($order['params'], array()) + $order_params_model->get($order['id']);
+                $order['params'] = ifset($order, 'params', []) + $order_params_model->get($order['id']);
             }
+            $coupon_id = ifset($order, 'params', 'coupon_id', null);
 
-            if (empty($order['params']['coupon_id'])) {
-                return 0;
+            if ($coupon_id) {
+                $result = $cm->getById((int)$coupon_id);
             }
-            $coupon_id = intval($order['params']['coupon_id']);
-
-            $coupon = $cm->getById($coupon_id);
-            $coupon_code = ifset($coupon['code'], 'coupon_id='.$coupon_id);
-            $discount = ifset($order['params']['coupon_discount'], 0);
-            $description = _w('Coupon code').' '.$coupon_code;
-            if (ifset($coupon['type']) == '$FS') {
-                $order['shipping'] = 0;
-                $description .= sprintf(': %s', _w('Free shipping'));
-            }
-            return array(
-                'discount'    => $discount,
-                'description' => $description,
-            );
-        } else {
+        } elseif (wa()->getEnv() === 'frontend') {
+            // If this is a new order, look for a coupon in the session.
             $checkout_data = wa('shop')->getStorage()->read('shop/checkout');
-            if (empty($checkout_data['coupon_code'])) {
-                return null;
+            $coupon_code = ifset($checkout_data, 'coupon_code', null);
+
+            if ($coupon_code) {
+                $coupon = $cm->getByField('code', $coupon_code);
+
+                // Coupon must be available for use.
+                if ($coupon && shopCouponsAction::isEnabled($coupon)) {
+                    $result = $coupon;
+                }
             }
         }
 
-        $coupon = $cm->getByField('code', $checkout_data['coupon_code']);
-        if (!$coupon || !shopCouponsAction::isEnabled($coupon)) {
-            return 0;
+        return $result;
+    }
+
+    /**
+     * Apply Free Shipping Coupon
+     * @param $order
+     * @param $description
+     * @return array
+     */
+    protected static function getFreeShippingByCoupons(&$order, &$description)
+    {
+        // Zero cost of delivery in the order
+        $order['shipping'] = 0;
+        $description .= ': '._w('Free shipping');
+
+        $result = [
+            'coupon_discount' => 0,
+            'discount'        => 0,
+            'description'     => $description,
+        ];
+
+        return $result;
+    }
+
+    /**
+     * Apply discount coupon in percent
+     *
+     * @param $order
+     * @param $coupon
+     * @param $description
+     * @return array
+     * @throws waException
+     */
+    protected static function getPercentDiscountByCoupons($order, $coupon, $description)
+    {
+        // If there is a hash, then you need to apply only to certain products.
+        if (!empty($coupon['products_hash'])) {
+            $result = self::getPercentDiscountByProductType($order, $coupon, $description);
+        } else {
+            $percent = (float)$coupon['value'];
+            $result = self::byPercent($order, $percent, $description);
+            $result['coupon_discount'] = max(0.0, min(100.0, $percent)) * $order['total'] / 100.0;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Applies an integer coupon discount.
+     * Applies to the entire order
+     *
+     * @param $order
+     * @param $coupon
+     * @param $description
+     * @return array
+     * @throws waException
+     */
+    protected static function getIntegerDiscountByCoupons($order, $coupon, $description)
+    {
+        $result = [];
+
+        $items = self::getItemsForCouponHash($order, $coupon);
+
+        if ($items) {
+            // Flat value in currency
+            $discount = max(0.0, (float)$coupon['value']);
+            if ($order['currency'] != $coupon['type']) {
+                $crm = new shopCurrencyModel();
+                $discount = (float)$crm->convert($discount, $coupon['type'], $order['currency']);
+            }
+
+            if (!empty($coupon['products_hash'])) {
+                $total_items_cost = 0;
+                foreach ($items as $item) {
+                    // Skip service
+                    if ($item['type'] === 'service') {
+                        continue;
+                    }
+
+                    $total_items_cost += $item['price'] * $item['quantity'];
+                }
+
+                // The discount can not be more than the prices of goods to which it applies.
+                if ($total_items_cost < $discount) {
+                    $discount = $total_items_cost;
+                }
+            }
+
+            $result = [
+                'coupon_discount' => $discount,
+                'discount'        => $discount,
+                'description'     => $description,
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Apply discount coupons
+     *
+     * @param $order
+     * @param $contact object unused
+     * @param $apply
+     * @return array
+     * @throws waException
+     */
+    protected static function byCoupons(&$order, $contact, $apply)
+    {
+        $coupon = self::getCoupon($order);
+        $result = [];
+
+        // If there is no coupon or there are no items in the order, do not apply the coupon
+        if (!$coupon || empty($order['items'])) {
+            return $result;
         }
 
         $description = _w('Coupon code').' '.$coupon['code'];
 
         switch ($coupon['type']) {
             case '$FS':
-                $order['shipping'] = 0;
-                $discount = 0;
-                $result = array(
-                    'discount'    => $discount,
-                    'description' => $description.': '._w('Free shipping'),
-                );
+                $result = self::getFreeShippingByCoupons($order, $description);
                 break;
             case '%':
-                $percent = (float)$coupon['value'];
-                $discount = max(0.0, min(100.0, $percent)) * $order['total'] / 100.0;
-                $result = self::byPercent($order, $percent, $description);
+                $result = self::getPercentDiscountByCoupons($order, $coupon, $description);
                 break;
             default:
-                // Flat value in currency
-                $discount = max(0.0, (float)$coupon['value']);
-                if ($order['currency'] != $coupon['type']) {
-                    $crm = new shopCurrencyModel();
-                    $discount = (float)$crm->convert($discount, $coupon['type'], $order['currency']);
-                }
-                $result = array(
-                    'discount'    => $discount,
-                    'description' => $description,
-                );
+                $result = self::getIntegerDiscountByCoupons($order, $coupon, $description);
                 break;
         }
 
-        if ($apply) {
-            $cm->useOne($coupon['id']);
+        if ($result) {
+            if ($apply && !$order['id']) {
+                (new shopCouponModel())->useOne($coupon['id']);
+            }
+
+            $order['params']['coupon_id'] = $coupon['id'];
+            // Record total coupon discount
+            $order['params']['coupon_discount'] = $result['coupon_discount'];
+            // Remove from result as unnecessary
+            unset($result['coupon_discount']);
+            //Say that free shipping has been applied
+            if ($coupon['type'] == '$FS') {
+                $order['params']['coupon_free_shipping'] = 1;
+            }
         }
 
-        if (empty($order['params'])) {
-            $order['params'] = array();
+        return $result;
+    }
+
+    /**
+     * @param $order
+     * @param $coupon
+     * @param $description
+     * @return array
+     * @throws waException
+     */
+    protected static function getPercentDiscountByProductType($order, $coupon, $description)
+    {
+        $items = self::getItemsForCouponHash($order, $coupon);
+        $result = [];
+
+        if (!$items) {
+            return $result;
         }
-        $order['params']['coupon_id'] = $coupon['id'];
-        $order['params']['coupon_discount'] = $discount;
-        if ($coupon['type'] == '$FS') {
-            $order['params']['coupon_free_shipping'] = 1;
+
+        $percent = $coupon['value'];
+        $total_discount = 0;
+        foreach ($items as $item_id => $item) {
+            // Skip service
+            if ($item['type'] === 'service') {
+                continue;
+            }
+            $item_discount = $percent * $item['price'] / 100.0;
+            $item_discount = shop_currency($item_discount * $item['quantity'], $item['currency'], $order['currency'], false);
+            $total_discount += $item_discount;
+
+            $result['items'][$item_id] = array(
+                'discount'    => $item_discount,
+                'description' => $description,
+            );
+        }
+
+        if ($order['total'] < $total_discount) {
+            $result = [];
+        } else {
+            // Save total discount on items
+            $result['coupon_discount'] = $total_discount;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Takes the hash of the coupon and returns the products that are in the order and in the search results for the hash
+     *
+     * @param $order
+     * @param $coupon
+     * @return array
+     * @throws waException
+     */
+    protected static function getItemsForCouponHash($order, $coupon)
+    {
+        $hash = $coupon['products_hash'];
+        $result = [];
+        $items = $order['items'];
+
+        // If there is no hash, then there is no need to search for goods.
+        // If there is a hash, then you need to make sure that there are goods under it
+        if (empty($hash)) {
+            return $items;
+        }
+
+        $products_id = [];
+        foreach ($items as $item) {
+            $products_id[] = $item['product_id'];
+        }
+
+        if ($products_id) {
+            $collection = new shopProductsCollection($hash);
+            $collection->addWhere('p.id IN ('.implode(',', $products_id).')');
+            $products = $collection->getProducts('id');
+
+            if ($products) {
+                foreach ($items as $index => $item) {
+                    if (!isset($products[$item['product_id']])) {
+                        unset($items[$index]);
+                    }
+                }
+                $result = $items;
+            }
         }
 
         return $result;
@@ -411,6 +588,7 @@ HTML;
     /** Helper for apply() and calculate() to get customer's waContact from order data. May return null for new customers.
      * @param array $order
      * @return waContact
+     * @throws waException
      */
     protected static function getContact($order)
     {
@@ -503,7 +681,7 @@ HTML;
             $item['discount'] = min(max(0, $item['discount']), shop_currency($item['price'], $item['currency'], $currency, false) * $item['quantity']);
             // round discount per one item
             if ($item['quantity'] > 1) {
-                $round_discount =  $item['quantity'] * shop_currency($item['discount'] / $item['quantity'], $currency, $currency, false);
+                $round_discount = $item['quantity'] * shop_currency($item['discount'] / $item['quantity'], $currency, $currency, false);
                 if (($round_discount != $item['discount']) && waSystemConfig::isDebug()) {
                     $log = array(
                         'name'           => $item['name'],

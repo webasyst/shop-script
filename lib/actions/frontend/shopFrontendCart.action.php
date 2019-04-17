@@ -6,12 +6,15 @@ class shopFrontendCartAction extends shopFrontendAction
     {
         // In case new checkout is enabled and current design theme is not adapted to use it properly
         // (i.e. set up to use template from default theme), this controller must redirect to new cart url.
-        $route = wa()->getRouting()->getRoute();
-        $checkout_version = ifset($route, 'checkout_version', 1);
-        if ($checkout_version == 2 && isset($route['checkout_storefront_id'])) {
-            $checkout_config = new shopCheckoutConfig($route['checkout_storefront_id']);
-            if (ifempty($checkout_config, 'design', 'custom', null) === true) {
-                $this->redirect(wa()->getRouteUrl('shop/frontend/order'));
+        // We only redirect for non-XHRs because themes use XHRs here to fetch cart data.
+        if (!waRequest::isXMLHttpRequest() && !waRequest::request('forcenoredirect')) {
+            $route = wa()->getRouting()->getRoute();
+            $checkout_version = ifset($route, 'checkout_version', 1);
+            if ($checkout_version == 2 && isset($route['checkout_storefront_id'])) {
+                $checkout_config = new shopCheckoutConfig($route['checkout_storefront_id']);
+                if (ifempty($checkout_config, 'design', 'custom', null) === true) {
+                    $this->redirect(wa()->getRouteUrl('shop/frontend/order'));
+                }
             }
         }
 

@@ -55,6 +55,7 @@ return array(
                 'white',
                 'yellow',
                 'green',
+                'blue',
                 'brown',
                 'red',
                 'orange',

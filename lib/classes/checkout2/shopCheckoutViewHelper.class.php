@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Helper object available in templates as $wa->shop->checkout()
  */
@@ -65,29 +66,33 @@ class shopCheckoutViewHelper
 
         $config = new shopCheckoutConfig(ifset(ref(wa()->getRouting()->getRoute()), 'checkout_storefront_id', []));
         return [
-            'cart' => $order,
-            'currency_info' => [
-                'code' => $currency_info['code'],
+            'cart'              => $order,
+            'currency_info'     => [
+                'code'             => $currency_info['code'],
                 'fraction_divider' => ifset($locale_info, 'decimal_point', '.'),
-                'fraction_size' => ifset($currency_info, 'precision', 2),
-                'group_divider' => ifset($locale_info, 'thousands_sep', ''),
-                'group_size' => 3,
+                'fraction_size'    => ifset($currency_info, 'precision', 2),
+                'group_divider'    => ifset($locale_info, 'thousands_sep', ''),
+                'group_size'       => 3,
 
                 'pattern_html' => str_replace('0', '%s', waCurrency::format('%{h}', 0, $currency)),
                 'pattern_text' => str_replace('0', '%s', waCurrency::format('%{s}', 0, $currency)),
 
-                'is_primary' => $currency_info['is_primary'],
-                'rate' => $currency_info['rate'],
-                'rounding' => $currency_info['rounding'],
+                'is_primary'    => $currency_info['is_primary'],
+                'rate'          => $currency_info['rate'],
+                'rounding'      => $currency_info['rounding'],
                 'round_up_only' => $currency_info['round_up_only'],
             ],
-            'features' => (new shopFeatureModel())->getByCode(array_keys($feature_codes)),
-            'config' => $config,
+            'features'          => (new shopFeatureModel())->getByCode(array_keys($feature_codes)),
+            'config'            => $config,
         ];
     }
 
     protected function getTotalWeightHtml($weight_value)
     {
+        if (!$weight_value) {
+            return '';
+        }
+
         $f = (new shopFeatureModel())->getByCode('weight');
         if (!$f || $f['type'] != 'dimension.weight') {
             return waLocale::format($weight_value);
@@ -96,12 +101,12 @@ class shopCheckoutViewHelper
         $weight_info = shopDimension::getInstance()->getDimension('weight');
         $feature_values_dimension = new shopFeatureValuesDimensionModel();
         $dimension = new shopDimensionValue([
-            'type' => 'weight',
-            'feature_id' => $f['id'],
-            'value' => $weight_value,
-            'value_base_unit' => $weight_value,
-            'unit' => $weight_info['base_unit'],
-        ] + $feature_values_dimension->getEmptyRow());
+                'type'            => 'weight',
+                'feature_id'      => $f['id'],
+                'value'           => $weight_value,
+                'value_base_unit' => $weight_value,
+                'unit'            => $weight_info['base_unit'],
+            ] + $feature_values_dimension->getEmptyRow());
 
         return $dimension->format(false);
     }
@@ -168,8 +173,8 @@ class shopCheckoutViewHelper
         }
 
         return array(
-            'coupon_code' => $data['coupon_code'],
-            'coupon_discount' => ifset($order, 'params', 'coupon_discount', 0),
+            'coupon_code'          => $data['coupon_code'],
+            'coupon_discount'      => ifset($order, 'params', 'coupon_discount', 0),
             'coupon_free_shipping' => ifset($order, 'params', 'coupon_free_shipping', 0),
         );
     }
@@ -258,8 +263,8 @@ class shopCheckoutViewHelper
                 'can_be_ordered' => false,
             ]);
             $item['stock_count'] = $item_data['count'];
-            $item['sku_available'] = (bool) $item_data['available'];
-            $item['can_be_ordered'] = (bool) $item_data['can_be_ordered'];
+            $item['sku_available'] = (bool)$item_data['available'];
+            $item['can_be_ordered'] = (bool)$item_data['can_be_ordered'];
             if (!$item['can_be_ordered']) {
                 $name = $item['name'];
                 if ($item['sku_name']) {
@@ -493,7 +498,8 @@ class shopCheckoutViewHelper
         // Prepare product features, including weight
         $product_features_model = new shopProductFeaturesModel();
         foreach ($items as &$item) {
-            $item['product']['features'] = $product_features_model->getValues($item['product_id'], $item['sku_id'], $item['product']['type_id'], $item['product']['sku_type'], false);
+            $item['product']['features'] = $product_features_model->getValues($item['product_id'], $item['sku_id'], $item['product']['type_id'], $item['product']['sku_type'],
+                false);
             $item['product']['weight'] = ifset($item, 'product', 'features', 'weight', null);
             $item['product']['weight_html'] = $item['product']['weight'];
             $item['total_weight'] = null;
@@ -534,9 +540,9 @@ class shopCheckoutViewHelper
     {
         $template_path = wa()->getAppPath('templates/actions/frontend/FrontendOrderForm.html', 'shop');
         return $this->renderTemplate($template_path, $this->formVars() + array(
-            'shop_checkout_include_path' => wa()->getAppPath('templates/actions/frontend/order/', 'shop'),
-            'options' => $opts,
-        ));
+                'shop_checkout_include_path' => wa()->getAppPath('templates/actions/frontend/order/', 'shop'),
+                'options'                    => $opts,
+            ));
     }
 
     /**
@@ -574,7 +580,7 @@ class shopCheckoutViewHelper
     {
         $config = new shopCheckoutConfig(true);
         $result = array_merge([
-            'config' => $config,
+            'config'  => $config,
             'contact' => ifset($process_data, 'contact', null),
         ], $process_data['result']);
 

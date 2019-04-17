@@ -30,38 +30,52 @@
     $('#s-sidebar li.selected').removeClass('selected');
     $('#s-sidebar a[href="#/coupons/"]').parent().addClass('selected');
 
-    var sidebar = $('#s-content .sidebar');
-    var content = $('#s-content .content');
+    var scope = $('#s-content');
+
+    var sidebar = scope.find('.sidebar:first');
+    var content = scope.find('.content:first');
 
     // Helper to load editor content
     var rand = null;
-    var loadCouponEditor = function(id) {
+    var loadCouponEditor = function(id,products_hash) {
         var rn = rand = Math.random();
         id = id || '';
-        if (window.location.hash.toString() != '#/coupons/'+id) {
+        if (window.location.hash.toString() !== '#/coupons/'+id) {
             $.orders.stopDispatch(1);
             window.location.hash = '#/coupons/'+id;
         }
         sidebar.find('a[data-coupon-id="'+id+'"]').parent().addClass('selected').siblings('.selected').removeClass('selected');
-        $.get('?module=coupons&action=editor&id='+id, function(r) {
-            if (rand === rn) {
-                content.html(r);
+        $.get(
+            '?module=coupons&action=editor',
+            {
+                "id":id,
+                "products_hash":products_hash
+            },
+            function(r) {
+                if (rand === rn) {
+                    content.html(r);
+                }
             }
-        });
+        );
     };
 
     // Open coupon in editor: either take id from hash, or use the first one in sidebar list (if exists)
     var hash = window.location.hash.toString().split('/');
-    while (hash.length && hash.shift() != 'coupons') {
+    while (hash.length && hash.shift() !== 'coupons') {
         ;
     }
-    loadCouponEditor(hash[0] || sidebar.find('.s-coupon-list a:not(.bold)').data('couponId'));
+    if(hash[0]==='hash'){
+        hash.shift();
+        loadCouponEditor('',hash.join('/'));
+    } else {
+        loadCouponEditor(hash[0] || sidebar.find('.s-coupon-list a:not(.bold)').data('couponId'));
+    }
 
     // Click on a coupon in sidebar (or a link to add new one) loads it in editor.
     sidebar.children('.s-coupon-list').on('click', 'a', function() {
         loadCouponEditor($(this).data('couponId'));
     });
-    
+
     // document title
     document.title = "[`Discount coupons`] — {$wa->accountName(false)|escape:javascript}";
 });</script>

@@ -56,6 +56,12 @@
             {$_f = $contact_fields[$_field_id]}
             {$_format_f = ifempty($format_contact_fields[$_field_id])}
         {/if}
+
+        {* ignore special tech fields *}
+        {if $_field_id === 'company_contact_id'}
+            {continue}
+        {/if}
+
         <tr class="js-field" data-id="{$_field_id|escape}">
             {* Sort, used and name *}
             <td>
@@ -90,12 +96,12 @@
     {/foreach}
 {/function}
 
-{function renderOrderLocation _location=[]}
+{function renderShippingLocation _location=[]}
 <tr class="js-location">
     {* Sort / used *}
     <td style="min-width: 38px; width: 38px;">
         <i class="icon16 sort"></i>
-        <input type="checkbox" data-name="enabled"{if $_location.enabled|default:false} checked{/if} title="[`Use shipping area`]" />
+        <input type="checkbox" data-name="enabled" {if empty($_location) || !empty($_location.enabled)}checked{/if} title="[`Use shipping area`]" />
     </td>
     {* Name *}
     <td title="[`Shipping area name`]">
@@ -142,7 +148,7 @@
 </tr>
 {/function}
 
-{function renderOrderNoLocations}
+{function renderShippingNoLocations}
 <tr class="js-no-locations no-border">
     <td style="text-align: center;">[`No shipping areas added`]</td>
 </tr>
@@ -483,103 +489,6 @@
             {/foreach}
         </div>
     </div>
-
-    {* Checkout mode *}
-    <div class="field">
-        <div class="name s-table-field-name bold">[`Checkout type`]</div>
-        <div class="value s-table-field-value radio js-order-mode-wrapper">
-            {foreach $order_mode_variants as $_id => $_variant}
-                <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
-                    <label>
-                        <input class="js-order-mode-variant" type="radio" name="data[order][mode]" value="{$_id|escape}"{if $settings.mode === $_id} checked{/if} />
-                        {$_variant.name|escape}
-                        <div class="hint" style="margin: 10px 0 20px 18px;">{$_variant.description}</div>
-                    </label>
-                    <div class="s-variant-params block-padded js-variant-params"{if $settings.mode !== $_id} style="display: none;"{/if}>
-                        {* DEFAULT MODE PARAMS *}
-                        {if shopCheckoutConfig::ORDER_MODE_TYPE_DEFAULT === $_id}
-                            {* Fixed delivery area *}
-                            <div class="field">
-                                <div class="name">[`Limit shipping area`]</div>
-                                <div class="value">
-                                    <label>
-                                        [`Country`]
-                                        <select name="data[order][fixed_delivery_area][country]" class="js-fix-delivery-country">
-                                            <option value="">[`Select a country`]</option>
-                                            {foreach $countries as $_country_id => $_country}
-                                                <option value="{$_country_id}" title="{$_country.name|escape}"{if $settings.fixed_delivery_area.country === $_country_id} selected{/if}>{$_country.name|escape|truncate:27:'...'}</option>
-                                            {/foreach}
-                                        </select>
-                                    </label>
-                                </div>
-                                <div class="value">
-                                    <label>
-                                        [`Regions`]
-                                        <select name="data[order][fixed_delivery_area][region]" class="js-fix-delivery-region">
-                                            <option value="">[`Select a region`]</option>
-                                            {foreach $regions as $_region}
-                                                <option value="{$_region.code|escape}" title="{$_region.name|escape}" data-country="{$_region.country_iso3|escape}"{if $settings.fixed_delivery_area.country == $_region.country_iso3 && $settings.fixed_delivery_area.region === $_region.code} selected{/if}>{$_region.name|escape|truncate:30:'...'}</option>
-                                            {/foreach}
-                                        </select>
-                                    </label>
-                                </div>
-                                <div class="value">
-                                    <label>
-                                        [`Locality`]
-                                        <input name="data[order][fixed_delivery_area][city]" class="js-fix-delivery-city" type="text" value="{$settings.fixed_delivery_area.city|escape}" autocomplete="off" />
-                                    </label>
-                                    <div class="hint" style="margin-top: 10px;">
-                                        [`Separate locality names with a comma.`]
-                                    </div>
-                                </div>
-                            </div>
-
-                            {* Pickup map *}
-                            <div class="field">
-                                <div class="name">[`Show pickup points map`]</div>
-                                <div class="value radio">
-                                    {foreach $order_show_pickuppoint_map_variants as $_map_variant_id => $_map_variant}
-                                        <div class="s-checkout-radio-variant js-variant" data-id="{$_map_variant_id|escape}">
-                                            <label>
-                                                <input type="radio" name="data[order][show_pickuppoint_map]" value="{$_map_variant_id|escape}"{if $settings.show_pickuppoint_map === $_map_variant_id} checked{/if} />
-                                                {$_map_variant.name|escape}
-                                                {if isset($_map_variant.description)}
-                                                    <p class="hint">{$_map_variant.description}</p>
-                                                {/if}
-                                            </label>
-                                        </div>
-                                    {/foreach}
-                                </div>
-                            </div>
-
-                        {* MINIMAL MODE PARAMS *}
-                        {else}
-                            <div class="hint" style="margin: -10px 0 10px 0;">[`Use a fixed list of <strong>shipping areas</strong> if you deliver orders to a limited list of locations. Customers can quickly select a location from a list without having to select a country and region first.`]</div>
-                            <div class="hint" style="margin: 10px 0;">[`A <strong>country is required</strong> to be selected in shipping area properties. If a region or a city name are not specified, they will be requested from a customer.`]</div>
-                            <div class="hint" style="margin: 10px 0;">[`If <strong>no shipping areas have been set up</strong>, customers will have to select a country and a region, and to enter a city name to view available shipping options.`]</div>
-                            <div class="hint" style="margin: 10px 0;">[`If you set up <strong>only one shipping area</strong>, with <strong>country</strong>, <strong>region</strong>, and <strong>city</strong> specified, then customers will see at once all shipping options available for that area only, without an option to change location.`]</div>
-
-                            <table class="zebra s-locations-table s-sort-table js-sort-table js-locations-table">
-                                <tbody>
-                                    {foreach $settings.locations_list as $_location}
-                                        {renderOrderLocation _location=$_location}
-                                    {foreachelse}
-                                        {renderOrderNoLocations}
-                                    {/foreach}
-                                </tbody>
-                            </table>
-                            <div style="margin-top: 10px;">
-                                <a href="javascript:void(0);" class="inline-link js-add-location">
-                                    <i class="icon16 add"></i>
-                                    <b><i>[`Add shipping area`]</i></b>
-                                </a>
-                            </div>
-                        {/if}
-                    </div>
-                </div>
-            {/foreach}
-        </div>
-    </div>
 </div>
 {/function}
 
@@ -738,20 +647,6 @@
             </div>
         </div>
 
-        {* Ask zip *}
-        <div class="field">
-            <div class="name">
-                [`ZIP code`]
-            </div>
-            <div class="value">
-                <label>
-                    <input type="hidden" name="data[shipping][ask_zip]" value="0" />
-                    <input class="js-shipping-ask-zip" type="checkbox" name="data[shipping][ask_zip]"{if $settings.ask_zip} checked{/if} />
-                    [`Request ZIP code with the locality name`]
-                </label>
-            </div>
-        </div>
-
         {* Courier name *}
         <div class="field">
             <div class="name">
@@ -782,10 +677,155 @@
             </div>
         </div>
 
+        {* Plugin timeout *}
+        <div class="field">
+            <div class="name">
+                <label for="shipping_plugin_timeout">[`Shipping plugins response waiting time`]</label>
+            </div>
+            <div class="value input">
+                <input id="shipping_plugin_timeout" class="s-input-seconds" type="text" name="data[shipping][plugin_timeout]" autocomplete="off" value="{$settings.plugin_timeout|escape}" />
+                <label for="shipping_plugin_timeout">[`sec`]</label>
+                <div class="hint" style="margin-top: 10px;">
+                    [`Shipping options provided by plugins which process external requests longer than specified will not be available for choice.`]
+                </div>
+            </div>
+        </div>
+
+        {* Checkout mode *}
+        <div class="field">
+            <div class="name s-table-field-name bold">[`Shipping area selection`]</div>
+            <div class="value s-table-field-value radio js-shipping-mode-wrapper">
+                {foreach $shipping_mode_variants as $_id => $_variant}
+                    <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
+                        <label>
+                            <input class="js-shipping-mode-variant" type="radio" name="data[shipping][mode]" value="{$_id|escape}"{if $settings.mode === $_id} checked{/if} />
+                            <span class="s-name">{$_variant.name|escape}</span>
+                            {if !empty($_variant.description)}
+                                <div class="s-description hint" style="margin: 10px 0 20px 18px;">{$_variant.description}</div>
+                            {/if}
+                        </label>
+                        <div class="s-variant-params block-padded js-variant-params"{if $settings.mode !== $_id} style="display: none;"{/if}>
+                            {* DEFAULT MODE PARAMS *}
+                            {if shopCheckoutConfig::SHIPPING_MODE_TYPE_DEFAULT === $_id}
+                                {* Fixed delivery area *}
+                                <div class="field">
+                                    <div class="name">[`Limit shipping area`]</div>
+                                    <div class="value">
+                                        <label>
+                                            [`Country`]
+                                            <select name="data[shipping][fixed_delivery_area][country]" class="js-fix-delivery-country">
+                                                <option value="">[`Select a country`]</option>
+                                                {foreach $countries as $_country_id => $_country}
+                                                    <option value="{$_country_id}" title="{$_country.name|escape}"{if $settings.fixed_delivery_area.country === $_country_id} selected{/if}>{$_country.name|escape|truncate:27:'...'}</option>
+                                                {/foreach}
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <div class="value">
+                                        <label>
+                                            [`Regions`]
+                                            <select name="data[shipping][fixed_delivery_area][region]" class="js-fix-delivery-region">
+                                                <option value="">[`Select a region`]</option>
+                                                {foreach $regions as $_region}
+                                                    <option value="{$_region.code|escape}" title="{$_region.name|escape}" data-country="{$_region.country_iso3|escape}"{if $settings.fixed_delivery_area.country == $_region.country_iso3 && $settings.fixed_delivery_area.region === $_region.code} selected{/if}>{$_region.name|escape|truncate:30:'...'}</option>
+                                                {/foreach}
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <div class="value">
+                                        <div class="hint" style="margin-top: 10px;">
+                                            [`Selected country and region will be visible to customers but not available for changing.`]<br>
+                                            [`To hide selected country and region fields from customers, switch to “Minimal” mode and set up a single shipping area with a country and region selected in its settings.`]
+                                        </div>
+                                    </div>
+                                    <div class="value">
+                                        <label>
+                                            [`Locality`]
+                                            <input name="data[shipping][fixed_delivery_area][city]" class="js-fix-delivery-city" type="text" value="{$settings.fixed_delivery_area.city|escape}" autocomplete="off" />
+                                        </label>
+                                        <div class="hint">
+                                            [`Separate locality names with a comma.`]
+                                        </div>
+                                    </div>
+                                </div>
+
+                            {* MINIMAL MODE PARAMS *}
+                            {else}
+                                <div class="hint" style="margin: 10px 0;">[`Use a fixed list of <strong>shipping areas</strong> if you deliver orders to a limited list of locations. Customers can quickly select a location from a list without having to select a country and region first.`]</div>
+                                <div class="hint" style="margin: 10px 0;">[`A <strong>country is required</strong> to be selected in shipping area properties. If a region or a city name are not specified, they will be requested from a customer.`]</div>
+                                <div class="hint" style="margin: 10px 0;">[`If <strong>no shipping areas have been set up</strong>, customers will have to select a country and a region, and to enter a city name to view available shipping options.`]</div>
+                                <div class="hint" style="margin: 10px 0;">[`If you set up <strong>only one shipping area</strong>, with <strong>country</strong>, <strong>region</strong>, and <strong>city</strong> specified, then customers will see at once all shipping options available for that area only, without an option to change location. If you do not complete the region or locality fields in the single available shipping area’s properties, then only those empty fields will be visible during checkout.`]</div>
+
+                                <table class="zebra s-locations-table s-sort-table js-sort-table js-locations-table">
+                                    <tbody>
+                                    {foreach $settings.locations_list as $_location}
+                                        {renderShippingLocation _location=$_location}
+                                        {foreachelse}
+                                        {renderShippingNoLocations}
+                                    {/foreach}
+                                    </tbody>
+                                </table>
+                                <div style="margin-top: 10px;">
+                                    <a href="javascript:void(0);" class="inline-link js-add-location">
+                                        <i class="icon16 add"></i>
+                                        <b><i>[`Add shipping area`]</i></b>
+                                    </a>
+                                </div>
+                            {/if}
+                        </div>
+                    </div>
+                {/foreach}
+            </div>
+        </div>
+
+        {* Pickup map *}
+        <div class="field">
+            <div class="name s-table-field-name bold">[`Shipping option selection`]</div>
+            <div class="value s-table-field-value radio js-map-mode-wrapper">
+                {foreach $shipping_show_pickuppoint_map_variants as $_map_variant_id => $_map_variant}
+                    {$_is_active = false}
+                    {if $settings.show_pickuppoint_map === $_map_variant_id}{$_is_active = true}{/if}
+
+                    <div class="s-checkout-radio-variant js-variant" data-id="{$_map_variant_id|escape}">
+                        <label>
+                            <input class="s-radio js-radio" type="radio" name="data[shipping][show_pickuppoint_map]" value="{$_map_variant_id|escape}"{if !empty($_is_active)} checked{/if}>
+                            <span class="s-name">{$_map_variant.name|escape}</span>
+                        </label>
+
+                        {if !empty($_map_variant.description)}
+                            <div class="s-variant-params block-padded js-variant-params"{if empty($_is_active)} style="display: none;"{/if}>
+                                <p class="s-description hint">{$_map_variant.description}</p>
+                            </div>
+                        {/if}
+                    </div>
+                {/foreach}
+
+                <div class="s-variant-params block-padded">
+                    <div class="hint">[`A small map with one pickup point will be shown by a click on an address in the pickup point selection dialog.`]</div>
+                </div>
+            </div>
+        </div>
+
         {* Adress fields *}
         <div class="field">
-            <div class="name s-table-field-name">[`Address fields`]</div>
+            <div class="name s-table-field-name bold">[`Address fields`]</div>
             <div class="value s-table-field-value js-fields-editor" data-type="address">
+
+                {* Ask zip *}
+                <div class="field" style="margin-top: 0;">
+                    <div class="name">
+                        [`ZIP code`]
+                    </div>
+                    <div class="value">
+                        <label>
+                            <input type="hidden" name="data[shipping][ask_zip]" value="0" />
+                            <input class="js-shipping-ask-zip" type="checkbox" name="data[shipping][ask_zip]"{if $settings.ask_zip} checked{/if} />
+                            [`Request ZIP code with the locality name`]
+                        </label>
+                    </div>
+                    <div class="clear"></div>
+                </div>
+
                 <table class="zebra s-sort-table js-sort-table">
                     <tbody>
                         {* Fake Fields. They are required because there are separate settings for them. *}
@@ -872,20 +912,6 @@
                 <textarea class="block-padded js-shipping-service-agreement-hint"{if !$settings.service_agreement} style="display: none;"{/if} name="data[shipping][service_agreement_hint]">{$settings.service_agreement_hint|escape}</textarea>
             </div>
         </div>
-
-        {* Plugin timeout *}
-        <div class="field">
-            <div class="name">
-                <label for="shipping_plugin_timeout">[`Shipping plugins response waiting time`]</label>
-            </div>
-            <div class="value input">
-                <input id="shipping_plugin_timeout" class="s-input-seconds" type="text" name="data[shipping][plugin_timeout]" autocomplete="off" value="{$settings.plugin_timeout|escape}" />
-                <label for="shipping_plugin_timeout">[`sec`]</label>
-                <div class="hint" style="margin-top: 10px;">
-                    [`Shipping options provided by plugins which process external requests longer than specified will not be available for choice.`]
-                </div>
-            </div>
-        </div>
     </div>
 {/function}
 
@@ -951,7 +977,7 @@
 
     {* Order without auth *}
     <div class="field s-checkout-auth-with-code">
-        <div class="name">[`Unauthorized checkout with existing customer profiles`]</div>
+        <div class="name">[`Customer profiles updating &amp; auto-signup`]</div>
         <div class="value radio js-order-without-auth-wrapper">
             {foreach $confirmation_order_without_auth_variants as $_id => $_variant}
                 <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
@@ -966,9 +992,10 @@
                 </div>
             {/foreach}
 
+            <p class="hint">{sprintf('[`<a href="%s" target="_blank">How to choose the correct option for this setting</a>.`]', '[`https://www.shop-script.com/help/29297/in-cart-checkout/#customer-profiles-updating`]')} <a href="[`https://www.shop-script.com/help/29297/in-cart-checkout/#customer-profiles-updating`]" target="_blank"><i class="icon16 new-window"></i></a></p>
+
             {*
             <div class="hint block-padded js-auth-with-code-hint">
-                { TODO: Locale !!! }
                 [`Проверочный код для подтверждения будет отправлен на email-адрес или телефон покупателя в зависимости от настроек авторизации для этого сайта.`]<br><br>
                 [`После подтверждения покупатель будет авторизован и сможет войти в личный кабинет.`]<br><br>
                 <span class="s-skip-confirmation">[`Покупатель может пропустить подтверждение email-адрес или телефона.`]</span>

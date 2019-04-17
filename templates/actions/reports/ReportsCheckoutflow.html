@@ -1,6 +1,7 @@
 <div class="block double-padded">
     <h1>[`Checkout funnel`]</h1>
-    <p>[`Checkout funnel report shows how many customers abandon their orders during the checkout process based on unique shopping cart sessions.`]</p>
+    <p>[`Checkout funnel report shows how many customers abandon their orders during the checkout process based on unique shopping cart sessions.`]
+    	<br><em class="highlighted">[`This report is generated only for storefronts with multi-step checkout.`]</em></p>
 
     <table class="s-checkoutflow">
     {$maxSteps = count($stat)}
@@ -45,6 +46,15 @@
             <a href="#" id="s-reports-checkoutflow-dismiss" class="inline-link gray"><b><i>[`Dismiss`]</i></b></a>
         </p>
     {/if}
+    
+    <h4>[`Multi-step checkout storefronts`]</h4>
+
+	<table class="zebra" style="width: auto;">
+	    {foreach $storefronts as $storefront}
+	        <tr><td><a href="{$wa_app_url}?action=reports#/sales/type=storefronts&filter[name]={$storefront.url}">{$storefront.url_decoded}</a></td></tr>
+	    {/foreach}
+    </table>
+
 </div>
 
 {* dialog section *}

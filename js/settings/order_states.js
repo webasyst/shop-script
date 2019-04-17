@@ -21,6 +21,27 @@ $.extend($.settings || {}, {
     // Called from SettingsOrderStates.html template
     orderStatesInit: function(options) { "use strict";
 
+        // payment_allowed checkbox
+        ( function($) { "use strict";
+            var $wrapper = $('#s-save-order-state'),
+                $section = $wrapper.find(".s-payment-section"),
+                $textarea = $section.find(".js-textarea"),
+                $hidden = $section.find(".js-hidden");
+
+            $section.on("change", ".js-checkbox", function () {
+                var $checkbox = $(this),
+                    is_active = $checkbox.is(':checked');
+
+                if (is_active) {
+                    $hidden.hide();
+                    $textarea.attr('disabled', true);
+                } else {
+                    $textarea.attr('disabled', false);
+                    $hidden.show();
+                }
+            });
+        })(jQuery);
+
         // State border color picker
         (function() {
             var $color_input = $('#s-color').addClass('s-color');
@@ -148,6 +169,10 @@ $.extend($.settings || {}, {
                         }
                     }
                 });
+
+                if ($block.data('extends') === false) {
+                    $wrapper.find(':input[name^="edit_action_extends\["]:first').parents('div.field:first').remove();
+                }
 
                 // Replace id field with read-only text
                 var id_text = $block.find('[name="edit_action_id[' + action_id + ']"]').val();
@@ -353,7 +378,7 @@ $.extend($.settings || {}, {
         changeListener(function () {
             $('#s-settings-order-states-submit').removeClass('green').addClass('yellow');
         });
-        
+
         // init buttons preview
         (function () {
 

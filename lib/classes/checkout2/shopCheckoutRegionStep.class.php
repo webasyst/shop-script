@@ -23,15 +23,15 @@ class shopCheckoutRegionStep extends shopCheckoutStep
         }
 
         // List of pre-defined locations
-        if (ifempty($cfg, 'order', 'mode', shopCheckoutConfig::ORDER_MODE_TYPE_DEFAULT) == shopCheckoutConfig::ORDER_MODE_TYPE_DEFAULT) {
+        if (ifempty($cfg, 'shipping', 'mode', shopCheckoutConfig::SHIPPING_MODE_TYPE_DEFAULT) == shopCheckoutConfig::SHIPPING_MODE_TYPE_DEFAULT) {
             // Default mode is like fixed mode with a single location
             // for which we hide the selector.
             $cfg_locations = [[
                 'name' => '',
                 'enabled' => true,
-            ] + ifempty($cfg, 'order', 'fixed_delivery_area', [])];
+            ] + ifempty($cfg, 'shipping', 'fixed_delivery_area', [])];
         } else {
-            $cfg_locations = ifempty($cfg, 'order', 'locations_list', []);
+            $cfg_locations = ifempty($cfg, 'shipping', 'locations_list', []);
         }
 
         // Load countries.

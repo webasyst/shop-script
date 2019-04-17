@@ -446,7 +446,11 @@
             var that = this,
                 $document = $(document);
 
-            that.$wrapper.removeAttr("style").removeClass("is-not-ready");
+            var invisible_class = "js-invisible-content";
+            that.$wrapper.find(".wa-cart-body > .wa-cart-loader").remove();
+            that.$wrapper.removeClass("is-not-ready")
+                .find("." + invisible_class).removeAttr("style").removeClass(invisible_class);
+
             that.$outer_wrapper.data("controller", that);
             that.trigger("ready", that);
 

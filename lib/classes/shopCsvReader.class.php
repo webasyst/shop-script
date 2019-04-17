@@ -347,7 +347,7 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
             $empty = true;
             $line = null;
 
-            if ($line = fgetcsv($this->fp, 0, $this->delimiter)) {
+            if ($line = fgetcsv($this->fp, 0, $this->delimiter, '"', '"')) {
                 if ($this->params['trim_cells']) {
                     $line = array_map('trim', $line);
                 }
@@ -497,18 +497,24 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
                 if (is_array($column)) {
                     $insert = array();
                     foreach ($column as $id) {
-                        $cell = ifset($line[$id]);
-                        if (($cell !== '') || !$this->params['ignore_empty_cells']) {
-                            $insert[] = $cell;
+                        $cell = ifset($line, $id, null);
+                        if ($cell !== null) {
+                            $cell = rtrim($cell, ' ');
+                            if (($cell !== '') || !$this->params['ignore_empty_cells']) {
+                                $insert[] = $cell;
+                            }
                         }
                     }
                     if (!count($insert)) {
                         $insert = null;
                     }
                 } elseif ($column >= 0) {
-                    $cell = ifset($line[$column]);
-                    if (($cell !== '') || !$this->params['ignore_empty_cells']) {
-                        $insert = $cell;
+                    $cell = ifset($line, $column, null);
+                    if ($cell !== null) {
+                        $cell = rtrim($cell, ' ');
+                        if (($cell !== '') || !$this->params['ignore_empty_cells']) {
+                            $insert = $cell;
+                        }
                     }
                 }
                 if ($insert !== null) {
@@ -614,17 +620,16 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
 
             for ($id = 0; $id < $this->header_count; $id++) {
                 if (isset($this->current[$id])) {
+                    $name = htmlentities($this->current[$id], ENT_QUOTES, 'utf-8');
                     if (mb_strlen($this->current[$id]) > 24) {
-                        $row .= '<td title="'.htmlentities($this->current[$id], ENT_QUOTES, 'utf-8').'">'.htmlentities(
-                                mb_substr($this->current[$id], 0, 20),
-                                ENT_NOQUOTES,
-                                'utf-8'
-                            ).'…</td>';
+                        $short_name = mb_substr($this->current[$id], 0, 20);
+                        $short_name = htmlentities($short_name, ENT_NOQUOTES, 'utf-8');
+                        $row .= '<td title="'.$name.'">'.$short_name.'…</td>';
                     } else {
                         if ($this->current[$id] === '') {
                             $row .= '<td>&nbsp;</td>';
                         } else {
-                            $row .= '<td>'.htmlentities($this->current[$id], ENT_NOQUOTES, 'utf-8').'</td>';
+                            $row .= '<td>'.$name.'</td>';
                         }
                     }
                 } else {
@@ -749,7 +754,7 @@ HTML;
             $rows[0] .= '<td title="'.($id + 1).'">'.self::id2name($id)."</td>";
             $header['title'] = trim($header['title']);
             if (!empty($header['title'])) {
-                $header['title'] = htmlentities($header['title'], ENT_NOQUOTES, waHtmlControl::$default_charset);
+                $header['title'] = htmlspecialchars($header['title'], ENT_NOQUOTES, waHtmlControl::$default_charset);
             } else {
                 $header['title'] = '&nbsp;';
             }
@@ -791,7 +796,7 @@ HTML;
         if (intval(preg_replace('@\D+@', '', $this->count)) > $n) {
             if (!empty($params['row_handler'])) {
                 $translate = _w('Load more...');
-                $translate_ = htmlentities($translate, ENT_QUOTES, 'utf-8');
+                $translate_ = htmlspecialchars($translate, ENT_QUOTES, 'utf-8');
                 if (!empty($params['row_handler_string'])) {
                     $count_str .= <<<HTML
 <br/>
@@ -985,10 +990,10 @@ HTML;
                     $html .= '</tbody>';
                 }
                 $group = $target['group']['title'];
-                $group_name = htmlentities(ifset($target['group']['title'], ' '), ENT_NOQUOTES, waHtmlControl::$default_charset);
+                $group_name = htmlspecialchars(ifset($target['group']['title'], ' '), ENT_NOQUOTES, waHtmlControl::$default_charset);
                 $class = '';
                 if (!empty($target['group']['class'])) {
-                    $class = sprintf(' class="%s"', htmlentities($target['group']['class'], ENT_QUOTES, waHtmlControl::$default_charset));
+                    $class = sprintf(' class="%s"', htmlspecialchars($target['group']['class'], ENT_QUOTES, waHtmlControl::$default_charset));
                 }
                 $html .= <<<HTML
 <tbody {$class}><tr><th colspan="3">{$group_name}</th></tr>
@@ -1011,7 +1016,7 @@ HTML;
         if ($group) {
             $html .= '</tbody>';
         }
-        $html .= '</table>';;
+        $html .= '</table>';
         return $html;
     }
 
@@ -1037,10 +1042,10 @@ HTML;
 
             if (!empty($options['similar'])) {
                 foreach ($params['options'] as & $column) {
-                    if(!empty($column['no_match'])){
+                    if (!empty($column['no_match'])) {
                         $column['like'] = 0;
                     } else {
-                        similar_text($column['title'], $target, $column['like']);
+                        similar_text($column['similar'], $target, $column['like']);
                         if ($column['like'] >= 90) {
                             $max = $column['like'];
                             $selected =& $column;
@@ -1055,13 +1060,13 @@ HTML;
             if ($max < 90) {
                 unset($selected);
                 $max = 0;
-                $to = mb_strtolower($target);
+                $to = mb_strtolower($target, 'UTF-8');
                 foreach ($params['options'] as & $column) {
                     if (empty($column['no_match']) && ($column['like'] < 90)) {
-                        $from = mb_strtolower($column['title']);
+                        $from = mb_strtolower($column['title'], 'UTF-8');
                         if ($from && $to && ((strpos($from, $to) === 0) || (strpos($to, $from) === 0))) {
-                            $l_from = mb_strlen($from);
-                            $l_to = mb_strlen($to);
+                            $l_from = mb_strlen($from, 'UTF-8');
+                            $l_to = mb_strlen($to, 'UTF-8');
                             $column['like'] = 100 * min($l_from, $l_to) / max($l_from, $l_to, 1);
                             if ($column['like'] > $max) {
                                 $selected =& $column;
@@ -1070,6 +1075,10 @@ HTML;
                         }
                     }
                     unset($column);
+                }
+
+                if ($max < 85) {
+                    unset($selected);
                 }
             }
             if (!empty($params['sort'])) {

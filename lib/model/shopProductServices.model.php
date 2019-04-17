@@ -127,6 +127,7 @@ class shopProductServicesModel extends waModel
      *   )
      *
      * @return boolean
+     * @throws waException
      */
     public function save($product_id, $service_id, $data)
     {
@@ -303,6 +304,7 @@ class shopProductServicesModel extends waModel
             ORDER BY sv.service_id, sv.id, ps.sku_id";
 
         $service_id = 0;
+
         foreach ($this->query($sql) as $item) {
             if ($item['service_id'] != $service_id) {
                 $service_id = $item['service_id'];

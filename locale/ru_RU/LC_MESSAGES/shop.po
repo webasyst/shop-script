@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 1.8.7.1\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -8580,15 +8580,33 @@ msgid "Guest checkout"
 msgstr "Заказ без авторизации"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:92
-msgid "Create new customer profile for every guest order"
-msgstr "Создавать новый профиль покупателя для каждого заказа"
+msgid "Create a new customer profile for every guest order"
+msgstr "Создавать новый профиль покупателя для каждого заказа без авторизации"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:98
-msgid "Add an order to existing customer profile with the same phone number or email address"
-msgstr "Прикреплять заказ к существующему покупателю с таким же номером телефона или email-адресом"
+msgid "Add an order to existing customer profile with the same email address or phone number"
+msgstr "Прикреплять заказ к существующему покупателю с таким же email-адресом или номером телефона"
 
 msgid "Add an order to existing customer profile with the same email address"
 msgstr "Прикреплять заказ к существующему покупателю с таким же email-адресом"
+
+msgid "Non-authorized customers do not need to confirm their email address or phone number."
+msgstr "Неавторизованные покупатели не должны подтверждать свой email-адрес или номер телефона."
+
+msgid "Authorized customers cannot use an email address or phone number from other customers’ or backend users’ profiles."
+msgstr "Авторизованные покупатели не могут использовать email-адрес или номер телефона, ранее сохраненные в профилях других покупателей или пользователей бекенда."
+
+msgid "Non-authorized customers must confirm their email address or phone number before checkout completion, only if those data have been found in other registered customers’ profiles or in only one backend user profile. Such customers are automatically logged in right after confirmation or get signed up, if not registered, and receive a corresponding notification."
+msgstr "Неавторизованные покупатели должны подтвердить email-адрес или номер телефона до завершения оформления заказа, только если эти данные были ранее сохранены в профилях других зарегистрированных покупателей или в профиле одного пользователя бекенда. Такие покупатели авторизуются автоматически сразу после подтверждения или становятся зарегистрированными — с отправкой уведомления об этом, если ранее не были зарегистрированы."
+
+msgid "Authorized customers can change their email address or phone number to those found in other registered customers’ profiles or in one backend user profile, only after confirmation."
+msgstr "Авторизованные покупатели могут сменить email-адрес или номер телефона на ранее сохраненные в профилях других зарегистрированных покупателей или в профиле одного пользователя бекенда — только после подтверждения."
+
+msgid "A customer cannot place an order with the use of an email address or phone number found in multiple backend user profiles."
+msgstr "Нельзя оформить заказ с использованием email-адреса или номера телефона, указанных в профилях нескольких пользователей бекенда."
+
+msgid "Non-authorized customers must confirm their email address or phone number before checkout completion. Such customers are automatically logged in right after confirmation or get signed up, if not registered, and receive a corresponding notification."
+msgstr "Неавторизованные покупатели должны подтвердить email-адрес или номер телефона до завершения оформления заказа. Такие покупатели авторизуются автоматически сразу после подтверждения или становятся зарегистрированными — с отправкой уведомления об этом, если ранее не были зарегистрированы."
 
 #: /wa-apps/shop/themes/default/checkout.error.html:2
 msgid "Oops!"
@@ -9124,7 +9142,7 @@ msgstr "Покупатели магазина"
 
 #: /wa-apps/shop/themes/default/cart.html:87
 msgid "Invalid coupon code"
-msgstr "Неверный код купона"
+msgstr "Купон недействителен"
 
 #: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:18
 #: /wa-apps/shop/templates/actions/reports/ReportsSales.html:17
@@ -9959,8 +9977,8 @@ msgid "Condition"
 msgstr "Условие"
 
 #: /wa-apps/shop/templates/actions/transfer/Transfer.html:80
-msgid "Start typing name of an existing product or SKU"
-msgstr "Начните вводить название уже добавленного товара или артикула"
+msgid "Enter a product name, an SKU name, or an SKU code"
+msgstr "Введите название товара, название артикула или код артикула"
 
 #: /wa-apps/shop/templates/mail/Order.create.html:109
 msgid "Order status"
@@ -10844,8 +10862,8 @@ msgstr "Поведение"
 msgid "Payment option availability"
 msgstr "Доступность возможности оплаты"
 
-msgid "customers can pay for orders in this state in their personal accounts"
-msgstr "покупатели могут оплачивать заказы в этом статусе в личном кабинете"
+msgid "customers can pay for orders in this state"
+msgstr "покупатели могут оплачивать заказы в этом статусе"
 
 msgid "Order status will be changed to “%s”."
 msgstr "Статус заказа изменится на «%s»."
@@ -11141,6 +11159,12 @@ msgstr "населенный пункт"
 msgid "Separate locality names with a comma."
 msgstr "Перечислите населенные пункты через запятую."
 
+msgid "Selected country and region will be visible to customers but not available for changing."
+msgstr "Выбранные страна и регион будут видны покупателям, но будут недоступны для изменения."
+
+msgid "To hide selected country and region fields from customers, switch to “Minimal” mode and set up a single shipping area with a country and region selected in its settings."
+msgstr "Чтобы скрыть выбранные страну и регион от покупателей, переключитесь на «Минимальный» режим и настройте единственную область доставки, в настройках которой выберите страну и регион."
+
 msgid "Show pickup points map"
 msgstr "Показывать карту выбора пунктов самовывоза"
 
@@ -11222,8 +11246,8 @@ msgstr "Введите текст условий предоставления у
 msgid "If this field is completed, customers will see a link to the conditions and a checkbox to confirm their consent before checkout completion."
 msgstr "Если это поле заполнено, то при подтверждении заказа покупатели увидят ссылку на текст условий и флажок, чтобы подтвердить свое согласие с ними."
 
-msgid "Unauthorized checkout with existing customer profiles"
-msgstr "Заказ без авторизации с существующими профилями покупателя"
+msgid "Customer profiles updating &amp; auto-signup"
+msgstr "Обновление профилей покупателей и автоматическая регистрация"
 
 msgid "Ask to log in with a confirmation code"
 msgstr "Попросить войти с использованием проверочного кода"
@@ -11285,9 +11309,6 @@ msgstr "Отображение отдельных сумм скидки по к�
 msgid "Default"
 msgstr "Обычный"
 
-msgid "Available shipping options are grouped by type—“courier”, “pickup”, “post”."
-msgstr "Доступные варианты доставки сгруппированы по типам: «курьер», «самовывоз», «почта»."
-
 msgid "Minimal"
 msgstr "Минимальный"
 
@@ -11300,11 +11321,8 @@ msgstr "<strong>Страну нужно выбрать обязательно</s
 msgid "If <strong>no shipping areas have been set up</strong>, customers will have to select a country and a region, and to enter a city name to view available shipping options."
 msgstr "Если вы <strong>не настроите области доставки</strong>, покупатели должны будут выбирать страну и регион и вводить название населенного пункта, чтобы увидеть список доступных вариантов доставки."
 
-msgid "If you set up <strong>only one shipping area</strong>, with <strong>country</strong>, <strong>region</strong>, and <strong>city</strong> specified, then customers will see at once all shipping options available for that area only, without an option to change location."
-msgstr "Если вы настроите <strong>только одну область доставки</strong> — с указанием <strong>страны</strong>, <strong>региона</strong> и <strong>города</strong>, покупатели сразу увидят все варианты доставки, доступные для этой области — без возможности сменить область доставки."
-
-msgid "Shipping options are not grouped by types—“courier”, “pickup”, “post”. There is no option to select a pickup point on a map."
-msgstr "Варианты доставки показаны общим списком без группировки по типам: «курьер», «самовывоз», «почта». Выбор пункта самовывоза на карте недоступен."
+msgid "If you set up <strong>only one shipping area</strong>, with <strong>country</strong>, <strong>region</strong>, and <strong>city</strong> specified, then customers will see at once all shipping options available for that area only, without an option to change location. If you do not complete the region or locality fields in the single available shipping area’s properties, then only those empty fields will be visible during checkout."
+msgstr "Если вы настроите <strong>только одну область доставки</strong> — с указанием <strong>страны</strong>, <strong>региона</strong> и <strong>города</strong>, покупатели сразу увидят все варианты доставки, доступные для этой области — без возможности сменить область доставки. Если вы не заполнили регион или населенный пункт в свойствах единственной доступной области доставки, то во время оформления заказа будут видны только эти незаполненные поля."
 
 msgid "Always show"
 msgstr "Всегда показывать"
@@ -11333,8 +11351,8 @@ msgstr "Неавторизованный покупатель может офо�
 msgid "Unauthorized customer can place orders, and they will be connected with an existing customer profile"
 msgstr "Неавторизованный покупатель может оформлять заказы, и они будут прикрепляться к существующему профилю покупателя"
 
-msgid "Checkout is not allowed without email address or phone number confirmation"
-msgstr "Нельзя оформить заказ без подтверждения email-адреса или номера телефона"
+msgid "Checkout with mandatory email address or phone number confirmation"
+msgstr "Обязательное подтверждение email-адреса или номера телефона для оформления заказа"
 
 msgid "Common working schedule"
 msgstr "Общий режим работы"
@@ -11361,7 +11379,7 @@ msgid "Delete product from the cart?"
 msgstr "Удалить товар из корзины?"
 
 msgid "Shipping option selection"
-msgstr "Выбор варианта для доставки"
+msgstr "Выбор варианта доставки"
 
 msgid "You are authorized as a company, and orders can be placed only by persons. Please %slog out%s of your account to check out as a person."
 msgstr "Вы авторизованы как юридическое лицо, но заказ могут оформить только физические лица. %sВыйдите%s из своего аккаунта, чтобы оформить заказ как физическое лицо."
@@ -11999,3 +12017,158 @@ msgstr "Вы не подтвердили согласие с условиями 
 
 msgid "More contact information"
 msgstr "Больше контактных данных"
+
+msgid "Please confirm your phone number"
+msgstr "Подтвердите свой номер телефона"
+
+msgid "sent to your phone"
+msgstr "отправлен на телефон"
+
+msgid "Please confirm your email address"
+msgstr "Подтвердите свой email-адрес"
+
+msgid "sent by email"
+msgstr "отправлен по email"
+
+msgid "Unsupported contact data type"
+msgstr "Неподдерживаемый тип контактных данных"
+
+msgid "Complete checkout"
+msgstr "Завершить оформление"
+
+msgid "Confirmation code"
+msgstr "Проверочный код"
+
+msgid "You can request new confirmation code in %s"
+msgstr "Новый код можно будет запросить через %s"
+
+msgid "Re-send"
+msgstr "Выслать еще раз"
+
+msgid "Send code"
+msgstr "Выслать код"
+
+msgid "Enter a confirmation code to complete checkout."
+msgstr "Чтобы завершить оформление заказа, введите проверочный код."
+
+msgid "You do not need to confirm this value any more."
+msgstr "Вам больше не нужно подтверждать это значение."
+
+msgid "You cannot use these values."
+msgstr "Вы не можете использовать эти данные."
+
+msgid "Please confirm your contact data."
+msgstr "Необходимо подтвердить свои контактные данные."
+
+msgid "https://www.shop-script.com/help/29297/in-cart-checkout/#customer-profiles-updating"
+msgstr "https://support.webasyst.ru/shop-script/29292/in-cart-checkout/#customer-profiles-updating"
+
+msgid "<a href=\"%s\" target=\"_blank\">How to choose the correct option for this setting</a>."
+msgstr "<a href=\"%s\" target=\"_blank\">Как выбрать подходящее значение для этой настройки</a>."
+
+msgid "Back to shopping"
+msgstr "Вернуться к покупкам"
+
+msgid "Rounded discount value"
+msgstr "Округленное значение скидки"
+
+msgid "Show this message on checkout completion and in customers’ personal accounts if setting “<strong>%s</strong>” is disabled."
+msgstr "Показывать это сообщение после оформления заказа и в личном кабинете покупателя, если отключена настройка «<strong>%s</strong>»."
+
+msgid "Individual tax values are first calculated per order item and and their sum is obtained as the final result. Such a sum may differ from a common tax value if calculated for the total order amount, and you can correct that in printable documents, if necessary."
+msgstr "Для каждого товара в заказе налог вычисляется отдельно, и эти значения складываются для получения конечного результата. При суммировании может возникать погрешность вычисления — ее можно при необходимости исправить в печатных документах."
+
+msgid "Shipping area selection"
+msgstr "Выбор области доставки"
+
+msgid "Offer selection of shipping type and show pickup point selection map."
+msgstr "Предлагать выбор типа доставки и показывать карту выбора пунктов самовывоза."
+
+msgid "Offer selection of shipping type. Show pickup point selection map only on screens over 760 pixels wide."
+msgstr "Предлагать выбор типа доставки. Показывать карту выбора пунктов самовывоза только на экранах шириной больше 760 пикселей."
+
+msgid "Do not offer selection of shipping type or show pickup point selection map."
+msgstr "Не предлагать выбор типа доставки и не показывать карту выбора пунктов самовывоза."
+
+msgid "Product ID"
+msgstr "ID товара"
+
+msgid "(skip products and categories, import only SKUs)"
+msgstr "(пропускать товары и категории и импортировать только артикулы)"
+
+msgid "SKU ID"
+msgstr "ID артикула"
+
+msgid "Total order weight"
+msgstr "Общий вес заказа"
+
+msgid "Width × length × height"
+msgstr "Ширина × длина × высота"
+
+msgid "Total order dimensions"
+msgstr "Общие габариты заказа"
+
+msgid "Order shipping address"
+msgstr "Адрес доставки заказа"
+
+msgid "Extra address"
+msgstr "Дополнительный адрес"
+
+msgid "Extra shipping address"
+msgstr "Дополнительный адрес доставки"
+
+msgid "Extra billing address"
+msgstr "Дополнительный адрес плательщика"
+
+msgid "More shipping addresses"
+msgstr "Другие адреса доставки"
+
+msgid "This report is generated only for storefronts with multi-step checkout."
+msgstr "Этот отчет формируется только для витрин с пошаговым оформлением заказа."
+
+msgid "Multi-step checkout storefronts"
+msgstr "Витрины с пошаговым оформлением заказа"
+
+msgid "Wait for %d second"
+msgid_plural "Wait for %d seconds"
+msgstr[0] "Подождите %d секунду"
+msgstr[1] "Подождите %d секунды"
+msgstr[2] "Подождите %d секунд"
+
+msgid "Code sending error"
+msgstr "Ошибка отправки кода"
+
+msgid "Code has not been sent"
+msgstr "Код не отправлен"
+
+msgid "You have run out of available attempts. Please send a new SMS."
+msgstr "Закончилось доступное количество попыток. Отправьте SMS еще раз."
+
+msgid "You have entered an incorrect code. %d more attempt is available."
+msgid_plural "You have entered an incorrect code. %d more attempts are available."
+msgstr[0] "Вы ввели неверный код. У вас осталась %d попытка."
+msgstr[1] "Вы ввели неверный код. У вас осталось %d попытки."
+msgstr[2] "Вы ввели неверный код. У вас осталось %d попыток."
+
+msgid "Incorrect data specified to send a code"
+msgstr "Неправильно указаны данные для отправки кода"
+
+msgid "Product &amp; category descriptions"
+msgstr "Описания товаров и категорий"
+
+msgid "Export descriptions"
+msgstr "Экспортировать описания"
+
+msgid "Generating a shopping cart from selected items"
+msgstr "Формируем корзину из выбранных товаров"
+
+msgid "Selecting shipping and payment options for selected items"
+msgstr "Подбираем варианты доставки и оплаты для выбранных товаров"
+
+#: /wa-apps/shop/templates/form/customer/backend.html:112
+msgid "More billing addresses"
+msgstr "Другие адреса плательщика"
+
+#: /wa-apps/shop/lib/actions/orders/shopOrdersGetProduct.controller.php:257
+msgid "Unknown SKU"
+msgstr "Неизвестный артикул"

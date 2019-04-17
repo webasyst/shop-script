@@ -15,8 +15,15 @@ $.order_edit = {
      */
     form: null,
 
-    customer_fields: null,
-    customer_inputs: null,
+    /**
+     * {ShopBackendOrderEditorCustomerForm}
+     */
+    customer_form: null,
+
+    /**
+     * {jQuery}
+     */
+    $storefront_selector: null,
 
     /**
      * {Array}
@@ -41,8 +48,8 @@ $.order_edit = {
         }
         this.container = typeof options.container === 'string' ? $(options.container) : options.container;
         this.form = typeof options.form === 'string' ? $(options.form) : options.form;
-        this.customer_fields = $('#s-order-edit-customer');
-        this.customer_inputs = this.customer_fields.find(':input');
+
+        this.$storefront_selector = $('#order-storefront');
 
         options.stocks.sort(function (a, b) {
             return a.sort - b.sort;
@@ -73,10 +80,22 @@ $.order_edit = {
         this.initCustomerSourceControl(options.customer_sources);
     },
 
-    initView: function () {
-        var options = this.options;
+    /**
+     * It is external method to call,
+     * If not call - customer form not be inited (will be NULL)
+     * So inside of order_edit always check customer_form for the not NULL before call its methods
+     * @param {Object} options
+     */
+    initCustomerForm: function (options) {
+        var that = this;
+        that.customer_form = new ShopBackendOrderEditorCustomerForm($('#s-order-edit-customer'), that, options);
+    },
 
-        this.initCustomerForm(this.id ? 'edit' : 'add');
+    initView: function () {
+        var that = this,
+            options = that.options;
+
+        this.initStorefrontSelector();
 
         // helpers and handlers here
         var updateStockIcon = function (order_item) {
@@ -190,8 +209,8 @@ $.order_edit = {
                     item_id = parseInt(self.attr('name').replace('sku[edit][', ''), 10);
                 }
 
-                var url = '?module=orders&action=getProduct&product_id=' + product_id + '&sku_id=' + sku_id;
-                $.getJSON(url + ($.order_edit.id ? '&order_id=' + $.order_edit.id : '&currency=' + $.order_edit.options.currency), function (r) {
+                var url = '?module=orders&action=getProduct&product_id=' + product_id + '&sku_id=' + sku_id + '&currency=' + $.order_edit.options.currency;
+                $.getJSON(url, function (r) {
                     var ns;
                     if (tr.find('input:first').attr('name').indexOf('add') !== -1) {
                         ns = 'add';
@@ -200,7 +219,7 @@ $.order_edit = {
                     }
 
                     tr.find('.s-orders-services').replaceWith(
-                        tmpl('template-order-services-'+ns, {
+                        tmpl('template-order-services-' + ns, {
                             services: r.data.sku.services,
                             service_ids: r.data.service_ids,
                             product_id: product_id,
@@ -274,30 +293,14 @@ $.order_edit = {
         // calculations
         this.container.off('change', '.s-orders-services input').on('change', '.s-orders-services input', $.order_edit.updateTotal);
         this.container.off('change', '.s-orders-product-price input').on('change', '.s-orders-product-price input', function () {
-            var $this = $(this);
-            var price = $.order_edit.parseFloat($this.val());
-            var $scope = $this.parents('tr:first');
-            $scope.find('.s-orders-service-price').each(function () {
-                var item = $(this);
-                if (item.data('currency') === '%' && item.attr('data-price') === item.val()) {
-                    var p = price * (item.data('percentPrice') / 100);
-                    item.val($.order_edit.formatFloat(p));
-                    item.attr('data-price', p);
-                }
-            });
+            var $this = $(this),
+                $scope = $this.parents('tr:first');
+            $.order_edit.updateServicePriceInPercent($scope);
             $.order_edit.updateTotal();
         });
         this.container.off('change', '.s-orders-services .s-orders-service-variant').on('change', '.s-orders-services .s-orders-service-variant',
             $.order_edit.updateTotal
         );
-
-        //Update total if customer address edit
-        $(".s-order-customer-details").on('change', ':input[name*="[address\.shipping]"]', function (e) {
-            if (e.originalEvent) {
-                $.shop.trace('Update total if customer address edit', [this, e]);
-                $.order_edit.updateTotal();
-            }
-        });
 
         $("#payment_methods").change(function () {
             var pid = $(this).val();
@@ -468,7 +471,7 @@ $.order_edit = {
             ;
 
             //Update old discount
-            if ($update_discount_button.data('discount') == 'calculate') {
+            if ($update_discount_button.data('discount') === 'calculate') {
                 $discount_description_input.val($update_discount_button.data('description'));
 
                 //Set or update discount html in all order position
@@ -487,12 +490,11 @@ $.order_edit = {
                 updateTooltip();
             }
 
-
             if ($update_discount_button.data('discount') === 'calculate') {
                 // When value in discount input matches previous recalculation,
                 // but new recalculated discount is different,
-                // update visible fields immidiately
-                if ($.order_edit.parseFloat(data.discount) + '' != $.order_edit.parseFloat($discount_input.val())) {
+                // update visible fields immediately
+                if ($.order_edit.parseFloat(data.discount) !== $.order_edit.parseFloat($discount_input.val())) {
                     $update_discount_button.click();
                 }
             } else {
@@ -601,6 +603,37 @@ $.order_edit = {
         });
     },
 
+    /**
+     * Enumerates all the product and tries to update the services as a percentage.
+     */
+    initUpdateServicePrice: function() {
+        var items = this.container.find('.s-order-item');
+        items.each(function () {
+            $.order_edit.updateServicePriceInPercent($(this));
+        })
+    },
+
+    /**
+     * Updates services as a percentage
+     * @param $product_row
+     * @returns {null}
+     */
+    updateServicePriceInPercent: function ($product_row) {
+        var price = $product_row.find('.js-order-edit-item-price').val();
+
+        if (typeof price === "undefined") {
+            return null;
+        }
+
+        $product_row.find('[data-currency="%"]').each(function () {
+            var service = $(this),
+                p = price * (service.data('percentPrice') / 100),
+                p = $.order_edit.roundFloat(p);
+            service.val($.order_edit.formatFloat(p));
+            service.attr('data-price', p);
+        });
+    },
+
     setShippingInfo: function () {
         var $methods = $("#shipping_methods"),
             $option = $methods.children(':selected'),
@@ -611,7 +644,7 @@ $.order_edit = {
 
         var delivery_info = [];
 
-        if($option.length) {
+        if ($option.length) {
 
             if ($option.data('error')) {
                 delivery_info.push('<span class="error">' + $option.data('error') + '</span>');
@@ -707,27 +740,27 @@ $.order_edit = {
 
             order_content.push(order_item);
         });
+
         order_content = this.reduceOrderContent(order_content);
-
         container.data('order-content', order_content);
-
-        if (container.data('order-content') !== order_content) {
-            var $discount_input = $('#discount');
-            $discount_input.trigger('keyup');
-        }
 
         return items;
     },
 
+    /**
+     * @param {Object[]} order_content
+     * @returns {String}
+     */
     reduceOrderContent: function (order_content) {
         order_content.sort(function (a, b) {
             var delta = a.product_id - b.product_id;
-            if (delta == 0) {
+            if (delta === 0) {
                 delta = a.sku_id - b.sku_id;
             }
-            if (delta == 0) {
+            if (delta === 0) {
                 delta = a.services.localeCompare(b.services);
             }
+            return delta;
         });
 
         return order_content.map(function (order_item) {
@@ -777,13 +810,18 @@ $.order_edit = {
 
         // Data for orderTotal controller
         var data = {};
+
+        // Customer data to recalculate shipping
         var customer = $("#s-order-edit-customer").find('[name^="customer["]').serializeArray();
         for (var i = 0; i < customer.length; i++) {
             data[customer[i].name] = customer[i].value;
         }
 
-        data.items = $.order_edit.getOrderItems(container);
+        // For customer form need also storefront, cause functionality of form depends of storefront also
+        data['storefront'] = that.getStorefrontSelector().val();
 
+        data.items = $.order_edit.getOrderItems(container);
+        
         //see discount property in shopOrder
         var update_discount = $('#update-discount').data('discount');
         if (update_discount !== undefined) {
@@ -799,14 +837,15 @@ $.order_edit = {
             data['currency'] = $('#order-edit-form input[name=currency]').val();
         }
 
-        var shipping_id = $('#shipping_methods').val();
+        var shipping_id = $('#shipping_methods').val(),
+            coupon_id = $('#coupon_id').val();
 
         //Send the cost of delivery of entered by hands
         if ($('#shipping-rate').data('shipping')) {
             data.shipping = $('#shipping-rate').data('shipping');
         }
 
-        data['params'] = {shipping_id: shipping_id};
+        data['params'] = {shipping_id: shipping_id, coupon_id: coupon_id};
         data['customer[id]'] = data['contact_id'] = $('#s-customer-id').val();
         data.tax = 'calculate';
 
@@ -827,6 +866,11 @@ $.order_edit = {
             "success": function (response) {
                 if (response && response.status === 'ok') {
                     var $shipping_rate = $('#shipping-rate');
+
+                    if (response.data) {
+                        response.data = $.order_edit.parseTotalResponse(response.data);
+                    }
+
                     if (response.data.shipping_method_ids.length > 0) {
                         var el = $("#shipping_methods"),
                             el_selected = el.val(),
@@ -866,10 +910,6 @@ $.order_edit = {
                                 plugin_id = ship_id.replace(/\W.+$/, ''),
                                 o = $('<option></option>');
 
-                            /**
-                             *
-                             * @type {*|JQuery|jQuery|HTMLElement}
-                             */
                             o.html(ship.name).attr('value', ship_id).data('rate', ship.rate);
                             o.data('error', ship.error || undefined);
                             o.data('est_delivery', ship.est_delivery || undefined);
@@ -934,21 +974,20 @@ $.order_edit = {
                         el.data('_shipping_id', el_selected_id);
                         $.shop.trace('set shipping_methods id', [el_selected_id, el_selected]);
                     }
-
                     //If user deleted discount value, don't need set zero discount value
                     if (update_discount != '') {
-                        $('#discount').val($.order_edit.roundFloat(response.data.discount));
+                        $('#discount').val(response.data.discount);
                     }
 
                     //Update shipping rate.
-                    $shipping_rate.val(($.order_edit.roundFloat(response.data.shipping)));
+                    $shipping_rate.val(response.data.shipping);
 
                     $('#order-edit-form').trigger('order_total_updated', response.data);
 
                     //Update order value after calculate.
-                    $subtotal.text($.order_edit.roundFloat(response.data.subtotal));
-                    $total.text($.order_edit.roundFloat(response.data.total));
-                    $tax.text($.order_edit.roundFloat(response.data.tax));
+                    $subtotal.text(response.data.subtotal);
+                    $total.text(response.data.total);
+                    $tax.text(response.data.tax);
 
                     $.order_edit.showValidateErrors(response.data.errors);
                     that.setShippingInfo();
@@ -1034,6 +1073,29 @@ $.order_edit = {
     },
 
     /**
+     * Cuts values ​​to 4 decimal places, and then rounds
+     * @param data
+     * @returns {*}
+     */
+    parseTotalResponse: function(data) {
+        var keys = [
+            'total',
+            'discount',
+            'shipping',
+            'tax',
+            'subtotal'
+        ];
+
+        keys.forEach(function (key) {
+            if (typeof data[key] === 'number') {
+                data[key] = $.order_edit.roundFloat(parseFloat(data[key].toFixed(4)))
+            }
+        });
+
+        return data;
+    },
+
+    /**
      * @param val
      * @returns {*}
      */
@@ -1052,11 +1114,15 @@ $.order_edit = {
         return '' + f;
     },
 
+    /**
+     * @param {String} str
+     * @returns {number}
+     */
     parseFloat: function (str) {
-        if (!str) {
-            return 0;
-        } else {
+        if (str) {
             return parseFloat(('' + str).replace(',', '.'));
+        } else {
+            return 0;
         }
     },
 
@@ -1150,7 +1216,7 @@ $.order_edit = {
     /**
      * Disable or allow click to "save" button and show or hide loading icon
      */
-    switchSubmitButton: function(condition) {
+    switchSubmitButton: function (condition) {
         var form = this.form,
             loading_icon = $(form).find('.s-order-items-edit td.save i.loading'),
             submit_button = $(form).find('[type=submit]');
@@ -1166,31 +1232,16 @@ $.order_edit = {
     },
 
     showValidateErrors: function (validate_errors) {
+        var that = this,
+            common_errors = [];
+
         $.shop.trace('showValidateErrors', validate_errors);
         $('.error').removeClass('error');
         $('#s-order-edit-customer .errormsg').empty();
-        if (validate_errors && validate_errors.customer) {
 
-            var customer_errors = validate_errors.customer;
-            $.order_edit.customer_fields.find('.field-group:first').html(customer_errors.html);
-
-            // Add "confirmed" checkboxes for email and phone
-            $.order_edit.addConfirmedCheckboxes();
-
-            delete customer_errors.html;
-            for (var customer_field in customer_errors) {
-                $.order_edit.customer_fields.find('.s-error-customer-' + customer_field).each(function () {
-                    var item = $(this);
-                    if (this.tagName == 'EM') {
-                        item.text(customer_errors[customer_field]);
-                    } else {
-                        item.addClass('error');
-                    }
-                });
-            }
+        if (that.customer_form) {
+            that.customer_form.showValidateErrors(validate_errors ? validate_errors.customer : {});
         }
-
-        var common_errors = [];
 
         $('.s-order-errors').empty();
         if (validate_errors && validate_errors.order) {
@@ -1242,243 +1293,74 @@ $.order_edit = {
         }
     },
 
-    bindValidateErrorPlaceholders: function () {
-        // firstname, middlename, lastname mark as having one name of error
-        var names = ['firstname', 'middlename', 'lastname'];
-        for (var i = 0, n = names.length; i < n; i += 1) {
-            var name = names[i];
-            $.order_edit.customer_inputs.filter('[name=' + $.order_edit.inputName(name) + ']').addClass('s-error-customer-name');
+    /**
+     * Get current selected storefont
+     * @param {Boolean} verbose
+     * @returns {String|Object} If verbose is TRUE then return {Object} info
+     */
+    getSelectedStorefront: function (verbose) {
+        var that = this,
+            $selector = that.$storefront_selector,
+            val = $.trim($selector.val());
+        if (verbose) {
+            return {
+                storefront: val,
+                data: $selector.find(":selected").data()
+            }
+        } else {
+            return val;
         }
-        $.order_edit.customer_fields.find('.s-error-customer-name:last').after('<em class="errormsg s-error-customer-name"></em>');
     },
 
     /**
-     * @param contact_info - initial contact info about statuses to pre fill checkboxes
-     *   If customer_form is not new and statuses already remembered - initial contact info will not be used
+     * @returns {jQuery}
      */
-    addConfirmedCheckboxes: function(contact_info) {
-        var $customer_form = $('#s-order-edit-customer'),
-            $email_field = $customer_form.find('.field-email:eq(0)'),
-            $phone_field = $customer_form.find('.field-phone:eq(0)'),
-            confirmed_str = $_('Confirmed');
-
-        contact_info = contact_info || {};
-
-        var email_confirmed_checkbox_html = '<p><label><input type="checkbox" name="customer[email_confirmed]" {$attr} class="s-confirmation-checkbox">' + confirmed_str + '</p></label>',
-            phone_confirmed_checkbox_html = '<p><label><input type="checkbox" name="customer[phone_confirmed]" {$attr} class="s-confirmation-checkbox">'  + confirmed_str + '</p></label>';
-
-        var is_checked = false;
-
-        // define checked status: from data var or from contact_info
-         if ($customer_form.data('customer[email_confirmed]') !== undefined) {
-            is_checked = !!$customer_form.data('customer[email_confirmed]');
-        } else {
-            is_checked = contact_info.email && $.isArray(contact_info.email) && contact_info.email[0] &&
-            $.isPlainObject(contact_info.email[0]) && contact_info.email[0].status === 'confirmed';
-        }
-
-        if (is_checked) {
-            email_confirmed_checkbox_html = email_confirmed_checkbox_html.replace('{$attr}', 'checked="checked"');
-        } else {
-            email_confirmed_checkbox_html = email_confirmed_checkbox_html.replace('{$attr}', '');
-        }
-
-        // remember initial check status
-        $customer_form.data('customer[email_confirmed]', is_checked);
-
-        // define checked status: from data var or from contact_info
-        if ($customer_form.data('customer[phone_confirmed]') !== undefined) {
-            is_checked = !!$customer_form.data('customer[phone_confirmed]');
-        } else {
-            is_checked = contact_info.phone && $.isArray(contact_info.phone) && contact_info.phone[0] &&
-                $.isPlainObject(contact_info.phone[0]) && contact_info.phone[0].status === 'confirmed';
-        }
-
-        if (is_checked) {
-            phone_confirmed_checkbox_html = phone_confirmed_checkbox_html.replace('{$attr}', 'checked="checked"');
-        } else {
-            phone_confirmed_checkbox_html = phone_confirmed_checkbox_html.replace('{$attr}', '');
-        }
-
-        // remember initial check status
-        $customer_form.data('customer[phone_confirmed]', is_checked);
-
-        $email_field.find('.value').children().first().after(email_confirmed_checkbox_html);
-        $phone_field.find('.value').children().first().after(phone_confirmed_checkbox_html);
-
-        $customer_form.off('click.s-confirmation-checkbox', '.s-confirmation-checkbox')
-            .on('click.s-confirmation-checkbox', '.s-confirmation-checkbox', function () {
-                var $checkbox = $(this),
-                    name = $checkbox.attr('name');
-                // save checked status
-                // cause in validation errors fields of form re-draws but we have to not checked status for this checkboxes
-                $customer_form.data(name, $checkbox.is(':checked'))
-            })
+    getStorefrontSelector: function () {
+        return this.$storefront_selector;
     },
 
-    initCustomerForm: function (editing_mode) {
-        editing_mode = typeof editing_mode === 'undefined' ? 'add' : editing_mode;
+    initStorefrontSelector: function () {
+        var that = this,
+            $selector = that.$storefront_selector;
 
-        $.order_edit.bindValidateErrorPlaceholders();
-
-        // Add "confirmed" checkboxes for email and phone
-        $.order_edit.addConfirmedCheckboxes($.extend({}, $.order_edit.options.contact_info || {}));
-
-        // editing mode (no autocomplete)
-        if (editing_mode !== 'add') {
-            return;
-        }
-
-        // adding mode (with autocomplete);
-        var autocompete_input = $("#customer-autocomplete");
-
-        // utility-functions
-        var disable = function (disabled) {
-            disabled = typeof disabled === 'undefined' ? true : disabled;
-            $('#s-customer-id').attr('disabled', disabled);
-            if (disabled) {
-                $('#s-order-edit-customer').addClass('s-opaque');
-            } else {
-                $('#s-order-edit-customer').removeClass('s-opaque');
+        $selector.on('change', function () {
+            if (that.customer_form && that.customer_form.isEnabled()) {
+                that.customer_form.reloadForm();
             }
-        };
-        var activate = function (activate) {
-            activate = typeof activate === 'undefined' ? true : activate;
-            if (activate) {
-                disable(false);
-                autocompete_input.val('').hide(200);
-            } else {
-                disable();
-                resetInputValues();
-                autocompete_input.val('').show();
-            }
-        };
-        var testPhone = function (str) {
-            return parseInt(str, 10) || str.substr(0, 1) == '+' || str.indexOf('(') !== -1;
-        };
-        var testEmail = function (str) {
-            return str.indexOf('@') !== -1;
-        };
-
-        var resetInputValues = (function () {
-            var initial_values = {};
-            $.order_edit.customer_inputs.each(function () {
-                var $self = $(this);
-                initial_values[$self.attr('name')] = $self.val();
-            });
-
-            return function () {
-                $.order_edit.customer_inputs.each(function () {
-                    var $self = $(this);
-                    $self.val(initial_values[$self.attr('name')] || '');
-                });
-            };
-        });
-
-        // mark whole form as disabled (disactivated) to user want use autocomplete
-        activate(false);
-        $.order_edit.customer_fields.off('focus', ':input').on('focus', ':input', function () {
-            disable(false);
-        });
-
-        // Link to create a new customer resets fields even after something is selected in autocomplete
-        $('#s-order-new-customer').click(function () {
-            resetInputValues();
-            activate();
-            $.order_edit.customer_inputs.first().focus();
-            $('#s-customer-id').val(0);
-            return false;
-        });
-
-        var term = '';
-
-        // autocomplete
-        autocompete_input.autocomplete({
-            source: function (request, response) {
-                term = request.term;
-                $.getJSON($.order_edit.options.autocomplete_url, request, function (r) {
-                    (r = r || []).push({
-                        label: $_('New customer'),
-                        name: $_('New customer'),
-                        value: 0
-                    });
-                    response(r);
-                });
-            },
-            delay: 300,
-            minLength: 3,
-            select: function (event, ui) {
-                var item = ui.item;
-
-                var focusFirstEmptyInput = function () {
-                    var focused = false;
-                    $.order_edit.customer_inputs.filter('input[type=text], textarea').each(function () {
-                        var input = $(this);
-                        if (input.is(':not(:hidden)') && !this.value) {
-                            focused = true;
-                            input.focus();
-                            return false;
-                        }
-                    });
-                    if (!focused) {
-                        $.order_edit.customer_inputs.first().focus();
-                    }
-                };
-
-                if (item.value) {
-                    $.get('?action=contactForm', { id: item.value, get_info: 1, json: 1 }, function (res) {
-
-                        var html = res && res.data && res.data.html ? res.data.html : 'Error on loading contact form',
-                            info = res && res.data && res.data.info ? res.data.info : {};
-
-                        $.order_edit.customer_fields.find('.field-group:first').html(html);
-                        $.order_edit.customer_inputs = $.order_edit.customer_fields.find(':input');
-                        $('#s-customer-id').val(item.value);
-
-                        // Add "confirmed" checkboxes for email and phone
-                        $.order_edit.addConfirmedCheckboxes(info);
-
-                        activate();
-                        // autocomplete make focus for its input. That brakes out plan!
-                        // setTimout-hack for fix it
-                        setTimeout(function () {
-                            focusFirstEmptyInput();
-                        }, 200);
-                        $.order_edit.updateTotal();
-                    });
-                } else {
-                    var selector = '[name=' + $.order_edit.inputName(
-                        testPhone(term) ? 'phone' : (
-                            testEmail(term) ? 'email' : 'firstname'
-                        )) + ']';
-                    $.order_edit.customer_inputs.filter(selector).val(term);
-                    $('#s-customer-id').val(0);
-                    activate();
-
-                    // autocomplete make focus for its input. That brakes out plan!
-                    // setTimout-hack for fix it
-                    setTimeout(function () {
-                        focusFirstEmptyInput();
-                    }, 200);
-                }
-
-                return false;
-            },
-            focus: function (event, ui) {
-                this.value = ui.item.name;
-                return false;
-            }
-        });
-
-        $('#order-add-form').submit(function () {
-            disable(false);
         });
     },
 
-    inputName: function (name) {
-        return '"customer[' + name + ']"';
-    },
+    filterStorefrontSelector: function (contact_type) {
+        var that = this,
+            $selector = that.$storefront_selector;
 
+        $selector.find('option').each(function () {
+            var $option = $(this),
+                val = $option.val(),
+                data = $option.data();
+
+            // show previously hided
+            $option.show();
+
+            // ignore option of current order storefront and 'manual' storefront - do not hide these options
+            if (data.orderStorefront || !val) {
+                return;
+            }
+
+            // this options is available for current contact type - do not hide this option
+            if (!contact_type || data[contact_type]) {
+                return;
+            }
+
+            // all other options make hidden
+            $option.hide();
+
+            // if turn out that hidden option is selected - than reset selector to '' value
+            if ($option.is(':selected')) {
+                $selector.val('');
+            }
+        });
+    },
     getPercentSymbol: function () {
         return '%';
     }

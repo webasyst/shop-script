@@ -2,64 +2,71 @@
 
 class shopOrdersGetProductController extends waJsonController
 {
-    /**
-     * @var shopOrderItemsModel
-     */
-    private $model;
+    protected $product = null;
 
+    /**
+     * If requested by sku_id to return information on a specific sku
+     * If only product_id was requested to return all product information
+     * @return void|null
+     */
     public function execute()
     {
-        $order_id = waRequest::get('order_id', null, waRequest::TYPE_INT);
-        $order_id = $order_id ? $order_id : null;
-
-        $product_id = waRequest::get('product_id', 0, waRequest::TYPE_INT);
-        if (!$product_id) {
-            $this->errors[] = _w("Unknown product");
-            return;
+        if ($this->validate()) {
+            return null;
         }
 
-        $sku_id = waRequest::get('sku_id', 0, waRequest::TYPE_INT);
-        if ($sku_id) {
-            $sku = $this->getSku($sku_id, $order_id);
+        $shop_product = $this->getProduct();
+
+        $product = $shop_product->getData();
+        $product = $this->workupProduct($product);
+
+        $product['skus'] = $shop_product->getSkus();
+        $product['skus'] = $this->workupSkus($product['skus']);
+
+        if ($this->getSkuId()) {
+            $sku = $product['skus'][$this->getSkuId()];
+            $sku['services'] = $this->getServices($product, $sku);
+
             $this->response['sku'] = $sku;
             $this->response['service_ids'] = array_keys($sku['services']);
         } else {
-            $product = $this->getProduct($product_id, $order_id);
+            $sku = ifset($product, 'skus', $product['sku_id'], []);
+            //take services for the main sku
+            $product['services'] = $this->getServices($product, $sku);
+
             $this->response['product'] = $product;
             $this->response['sku_ids'] = array_keys($product['skus']);
             $this->response['service_ids'] = array_keys($product['services']);
         }
     }
 
-    public function getProduct($product_id, $order_id)
+    /**
+     * Add the price in text format
+     * Add an icon
+     *
+     * @param $product
+     * @return mixed
+     */
+    protected function workupProduct($product)
     {
-        $product = $this->getModel()->getProduct($product_id, $order_id, $order_id ? null : waRequest::get('currency'));
+        $default_currency = wa('shop')->getConfig()->getCurrency(true);
+        $currency = $this->getCurrency();
 
-        $sku_ids = array();
-        foreach ($product['skus'] as $sku) {
-            $sku_ids[] = $sku['id'];
+        //shopProduct always returns in standard store currency. @see shopRounding::roundProducts
+        //Need to convert currencies into order currency
+        if ($default_currency !== $currency) {
+            foreach (array('price', 'min_price', 'max_price') as $key) {
+                $value = shop_currency($product[$key], $default_currency, $currency, false);
+                $product[$key] = round($value, 2);
+            }
         }
-        $sku_stocks = $this->getSkuStocks($sku_ids);
-        $this->workup($product, $sku_stocks);
-        return $product;
-    }
 
-    private function getSkuStocks($sku_ids)
-    {
-        if (!$sku_ids) {
-            return array();
-        }
-        $product_stocks_model = new shopProductStocksModel();
-        return $product_stocks_model->getBySkuId($sku_ids);
-    }
-
-    public function workup(&$product, $sku_stocks)
-    {
-        foreach (array('price', 'min_price', 'max_price') as $key) {
-            $product[$key] = round($product[$key], 2);
-        }
-        if (!empty($product['services']) && is_array($product['services'])) {
-            $this->workupServices($product['services']);
+        if ($product['min_price'] == $product['max_price']) {
+            $product['price_str'] = wa_currency($product['min_price'], $currency);
+            $product['price_html'] = wa_currency_html($product['min_price'], $currency);
+        } else {
+            $product['price_str'] = wa_currency($product['min_price'], $currency).'...'.wa_currency($product['max_price'], $currency);
+            $product['price_html'] = wa_currency_html($product['min_price'], $currency).'...'.wa_currency_html($product['max_price'], $currency);
         }
 
         if (!$product['image_id']) {
@@ -78,78 +85,220 @@ class shopOrdersGetProductController extends waJsonController
                 $config->getImageSize('crop_small')
             );
         }
+
         // aggregated stocks count icon for product
         $product['icon'] = shopHelper::getStockCountIcon($product['count'], null, true);
-        foreach ($product['skus'] as &$sku) {
-            $this->workupSku($sku, $sku_stocks);
 
-            if (isset($sku['compare_price'])) {
-                $sku['compare_price'] = shop_currency($sku['compare_price'], $product['currency'], waRequest::get('currency'), false);
-            }
-        }
-
-        $product['compare_price'] = shop_currency($product['compare_price'], $product['currency'], waRequest::get('currency'), false);
-
-        unset($sku);
-    }
-
-    private function workupSku(&$sku, $sku_stocks)
-    {
-        $sku['price'] = round($sku['price'], 2);
-        if (!empty($sku['services']) && is_array($sku['services'])) {
-            $this->workupServices($sku['services']);
-        }
-        // detailed stocks count icon for sku
-        if (empty($sku_stocks[$sku['id']])) {
-            $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], null, true);
-        } else {
-            $icons = array();
-            $counts_htmls = array();
-            foreach ($sku_stocks[$sku['id']] as $stock_id => $stock) {
-                $icon = &$icons[$stock_id];
-                $icon = shopHelper::getStockCountIcon($stock['count'], $stock_id)." ";
-                $count_html = &$counts_htmls[$stock_id];
-                if ($stock['count'] === null) {
-                    $count_html = '∞';
-                } else {
-                    $count_html = _w('%d left', '%d left', $stock['count']);
-                }
-                unset($icon, $count_html);
-            }
-            $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], null, true);
-            $sku['icons'] = $icons;
-            $sku['count_htmls'] = $counts_htmls;
-        }
-    }
-
-    public function getSku($sku_id, $order_id)
-    {
-        $sku = $this->getModel()->getSku($sku_id, $order_id, $order_id ? null : waRequest::get('currency'));
-        $sku_stocks = $this->getSkuStocks(array($sku_id));
-        $this->workupSku($sku, $sku_stocks);
-        return $sku;
+        return $product;
     }
 
     /**
-     * @return shopOrderItemsModel
+     * Get services for a specific sku
+     *
+     * @param $product
+     * @param $sku
+     * @return array
      */
-    public function getModel()
+    private function getServices($product, $sku)
     {
-        if (!$this->model) {
-            $this->model = new shopOrderItemsModel();
+        if (empty($product) || empty($sku)) {
+            return [];
         }
-        return $this->model;
-    }
 
-    private function workupServices(&$services)
-    {
-        foreach ($services as &$s) {
-            $s['price'] = round($s['price'], 2);
-            if (!empty($s['variants']) && is_array($s['variants'])) {
-                foreach ($s['variants'] as &$v) {
-                    $v['price'] = round($v['price'], 2);
+        $service_model = new shopProductServicesModel();
+
+        $out_currency = $this->getCurrency();
+        $sku_price = $sku['price'];
+
+        $services = $service_model->getAvailableServicesFullInfo($product, $sku['id']);
+
+        foreach ($services as $service_id => &$service) {
+            $service_currency = $service['currency'];
+
+            foreach ($service['variants'] as &$variant) {
+                if ($service['currency'] == '%') {
+                    $variant['percent_price'] = $variant['price'];
+                    // Converting interest to actual value
+                    $variant['price'] = (float)$sku_price / 100 * $variant['price'];
                 }
+
+                //Price in text format
+                $variant['price'] = $this->convertService($variant['price'], $service_currency, $out_currency);
+                $variant['price_str'] = ($variant['price'] >= 0 ? '+' : '-').wa_currency($variant['price'], $out_currency);
+                $variant['price_html'] = ($variant['price'] >= 0 ? '+' : '-').wa_currency_html($variant['price'], $out_currency);
+            }
+            unset($variant);
+
+            // Sets the default price for the service.
+            $default_variant = ifset($service, 'variants', $service['variant_id'], []);
+            if (isset($default_variant['price'])) {
+                $service['price'] = $default_variant['price'];
+                if (isset($default_variant['percent_price'])) {
+                    $service['percent_price'] = $default_variant['percent_price'];
+                }
+            } else {
+                // Invalid database state.
+                unset($services[$service_id]);
             }
         }
+
+        unset($service);
+        return $services;
+    }
+
+    /**
+     * Formats the price in a text string.
+     * Adds icons to stock counts
+     *
+     * @param $skus
+     * @return mixed
+     */
+    protected function workupSkus($skus)
+    {
+        if (empty($skus) || !is_array($skus)) {
+            return $skus;
+        }
+
+        $currency = $this->getCurrency();
+
+        $sku_stocks = $this->getSkuStocks(array_keys($skus));
+
+        foreach ($skus as &$sku) {
+            if (isset($sku['price'])) {
+                $sku['price'] = round($sku['price'], 2);
+                $sku['price_str'] = wa_currency($sku['price'], $currency);
+                $sku['price_html'] = wa_currency_html($sku['price'], $currency);
+            }
+
+            // detailed stocks count icon for sku
+            if (empty($sku_stocks[$sku['id']])) {
+                $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], null, true);
+            } else {
+                $icons = array();
+                $counts_htmls = array();
+                foreach ($sku_stocks[$sku['id']] as $stock_id => $stock) {
+                    $icons[$stock_id] = shopHelper::getStockCountIcon($stock['count'], $stock_id)." ";
+                    if ($stock['count'] === null) {
+                        $counts_htmls[$stock_id] = '∞';
+                    } else {
+                        $counts_htmls[$stock_id] = _w('%d left', '%d left', $stock['count']);
+                    }
+                }
+                $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], null, true);
+                $sku['icons'] = $icons;
+                $sku['count_htmls'] = $counts_htmls;
+            }
+        }
+        unset($sku);
+
+        return $skus;
+    }
+
+
+    /**
+     * Converts currency and rounds up if necessary.
+     *
+     * @param $price
+     * @param $in_currency
+     * @param $out_currency
+     * @return float|mixed|string
+     */
+    public function convertService($price, $in_currency, $out_currency)
+    {
+        //If necessary, we convert currencies
+        if ($in_currency != '%' && $in_currency != $out_currency) {
+            $price = shop_currency($price, $in_currency, $out_currency, false);
+        }
+
+        // Always round off interest and if currency conversion occurs.
+        if (($in_currency == '%' || $in_currency != $out_currency) && wa()->getSetting('round_services')) {
+            $price = shopRounding::roundCurrency($price, $out_currency);
+        }
+
+        return $price;
+    }
+
+    /**
+     * Get sku quantity
+     *
+     * @param $sku_ids
+     * @return array
+     */
+    protected function getSkuStocks($sku_ids)
+    {
+        if (!$sku_ids) {
+            return array();
+        }
+        $product_stocks_model = new shopProductStocksModel();
+        return $product_stocks_model->getBySkuId($sku_ids);
+    }
+
+    /**
+     * Check the validity of data from $_GET
+     * @return array
+     */
+    protected function validate()
+    {
+        if (!$this->getProductId()) {
+            $this->errors[] = _w("Unknown product");
+        }
+        if (!$this->getCurrency()) {
+            $this->errors[] = _w("Unknown currency");
+        }
+
+        $product = $this->getProduct();
+
+        if (!$product['id']) {
+            $this->errors[] = _w("Unknown product");
+        }
+
+        //Check if there is such a sku
+        if ($this->getSkuId() && empty($product['skus'][$this->getSkuId()])) {
+            $this->errors[] = _w('Unknown SKU');
+        }
+
+        return $this->errors;
+    }
+
+    /**
+     * Object is cached
+     * @see http://php.net/manual/en/language.oop5.references.php
+     *
+     * @return shopProduct
+     */
+    protected function getProduct()
+    {
+        if (!$this->product) {
+            $this->product = new shopProduct($this->getProductId(), ['round_currency' => $this->getCurrency()]);
+        }
+
+        return $this->product;
+    }
+
+    /**
+     * Return 'currency' from $_GET
+     * @return string
+     */
+    protected function getCurrency()
+    {
+        return waRequest::get('currency', null, waRequest::TYPE_STRING);
+    }
+
+    /**
+     * Return 'product_id' from $_GET
+     * @return int
+     */
+    protected function getProductId()
+    {
+        return waRequest::get('product_id', 0, waRequest::TYPE_INT);
+    }
+
+    /**
+     * Return 'sku_id' from $_GET
+     * @return int
+     */
+    protected function getSkuId()
+    {
+        return waRequest::get('sku_id', 0, waRequest::TYPE_INT);
     }
 }

@@ -84,7 +84,7 @@ class shopRounding
         return array((float)(string)$round_unit, (float)(string)$shift, (float)(string)$precision);
     }
 
-    public static function roundProducts(&$products)
+    public static function roundProducts(&$products, $out_currency = null)
     {
         $config = wa('shop')->getConfig();
         /**
@@ -92,13 +92,14 @@ class shopRounding
          */
         $curs = $config->getCurrencies();
         $default_currency = $config->getCurrency(true);
-        $frontend_currency = $config->getCurrency(false);
+        // Get frontend currency if did not pass the parameter
+        $out_currency = $out_currency ? $out_currency : $config->getCurrency(false);
 
         // All these fields are stored in shop PRIMARY currency - $default_currency
-        // They must remain so - they are converted by design theme to $frontend_currency.
+        // They must remain so - they are converted by design theme to $out_currency.
         // But! Theme does not know anything about rounding (for legacy reasons).
-        // To apply rounding here, we must convert each field from $default_currency to $frontend_currency,
-        // then apply rounding, then convert back from $frontend_currency to $default_currency.
+        // To apply rounding here, we must convert each field from $default_currency to $out_currency,
+        // then apply rounding, then convert back from $out_currency to $default_currency.
 
         $rounding = array(
             'price',
@@ -115,8 +116,8 @@ class shopRounding
 
                 // If rounding is disabled for currency, we pass to template unmodified currency.
                 // If rouding is enabled, product currency is converted to frontend currency.
-                if (!empty($curs[$frontend_currency]['rounding'])) {
-                    $p['currency'] = $frontend_currency;
+                if (!empty($curs[$out_currency]['rounding'])) {
+                    $p['currency'] = $out_currency;
                 }
                 foreach ($rounding as $k) {
                     if (!isset($p[$k])) {
@@ -124,11 +125,11 @@ class shopRounding
                     }
                     $p['frontend_'.$k] = $p['unconverted_'.$k] = $p[$k];
                     if ($p[$k] > 0) {
-                        if ($p['unconverted_currency'] != $frontend_currency) {
-                            $p['frontend_'.$k] = shop_currency($p[$k], $default_currency, $frontend_currency, null);
-                            if (!empty($curs[$frontend_currency]['rounding'])) {
-                                $p['frontend_'.$k] = shopRounding::roundCurrency($p['frontend_'.$k], $frontend_currency);
-                                $p[$k] = shop_currency($p['frontend_'.$k], $frontend_currency, $default_currency, null);
+                        if ($p['unconverted_currency'] != $out_currency) {
+                            $p['frontend_'.$k] = shop_currency($p[$k], $default_currency, $out_currency, null);
+                            if (!empty($curs[$out_currency]['rounding'])) {
+                                $p['frontend_'.$k] = shopRounding::roundCurrency($p['frontend_'.$k], $out_currency);
+                                $p[$k] = shop_currency($p['frontend_'.$k], $out_currency, $default_currency, null);
                             }
                         }
                     }
@@ -136,13 +137,13 @@ class shopRounding
             }
 
             if (!empty($p['skus'])) {
-                self::roundSkus($p['skus'], array($p));
+                self::roundSkus($p['skus'], array($p), $out_currency);
             }
         }
         unset($p);
     }
 
-    public static function roundSkus(&$skus, $products = null)
+    public static function roundSkus(&$skus, $products = null, $out_currency = null)
     {
         if (!$skus) {
             return;
@@ -169,7 +170,8 @@ class shopRounding
          */
         $curs = $config->getCurrencies();
         $primary_currency = $config->getCurrency(true);
-        $frontend_currency = $config->getCurrency(false);
+        // Get frontend currency if did not pass the parameter
+        $out_currency = $out_currency ? $out_currency : $config->getCurrency(false);
         foreach ($skus as &$sku) {
             $product = ifset($products, $sku['product_id'], null);
             $product_currency = ifset($product, 'unconverted_currency', ifset($product, 'currency', null));
@@ -177,10 +179,10 @@ class shopRounding
                 continue;
             }
 
-            $convert_currency = $product_currency != $frontend_currency && !empty($curs[$frontend_currency]['rounding']) && !empty($curs[$product_currency]);
+            $convert_currency = $product_currency != $out_currency && !empty($curs[$out_currency]['rounding']) && !empty($curs[$product_currency]);
             $sku['currency'] = $sku['unconverted_currency'] = $product_currency;
             if ($convert_currency) {
-                $sku['currency'] = $frontend_currency;
+                $sku['currency'] = $out_currency;
             }
 
             // price and compare_price are stored in shop_product.currency (unconverted currency) - $product_currency
@@ -192,9 +194,9 @@ class shopRounding
                 $sku['frontend_'.$k] = $sku[$k];
                 $sku['unconverted_'.$k] = $sku[$k];
                 if ($sku[$k] > 0 && !empty($curs[$product_currency])) {
-                    $sku['frontend_'.$k] = shop_currency($sku[$k], $product_currency, $frontend_currency, null);
+                    $sku['frontend_'.$k] = shop_currency($sku[$k], $product_currency, $out_currency, null);
                     if ($convert_currency) {
-                        $sku[$k] = $sku['frontend_'.$k] = shopRounding::roundCurrency($sku['frontend_'.$k], $frontend_currency);
+                        $sku[$k] = $sku['frontend_'.$k] = shopRounding::roundCurrency($sku['frontend_'.$k], $out_currency);
                     } else {
                         $sku[$k] = $sku['frontend_'.$k];
                     }
@@ -204,19 +206,31 @@ class shopRounding
             // primary_price is stored in shop primary currency - $primary_currency
             // We must not round this value because it gets converted back in theme.
             if ($convert_currency && isset($sku['primary_price'])) {
-                $sku['primary_price'] = shop_currency($sku['frontend_price'], $frontend_currency, $primary_currency, null);
+                $sku['primary_price'] = shop_currency($sku['frontend_price'], $out_currency, $primary_currency, null);
             }
         }
         unset($sku);
     }
 
-    public static function isEnabled()
+    public static function isEnabled($type = 'products')
     {
-        // Rounding is always enabled now, but could have been possibly disabled in the past.
-        return true;
+        switch ($type) {
+            case 'products':
+                // Rounding is always enabled for products now,
+                // but could have been possibly disabled in the past.
+                return true;
+            case 'services':
+                return wa('shop')->getSetting('round_services', 0);
+            case 'shipping':
+                return wa('shop')->getSetting('round_shipping', 0);
+            case 'discounts':
+                return wa('shop')->getSetting('round_discounts', 0);
+            default:
+                return false;
+        }
     }
 
-    public static function roundServices(&$services)
+    public static function roundServices(&$services, $out_currency = null)
     {
         $config = wa('shop')->getConfig();
         /**
@@ -224,7 +238,7 @@ class shopRounding
          */
         $curs = $config->getCurrencies();
         $default_currency = $config->getCurrency(true);
-        $frontend_currency = $config->getCurrency(false);
+        $out_currency = $out_currency ? $out_currency : $config->getCurrency(false);
 
         foreach ($services as &$s) {
             if ($s['currency'] == '%') {
@@ -234,27 +248,27 @@ class shopRounding
                 $s['frontend_price'] = $s['price'];
                 $s['unconverted_price'] = $s['price'];
                 $s['unconverted_currency'] = $s['currency'];
-                if (!empty($curs[$frontend_currency]['rounding'])) {
-                    $s['currency'] = $frontend_currency;
+                if (!empty($curs[$out_currency]['rounding'])) {
+                    $s['currency'] = $out_currency;
                 }
                 // shop_service.price is stored in shop primary currency - $default_currency
-                if ($s['price'] && $s['unconverted_currency'] != $frontend_currency) {
-                    $s['frontend_price'] = shop_currency($s['price'], $default_currency, $frontend_currency, null);
-                    if (!empty($curs[$frontend_currency]['rounding'])) {
-                        $s['frontend_price'] = shopRounding::roundCurrency($s['frontend_price'], $frontend_currency);
-                        $s['price'] = shop_currency($s['frontend_price'], $frontend_currency, $default_currency, null);
+                if ($s['price'] && $s['unconverted_currency'] != $out_currency) {
+                    $s['frontend_price'] = shop_currency($s['price'], $default_currency, $out_currency, null);
+                    if (!empty($curs[$out_currency]['rounding'])) {
+                        $s['frontend_price'] = shopRounding::roundCurrency($s['frontend_price'], $out_currency);
+                        $s['price'] = shop_currency($s['frontend_price'], $out_currency, $default_currency, null);
                     }
                 }
             }
 
             if (!empty($s['variants']) && !empty($curs[$s['currency']])) {
-                self::roundServiceVariants($s['variants'], array($s));
+                self::roundServiceVariants($s['variants'], array($s), $out_currency);
             }
         }
         unset($s);
     }
 
-    public static function roundServiceVariants(&$variants, $services = null)
+    public static function roundServiceVariants(&$variants, $services = null, $out_currency = null)
     {
         if (!$variants) {
             return;
@@ -280,7 +294,7 @@ class shopRounding
          * @var shopConfig $config
          */
         $curs = $config->getCurrencies();
-        $frontend_currency = $config->getCurrency(false);
+        $out_currency = $out_currency ? $out_currency : $config->getCurrency(false);
 
         $round_services = wa()->getSetting('round_services');
         foreach ($variants as &$v) {
@@ -291,18 +305,18 @@ class shopRounding
             }
 
             $v['currency'] = $v['unconverted_currency'] = $service_currency;
-            if (!empty($curs[$frontend_currency]['rounding'])) {
-                $v['currency'] = $frontend_currency;
+            if (!empty($curs[$out_currency]['rounding'])) {
+                $v['currency'] = $out_currency;
             }
 
             // shop_service_variant.primary_price is stored in shop primary currency
             // shop_service_variant.price is in shop_service.currency
             $v['frontend_price'] = $v['unconverted_price'] = $v['price'];
             if ($v['price'] > 0) {
-                if (($service_currency != $frontend_currency) || $round_services) {
-                    $v['frontend_price'] = shop_currency($v['price'], $service_currency, $frontend_currency, null);
-                    if (!empty($curs[$frontend_currency]['rounding'])) {
-                        $v['price'] = $v['frontend_price'] = shopRounding::roundCurrency($v['frontend_price'], $frontend_currency);
+                if (($service_currency != $out_currency) || $round_services) {
+                    $v['frontend_price'] = shop_currency($v['price'], $service_currency, $out_currency, null);
+                    if (!empty($curs[$out_currency]['rounding'])) {
+                        $v['price'] = $v['frontend_price'] = shopRounding::roundCurrency($v['frontend_price'], $out_currency);
                     }
                 }
             }

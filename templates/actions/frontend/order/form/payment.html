@@ -5,13 +5,6 @@
 {$_errors = []}
 {if !empty($error_step_id) && $error_step_id === "payment"}{$_errors = $errors}{/if}
 
-{$_is_default_mode = true}
-{$_is_minimal_mode = false}
-{if $config.order.mode == shopCheckoutConfig::ORDER_MODE_TYPE_MINIMUM}
-    {$_is_default_mode = false}
-    {$_is_minimal_mode = true}
-{/if}
-
 {$_hide_payment = !empty($payment.disabled) || empty($payment.methods)}
 
 <section class="wa-step-section wa-step-payment-section" id="wa-step-payment-section" style="{if !empty($_hide_payment)}display: none;{/if}">

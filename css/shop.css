@@ -100,6 +100,8 @@
 .s-order-items-edit .s-desired-delivery-time-wrapper > .name { padding-bottom: 0; }
 .s-order-items-edit .s-desired-delivery-time-wrapper .hint { display: none; }
 
+.s-order-items-edit .s-order-edit-coupon {display: inline-block !important;}
+
 .s-orders-sku-stock-place { display: inline-block; }
 table.s-order-items-edit i.icon10 { margin-top: 5px !important; margin-right: 3px; }
 table.s-order-items-edit ul.s-orders-skus i.icon10 { margin-top: 3px !important; }
@@ -232,11 +234,10 @@ td.s-empty-order-note { border-top: 1px solid #ddd; border-bottom: 1px solid #dd
 .s-order-customer-details .fields .field.field-email .value p input[type=checkbox],
 .s-order-customer-details .fields .field.field-phone .value p input[type=checkbox] { display: inline-block; vertical-align: baseline; position: relative; top: 1px; margin: 0 4px 0 0;  }
 
-
 .s-order-customer-details .errormsg { margin-top: 3px; }
 .s-order-customer-details .fields .field .name { float: none; padding-top: 0.58em; padding-bottom: 2px; }
 .s-order-customer-details .fields .field-address-billing .name,
-.s-order-customer-details .fields .field-address-shipping .name { margin-bottom: 7px; margin-top: 10px; margin-left: -10px;  font-weight: bold; color: #000; }
+.s-order-customer-details .fields .field-address-shipping .name { display: none; margin-bottom: 7px; margin-top: 10px; margin-left: -10px;  font-weight: bold; color: #000; }
 .s-order-customer-details .s-customers-add-block .field-address-billing .name,
 .s-order-customer-details .s-customers-add-block .field-address-shipping .name { margin-left: 0px; }
 .s-order-customer-details .fields .field .value { margin-left: 0px; }
@@ -378,7 +379,7 @@ ul.s-courier-list li.s-expired a { color: #aaa; }
     .s-printable .s-order a { text-decoration: none; color: #000; font-weight: bold; }
 }
 
-.s-order-customer-details { overflow: hidden; }
+/*.s-order-customer-details { overflow: hidden; }*/
 .s-order-customer-details .field .value textarea { min-width: 250px; }
 .s-order-customer-details .field .value label { display: block; padding: 5px 0 0; }
 .s-order-customer-details .field.required .name:after { content: " *"; color: #faa; }
@@ -520,21 +521,26 @@ ul.tabs li.s-aff-bonus-total { background: #efd !important; margin-right: 10px; 
     margin-bottom: 10px;
     margin-left: 35px;
 }
+
 .s-unboarding-wrapper .s-tutorial-block .s-currency,
 .s-unboarding-wrapper .s-tutorial-block .s-country,
-.s-unboarding-wrapper .s-tutorial-block .s-product-type {
+.s-unboarding-wrapper .s-tutorial-block .s-product-type{
     margin-left: 35px;
 }
+
 .s-unboarding-wrapper .s-tutorial-block .s-product-type-row {
     float: left;
     margin-right: 55px;
 }
-.s-unboarding-wrapper .s-tutorial-block .s-product-type-row label {
+
+.s-unboarding-wrapper .s-tutorial-block .s-product-type-row label{
     cursor: pointer;
 }
-.s-unboarding-wrapper .s-tutorial-block .s-product-type-row .no-shift {
+
+.s-unboarding-wrapper .s-tutorial-block .s-product-type-row .no-shift{
     margin-bottom: 10px;
 }
+
 .s-welcome-page {
     width: 100%;
     padding: 20px;
@@ -1305,6 +1311,7 @@ table.s-country-list i.icon16.country { margin-top: 1px; }
 .s-settings-checkout-sidebar .s-domain-item.selected .shortener { -webkit-box-shadow: -25px 0 12px #e6e6e6 inset; box-shadow: -25px 0 12px #e6e6e6 inset; -moz-box-shadow: -25px 0 12px #e6e6e6 inset; -webkit-box-shadow: -25px 0 12px #e6e6e6 inset; }
 
 .s-settings-checkout-content { border: 1px solid #ddd; border-top: none; border-bottom: none; }
+.s-settings-checkout-content .hint { line-height: 1.2em }
 .s-settings-checkout-content .s-block-container { padding: 20px 0 20px; }
 .s-settings-checkout-content .s-checkout-2-label { background-color: #9cff9e; }
 .s-settings-checkout-content .s-sort-table,
@@ -1811,6 +1818,22 @@ table.zebra p.hint { margin-bottom: 0; }
 .s-hint-include .selected .shop-tooltip { margin-left: -9px;}
 .s-hint-include .selected a {padding-right: 18px;}
 
+/* Backend customer form  */
+.s-customer-form-wrapper .s-customer-email-confirmed-control,
+.s-customer-form-wrapper .s-customer-phone-confirmed-control { margin-top: -2px; }
+.s-customer-form-wrapper .s-customer-email-confirmed-control label,
+.s-customer-form-wrapper .s-customer-phone-confirmed-control label { padding: 0 !important; font-size: 12px; line-height: 15px; }
+.s-customer-form-wrapper .s-customer-email-confirmed-control label input,
+.s-customer-form-wrapper .s-customer-phone-confirmed-control label input { vertical-align: baseline; transform: translate(0, 2px) }
+.s-order-form-contact-type-selector-wrapper label { display: inline-block; margin-right: 1em; }
+
+.s-customer-form-wrapper .s-customer-more-shipping-addresses-control,
+.s-customer-form-wrapper .s-customer-more-billing-addresses-control { margin: 20px 0; }
+.s-customer-form-wrapper .s-address-block { margin-top: 30px; }
+.s-customer-form-wrapper .s-address-block > .s-block-header { display: block; margin: 0 0 4px; color: #000 !important; }
+#order-edit-form .s-customer-form-wrapper .s-address-block > .s-block-header { margin-left: -10px; }
+/*.s-customer-form-wrapper .s-address-block:not(:first-child) { border-top: 1px solid #ccc; margin-top: 15px; padding-top: 10px; }*/
+
 /* Plugins
 ---------- */
 
@@ -1821,6 +1844,10 @@ table.zebra p.hint { margin-bottom: 0; }
 .s-alert { display: none; margin: 20px 0; background: #ffffe0; padding: 15px 20px; border: 1px solid #eed; line-height: 1.3em; font-size: 0.9em; color: #555; }
 .s-alert .s-alert-close { margin: -2px -2px 0 12px; float: right; color: #333; font-size: 1.4em; }
 .s-product-form .s-alert { margin-top: 5px; background: #f3f3f3; border-color: #ddd; }
+
+/* STOREFRONT */
+
+#wa-theme-start-using-dialog .dialog-window { height: auto; max-height: none; box-sizing: border-box; bottom: auto; }
 
 /* High-density displays
 ------------------------ */
