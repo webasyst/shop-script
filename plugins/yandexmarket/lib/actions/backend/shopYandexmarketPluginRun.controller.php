@@ -3419,8 +3419,12 @@ SQL;
                             try {
                                 $collection = $this->getCommonCollection($hash);
                                 //TODO use steps;
+                                $fields = 'id';
+                                if (!empty($this->data['export']['sku'])) {
+                                    $fields .= ',skus_filtered';
+                                }
                                 $limit = $collection->count();
-                                $products = $collection->getProducts('id', 0, $limit, false);
+                                $products = $collection->getProducts($fields, 0, $limit, false);
                                 foreach ($products as $product) {
                                     if ($offer = $this->getOffer($product['id'])) {
                                         foreach ($offer['price'] as $sku_id => $price) {
@@ -3429,6 +3433,9 @@ SQL;
 
                                             if ($sku_id) {
                                                 $_offer['id'] .= 's'.$sku_id;
+                                                if (!isset($product['skus'][$sku_id])) {
+                                                    continue;
+                                                }
                                             }
                                             $value[] = array(
                                                 'offer-id' => $_offer['id'],
