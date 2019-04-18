@@ -2088,7 +2088,7 @@ SQL;
                         $features_model = new shopProductFeaturesModel();
                     }
 
-                    $product['features'] = $features_model->getValues($product['id'], ifset($sku['id']));
+                    $product['features'] = $features_model->getValues($product['id'], ifset($sku['id']), null, ifempty($product['sku_type']));
                 }
                 if (strpos($param, ':')) {
                     $unit = null;
