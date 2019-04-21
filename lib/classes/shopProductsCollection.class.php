@@ -2,6 +2,7 @@
 
 class shopProductsCollection
 {
+
     protected $hash;
     protected $info = array();
 
@@ -482,22 +483,39 @@ SQL;
 
 
         if ($this->info['type'] == shopCategoryModel::TYPE_STATIC) {
-            $alias = $this->addJoin('shop_category_products');
-            if (true
-                /* && wa()->getEnv() == 'frontend'*/
-                && $this->info['include_sub_categories']
-            ) {
-                $this->info['subcategories'] = $category_model->descendants($this->info, true)->where('type = '.shopCategoryModel::TYPE_STATIC)->fetchAll('id');
+            $scp = new shopCategoryProductsModel();
+            $shop_category_products_builder = new waDbQuery($scp);
+            $subquery_categories = array(
+                $id,
+            );
+
+            $this->info['subcategories'] = $category_model->descendants($this->info, true)->where('type = '.shopCategoryModel::TYPE_STATIC)->fetchAll('id');
+
+            if ($this->info['include_sub_categories'] && $this->info['subcategories']) {
                 $descendant_ids = array_keys($this->info['subcategories']);
                 if ($descendant_ids) {
-                    $this->where[] = $alias.".category_id IN(".implode(',', $descendant_ids).")";
+                    $subquery_categories = array_merge($subquery_categories, $descendant_ids);
                 }
-            } else {
-                $this->where[] = $alias.".category_id = ".(int)$id;
             }
+
+            $shop_category_products_builder->where('category_id IN (i:ids)', array('ids' => $subquery_categories));
+
             if ((empty($this->info['sort_products']) && !waRequest::get('sort')) || waRequest::get('sort') == 'sort') {
+                $shop_category_products_builder->select('DISTINCT product_id, sort')->order('sort DESC');
+                $subquery = $shop_category_products_builder->getSQL();
+
+                $alias = $this->addJoinSubquery($scp, $subquery, ':table.product_id = p.id', true);
+
                 $this->order_by = $alias.'.sort ASC';
+            } else {
+                // the sort field is in shop_products table, so we dont need to use JOIN
+                // this improvement gives us x20 faster query
+                $shop_category_products_builder->select('DISTINCT product_id');
+                $subquery = $shop_category_products_builder->getSQL();
+
+                $this->idIn($subquery);
             }
+           
         } else {
             $hash = $this->hash;
             $this->setHash('/search/'.$this->info['conditions']);
@@ -566,6 +584,18 @@ SQL;
                 $this->where[] = 'compare_price > price';
             }
         }
+    }
+
+    /**
+     * Specify subquery for id IN
+     * 
+     * In some cases this can speed up query, to avoid JOIN + DISTINCT queries
+     * 
+     * @param string $subquery not correlated subquery
+     */
+    protected function idIn($subquery)
+    {
+        $this->where[] = "p.id IN ({$subquery})";
     }
 
     protected function idPrepare($ids_str)
@@ -1443,13 +1473,22 @@ SQL;
 
         if ($this->joins) {
             foreach ($this->joins as $join) {
-                $alias = isset($join['alias']) ? $join['alias'] : '';
-                if (isset($join['on'])) {
-                    $on = $join['on'];
+                if (isset($join['table'])) {
+                    $alias = isset($join['alias']) ? $join['alias'] : '';
+                    if (isset($join['on'])) {
+                        $on = $join['on'];
+                    } else {
+                        $on = "p.id = ".($alias ? $alias : $join['table']).".product_id";
+                    }
+                    $sql .= "\n\t".(isset($join['type']) ? $join['type'].' ' : '')."JOIN ".$join['table']." ".$alias."\n\t\tON ".$on;
+                } elseif (isset($join['subquery'])) {
+                    // $join['with'] === self::JOIN_SUBQUERY
+                    $sql .= "\n\t".(isset($join['type']) ? $join['type'].' ' : '');
+                    $sql .= "JOIN (" . $join['subquery'] . ") " . $join['alias'] . "\n\t\tON ". $join['on'];
                 } else {
-                    $on = "p.id = ".($alias ? $alias : $join['table']).".product_id";
+                    // skip join
                 }
-                $sql .= "\n\t".(isset($join['type']) ? $join['type'].' ' : '')."JOIN ".$join['table']." ".$alias."\n\t\tON ".$on;
+                
             }
         }
 
@@ -1481,6 +1520,7 @@ SQL;
         } else {
             $sql = "SELECT COUNT(".($this->joins ? 'DISTINCT ' : '')."p.id) ".$sql;
         }
+
         $count = (int)$this->getModel()->query($sql)->fetchField();
 
         if ($this->hash[0] == 'category' && !empty($this->info['id']) && $this->info['type'] == shopCategoryModel::TYPE_DYNAMIC) {
@@ -1537,8 +1577,22 @@ SQL;
                 $limit = $this->count - $offset;
             }
         }
-
-        $distinct = $this->joins && !$this->group_by ? 'DISTINCT ' : '';
+        
+        $distinct = '';
+        if ($this->joins && !$this->group_by) {
+            foreach ($this->joins as $join) {
+                if (isset($join['subquery']) && isset($join['distinct']) && $join['distinct'] === true) {
+                    // If we joins subquery (not table) and result set already unique
+                    // we dont need to make DISTINCT again
+                    // 
+                    // see self::addJoinSubquery() method for more details
+                    continue;
+                } else {
+                    $distinct = 'DISTINCT ';
+                    break;
+                }
+            }
+        } 
 
         $sql = "SELECT ".$distinct.$this->getFields($fields)."\n";
         $sql .= $from_and_where;
@@ -2575,6 +2629,63 @@ SQL;
         return $this;
     }
 
+
+    /**
+     * @param waModel $table waModel instance that will return table name
+     * @param string $subquery Builded subquery
+     * @param string $on ON statement used to join two tables, where :table will be replaced with alias
+     * @param bool $distinct If subquery has DISTINCT statement, we will not use DISTINCT in main query.
+     *                      It is important to set this param accordingly to gain performance.
+     * @param $type string JOIN type, e.g. INNER, LEFT, RIGHT, CROSS.
+     * @return self
+     */
+    public function addJoinSubquery(waModel $model, $subquery, $on, $distinct = false, $type = null)
+    {
+        $table = $model->getTableName();
+
+        $alias = $this->generateAliasForTable($table);
+
+        if (!isset($this->join_index[$alias])) {
+            $this->join_index[$alias] = 1;
+        } else {
+            $this->join_index[$alias]++;
+        }
+
+        $alias .= $this->join_index[$alias];
+
+        $join = array(
+            'distinct' => $distinct,
+            'alias' => $alias,
+            'type' => $type,
+            'on' => str_replace(':table', $alias, $on),
+            'subquery' => $subquery,
+        );
+
+        $this->joins[] = $join;
+
+        return $alias;
+    }
+
+
+    protected function generateAliasForTable($table)
+    {
+        $alias = '';
+        $t = explode('_', $table);
+
+        foreach ($t as $tp) {
+            if ($tp == 'shop') {
+                continue;
+            }
+            $alias .= substr($tp, 0, 1);
+        }
+
+        if (!$alias) {
+            $alias = $table;
+        }
+
+        return $alias;
+    }
+
     /**
      * Adds a simple JOIN clause to product selection query.
      *
@@ -2599,18 +2710,8 @@ SQL;
             }
             $table = $table['table'];
         }
-        $t = explode('_', $table);
-        $alias = '';
-        foreach ($t as $tp) {
-            if ($tp == 'shop') {
-                continue;
-            }
-            $alias .= substr($tp, 0, 1);
-        }
-
-        if (!$alias) {
-            $alias = $table;
-        }
+        
+        $alias = $this->generateAliasForTable($table);
 
         if (!isset($this->join_index[$alias])) {
             $this->join_index[$alias] = 1;
