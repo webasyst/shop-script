@@ -1187,6 +1187,7 @@ class shopProduct implements ArrayAccess
         $skip = array(
             'id',
             'create_datetime',
+            'edit_datetime',
             'id_1c',
             'rating',
             'rating_count',
@@ -1244,6 +1245,10 @@ class shopProduct implements ArrayAccess
                     $storage_data = array();
                     $i = 0;
                     foreach ($raw as $sku_id => $sku) {
+                        if (isset($sku['sku']) && ifset($options, 'remove_sku', true)) {
+                            $sku['sku'] = null;
+                        }
+
                         if (!empty($sku['virtual']) || $ignore_select) {
                             if ($file_path = shopProductSkusModel::getPath($sku)) {
                                 $sku_files[$sku['id']] = array(
@@ -1282,7 +1287,10 @@ class shopProduct implements ArrayAccess
 
         $counter = 0;
         $data['url'] = shopHelper::genUniqueUrl($this->url, $this->model, $counter);
-        $data['name'] = $this->name.sprintf(' %d', $counter ? $counter : 1);
+
+        if (ifset($options, 'change_name', true)) {
+            $data['name'] = $this->name.sprintf(' %d', $counter ? $counter : 1);
+        }
 
         if (!$duplicate->save($data, true, $errors)) {
             return false;
@@ -1389,8 +1397,10 @@ class shopProduct implements ArrayAccess
             }
         }
 
-        // Delete the empty values. Values are stored in the $duplicate->save
-        if ($delete_features_id) {
+        // Delete the empty values. Reset only if sku are created in "Parameter selection"
+        // For this mode, the characteristics included for the product break the filtering
+        // Values are stored in the $duplicate->save
+        if ($delete_features_id && $data['sku_type'] == 1) {
             $product_features_model->deleteByField(array('product_id' => $product_id, 'feature_id' => $delete_features_id));
         }
 

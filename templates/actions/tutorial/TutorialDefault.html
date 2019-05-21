@@ -1,7 +1,6 @@
 <script type="text/javascript" src="{$wa_app_static_url}js/tutorial/tutorial.js"></script>
 
 <div class="s-tutorial">
-
     <div class="sidebar right15px">
         <div class="block s-nolevel2-sidebar"></div>
     </div>
@@ -15,8 +14,11 @@
         <div class="clear-both"></div>
     </div>
 
+    <script>
+        ( function($) {
+            $( function() {
+                $.tutorial.init({ });
+            });
+        })(jQuery);
+    </script>
 </div>
-<script type="text/javascript">$(function() { "use strict";
-    $.tutorial.init({
-    });
-});</script>

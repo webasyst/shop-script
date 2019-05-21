@@ -2002,7 +2002,6 @@ editClick:(function ($) {
          *
          * @param {Number} sku_id
          * @param {jQuery} $el
-         * @todo real sku delete
          */
         editTabMainSkuDelete: function (sku_id, $el) {
             var $table = $('#s-product-edit-forms .s-product-form.main table.s-product-skus:first');
@@ -2012,6 +2011,7 @@ editClick:(function ($) {
             var self = this;
             if (sku_id > 0) {
                 var skus_count = $el.parents('tbody').find('tr[data-id]:not(.js-sku-settings):not([data-id^="-"])').length;
+                var skus_total_count = $el.parents('tbody').find('tr[data-id]:not(.js-sku-settings)').length;
                 if (skus_count > 1) {
                     $.ajax({
                         'url': '?module=product&action=skuDelete',
@@ -2040,6 +2040,13 @@ editClick:(function ($) {
                         error: function (jqXHR, textStatus, errorThrown) {
                             self.refresh('error', textStatus);
                         }
+                    });
+                } else if (skus_total_count > 1) {
+                    $sku.after('<input type="hidden" name="skus[' + sku_id + ']" value="%deleted%">');
+                    $sku.hide('normal', function () {
+                        $sku.remove();
+                        $('#s-product-view table.s-product-skus > tbody >tr[data-id="' + sku_id + '"]').remove();
+                        $.product.multiSkus($skus.find('tr:not(.js-sku-settings)').length);
                     });
                 } else {
                     self.refresh('error', $_('A product must have at least one SKU.'));

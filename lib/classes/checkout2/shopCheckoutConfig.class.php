@@ -914,7 +914,7 @@ class shopCheckoutConfig implements ArrayAccess
         }
 
         /** @var shopConfig $shop_config */
-        $shop_config = wa('shop', 1)->getConfig();
+        $shop_config = wa('shop')->getConfig();
         $storefront_schedule = $shop_config->getSchedule($storefront_schedule);
         $this->config['schedule'] = $storefront_schedule;
     }

@@ -205,6 +205,96 @@ class shopCustomer extends waContact
         return $categories;
     }
 
+    public function getUserpic($options = array())
+    {
+        $options = is_array($options) ? $options : array();
+
+        /**
+         * @var shopConfig $config
+         */
+        $config = wa('shop')->getConfig();
+
+        $use_gravatar = $config->getGeneralSettings('use_gravatar');
+
+        $size = isset($options['size']) && wa_is_int($options['size']) ? $options['size'] : 96;
+
+        $photo = $this->get('photo');
+        if (!$photo && $use_gravatar) {
+            $photo = shopHelper::getGravatarPic($this->get('email', 'default'), array(
+                'size' => $size,
+                'default' => $config->getGeneralSettings('gravatar_default'),
+                'is_company' => $this['is_company']
+            ));
+        } else {
+            $photo = $this->getPhoto($size);
+        }
+
+        return $photo;
+    }
+
+    public static function getUserpics($contacts)
+    {
+        /**
+         * @var shopConfig $config
+         */
+        $config = wa('shop')->getConfig();
+
+        $use_gravatar = $config->getGeneralSettings('use_gravatar');
+        $gravatar_default = $config->getGeneralSettings('gravatar_default');
+
+        $photos = array();
+
+        foreach ($contacts as $index => $c) {
+
+            $default_email = null;
+
+            if (isset($c['email']) && $c['email']) {
+                if ($c instanceof waContact) {
+                    $default_email = $c->get('email', 'default');
+                } else {
+
+                    if (is_array($c['email']) && isset($c['email'][0])) {
+                        $emails = $c['email'];
+                    } elseif (is_array($c['email'])) {
+                        $emails = array($c['email']);
+                    } elseif (is_scalar($c['email'])) {
+                        $emails = array(array('email' => $c['email']));
+                    } else {
+                        $emails = array(array('email' => ''));
+                    }
+
+                    $email = reset($emails);
+                    if (isset($email['email'])) {
+                        $default_email = $email['email'];
+                    } elseif (isset($email['value'])) {
+                        $default_email = $email['value'];
+                    } else {
+                        $default_email = '';
+                    }
+                }
+            }
+
+            $photo = ifset($c, 'photo', 0);
+            if (!$photo && $use_gravatar) {
+                $photo = shopHelper::getGravatarPic($default_email ? $default_email : '', array(
+                    'size' => 50,
+                    'default' => $gravatar_default,
+                    'is_company' => !empty($c['is_company'])
+                ));
+            } else {
+                $id = ifset($c, 'id', 0);
+                $id = $id > 0 ? $id : 0;
+                $type = !empty($c['is_company']) ? 'company' : 'person';
+                $photo = waContact::getPhotoUrl($id, $photo, 50, 50, $type);
+            }
+
+            // We must index by $index, not by ID, cause current $c may be empty contact (not existed)
+            $photos[$index] = $photo;
+        }
+
+        return $photos;
+    }
+
     /**
      * @param int|int[] $contact_id
      * @return array|mixed

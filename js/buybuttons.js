@@ -23,7 +23,7 @@
 
         var id = widget_class + '-' + ('' + Math.random()).slice(2);
 
-        $wrapper.setAttribute('id', 1);
+        $wrapper.setAttribute('id', id + '-wrapper');
 
         var url = $wrapper.getAttribute('data-storefront');
         if ($wrapper.getAttribute('data-url')) {

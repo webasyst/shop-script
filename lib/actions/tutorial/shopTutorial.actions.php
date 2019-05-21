@@ -22,7 +22,11 @@ class shopTutorialActions extends waViewActions
 
     protected function productsAction()
     {
+        $asm = new waAppSettingsModel();
+        $setup_demo_time = $asm->get('shop', 'setup_demo_time', null);
+
         $this->assignVariables();
+        $this->view->assign('products_imported', !empty($setup_demo_time));
     }
 
     protected function designAction()
@@ -67,6 +71,7 @@ class shopTutorialActions extends waViewActions
     {
         $app_settings_model = new waAppSettingsModel();
         $app_settings_model->del('shop', 'show_tutorial');
+        $app_settings_model->get('shop', 'setup_demo_time');
         exit;
     }
 
@@ -170,19 +175,32 @@ class shopTutorialActions extends waViewActions
                 $app_themes = wa()->getThemes('shop'); // all shop themes
                 $storefronts = shopHelper::getStorefronts(true); // all shop storefronts
 
+                $asm = new waAppSettingsModel();
+                $setup_demo_time = $asm->get('shop', 'setup_demo_time', null);
+
                 if (empty($app_themes) || empty($storefronts)) {
                     continue;
                 }
 
                 foreach ($storefronts as $storefront) {
                     $storefront_theme = ifempty($storefront['route']['theme'], 'default');
-                    if (!isset($app_themes[$storefront_theme])) {
+                    if (!array_key_exists($storefront_theme, $app_themes)) {
                         continue;
                     }
 
                     $storefront_theme = $app_themes[$storefront_theme];
-                    /** @var waTheme $storefront_theme */
-                    if ($storefront_theme->path_custom) {
+
+                    // If there is any design theme that has changed after the demo database was imported, then everything is fine
+                    if ($setup_demo_time) {
+                        $custom_theme_xml_path = $storefront_theme->path_custom .'/theme.xml';
+                        if (!file_exists($custom_theme_xml_path) || (file_exists($custom_theme_xml_path) && filemtime($custom_theme_xml_path) > $setup_demo_time)) {
+                            $action['complete'] = true;
+                        }
+                        continue;
+                    }
+
+                    // If any design theme other than default is used or the theme has been changed, then everything is fine
+                    if ($storefront_theme->id !== 'default' || $storefront_theme->path_custom) {
                         $action['complete'] = true;
                         continue;
                     }

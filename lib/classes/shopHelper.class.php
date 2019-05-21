@@ -576,6 +576,9 @@ class shopHelper
     }
 
     /**
+     * @deprecated
+     * Use shopHelper::getGravatarPic
+     *
      * Returns Gravatar URL for specified email address.
      * @see http://gravatar.com/site/implement/images/php/
      *
@@ -587,20 +590,93 @@ class shopHelper
      */
     public static function getGravatar($email, $size = 50, $default = 'mm', $full_protocol = false)
     {
+        return self::getGravatarPic($email, array(
+            'size' => $size,
+            'default' => $default,
+            'full_protocol' => $full_protocol
+        ));
+    }
+
+    /**
+     * Returns Gravatar URL for specified email address.
+     * @see http://gravatar.com/site/implement/images/php/
+     *
+     * @param string $email Email address
+     * @param $options
+     *
+     *     - string $options['default'] -
+     *          if gravatar will not found pic by this email it can return 'default' pic
+     *          if 'default' is custom than we pass to gravatar system pic of contact (userpic or company)
+     *       Available variants: 'custom', '404', 'mm', 'identicon', 'monsterid', 'wavatar'.
+     *       Default (if skipped or empty) is 'custom'
+     *
+     *    - bool $options['is_company'] - make sense only for $options['default'] === 'custom' (pass to gravatar userpic or company pic)
+     *
+     *    - int $options['size'] Size in pixels, default is 50
+     *
+     *    - bool $options['full_protocol'] by default returns protocol-agnostic URL starting with // ; pass true to prepend with http://
+     *
+     * @return string
+     */
+    public static function getGravatarPic($email, $options = array())
+    {
+        $options = is_array($options) ? $options : array();
+
+        $default = ifset($options['default']);
+        if (!$default) {
+            $default = 'custom';
+        }
+
+        $size = ifset($options['size']);
+        $size = wa_is_int($size) ? $size : 50;
+
+        $full_protocol = (bool)ifset($options['full_protocol']);
+
+        $is_company = (bool)ifset($options['is_company']);
+
         $url = null;
         if ($default == 'custom') {
-            // Note that we cannot use @2x versions here since Gravatar
-            // removes the @ symbol (even escaped) from the URL before redirect.
-            $url = wa()->getRootUrl(true).'wa-content/img/userpic'.$size.'.jpg';
-            if (!file_exists($default)) {
-                $url = wa()->getRootUrl(true).'wa-content/img/userpic50.jpg';
+
+            $img_type = $is_company ? 'company' : 'userpic';
+
+            // Try get pic url from option "gravatar_default_userpics"
+            $default_userpics = wa('shop')->getConfig()->getOption("gravatar_default_userpics");
+            if (!is_array($default_userpics)) {
+                $default_userpics = array();
             }
-            $default = urlencode($default);
+            if (!isset($default_userpics[$img_type])) {
+                $default_userpics[$img_type] = array();
+            }
+            if (isset($default_userpics[$img_type][$size])) {
+                $pic_url = $default_userpics[$img_type][$size];
+            } elseif (isset($default_userpics[$img_type][50])) {
+                $pic_url = $default_userpics[$img_type][50];
+            } else {
+                $pic_url = null;
+            }
+
+            if (!$pic_url) {
+
+                // Get pic of current root
+                // Note that we cannot use @2x versions here since Gravatar
+                // removes the @ symbol (even escaped) from the URL before redirect.
+
+                $pic_path = "/wa-content/img/{$img_type}{$size}.jpg";
+                $pic_filepath = wa()->getConfig()->getRootPath() . $pic_path;
+                if (!file_exists($pic_filepath)) {
+                    $pic_path = "/wa-content/img/{$img_type}50.jpg";
+                }
+
+                $pic_url = wa()->getRootUrl(true) . $pic_path;
+            }
+
+            $default = urlencode($pic_url);
         }
 
         if ($default !== 'custom') {
             $url = '//www.gravatar.com/avatar/'.md5(strtolower(trim($email)))."?size=$size&default=$default";
         }
+
         if ($full_protocol) {
             $url = 'http'.(waRequest::isHttps() ? 's' : '').':'.$url;
         }

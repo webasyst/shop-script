@@ -39,6 +39,28 @@ class shopConfirmationChannel
         }
     }
 
+    public function parseOptions($options)
+    {
+        $fake_contact = new waContact();
+
+        if (isset($options['address'])) {
+            foreach ($options['address'] as $address_type => $address_value) {
+                if ($address_value) {
+                    $fake_contact->set($address_type, $address_value);
+                    $clear_value = $fake_contact->get($address_type);
+                    $options['address'][$address_type] = $clear_value[0]['value'];
+                    $options['raw_address'][$address_type] = $address_value;
+                } else {
+                    unset($options['address'][$address_type]);
+                }
+            }
+        }
+
+        $options['is_company'] = ifset($options, 'is_company', null);
+
+        return $options;
+    }
+
     /**
      *
      * @param null $type
@@ -84,7 +106,11 @@ class shopConfirmationChannel
         foreach ($channels as $channel => $source) {
             $field_id = $channel;
 
-            $collection = new waContactsCollection('search/'.$field_id.'='.str_replace('&', '\\&', $source));
+            if ($channel === 'phone') {
+                $collection = $this->searchContactByPhone($source);
+            } else {
+                $collection = new waContactsCollection('search/'.$field_id.'='.str_replace('&', '\\&', $source));
+            }
 
             // First of all, we are looking for those who have a password. This reduces the chance to clear the password from the admin.
             $collection->orderBy('password', 'desc');
@@ -98,6 +124,33 @@ class shopConfirmationChannel
             $this->setContacts($result);
         }
     }
+
+    /**
+     * Prepare collection for phone search
+     *
+     * @param $phone
+     * @return waContactsCollection
+     */
+    protected function searchContactByPhone($phone)
+    {
+        $phones = [$phone];
+        $raw_phone = self::$options['raw_address']['phone'];
+
+        $reverse = substr($raw_phone, 0, 1) === '+'; // Convert to the opposite format
+        $result = waDomainAuthConfig::factory()->transformPhone($phone, $reverse);
+        $phones[] = $result['phone'];
+
+        // Leave only unique phones.
+        $phones = implode(',', array_unique($phones));
+        // Just to add an escape just in case. 👻👻👻╰(◉ᾥ◉)╯
+        $phones = (new waModel())->escape($phones);
+
+        $collection = new waContactsCollection();
+        $collection->addJoin('wa_contact_data', ':table.contact_id = c.id', ":table.field = 'phone' AND :table.value IN ({$phones})");
+
+        return $collection;
+    }
+
 
     /**
      * @param $contacts
@@ -133,8 +186,14 @@ class shopConfirmationChannel
                 $type = 'phone';
             }
 
+            $address = ifset(self::$options, 'address', $type, false);
+
             // return only those channels for which the user has filled in data.
-            if (isset(self::$options['address'][$type])) {
+            if ($address) {
+                // The phone must be a number
+                if ($type === 'phone' && !is_numeric($address)) {
+                    continue;
+                }
                 $channels[$type] = self::$options['address'][$type];
             }
         }
@@ -513,27 +572,6 @@ class shopConfirmationChannel
         return $channels;
     }
 
-    public function parseOptions($options)
-    {
-        $fake_contact = new waContact();
-
-        if (isset($options['address'])) {
-            foreach ($options['address'] as $address_type => $address_value) {
-                if ($address_value) {
-                    $fake_contact->set($address_type, $address_value);
-                    $clear_value = $fake_contact->get($address_type);
-                    $options['address'][$address_type] = $clear_value[0]['value'];
-                } else {
-                    unset($options['address'][$address_type]);
-                }
-            }
-        }
-
-        $options['is_company'] = ifset($options, 'is_company', null);
-
-        return $options;
-    }
-
     protected function getCheckoutConfig()
     {
         return new shopCheckoutConfig(true);
@@ -691,7 +729,6 @@ class shopConfirmationChannel
         if (!$contact->isAuth()) {
             return false;
         }
-
         $is_update = false;
         $saved = $contact->get($type);
 
@@ -713,6 +750,7 @@ class shopConfirmationChannel
         }
 
         $contact->set($type, $saved);
+        $contact->removeCache();
         $contact->save();
 
         return true;
@@ -757,6 +795,9 @@ class shopConfirmationChannel
 
             // Update/set data.
             foreach ($confirmed as $type => $source) {
+                if ($type === 'phone') {
+                    $source = $this->transformSourceToInternationalFormat($source);
+                }
                 $this->updateUserAddress($type, $source);
             }
         }
@@ -765,6 +806,12 @@ class shopConfirmationChannel
         $this->delStorage();
 
         return true;
+    }
+
+    protected function transformSourceToInternationalFormat($phone)
+    {
+        $result = waDomainAuthConfig::factory()->transformPhone($phone);
+        return $result['phone'];
     }
 
     /**

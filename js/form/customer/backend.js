@@ -55,6 +55,8 @@ var ShopBackendCustomerForm = ( function($) {
         that.initShippingAddress();
 
         that.initBillingAddress();
+
+        that.fixStyles();
     };
 
     /**
@@ -139,9 +141,13 @@ var ShopBackendCustomerForm = ( function($) {
             $block.addClass("s-address-block").prepend($header);
         });
 
-        if (getShippingAddressBlocks().length > 1) {
-            // relocate control in right place
+        var extra_addresses_present = getShippingAddressBlocks().length > 1,
+            errors_in_extra_addresses_present = getShippingAddressBlocks().not(':first').find('.errormsg,.error').length > 0;
+
+        if (extra_addresses_present && !errors_in_extra_addresses_present) {
+            // hide extra addresses
             getShippingAddressBlocks().not(':first').hide();
+            // relocate control in right place
             getShippingAddressBlocks().first().after(getControl());
         }
 
@@ -180,9 +186,13 @@ var ShopBackendCustomerForm = ( function($) {
             $block.addClass("s-address-block").prepend($header);
         });
 
-        if (getBillingAddressBlocks().length > 1) {
-            // relocate control in right place
+        var extra_addresses_present = getBillingAddressBlocks().length > 1,
+            errors_in_extra_addresses_present = getBillingAddressBlocks().not(':first').find('.errormsg,.error').length > 0;
+
+        if (extra_addresses_present && !errors_in_extra_addresses_present) {
+            // hide extra addresses
             getBillingAddressBlocks().not(':first').hide();
+            // relocate control in right place
             getBillingAddressBlocks().first().after(getControl());
         }
 
@@ -193,6 +203,18 @@ var ShopBackendCustomerForm = ( function($) {
             getBillingAddressBlocks().not(':first').show();
             getControl().hide();
         });
+    };
+
+    ShopBackendCustomerForm.prototype.fixStyles = function() {
+        var that = this,
+            namespace = that.namespace,
+            $wrapper = that.$wrapper;
+        // reset inline system styles
+        console.log($wrapper.find('.field-birthday input[name="' + namespace + '[birthday][year]"]').get(0));
+        $wrapper.find('.field-birthday input[name="' + namespace + '[birthday][year]"]').css({
+            width: '',
+            minWidth: ''
+        })
     };
 
     ShopBackendCustomerForm.prototype.updateInnerHtml = function(html) {

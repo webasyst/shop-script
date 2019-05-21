@@ -28,27 +28,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                         if ($contact_id) {
                             $contact_data = $contact->load();
                             $contact = new waContact($contact_id);
-                            $is_password = $contact['password']; // if the user has previously created an order, but did not create an account
-                            foreach ($contact_data as $k => $v) {
-                                if ($k == 'email') {
-                                    $f = waContactFields::get($k);
-                                    if ($f && $f->isMulti()) {
-                                        foreach ($v as $sk => $sv) {
-                                            if (isset($v[$sk]['status'])) {
-                                                unset($v[$sk]['status']);
-                                            }
-                                        }
-                                    } elseif (isset($v['status'])) {
-                                        unset($v['status']);
-                                    }
-                                }
-                                //if user registers
-                                if ($k == 'password' && !$is_password && $v) {
-                                    $contact->setPassword($v, true);
-                                    continue;
-                                }
-                                $contact->set($k, $v);
-                            }
+                            $this->mergeContactData($contact, $contact_data);
                         }
                         $contact->save();
                     } else {
@@ -74,6 +54,176 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             }
         } else {
             return wa()->getUser();
+        }
+    }
+
+    /**
+     * Subroutine for merge contact data into found contact when 'guest_checkout' setting is 'merge_email'
+     * @param waContact $contact
+     * @param array $contact_data
+     */
+    protected function mergeContactData($contact, $contact_data)
+    {
+        $is_password = $contact['password']; // if the user has previously created an order, but did not create an account
+
+        foreach ($contact_data as $field_id => $data) {
+            $field = waContactFields::get($field_id);
+
+            $is_multi = $field && $field->isMulti();
+
+            if ($is_multi) {
+                if (!$this->isAllIntKeys($data)) {
+                    $data = array($data);
+                } else {
+                    $data = array_values($data);
+                }
+            }
+
+
+            if ($field_id === 'email' || $field_id === 'phone') {
+                foreach ($data as $sort => &$value) {
+                    if (is_array($value)) {
+                        unset($value['status']);
+                    }
+                }
+                unset($value);
+            }
+
+            // if user registers
+            if ($field_id == 'password' && !$is_password && $data) {
+                $contact->setPassword($data, true);
+                continue;
+            }
+
+            if ($is_multi) {
+                foreach ($data as $value) {
+                    $ext = is_array($value) && isset($value['ext']) ? $value['ext'] : null;
+                    $clean_value = $this->extractCleanValue($value, $field);
+
+                    if ($ext !== null && strlen($ext) > 0) {
+                        $contact_value = $contact[$field_id . '.' . $ext];
+                    } else {
+                        $contact_value = $contact[$field_id];
+                    }
+
+                    $found_index = $this->findMultiFieldValueInList($clean_value, $contact_value, $field);
+
+                    if ($found_index === null) {
+                        $value = $this->prepareValueForAdd($clean_value, $ext, $field);
+                        $contact->add($field_id, $value);
+                    }
+                }
+            } else {
+                $contact->set($field_id, $data);
+            }
+        }
+    }
+
+    /**
+     * Check is array is kinda list, i.e. array that indexed only numeric keys
+     * @param $array
+     * @return bool
+     */
+    protected function isAllIntKeys($array)
+    {
+        if (!is_array($array)) {
+            return false;
+        }
+        $keys = array_keys($array);
+        foreach ($keys as $key) {
+            if (!wa_is_int($key)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @param $value - already have typecast single value of multi field values
+     * @see extractCleanValue
+     * @param $list
+     * @param waContactField $field
+     * @return int|string|null
+     */
+    protected function findMultiFieldValueInList($value, $list, $field)
+    {
+        $is_composite = $field instanceof waContactCompositeField;
+        foreach ($list as $index => $list_value) {
+            $list_value = $this->extractCleanValue($list_value, $field);
+            if ($is_composite) {
+                // filter for keys (subfields)
+                $keys_filter = function($k) use($field) {
+                    if ($field->getId() === 'address' && ($k === 'lat' || $k === 'lng')) {
+                        return false;
+                    }
+                    return true;
+                };
+
+                $list_value = array_filter($list_value, $keys_filter, ARRAY_FILTER_USE_KEY);
+                $value = array_filter($value, $keys_filter, ARRAY_FILTER_USE_KEY);
+
+                ksort($list_value);
+                ksort($value);
+
+                $match = $list_value === $value;
+            } else {
+                $match = $value == $list_value;
+            }
+            if ($match) {
+                return $index;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Works only for field that is isMulti()
+     * Return clean value without 'ext', 'status', etc.
+     * @param array|scalar $value
+     * @param waContactField $field
+     * @return string|array
+     */
+    protected function extractCleanValue($value, $field)
+    {
+        $is_composite = $field instanceof waContactCompositeField;
+        if ($is_composite) {
+            if (isset($value['data']) && (isset($value['ext']) || isset($value['value']))) {
+                $value = $value['data'];
+            }
+        } else {
+            if (isset($value['value'])) {
+                $value = $value['value'];
+            } elseif ($field->getId() === 'email' && isset($value['email'])) {
+                $value = $value['email'];
+            }
+            if (!is_scalar($value)) {
+                $value = '';
+            }
+        }
+        return $value;
+    }
+
+    /**
+     * Works only for field that is isMulti()
+     * Prepare value for waContact->add method
+     * @param array|scalar $value
+     * @param string|null $ext
+     * @param waContactField $field
+     * @return array
+     */
+    protected function prepareValueForAdd($value, $ext, $field)
+    {
+        $is_composite = $field instanceof waContactCompositeField;
+        if ($is_composite) {
+            return array(
+                'data' => $value,
+                'ext' => $ext
+            );
+        } else {
+            return array(
+                'value' => $value,
+                'ext' => $ext
+            );
         }
     }
 

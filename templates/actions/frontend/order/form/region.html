@@ -144,7 +144,7 @@
                         </div>
 
                         {* REGION *}
-                        <div class="wa-field-wrapper wa-country-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
+                        <div class="wa-field-wrapper wa-region-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
 
                             <label class="wa-label">{_render_label _label="[`Region`]" _required=!empty($_is_region_required)}</label>
                             {if empty($_active_location.region_locked)}
@@ -351,7 +351,7 @@
                             <input class="js-region-field" name="region[region]" type="hidden" value="{$_active_region_value|default:""|escape}">
 
                         {else}
-                            <div class="wa-field-wrapper wa-country-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
+                            <div class="wa-field-wrapper wa-region-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
                                 <label class="wa-label">{_render_label _label="[`Region`]" _required=!empty($_is_region_required)}</label>
 
                                 {if !empty($_active_county.has_regions)}

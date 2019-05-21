@@ -71,7 +71,10 @@ class shopBackendWelcomeAction extends waViewAction
             $this->setupCurrency($currency);
         }
 
-        $this->setupTypes();
+        $ok = $this->setupDemo();
+        if (!$ok) {
+            $this->setupTypes();
+        }
 
         $this->setupBasicSets();
         $this->setupBasicNotifications();
@@ -135,10 +138,11 @@ class shopBackendWelcomeAction extends waViewAction
             'translate'         => $this->translate,
             'actions'           => shopTutorialActions::getActions(true),
             'currencies'        => $this->getCurrencies(),
-            'types'             => $this->getShortedProductTypes(),
+            //'types'             => $this->getShortedProductTypes(),
             'backend_welcome'   => $this->getBackendWelcomeEvent(),
             'tutorial_progress' => shopTutorialActions::getTutorialProgress(),
-            'tutorial_visible'  => $tutorial_visible
+            'tutorial_visible'  => $tutorial_visible,
+            'shop_demo_data_source_list' => shopDemoDataImporter::getSourceList()
         ));
     }
 
@@ -244,9 +248,31 @@ class shopBackendWelcomeAction extends waViewAction
         return true;
     }
 
+    /**
+     * @return bool
+     */
+    protected function setupDemo()
+    {
+        $demo_db = waRequest::post('demo_db');
+        if (!wa_is_int($demo_db)) {
+            return false;
+        }
+
+        $source = new shopDemoDataImporter($demo_db);
+        $result = $source->import();
+
+        if ($result) {
+            $asm = new waAppSettingsModel();
+            $asm->set('shop', 'setup_demo_time', time());
+        }
+
+        return $result;
+    }
+
     protected function setupTypes()
     {
-        $types = waRequest::post('types');
+        //$types = waRequest::post('types');
+        $types = array();
 
         if (!empty($this->types)) {
             $type_model = new shopTypeModel();

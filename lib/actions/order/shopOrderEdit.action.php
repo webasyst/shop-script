@@ -38,6 +38,7 @@ class shopOrderEditAction extends waViewAction
     protected function initShopOrderInfo()
     {
         $form = new shopBackendCustomerForm();
+        $form->setAddressDisplayType('first');
 
         $order_id = waRequest::get('id', null, waRequest::TYPE_INT);
 

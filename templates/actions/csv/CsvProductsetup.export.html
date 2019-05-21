@@ -105,10 +105,19 @@
 
     <div class="field">
         <div class="name">
-            [`Images`]
+            [`Product images`]
         </div>
         <div class="value no-shift">
-            <label><input type="checkbox" name="images"{if !empty($profile.config.images)} checked="checked"{/if}> [`Export product image filenames`]</label>
+            <label>
+                <select title="[`Select how to export product images`]" name="images">
+                    <option value="">[`Do not export`]</option>
+                    <option value="true" {if  (!empty($profile.config.images) && !isset($image_sizes[$profile.config.images]))} selected{/if}>[`Export default size images`]</option>
+                    {foreach $image_sizes as $image_size=>$image_size_name}
+                        <option value="{$image_size|escape}"{if (!empty($profile.config.images) && ($image_size eq $profile.config.images))} selected{/if}>{$image_size_name|string_format:"[`Export %s large images`]"|escape}</option>
+                    {/foreach}
+                </select>
+            </label>
+            <span class="hint"><a href="?action=settings#/images/">[`Product image size settings`]</a></span>
         </div>
     </div>
 

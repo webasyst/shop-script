@@ -10,7 +10,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 2.0.6\n"
 "Plural-Forms: nplurals=2; plural=n == 1 ? 0 : 1;\n"
 "Language: en_US\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -770,10 +770,6 @@ msgstr ""
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:111
 #: /wa-apps/shop/templates/actions/product/Product.html:320
 msgid "Images"
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:114
-msgid "Export product image filenames"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:119
@@ -14194,4 +14190,109 @@ msgstr ""
 
 #: /wa-apps/shop/themes/default/order.html:60
 msgid "Back to shopping"
+msgstr ""
+
+msgid "sku name"
+msgstr "SKU name"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:737
+msgid "Selected country and region will be visible to customers but not available for changing."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:738
+msgid "To hide selected country and region fields from customers, switch to “Minimal” mode and set up a single shipping area with a country and region selected in its settings."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.export.html:112
+msgid "Select how to export product images"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.export.html:113
+msgid "Do not export"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.export.html:114
+msgid "Export default size images"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.export.html:116
+msgid "Export %s large images"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.export.html:120
+msgid "Product image size settings"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.import.html:168
+msgid "Unique product image URLs"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.import.html:171
+msgid "by file name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.import.html:173
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.import.html:178
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.import.html:183
+msgid "domain.com"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.import.html:176
+msgid "by file path"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.import.html:180
+msgid "by file path and domain name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.import.html:184
+msgid "Select how unique image URLs must be extracted from your CSV file."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:172
+#: /wa-apps/shop/templates/actions/products/Products.html:220
+msgid "product name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:178
+#: /wa-apps/shop/templates/actions/products/Products.html:235
+msgid "compare at price"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:180
+#: /wa-apps/shop/templates/actions/products/Products.html:241
+msgid "purchase price"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/tutorial/TutorialProducts.html:19
+msgid "Product examples have been added to your online store. Now you may also add your own products as described below."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/dialog/channel_confirmation.html:46
+msgid "Изменить"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/frontend/order/form/render_field.function.html:60
+msgid "+1-222-333-4455"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:688
+msgid "Updated %d product image description"
+msgid_plural "Updated %d product image descriptions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:750
+msgid "%d SKU imported with errors"
+msgid_plural "%d SKUs imported with errors"
+msgstr[0] ""
+msgstr[1] ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:425
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:32
+msgid "Product image descriptions"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/orders/shopOrdersGetProduct.controller.php:257
+msgid "Unknown SKU"
 msgstr ""

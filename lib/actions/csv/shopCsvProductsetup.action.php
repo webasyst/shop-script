@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * @method shopConfig getConfig()
+ */
 class shopCsvProductsetupAction extends waViewAction
 {
     public function execute()
@@ -62,6 +65,34 @@ class shopCsvProductsetupAction extends waViewAction
 
             $this->view->assign('current_domain', $current_domain);
             $this->view->assign('settlements', $settlements);
+
+            $sizes = $this->getConfig()->getImageSizes();
+            $image_sizes = array();
+            foreach ($sizes as $size) {
+                $size_info = shopImage::parseSize((string)$size);
+                $type = $size_info['type'];
+                $width = $size_info['width'];
+                $height = $size_info['height'];
+                switch ($type) {
+                    case 'crop':
+                        $image_sizes[$size] = sprintf('%s: %d x %d px', _w('Square crop'), $width, $height);
+                        break;
+                    case 'max':
+                        $image_sizes[$size] = sprintf('%s (%s, %s) = %d px', _w('Max'), _w('Width'), _w('Height'), $width);
+                        break;
+                    case 'width':
+                        $image_sizes[$size] = sprintf('%s = %d px, %s = %s', _w('Width'), $width, _w('Height'), _w('auto'));
+                        break;
+                    case 'height':
+                        $image_sizes[$size] = sprintf('%s = %s, %s = %d px', _w('Width'), _w('auto'), _w('Height'), $height);
+                        break;
+                    case 'rectangle':
+                        $image_sizes[$size] = sprintf('%s = %s px, %s = %d px', _w('Width'), $width, _w('Height'), $height);
+                        break;
+                }
+            }
+
+            $this->view->assign('image_sizes', $image_sizes);
 
         } else {
             $profile['config'] += array(

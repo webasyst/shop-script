@@ -57,6 +57,7 @@
             {elseif $_field.content_type == "phone"}
                 {$_field_class = "wa-phone"}
                 {$_field_type = "tel"}
+                {$_field_placeholder = "[`+1-222-333-4455`]"}
 
             {elseif $_field.content_type == "url"}
                 {$_field_class = "wa-url"}
@@ -70,15 +71,7 @@
 
         <div class="wa-field-wrapper {$_wrapper_classes|join:" "}">
             <div class="wa-label">{$_label}</div>
-            <input class="wa-input {$_field_class}"
-                autocomplete="false"
-                name="{$_field.name|escape}"
-                type="{$_field_type|escape}"
-                value="{$_field.value|default:""|escape}"
-                {*placeholder="{$_field.label|escape}"*}
-                {if !empty($_field.affects_rate)}data-affects-rate="true"{/if}
-                {if !empty($_field.required)}required{/if}
-            >
+            <input class="wa-input {$_field_class}" autocomplete="false" name="{$_field.name|escape}" type="{$_field_type|escape}" value="{$_field.value|default:""|escape}" {if !empty($_field.affects_rate)}data-affects-rate="true"{/if} {if !empty($_field.required)}required{/if} {if !empty($_field_placeholder)}placeholder="{$_field_placeholder}"{/if}>
         </div>
 
     {* SELECT *}

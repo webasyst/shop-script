@@ -41,28 +41,28 @@ class shopProductsAction extends shopProductListAction
         $stocks = $stock_model->getAll('id');
 
         $products = $this->getProducts(array(
-            'fields' => '*,'.join(',', $columns),
-            'offset' => $offset,
+            'fields'            => '*,'.join(',', $columns),
+            'offset'            => $offset,
             'products_per_page' => $products_per_page,
-            'view' => $view
+            'view'              => $view
         ));
 
         $total_count = $this->collection->count();
         $this->assign(array(
-            'lazy_loading' => $lazy_loading,
-            'products' => $products,
-            'total_count' => $total_count,
-            'count' => count($products),
-            'sort' => $this->sort,
-            'order' => $this->order,
-            'text' => $this->text,
-            'title' => $this->hash[0] != 'search' ? $this->collection->getTitle() : $this->text,
-            'info' => $this->collection->getInfo(),
-            'view' => $view,
-            'stocks' => array_values($stocks),
-            'additional_columns' => self::getAdditionalColumns(),
+            'lazy_loading'                    => $lazy_loading,
+            'products'                        => $products,
+            'total_count'                     => $total_count,
+            'count'                           => count($products),
+            'sort'                            => $this->sort,
+            'order'                           => $this->order,
+            'text'                            => $this->text,
+            'title'                           => $this->hash[0] != 'search' ? $this->collection->getTitle() : $this->text,
+            'info'                            => $this->collection->getInfo(),
+            'view'                            => $view,
+            'stocks'                          => array_values($stocks),
+            'additional_columns'              => self::getAdditionalColumns(),
             'additional_columns_autocomplete' => self::isColumnsAutocomplete(),
-            'primary_currency' => $config->getCurrency(),
+            'primary_currency'                => $config->getCurrency(),
             /*
             'use_product_currency' => wa()->getSetting('use_product_currency'),
             'currencies' => $config->getCurrencies()*/

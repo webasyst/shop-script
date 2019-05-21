@@ -270,16 +270,9 @@ SQL;
         $info['name'] = !empty($order_params_info['contact_name']) ? $order_params_info['contact_name'] : '';
         $info['email'] = !empty($order_params_info['contact_email']) ? $order_params_info['contact_email'] : '';
         $info['phone'] = !empty($order_params_info['contact_phone']) ? $order_params_info['contact_phone'] : '';
-        $config = wa('shop')->getConfig();
-        /**
-         * @var shopConfig $config
-         */
-        if ($config->getGeneralSettings('use_gravatar')) {
-            $info['photo_50x50'] = shopHelper::getGravatar($info['email'], 50, $config->getGeneralSettings('gravatar_default'));
-        } else {
-            $contact = new waContact();
-            $info['photo_50x50'] = $contact->getPhoto(50);
-        }
+        $info['is_company'] = !empty($order_params_info['is_company']);
+        $userpics = shopCustomer::getUserpics(array($info));
+        $info['photo_50x50'] = reset($userpics);
         return $info;
     }
 
@@ -403,17 +396,8 @@ SQL;
                 'phone'      => $contact->get('phone', 'default'),
                 'registered' => !empty($contact['password'])
             );
-            $config = wa('shop')->getConfig();
-            /**
-             * @var shopConfig $config
-             */
-            $use_gravatar = $config->getGeneralSettings('use_gravatar');
-            $gravatar_default = $config->getGeneralSettings('gravatar_default');
-            if (!$contact->get('photo') && $use_gravatar) {
-                $order['contact']['photo_50x50'] = shopHelper::getGravatar($order['contact']['email'], 50, $gravatar_default);
-            } else {
-                $order['contact']['photo_50x50'] = $contact->getPhoto(50);
-            }
+            $userpics = shopCustomer::getUserpics(array($contact));
+            $order['contact']['photo_50x50'] = reset($userpics);
             return $order['contact'];
         } else {
             return $this->extractContactInfo($order['params']);

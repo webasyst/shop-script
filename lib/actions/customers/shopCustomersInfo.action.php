@@ -13,7 +13,7 @@ class shopCustomersInfoAction extends waViewAction
         $customer = $scm->getById($id);
 
         try {
-            $contact = new waContact($id);
+            $contact = new shopCustomer($id);
             $contact->getName();
         } catch (waException $e) {
             // !!! What to do when shop_customer exists, but no wa_contact found?
@@ -24,20 +24,12 @@ class shopCustomersInfoAction extends waViewAction
 
         $top = shopCustomer::getCustomerTopFields($contact);
 
-        // Get photo
-        $photo = $contact->get('photo');
-        $config = $this->getConfig();
         /**
          * @var shopConfig $config
          */
-        $use_gravatar = $config->getGeneralSettings('use_gravatar');
-        $gravatar_default = $config->getGeneralSettings('gravatar_default');
-        if (!$photo && $use_gravatar) {
-            $photo = shopHelper::getGravatar($contact->get('email', 'default'), 96, $gravatar_default);
-        } else {
-            $photo = $contact->getPhoto(96);
-        }
-        $contact['photo'] = $photo;
+        $config = wa('shop')->getConfig();
+
+        $contact['photo'] = $contact->getUserpic();
 
         // Customer orders info
         $orders_collection = new shopOrdersCollection('search/contact_id='.$id);

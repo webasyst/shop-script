@@ -12,21 +12,24 @@
         {$prev_step = $stepArray[$next_step_key-1]}
     {/if}
 {/if}
+
 <div class="s-unboarding-wrapper">
     <h1>Set up shipping methods</h1>
 
-    <p><img src="{$wa_app_static_url}img/steps/eng/step05-01.png"></p>
-    <br/>
+    <p><img src="{$wa_app_static_url}img/backend/tutorial/en/step-5-1.png" alt=""></p>
 
-    <a href="{if isset($prev_step) && $actions[$prev_step]}{$actions[$prev_step]['href']}{else}javascript:void(0){/if}" class="button yellow">&larr; Back</a>
-    <a href="{if isset($next_step) && $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green {if !isset($next_step)}js-nextstep-link{/if}">Next step &rarr;</a>
+    <div class="s-actions-wrapper">
+        <a href="{if isset($prev_step) && $actions[$prev_step]}{$actions[$prev_step]['href']}{else}javascript:void(0){/if}" class="button yellow">&larr; Back</a>
+        <a href="{if isset($next_step) && $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green {if !isset($next_step)}js-nextstep-link{/if}">Next step &rarr;</a>
+    </div>
+
+    <script>
+        (function ($) {
+            new TutorialSidebar({
+                $wrapper: $("#tutorial-actions"),
+                active_step: {$active|json_encode},
+                $actions: {$actions|json_encode}
+            });
+        })(jQuery);
+    </script>
 </div>
-<script>
-    (function ($) {
-        new TutorialSidebar({
-            $wrapper: $("#tutorial-actions"),
-            $active: {$active|json_encode},
-            $actions: {$actions|json_encode}
-        });
-    })(jQuery);
-</script>

@@ -133,7 +133,7 @@
                 this.initSelecting();
                 this.initView(this.options.view);
                 this.initDragndrop();
-                this.initSortingNotice();
+                // this.initSortingNotice();
                 this.rubberTable();
 
                 if (this.options.view == 'table') {
@@ -146,18 +146,21 @@
             return this;
         },
 
-        initSortingNotice: function() {
-            if ($.storage.get('shop/list-sorting-notice-closed')) {
-                return;
-            }
-            var $notice = $('#custom-backend-order-notice');
-            if ($notice.length) {
-                $notice.show().on('click', '.close', function() {
-                    $.storage.set('shop/list-sorting-notice-closed', '1');
-                    $notice.remove();
-                });
-            }
-        },
+        /**
+         * @description see at "checkAlerts" (301 line) in products.js
+         * */
+        // initSortingNotice: function() {
+        //     if ($.storage.get('shop/list-sorting-notice-closed')) {
+        //         return;
+        //     }
+        //     var $notice = $('#custom-backend-order-notice');
+        //     if ($notice.length) {
+        //         $notice.show().on('click', '.close', function() {
+        //             $.storage.set('shop/list-sorting-notice-closed', '1');
+        //             $notice.remove();
+        //         });
+        //     }
+        // },
 
         initLazyLoad: function (options) {
             var count = options.count;

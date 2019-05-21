@@ -21,7 +21,9 @@ class shopCheckoutContactinfo extends shopCheckout
         if ($contact->get('is_company')) {
             $this->form = new waContactForm();
             $url = wa('shop')->getRouteUrl('/frontend/checkout', array(), true);
-            $view->assign('error', sprintf(_w("We do not accept orders from clients registered as companies. To continue checkout, please <a href='?logout=%s'>log out</a> and log in again as a person."), $url));
+            $view->assign('error',
+                sprintf(_w("We do not accept orders from clients registered as companies. To continue checkout, please <a href='?logout=%s'>log out</a> and log in again as a person."),
+                    $url));
 
         } else {
             if (!$this->form) {
@@ -129,6 +131,7 @@ class shopCheckoutContactinfo extends shopCheckout
      * Execute step
      *
      * @return bool
+     * @throws waException
      */
     public function execute()
     {
@@ -173,8 +176,7 @@ class shopCheckoutContactinfo extends shopCheckout
         if (wa('shop')->getSetting('checkout_antispam') && !wa()->getUser()->isAuth()) {
             $this->setSessionData('antispam', true);
         }
-
-        $data = waRequest::post('customer');
+        $data = $this->form->post();
         if ($data && is_array($data)) {
             // When both shipping and billing addresses are enabled,
             // there's an option to only edit one address copy.
@@ -183,7 +185,11 @@ class shopCheckoutContactinfo extends shopCheckout
             }
 
             foreach ($data as $field => $value) {
-                $contact->set($field, $value);
+                if ($field === 'phone') {
+                    $contact = $this->setPhoneToContact($contact, $value);
+                } else {
+                    $contact->set($field, $value);
+                }
             }
         }
 
@@ -194,17 +200,6 @@ class shopCheckoutContactinfo extends shopCheckout
             if (!$rate || is_string($rate)) {
                 // remove selected shipping method
                 $this->setSessionData('shipping', null);
-                /*
-                $errors = array();
-                $errors['all'] = sprintf(_w('We cannot ship to the specified address via %s.'), $shipping['name']);
-                if ($rate) {
-                    $errors['all'] .= '<br> <strong>'.$rate.'</strong><br>';
-                }
-                $errors['all'] .= '<br> '._w('Please double-check the address above, or return to the shipping step and select another shipping option.');
-                $errors['all'] .= '<input type="hidden" name="ignore_shipping_error" value="1">';
-                $this->assign('errors', $errors);
-                return false;
-                */
             }
         }
 
@@ -260,6 +255,77 @@ class shopCheckoutContactinfo extends shopCheckout
         }
 
         return true;
+    }
+
+    /**
+     * Re-saves old and saves new phones in international format
+     * @param waContact $contact
+     * @param $phones
+     * @return waContact
+     */
+    protected function setPhoneToContact(waContact $contact, $phones)
+    {
+        $phones = (array) $phones;
+        $new_phones = [];
+        $old_phones = $contact->get('phone');
+
+        foreach ($phones as $phone) {
+            if (is_array($phone)) {
+                $phone = $phone['value'];
+            }
+            $new_phones[] = $this->preparePhone($old_phones, $phone);
+        }
+
+        $contact->set('phone', $new_phones);
+
+        return $contact;
+    }
+
+    /**
+     *
+     * @param $old_phones
+     * @param $phone_data
+     * @return array|null
+     */
+    protected function preparePhone($old_phones, $phone_data)
+    {
+        if (is_array($phone_data)) {
+            $phone = $phone_data['value'];
+        } else {
+            $phone = $phone_data;
+        }
+
+        $result = waDomainAuthConfig::factory()->transformPhone($phone);
+        $result_phone = $result['phone'];
+        $transform = null;
+
+        foreach ($old_phones as $old_phone) {
+            // Possibly saved old format. Or the old one was saved and a new one was entered.
+            if ($old_phone['value'] === $phone || $old_phone['value'] === $result_phone) {
+
+                //Information about the phone may be in the array, so you need to save additional keys
+                if (is_array($phone_data)) {
+                    $old_phone = array_merge($old_phone, $phone_data);
+                }
+                // Save the phone in a new format
+                $old_phone['value'] = $result_phone;
+                $transform = $old_phone;
+                break;
+            }
+        }
+
+        // If you do not find the old phone, then you need to save a new one.
+        if (!$transform) {
+            if (is_array($phone_data)) {
+                $phone_data['value'] = $result_phone;
+            } else {
+                $phone_data = $result_phone;
+            }
+
+            $transform = $phone_data;
+        }
+
+        return $transform;
     }
 
     public function getOptions($config)
@@ -439,6 +505,7 @@ class shopCheckoutContactinfo extends shopCheckout
      * @param string $fld_id
      * @param array $opts
      * @return array
+     * @throws waException
      */
     protected function tidyOpts($field, $fld_id, $opts)
     {

@@ -1,46 +1,58 @@
 {if !empty($actions)}
-   {$stepArray = array_keys($actions)}
-   {foreach $stepArray as $key => $step}
-      {if $step === $active}
-         {$next_step_key = $key}
-      {/if}
-   {/foreach}
-   {if isset($stepArray[$next_step_key+1])}
-      {$next_step = $stepArray[$next_step_key+1]}
-   {/if}
-   {if isset($stepArray[$next_step_key-1])}
-      {$prev_step = $stepArray[$next_step_key-1]}
-   {/if}
+    {$stepArray = array_keys($actions)}
+    {foreach $stepArray as $key => $step}
+        {if $step === $active}
+            {$next_step_key = $key}
+        {/if}
+    {/foreach}
+    {if isset($stepArray[$next_step_key+1])}
+        {$next_step = $stepArray[$next_step_key+1]}
+    {/if}
+    {if isset($stepArray[$next_step_key-1])}
+        {$prev_step = $stepArray[$next_step_key-1]}
+    {/if}
 {/if}
+
 <div class="s-unboarding-wrapper">
-   <h1>Добавьте товары</h1>
-   <div class="s-tutorial-block">
-      <div class="s-title"><img src="{$wa_app_static_url}img/arrow/img_arrow.png" class="s-arrow" /><span class="s-title-text">Вручную по одному</span></div>
-      <p class="img-margin-left"><img src="{$wa_app_static_url}img/steps/step02-01.png"></p>
-   </div>
-   <div class="clear-both"></div>
+    <h1>Добавьте товары</h1>
+    {if !empty($products_imported)}
+        <p>Примеры товаров добавлены в ваш интернет-магазин. Теперь вы можете самостоятельно добавить и свои товары, как описано здесь.</p>
+    {/if}
 
-   <div class="s-tutorial-block">
-      <div class="s-title"><img src="{$wa_app_static_url}img/arrow/img_arrow.png" class="s-arrow" /><span class="s-title-text">Автоматически сразу много</span></div>
-      <p class="img-margin-left"><img src="{$wa_app_static_url}img/steps/step02-02.png"></p>
-      <p>В разделе «Импорт/экспорт», в правой верхней области экрана, доступны разные способы массового добавления или обновления товаров.</p>
-      <ul>
-         <li>Массовая загрузка изображений: перетащите фотографии из папки на своем компьютере прямо в Shop-Script и сразу создайте из них много товаров.</li>
-         <li>Импорт товаров из CSV-файла: сохраните файл-таблицу в формате CSV с помощью Microsoft Excel, OpenOffice или iWork и загрузите его в Shop-Script. Всего за несколько минут из файла в магазин будут добавлены все нужные товары.</li>
-         <li>Переход на Shop-Script: перенесите данные из других систем для создания интернет-магазинов в Shop-Script.</li>
-      </ul>
+    <div class="s-content-with-indent">
+        <div class="s-tutorial-block">
+            <div class="s-title">
+                <img src="{$wa_url}wa-apps/shop/img/backend/tutorial/arrow.green.svg" class="s-arrow" alt=""/><span class="s-title-text">Вручную по одному</span>
+            </div>
+            <p><img src="{$wa_app_static_url}img/backend/tutorial/ru/step-2-1.png" alt=""></p>
+        </div>
 
-   </div>
-   <br/>
-   <a href="{if isset($prev_step) && $actions[$prev_step]}{$actions[$prev_step]['href']}{else}javascript:void(0){/if}" class="button yellow">&larr; Назад</a>
-   <a href="{if isset($next_step) && $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green">Следующий шаг &rarr;</a>
+        <div class="s-tutorial-block">
+            <div class="s-title">
+                <img src="{$wa_url}wa-apps/shop/img/backend/tutorial/arrow.green.svg" class="s-arrow" alt=""/><span class="s-title-text">Автоматически сразу много</span>
+            </div>
+            <p><img src="{$wa_app_static_url}img/backend/tutorial/ru/step-2-2.png" alt=""></p>
+            <p>В разделе «Импорт/экспорт» доступны разные способы добавления или обновления товаров.</p>
+            <ul>
+                <li>Массовая загрузка изображений: перетащите фотографии из папки на своем компьютере прямо в Shop-Script и сразу создайте из них много товаров.</li>
+                <li>Импорт товаров из CSV-файла: сохраните файл-таблицу в формате CSV с помощью Microsoft Excel, OpenOffice или iWork и загрузите его в Shop-Script. Всего за несколько минут из файла в магазин будут добавлены все нужные товары.</li>
+                <li>Переход на Shop-Script: перенесите данные из других систем для создания интернет-магазинов в Shop-Script.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="s-actions-wrapper">
+        <a href="{if isset($prev_step) && $actions[$prev_step]}{$actions[$prev_step]['href']}{else}javascript:void(0){/if}" class="button yellow">&larr; Назад</a>
+        <a href="{if isset($next_step) && $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green">Следующий шаг &rarr;</a>
+    </div>
+
+    <script>
+        ( function($) {
+            new TutorialSidebar({
+                $wrapper: $("#tutorial-actions"),
+                active_step: {$active|json_encode},
+                $actions: {$actions|json_encode}
+            });
+        })(jQuery);
+    </script>
 </div>
-<script>
-    (function ($) {
-        new TutorialSidebar({
-            $wrapper: $("#tutorial-actions"),
-            $active: {$active|json_encode},
-            $actions: {$actions|json_encode}
-        });
-    })(jQuery);
-</script>

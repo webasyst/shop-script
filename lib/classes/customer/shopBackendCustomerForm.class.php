@@ -107,6 +107,15 @@ class shopBackendCustomerForm {
     }
 
     /**
+     * Show all shipping and billing addresses or only first shipping and billing addresses
+     * @param string $type 'all', 'first'
+     */
+    public function setAddressDisplayType($type)
+    {
+        $this->options['address_display_type'] = $type;
+    }
+
+    /**
      * What storefront will be used to form list of fields
      * If storefront is empty (or not scalar) OR not existed OR not compatible with contact type
      *  then list of fields will formed by 'union' logic
@@ -243,16 +252,23 @@ class shopBackendCustomerForm {
         $res = $this->getStorefrontFieldList();
 
         if ($res['status']) {
-            return array(
+            $result = array(
                 'type' => 'storefront',
                 'field_list' => $res['field_list']
             );
+        } else {
+            $result = array(
+                'type' => 'union',
+                'field_list' => $this->getUnitedFieldList()
+            );
         }
-
-        $result = array(
-            'type' => 'union',
-            'field_list' => $this->getUnitedFieldList()
-        );
+        
+        $contact_type = $this->options['contact_type'];
+        if ($contact_type === shopCustomer::TYPE_PERSON) {
+            unset($result['field_list']['title'], $result['field_list']['jobtitle'], $result['field_list']['company']);
+        } else {
+            unset($result['field_list']['title']);
+        }
 
         return $result;
     }
@@ -319,7 +335,23 @@ class shopBackendCustomerForm {
             }
         }
 
+        // For person one of 'firstname', 'middlename', 'lastname' is primary then 'name'
+        if ($contact_type === shopCustomer::TYPE_PERSON) {
+            foreach (array('firstname', 'middlename', 'lastname') as $alt_name_field_id) {
+                if (isset($form_fields[$alt_name_field_id])) {
+                    unset($form_fields['name']);
+                }
+            }
+        } else {
+            // For company 'company' is primary then 'name'
+            if (isset($form_fields['company'])) {
+                unset($form_fields['name']);
+            }
+        }
+
+        // Merge with main fields
         $form_fields = $this->mergeWithMainFields($form_fields, true);
+
 
         // address never needed in backend customer form
         unset($form_fields['address']);
@@ -750,8 +782,10 @@ class shopBackendCustomerForm {
 
         // set current country as a value
         $current_country_value = $config->getGeneralSettings('country');
-        if (empty($fields_config['address.shipping']['fields']['country']['value'])) {
-            $fields_config['address.shipping']['fields']['country']['value'] = $current_country_value;
+        foreach (array('address.shipping', 'address.billing') as $field_id) {
+            if (isset($fields_config[$field_id]['fields']['country']) && empty($fields_config[$field_id]['fields']['country']['value'])) {
+                $fields_config[$field_id]['fields']['country']['value'] = $current_country_value;
+            }
         }
 
         // for NOT storefront case all fields are NOT required, otherwise don't touch, leave as in fields config
@@ -783,6 +817,21 @@ class shopBackendCustomerForm {
         );
 
         if ($contact) {
+
+            $address_display_type = ifset($this->options['address_display_type']);
+            if ($address_display_type === 'first') {
+                $shipping_address = $contact['address.shipping'];
+                if (count($shipping_address) > 1) {
+                    $shipping_address = array_slice($shipping_address, 0, 1);
+                    $contact['address.shipping'] = $shipping_address;
+                }
+                $billing_address = $contact['address.billing'];
+                if (count($billing_address) > 1) {
+                    $billing_address = array_slice($billing_address, 0, 1);
+                    $contact['address.billing'] = $billing_address;
+                }
+            }
+
             $form->setValue($contact);
         }
 

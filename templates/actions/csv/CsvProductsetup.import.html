@@ -164,6 +164,28 @@
     </div>
 
     <div class="field">
+        <div class="name">[`Unique product image URLs`]</div>
+        <div class="value">
+            <label><input type="radio" name="image_match" value="" checked="checked"> [`by file name`]</label>
+            <br>
+           	<span class="hint">{sprintf('https://%s/path/to/<strong>file.jpg</strong>', '[`domain.com`]')}</span>
+        </div>
+        <div class="value">
+            <label><input type="radio" name="image_match" value="path_md5"> [`by file path`]</label>
+            <br>
+           	<span class="hint">{sprintf('https://%s/<strong>path/to/file.jpg</strong>', '[`domain.com`]')}</span>
+        </div>
+        <div class="value">
+            <label><input type="radio" name="image_match" value="host_path_md5"> [`by file path and domain name`]</label>
+            <br>
+           	<span class="hint">{sprintf('https://<strong>%s/path/to/file.jpg</strong>', '[`domain.com`]')}</span>
+        </div>
+        <div class="value">
+            <p class="hint">[`Select how unique image URLs must be extracted from your CSV file.`]</p>
+        </div>
+    </div>
+
+    <div class="field">
         <div class="name">[`Stock level for products with selectable features defined as <{ … }>`]</div>
         <div class="value no-shift">
             <label>

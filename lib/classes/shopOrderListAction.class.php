@@ -214,15 +214,23 @@ class shopOrderListAction extends waViewAction
 
         $emails = array();
 
+        // TODO: rework to use shopCustomer::getUserpics()
+
         foreach ($orders as &$o) {
             if (isset($o['contact'])) {
                 if (!$o['contact']['photo'] && $use_gravatar) {
+
                     if (!isset($emails[$o['contact']['id']])) {
                         $c = new waContact($o['contact']['id']);
                         $emails[$o['contact']['id']] = $c->get('email', 'default');
                     }
-                    $email =$emails[$o['contact']['id']];
-                    $o['contact']['photo_50x50'] = shopHelper::getGravatar($email, 50, $gravatar_default);
+
+                    $email = $emails[$o['contact']['id']];
+                    $o['contact']['photo_50x50'] = shopHelper::getGravatarPic($email, array(
+                        'size' => 50,
+                        'default' => $gravatar_default,
+                        'is_company' => !empty($o['contact']['is_company'])
+                    ));
                 } else {
                     $o['contact']['photo_50x50'] = waContact::getPhotoUrl($o['contact']['id'], $o['contact']['photo'], 50, 50);
                 }
@@ -232,7 +240,11 @@ class shopOrderListAction extends waViewAction
                 $o['contact']['email'] = isset($o['params']['contact_email']) ? $o['params']['contact_email'] : '';
                 $o['contact']['phone'] = isset($o['params']['contact_phone']) ? $o['params']['contact_phone'] : '';
                 if ($use_gravatar) {
-                    $o['contact']['photo_50x50'] = shopHelper::getGravatar($o['contact']['email'], 50, $gravatar_default);
+                    $o['contact']['photo_50x50'] = shopHelper::getGravatarPic($o['contact']['email'], array(
+                        'size' => 50,
+                        'default' => $gravatar_default,
+                        'is_company' => !empty($o['contact']['is_company'])
+                    ));
                 } else {
                     $o['contact']['photo_50x50'] = waContact::getPhotoUrl(null, null, 50, 50);
                 }

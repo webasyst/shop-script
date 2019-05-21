@@ -209,10 +209,10 @@ class shopImportexportHelper
                 $info['type_id'] = intval($hash);
                 break;
             case 'category':
-                $ids = array_unique(array_map('intval', explode(',', $hash)));
-                sort($ids);
-                $info['count'] = count($ids);
-                $info['category_ids'] = implode(',', $ids);
+                $category_ids = array_unique(array_map('intval', explode(',', $hash)));
+                sort($category_ids);
+                $info['count'] = count($category_ids);
+                $info['category_ids'] = implode(',', $category_ids);
                 break;
             default:
                 $info['hash'] = '';
@@ -223,12 +223,15 @@ class shopImportexportHelper
             $categories = $model->getTree(null, 0, true);
             foreach ($categories as $id => $category) {
                 if ($category['type'] == shopCategoryModel::TYPE_DYNAMIC) {
-                    unset($categories[$id]);
+                    if (empty($category_ids) || !in_array($id, $category_ids, true)) {
+                        unset($categories[$id]);
+                    }
                 }
             }
 
             $map = array();
             foreach ($categories as &$category) {
+                $category['icon'] = ($category['type'] == shopCategoryModel::TYPE_STATIC) ? 'folder' : 'funnel';
                 $map[$category['id']] = &$category;
             }
             unset($category);

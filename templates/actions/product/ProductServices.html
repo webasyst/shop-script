@@ -78,6 +78,9 @@
                                 <label>
                                     <input type="checkbox" name="variant_sku[{$variant.id}][{$variant_sku.sku_id}]" value="1" {if $variant_sku.status != shopProductServicesModel::STATUS_FORBIDDEN}checked{/if}>
                                     {$variant_sku.name|escape}
+                                    {if !empty($variant_sku.sku)}
+                                        <span class="hint">{$variant_sku.sku|escape}</span>
+                                    {/if}
                                 </label>
                             </td>
                             <td>

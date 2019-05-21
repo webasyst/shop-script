@@ -77,9 +77,9 @@ class shopProductsCollection
 
     /**
      * Extra collection options
+     * @param array $options
      * @see __construct()
      *
-     * @param array $options
      */
     public function setOptions($options)
     {
@@ -145,6 +145,14 @@ class shopProductsCollection
 
                 $this->fields['order_by'] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
                 $this->order_by = 'stock_worth '.$order;
+            } elseif ($sort === 'sku' || $sort === 'compare_price' || $sort === 'purchase_price') {
+                $actual_joins = $this->getJoinsByTableName('shop_product_skus');
+                if ($actual_joins) {
+                    $skus_alias = $actual_joins[0]['alias'];
+                } else {
+                    $skus_alias = $this->addJoin('shop_product_skus', ':table.product_id = p.id');
+                }
+                $this->order_by = "{$skus_alias}.{$sort} {$order}";
             } else {
                 $order_by = array();
                 $fields = array();
@@ -1137,7 +1145,7 @@ SQL;
     /**
      * Returns expression for SQL
      *
-     * @param string $op    - operand ==, >=, etc
+     * @param string $op - operand ==, >=, etc
      * @param string $value - value comma separated integer values
      * @return string
      */
@@ -2634,6 +2642,25 @@ SQL;
             $this->where[] = str_replace(':table', $alias, $where);
         }
         return $alias;
+    }
+
+    /**
+     *
+     * @param $table_name
+     * @return array
+     */
+    public function getJoinsByTableName($table_name)
+    {
+        $result = [];
+
+        if ($this->joins) {
+            foreach ($this->joins as $join) {
+                if ($join['table'] === $table_name) {
+                    $result[] = $join;
+                }
+            }
+        }
+        return $result;
     }
 
     /**

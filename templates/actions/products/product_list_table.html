@@ -238,7 +238,7 @@
             $template.before($(new_elements));
 
             $dialog.find(':input.js-autocomplete-feature').autocomplete({
-                source: '?action=autocomplete&type=feature&options[single]=1',
+                source: '?action=autocomplete&type=feature',
                 minLength: 2,
                 delay: 300,
                 select: function (event, ui) {

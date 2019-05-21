@@ -636,6 +636,9 @@ SQL;
         $result = array();
 
         foreach ($data as $sku_id => $sku) {
+            if (!is_array($sku)) {
+                continue;
+            }
             $sku['sort'] = ++$sort;
 
             if (empty($sku['available'])) {
@@ -681,6 +684,16 @@ SQL;
 
             if ($product->sku_id == $sku_id) {
                 $default_sku_id = $sku['id'];
+            }
+        }
+
+        foreach ($data as $sku_id => $sku) {
+            #lazy delete sku
+            if (!is_array($sku)) {
+                if ($sku_id > 0) {
+                    $this->delete($sku_id);
+                }
+                unset($data[$sku_id]);
             }
         }
 

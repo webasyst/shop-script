@@ -351,17 +351,21 @@ class shopBackendAutocompleteController extends waController
 
     public function contactsAutocomplete($q, $limit = null)
     {
+        $q = trim($q);
+
         $m = new waModel();
 
         // The plan is: try queries one by one (starting with fast ones),
         // until we find 5 rows total.
         $sqls = array();
+        $search_terms = array();   // by what term was search in current sql, need for highlighting
 
         // Name starts with requested string
         $sqls[] = "SELECT c.id, c.name, c.firstname, c.middlename, c.lastname, c.photo
                    FROM wa_contact AS c
                    WHERE c.name LIKE '".$m->escape($q, 'like')."%'
                    LIMIT {LIMIT}";
+        $search_terms[] = $q;
 
         // Email starts with requested string
         $sqls[] = "SELECT c.id, c.name, e.email, c.firstname, c.middlename, c.lastname, c.photo
@@ -370,16 +374,64 @@ class shopBackendAutocompleteController extends waController
                            ON e.contact_id=c.id
                    WHERE e.email LIKE '".$m->escape($q, 'like')."%'
                    LIMIT {LIMIT}";
+        $search_terms[] = $q;
 
         // Phone contains requested string
         if (preg_match('~^[wp0-9\-\+\#\*\(\)\. ]+$~', $q)) {
-            $dq = preg_replace('/[^\d]+/', '', $q);
-            $sqls[] = "SELECT c.id, c.name, d.value as phone, c.firstname, c.middlename, c.lastname, c.photo
+
+            $query_phone = waContactPhoneField::cleanPhoneNumber($q);
+
+            // search sql template
+            $sql_template = "SELECT c.id, c.name, d.value as phone, c.firstname, c.middlename, c.lastname, c.photo
                        FROM wa_contact AS c
                            JOIN wa_contact_data AS d
                                ON d.contact_id=c.id AND d.field='phone'
-                       WHERE d.value LIKE '%".$m->escape($dq, 'like')."%'
+                       WHERE {CONDITION}
                        LIMIT {LIMIT}";
+
+            // search as prefix
+            $condition_rule = "d.value LIKE '{PHONE}%'";
+
+            // first of all search by query phone as it
+            $sql_t = str_replace("{CONDITION}", $condition_rule, $sql_template);
+            $sql = str_replace("{PHONE}", $query_phone, $sql_t);
+            $sqls[] = $sql;
+            $search_terms[] = $query_phone;
+
+            // than try apply transformation and than search by transform phone
+
+            $is_international = substr($q, 0, 1) === '+';
+
+            // apply transformations for all domains
+            $transform_results = waDomainAuthConfig::transformPhonePrefixForDomains($query_phone, $is_international);
+            $transform_results = array_filter($transform_results, function ($result) {
+                return $result['status'];   // status == true, so phone is changed
+            });
+
+            // unique phones that changed after transformation
+            $phones = waUtils::getFieldValues($transform_results, 'phone');
+
+            if ($phones) {
+                $condition = array();
+                foreach ($phones as $phone) {
+                    $condition[] = str_replace('{PHONE}', $phone, $condition_rule);
+                }
+                $condition = '(' . join(' OR ', $condition) . ')';
+                $sql = str_replace('{CONDITION}', $condition, $sql_template);
+
+                $sqls[] = $sql;
+                $search_terms[] = $phones;
+            }
+
+            // search as substring
+            $condition_rule = "d.value LIKE '%{PHONE}%'";
+
+            // search only by query phone as it, without transformation
+            $sql_t = str_replace("{CONDITION}", $condition_rule, $sql_template);
+            $sql = str_replace("{PHONE}", $query_phone, $sql_t);
+            $sqls[] = $sql;
+            $search_terms[] = $query_phone;
+
         }
 
         // Name contains requested string
@@ -387,6 +439,7 @@ class shopBackendAutocompleteController extends waController
                    FROM wa_contact AS c
                    WHERE c.name LIKE '_%".$m->escape($q, 'like')."%'
                    LIMIT {LIMIT}";
+        $search_terms[] = $q;
 
         // Email contains requested string
         $sqls[] = "SELECT c.id, c.name, e.email, c.firstname, c.middlename, c.lastname, c.photo
@@ -395,11 +448,11 @@ class shopBackendAutocompleteController extends waController
                            ON e.contact_id=c.id
                    WHERE e.email LIKE '_%".$m->escape($q, 'like')."%'
                    LIMIT {LIMIT}";
+        $search_terms[] = $q;
 
         $limit = $limit !== null ? $limit : 5;
         $result = array();
-        $term_safe = htmlspecialchars($q);
-        foreach ($sqls as $sql) {
+        foreach ($sqls as $index => $sql) {
             if (count($result) >= $limit) {
                 break;
             }
@@ -408,11 +461,42 @@ class shopBackendAutocompleteController extends waController
                     if (!empty($c['firstname']) || !empty($c['middlename']) || !empty($c['lastname'])) {
                         $c['name'] = waContactNameField::formatName($c);
                     }
-                    $name = $this->prepare($c['name'], $term_safe);
-                    $email = $this->prepare(ifset($c['email'], ''), $term_safe);
-                    $phone = $this->prepare(ifset($c['phone'], ''), $term_safe);
-                    $phone && $phone = '<i class="icon16 phone"></i>'.$phone;
-                    $email && $email = '<i class="icon16 email"></i>'.$email;
+
+                    $name = $c['name'];
+                    $email = ifset($c['email'], '');
+                    $phone = ifset($c['phone'], '');
+
+                    $terms = (array)$search_terms[$index];
+                    foreach ($terms as $term) {
+                        $term_safe = htmlspecialchars($term);
+                        $match = false;
+
+                        if ($this->match($name, $term_safe)) {
+                            $name = $this->prepare($name, $term_safe);
+                            $match = true;
+                        }
+
+                        if ($this->match($email, $term_safe)) {
+                            $email = $this->prepare($email, $term_safe);
+                            if ($email) {
+                                $email = '<i class="icon16 email"></i>' . $email;
+                            }
+                            $match = true;
+                        }
+
+                        if ($this->match($phone, $term_safe)) {
+                            $phone = $this->prepare($phone, $term_safe);
+                            if ($phone) {
+                                $phone = '<i class="icon16 phone"></i>' . $phone;
+                            }
+                            $match = true;
+                        }
+
+                        if ($match) {
+                            break;
+                        }
+                    }
+
                     $result[$c['id']] = array(
                         'id'        => $c['id'],
                         'value'     => $c['id'],
@@ -420,6 +504,7 @@ class shopBackendAutocompleteController extends waController
                         'photo_url' => waContact::getPhotoUrl($c['id'], $c['photo'], 96),
                         'label'     => implode(' ', array_filter(array($name, $email, $phone))),
                     );
+
                     if (count($result) >= $limit) {
                         break 2;
                     }
@@ -428,8 +513,9 @@ class shopBackendAutocompleteController extends waController
         }
 
         foreach ($result as &$c) {
-            $contact = new waContact($c['id']);
-            $c['label'] = "<i class='icon16 userpic20' style='background-image: url(\"".$contact->getPhoto(20)."\");'></i>".$c['label'];
+            $customer = new shopCustomer($c['id']);
+            $userpic = $customer->getUserpic(array('size' => 20));
+            $c['label'] = "<i class='icon16 userpic20' style='background-image: url(\"".$userpic."\");'></i>".$c['label'];
         }
         unset($c);
 
@@ -558,26 +644,66 @@ SQL;
         if (!wa()->getUser()->getRights('shop', 'customers')) {
             return array();
         }
-        $result = array();
+
+        $q = trim($q);
+
+        // collect hashes for collection here
         $hashes = array();
 
+        // collect phone terms will used for search
+        $phone_terms = array();
+
         if (preg_match('~^\+*[0-9\s\-\(\)]+$~', $q)) {
-            $hashes['phone'] = 'search/phone*='.ltrim($q, '+');
+
+            $query_phone = waContactPhoneField::cleanPhoneNumber($q);
+
+            // search as prefix
+            $search_hash_t = "search/phone@^={PHONES}";
+
+            // first of all search by query phone as it
+            $hash = str_replace('{PHONES}', $query_phone, $search_hash_t);
+            $hashes["phone_{$hash}"] = $hash;
+            $phone_terms[] = $query_phone;
+
+            // than try apply transformation and than search by transform phone
+
+            $is_international = substr($q, 0, 1) === '+';
+
+            // apply transformations for all domains
+            $transform_results = waDomainAuthConfig::transformPhonePrefixForDomains($query_phone, $is_international);
+            $transform_results = array_filter($transform_results, function ($result) {
+                return $result['status'];   // status == true, so phone is changed
+            });
+
+            // unique phones that changed after transformation
+            $phones = waUtils::getFieldValues($transform_results, 'phone');
+
+            if ($phones) {
+                $hash = str_replace('{PHONES}', join(',', $phones), $search_hash_t);
+                // add hash in list of hashes, but check for existing - no need lookup 2 times for the same hash
+                if (!isset($hashes["phone_{$hash}"])) {
+                    $hashes["phone_{$hash}"] = $hash;
+                    $phone_terms = array_merge($phone_terms, $phones);
+                }
+            }
+
+            // search as substring
+            $search_hash_t = "search/phone*={PHONES}";
+
+            // search only by query phone as it, without transformation
+            $hash = str_replace('{PHONES}', $query_phone, $search_hash_t);
+            $hashes["phone_{$hash}"] = $hash;
+            $phone_terms[] = $query_phone;
+
+
         } else {
             $hashes['email|name'] = 'search/email|name*='.$q;
-//            $hashes['shipping_name'] = 'search/order_params.shipping_name*=' . $q;
-//            $hashes['billing_name'] = 'search/order_params.billing_name*=' . $q;
-//            $hashes['coupon'] = 'search/coupon*=' . $q;
             $hashes['city'] = 'search/address:city*='.$q;
             $hashes['region'] = 'search/address:region*='.$q;
             $hashes['country'] = 'search/address:country*='.$q;
         }
 
-        $used_hash = array_fill_keys(array_keys($hashes), false);
-        $used_hash['phone'] = false;
-        $used_hash['address'] = false;
-
-
+        $used_hashes = array();
         $customers = array();
 
         $limit = 5;
@@ -592,22 +718,12 @@ SQL;
                 }
                 if (count($res) > 0) {
                     if (in_array($hash_id, array('city', 'region', 'country'))) {
-                        $used_hash['address'] = true;
+                        $used_hashes['address'] = true;
                     } else {
-                        $used_hash[$hash_id] = true;
+                        $used_hashes[$hash_id] = true;
                     }
                 }
             }
-        }
-
-        if (!empty($used_hash['address'])) {
-            $address_field = waContactFields::get('address');
-        }
-        if (!empty($used_hash['phone'])) {
-            $phone_field = waContactFields::get('phone');
-        }
-        if (!empty($used_hash['email|name'])) {
-            $email_field = waContactFields::get('email');
         }
 
         foreach ($customers as &$customer) {
@@ -616,39 +732,44 @@ SQL;
             $customer['email_formatted'] = array();
             $customer['phone_formatted'] = array();
 
-            if ($used_hash['address']) {
-                if (isset($customer['address'][0])) {
-                    foreach ($customer['address'] as $i => $address) {
-                        /**
-                         * @var waContactField $address_field
-                         */
-                        $customer['address_formatted'][$i] = $address_field->format($address, 'html');
-                    }
+            foreach ($used_hashes as $hash_id => $is_used) {
+                if (empty($is_used)) {
+                    continue;
                 }
-            }
-            if ($used_hash['phone']) {
-                if (isset($customer['phone'][0])) {
-                    foreach ($customer['phone'] as $i => $phone) {
-                        /**
-                         * @var waContactField $phone_field
-                         */
-                        $customer['phone_formatted'][$i] = $phone_field->format($phone, 'html');
+
+                if ($hash_id === 'address') {
+                    if (isset($customer['address'][0])) {
+                        $address_field = waContactFields::get('address');
+                        foreach ($customer['address'] as $i => $address) {
+                            $customer['address_formatted'][$i] = $address_field->format($address, 'html');
+                        }
                     }
+                    continue;
                 }
-            }
-            if ($used_hash['email|name']) {
-                if (isset($customer['email'][0])) {
-                    foreach ($customer['email'] as $i => $email) {
-                        /**
-                         * @var waContactField $email_field
-                         */
-                        $customer['email_formatted'][$i] = $email_field->format($email, 'html');
+
+                if (substr($hash_id, 0, 5) === 'phone') {
+                    if (isset($customer['phone'][0])) {
+                        foreach ($customer['phone'] as $i => $phone) {
+                            $customer['phone_formatted'][$i] = (string)ifset($phone['value']);
+                        }
                     }
+                    continue;
+                }
+
+                if ($hash_id === 'email|name') {
+                    if (isset($customer['email'][0])) {
+                        $email_field = waContactFields::get('email');
+                        foreach ($customer['email'] as $i => $email) {
+                            $customer['email_formatted'][$i] = $email_field->format($email, 'html');
+                        }
+                    }
+                    continue;
                 }
             }
         }
         unset($customer);
 
+        $result = array();
 
         $term_safe = htmlspecialchars($q, ENT_QUOTES, 'utf-8');
         foreach ($customers as $c) {
@@ -666,9 +787,13 @@ SQL;
 
             $phones = array();
             foreach ($c['phone_formatted'] as $phone) {
-                if ($this->match($phone, $term_safe, false)) {
-                    $phones[] = '<i class="icon16 phone"></i>'.$this->prepare($phone, $term_safe, false);
-                    break;
+                $phone_terms = array_unique($phone_terms);
+                foreach ($phone_terms as $phone_term) {
+                    $phone_term_safe = htmlspecialchars($phone_term, ENT_QUOTES, 'utf-8');
+                    if ($this->match($phone, $phone_term_safe, false)) {
+                        $phones[] = '<i class="icon16 phone"></i>' . $this->prepare($phone, $phone_term_safe, false);
+                        break 2;
+                    }
                 }
             }
 
@@ -689,8 +814,9 @@ SQL;
         }
 
         foreach ($result as &$c) {
-            $contact = new waContact($c['id']);
-            $c['label'] = "<i class='icon16 userpic20' style='background-image: url(\"".$contact->getPhoto(20)."\");'></i>".$c['label'];
+            $customer = new shopCustomer($c['id']);
+            $userpic = $customer->getUserpic(array('size' => 20));
+            $c['label'] = "<i class='icon16 userpic20' style='background-image: url(\"".$userpic."\");'></i>".$c['label'];
         }
         unset($c);
 

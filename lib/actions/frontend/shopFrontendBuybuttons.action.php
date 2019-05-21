@@ -10,6 +10,7 @@ class shopFrontendBuybuttonsAction extends waViewAction
     public function postExecute()
     {
         $route = $this->getCurrentRoute();
+        $checkout_version = ifset($route, 'checkout_version', 1);
 
         $post = wa()->getRequest()->post('buybutton');
         unset($_POST['buybutton']);
@@ -22,10 +23,14 @@ class shopFrontendBuybuttonsAction extends waViewAction
             $goto = 'product';
         }
 
-        if ($goto === 'checkout') {
-            $goto_url = wa()->getRouteUrl("shop/frontend/checkout", array(), true, $route['domain'], $route['url']);
-        } else if ($goto === 'cart') {
-            $goto_url = wa()->getRouteUrl("shop/frontend/cart", array(), true, $route['domain'], $route['url']);
+        if ($goto === 'checkout' || $goto === 'cart') {
+            if ($checkout_version == 2) {
+                $goto_url = (new shopCheckoutViewHelper())->url(true);
+            } else if ($goto === 'checkout') {
+                $goto_url = wa()->getRouteUrl("shop/frontend/checkout", array(), true, $route['domain'], $route['url']);
+            } else {
+                $goto_url = wa()->getRouteUrl("shop/frontend/cart", array(), true, $route['domain'], $route['url']);
+            }
         } else {
             $product = $this->getProduct($post['id']);
             $goto_url = wa()->getRouteUrl("shop/frontend/cart", array('product_url' => $product->url), true, $route['domain'], $route['url']);
@@ -98,6 +103,14 @@ class shopFrontendBuybuttonsAction extends waViewAction
         wa()->getRequest()->setParam('noredirect', 1);
         $action = new shopFrontendCartAddController();
         $action->execute();
+
+        if (!empty($action->errors)) {
+            // Err if product is not in the cart
+            $cart_items = waUtils::getFieldValues($action->cart->items(), 'product_id', 'product_id');
+            if (empty($cart_items[$product_id])) {
+                $available = false;
+            }
+        }
 
         return $available;
     }

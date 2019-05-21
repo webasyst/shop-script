@@ -119,7 +119,6 @@ class shopCategoryEditAction extends waViewAction
 
             //Get feature count
             $settings['feature_count'] = $feature_model->getFeaturesCount([
-                'select'   => 'COUNT(*)',
                 'frontend' => true,
                 'status'   => null,
             ]);
@@ -134,28 +133,25 @@ class shopCategoryEditAction extends waViewAction
 
             //Get filter count
             $settings['filter_count'] = $feature_model->getFeaturesCount([
-                'select'   => 'COUNT(*)',
                 'frontend' => true,
             ]);
-
-
 
             $settings['filter'] += $filter;
             $settings['features'] = $features;
         }
 
         if ($settings['type'] == shopCategoryModel::TYPE_STATIC) {
+            $type_id = $this->getTypesId($id);
             $options_feature = array(
                 'frontend'  => true,
-                'type_id'   => $this->getTypesId($id),
+                'type_id'   => $type_id,
                 'ignore_id' => array_keys($settings['allow_filter_data'])
             );
 
             $features = $feature_model->getFilterFeatures($options_feature);
             $settings['filter_count'] = $feature_model->getFeaturesCount([
-                'select'    => 'COUNT(*)',
                 'frontend'  => true,
-                'type_id'   => $this->getTypesId($id),
+                'type_id'   => $type_id,
                 'ignore_id' => array_keys($settings['allow_filter_data'])
             ]);
 

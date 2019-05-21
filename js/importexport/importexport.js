@@ -410,8 +410,13 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
         window.document.title = plugin_name + this.options.title_suffix;
         this.$header.find('> h1:first').text(plugin_name);
 
-        this.$header.find('> p:first').html($content.find('p:first').hide().html());
-        this.$header.show();
+        var plugin_description = $content.find('p:first').hide().html() || '';
+        this.$header.find('> p:first').html(plugin_description);
+
+        if (plugin_name || plugin_description) {
+            this.$header.show();
+        }
+        
         this.profiles.init();
         this.profiles.draw(path);
 

@@ -44,7 +44,9 @@ class shopFrontendOrderConfirmationActions extends waJsonActions
     }
 
     /**
-     * @return null |null
+     * В этом методе не передается в конструктор значение по следующим соображениям:
+     * Если человек в форме изменил изменил значение адреса, то пусть его подтверждает.
+     * Чекаут все равно на шаге auth потом провалидирует значения, которые пользователь ввел.
      */
     public function sendConfirmationCodeAction()
     {

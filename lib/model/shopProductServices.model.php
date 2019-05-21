@@ -381,7 +381,7 @@ class shopProductServicesModel extends waModel
 
         $variants = $this->getVariants($product_id, $service_ids);
 
-        foreach ($variants as $s_id => $service) {
+         foreach ($variants as $s_id => $service) {
             foreach ($service['variants'] as &$variant) {
                 if ($variant['status'] === null) {
                     $variant['status'] = $services[$s_id]['type_id'] ? self::STATUS_PERMITTED :
@@ -401,6 +401,7 @@ class shopProductServicesModel extends waModel
                         );
                     }
                     $sk_item['name'] = $sku['name'];
+                    $sk_item['sku'] = $sku['sku'];
                     // base_price on sku level is price on product level
                     if ($variant['price'] !== null) {
                         $sk_item['base_price'] = $variant['price'];

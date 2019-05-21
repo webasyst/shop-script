@@ -199,11 +199,21 @@ var ShopBackendOrderEditorCustomerForm = ( function($) {
         var that = this,
             $autocomplete = that.$autocomplete;
 
-        var testPhone = function (str) {
+        var looksLikePhone = function (str) {
             return parseInt(str, 10) || str.substr(0, 1) == '+' || str.indexOf('(') !== -1;
         };
-        var testEmail = function (str) {
+
+        var looksLikeEmail = function (str) {
             return str.indexOf('@') !== -1;
+        };
+
+        var fillInputByTerm = function (term) {
+            var selector = '[name=' + that.inputName(
+                looksLikePhone(term) ? 'phone' : (
+                    looksLikeEmail(term) ? 'email' : 'firstname'
+                )) + ']';
+
+            that.$customer_inputs.filter(selector).val(term);
         };
 
         var term = '';
@@ -234,12 +244,21 @@ var ShopBackendOrderEditorCustomerForm = ( function($) {
                     return false;
                 }
 
-                var selector = '[name=' + that.inputName(
-                    testPhone(term) ? 'phone' : (
-                        testEmail(term) ? 'email' : 'firstname'
-                    )) + ']';
+                // get currently selected storefront
+                var storefront = that.editor.getSelectedStorefront();
+                if (storefront) {
+                    // concrete storefront chosen - reload form
+                    // see initForm method around .bind('beforeReload')
+                    that.reloadForm({}, {
+                        afterReload: function () {
+                            fillInputByTerm(term);
+                        }
+                    });
+                    return false;
+                }
 
-                that.$customer_inputs.filter(selector).val(term);
+                fillInputByTerm(term);
+                
                 that.$customer_id.val(0);
                 that.activate();
 
@@ -410,7 +429,7 @@ var ShopBackendOrderEditorCustomerForm = ( function($) {
         }
     };
 
-    ShopBackendOrderEditorCustomerForm.prototype.inputName = function () {
+    ShopBackendOrderEditorCustomerForm.prototype.inputName = function (name) {
         return '"customer[' + name + ']"';
     };
 

@@ -5,7 +5,7 @@ class shopFrontendCartAddController extends waJsonController
     /**
      * @var shopCart
      */
-    protected $cart;
+    public $cart;
 
     /**
      * @var shopCartItemsModel
@@ -15,6 +15,9 @@ class shopFrontendCartAddController extends waJsonController
      * @var bool
      */
     protected $is_html;
+
+    // made public for access by shopFrontendBuybuttonsAction
+    public $errors = [];
 
     public function execute()
     {

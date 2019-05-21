@@ -265,6 +265,7 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
         $files = array_unique($files);
         foreach ($files as $file) {
             waFiles::delete($file);
+            waFiles::delete($file.'.snapshot');
         }
 
         $this->files = $original_files;

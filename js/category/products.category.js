@@ -615,9 +615,11 @@ var shopDialogProductsCategory = (function ($) {
     shopDialogProductsCategory.prototype.initFilter = function () {
         var that = this,
             $wrapper = that.$wrapper,
-            $category_filter =  $wrapper.find('.js-category-filter');
+            $category_filter = $wrapper.find('.js-category-filter');
 
-        $('.js-category-allow-filter', $wrapper).click(function () {
+        // EVENTS
+
+        $wrapper.on("click", ".js-category-allow-filter", function () {
             if (this.checked) {
                 //enabled all input elements in filter category
                 $category_filter.find(':input').each(function () {
@@ -635,7 +637,7 @@ var shopDialogProductsCategory = (function ($) {
             }
         });
 
-        $wrapper.find('.js-category-filter').sortable({
+        $category_filter.sortable({
             distance: 5,
             opacity: 0.75,
             items: 'li:not(.unsortable)',
@@ -645,22 +647,48 @@ var shopDialogProductsCategory = (function ($) {
         });
 
         // enabled/disabled filter item
-        $wrapper.find('.js-filter-item').find('.js-filter-chekbox').change(function () {
-            var $filter_item = $(this).closest('.js-filter-item');
+        $wrapper.on("change", ".js-filter-chekbox", function () {
+            showSortHandles();
+        });
 
-            if (this.checked) {
-                if ($filter_item.hasClass('unsortable')) {
-                    $filter_item.find('i.sort').show();
-                    $filter_item.removeClass('unsortable');
-                }
-            }else{
-                if (!$filter_item.hasClass('unsortable')) {
-                    $filter_item.find('i.sort').hide();
-                    $filter_item.addClass('unsortable');
+        // INIT
+        showSortHandles();
+
+        function showSortHandles() {
+            var $active_filters = $wrapper.find(".js-filter-item .js-filter-chekbox:checked"),
+                force_hide = !($active_filters.length > 1);
+
+            $wrapper.find('.js-filter-item').each( function() {
+                var $filter = $(this);
+                sortToggle($filter, force_hide);
+            });
+
+            $category_filter.sortable("refresh");
+
+            //
+
+            function sortToggle($filter, force_hide) {
+                // DOM
+                var $field = $filter.find(".js-filter-chekbox"),
+                    $icon = $filter.find('i.sort');
+
+                // CONST
+                var sort_class = "unsortable";
+                var is_checked = (!force_hide && $field.is(":checked"));
+
+                if (is_checked) {
+                    if ($filter.hasClass(sort_class)) {
+                        $filter.removeClass(sort_class);
+                        $icon.show();
+                    }
+                } else {
+                    if (!$filter.hasClass(sort_class)) {
+                        $filter.addClass(sort_class);
+                        $icon.hide();
+                    }
                 }
             }
-            $wrapper.find(".js-category-filter").sortable("refresh");
-        });
+        }
     };
 
     shopDialogProductsCategory.prototype.initCategoryVisibility = function () {

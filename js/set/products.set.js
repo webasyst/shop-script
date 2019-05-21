@@ -130,10 +130,35 @@ var shopDialogProductsSet = (function ($) {
                     };
                     var error = function (r) {
                         if (r && r.errors) {
-                            var errors = r.errors;
+                            var errors = r.errors,
+                                rendered_errors = 0;
+
                             for (var name in errors) {
-                                d.find('input[name=' + name + ']').addClass('error').parent().find('.errormsg').text(errors[name]);
+                                var $field = d.find('input[name=' + name + ']');
+                                if ($field.length) {
+                                    $field.addClass('error');
+                                    rendered_errors += 1;
+
+                                    var $wrapper = $field.parent().find('.errormsg');
+                                    if ($wrapper.length) { $wrapper.text(errors[name]); }
+
+                                    $field.one("keyup", function() {
+                                        rendered_errors -= 1;
+                                        showSubmit();
+
+                                        $field.removeClass('error');
+                                        if ($wrapper.length) { $wrapper.text(""); }
+                                    });
+                                }
                             }
+
+                            function showSubmit() {
+                                if (!rendered_errors) {
+                                    var $submit = form.find("[type='submit']");
+                                    $submit.removeAttr("disabled", false);
+                                }
+                            }
+
                             return false;
                         }
                     };

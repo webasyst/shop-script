@@ -65,11 +65,14 @@
                 var q = this.value.trim();
 
                 var query = '';
-                try {
-                    q = decodeURIComponent(q);
-                } catch (e) {}
+
                 if (q.match(/^\+*[0-9\s\-\(\)]+$/)) {
-                    query = 'phone*=' + q.replace(/^\+/, '');
+                    try {
+                        q = encodeURIComponent(q);
+                    } catch (e) {
+                    }
+
+                    query = 'phone*=' + q;
                 } else if (q.indexOf('@') !== -1) {
                     query = 'email*=' + q;
                 } else {

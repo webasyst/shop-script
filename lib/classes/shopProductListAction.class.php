@@ -191,7 +191,7 @@ class shopProductListAction extends waViewAction
                         foreach ($stocks as $stock_id => $stock) {
                             if (is_array($sku['stock'])) {
                                 $sku_stock_count = $sku['stock'][$stock['id']];
-                                $sku_stock_icon = shopHelper::getStockCountIcon($sku_stock_count);
+                                $sku_stock_icon = shopHelper::getStockCountIcon($sku_stock_count, $stock_id);
                                 $sku['stock'][$stock['id']] = array(
                                     'count' => $sku_stock_count,
                                     'icon_html' => $sku_stock_icon

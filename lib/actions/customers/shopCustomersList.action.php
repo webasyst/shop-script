@@ -64,7 +64,14 @@ class shopCustomersListAction extends waViewAction
          * @return array[string][string]string $return[%plugin_id%]['top_li'] html output
          */
         $params = array('hash' => $hash, 'filter' => $filter);
-        $this->view->assign('backend_customers_list', wa()->event('backend_customers_list', $params));
+        $backend_customers_list_result = wa()->event('backend_customers_list', $params);
+
+        if (wa()->appExists('crm')) {
+            // search button only from CRM if CRM installed
+            unset($backend_customers_list_result['contacts']['top_li']);
+        }
+
+        $this->view->assign('backend_customers_list', $backend_customers_list_result);
 
     }
 
@@ -195,24 +202,23 @@ class shopCustomersListAction extends waViewAction
 
     public function getCollection($hash, $order)
     {
-        $collection = new shopCustomersCollection($hash);
+        $collection = new shopCustomersCollection($hash, array(
+            'transform_phone_prefix' => 'all_domains'
+        ));
         $collection->orderBy($order[0], $order[1]);
         return $collection;
     }
 
     protected function workupList(&$customers)
     {
-        $config = $this->getConfig();
-        $use_gravatar = $config->getGeneralSettings('use_gravatar');
-        $gravatar_default = $config->getGeneralSettings('gravatar_default');
-
         $duplicate_stats = shopCustomer::getDuplicateStats(array_keys($customers));
 
         $countries = array();
 
         $all_tops = shopCustomer::getCustomersTopFields($customers);
+        $user_pics = shopCustomer::getUserpics($customers);
 
-        foreach ($customers as &$c) {
+        foreach ($customers as $index => &$c) {
 
             $default_email = null;
             if ($c['email']) {
@@ -221,11 +227,8 @@ class shopCustomersListAction extends waViewAction
             }
 
             $c['affiliate_bonus'] = (float)$c['affiliate_bonus'];
-            if (!$c['photo'] && $use_gravatar) {
-                $c['photo'] = shopHelper::getGravatar($default_email ? $default_email : '', 50, $gravatar_default);
-            } else {
-                $c['photo'] = waContact::getPhotoUrl($c['id'], $c['photo'], 50, 50);
-            }
+            $c['photo'] = $user_pics[$index];
+
             $c['categories'] = array();
             if (!empty($c['address']['region']) && !empty($c['address']['country'])) {
                 $countries[$c['address']['country']] = array();

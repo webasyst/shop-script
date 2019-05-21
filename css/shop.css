@@ -181,6 +181,8 @@ ul.tags a { display: inline-block; }
 .s-category-settings .errormsg { height: 15px; margin-top: 5px;}
 .s-category-settings .s-category-error{ display: inline-block; margin-left: 10px; margin-top: 0px; }
 
+ul.menu-v.dropdown > li.is-opened > ul { display: block }
+
 /* ORDERS
 --------- */
 
@@ -227,6 +229,9 @@ td.s-empty-order-note { border-top: 1px solid #ddd; border-bottom: 1px solid #dd
 .s-order-customer-details .field .value input[type="password"],
 .s-order-customer-details .field .value textarea { min-width: 255px; }
 .s-order-customer-details .field .value select { width: 259px; }
+.s-order-customer-details .field.field-birthday .value input,
+.s-order-customer-details .field.field-birthday .value select { min-width: 84px; width: 84px; margin-right: 2px; }
+.s-order-customer-details .field.field-birthday .value input { height: 13px; }
 
 /* confirmation checkboxes */
 .s-order-customer-details .fields .field.field-email .value p,
@@ -456,30 +461,6 @@ ul.tabs li.s-aff-bonus-total { background: #efd !important; margin-right: 10px; 
 ---------- */
 /* QUICK START
 --------------------- */
-.s-tutorial-disabled {
-    display: none;
-    position: absolute;
-    height: 87%;
-    width: 100%;
-    background: #f2f2f2;
-    z-index: 10000;
-    opacity: 0.5;
-    top: 0px;
-    left: 0px;
-}
-.s-tutorial-hint p {
-    margin-bottom: 0px;
-}
-.s-tutorial-hint {
-    display: none;
-    position: absolute;
-    width: 100%;
-    background: #fff5b1;
-    z-index: 10001;
-    padding: 15px;
-    bottom: 85px;
-    left: 0px;
-}
 .s-unboarding-wrapper select,
 .s-tutorial-block select,
 .s-tutorial-block input[type="text"] {
@@ -494,67 +475,15 @@ ul.tabs li.s-aff-bonus-total { background: #efd !important; margin-right: 10px; 
 .s-nolevel2-box .s-unboarding-wrapper {
     background: #fff;
 }
-.s-nolevel2-box .s-tutorial-block,
-.s-unboarding-wrapper .s-tutorial-block {
-    margin-bottom: 20px;
-    display: inline-block;
-}
-.s-nolevel2-box .s-tutorial-block .s-title,
-.s-unboarding-wrapper .s-tutorial-block .s-title {
-    font-size: 19px;
-    line-height: 20px;
-    margin-bottom: 10px;
-}
-.s-nolevel2-box .s-tutorial-block .s-title-text,
-.s-unboarding-wrapper .s-tutorial-block .s-title-text {
-    display: inline-block;
-}
-.s-nolevel2-box .s-tutorial-block .s-title .s-arrow,
-.s-unboarding-wrapper .s-tutorial-block .s-title .s-arrow {
-    float: left;
-    margin-right: 7px;
-    margin-top: -6px;
-}
-.s-nolevel2-box .s-tutorial-block .s-sub-title,
-.s-unboarding-wrapper .s-tutorial-block .s-sub-title {
-    display: inline-block;
-    line-height: 18px;
-    color: #aaa;
-    margin-bottom: 10px;
-    margin-left: 35px;
-}
-
-.s-unboarding-wrapper .s-tutorial-block .s-currency,
-.s-unboarding-wrapper .s-tutorial-block .s-country,
-.s-unboarding-wrapper .s-tutorial-block .s-product-type{
-    margin-left: 35px;
-}
-
-.s-unboarding-wrapper .s-tutorial-block .s-product-type-row {
-    float: left;
-    margin-right: 55px;
-}
-
-.s-unboarding-wrapper .s-tutorial-block .s-product-type-row label{
-    cursor: pointer;
-}
-
-.s-unboarding-wrapper .s-tutorial-block .s-product-type-row .no-shift{
-    margin-bottom: 10px;
-}
 
 .s-welcome-page {
-    width: 100%;
     padding: 20px;
-    display: inline-block;
-    background: #ffffff;
-    margin-top: 20px;
+    background: #fff;
+    margin: 20px 0 70px;
     position: relative;
-    z-index: 131;
     box-shadow: 0 3px 5px rgba(0,0,0,0.1);
-    border: 1px solid #ddd;
-    border-top: 0;
-    margin-bottom: 70px;
+    border: solid #ddd;
+    border-width: 0 1px 1px;
 }
 .s-tutorial-qs-lnk {
     border: none!important;
@@ -599,78 +528,6 @@ ul.tabs li.s-aff-bonus-total { background: #efd !important; margin-right: 10px; 
     margin-top: 2px;
 }
 
-.s-tutotial-steps .tutorial-actions li {
-    position: relative;
-    border-left: 2px solid #ccc;
-    padding: 10px 0 10px 20px;
-    margin: 0 0 0 10px;
-}
-
-.s-tutotial-steps .tutorial-actions li:before {
-    display: none;
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -2px;
-    width: 2px;
-    height: 21px
-}
-.s-tutotial-steps .tutorial-actions li:first-child:before {
-    display: block;
-    background: #f0f0f0;
-}
-.s-tutotial-steps .tutorial-actions li:last-child:before {
-    display: block;
-    background: #f0f0f0;
-    top: 14px;
-}
-
-.s-tutotial-steps .tutorial-actions li.complete .s-activity-point {
-    background: #aaa;
-}
-
-.s-tutorial-checklist li.selected a {
-    background: none!important;
-    text-decoration: none!important;
-    font-weight: bold!important;
-}
-.s-tutorial-checklist li.active-step .s-activity-point,
-.s-tutotial-steps .tutorial-actions .selected .s-activity-point {
-    background: #00b03b!important;
-    border: 3px solid #fd5901!important;
-}
-
-.s-tutorial-checklist li.active-step.complete .s-activity-point{
-    background: #00b03b!important;
-    border: 3px solid #aaa!important;
-}
-
-.s-tutotial-steps .tutorial-actions li.disabled:hover .s-activity-point {
-    background: #aaa!important;
-    border: none!important;
-}
-.s-tutotial-steps .tutorial-actions li.disabled a:hover,
-.s-tutotial-steps .tutorial-actions li.disabled a {
-    color: #aaa!important;
-    cursor: default;
-}
-.s-tutotial-steps .tutorial-actions li .s-activity-point {
-    position: absolute;
-    top: 10px;
-    left: -9px;
-    width: 16px;
-    height: 16px;
-    -webkit-border-radius: 50%;
-    border-radius: 50%;
-    background: #fd5901;
-    border: 1px solid rgba(0,0,0,0.05);
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box
-}
-.s-tutotial-steps .tutorial-actions li.disabled .s-activity-point {
-    background: #aaa;
-}
 #mainmenu .s-tutorial-url { display: inline-block;height: auto!important;line-height: initial!important;padding: 0;color: #333;}
 .s-welcome { position: relative; padding-right: 150px !important; }
 .s-welcome h1 { font-weight: normal; font-size: 1.8em; color: #aaa; margin-top: 120px; margin-bottom: 20px; }
@@ -681,17 +538,8 @@ ul.tabs li.s-aff-bonus-total { background: #efd !important; margin-right: 10px; 
 .s-tutorial .s-nolevel2-box { padding: 20px 25px; background: #fff; }
 .s-tutorial-tab i.icon16 { margin-top: 10px; }
 
-.s-tutorial .img-margin-left { margin-left: 37px;}
-.s-tutorial #s-content h1 { margin-bottom: 0.8em; }
 .s-tutorial #s-content ul li { margin-bottom: 1em; line-height: 1.5em; font-family: "Lucida Grande","Lucida Sans Unicode","Helvetica Neue",Arial,sans-serif; }
 .s-tutorial #s-content p a { text-decoration: none; }
-
-.s-tutorial-checklist li a { color: #000 !important; }
-.s-tutorial-checklist li.complete a { color: #aaa !important; text-decoration: line-through; }
-.s-tutorial-checklist li a:hover { color: red !important; }
-.s-tutorial-checklist li.selected a { font-weight: normal; color: #000 !important; }
-
-.s-tutorial-checklist li.active-step a { color: #000!important; font-weight: bold; }
 
 .s-tutorial-progressbar-outer { background: #fff; width: 45px; position: relative; }
 .s-tutorial-progressbar-inner { background: linear-gradient(45deg, #fd6901, #fe2b01);!important; height: 20px; }
@@ -721,33 +569,8 @@ ul.tabs li.s-aff-bonus-total { background: #efd !important; margin-right: 10px; 
     -webkit-transform-origin: 0 0; }
 .s-storefront-preview .s-preview-mask { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
 
-.s-profit-block .s-congratulations-text {
-    font-size: 17px;
-}
-.s-profit-block ul {
-    padding: 0 20px;
-}
-.s-profit-block ul li.s-profit-tel {
-    padding-left: 20px;
-}
-.s-profit-block ul li.s-profit-ls-none {
-    list-style: none;
-}
-.s-profit-block ul li {
-    color: #3c2f2f;
-    margin-bottom: 5px!important;
-}
 .s-tutorial-block .s-domain-block {
     margin-left: 37px;
-}
-.s-welcome-import .field-group .field .value  {
-    margin-left: 35px;
-}
-.s-welcome-import .field-group .field .name {
-    display: none;
-}
-.s-welcome-import .field-group {
-    margin-bottom: 0px!important;
 }
 
 /* PRODUCTS

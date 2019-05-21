@@ -9,6 +9,7 @@ class shopBackendLayout extends waLayout
         if (waRequest::get('skipwelcome')) {
             $app_settings_model->del('shop', 'welcome');
             $app_settings_model->del('shop', 'show_tutorial');
+            $app_settings_model->get('shop', 'setup_demo_time');
             $this->insertOneType();
         } else if ($app_settings_model->get('shop', 'welcome')) {
             $this->redirect(wa()->getConfig()->getBackendUrl(true).'shop/?action=welcome');

@@ -1,46 +1,58 @@
 {if !empty($actions)}
-   {$stepArray = array_keys($actions)}
-   {foreach $stepArray as $key => $step}
-      {if $step === $active}
-         {$next_step_key = $key}
-      {/if}
-   {/foreach}
-   {if isset($stepArray[$next_step_key+1])}
-      {$next_step = $stepArray[$next_step_key+1]}
-   {/if}
-   {if isset($stepArray[$next_step_key-1])}
-      {$prev_step = $stepArray[$next_step_key-1]}
-   {/if}
+    {$stepArray = array_keys($actions)}
+    {foreach $stepArray as $key => $step}
+        {if $step === $active}
+            {$next_step_key = $key}
+        {/if}
+    {/foreach}
+    {if isset($stepArray[$next_step_key+1])}
+        {$next_step = $stepArray[$next_step_key+1]}
+    {/if}
+    {if isset($stepArray[$next_step_key-1])}
+        {$prev_step = $stepArray[$next_step_key-1]}
+    {/if}
 {/if}
+
 <div class="s-unboarding-wrapper">
-   <h1>Add products</h1>
-   <div class="s-tutorial-block">
-      <div class="s-title"><img src="{$wa_app_static_url}img/arrow/img_arrow.png" class="s-arrow" /><span class="s-title-text">Manually, one-by-one</span></div>
-      <p class="img-margin-left"><img src="{$wa_app_static_url}img/steps/eng/step02-01.png"></p>
-   </div>
-   <div class="clear-both"></div>
+    <h1>Add products</h1>
+    {if !empty($products_imported)}
+        <p>[`Product examples have been added to your online store. Now you may also add your own products as described below.`]</p>
+    {/if}
 
-   <div class="s-tutorial-block">
-      <div class="s-title"><img src="{$wa_app_static_url}img/arrow/img_arrow.png" class="s-arrow" /><span class="s-title-text">Automatically, many at once</span></div>
-      <p class="img-margin-left"><img src="{$wa_app_static_url}img/steps/eng/step02-02.png"></p>
-      <p>In «Import/Export» section, available via a link in the top right screen area, there are several options to quickly add or update numerous products.</p>
-      <ul>
-         <li>Bulk image upload: drag & drop product photos from a folder on your computer directly into Shop-Script to create multiple products at once.</li>
-         <li>Import products from CSV: save a spreadsheet table with products’ data as a CSV file in Microsoft Excel, OpenOffice, or iWork and upload it in Shop-Script backend. In a few minutes, all the products will be imported into your online store.</li>
-         <li>Migrate to Shop-Script: transfer data from other ecommerce platforms to Shop-Script.</li>
-      </ul>
+    <div class="s-content-with-indent">
+        <div class="s-tutorial-block">
+            <div class="s-title">
+                <img src="{$wa_url}wa-apps/shop/img/backend/tutorial/arrow.green.svg" class="s-arrow" alt=""/><span class="s-title-text">Manually, one-by-one</span>
+            </div>
+            <p><img src="{$wa_app_static_url}img/backend/tutorial/en/step-2-1.png" alt=""></p>
+        </div>
 
-   </div>
-   <br/>
-   <a href="{if isset($prev_step) && $actions[$prev_step]}{$actions[$prev_step]['href']}{else}javascript:void(0){/if}" class="button yellow">&larr; Back</a>
-   <a href="{if isset($next_step) && $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green">Next step &rarr;</a>
+        <div class="s-tutorial-block">
+            <div class="s-title">
+                <img src="{$wa_url}wa-apps/shop/img/backend/tutorial/arrow.green.svg" class="s-arrow" alt=""/><span class="s-title-text">Automatically, many at once</span>
+            </div>
+            <p><img src="{$wa_app_static_url}img/backend/tutorial/en/step-2-2.png" alt=""></p>
+            <p>In “Import/Export” section, there are several options to quickly add or update numerous products.</p>
+            <ul>
+                <li>Bulk image upload: drag & drop product photos from a folder on your computer directly into Shop-Script to create multiple products at once.</li>
+                <li>Import products from CSV: save a spreadsheet table with products’ data as a CSV file in Microsoft Excel, OpenOffice, or iWork and upload it in Shop-Script backend. In a few minutes, all the products will be imported into your online store.</li>
+                <li>Migrate to Shop-Script: transfer data from other ecommerce platforms to Shop-Script.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="s-actions-wrapper">
+        <a href="{if isset($prev_step) && $actions[$prev_step]}{$actions[$prev_step]['href']}{else}javascript:void(0){/if}" class="button yellow">&larr; Back</a>
+        <a href="{if isset($next_step) && $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green">Next step &rarr;</a>
+    </div>
+
+    <script>
+        ( function($) {
+            new TutorialSidebar({
+                $wrapper: $("#tutorial-actions"),
+                active_step: {$active|json_encode},
+                $actions: {$actions|json_encode}
+            });
+        })(jQuery);
+    </script>
 </div>
-<script>
-    (function ($) {
-        new TutorialSidebar({
-            $wrapper: $("#tutorial-actions"),
-            $active: {$active|json_encode},
-            $actions: {$actions|json_encode}
-        });
-    })(jQuery);
-</script>

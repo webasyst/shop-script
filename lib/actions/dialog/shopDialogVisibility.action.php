@@ -36,6 +36,7 @@ class shopDialogVisibilityAction extends waViewAction
 
         // We get either a collection hash or a list of product_ids
         $hash = waRequest::post('hash', '', 'string');
+        $hash = urldecode($hash);
         if (!$hash) {
             $ids = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
             if (!$ids) {

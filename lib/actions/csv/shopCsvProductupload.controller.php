@@ -11,26 +11,27 @@ class shopCsvProductuploadController extends shopUploadController
     {
         //TODO пометить поля, допускающий множественные значения (валидация)
         $fields = array(
-            'product'               => array(
-                'id'               => _w('Product ID'),
-                'name'             => _w('Product name'), //1
-                'currency'         => _w('Currency'), //4
-                'summary'          => _w('Summary'),
-                'description'      => _w('Description'),
-                'badge'            => _w('Badge'),
-                'status'           => _w('Status'),
+            'product' => array(
+                'id'                  => _w('Product ID'),
+                'name'                => _w('Product name'), //1
+                'currency'            => _w('Currency'), //4
+                'summary'             => _w('Summary'),
+                'description'         => _w('Description'),
+                'badge'               => _w('Badge'),
+                'status'              => _w('Status'),
                 //'sort'             => _w('Product sort order'),
-                'type_name'        => _w('Product type'),
-                'tags'             => _w('Tags'),
-                'tax_name'         => _w('Taxable'),
-                'meta_title'       => _w('Title'),
-                'meta_keywords'    => _w('META Keyword'),
-                'meta_description' => _w('META Description'),
-                'url'              => _w('Storefront link'),
-                'images'           => _w('Product images'),
-                'video_url'        => _w('Video URL on YouTube or Vimeo'),
+                'type_name'           => _w('Product type'),
+                'tags'                => _w('Tags'),
+                'tax_name'            => _w('Taxable'),
+                'meta_title'          => _w('Title'),
+                'meta_keywords'       => _w('META Keyword'),
+                'meta_description'    => _w('META Description'),
+                'url'                 => _w('Storefront link'),
+                'images'              => _w('Product images'),
+                'images_descriptions' => _w('Product image descriptions'),
+                'video_url'           => _w('Video URL on YouTube or Vimeo'),
                 //   'rating'                 => _w('Rating'),
-                'params'           => _w('Custom parameters'),
+                'params'              => _w('Custom parameters'),
             ),
             'product_custom_fields' => array(),
             'sku'                   => array(

@@ -634,7 +634,8 @@ class shopCustomersCollectionPreparator
             if (!($op = trim($second_level_parts[1]))) {
                 continue;
             }
-            if (!($val = trim($second_level_parts[2]))) {
+            $val = trim($second_level_parts[2]);
+            if (strlen($val) <= 0) {
                 continue;
             }
             $path = str_replace(':', '.', $path);       // support composite fields with ':' separator

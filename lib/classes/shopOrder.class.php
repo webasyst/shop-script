@@ -1736,9 +1736,9 @@ class shopOrder implements ArrayAccess
         $original_params = &$this->original_data['params'];
 
         # sales channel & storefront
-        if (!empty($params['storefront'])) {
+        if (!empty($params['storefront'])) {    // storefront passed and not empty
             $params['sales_channel'] = 'storefront:'.$params['storefront'];
-        } elseif (!empty($original_params['storefront'])) {
+        } elseif (!empty($original_params['storefront']) && !array_key_exists('storefront', $params)) { // 'storefront' not passed, so restore from original params of order
             $params['storefront'] = $original_params['storefront'];
             if (isset($original_params['sales_channel'])) {
                 $params['sales_channel'] = $original_params['sales_channel'];

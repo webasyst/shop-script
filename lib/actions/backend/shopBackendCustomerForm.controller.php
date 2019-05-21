@@ -39,6 +39,8 @@ class shopBackendCustomerFormController extends waViewController
         $storefront = strlen($storefront) > 0 ? $storefront : null;
 
         $form = new shopBackendCustomerForm();
+        $form->setAddressDisplayType('first');
+        
         $form->setContactType($type);
 
         if ($id > 0) {

@@ -58,7 +58,6 @@ class shopFrontendOrderActions extends waJsonActions
     {
         $data = shopCheckoutStep::processAll('create', $this->makeOrderFromCart(), waRequest::post());
         $config = $this->getCheckoutConfig();
-
         $options = [
             'is_company' => (int)$data['contact']['is_company'],
             'address'    => [
@@ -97,6 +96,8 @@ class shopFrontendOrderActions extends waJsonActions
                     break;
             }
         }
+
+        $contact_field_values = $this->updateUserPhone($contact_field_values, $contact_id);
 
         $order_data = [
             'id'              => null,
@@ -174,6 +175,59 @@ class shopFrontendOrderActions extends waJsonActions
                 ];
             }
         }
+    }
+
+    /**
+     * Update phone numbers in international format
+     * Occurs in the createAction method to minimize the impact on the user in case of errors during the checkout stages.
+     *
+     * @param $contact_fields
+     * @param $contact_id
+     * @return array
+     * @throws waException
+     */
+    public function updateUserPhone($contact_fields, $contact_id)
+    {
+        $phone = ifset($contact_fields, 'phone', null);
+
+        if (!$phone) {
+            return $contact_fields;
+        }
+
+        //Try to transform the number in the international format
+        $result = waDomainAuthConfig::factory()->transformPhone($phone);
+        $transform_phone = $result['phone'];
+
+        if ($result['status']) {
+            // This is necessary so that shopOrder does not add the phone in the old format to the contact
+            // Or in order for the new contact to keep the phone in the new format
+            $contact_fields['phone'] = $transform_phone;
+
+            if ($contact_id) {
+                // Update numbers only for existing contact
+                $contact = new waContact($contact_id);
+
+                $saved_phones = $contact->get('phone');
+
+                //find saved number
+                foreach ($saved_phones as $id => $source) {
+                    // Resave only those numbers that are not suitable for transformed
+                    if ($source['value'] === $phone && $source['value'] !== $transform_phone) {
+                        $saved_phones[$id]['value'] = $transform_phone;
+
+                        // Only 1 number is transmitted in the form. Therefore, you can resave right in the loop.
+                        $contact->set('phone', $saved_phones);
+                        $contact->removeCache();
+
+                        // If you do not save the contact, the new values ​​will not be available in shopOrder and in shopConfirmationChannel
+                        $contact->save();
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $contact_fields;
     }
 
     protected function sendRegisterMail($contact_id)

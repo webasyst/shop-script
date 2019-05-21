@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 2.0.6\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -1013,10 +1013,6 @@ msgstr "По категории покупателя"
 msgid "Settings updated"
 msgstr "Настройки обновлены"
 
-#: /wa-apps/shop/templates/actions/backend/BackendSettings.html:26
-msgid "Product images"
-msgstr "Изображения"
-
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:12
 msgid "Thumbnails"
 msgstr "Эскизы"
@@ -1364,7 +1360,7 @@ msgstr "Поиск"
 
 #: /wa-apps/shop/templates/actions/orders/OrdersAdd.html:24
 msgid "Add products"
-msgstr "Добавить товары"
+msgstr "Добавьте товары"
 
 #: /wa-apps/shop/templates/actions/orders/OrdersAdd.html:31
 msgid "Type product or SKU name"
@@ -6050,8 +6046,8 @@ msgid "Export product feature values"
 msgstr "Экспортировать значения характеристик"
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:109
-msgid "Export product image filenames"
-msgstr "Экспортировать ссылки на файлы фотографий"
+msgid "Product images"
+msgstr "Изображения товаров"
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:114
 msgid "Plugin fields"
@@ -8961,7 +8957,7 @@ msgstr "Установите Shop-Script"
 
 #: /wa-apps/shop/templates/actions/tutorial/TutorialProducts.html:1
 msgid "Basic settings"
-msgstr "Предварительные настройки"
+msgstr "Основные настройки"
 
 msgid "Add products "
 msgstr "Добавьте товары"
@@ -12172,3 +12168,93 @@ msgstr "Другие адреса плательщика"
 #: /wa-apps/shop/lib/actions/orders/shopOrdersGetProduct.controller.php:257
 msgid "Unknown SKU"
 msgstr "Неизвестный артикул"
+
+msgid "+1-222-333-4455"
+msgstr "+7 (111) 222-33-44"
+
+msgid "product name"
+msgstr "название товара"
+
+msgid "sku name"
+msgstr "название артикула"
+
+msgid "compare at price"
+msgstr "зачеркнутая цена"
+
+msgid "purchase price"
+msgstr "закупочная цена"
+
+msgid "Unique product image URLs"
+msgstr "Уникальность URL изображений товаров"
+
+msgid "by file name"
+msgstr "по имени файла"
+
+msgid "by file path"
+msgstr "по пути к файлу"
+
+msgid "by file path and domain name"
+msgstr "по пути к файлу и доменному имени"
+
+msgid "domain.com"
+msgstr "domain.ru"
+
+msgid "Select how unique image URLs must be extracted from your CSV file."
+msgstr "Выберите, как должны извлекаться уникальные URL изображений из вашего CSV-файла."
+
+msgid "Lighting and electrical goods"
+msgstr "Свет и электротовары"
+
+msgid "Clothes & footwear"
+msgstr "Одежда и обувь"
+
+msgid "Appliances"
+msgstr "Бытовая техника"
+
+msgid "Mobile phones & tablets"
+msgstr "Мобильные телефоны и планшеты"
+
+msgid "Cosmetics"
+msgstr "Косметика"
+
+msgid "Do not export"
+msgstr "Не экспортировать"
+
+msgid "Export default size images"
+msgstr "Экспортировать изображения стандартного размера"
+
+msgid "Export %s large images"
+msgstr "Экспортировать изображения размером %s"
+
+msgid "Product image size settings"
+msgstr "Настройка размеров изображений товаров"
+
+msgid "Select how to export product images"
+msgstr "Выберите, как нужно экспортировать изображения товаров"
+
+#: /wa-apps/shop/templates/actions/tutorial/TutorialProducts.html:19
+msgid "Product examples have been added to your online store. Now you may also add your own products as described below."
+msgstr "Примеры товаров добавлены в ваш интернет-магазин. Теперь вы можете добавить собственные товары, как описано далее."
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:688
+msgid "Updated %d product image description"
+msgid_plural "Updated %d product image descriptions"
+msgstr[0] "Обновлено %d описание изображения товара"
+msgstr[1] "Обновлены %d описания изображений товаров"
+msgstr[2] "Обновлены %d описаний изображений товаров"
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:750
+msgid "%d SKU imported with errors"
+msgid_plural "%d SKUs imported with errors"
+msgstr[0] "%d артикул импортирован с ошибками"
+msgstr[1] "%d артикула импортированы с ошибками"
+msgstr[2] "%d артикулов импортированы с ошибками"
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:425
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:32
+msgid "Product image descriptions"
+msgstr "Описания изображений товаров"
+
+#: /wa-apps/shop/themes/default/order.html:38
+msgid "Delete all products"
+msgstr "Удалить все товары"

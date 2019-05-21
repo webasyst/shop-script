@@ -50,11 +50,10 @@ class shopOrderTotalController extends waJsonController
         unset($data['order_id']);
 
         $form = new shopBackendCustomerForm();
+        $form->setAddressDisplayType('first');
 
         $storefront = waRequest::post('storefront', null, waRequest::TYPE_STRING_TRIM);
-        if ($storefront) {
-            $form->setStorefront($storefront, true);
-        }
+        $form->setStorefront($storefront, true);
 
         $order = new shopOrder($data, array(
             'items_format'   => 'tree',

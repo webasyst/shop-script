@@ -1,7 +1,7 @@
 <style>
     span.field { display: block; }
     span.field > span { display: block; }
-    .s-clear-radio { display: none; }
+    .s-clear-radio { display: inline-block; }
 </style>
 
 {function name=select n='' o=[] d='' with_empty=true}
@@ -189,11 +189,13 @@
                     <p>
                         {foreach $address_fields as $field}
                             <span class="field">
-                                <span>{$field.name|escape}</span>
+                                <span>
+                                    {$field.name|escape}
+                                    {if $field.field_class === 'waContactBranchField'}
+                                        <a href="javascript:void(0);" class="s-clear-radio hint inline-link"><b><i>[`clear`]</i></b></a>
+                                    {/if}
+                                </span>
                                 {$field.html}
-                                {if $field.field_class === 'waContactBranchField'}
-                                    <a href="javascript:void(0);" class="s-clear-radio hint inline-link"><b><i>[`clear`]</i></b></a>
-                                {/if}
                             </span>
                         {/foreach}
                     </p>
@@ -337,14 +339,7 @@
                 dateFormat: 'yy-mm-dd'
             });
 
-            $('.s-clear-radio', container).each(function() {
-                var item = $(this);
-                item.closest('.field')
-                    .find('label:last').after(this).end()
-                    .find(':radio').click(function() {
-                        item.show();
-                    });
-            }).click(function() {
+            $('.s-clear-radio', container).click(function() {
                 $(this).hide().closest('.field').find(':radio').attr('checked', false);
                 return false;
             });

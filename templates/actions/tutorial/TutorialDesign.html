@@ -12,41 +12,41 @@
         {$prev_step = $stepArray[$next_step_key-1]}
     {/if}
 {/if}
-{$_themes = join('», «', $theme_names)}
+{$_themes = join('”, “', $theme_names)}
 {if count($theme_names)==1}{$letter = ''}{$count = 'is'}{else}{$letter = 's'}{$count = 'are'}{/if}
+
 <div class="s-unboarding-wrapper">
     <h1>Select and set up a design theme</h1>
 
     <p>
-        {if isset($_themes)}
-            Design theme{$letter} <strong>«{$_themes}»</strong> {$count} already installed in your online store.<br/>
-            Configure it to your liking under the «Appearance» tab in «Store → Storefronts» section.<br/>
+        {if !empty($_themes)}
+            Design theme{$letter} <strong>{$_themes}</strong> {$count} already installed in your online store.<br/>
+            Configure it to your liking under the “Appearance” tab in “Store → Storefronts” section.<br/>
         {else}
             There are no design themes in your shop yet.
         {/if}
     </p>
-    <p>Design theme <strong>«{$_themes}»</strong> is already installed in your online store.<br/>
-        Configure it to your liking under the «Appearance» tab in «Store → Storefronts» section.<br/>
-    </p>
 
-    <p><img src="{$wa_app_static_url}img/steps/eng/step03-01.png"></p>
+    <p><img src="{$wa_app_static_url}img/backend/tutorial/en/step-3-1.png" alt=""></p>
 
-    <p>If you need an absolutely different design, find and install another design theme from the Webasyst Store available under «Design themes» tab. Some themes are free, others are available for payment. All of them are installed automatically, with one button click.</p>
+    <p>If you need an absolutely different design, find and install another design theme from the Webasyst Store available under “Design themes” tab. Some themes are free, others are available for payment. All of them are installed automatically, with one button click.</p>
 
-    <p><img src="{$wa_app_static_url}img/steps/eng/step03-02.png"></p>
+    <p><img src="{$wa_app_static_url}img/backend/tutorial/en/step-3-2.png" alt=""></p>
 
-    <p>Once a new theme has been installed, select it for your storefront under «Settings» tab.</p>
-    <br/>
+    <p>Once a new theme has been installed, select it for your storefront under “Settings” tab.</p>
 
-    <a href="{if isset($prev_step) && $actions[$prev_step]}{$actions[$prev_step]['href']}{else}javascript:void(0){/if}" class="button yellow">&larr; Back</a>
-    <a href="{if isset($next_step) && $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green">Next step &rarr;</a>
+    <div class="s-actions-wrapper">
+        <a href="{if isset($prev_step) && $actions[$prev_step]}{$actions[$prev_step]['href']}{else}javascript:void(0){/if}" class="button yellow">&larr; Back</a>
+        <a href="{if isset($next_step) && $actions[$next_step]}{$actions[$next_step]['href']}{else}javascript:void(0){/if}" class="button green">Next step &rarr;</a>
+    </div>
+
+    <script>
+        (function ($) {
+            new TutorialSidebar({
+                $wrapper: $("#tutorial-actions"),
+                active_step: {$active|json_encode},
+                $actions: {$actions|json_encode}
+            });
+        })(jQuery);
+    </script>
 </div>
-<script>
-    (function ($) {
-        new TutorialSidebar({
-            $wrapper: $("#tutorial-actions"),
-            $active: {$active|json_encode},
-            $actions: {$actions|json_encode}
-        });
-    })(jQuery);
-</script>

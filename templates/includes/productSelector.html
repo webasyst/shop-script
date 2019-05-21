@@ -97,7 +97,7 @@
         <div class="value js-hash-values js-hash-category" style="width: 400px;">
             <div class="bordered-left" style="padding-left: 20px;">
                 {if !empty($hash.data.categories)}
-                {wa_print_tree tree=$hash.data.categories elem='<label><i class="icon16 folder"></i><input type="radio" name="category_ids" data-selected=":selected" value=":id"/> :name</label>' class="menu-v with-icons"}
+                {wa_print_tree tree=$hash.data.categories elem='<label><i class="icon16 :icon"></i><input type="radio" name="category_ids" data-selected=":selected" value=":id"/> :name</label>' class="menu-v with-icons"}
                 {/if}
                 {if !empty($hints.category)}<br/><span class="gray">{$hints.category}</span>{/if}
             </div>

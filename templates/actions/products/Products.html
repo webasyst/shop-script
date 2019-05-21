@@ -98,7 +98,7 @@
                     <a href="#"><i class="icon16 ss set"></i>[`Add to set`]</a>
                 </li>
             {/if}
-            
+
             <li data-action="assign-tags">
                 <a href="#"><i class="icon16 tags"></i>[`Assign tags`]</a>
             </li>
@@ -164,25 +164,31 @@
             <!-- sort order -->
             <li class="s-inline-mixed-string float-right" id="s-sort-control">
                 <ul class="menu-v dropdown">
-                    <li>[`Order by`]:
+                    <li id="js-sort-dropdown">[`Order by`]:
                         {strip}
                         {$with_icon = true}
                         <a href="javascript:void(0);" class="inline-link{if $default_sort != $sort || $default_order != $order} highlighted{/if}"><b><i>
                             {if $sort == 'name'}
-                                [`name`]
-                            {else if $sort == 'price'}
+                                [`product name`]
+                            {elseif $sort == 'price'}
                                 [`price`]
-                            {else if $sort == 'count'}
+                            {elseif $sort == 'sku'}
+                                [`sku name`]
+                            {elseif $sort == 'compare_price'}
+                                [`compare at price`]
+                            {elseif $sort == 'purchase_price'}
+                                [`purchase price`]
+                            {elseif $sort == 'count'}
                                 [`in stock`]
-                            {else if $sort == 'rating'}
+                            {elseif $sort == 'rating'}
                                 [`rating`]
-                            {else if $sort == 'create_datetime'}
+                            {elseif $sort == 'create_datetime'}
                                 [`date added`]
-                            {else if $sort == 'total_sales'}
+                            {elseif $sort == 'total_sales'}
                                 [`top selling`]
-                            {else if $sort == 'stock_worth'}
+                            {elseif $sort == 'stock_worth'}
                                 [`stock net worth`]
-                            {else if $sort == 'sort'}
+                            {elseif $sort == 'sort'}
                                 [`manual`]
                                 {$with_icon = false}
                             {else}
@@ -211,13 +217,31 @@
                             {/if}
                             {if !isset($info['subcategories'])}
                                 <li class="sort">
-                                    <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=name&order={if $order == 'asc' && $sort=='name'}desc{else}asc{/if}" class="no-underline {if $sort=='name'}selected{/if}">[`name`]</a>
+                                    <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=name&order={if $order == 'asc' && $sort=='name'}desc{else}asc{/if}" class="no-underline {if $sort=='name'}selected{/if}">[`product name`]</a>
                                     {if $sort=='name'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
                                 </li>
                             {/if}
                             <li class="sort">
+                                <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=sku&order={if $order == 'desc' && $sort=='sku'}asc{else}desc{/if}" class="no-underline {if $sort=='rating'}selected{/if}">[`sku name`]</a>
+                                {if $sort === "sku"}
+                                    <i class="icon10 {if $order === "asc"}uarr-tiny{else}darr-tiny{/if}"></i>
+                                {/if}
+                            </li>
+                            <li class="sort">
                                 <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=price&order={if $order == 'asc' && $sort=='price'}desc{else}asc{/if}" class="no-underline {if $sort=='price'}selected{/if}">[`price`]
                                 </a>{if $sort=='price'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                            </li>
+                            <li class="sort">
+                                <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=compare_price&order={if $order == 'desc' && $sort=='compare_price'}asc{else}desc{/if}" class="no-underline {if $sort=='rating'}selected{/if}">[`compare at price`]</a>
+                                {if $sort === "compare_price"}
+                                    <i class="icon10 {if $order === "asc"}uarr-tiny{else}darr-tiny{/if}"></i>
+                                {/if}
+                            </li>
+                            <li class="sort">
+                                <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=purchase_price&order={if $order == 'desc' && $sort=='purchase_price'}asc{else}desc{/if}" class="no-underline {if $sort=='rating'}selected{/if}">[`purchase price`]</a>
+                                {if $sort == "purchase_price"}
+                                    <i class="icon10 {if $order === "asc"}uarr-tiny{else}darr-tiny{/if}"></i>
+                                {/if}
                             </li>
                             <li class="sort">
                                 <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=count&order={if $order == 'asc' && $sort=='count'}desc{else}asc{/if}" class="no-underline {if $sort=='count'}selected{/if}">[`in stock`]
@@ -244,6 +268,33 @@
                         </ul>
                     </li>
                 </ul>
+
+                <script>
+                    ( function($) {
+
+                        // DOM
+                        var $wrapper = $("#js-sort-dropdown");
+
+                        // CONST
+                        var opened_class = "is-opened";
+
+                        // VARS
+                        var timer = 0;
+
+                        $wrapper
+                            .on("mouseenter", function() {
+                                clearTimeout(timer);
+                                $wrapper.addClass(opened_class);
+                            })
+                            .on("mouseleave", function() {
+                                timer = setTimeout( function() {
+                                    var is_exist = $.contains(document, $wrapper[0]);
+                                    if (is_exist) { $wrapper.removeClass(opened_class); }
+                                }, 1000);
+                            });
+
+                    })(jQuery);
+                </script>
             </li>
 
             <!-- view mode -->
@@ -279,7 +330,7 @@
         </ul>
 
         {if $default_sort != $sort || $default_order != $order}
-            <div id="custom-backend-order-notice" class="s-alert" style="display:none;">
+            <div id="custom-backend-order-notice" class="s-alert" style="display:none;" data-alert="list-sorting-notice-closed">
                 <a href="javascript:void(0)" class="close s-alert-close">&times;</a>
                 [`You have activated custom product sort order for this view. If you want to use this sort order as a new default global option for this category, please apply it in category settings.`]
             </div>

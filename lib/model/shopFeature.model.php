@@ -258,9 +258,10 @@ SQL;
      */
     public function getFeaturesCount($options)
     {
+        $options['select'] = 'COUNT(DISTINCT sf.id) as count';
         $feature_count = $this->getFilterFeatures($options, 500, false);
 
-        return ifset($feature_count, 'COUNT(*)', false);
+        return ifset($feature_count, 'count', false);
     }
 
     /**
@@ -287,7 +288,7 @@ SQL;
      */
     public function getFilterFeatures($options = [], $limit = 500, $all = true)
     {
-        $select = ['*'];
+        $select = ['Distinct sf.*'];
         $join = [];
         $where = [];
         $fetch = 'code';
@@ -380,19 +381,19 @@ SQL;
                     }
                     break;
                 case 'select':
-                        $select = [];
-                        if (is_array($value)) {
-                            foreach ($value as $data) {
-                                $select[] = $data;
-                            }
-                        } elseif (is_string($value)) {
-                            $select[] = $value;
+                    $select = [];
+                    if (is_array($value)) {
+                        foreach ($value as $data) {
+                            $select[] = $data;
                         }
+                    } elseif (is_string($value)) {
+                        $select[] = $value;
+                    }
 
-                        //Reset fetch if not found key code
-                        if (!array_search('*', $select) && !array_search('code', $select) && !is_string($all)) {
-                            $fetch = null;
-                        }
+                    //Reset fetch if not found key code
+                    if (!array_search('*', $select) && !array_search('code', $select) && !is_string($all)) {
+                        $fetch = null;
+                    }
 
                     break;
                 case 'offset':
@@ -416,7 +417,7 @@ SQL;
         $join = join(' ', $join);
         $select = join(', ', $select);
 
-        $query = "SELECT {$select} FROM {$this->table} AS sf {$join} WHERE {$where} ORDER BY sf.count DESC LIMIT {$limit}";
+        $query = "SELECT {$select} FROM {$this->table} AS sf {$join} WHERE {$where} ORDER BY sf.count, sf.id DESC LIMIT {$limit}";
         $result = $this->query($query);
 
         if ($all === false) {
@@ -425,7 +426,6 @@ SQL;
             if (is_string($all)) {
                 $fetch = $all;
             }
-
             return $result->fetchAll($fetch);
         }
     }
@@ -676,8 +676,8 @@ SQL;
     /**
      *
      * @param string $type
-     * @throws waException
      * @return shopFeatureValuesModel
+     * @throws waException
      */
     public static function getValuesModel($type)
     {
