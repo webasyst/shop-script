@@ -10,7 +10,7 @@
             {foreach $top as $top_field}
                 <li class="s-customer-top-field-default-value-item">
                     {if $top_field.id !== 'im'}
-                        <i class="icon16 {$top_field.id}{if $top_field.default_value.is_confirmed}-confirmed ss{/if}" {if $top_field.default_value.is_confirmed}title="[`Confirmed`]"{/if} />
+                        <i class="icon16 {$top_field.id}{if $top_field.default_value.is_confirmed}-confirmed ss{/if}" {if $top_field.default_value.is_confirmed}title="[`Confirmed`]"{/if}></i>
                     {/if}
 
                     {$top_field.default_value.formatted}

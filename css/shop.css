@@ -219,6 +219,8 @@ td.s-empty-order-note { border-top: 1px solid #ddd; border-bottom: 1px solid #dd
 .fields .field .value p i.icon16 { float: left; left: -20px; margin-top: 2px; position: absolute; }
 .fields .field.divider { border-bottom: 1px solid #ddd; height: 25px; margin-bottom: 20px; margin-top: 30px; }
 
+.s-order-customer-details { overflow: visible; }
+.s-order-customer-details:after { content:""; display: table; width: 100%; clear: both; }
 .s-order-customer-details .fields.width200px .name { width: 205px; }
 .s-order-customer-details .fields .field .value p i.icon16 { float: right; right: -25px; left: inherit; margin-top: 2px; position: absolute; }
 .s-order-customer-details .field .value input[type="text"],

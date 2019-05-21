@@ -74,7 +74,12 @@
                                 <ul class="menu-v with-icons compact">
                                     {if $main_contact_info}
                                         {foreach $main_contact_info as $top_field}
-                                            <li>{if $top_field.id != 'im'}<i class="icon16 {$top_field.id}"></i>{/if}{$top_field.value}</li>
+                                            <li>
+                                                {if $top_field.id !== 'im'}
+                                                    <i class="icon16 {$top_field.id}{if $top_field.default_value.is_confirmed}-confirmed ss{/if}" {if $top_field.default_value.is_confirmed}title="[`Confirmed`]"{/if}></i>
+                                                {/if}
+                                                {$top_field.default_value.formatted}
+                                            </li>
                                         {/foreach}
                                     {/if}
                                     <!-- plugin hook: 'backend_order_print.info_section' -->

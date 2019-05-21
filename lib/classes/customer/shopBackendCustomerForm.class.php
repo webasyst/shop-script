@@ -23,6 +23,31 @@ class shopBackendCustomerForm {
      */
     protected $cache = array();
 
+    protected static $person_main_field_ids = array(
+        'firstname',
+        'middlename',
+        'lastname',
+        'title',
+        'email',
+        'phone',
+        'jobtitle',
+        'company'
+    );
+
+    protected static $company_main_field_ids = array(
+        'company',
+        'email',
+        'phone'
+    );
+
+    protected static $address_main_subfield_ids = array(
+        'street',
+        'city',
+        'region',
+        'zip',
+        'country'
+    );
+
     /**
      * @var array
      */
@@ -239,7 +264,6 @@ class shopBackendCustomerForm {
      *   2. There is always presented 'address.shipping' field with ALL sub-fields
      *   3. There is always presented 'address.billing' field with ALL sub-fields
      * @return array
-     * @throws waException
      */
     protected function getUnitedFieldList()
     {
@@ -247,10 +271,6 @@ class shopBackendCustomerForm {
 
         // Init form fields var: prepare fields places for preserving original sorting of fields for this type of contact
         $form_fields = array();
-        $all_fields = waContactFields::getAll($contact_type);
-        foreach ($all_fields as $field_id => $_) {
-            $form_fields[$field_id] = null;
-        }
 
         // Object to work with list of storefronts
         $list = $this->newStorefrontList();
@@ -264,6 +284,8 @@ class shopBackendCustomerForm {
             return $checkout_version >= 2;
         }, 'new_checkout_filter');
 
+        // count of storefronts with checkout v2
+        $v2_checkout_count = $list->count();
 
         // REDUCE callback that merge each storefront contact fields into one result array, i.e. implement UNION logic
         $that = $this;
@@ -286,7 +308,7 @@ class shopBackendCustomerForm {
             // delete filter by checkout_version >= 2
             $list->deleteFilter('new_checkout_filter');
 
-            $is_v1_checkout = $list->count() > 0;
+            $is_v1_checkout = $list->count() - $v2_checkout_count > 0;
 
             if ($is_v1_checkout) {
                 // mix-in OLD checkout fields - they all the same for all OLD checkouts (so, don't need iterate)
@@ -297,9 +319,7 @@ class shopBackendCustomerForm {
             }
         }
 
-        // there could be NULL values, cause in init step of current method we preserve places to preserve original sorting of fields
-        // but now we not need them
-        $form_fields = $this->dropNulls($form_fields);
+        $form_fields = $this->mergeWithMainFields($form_fields, true);
 
         // address never needed in backend customer form
         unset($form_fields['address']);
@@ -308,10 +328,10 @@ class shopBackendCustomerForm {
         unset($form_fields['address.shipping'], $form_fields['address.billing']);
 
         // shipping address always needed
-        $form_fields['address.shipping'] = array('fields' => $this->getAllAddressSubfields());
+        $form_fields['address.shipping'] = array('fields' => $this->getAddressSubfields());
 
         // billing address always need
-        $form_fields['address.billing'] = array('fields' => $this->getAllAddressSubfields());
+        $form_fields['address.billing'] = array('fields' => $this->getAddressSubfields());
 
         return $form_fields;
     }
@@ -339,7 +359,7 @@ class shopBackendCustomerForm {
         if ($checkout_version < 2) {
             return array(
                 'status' => true,
-                'field_list' => $this->getOldCheckoutFieldList()
+                'field_list' => $this->mergeWithMainFields($this->getOldCheckoutFieldList())
             );
         }
 
@@ -348,6 +368,8 @@ class shopBackendCustomerForm {
          */
         $config = $storefront['checkout_config'];
         $field_list = $this->getSettlementFieldsByContactType($config, $this->options['contact_type']);
+
+        $field_list = $this->mergeWithMainFields($field_list);
 
         // address must not be in result fields list
         unset($field_list['address']);
@@ -368,6 +390,68 @@ class shopBackendCustomerForm {
         );
     }
 
+    protected function mergeWithMainFields($fields, $system_order = false)
+    {
+        $contact_type = $this->options['contact_type'];
+
+        $fields = is_array($fields) ? $fields : array();
+
+        if ($contact_type === shopCustomer::TYPE_PERSON) {
+            $alt_name_field_ids = array('firstname' => true, 'middlename' => true, 'lastname' => true);
+        } else {
+            $alt_name_field_ids = array('company' => true);
+        }
+
+        if ($contact_type === shopCustomer::TYPE_PERSON) {
+            $main_field_ids = self::$person_main_field_ids;
+        } else {
+            $main_field_ids = self::$company_main_field_ids;
+        }
+
+        foreach ($main_field_ids as $main_field_id) {
+
+            // is alternative "name field" ID
+            if (isset($alt_name_field_ids[$main_field_id])) {
+                // mix-in alternative "name field(s)", but only when "name" field is not presented
+                if (!isset($fields['name'])) {
+                    $fields[$main_field_id] = ifset($fields, $main_field_id, array());
+                }
+                continue;
+            }
+
+            $fields[$main_field_id] = ifset($fields, $main_field_id, array());
+
+        }
+
+        // Order: either all fields sort as in system config, or only main fields order as in system config and move to TOP
+
+        $system_field_ids = array_keys(waContactFields::getAll($contact_type));
+        if ($system_order) {
+            $fields = waUtils::orderKeys($fields, $system_field_ids);
+        } else {
+            $main_field_ids = array_fill_keys($main_field_ids, true);
+            $main_field_ids = waUtils::orderKeys($main_field_ids, $system_field_ids);
+            $main_field_ids = array_keys($main_field_ids);
+            $fields = waUtils::orderKeys($fields, $main_field_ids);
+        }
+
+        return $fields;
+    }
+
+    protected function mergeWithAddressMainSubfields($subfields)
+    {
+        // merge with main subfields
+        $main_subfields = $this->getAddressSubfields(self::$address_main_subfield_ids);
+        foreach ($main_subfields as $subfield_id => $subfield) {
+            $subfields[$subfield_id] = ifset($subfields, $subfield_id, $subfield);
+            if (isset($subfields[$subfield_id]['hidden'])) {
+                unset($subfields[$subfield_id]['hidden']);
+            }
+        }
+        $subfields = waUtils::orderKeys($subfields, array_keys($main_subfields));
+        return $subfields;
+    }
+
     /**
      * Get list of shipping address sub-fields for current storefront
      * If storefront is null (not chosen as a part of state/context) or chosen storefront not available for current contact type
@@ -386,10 +470,14 @@ class shopBackendCustomerForm {
 
         $checkout_version = ifset($storefront, 'route', 'checkout_version', false);
         if ($checkout_version < 2) {
-            return $this->getOldCheckoutShippingAddressSubfields();
+            $subfields = $this->getOldCheckoutShippingAddressSubfields();
         } else {
-            return $this->getSettlementShippingAddressSubfields($storefront['checkout_config']);
+            $subfields = $this->getSettlementShippingAddressSubfields($storefront['checkout_config']);
         }
+
+        $subfields = $this->mergeWithAddressMainSubfields($subfields);
+
+        return $subfields;
     }
 
     /**
@@ -416,7 +504,11 @@ class shopBackendCustomerForm {
             return array();
         }
 
-        return $this->getOldCheckoutBillingAddressSubfields();
+        $subfields = $this->getOldCheckoutBillingAddressSubfields();
+
+        $subfields = $this->mergeWithAddressMainSubfields($subfields);
+
+        return $subfields;
     }
 
     /**
@@ -434,6 +526,7 @@ class shopBackendCustomerForm {
         $config = wa('shop')->getConfig();
 
         $settings = $config->getCheckoutSettings();
+
         if (!isset($settings['contactinfo'])) {
             $settings = $config->getCheckoutSettings(true);
         }
@@ -459,7 +552,11 @@ class shopBackendCustomerForm {
         }
 
         if ($need_shipping_address) {
-            $fields_config['address.shipping'] = array('fields' => $this->getOldCheckoutShippingAddressSubfields());
+
+            $subfields = $this->getOldCheckoutShippingAddressSubfields();
+            $subfields = $this->mergeWithAddressMainSubfields($subfields);
+
+            $fields_config['address.shipping'] = array('fields' => $subfields);
         }
 
         if (isset($options['need_billing_address'])) {
@@ -468,19 +565,22 @@ class shopBackendCustomerForm {
             $need_billing_address = 'optional';
         }
 
+
         if ($need_billing_address === 'required') {
             $subfields = $this->getOldCheckoutBillingAddressSubfields();
             if (!$subfields) {
-                $subfields = $this->getAllAddressSubfields();
+                $subfields = $this->getAddressSubfields();
             }
-            $fields_config['address.billing'] = array('fields' => $subfields);
         } elseif ($need_billing_address === 'optional') {
             $subfields = $this->getOldCheckoutBillingAddressSubfields();
-            if ($subfields) {
-                $fields_config['address.billing'] = array('fields' => $subfields);
-            }
+        } else {
+            $subfields = array();
         }
 
+        if ($subfields) {
+            $subfields = $this->mergeWithAddressMainSubfields($subfields);
+            $fields_config['address.billing'] = array('fields' => $subfields);
+        }
 
         return $fields_config;
     }
@@ -506,7 +606,7 @@ class shopBackendCustomerForm {
         $subfields = isset($fields_config['fields']) && is_array($fields_config['fields']) ? $fields_config['fields'] : array();
 
         if (!$fields_config) {
-            $subfields = $this->getAllAddressSubfields();
+            $subfields = $this->getAddressSubfields();
         }
 
         return $subfields;
@@ -535,16 +635,23 @@ class shopBackendCustomerForm {
     }
 
     /**
-     * Get all subfields of address fields
+     * Get subfields of address fields
+     * @param null|array $subset what subset of fields needed
+     *   If NULL - all subfields
+     *   If array - only that subfields, ids of which in this array
      * @return array - array of array indexed by IDs of subfields
      */
-    protected function getAllAddressSubfields()
+    protected function getAddressSubfields($subset = null)
     {
+        $subfields = array();
         $address = waContactFields::get('address');
         if ($address instanceof waContactAddressField) {
-            return array_fill_keys(array_keys($address->getFields()), array());
+            $subfields = array_fill_keys(array_keys($address->getFields()), array());
         }
-        return array();
+        if (is_array($subset) || is_scalar($subset)) {
+            $subfields = waUtils::extractValuesByKeys($subfields, (array)$subset);
+        }
+        return $subfields;
     }
 
     /**
@@ -610,22 +717,6 @@ class shopBackendCustomerForm {
 
     }
 
-    protected function dropNulls($values, $reindex = false)
-    {
-        if (!is_array($values)) {
-            return array();
-        }
-        foreach ($values as $index => $value) {
-            if ($value === null) {
-                unset($values[$index]);
-            }
-        }
-        if ($reindex) {
-            $values = array_values($values);
-        }
-        return $values;
-    }
-
     /**
      * @throws waException
      * @return waContactForm
@@ -676,10 +767,12 @@ class shopBackendCustomerForm {
             }
             unset($subfield);
 
-            foreach ($fields_config['address.billing']['fields'] as &$subfield) {
-                $subfield['required'] = false;
+            if (isset($fields_config['address.billing'])) {
+                foreach ($fields_config['address.billing']['fields'] as &$subfield) {
+                    $subfield['required'] = false;
+                }
+                unset($subfield);
             }
-            unset($subfield);
         }
 
         $form = waContactForm::loadConfig(

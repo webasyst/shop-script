@@ -45,7 +45,7 @@ class shopStorefrontList
     public function addFilter($filter, $id = null)
     {
         if (is_callable($filter)) {
-            if ($id !== null) {
+            if ($id === null) {
                 $id = '#callable#' . count($this->filters);
             }
             $this->filters[$id] = $filter;
@@ -105,6 +105,11 @@ class shopStorefrontList
         }
     }
 
+    public static function clearCache()
+    {
+        self::$all_storefronts = null;
+    }
+
     /**
      * Static helper for getting all storefronts
      * Get all storefronts
@@ -150,19 +155,32 @@ class shopStorefrontList
      */
     protected function applyFilters($storefronts)
     {
-        if (isset($this->filters['contact_type'])) {
-            $storefronts = $this->filterOffByContactType($storefronts, $this->filters['contact_type']);
-            unset($this->filters['contact_type']);
+        $filters = $this->filters;
+        
+        if (isset($filters['contact_type'])) {
+            $storefronts = $this->filterOffByContactType($storefronts, $filters['contact_type']);
+            unset($filters['contact_type']);
         }
 
-        if (isset($this->filters['url'])) {
-            $storefronts = $this->filterOffByUrl($storefronts, $this->filters['url']);
-            unset($this->filters['url']);
+        if (!$storefronts) {
+            return array();
         }
 
-        foreach ($this->filters as $filter) {
+        if (isset($filters['url'])) {
+            $storefronts = $this->filterOffByUrl($storefronts, $filters['url']);
+            unset($filters['url']);
+        }
+
+        if (!$storefronts) {
+            return array();
+        }
+
+        foreach ($filters as $filter) {
             if (is_callable($filter)) {
                 $storefronts = array_filter($storefronts, $filter);
+                if (!$storefronts) {
+                    return array();
+                }
             }
         }
 
