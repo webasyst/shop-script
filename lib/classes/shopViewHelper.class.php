@@ -369,6 +369,7 @@ SQL;
         $is_from_template = waConfig::get('is_template');
         waConfig::set('is_template', null);
         wa('shop')->event('view_features', $result);
+        wa('shop')->event('view_features.products', $products);
         waConfig::set('is_template', $is_from_template);
 
         return $result;
