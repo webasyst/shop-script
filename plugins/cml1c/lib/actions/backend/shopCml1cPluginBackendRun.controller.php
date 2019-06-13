@@ -250,7 +250,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
              * @var shopTypeModel $type_model
              */
 
-            $this->data['encoding'] = 'windows-1251'; // 'windows-1251'/'utf-8'
+            $this->data['encoding'] = $this->pluginSettings('encoding'); // 'windows-1251'/'utf-8'
             //validation option — since 2.07 enable extended stock features (not supported yet)
             $this->data['version'] = '2.05';
             $this->data['timestamp'] = time();
@@ -597,6 +597,10 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
         if ($this->pluginSettings('stock_setup') || $this->pluginSettings('stock_complement')) {
             $this->data['empty_count'][] = 0;
+        }
+
+        if ($this->pluginSettings('sku_from_good')) {
+            $this->data['sku_from_good'] = true;
         }
 
         $this->initImportStocks();
@@ -5246,14 +5250,23 @@ SQL;
 
                 if (!count($sku['stock']) && !$stock) {
 
-                    if (isset($this->data['stock_map'])) {
+                    $stock_map = isset($this->data['stock_map']) ? $this->data['stock_map'] : array();
+                    foreach ($stock_map as $stock_uuid => &$stock_id) {
+                        if (is_array($stock_id)) {
+                            $stock_id = $stock_id['stock_id'];
+                        }
+                        # < 0 — не импортировать остатки
+                        # == 0 — импорт в общие остатки
+                        if ($stock_id < 0) {
+                            unset($stock_map[$stock_uuid]);
+                        }
+                    }
+
+                    if ($stock_map) {
                         # настроена карта распределения складов
                         if ($total === 0) {
                             # обнуляем остатки на всех сопоставленных складах
-                            foreach ($this->data['stock_map'] as $stock_uuid => $stock_id) {
-                                if (is_array($stock_id)) {
-                                    $stock_id = $stock_id['stock_id'];
-                                }
+                            foreach ($stock_map as $stock_uuid => $stock_id) {
                                 # < 0 — не импортировать остатки
                                 # == 0 — импорт в общие остатки
                                 if ($stock_id > 0) {
@@ -6032,8 +6045,14 @@ SQL;
             $skus[-1] = array(
                 'available' => ($subject == self::STAGE_PRODUCT) ? ($deleted ? false : true) : 1,
                 'id_1c'     => end($uuid),
-                'sku'       => self::field($element, 'Артикул'),
             );
+
+            if (!empty($this->data['sku_from_good'])) {
+                $sku = self::field($element, 'Артикул');
+                if ($sku !== null) {
+                    $skus[-1]['sku'] = $sku;
+                }
+            }
 
             if (count($sku_features)) {
                 $skus[-1]['name'] = $update_fields['name'].' ('.implode(', ', $sku_features).')';

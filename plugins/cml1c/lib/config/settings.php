@@ -59,20 +59,20 @@ return array(
         'control_type' => waHtmlControl::INPUT,
         'translate'    => false,
     ),
-    'guid_format'          => array(
+    'guid_format'              => array(
         'value'        => 'full',
         'title'        => 'Формат экспорта идентификаторов артикулов в составе заказа',
         'control_type' => waHtmlControl::RADIOGROUP,
-        'options' => array(
-            'full' => array(
-                'value' => 'full',
-                'title' => 'Всегда полный формат из двух частей (для МойСклад)',
+        'options'      => array(
+            'full'    => array(
+                'value'       => 'full',
+                'title'       => 'Всегда полный формат из двух частей (для МойСклад)',
                 'description' => '<b>abc#abc</b> — формат для <em>основного</em> артикула товара (обе части идентификатора совпадают)<br>
 <b>abc#def</b> — формат для <em>остальных</em> артикулов (части идентификатора не совпадают)',
             ),
             'compact' => array(
-                'value' => 'compact',
-                'title' => 'Компактный формат (для «1С»)',
+                'value'       => 'compact',
+                'title'       => 'Компактный формат (для «1С»)',
                 'description' => '<b>abc</b> — формат для <em>основного</em> артикула товара (экспортируется только первая часть идентификатора)<br>
 <b>abc#def</b> — формат для <em>остальных</em> артикулов (экспортируются обе части идентификатора)<br><br>',
             ),
@@ -129,14 +129,14 @@ return array(
             'changed' => 'Новые и измененные',
         ),
     ),
-    'export_orders_mask' => array(
+    'export_orders_mask'        => array(
         'value'        => '{$order.id}',
         'title'        => 'Формат идентификаторов заказов',
         'description'  => 'Добавьте дополнительные символы в начале или в конце, чтобы экспортировать измененные номера заказов.
 <br>Фрагмент <strong>{$order.id}</strong> будет заменен на стандартный числовой номер заказа. Не удаляйте его из этой строки.',
         'control_type' => waHtmlControl::INPUT,
     ),
-    'export_contacts_mask' => array(
+    'export_contacts_mask'      => array(
         'value'        => '{$order.contact_id}',
         'title'        => 'Формат идентификаторов контрагентов',
         'description'  => 'Добавьте дополнительные символы в начале или в конце, чтобы экспортировать измененные идентификаторы контактов.
@@ -150,7 +150,7 @@ return array(
         'control_type' => waHtmlControl::INPUT,
         'translate'    => false,
     ),
-    'export_delivery' => array(
+    'export_delivery'           => array(
         'value'        => true,
         'title'        => 'Выгрузка доставки',
         'description'  => 'Выгружать стоимость доставки в виде отдельной позиции заказа',
@@ -265,7 +265,7 @@ return array(
         'options_callback' => array('shopCml1cPlugin', 'controlProductFields'),
         'group'            => 'Товары',
     ),
-    'features_references' => array(
+    'features_references'       => array(
         'value'        => 'insert',
         'title'        => 'Импорт справочника характеристик',
         'control_type' => waHtmlControl::RADIOGROUP,
@@ -472,5 +472,23 @@ HTML
 Связь складов выполняется после анализа файла CommerceML на странице <a href="?action=importexport#/cml1c/tab/manual/">ручного обмена</a>.',
         'control_type' => waHtmlControl::CHECKBOX,
         'translate'    => false,
+    ),
+    'sku_from_good'             => array(
+        'value'        => true,
+        'title'        => 'Получать код артикула из информации о товарах',
+        'description'  => 'Включите, если вы не передаете коды артикулов вместе с предложениями и передаете их в информации о товарах.<br>Отключите эту настройку и включите «Создавать новые артикулы с нулевыми остатками», если у вас создаются лишние артикулы.',
+        'control_type' => waHtmlControl::CHECKBOX,
+        'translate'    => false,
+    ),
+    'encoding'                  => array(
+        'value'        => 'windows-1251',
+        'title'        => 'Кодировка данных для передачи информации о товарах и заказах',
+        'description'  => '',
+        'control_type' => waHtmlControl::SELECT,
+        'translate'    => false,
+        'options'      => array(
+            'utf-8'        => 'UTF-8',
+            'windows-1251' => 'Windows-1251',
+        ),
     ),
 );

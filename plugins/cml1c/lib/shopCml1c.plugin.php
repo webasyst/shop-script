@@ -688,7 +688,7 @@ HTML;
     public function productHandler($product)
     {
         if (!empty($product['id_1c'])) {
-            $info_section = sprintf('<span class="hint" >1С GUID: %s</span>', $product['id_1c']);
+            $info_section = sprintf('<span class="hint" >Идентификатор «1С»: %s</span>', $product['id_1c']);
         }
         return compact('info_section', 'title_suffix');
     }
@@ -704,7 +704,7 @@ HTML;
         if (!empty($event_params['sku']['id_1c'])) {
             $template = <<<HTML
 <div class="field">
-<div class="name">1С GUID</div>
+<div class="name">Идентификатор «1С»</div>
 <div class="value">%s#%s</div>
 </div>
 HTML;
