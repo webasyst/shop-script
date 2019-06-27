@@ -13,7 +13,8 @@ class shopCategoryCreateAction extends waViewAction
         $pos = strrpos($frontend_url, $stuff);
         $frontend_base_url = $pos !== false ? rtrim(substr($frontend_url, 0, $pos), '/').'/' : $frontend_url;
 
-        $feature_model = new shopFeatureModel();
+        $category_helper = new shopCategoryHelper();
+
         $parent = $this->getParentCategory();
 
         $settings = $this->getSettings();
@@ -27,28 +28,20 @@ class shopCategoryCreateAction extends waViewAction
             'frontend' => true,
             'status'   => null,
         );
-        $features = $feature_model->getFilterFeatures($options, 20);
+        $features = $category_helper->getFilters($options);
+        $features = $category_helper->getFeaturesValues($features, true);
 
         //Get feature count
         $options_feature_count = [
-            'select'   => 'COUNT(*)',
             'frontend' => true,
             'status'   => null,
         ];
-
-        $feature_count = $feature_model->getFilterFeatures($options_feature_count, 500, false);
-        $settings['feature_count'] = ifset($feature_count, 'COUNT(*)', 0);
+        $settings['filter_count'] = $settings['feature_count'] = $category_helper->getCount($options_feature_count);
 
         $settings['features'] = $features;
 
         $settings['filter'] = [
-            'price' => [
-                'id'        => 'price',
-                'name'      => 'Price',
-                'type'      => '',
-                'code'      => '',
-                'type_name' => '',
-            ]
+            'price' => $category_helper->getDefaultFilters(),
         ];
 
         $settings['filter'] += $features;

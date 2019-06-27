@@ -6,16 +6,16 @@
  * @method csv_productAction
  * @method csv_productBlur
  *
- * @todo partial read & etc
  */
 
-if (typeof($) != 'undefined') {
+if (typeof ($) != 'undefined') {
     $.extend($.importexport = $.importexport || {}, {
         csv_product: true,
         csv_product_options: {
             ignore_class: 'gray',
             control: '',
-            columns_offset: 0
+            columns_offset: 0,
+            header_titles: true
         },
         csv_product_form: null,
         csv_product_form_primary: null,
@@ -23,8 +23,10 @@ if (typeof($) != 'undefined') {
         csv_product_upload: null,
         csv_product_uploadgroup: null,
         csv_product_table_cells: null,
+        csv_product_headers: null,
         csv_product_data: {
             ajax_pull: {},
+            timout_pull: {},
             progress: false,
             upload_time: null,
             primary_callback: null
@@ -122,7 +124,7 @@ if (typeof($) != 'undefined') {
         },
 
         csv_productUploadDone: function (e, data) {
-            $.shop.trace('fileupload done', [data.result, typeof(data.result)]);
+            $.shop.trace('fileupload done', [data.result, typeof (data.result)]);
             var file = (data.result.files || []).shift();
             this.csv_product_upload.find('.js-fileupload-progress').hide();
 
@@ -181,19 +183,27 @@ if (typeof($) != 'undefined') {
         csv_productInitControls: function () {
             this.csv_product_table_cells = this.csv_product_form.find('table.s-csv:first td');
             this.csv_product_form_primary = this.csv_product_form.find('select[name="primary"], select[name="secondary"]');
+            this.csv_product_headers = $('#s_import_csv_header').find('>li');
 
             var self = this;
+
+            $('#s_import_csv_header').on('click mouseover', '>li.collision', function () {
+                var value = $(this).attr('data-value');
+                self.csv_productTableUpdateHeaderHighlight(value, true);
+            });
+
             this.csv_product_form_primary.change(function () {
                 var $this = $(this);
                 self.csv_productMapPrimaryHandler($this, $this.val());
             });
 
-            this.csv_product_form_map = this.csv_product_form.find('select[name^="csv_map\["]').change(function () {
+            this.csv_product_form_map = this.csv_product_form.find('select[name^="csv_map\["]').change(function (event) {
+                var fast = !event.originalEvent;
                 var $this = $(this);
                 var value;
                 switch (self.csv_product_options.control) {
                     case 'Csvtable':
-                        value = $(this).val();
+                        value = $this.val();
                         break;
                     case 'Csvmap':
                         value = parseInt($this.val(), 10);
@@ -202,10 +212,10 @@ if (typeof($) != 'undefined') {
                         /*do nothing*/
                         break;
                 }
-                self.csv_productMapHandler($this, value);
+                self.csv_productMapHandler($this, value, fast);
             });
             this.csv_product_form_map.filter(function (index, el) {
-                return (index == 0) || ($(el).val() == '-1');
+                return (index == 0) || ($(el).val() == '-1') || true;
             }).change();
             if (this.csv_product_data.primary_callback) {
                 clearTimeout(this.csv_product_data.primary_callback);
@@ -248,6 +258,7 @@ if (typeof($) != 'undefined') {
                 $option = $('<option></option>');
                 $option.val('features:' + ui.item.value);
                 $option.text(ui.item.name);
+                $option.data('multiple', ui.item.multiple);
                 $option.attr('title', ui.item.label);
                 $select.find('option[value="features:%s"]').before($option);
                 $select.val('features:' + ui.item.value).trigger('change');
@@ -276,7 +287,7 @@ if (typeof($) != 'undefined') {
             }
         },
 
-        csv_productMapHandler: function ($this, value) {
+        csv_productMapHandler: function ($this, value, fast) {
             switch (this.csv_product_options.control) {
                 case 'Csvtable':
                     var $parent = $this.parent('td');
@@ -292,25 +303,27 @@ if (typeof($) != 'undefined') {
 
                         $parent.find('select').show();
                     }
-                    var columns = $this.attr('name').match(/\[(\d+(:[^\]]+)?)]$/)[1].split(':') || [-1];
-                    var selector = '[data-column="' + columns.join(':') + '"]';
+                    var input_name = $this.attr('name');
+                    var input_columns = this.csv_product_helper.extractColumn(input_name);
+                    var selector = '[data-column="' + input_columns.join(':') + '"]';
                     var table_selector = [];
-                    var i;
-                    for (i = 0; i < columns.length; i++) {
-                        table_selector.push(':nth-child(' + (2 + this.csv_product_options.columns_offset + parseInt(columns[i])) + ')');
+
+                    for (var i = 0; i < input_columns.length; i++) {
+                        table_selector.push(':nth-child(' + (2 + this.csv_product_options.columns_offset + parseInt(input_columns[i])) + ')');
                     }
 
-                    var $header = $('#s_import_csv_header').find('>li');
+
                     if ((value !== null) && value != '-1') {
-                        $header.filter(selector).removeClass('ignored');
-                        for (i = 0; i < table_selector.length; i++) {
-                            this.csv_product_table_cells.filter(table_selector[i]).removeClass('ignored');
-                        }
+                        var $selected = $this.find('option:selected');
+                        var target_name = this.csv_product_options.header_titles ? $selected.text() : true;
+                        var target_value = $selected.data('multiple') ? null : value;
+
+                        this.csv_productTableUpdateHeader(selector, target_name, target_value);
+                        this.csv_productTableUpdate(table_selector, false);
+
                     } else {
-                        $header.filter(selector).addClass('ignored');
-                        for (i = 0; i < table_selector.length; i++) {
-                            this.csv_product_table_cells.filter(table_selector[i]).addClass('ignored');
-                        }
+                        this.csv_productTableUpdateHeader(selector, false, fast ? false : null);
+                        this.csv_productTableUpdate(table_selector, true);
                     }
 
                     var counter = {
@@ -319,8 +332,8 @@ if (typeof($) != 'undefined') {
                         'ignored': 0
                     };
 
-                    counter.total = $header.length;
-                    counter.ignored = $header.filter('.ignored').length;
+                    counter.total = this.csv_product_headers.length;
+                    counter.ignored = this.csv_product_headers.filter('.ignored').length;
                     counter.selected = counter.total - counter.ignored;
 
                     var text = $_(counter.selected, '%d column will be processed').replace(/%d/g, counter.selected);
@@ -359,8 +372,7 @@ if (typeof($) != 'undefined') {
             switch (this.csv_product_options.control) {
                 case 'Csvtable':
                     this.csv_product_table_cells.filter('.selected.' + sub_class).removeClass('selected ' + sub_class);
-                    var $header = this.csv_product_form.find('#s_import_csv_header > li');
-                    $header.filter('.selected.' + sub_class).removeClass('selected ' + sub_class);
+                    this.csv_product_headers.filter('.selected.' + sub_class).removeClass('selected ' + sub_class);
                     var self = this;
                     var exists = false;
                     this.csv_product_form_map.each(function (index, el) {
@@ -371,7 +383,7 @@ if (typeof($) != 'undefined') {
                             var offset = 2 + self.csv_product_options.columns_offset;
                             var selector = ':nth-child(' + (offset + column) + ')';
                             self.csv_product_table_cells.filter(selector).addClass('selected ' + sub_class);
-                            $header.filter('[data-column="' + column + '"]:first').addClass('selected ' + sub_class);
+                            self.csv_product_headers.filter('[data-column="' + column + '"]:first').addClass('selected ' + sub_class);
                             return false;
                         }
                         return true;
@@ -560,7 +572,7 @@ if (typeof($) != 'undefined') {
         csv_productProgress: function (response) {
 
             var $description = this.form.find('.progressbar-description');
-            if (response && (typeof(response.progress) != 'undefined')) {
+            if (response && (typeof (response.progress) != 'undefined')) {
                 var $bar = this.form.find('.progressbar .progressbar-inner');
                 var progress = parseFloat(response.progress.replace(/,/, '.'));
                 $bar.animate({
@@ -572,7 +584,7 @@ if (typeof($) != 'undefined') {
                 $description.text(message);
 
             }
-            if (response && (typeof(response.warning) != 'undefined')) {
+            if (response && (typeof (response.warning) != 'undefined')) {
                 $description.append('<i class="icon16 exclamation"></i><p>' + response.warning + '</p>');
             }
         },
@@ -625,6 +637,114 @@ if (typeof($) != 'undefined') {
             for (var n = 0; n < collision.length; n++) {
                 $context.find('tr.js-row-' + collision[n] + '').css('color', hover ? 'red' : '');
             }
+        },
+
+        csv_productTableUpdate: function (table_selector, ignored) {
+            var self = this;
+            for (i = 0; i < table_selector.length; i++) {
+                var selector = table_selector[i];
+                setTimeout(function () {
+                    if (ignored) {
+                        self.csv_product_table_cells.filter(selector).addClass('ignored');
+                    } else {
+                        self.csv_product_table_cells.filter(selector).removeClass('ignored');
+                    }
+                }, 10);
+            }
+        },
+
+        csv_productTableUpdateHeader: function (selector, target_name, target_value) {
+            var self = this;
+            this.csv_product_headers.filter(selector).each(function (index, column) {
+                var $column = $(column);
+                if (target_name !== false) {
+                    $column.removeClass('ignored');
+                    if (target_name !== true) {
+                        $column.attr('title', $column.data('title') + ' → ' + target_name);
+                    }
+                } else {
+                    $column.addClass('ignored');
+                    if (self.csv_product_options.header_titles) {
+                        $column.attr('title', $column.data('title'));
+                    }
+                }
+
+                if (target_value !== false) {
+
+                    var current_value = $column.attr('data-value');
+
+                    if (target_value === null) {
+                        $column.removeClass('collision');
+                        $column.attr('data-value', null);
+                    } else {
+                        $column.attr('data-value', target_value);
+                        self.csv_productTableUpdateHeaderCollision(target_value);
+                    }
+
+                    if (current_value === 'null') {
+                        current_value = null
+                    }
+
+                    if (current_value !== null) {
+                        self.csv_productTableUpdateHeaderCollision(current_value);
+                    }
+                }
+            })
+        },
+
+        csv_productTableUpdateHeaderCollision: function (value) {
+            if (this.csv_product_data.timout_pull[value]) {
+                clearTimeout(this.csv_product_data.timout_pull[value]);
+            }
+
+            var self = this;
+            this.csv_product_data.timout_pull[value] = setTimeout(function () {
+                self.csv_product_headers.removeClass('picked');
+                var selector = '[data-value="' + $.shop.helper.escape(value) + '"]';
+                var $matches = self.csv_product_headers.filter(selector);
+                $.shop.trace('csv_productTableUpdateHeaderCollision', [value, $matches.length]);
+                if ($matches.length > 1) {
+                    $matches.addClass('collision');
+                } else {
+                    $matches.removeClass('collision');
+                }
+            }, 800);
+        },
+
+        csv_productTableUpdateHeaderHighlight: function (value) {
+            var selector = '[data-value="' + $.shop.helper.escape(value) + '"]';
+            this.csv_product_headers.removeClass('picked');
+            var $matches = this.csv_product_headers.filter(selector);
+            $.shop.trace('csv_productTableUpdateHeaderHighlight', [value, $matches]);
+            if (value === 'null') {
+                value = null;
+            }
+            if (value !== null && ($matches.length > 1)) {
+                $matches.addClass('picked');
+            }
+        },
+
+        csv_productFindCollision: function (value, name) {
+            var filter = ':selected[value="' + $.shop.helper.escape(value) + '"]';
+            var $values = this.csv_product_form_map.find(filter);
+            var columns = [];
+            if ($values.length > 1) {
+                if (name) {
+                    var self = this;
+                    $.each($values, function (index, option) {
+                        var input = option.parentNode;
+                        while (input && input.nodeName.toUpperCase() != 'SELECT') {
+                            input = input.parentNode;
+                        }
+                        if (input && (input.name !== name)) {
+                            columns.push(self.csv_product_helper.extractColumn(input.name));
+                        }
+                    });
+                } else {
+                    columns.push(true);
+                }
+            }
+            return columns;
         },
 
         /**
@@ -871,7 +991,7 @@ if (typeof($) != 'undefined') {
                                 self.csv_productCollisionHighlight($(this), false);
                             });
 
-                            if (s_csv_setsize && (typeof(s_csv_setsize) == 'function')) {
+                            if (s_csv_setsize && (typeof (s_csv_setsize) == 'function')) {
                                 setTimeout(function () {
                                     s_csv_setsize();
                                 }, 50);
@@ -902,6 +1022,10 @@ if (typeof($) != 'undefined') {
         },
 
         csv_product_helper: {
+            extractColumn: function (name) {
+                var columns = name.match(/\[(\d+(:[^\]]+)?)]$/)[1].split(':') || [-1];
+                return columns;
+            },
             id2name: function (id) {
                 if (id.match(/:/)) {
                     id = id.split(":");

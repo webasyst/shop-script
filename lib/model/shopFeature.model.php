@@ -17,6 +17,8 @@ class shopFeatureModel extends waModel
     const STATUS_HIDDEN = 'hidden';
     const STATUS_PRIVATE = 'private';
 
+    const SEARCH_STEP = 20;
+
     private static $instances = array();
 
     protected $table = 'shop_feature';
@@ -259,7 +261,7 @@ SQL;
     public function getFeaturesCount($options)
     {
         $options['select'] = 'COUNT(DISTINCT sf.id) as count';
-        $feature_count = $this->getFilterFeatures($options, 500, false);
+        $feature_count = $this->getFilterFeatures($options, 100500, false);
 
         return ifset($feature_count, 'count', false);
     }
@@ -401,6 +403,16 @@ SQL;
                         $limit = $value.', '.$limit;
                     }
                     break;
+                case 'term':
+                    $value = (array)$value;
+                    $unions = [];
+                    foreach ($value as $term) {
+                        $term = $this->escape($term, 'like');
+                        $unions[] = "sf.name LIKE '$term%'";
+                        $unions[] = "sf.code LIKE '$term%'";
+                    }
+                    $where[$field] = $this->getUnion($unions);
+                    break;
                 default:
                     $where[$field] = $this->getWhereByField($field, $value, 'sf');
                     break;
@@ -408,7 +420,7 @@ SQL;
         }
 
         if (isset($where['union']) && count($where['union'])) {
-            $where['union'] = '('.implode(') OR (', $where['union']).')';
+            $where['union'] = $this->getUnion($where['union']);
         } else {
             unset($where['union']);
         }
@@ -428,6 +440,11 @@ SQL;
             }
             return $result->fetchAll($fetch);
         }
+    }
+
+    public function getUnion($union)
+    {
+        return '('.implode(') OR (', $union).')';
     }
 
     /**

@@ -307,13 +307,21 @@ class shopFrontendProductAction extends shopFrontendAction
     protected function getServiceVars($product)
     {
         $type_services_model = new shopTypeServicesModel();
-        $services = $type_services_model->getServiceIds($product['type_id']);
+        $type_service_ids = $type_services_model->getServiceIds($product['type_id']);
 
         // Fetch services
         $service_model = new shopServiceModel();
         $product_services_model = new shopProductServicesModel();
-        $services = array_merge($services, $product_services_model->getServiceIds($product['id']));
+
+        $product_service_ids = $product_services_model->getServiceIds($product['id'], array(
+            'ignore' => array(
+                'status' => shopProductServicesModel::STATUS_FORBIDDEN
+            )
+        ));
+
+        $services = array_merge($type_service_ids, $product_service_ids);
         $services = array_unique($services);
+
         $services = $service_model->getById($services);
         shopRounding::roundServices($services);
 
@@ -322,6 +330,8 @@ class shopFrontendProductAction extends shopFrontendAction
             $s['price'] = shop_currency($s['price'], null, $s['currency'], false);
         }
         unset($s);
+
+        $enable_by_type = array_fill_keys($type_service_ids, true);
 
         // Fetch service variants
         $variants_model = new shopServiceVariantsModel();
@@ -333,22 +343,42 @@ class shopFrontendProductAction extends shopFrontendAction
             } elseif ($services[$row['service_id']]['variant_id'] == $row['id']) {
                 $services[$row['service_id']]['price'] = $row['price'];
             }
+            $row['status'] = !empty($enable_by_type[$row['service_id']]);
             $services[$row['service_id']]['variants'][$row['id']] = $row;
         }
 
         // Fetch service prices for specific products and skus
         $rows = $product_services_model->getByField('product_id', $product['id'], true);
         shopRounding::roundServiceVariants($rows, $services);
-        $skus_services = array(); // sku_id => [service_id => price]
+
+        // re-define statuses of service variants for that product
+        foreach ($rows as $row) {
+            if (!$row['sku_id']) {
+                $services[$row['service_id']]['variants'][$row['service_variant_id']]['status'] = $row['status'];
+            }
+        }
+
+        // Remove disable service variants
+        foreach ($services as $service_id => $service) {
+            if (isset($service['variants'])) {
+                foreach ($service['variants'] as $variant_id => $variant) {
+                    if (!$variant['status']) {
+                        unset($services[$service_id]['variants'][$variant_id]);
+                    }
+                }
+            }
+        }
+
+        // sku_id => [service_id => price]
+        $skus_services = array();
         foreach ($product['skus'] as $sku) {
             $skus_services[$sku['id']] = array();
         }
+
         foreach ($rows as $row) {
             if (!$row['sku_id']) {
-                if (!$row['status']) {
-                    // remove disabled services and variants
-                    unset($services[$row['service_id']]['variants'][$row['service_variant_id']]);
-                } elseif ($row['price'] !== null) {
+
+                if ($row['status'] && $row['price'] !== null) {
                     // update price for service variant, when it is specified for this product
                     $services[$row['service_id']]['variants'][$row['service_variant_id']]['price'] = $row['price'];
                     // !!! also set other keys related to price

@@ -674,6 +674,22 @@
                 wnd.document.close();
 
                 return false;
+            },
+            escape: function(selector) {
+                var reserved = new RegExp('([!"#\$%&\'\(\)\*\+,\./:;<=>\?@\[\\\]\^`\{|\}~])','g');
+                var escaped_selector = selector.replace(reserved,'\\$1');
+                return escaped_selector;
+            },
+            /**
+             *
+             * @param $scope jQuery
+             * @param event string event name with optional namespace, e.g. `click.myspace`
+             * @param handler function
+             * @param selector String
+             */
+            setEventHandler: function ($scope, event, handler, selector) {
+                $.shop.trace('$.shop.helper.setEventHandler [' + event + ']', [$scope, selector]);
+                $scope.off(event, selector).on(event, selector, handler);
             }
         },
 

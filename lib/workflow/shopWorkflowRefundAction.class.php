@@ -133,6 +133,7 @@ class shopWorkflowRefundAction extends shopWorkflowAction
         if ($controls || $transaction_data) {
             $button_class = $this->getOption('button_class');
 
+            $partial_refund = false;
             if (false) { // once it will be work
                 $partial_refund = $plugin->getProperties('partial_refund');
             }

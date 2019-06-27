@@ -50,7 +50,7 @@
             <span class="hint">{% if(file.size != file.original_size){ %}{%=file.original_size%} &rarr; {% } %}{%=file.size%}</span>
             {% if(file.header && false){ %}
             <p><br>[`Following columns were located in the uploaded file:`]</p>
-            <ul class="menu-h hint">
+            <ul class="menu-h with-icons hint">
                 {% for (var column in file.header){if(file.header.hasOwnProperty(column)){ %}
                 <li title="{%=column%}">{%=file.header[column]%}</li>
                 {% }} %}
@@ -223,7 +223,7 @@
         <div class="value">
             <ul class="menu-h hint s-csv-header" id="s_import_csv_header">
                 {% for (var column in file.header){if(file.header.hasOwnProperty(column)){ %}
-                <li data-column="{%=column%}" title="{%=$.importexport.csv_product_helper.id2name(column)%}">{%=file.header[column]%}</li>
+                <li data-value="null" data-column="{%=column%}" data-title="{%=$.importexport.csv_product_helper.id2name(column)%}" title="{%=$.importexport.csv_product_helper.id2name(column)%}"><i class="icon16 exclamation"></i>{%=file.header[column]%}</li>
                 {% }} %}
             </ul>
         </div>

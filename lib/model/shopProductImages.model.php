@@ -357,7 +357,7 @@ SQL;
             'width'             => $image->width,
             'height'            => $image->height,
             'size'              => filesize($image->file),
-            'filename'          => $filename,
+            'filename'          => basename($filename, '.'.waFiles::extension($filename)),
             'description'       => $description,
             'original_filename' => pathinfo($original_filename, PATHINFO_BASENAME),
             'ext'               => pathinfo($original_filename, PATHINFO_EXTENSION),

@@ -1,0 +1,48 @@
+{function showFilters filter_data=[] settings=[] allow=true}
+    {foreach $filter_data as $filter}
+        <li title="{$feature.code|default:''|escape}" class="js-filter-item {if !allow}unsortable{/if}">
+            <i class="icon16 sort"></i>
+            <label>
+                <input type="checkbox" name="filter[]" data-filter-id="{$filter.id}" class="js-filter-checkbox" value="{$filter.id}"
+                        {if $settings.type == 1}{* Dynamic category *}
+                            {if !empty($settings['conditions']['feature'][$filter.code]['values'])}
+                                {if count($settings['conditions']['feature'][$filter.code]['values']) < 2}
+                                    data-disabled="1" disabled="disabled" title="[`Filtering by this feature is not available, because only one of its values is selected in “Product filtering options” section.`]"
+                                {/if}
+                            {/if}
+                        {/if}
+                        {if ($filter.id == 'price' && !$settings.allow_filter) || $allow}checked="checked"{/if}>
+                {$filter.name|escape}
+                {if isset($filter.code)}
+                    <span class="hint">{$filter.code|escape} {$filter.type_name|default:''|escape}</span>
+                {/if}
+            </label>
+        </li>
+    {/foreach}
+{/function}
+
+<div class="block js-category-filter" {if !$settings.allow_filter}style="display:none;"{/if}>
+    <ul class="menu-v compact small js-category-filters">
+        {* Show enabled filters *}
+        {if !empty($settings.allow_filter_data)}
+            {showFilters filter_data=$settings.allow_filter_data settings=$settings}
+        {/if}
+
+        {showFilters filter_data=$settings.filter settings=$settings allow=false}
+    </ul>
+
+    <a href="#" class="js-show-more-filters inline-link"></a>
+    <div class="js-filter-autocomplete-block">
+        <input type="text" class="js-filter-autocomplete ui-autocomplete-input" autocomplete="off" placeholder="[`Type text to start search`]" style="margin-top: 12px;">
+    </div>
+</div>
+
+{capture name='_filterElement'}
+    <li title="%code" class="js-filter-item unsortable">
+        <label>
+            <input type="checkbox" name="filter[]" data-filter-id="%id" class="js-filter-checkbox" value="%id">
+            %name
+            <span class="hint">%code %type_name</span>
+        </label>
+    </li>
+{/capture}

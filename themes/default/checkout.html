@@ -172,6 +172,7 @@
                 setStepOrnament( $step );
             });
         }
+
         $(".checkout h2 a").click(function () {
             if ($(this).hasClass('hint')) {
                 if ($(this).hasClass('back')) {
@@ -186,10 +187,13 @@
             checkoutStep($(this).closest('div').find('.checkout-content').data('step-id'));
             return false;
         });
-        $("form.checkout-form").on('submit', function () {
+
+        var is_locked = false;
+
+        $("form.checkout-form").on('submit', function(event) {
             var f = $(this);
             var step = f.find('.checkout-content').data('step-id');
-            if (step == 'payment' || step == 'shipping') {
+            if (step === 'payment' || step === 'shipping') {
                 if (!f.find('input[name="' + step + '_id"]:checked').not(':disabled').length) {
                     if (!f.find('em.errormsg').length) {
                     $('<em class="errormsg inline">' + (step == 'payment' ? '[`Please select payment option`]' :
@@ -200,11 +204,20 @@
                     f.find('em.errormsg').remove();
                 }
             }
+
             if (f.hasClass('last') || ($("#login-form").length && !$("#login-form input:submit").attr('disabled'))) {
-                $('<span class="loading"> <i class="icon24 loading"></i></span>').insertBefore(f.find('input:submit:last'));
-                return true;
+                if (!is_locked) {
+                    is_locked = true;
+                    $('<span class="loading"> <i class="icon24 loading"></i></span>').insertBefore( f.find('input:submit:last').attr("disabled", "disabled") );
+                    return true;
+                }
+                return false;
             }
+
             $('<span class="loading"> <i class="icon24 loading"></i></span>').insertAfter(f.find('input:submit:last').attr('disabled', 'disabled'));
+
+            is_locked = true;
+
             $.post(f.attr('action') || window.location, f.serialize(), function (response) {
                 var content = $(response);
                 var step_id = content.data('step-id');
@@ -232,10 +245,12 @@
                 var $step = $(".checkout-step.step-" + step_id);
                 setStepOrnament( $step );
 
-            }).always(function () {
+            }).always( function() {
+                is_locked = false;
                 f.find('span.loading').remove();
                 f.find('input:submit:last').removeAttr('disabled');
             });
+
             return false;
         });
     });

@@ -2,138 +2,183 @@
 
 class shopProductServicesSaveController extends waJsonController
 {
-    /**
-     * @var int
-     */
+    /** @var int */
     private $product_id;
-    /**
-     * @var int
-     */
-    private $service_id;
 
     /**
-     * @var shopProductServicesModel
+     * @throws waException
      */
-    private $model;
-
-    public function execute()
+    public function preExecute()
     {
-        $this->product_id = waRequest::get('product_id', null, waRequest::TYPE_INT);
-        $this->service_id = waRequest::get('service_id', null, waRequest::TYPE_INT);
+        parent::preExecute();
+        $this->product_id = max(0, waRequest::get('product_id', null, waRequest::TYPE_INT));
+
         if (!$this->product_id) {
-            $this->errors[] = _w("Unknown product");
-            return;
+            throw new waException(_w("Unknown product"));
         }
 
         $product_model = new shopProductModel();
         if (!$product_model->checkRights($this->product_id)) {
             throw new waException(_w("Access denied"));
         }
+    }
 
-        // check rights
-        if (!$this->service_id) {
-            $this->errors = _w("Unkown service");
-            return;
+    /**
+     * @throws waException
+     */
+    public function execute()
+    {
+        $product_services_model = new shopProductServicesModel();
+
+        //product_services[%service_id%][default_variant]
+        //product_services[%service_id%][variants][%variant_id%][price]
+        //product_services[%service_id%][variants][%variant_id%][status]
+        //product_services[%service_id%][variants][%variant_id%][skus][%sku_id%][price]
+        //product_services[%service_id%][variants][%variant_id%][skus][%sku_id%][status]
+
+        $post_data = waRequest::post('product_services');
+        $service_ids = array_keys($post_data);
+
+        $this->getServiceVariants($service_ids);
+
+        foreach ($post_data as $service_id => $service_data) {
+            $product_services_model->save($this->product_id, $service_id, $this->getData($service_id, $service_data));
         }
 
-        $product_services_model = new shopProductServicesModel();
-        $product_services_model->save($this->product_id, $this->service_id, $this->getData());
         $this->response = array(
-            'status' => $product_services_model->getProductStatus($this->product_id, $this->service_id),
-            'count'  => $product_services_model->countServices($this->product_id)
+            'status' => $product_services_model->getProductStatus($this->product_id, $service_ids),
+            'count'  => $product_services_model->countServices($this->product_id),
         );
     }
 
-    public function getRowData()
-    {
-        static $data = array();
-        if (!$data) {
-            $data['variants']           = waRequest::post('variant', array());
-            $data['variant_prices']     = waRequest::post('variant_price', array());
-            $data['variant_skus']       = waRequest::post('variant_sku', array());
-            $data['variant_sku_prices'] = waRequest::post('variant_sku_price', array());
-            $data['default']            = waRequest::post('default', 0, waRequest::TYPE_INT);
-        }
-        return $data;
-    }
-
-    public function getData()
+    private function getData($service_id, $service_data)
     {
         $data = array();
-        foreach ($this->getServiceVariants() as $variant_id => $variant) {
-            $data[$variant_id] = $this->getVariant($variant_id);
+
+        //$service_data[default_variant]
+        //$service_data[variants][%variant_id%][price]
+        //$service_data[variants][%variant_id%][status]
+        //$service_data[variants][%variant_id%][skus][%sku_id%][price]
+        //$service_data[variants][%variant_id%][skus][%sku_id%][status]
+
+        foreach ($service_data['variants'] as &$variant) {
+            $variant['status'] = empty($variant['status']) ? shopProductServicesModel::STATUS_FORBIDDEN : shopProductServicesModel::STATUS_PERMITTED;
+            unset($variant);
+        }
+
+        if (!empty($service_data['default_variant'])) {
+            $variant_id = $service_data['default_variant'];
+            if (isset($service_data['variants'][$variant_id])) {
+                $service_data['variants'][$variant_id]['status'] = shopProductServicesModel::STATUS_DEFAULT;
+            }
+        }
+
+        foreach ($this->getServiceVariants($service_id) as $variant_id) {
+            $variant_data = ifset($service_data, 'variants', $variant_id, array());
+            $data[$variant_id] = $this->getVariant($variant_data);
         }
         return $data;
     }
 
-    public function getVariant($id)
+    private function getVariant($variant_data)
     {
-        $data = $this->getRowData();
-        return !empty($data['variants'][$id]) ?
-            array(
-                'price' => $this->formatPrice($data['variant_prices'][$id]),
-                'status'=> $this->getStatus($data['default'] == $id),
-                'skus'  => $this->getSkus(
-                    $this->getProductSkus(),
-                    isset($data['variant_skus'][$id]) ? $data['variant_skus'][$id] : array(),
-                    $data['variant_sku_prices'][$id]
-                )
-            ) :
-            $this->getEmptyVariant($this->getSkus($this->getProductSkus()));
+        //$data = $this->getRowData();
+
+        //$variant_data[price]
+        //$variant_data[status]
+        //$variant_data[skus][%sku_id%][price]
+        //$variant_data[skus][%sku_id%][status]
+        $data = array();
+
+        if (!empty($variant_data)) {
+            $skus = $this->getSkus(ifset($variant_data, 'skus', array()));
+
+            $variant = array(
+                'price'  => $this->formatPrice(ifset($variant_data, 'price', '')),
+                'status' => $variant_data['status'],
+                'skus'   => $skus,
+            );
+        } else {
+            $variant = $this->getEmptyVariant($this->getSkus());
+        }
+
+        return $variant;
     }
 
-    public function getEmptyVariant($skus = null)
+    private function getEmptyVariant($skus = null)
     {
-        return $skus !== null ?
-            array('price' => null, 'status' => shopProductServicesModel::STATUS_FORBIDDEN, 'skus'  => $skus) :
-            array('price' => null, 'status' => shopProductServicesModel::STATUS_FORBIDDEN);
+        $empty = array(
+            'price'  => null,
+            'status' => shopProductServicesModel::STATUS_FORBIDDEN,
+        );
+
+        if ($skus !== null) {
+            $empty['skus'] = $skus;
+        }
+
+        return $empty;
     }
 
-    public function getServiceVariants()
+    private function getServiceVariants($service_id)
     {
         static $data = null;
+
         if ($data === null) {
             $service_variants_model = new shopServiceVariantsModel();
-            $data = $service_variants_model->getByField('service_id', $this->service_id, 'id');
+            $variants = $service_variants_model->getByField('service_id', $service_id, 'id');
+            foreach ($variants as $variant_id => $variant) {
+                $_service_id = $variant['service_id'];
+                if (!isset($data[$_service_id])) {
+                    $data[$_service_id] = array();
+                }
+                $data[$_service_id][$variant_id] = $variant_id;
+            }
         }
-        return $data;
+
+        return is_array($service_id) ? $data : ifset($data, $service_id, array());
     }
 
-    public function getProductSkus()
+    private function getProductSkus()
     {
         static $data = null;
+
         if ($data === null) {
             $product_skus_model = new shopProductSkusModel();
-            $data = $product_skus_model->getByField('product_id', $this->product_id, 'id');
+            $skus = $product_skus_model->getByField('product_id', $this->product_id, 'id');
+            $skus = array_keys($skus);
+            $data = array_combine($skus, $skus);
         }
+
         return $data;
     }
 
-    public function getSkus($product_skus, $variant_skus = array(), $variant_sku_prices = array())
+    private function getSkus($variant_skus = array())
     {
         $data = array();
-        foreach ($product_skus as $sku_id => $sku) {
-            $price = !empty($variant_sku_prices[$sku_id]) ? $variant_sku_prices[$sku_id] : "";
-            $price = $this->formatPrice($price);
-            $data[$sku_id] =
-                !empty($variant_skus[$sku_id]) ?
-                    array(
-                        'price' => $price,
-                        'status'=> shopProductServicesModel::STATUS_PERMITTED
-                    ) :
-                    $this->getEmptyVariant()
-            ;
+
+        $product_skus = $this->getProductSkus();
+
+        foreach ($product_skus as $sku_id) {
+            if (!empty($variant_skus[$sku_id]['status'])) {
+                $sku = $variant_skus[$sku_id];
+                $sku += array(
+                    'price' => '',
+                );
+
+                $data[$sku_id] = array(
+                    'price'  => $this->formatPrice($sku['price']),
+                    'status' => shopProductServicesModel::STATUS_PERMITTED,
+                );
+            } else {
+                $data[$sku_id] = $this->getEmptyVariant();
+            }
         }
+
         return $data;
     }
 
-    public function formatPrice($price)
+    private function formatPrice($price)
     {
-        return $price === "" ? null : $price;
-    }
-
-    public function getStatus($is_default)
-    {
-        return $is_default ? shopProductServicesModel::STATUS_DEFAULT : shopProductServicesModel::STATUS_PERMITTED;
+        return $price === "" ? null : str_replace(',', '.', $price);
     }
 }

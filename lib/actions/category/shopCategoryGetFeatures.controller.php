@@ -15,51 +15,32 @@ class shopCategoryGetFeaturesController extends waJsonController
     {
         $feature_id = waRequest::request('feature_id', null, waRequest::TYPE_ARRAY_INT);
         $category = waRequest::request('category', null);
+        $category_type = waRequest::request('category_type', null);
         $offset = waRequest::request('offset', 0, waRequest::TYPE_INT);
         $ignore_id = waRequest::request('ignore_id', [], waRequest::TYPE_ARRAY_INT);
 
-        $feature_model = new shopFeatureModel();
         $features = [];
 
         if ($feature_id) {
-            $features = $feature_model->getFeatures('id', $feature_id, 'id', true);
+            $features = $this->getFeature($feature_id);
         }
 
         if (!$feature_id && $category) {
-            $options_feature = [];
-
-            if ($category === 'new') {
+            if ($category === 'new' || $category_type == shopCategoryModel::TYPE_DYNAMIC) {
                 $options_feature = [
-                    'ignore_id' => $ignore_id,
-                    'frontend'  => true,
-                    'offset'    => $offset,
-                    'status'    => null,
+                    'status' => null,
                 ];
-            } else {
-                $category_model = new shopCategoryModel();
-                $settings = $category_model->getById($category);
-
-                if ($settings['type'] == shopCategoryModel::TYPE_DYNAMIC) {
-                    $options_feature = [
-                        'ignore_id' => $ignore_id,
-                        'frontend'  => true,
-                        'offset'    => $offset,
-                        'status'    => null,
-                    ];
-                }
-
-                if ($settings['type'] == shopCategoryModel::TYPE_STATIC) {
-                    $options_feature = array(
-                        'type_id'   => $this->getTypesId($category),
-                        'ignore_id' => $ignore_id,
-                        'frontend'  => true,
-                        'offset'    => $offset,
-                    );
-                }
+            } elseif ($category_type == shopCategoryModel::TYPE_STATIC) {
+                $options_feature = array(
+                    'type_id' => $this->getTypesId($category),
+                );
             }
 
-            if ($options_feature) {
-                $features = $this->getFeaturesWithValues($options_feature);
+            if (!empty($options_feature)) {
+                $options_feature['offset'] = $offset;
+                $options_feature['frontend'] = true;
+                $options_feature['ignore_id'] = $ignore_id;
+                $features = $this->getFeatures($options_feature);
             }
         }
 
@@ -74,6 +55,9 @@ class shopCategoryGetFeaturesController extends waJsonController
         }
 
         foreach ($features as $id => &$feature) {
+            $feature['name'] = htmlspecialchars($feature['name']);
+            $feature['code'] = htmlspecialchars($feature['code']);
+
             if (!empty($feature['values'])) {
                 $features_values = &$features[$id]['values'];
 
@@ -108,22 +92,22 @@ class shopCategoryGetFeaturesController extends waJsonController
         return $features;
     }
 
-    protected function getTypesId($id)
+    protected function getFeature($id)
     {
-        $product_collection = new shopProductsCollection("category/{$id}");
-        $product_collection->groupBy('type_id');
-        $types = $product_collection->getProducts('type_id');
-
-        return waUtils::getFieldValues($types, 'type_id');
+        return (new shopFeatureModel())->getFeatures('id', $id, 'id', true);
     }
 
-    protected function getFeaturesWithValues($options)
+    protected function getTypesId($id)
     {
-        $feature_model = new shopFeatureModel();
+        return (new shopCategoryHelper())->getTypesId($id);
+    }
 
-        $features = $feature_model->getFilterFeatures($options, 20);
-        $features = $feature_model->getValues($features, true);
-        shopFeatureModel::appendTypeNames($features);
+    protected function getFeatures($options_feature)
+    {
+        $category_helper = new shopCategoryHelper();
+
+        $features = $category_helper->getFilters($options_feature);
+        $features = $category_helper->getFeaturesValues($features, true);
 
         return $features;
     }

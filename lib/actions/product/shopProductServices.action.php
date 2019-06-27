@@ -7,42 +7,64 @@ class shopProductServicesAction extends waViewAction
      */
     protected $model;
 
-    public function execute()
-    {
-        $id = waRequest::get('id', null, waRequest::TYPE_INT);
+    /**
+     * @var array
+     */
+    protected $product;
 
-        $product_model = new shopProductModel();
-        $product = $product_model->getById($id);
-        if (!$product) {
+    /**
+     * @throws waException
+     */
+    public function preExecute()
+    {
+        parent::preExecute();
+        $this->model = new shopProductServicesModel();
+
+        $id = max(0, waRequest::get('id', null, waRequest::TYPE_INT));
+        if ($id) {
+            $product_model = new shopProductModel();
+            $this->product = $product_model->getById($id);
+            if (!$product_model->checkRights($this->product)) {
+                throw new waException(_w("Access denied"));
+            }
+        }
+        if (!$this->product) {
             throw new waException(_w("Unknown product"));
         }
+    }
 
+    public function execute()
+    {
         $service_id = $this->getServiceId();
 
-        $model = $this->getModel();
-        $services = $model->getServices($id);
+        $services = $this->model->getServices($this->product);
 
         if ($service_id !== 0) {
             if (!empty($services)) {
                 if (!$service_id || !isset($services[$service_id])) {
                     $service = reset($services);
                     $service_id = $service['id'];
+                    unset($service);
                 }
             }
+        } else {
+
         }
 
         if (!$service_id) {
             $this->assign(array(
-                'product' => $product
+                'product' => $this->product,
             ));
             return;
         }
 
+        $service = $this->model->getProductServiceFullInfo($this->product['id'], $service_id);
+
         $this->assign(array(
-            'service'  => $this->getModel()->getProductServiceFullInfo($product['id'], $service_id),
-            'product'  => $product,
+            'service'  => $service,
+            'product'  => $this->product,
             'services' => $services,
-            'count'    => $this->getModel()->countServices($product['id'])
+            'count'    => $this->model->countServices($this->product['id']),
         ));
     }
 
@@ -56,17 +78,6 @@ class shopProductServicesAction extends waViewAction
         return $service_id;
     }
 
-    /**
-     * @return shopProductServicesModel
-     */
-    public function getModel()
-    {
-        if ($this->model === null) {
-            $this->model = new shopProductServicesModel();
-        }
-        return $this->model;
-    }
-
     public function assign($data = array())
     {
         $this->view->assign($data + $this->getDefaultData());
@@ -77,8 +88,8 @@ class shopProductServicesAction extends waViewAction
         return array(
             'services' => array(),
             'service'  => array(),
-            'product' => array(),
-            'variants' => array()
+            'product'  => array(),
+            'variants' => array(),
         );
     }
 }

@@ -28,7 +28,7 @@
                 </div>
             </th>
 
-            <th></th>
+            <th>&nbsp;</th>
             <th class="short align-right" title="[`Purchase price`]">
                 <div>[`Purchase price`]</div>
             </th>
@@ -40,7 +40,6 @@
             <th class="short align-right" title="[`Price`]">
                 <div>[`Price`]</div>
             </th>
-
             {foreach $stocks as $stock}
                 <th class="short align-right" title="{$stock.name|escape}">
                     <div>{$stock.name|escape}</div>
@@ -172,16 +171,15 @@
                 <a href="#/product/{%#product.id%}/"><div>{%#product.name%}<i class="shortener"></i></div></a>
             </td>
 
-            {% if (product.sku) { %}
+            {% if (product.sku && (typeof(product.sku) =='object')) { %}
                 {% sku_prices_html(product, product.sku); %}
             {% } else { %}
-                <td colspan="3"></td>
+                <td colspan="4">&nbsp;</td>
             {% } %}
-
-            {% if (product.sku) { %}
+            {% if (product.sku && (typeof(product.sku) =='object')) { %}
                 {% sku_stocks_html(product, product.sku); %}
             {% } else { %}
-                <td colspan="{%#stock_count+1%}"></td>
+                <td colspan="{%#stock_count%}">&nbsp;</td>
             {% } %}
 
         </tr>

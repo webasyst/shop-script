@@ -7,9 +7,19 @@ var shopDialogProductsCategory = (function ($) {
         that.$wrapper = options['$wrapper'];
 
         // VARS
+        that.SEARCH_STEP = options['SEARCH_STEP'];
         that.category_id = options['category_id'];
+        that.category_type = options['category_type'];
         that.account_name = options['account_name'];
+        that.filter_count = options['filter_count'];
+        that.filter_ignore_id = [];
         that.ignore_id = [];
+
+        // TEMPLATES
+        that.filter_element_html = options['templates']['filter_element_html'];
+
+        // TEXT
+        that.show_more_text = options['texts']['show_more_text'] + ' ' + that.filter_count;
 
         // INIT
         that.initClass();
@@ -24,11 +34,15 @@ var shopDialogProductsCategory = (function ($) {
         that.initFrontendUrlEdit();
         that.initCategoryVisibility();
         that.initSocialMetaTag();
+        that.initShowMoreFilters();
+        that.initFilterIgnoreId();
+        that.updateShowFilterButton();
+        that.initFilterAutocomplete();
 
         var $range = that.$wrapper.find('*[data-slider="range"]');
         if ($range.length) {
             $range.each(function () {
-                that.initRangeSlider('.js-feature-slider-'+$(this).data('code'));
+                that.initRangeSlider('.js-feature-slider-' + $(this).data('code'));
             });
         }
     };
@@ -41,6 +55,143 @@ var shopDialogProductsCategory = (function ($) {
         that.initShowMore();
         that.initShowAllFeatureValue();
         that.initGetFeatures();
+    };
+
+
+    shopDialogProductsCategory.prototype.initShowMoreFilters = function () {
+        var that = this,
+            url = '?module=categoryGetFeatures';
+
+        that.$wrapper.on('click', '.js-show-more-filters', function (e) {
+            e.preventDefault();
+            var data = {
+                category: that.category_id,
+                offset: that.getFilterOffset(),
+                ignore_id: that.filter_ignore_id,
+                category_type: that.category_type,
+            };
+
+            $.post(url, data).success(function (response) {
+                if (!response || !response.data.features) {
+                    return false;
+                }
+                var features = response.data.features;
+                $.each(features, function (i, filter) {
+                    that.setFilterElement(filter)
+                });
+
+                that.updateShowFilterButton();
+            });
+        })
+    };
+
+    shopDialogProductsCategory.prototype.updateShowFilterButton = function () {
+        var that = this,
+            left = that.SEARCH_STEP,
+            show_link = that.$wrapper.find('.js-show-more-filters'),
+            filters = that.$wrapper.find('.js-category-filters .js-filter-checkbox').length,
+            text = that.show_more_text;
+
+        filters -= 1;
+        filters -= that.filter_ignore_id.length;
+
+        if (filters + that.SEARCH_STEP > that.filter_count) {
+            left = that.filter_count - filters;
+        }
+
+        if (left < 1) {
+            show_link.hide();
+        } else {
+            text = text.replace(/%d/g, left);
+            show_link.text(text);
+        }
+    };
+
+    shopDialogProductsCategory.prototype.setFilterElement = function (filter, checked = false) {
+        var that = this,
+            template = that.filter_element_html,
+            category_filters = that.$wrapper.find('.js-category-filters');
+
+        template = template.replace(/%id/g, filter.id);
+        template = template.replace(/%name/g, filter.name);
+        template = template.replace(/%code/g, filter.code);
+        template = template.replace(/%type_name/g, filter.type_name);
+
+        category_filters.append(template);
+
+        if (checked) {
+            that.$wrapper.find('.js-category-filter input[data-filter-id="' + filter.id + '"]').prop("checked", true);
+        }
+    };
+
+    shopDialogProductsCategory.prototype.getFilterOffset = function () {
+        var that = this,
+            offset = that.$wrapper.find('.js-category-filters .js-filter-checkbox').length;
+
+        // удаляем price
+        offset -= 1;
+
+        // Удаляем сохраненные фильтры и добавленные через автокомплит
+        offset -= that.filter_ignore_id.length;
+
+        if (offset < 0) {
+            offset = 0;
+        }
+
+        return offset;
+    };
+
+    shopDialogProductsCategory.prototype.initFilterIgnoreId = function () {
+        var that = this,
+            result = [],
+            filters = that.$wrapper.find('.js-category-filters .js-filter-checkbox:checked');
+
+        filters.each(function () {
+            var val = $(this).val();
+            if (val !== 'price') {
+                result.push(val);
+            }
+        });
+
+        that.filter_ignore_id = result;
+    };
+
+    shopDialogProductsCategory.prototype.initFilterAutocomplete = function () {
+        var that = this,
+            $input = that.$wrapper.find('.js-filter-autocomplete'),
+            url = "?action=autocomplete&type=filter";
+
+        $input.autocomplete({
+            source: function (request, response) {
+                var data = {
+                    term: request.term,
+                    category_id: that.category_id,
+                    options: {
+                        ignore_id: that.filter_ignore_id,
+                        category_type: that.category_type,
+                    }
+                };
+                $.post(url, data, function (data) {
+                    response(data);
+                }, 'json');
+            },
+            minLength: 1,
+            delay: 300,
+            create: function () {
+                //move autocomplete container
+                $input.autocomplete( "widget" ).appendTo(".js-filter-autocomplete-block")
+            },
+            select: function (event, ui) {
+                event.preventDefault();
+                that.setFilterElement(ui.item, true);
+                that.filter_ignore_id.push(parseInt(ui.item.id));
+                $(this).val("");
+                return false;
+            },
+            focus: function () {
+                return false;
+            }
+        });
     };
 
     shopDialogProductsCategory.prototype.initAutocomplete = function () {
@@ -56,7 +207,7 @@ var shopDialogProductsCategory = (function ($) {
                     that.$wrapper.find('.js-condition-feature').each(function () {
                         var f_id = $(this).data('feature_id');
                         if ($.isNumeric(f_id)) {
-                            if($.inArray(f_id, ignore_id) == -1) {
+                            if ($.inArray(f_id, ignore_id) == -1) {
                                 ignore_id.push(f_id);
                             }
                         }
@@ -79,7 +230,7 @@ var shopDialogProductsCategory = (function ($) {
                             if (data.length === 0) {
                                 // Do logic for empty result.
                                 error_field.html('').html($_('Matching features were not found or are already selected.'));
-                            }else{
+                            } else {
                                 error_field.html('');
                             }
                         },
@@ -88,9 +239,9 @@ var shopDialogProductsCategory = (function ($) {
                 },
                 minLength: 1,
                 delay: 300,
-                create: function() {
+                create: function () {
                     //move autocomplete container
-                    $(".ui-autocomplete").appendTo(".js-autocomplete-block");
+                    $input.autocomplete( "widget" ).appendTo(".js-autocomplete-block")
                 },
                 select: function (event, ui) {
                     that.renderFeature(ui.item.id);
@@ -138,14 +289,14 @@ var shopDialogProductsCategory = (function ($) {
 
         var base_slider_value = 100,
             min_val = parseFloat(begin.val() ? begin.val() : 0),
-            max_val = parseFloat(end.val() ? end.val() : (begin.val()>base_slider_value ? parseFloat(begin.val())+base_slider_value : base_slider_value));
+            max_val = parseFloat(end.val() ? end.val() : (begin.val() > base_slider_value ? parseFloat(begin.val()) + base_slider_value : base_slider_value));
 
         $slider.slider({
             range: true,
-            min: min_val-3,
-            max: max_val+5,
+            min: min_val - 3,
+            max: max_val + 5,
             step: step,
-            values: [min_val,max_val],
+            values: [min_val, max_val],
             slide: function (event, ui) {
                 var s_min_option = $(this).slider('option', 'min'),
                     s_max_option = $(this).slider('option', 'max');
@@ -154,14 +305,14 @@ var shopDialogProductsCategory = (function ($) {
 
                 if ($(ui.handle).index() != 2) {
                     if (ui.values[0] == s_min_option) {
-                        $(this).slider( "option", "min", s_min_option-step);
+                        $(this).slider("option", "min", s_min_option - step);
                     }
                     begin.val(ui.values[0]);
                 }
 
                 if ($(ui.handle).index() != 1) {
                     if (ui.values[1] == s_max_option) {
-                        $(this).slider( "option", "max", s_max_option+step);
+                        $(this).slider("option", "max", s_max_option + step);
                     }
                     end.val(ui.values[1]);
                 }
@@ -177,8 +328,8 @@ var shopDialogProductsCategory = (function ($) {
             if (v_max >= v_min) {
                 $slider.slider('option', 'values', [v_min, v_max]);
                 // set min max options slider
-                $slider.slider('option', 'max', parseFloat(v_max)+5);
-                $slider.slider('option', 'min', parseFloat(v_min)-3);
+                $slider.slider('option', 'max', parseFloat(v_max) + 5);
+                $slider.slider('option', 'min', parseFloat(v_min) - 3);
             }
         });
 
@@ -295,7 +446,8 @@ var shopDialogProductsCategory = (function ($) {
             checked = false;
             data = {
                 ignore_id: that.ignore_id,
-                category: that.category_id ? that.category_id : "new",
+                category: that.category_id,
+                category_type: that.category_type,
                 offset: offset_count
             };
             type = "POST";
@@ -331,7 +483,7 @@ var shopDialogProductsCategory = (function ($) {
                             offset_count = parseInt(offset_count) + parseInt(count);
                             $wrapper.find('.js-show-more').attr('data-offset', offset_count);
                         }
-                    }else{
+                    } else {
                         $wrapper.find('.js-autocomplete-wrapper').hide();
                     }
                 } else if (r.status === "fail") {
@@ -355,7 +507,7 @@ var shopDialogProductsCategory = (function ($) {
             if (typeof feature_id == "undefined") {
                 $(this).parent().find('.js-feature-hidden').show();
                 $(this).hide();
-            }else{
+            } else {
                 var action_url = "?module=category&action=getFeatures&feature_id=" + feature_id,
                     $feature_block = $(this).parent();
 
@@ -369,9 +521,9 @@ var shopDialogProductsCategory = (function ($) {
                             $feature_block.find('.js-feature-value').each(function () {
                                 var f_used_val = parseInt($(this).data('f_val'));
 
-                                for(var key in feature.values) {
+                                for (var key in feature.values) {
                                     if (feature.values.hasOwnProperty(key)) {
-                                        if(key == f_used_val) {
+                                        if (key == f_used_val) {
                                             delete feature.values[key];
                                         }
                                     }
@@ -404,7 +556,7 @@ var shopDialogProductsCategory = (function ($) {
 
         if (count_item <= 0) {
             $wrapper.find('.js-autocomplete-wrapper').hide();
-        }else{
+        } else {
             var show_more_text = '<b><i>' + (count_item > 20 ? $_("Show %d more").replace('%d', 20) + ' ' + $_("From").toLowerCase() + ' ' + count_item : $_("Show %d more").replace('%d', count_item)) + '</i></b>';
             $wrapper.find('.js-show-more').html(show_more_text).attr('data-count', count_item);
         }
@@ -488,14 +640,14 @@ var shopDialogProductsCategory = (function ($) {
             // Disabled/Enabled filtering parameters case( that more 2 options are selected)
             var feature_id = $(this).closest('tr').find('.js-condition-feature').attr('data-feature_id'),
                 count = parseInt($(this).closest('.js-condition-feature-block').find('input:checkbox:checked').length),
-                filter_element = $wrapper.find('.js-category-filter input[data-filter-id="'+feature_id+'"]');
+                filter_element = $wrapper.find('.js-category-filter input[data-filter-id="' + feature_id + '"]');
 
             if (filter_element.length) {
                 if (count >= 2) {
                     if (filter_element.is(':disabled')) {
                         filter_element.attr('disabled', false);
                     }
-                }else{
+                } else {
                     filter_element.attr('disabled', true);
                 }
             }
@@ -507,13 +659,13 @@ var shopDialogProductsCategory = (function ($) {
             frontend_url = $('#s-settings-frontend-url');
 
         frontend_url.inlineEditable({
-            editLink : '.js-settings-frontend-url-edit-link',
-            editOnItself : false,
-            minSize : {
-                width : 100
+            editLink: '.js-settings-frontend-url-edit-link',
+            editOnItself: false,
+            minSize: {
+                width: 100
             },
-            makeReadableBy : [],
-            beforeMakeEditable : function(input) {
+            makeReadableBy: [],
+            beforeMakeEditable: function (input) {
                 var self = $(this);
                 var parent_div = self.parents('div:first');
                 var slash = parent_div.find('span.slash');
@@ -521,7 +673,7 @@ var shopDialogProductsCategory = (function ($) {
 
                 parent_div.find('span.s-frontend-base-url').html(parent_div.find('a.s-frontend-base-url').hide().contents()).show();
             },
-            beforeBackReadable : function(input, data) {
+            beforeBackReadable: function (input, data) {
                 var self = $(this);
                 var parent_div = self.parents('div:first');
                 var slash = parent_div.find('span.slash');
@@ -542,16 +694,16 @@ var shopDialogProductsCategory = (function ($) {
                 clearTimeout(state.time_id);
             }
 
-            if (product_list_url.val() != state.url) {
+            if (product_list_url.val() !== state.url) {
                 product_list_name.unbind('.create_product_list');
                 return;
             }
 
             var name = product_list_name.val();
-            if (name != state.name) {
+            if (name !== state.name) {
                 state.time_id = setTimeout(function () {
                     $.getJSON('?action=transliterate', {str: name}, function (r) {
-                        if (r.status == 'ok') {
+                        if (r.status === 'ok') {
                             product_list_url.val(r.data);
                             state = {name: name, url: r.data, time_id: null}
                         } else if (console) {
@@ -647,7 +799,7 @@ var shopDialogProductsCategory = (function ($) {
         });
 
         // enabled/disabled filter item
-        $wrapper.on("change", ".js-filter-chekbox", function () {
+        $wrapper.on("change", ".js-filter-checkbox", function () {
             showSortHandles();
         });
 
@@ -655,10 +807,10 @@ var shopDialogProductsCategory = (function ($) {
         showSortHandles();
 
         function showSortHandles() {
-            var $active_filters = $wrapper.find(".js-filter-item .js-filter-chekbox:checked"),
+            var $active_filters = $wrapper.find(".js-filter-item .js-filter-checkbox:checked"),
                 force_hide = !($active_filters.length > 1);
 
-            $wrapper.find('.js-filter-item').each( function() {
+            $wrapper.find('.js-filter-item').each(function () {
                 var $filter = $(this);
                 sortToggle($filter, force_hide);
             });
@@ -669,7 +821,7 @@ var shopDialogProductsCategory = (function ($) {
 
             function sortToggle($filter, force_hide) {
                 // DOM
-                var $field = $filter.find(".js-filter-chekbox"),
+                var $field = $filter.find(".js-filter-checkbox"),
                     $icon = $filter.find('i.sort');
 
                 // CONST
@@ -706,13 +858,6 @@ var shopDialogProductsCategory = (function ($) {
 
     shopDialogProductsCategory.staticDialog = function (category_id, parent_id, status) {
         var showDialog = function () {
-
-            /*                // remove conflict dialog
-                            var conflict_dialog = $('#s-product-category-dialog');
-                            if (conflict_dialog.length) {
-                                conflict_dialog.parent().remove();
-                                conflict_dialog.remove();
-                            }*/
 
             $('#s-product-category-dialog').waDialog({
                 esc: false,

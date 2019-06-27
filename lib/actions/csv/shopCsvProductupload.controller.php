@@ -2,16 +2,14 @@
 
 class shopCsvProductuploadController extends shopUploadController
 {
-    /**
-     * @var shopCsvReader
-     */
+    /** @var shopCsvReader */
     private $reader;
 
     public static function getMapFields($flat = false, $extra_fields = false)
     {
         //TODO пометить поля, допускающий множественные значения (валидация)
         $fields = array(
-            'product' => array(
+            'product'               => array(
                 'id'                  => _w('Product ID'),
                 'name'                => _w('Product name'), //1
                 'currency'            => _w('Currency'), //4
@@ -19,7 +17,6 @@ class shopCsvProductuploadController extends shopUploadController
                 'description'         => _w('Description'),
                 'badge'               => _w('Badge'),
                 'status'              => _w('Status'),
-                //'sort'             => _w('Product sort order'),
                 'type_name'           => _w('Product type'),
                 'tags'                => _w('Tags'),
                 'tax_name'            => _w('Taxable'),
@@ -27,10 +24,19 @@ class shopCsvProductuploadController extends shopUploadController
                 'meta_keywords'       => _w('META Keyword'),
                 'meta_description'    => _w('META Description'),
                 'url'                 => _w('Storefront link'),
-                'images'              => _w('Product images'),
-                'images_descriptions' => _w('Product image descriptions'),
+                'images'              => array(
+                    'title' => _w('Product images'),
+                    'data'  => array(
+                        'multiple' => true,
+                    ),
+                ),
+                'images_descriptions' => array(
+                    'title' => _w('Product image descriptions'),
+                    'data'  => array(
+                        'multiple' => true,
+                    ),
+                ),
                 'video_url'           => _w('Video URL on YouTube or Vimeo'),
-                //   'rating'                 => _w('Rating'),
                 'params'              => _w('Custom parameters'),
             ),
             'product_custom_fields' => array(),
@@ -56,7 +62,6 @@ class shopCsvProductuploadController extends shopUploadController
                 'sku'     => $sku_model->getMetadata(),
             );
             $black_list = array(
-               // 'id',
                 'contact_id',
                 'create_datetime',
                 'edit_datetime',
@@ -151,7 +156,7 @@ class shopCsvProductuploadController extends shopUploadController
                 'product:name',
                 'sku:skus:-1:name',
                 'sku:skus:-1:sku',
-                'product:currency'
+                'product:currency',
             );
 
             foreach ($flat_order as $field) {
@@ -191,8 +196,16 @@ class shopCsvProductuploadController extends shopUploadController
                         'class' => $group,
                     ),
                     'value' => $id,
-                    'title' => ifempty($name, $id),
                 );
+                if (is_array($name)) {
+                    $option += $name;
+                    if (empty($option['title'])) {
+                        $option['title'] = $id;
+                    }
+                } else {
+                    $option['title'] = ifempty($name, $id);
+                }
+
                 if (preg_match('@^[a-z][a-z0-9_]+$@', $option['title'])) {
                     $option['no_match'] = true;
                     $option['title'] = $option['title'].' *';
@@ -222,8 +235,7 @@ class shopCsvProductuploadController extends shopUploadController
         foreach ($features as $code => $feature) {
             $code = $feature['code'];
             if (!preg_match('/\.\d$/', $code)
-                &&
-                ($feature['type'] != shopFeatureModel::TYPE_DIVIDER)
+                && ($feature['type'] != shopFeatureModel::TYPE_DIVIDER)
             ) {
                 $options[] = array(
                     'group'       => array(
@@ -233,6 +245,9 @@ class shopCsvProductuploadController extends shopUploadController
                     'value'       => sprintf('features:%s', $code),
                     'title'       => $feature['name'],
                     'description' => $code,
+                    'data'        => array(
+                        'multiple' => !empty($feature['multiple']),
+                    ),
                 );
             }
         }
@@ -255,8 +270,7 @@ class shopCsvProductuploadController extends shopUploadController
             $group = 'feature+';
             foreach (shopFeatureModel::getTypes() as $f) {
                 if ($f['available']
-                    &&
-                    ($f['type'] != shopFeatureModel::TYPE_DIVIDER)
+                    && ($f['type'] != shopFeatureModel::TYPE_DIVIDER)
                 ) {
                     if (empty($f['subtype'])) {
                         if ($multiple || (empty($f['multiple']) && !preg_match('@^(range|2d|3d)\.@', $f['type']))) {
@@ -265,6 +279,9 @@ class shopCsvProductuploadController extends shopUploadController
                                 'value'    => sprintf("f+:%s:%d:%d", $f['type'], $f['multiple'], $f['selectable']),
                                 'title'    => empty($f['group']) ? $f['name'] : ($f['group'].': '.$f['name']),
                                 'no_match' => true,
+                                'data'     => array(
+                                    'multiple' => !empty($f['multiple']),
+                                ),
                             );
                         }
                     } else {
@@ -277,6 +294,9 @@ class shopCsvProductuploadController extends shopUploadController
                                         'value'    => sprintf("f+:%s:%d:%d", $type, $f['multiple'], $f['selectable']),
                                         'title'    => (empty($f['group']) ? $f['name'] : ($f['group'].': '.$f['name']))." — {$sf['name']}",
                                         'no_match' => true,
+                                        'data'     => array(
+                                            'multiple' => !empty($f['multiple']),
+                                        ),
                                     );
                                 }
                             }
@@ -309,6 +329,7 @@ class shopCsvProductuploadController extends shopUploadController
         try {
             $this->reader = new shopCsvReader($name, $delimiter, $encoding);
 
+            #suggest file delimiter
             $delimiters = array(';', ',', 'tab');
             $used_delimiters = array($delimiter);
             while ((count($this->reader->header()) < 2) && ($delimiter = array_diff($delimiters, $used_delimiters))) {
@@ -318,12 +339,14 @@ class shopCsvProductuploadController extends shopUploadController
                 $this->reader = new shopCsvReader($name, $delimiter, $encoding);
             }
 
+            #retard passed delimiter
             if (count($this->reader->header()) < 2) {
                 $this->reader->delete();
                 $delimiter = waRequest::post('delimiter');
                 $this->reader = new shopCsvReader($name, $delimiter, $encoding);
             }
 
+            #suggest encoding
             $encodings = array('UTF-8', 'Windows-1251', 'ISO-8859-1');
             $used_encodings = array($encoding);
             while (in_array(false, (array)$this->reader->header(), true) && ($encoding = array_diff($encodings, $used_encodings))) {
@@ -337,14 +360,14 @@ class shopCsvProductuploadController extends shopUploadController
                 throw new waException($this->reader->header() ? _w('No data columns were located in the uploaded file. Make sure right separator and encoding were chosen for this upload.') : _w('Unsupported CSV file structure'));
             }
 
-
             $profile_helper = new shopImportexportHelper('csv:product:import');
             $profile = $profile_helper->getConfig();
             $profile['config'] += array(
                 'encoding'  => $encoding,
-                'delimiter' => ';',
+                'delimiter' => $delimiter,
                 'map'       => array(),
             );
+
             $params = array();
             $params['id'] = 'csvproducts';
             $params['title_wrapper'] = '%s';
@@ -372,6 +395,7 @@ class shopCsvProductuploadController extends shopUploadController
                     $control = shopCsvReader::MAP_CONTROL;
                     break;
             }
+
             return array(
                 'name'           => htmlentities(basename($this->reader->file()), ENT_QUOTES, 'utf-8'),
                 'original_name'  => htmlentities(basename($original_name), ENT_QUOTES, 'utf-8'),
@@ -384,6 +408,7 @@ class shopCsvProductuploadController extends shopUploadController
                 'delimiter'      => $delimiter,
                 'encoding'       => $encoding,
             );
+
         } catch (waException $ex) {
             if ($this->reader) {
                 $this->reader->delete(true);

@@ -161,7 +161,7 @@
             var arrows_panel = sidebar.find('#s-category-list-widen-arrows');
             arrows_panel.find('a.arrow').unbind('click').
                 bind('click', function () {
-                    var max_width = 400;
+                    var max_width = 1000;
                     var min_width = 200;
                     var cls = sidebar.attr('class');
                     var width = 0;

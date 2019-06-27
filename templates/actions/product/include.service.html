@@ -1,0 +1,76 @@
+{$__namespace = sprintf('product_services[%d][variants][%d]', $service.id, $variant.id)}
+{$__multi_skus = count($variant['skus']) > 1}
+
+<tr class="s-services-variant-product" data-variant-id="{$variant.id}">
+
+    <td class="min-width">
+        {if $multi_variants}
+            <input name="{sprintf('product_services[%d][default_variant]', $service.id)}" type="radio" value="{$variant.id}" {if $variant.status == shopProductServicesModel::STATUS_DEFAULT}checked="checked"{/if}>
+        {else}
+            &nbsp;
+        {/if}
+    </td>
+    <td class="min-width">
+        <input type="hidden" name="{$__namespace}[status]" value="{shopProductServicesModel::STATUS_FORBIDDEN}"/>
+        <input
+                type="checkbox"
+                name="{$__namespace}[status]"
+                id="v-{$service.id}-{$variant.id}"
+                value="{if $variant.status == shopProductServicesModel::STATUS_DEFAULT}{shopProductServicesModel::STATUS_DEFAULT}{else}{shopProductServicesModel::STATUS_PERMITTED}{/if}"
+                {if $variant.status != shopProductServicesModel::STATUS_FORBIDDEN}
+                    checked="checked"
+                {/if}
+        >
+    </td>
+    <td style="width: 30%;">
+        <label for="v-{$service.id}-{$variant.id}">
+            {if $multi_variants}{$variant.name|escape}{else}{$service.name|escape}{/if}
+        </label>
+    </td>
+    <td>
+        <label>
+        + <input type="text" name="{$__namespace}[price]" class="large bold s-price-surplus"
+                 placeholder="{if $variant.base_price}{(double)$variant.base_price}{/if}"
+                 value="{if $variant.price}{(double)$variant.price}{/if}"
+        >
+        <span class="large bold overhanging">{$service.currency}</span>
+        </label>
+        {if $__multi_skus}
+            <a href="#/product/{$product.id}/edit/services/sku/{$service.id}/{$variant.id}/" class="hint inline-link js-action" data-variant-id="{$variant.id}"><b><i>[`Setup by SKU`]</i></b></a>
+        {/if}
+    </td>
+</tr>
+
+{$display = false}
+{foreach $variant['skus'] as $variant_sku}
+    {if (boolean)$variant_sku.status != (boolean)$variant.status}
+        {$display = true}
+        {break}
+    {/if}
+{/foreach}
+
+
+
+{foreach $variant['skus'] as $variant_sku}
+    <tr class="small s-services-variant-sku" data-variant-id="{$variant.id}" {if !$__multi_skus || !$display}style="display: none;"{/if}>
+        <td class="min-width">&nbsp;</td>
+        <td class="min-width">&nbsp;</td>
+        <td>
+            <label>
+                <input type="checkbox" name="{$__namespace}[skus][{$variant_sku.sku_id}][status]" value="{shopProductServicesModel::STATUS_DEFAULT}"
+                       {if $variant_sku.status != shopProductServicesModel::STATUS_FORBIDDEN}checked{/if}>
+                <span class="js-product-service-sku-name" data-sku-id="{$variant_sku.sku_id}">{$variant_sku.name|escape}</span>
+                {if !empty($variant_sku.sku)}<span class="hint">{$variant_sku.sku|escape}</span>{/if}
+            </label>
+        </td>
+        <td>
+            <label>
+            + <input type="text" name="{$__namespace}[skus][{$variant_sku.sku_id}][price]" class="large bold s-price-surplus"
+                     placeholder="{if $variant_sku.base_price}{(double)$variant_sku.base_price}{/if}"
+                     value="{if $variant_sku.price}{(double)$variant_sku.price}{/if}"
+            >
+            <span class="large bold overhanging">{$service.currency}</span>
+            </label>
+        </td>
+    </tr>
+{/foreach}

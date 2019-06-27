@@ -546,7 +546,7 @@
                         <div class="name">[`Sets`] {shopHinter::hint('product_sets')}</div>
 
                         {function sets_select set_id=null}
-                            <select name="product[sets][]">
+                            <select name="product[sets][]" {if $set_id===null} disabled{/if}>
                                 <option value="" {if empty($set_id)} selected="selected"{/if}>[`Please select a set`]</option>
                                 <option class="separator" value="" disabled="disabled">---</option>
                                 {foreach $sets as $set}
@@ -562,7 +562,7 @@
                             </div>
                         {foreachelse}
                             <div class="value no-shift">
-                                {sets_select}
+                                {sets_select set_id=false}
                             </div>
                         {/foreach}
 
@@ -589,19 +589,23 @@
                         [`Pricing & Availability`] {shopHinter::hint('product_skus')}
                     </div>
                     <div class="value no-shift s-sku-type-field-value">
+                        {if empty($features) || $product.sku_type == shopProductModel::SKU_TYPE_FLAT}
+                            {$_product_sku_type=shopProductModel::SKU_TYPE_FLAT}
+                        {else}
+                            {$_product_sku_type=shopProductModel::SKU_TYPE_SELECTABLE}
+                        {/if}
                         <ul class="s-selling-mode">
                             <li{if empty($features) || $product.sku_type == shopProductModel::SKU_TYPE_FLAT} class="selected"{/if}>
                                 <label>
                                     <a href="javascript:void(0);">[`Purchase options`]</a> {shopHinter::hint('product_skus_plain')}
-                                    <input type="hidden" name="product[sku_type]" data-value="{shopProductModel::SKU_TYPE_FLAT}" value="{shopProductModel::SKU_TYPE_FLAT}"
-                                                            {if !empty($features) && $product.sku_type != shopProductModel::SKU_TYPE_FLAT}disabled="disabled"{/if} />
+                                    <input type="hidden" name="product[sku_type]" data-value="{$_product_sku_type}"{if shopProductModel::SKU_TYPE_FLAT neq $_product_sku_type} disabled{/if} value="{shopProductModel::SKU_TYPE_FLAT}" class="js-check-change"/>
                                 </label>
                             </li>
                             <li class="{if !empty($features) && $product.sku_type == shopProductModel::SKU_TYPE_SELECTABLE}selected{/if} {if empty($features)}gray{/if}">
                                 <label>
                                     <a href="javascript:void(0);"><span{if empty($features)} class="gray"{/if}>[`Selectable parameters`]</span></a> {shopHinter::hint('product_skus_features')}
-                                    <input type="hidden" name="product[sku_type]" data-value="{shopProductModel::SKU_TYPE_SELECTABLE}" value="{shopProductModel::SKU_TYPE_SELECTABLE}"
-                                                            {if empty($features) || $product.sku_type != shopProductModel::SKU_TYPE_SELECTABLE}disabled="disabled"{/if} />
+
+                                    <input type="hidden" name="product[sku_type]" data-value="{$_product_sku_type}"{if shopProductModel::SKU_TYPE_SELECTABLE neq $_product_sku_type} disabled{/if} value="{shopProductModel::SKU_TYPE_SELECTABLE}" class="js-check-change"/>
                                 </label>
                             </li>
                         </ul>
@@ -1276,13 +1280,17 @@
 
         // Add new selector when user clicks on "additional set" link
         $add_set_button.click(function() {
-            $template.clone().removeClass('hidden template').insertBefore($add_set_button.closest('.value'));
+            var $value_field =$template.clone().removeClass('hidden template');
+            $value_field.find(':input').attr('disabled',null);
+            $value_field.insertBefore($add_set_button.closest('.value'));
             return false;
         });
 
         // Remove select when user clicks on a cross icon
         $sets_wrapper.on('click', '.s-product-delete-from-set', function() {
-            $(this).closest('.value').remove();
+            var $context = $(this).closest('.value');
+            $context.find(':input').val('').change();
+            $context.slideUp();
         });
     })();
 

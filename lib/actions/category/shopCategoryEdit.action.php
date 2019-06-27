@@ -38,9 +38,9 @@ class shopCategoryEditAction extends waViewAction
     {
         $category_model = new shopCategoryModel();
         $category_params_model = new shopCategoryParamsModel();
-        $feature_model = new shopFeatureModel();
         $category_routes_model = new shopCategoryRoutesModel();
         $category_og_model = new shopCategoryOgModel();
+        $category_helper = new shopCategoryHelper();
 
         $settings = $category_model->getById($id);
 
@@ -54,7 +54,6 @@ class shopCategoryEditAction extends waViewAction
          * @return array[string][string] $return[%plugin_id%] html output for dialog
          */
         $this->view->assign('event_dialog', wa()->event('backend_category_dialog', $settings));
-
         $settings['routes'] = $category_routes_model->getRoutes($id);
         $settings['frontend_urls'] = $this->getFrontendUrls($id, $settings);
         $settings['og'] = $category_og_model->get($id);
@@ -63,7 +62,28 @@ class shopCategoryEditAction extends waViewAction
         $settings['cloud'] = $this->getTagsCloud();
         $settings['conditions'] = $this->parseConditions($settings['conditions']);
         $settings['custom_conditions'] = $this->extractCustomConditions($settings['conditions']);
+        $settings = $this->getSorting($settings);
+        $settings['explode_feature_ids'] = $this->getExplodeFeatureIds($settings);
+        $settings['filter'] = [
+            'price' => $category_helper->getDefaultFilters()
+        ];
+        $settings['allow_filter'] = (bool)$settings['explode_feature_ids'];
+        $settings['allow_filter_data'] = [];
+        $settings['features'] = [];
+        $settings = $this->getIncludedFilters($settings);
 
+        if ($settings['type'] == shopCategoryModel::TYPE_DYNAMIC) {
+            $settings = $this->getDynamicSettings($settings);
+        } elseif ($settings['type'] == shopCategoryModel::TYPE_STATIC) {
+            $settings = $this->getStaticSettings($settings);
+        }
+
+        $settings['conditions'] = $this->parseRangeValue($settings['features'], $settings['conditions']);
+        return $settings;
+    }
+
+    protected function getSorting($settings)
+    {
         if (isset($settings['params']['enable_sorting'])) {
             $settings['enable_sorting'] = 1;
             unset($settings['params']['enable_sorting']);
@@ -71,32 +91,34 @@ class shopCategoryEditAction extends waViewAction
             $settings['enable_sorting'] = 0;
         }
 
-        $explode_feature_ids = $settings['filter'] !== null ? explode(',', $settings['filter']) : [];
-        $price = [
-            'id'        => 'price',
-            'name'      => 'Price',
-            'type'      => '',
-            'code'      => '',
-            'type_name' => '',
-        ];
+        return $settings;
+    }
 
-        $settings['filter'] = [];
-        $settings['filter']['price'] = $price;
-        $settings['allow_filter'] = (bool)$explode_feature_ids;
-        $settings['allow_filter_data'] = [];
+    protected function getExplodeFeatureIds($settings)
+    {
+        $result = [];
 
-        $filter = $settings['features'] = [];
+        if ($settings['filter'] !== null) {
+            $result = explode(',', $settings['filter']);
+        }
 
-        //Get Included filters
-        if (!empty($explode_feature_ids)) {
-            $allow_filter = $feature_model->getById($explode_feature_ids);
+        return $result;
+    }
 
-            foreach ($explode_feature_ids as $feature_id) {
+    protected function getIncludedFilters($settings)
+    {
+        $feature_model = new shopFeatureModel();
+        $category_helper = new shopCategoryHelper();
+
+        if (!empty($settings['explode_feature_ids'])) {
+            $allow_filter = $feature_model->getById($settings['explode_feature_ids']);
+
+            foreach ($settings['explode_feature_ids'] as $feature_id) {
                 if (isset($allow_filter[$feature_id])) {
                     $settings['allow_filter_data'][$feature_id] = $allow_filter[$feature_id];
                 }
                 if ($feature_id === 'price') {
-                    $settings['allow_filter_data'][$feature_id] = $price;
+                    $settings['allow_filter_data'][$feature_id] = $category_helper->getDefaultFilters();
 
                     //remove to avoid duplication
                     unset($settings['filter']['price']);
@@ -104,65 +126,60 @@ class shopCategoryEditAction extends waViewAction
             }
         }
 
-        if ($settings['type'] == shopCategoryModel::TYPE_DYNAMIC) {
-            //GET FEATURES
-            $saved_features = ifset($settings, 'conditions', 'feature', []);
-            $options_feature = [
-                'code'   => array_keys($saved_features),
-                'status' => null,
-            ];
+        return $settings;
+    }
 
-            $features = $feature_model->getFilterFeatures($options_feature);
-            $features = $feature_model->getValues($features, $this->extendSavedConditions($features, $saved_features));
+    protected function getDynamicSettings($settings)
+    {
+        $category_helper = new shopCategoryHelper();
 
-            shopFeatureModel::appendTypeNames($features);
+        $options_filter_count = [
+            'frontend' => true,
+        ];
+        $options_feature_count = [
+            'frontend' => true,
+            'status'   => null,
+        ];
+        $options_filter = [
+            'frontend'  => true,
+            'ignore_id' => array_keys($settings['allow_filter_data'])
+        ];
+        $options_features = [
+            'code'   => ifset($settings, 'conditions', 'feature', []),
+            'status' => null,
+        ];
 
-            //Get feature count
-            $settings['feature_count'] = $feature_model->getFeaturesCount([
-                'frontend' => true,
-                'status'   => null,
-            ]);
+        $settings['feature_count'] = $category_helper->getCount($options_feature_count);
+        $settings['filter_count'] = $category_helper->getCount($options_filter_count);
+        $settings['filter'] += $category_helper->getFilters($options_filter);
+        $settings['features'] = $category_helper->getFilters($options_features);
 
-            //GET FILTERS
-            $options_filter = [
-                'frontend'  => true,
-                'ignore_id' => array_keys($settings['allow_filter_data'])
-            ];
-            $filter = $feature_model->getFilterFeatures($options_filter);
-            shopFeatureModel::appendTypeNames($filter);
+        $all = $this->extendSavedConditions($settings['features'], $options_features['code']);
+        $settings['features'] = $category_helper->getFeaturesValues($settings['features'], $all);
 
-            //Get filter count
-            $settings['filter_count'] = $feature_model->getFeaturesCount([
-                'frontend' => true,
-            ]);
+        return $settings;
+    }
 
-            $settings['filter'] += $filter;
-            $settings['features'] = $features;
-        }
+    protected function getStaticSettings($settings)
+    {
+        $category_helper = new shopCategoryHelper();
 
-        if ($settings['type'] == shopCategoryModel::TYPE_STATIC) {
-            $type_id = $this->getTypesId($id);
-            $options_feature = array(
-                'frontend'  => true,
-                'type_id'   => $type_id,
-                'ignore_id' => array_keys($settings['allow_filter_data'])
-            );
+        $type_id = $category_helper->getTypesId($settings['id']);
+        $options_filter = array(
+            'frontend'  => true,
+            'type_id'   => $type_id,
+            'ignore_id' => array_keys($settings['allow_filter_data'])
+        );
 
-            $features = $feature_model->getFilterFeatures($options_feature);
-            $settings['filter_count'] = $feature_model->getFeaturesCount([
-                'frontend'  => true,
-                'type_id'   => $type_id,
-                'ignore_id' => array_keys($settings['allow_filter_data'])
-            ]);
+        $options_count = [
+            'frontend'  => true,
+            'type_id'   => $type_id,
+            'ignore_id' => array_keys($settings['allow_filter_data'])
+        ];
 
-            $filter += $features;
-            shopFeatureModel::appendTypeNames($filter);
+        $settings['filter'] += $category_helper->getFilters($options_filter);
+        $settings['filter_count'] = $category_helper->getCount($options_count);
 
-            $settings['filter'] += $filter;
-        }
-
-
-        $settings['conditions'] = $this->parseRangeValue($settings['features'], $settings['conditions']);
         return $settings;
     }
 
@@ -284,15 +301,6 @@ class shopCategoryEditAction extends waViewAction
         return $parent;
     }
 
-    protected function getTypesId($id)
-    {
-        $product_collection = new shopProductsCollection("category/{$id}");
-        $product_collection->groupBy('type_id');
-        $types = $product_collection->getProducts('type_id');
-
-        return waUtils::getFieldValues($types, 'type_id');
-    }
-
     protected function getTagsCloud()
     {
         $tag_model = new shopTagModel();
@@ -338,8 +346,8 @@ class shopCategoryEditAction extends waViewAction
      *
      * @param $features
      * @param $conditions
-     * @see task #53.5941
      * @return mixed
+     * @see task #53.5941
      */
     protected function parseRangeValue($features, $conditions)
     {

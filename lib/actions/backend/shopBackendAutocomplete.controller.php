@@ -1,5 +1,7 @@
 <?php
 
+/** @noinspection CssUnknownTarget */
+
 class shopBackendAutocompleteController extends waController
 {
     protected $limit = 10;
@@ -22,6 +24,8 @@ class shopBackendAutocompleteController extends waController
                 $data = $this->contactsAutocomplete($q);
             } elseif ($type == 'feature') {
                 $data = $this->featuresAutocomplete($q);
+            } elseif ($type == 'filter') {
+                $data = $this->filterAutocomplete($q);
             } elseif ($type == 'type') {
                 $data = $this->typesAutocomplete($q);
             } else {
@@ -416,7 +420,7 @@ class shopBackendAutocompleteController extends waController
                 foreach ($phones as $phone) {
                     $condition[] = str_replace('{PHONE}', $phone, $condition_rule);
                 }
-                $condition = '(' . join(' OR ', $condition) . ')';
+                $condition = '('.join(' OR ', $condition).')';
                 $sql = str_replace('{CONDITION}', $condition, $sql_template);
 
                 $sqls[] = $sql;
@@ -479,7 +483,7 @@ class shopBackendAutocompleteController extends waController
                         if ($this->match($email, $term_safe)) {
                             $email = $this->prepare($email, $term_safe);
                             if ($email) {
-                                $email = '<i class="icon16 email"></i>' . $email;
+                                $email = '<i class="icon16 email"></i>'.$email;
                             }
                             $match = true;
                         }
@@ -487,7 +491,7 @@ class shopBackendAutocompleteController extends waController
                         if ($this->match($phone, $term_safe)) {
                             $phone = $this->prepare($phone, $term_safe);
                             if ($phone) {
-                                $phone = '<i class="icon16 phone"></i>' . $phone;
+                                $phone = '<i class="icon16 phone"></i>'.$phone;
                             }
                             $match = true;
                         }
@@ -522,6 +526,56 @@ class shopBackendAutocompleteController extends waController
         return array_values($result);
     }
 
+    private function filterAutocomplete($q)
+    {
+        $category_helper = new shopCategoryHelper();
+        $category_id = waRequest::request('category_id', null);
+        $options = (array)waRequest::request('options', array());
+
+        $ignore_id = ifset($options, 'ignore_id', []);
+        $category_type = ifset($options, 'category_type', []);
+
+        $result = [];
+
+        if ($category_id === 'new' || $category_type == shopCategoryModel::TYPE_DYNAMIC) {
+            $options_feature = [
+                'status' => null,
+            ];
+        } elseif ($category_type == shopCategoryModel::TYPE_STATIC) {
+            $options_feature = array(
+                'type_id' => $category_helper->getTypesId($category_id),
+            );
+        }
+
+        if (!empty($options_feature)) {
+            $options_feature['frontend'] = true;
+            $options_feature['ignore_id'] = $ignore_id;
+            $options_feature['term'] = $q;
+            $filters = $category_helper->getFilters($options_feature);
+            $result = $this->prepareFilters($filters);
+        }
+
+        return $result;
+    }
+
+    protected function prepareFilters($filters)
+    {
+        $result = [];
+
+        foreach ($filters as $filter) {
+            $result[] = array(
+                'id'        => $filter['id'],
+                'value'     => $filter['code'],
+                'code'      => $filter['code'],
+                'name'      => $filter['name'],
+                'type'      => $filter['type'],
+                'type_name' => $filter['type_name'],
+            );
+        }
+        return $result;
+    }
+
+
     private function featuresAutocomplete($q)
     {
         $model = new shopFeatureModel();
@@ -536,17 +590,17 @@ class shopBackendAutocompleteController extends waController
         if (!empty($options)) {
             foreach ($options as $name => $value) {
                 switch ($name) {
-                    case('single'):
+                    case 'single':
                         $where[] = '`multiple`=0';
                         break;
-                    case ('ignore_id'):
-                        $ignore_features = (array) $model->escape($value, 'int');
-                        if ($ignore_features)  {
-                            $where[] =  'id NOT IN('.join(",", $ignore_features).')';
+                    case 'ignore_id':
+                        $ignore_features = (array)$model->escape($value, 'int');
+                        if ($ignore_features) {
+                            $where[] = 'id NOT IN('.join(",", $ignore_features).')';
                         }
                         break;
-                    case ('count'):
-                        $where[] =  'count >='.$value;
+                    case 'count':
+                        $where[] = 'count >='.$value;
                         break;
                 }
             }
@@ -581,11 +635,12 @@ SQL;
             );
 
             $result[] = array(
-                'id'    => $f['id'],
-                'value' => $code,
-                'name'  => $f['name'],
-                'label' => sprintf('<span title="%s; %s">%s </span><span class="hint">%s</span>', $label['type'], $label['count'], $label['name'], $code),
-                'type'  => $f['type'],
+                'id'       => $f['id'],
+                'value'    => $code,
+                'name'     => $f['name'],
+                'label'    => sprintf('<span title="%s; %s">%s </span><span class="hint">%s</span>', $label['type'], $label['count'], $label['name'], $code),
+                'type'     => $f['type'],
+                'multiple' => !!$f['multiple'],
             );
         }
 
@@ -791,7 +846,7 @@ SQL;
                 foreach ($phone_terms as $phone_term) {
                     $phone_term_safe = htmlspecialchars($phone_term, ENT_QUOTES, 'utf-8');
                     if ($this->match($phone, $phone_term_safe, false)) {
-                        $phones[] = '<i class="icon16 phone"></i>' . $this->prepare($phone, $phone_term_safe, false);
+                        $phones[] = '<i class="icon16 phone"></i>'.$this->prepare($phone, $phone_term_safe, false);
                         break 2;
                     }
                 }
@@ -837,7 +892,7 @@ SQL;
         $q = $cm->escape($q, 'like');
         $term_safe = htmlspecialchars($q, ENT_QUOTES, 'utf-8');
         $result = array();
-        $limit = (int)$limit;
+        $limit = $this->limit($limit);
         foreach ($cm->query("SELECT * FROM `shop_coupon` WHERE code LIKE '%{$q}%' LIMIT {$limit}") as $item) {
             $result[] = array(
                 'value'                  => $item['code'],
@@ -855,7 +910,7 @@ SQL;
         $q = $opm->escape($q, 'like');
         $term_safe = htmlspecialchars($q, ENT_QUOTES, 'utf-8');
         $result = array();
-        $limit = (int)$limit;
+        $limit = $this->limit($limit);
         foreach ($opm->query("SELECT * FROM `shop_order_params` WHERE name = 'tracking_number' AND value LIKE '{$q}%' LIMIT {$limit}") as $item) {
             $result[] = array(
                 'value'                  => $item['value'],
@@ -873,8 +928,8 @@ SQL;
         $type = $pm->escape($type, 'like');
         $term_safe = htmlspecialchars($q, ENT_QUOTES, 'utf-8');
         $result = array();
-        $limit = (int)$limit;
-        $sql = "SELECT * FROM `shop_plugin` WHERE type = '{$type}' AND name LIKE '%{$q}%' LIMIT {$limit}";
+        $limit = $this->limit($limit);
+        $sql = "SELECT * FROM `shop_plugin` WHERE `type` = '{$type}' AND (`name` LIKE '%{$q}%' OR `plugin` LIKE '{$q}%') LIMIT {$limit}";
         foreach ($pm->query($sql) as $item) {
             $icon = sprintf('<img src="%s" style="height: 16px;">', htmlspecialchars($item['logo'], ENT_QUOTES, 'utf-8'));
             $result[] = array(
@@ -892,7 +947,7 @@ SQL;
         $m = new waContactDataModel();
         $q = $m->escape($q, 'like');
         $term_safe = htmlspecialchars($q, ENT_QUOTES, 'utf-8');
-        $limit = (int)$limit;
+        $limit = $this->limit($limit);
         $result = array();
         $sql = "SELECT DISTINCT value FROM `wa_contact_data` WHERE field = 'address:city' AND value LIKE '%{$q}%' LIMIT {$limit}";
         foreach ($m->query($sql) as $item) {
@@ -910,7 +965,7 @@ SQL;
         $rm = new waRegionModel();
         $q = $rm->escape($q, 'like');
         $term_safe = htmlspecialchars($q, ENT_QUOTES, 'utf-8');
-        $limit = (int)$limit;
+        $limit = $this->limit($limit);
         $result = array();
         $url = wa()->getRootUrl();
         $sql = "SELECT DISTINCT code, country_iso3, name FROM `wa_region` WHERE name LIKE '%{$q}%' LIMIT {$limit}";
@@ -930,7 +985,7 @@ SQL;
         $cm = new waCountryModel();
         $q = $cm->escape($q, 'like');
         $term_safe = htmlspecialchars($q, ENT_QUOTES, 'utf-8');
-        $limit = (int)$limit;
+        $limit = $this->limit($limit);
         $url = wa()->getRootUrl();
         $result = array();
         $sql = "SELECT DISTINCT name, iso3letter FROM `wa_country` WHERE name LIKE '%{$q}%' LIMIT {$limit}";
@@ -962,5 +1017,10 @@ SQL;
             }
         }
         return $result;
+    }
+
+    private function limit($limit)
+    {
+        return intval(max(1, intval($limit)));
     }
 }

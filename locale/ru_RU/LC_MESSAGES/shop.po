@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 1.8.7.1\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -608,12 +608,12 @@ msgid "How total discount should be calculated if multiple rules are applicable 
 msgstr "Как должна рассчитываться скидка, если к заказу применимо более одного правила:"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:18
-msgid "maximum"
-msgstr "максимум"
+msgid "maximum of order-related discounts calculated after applying of order items’ individual maximum discounts"
+msgstr "максимальная скидка ко всему заказу рассчитывается после применения максимальных скидок для отдельных товаров"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:20
-msgid "sum"
-msgstr "сумма"
+msgid "all discounts for entire order and for order items"
+msgstr "все скидки для всего заказа и для отдельных товаров"
 
 #: /wa-apps/shop/templates/actions/backend/BackendSettings.html:57
 msgid "Discounts"
@@ -7533,8 +7533,8 @@ msgstr "Как настроить?"
 msgid "Added %d SKU"
 msgid_plural "Added %d SKUs"
 msgstr[0] "Добавлен %d артикул"
-msgstr[1] "Добавлен %d артикула"
-msgstr[2] "Добавлен %d артикулов"
+msgstr[1] "Добавлены %d артикула"
+msgstr[2] "Добавлены %d артикулов"
 
 #: /wa-apps/shop/lib/actions/settings/features/shopSettingsFeaturesFeatureUsage.controller.php:13
 msgid "You have <strong>%d product</strong> with this feature value specified. Deleting this feature will erase it’s value for all these products."
@@ -12035,8 +12035,8 @@ msgstr "Завершить оформление"
 msgid "Confirmation code"
 msgstr "Проверочный код"
 
-msgid "You can request new confirmation code in %s"
-msgstr "Новый код можно будет запросить через %s"
+msgid "You can request a new confirmation code in %s."
+msgstr "Новый код можно будет запросить через %s."
 
 msgid "Re-send"
 msgstr "Выслать еще раз"
@@ -12258,3 +12258,15 @@ msgstr "Описания изображений товаров"
 #: /wa-apps/shop/themes/default/order.html:38
 msgid "Delete all products"
 msgstr "Удалить все товары"
+
+msgid "Log in or sign up"
+msgstr "Войти или зарегистрироваться"
+
+msgid "Primary SKU’s features &amp; image"
+msgstr "Характеристики и изображение основного артикула"
+
+msgid "Export primary SKU’s features and image in a separate line for products in “Purchase options” mode"
+msgstr "Экспортировать характеристики и изображение основного артикула отдельной строкой для товаров в режиме «Варианты покупки»"
+
+msgid "For products in “Selectable parameters” mode, primary SKU’s features and image are always exported in a separate line."
+msgstr "Для товаров в режиме «Выбор параметров» характеристики и изображение основного артикула всегда экспортируются отдельной строкой."

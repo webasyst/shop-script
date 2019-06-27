@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Class shopProductSaveController
+ * @method shopConfig getConfig()
+ */
 class shopProductSaveController extends waJsonController
 {
     /**
@@ -107,8 +111,8 @@ class shopProductSaveController extends waJsonController
 
                     $features_total_count = array_product($features_counts);
                     $this->response['features_selectable_strings'] = array(
-                        'options' => sprintf (_w('Parameters: %s'), implode(' x ', $features_counts)),
-                        'skus'    => sprintf (_w('SKUs: %d'), $features_total_count)
+                        'options' => sprintf(_w('Parameters: %s'), implode(' x ', $features_counts)),
+                        'skus'    => sprintf(_w('SKUs: %d'), $features_total_count),
                     );
                 }
 
@@ -128,8 +132,7 @@ class shopProductSaveController extends waJsonController
                 $this->response['tags'] = $this->getTags($product);
                 $this->response['raw'] = $this->workupData($product->getData());
 
-                if (
-                    !empty($this->response['raw']['category_id'])
+                if (!empty($this->response['raw']['category_id'])
                     &&
                     isset($this->response['categories'][$this->response['raw']['category_id']])
                 ) {
@@ -181,12 +184,17 @@ class shopProductSaveController extends waJsonController
                 if ($forecast['date'] !== null && $forecast['days'] < shopProduct::MAX_FORECAST_DAYS) {
                     $this->response['raw']['runout_str'] = sprintf(
                         _w('Based on your average monthly sales volume for %s during last three months (%d units per month), you will run out of this product in <strong>%d days</strong> (on %s).'),
-                        htmlspecialchars($product->name), $forecast['sold_rounded'], $forecast['days'], wa_date("humandate", $forecast['date'])
+                        htmlspecialchars($product->name),
+                        $forecast['sold_rounded'],
+                        $forecast['days'],
+                        wa_date("humandate", $forecast['date'])
                     );
                 } else {
                     $this->response['raw']['runout_str'] = sprintf(
                         _w('Based on your average monthly sales volume for %s during last three months (%d units per month), you will run out of this product in more than 10 years (on %s).'),
-                        htmlspecialchars($product->name), $forecast['sold_rounded'], wa_date("humandate", $forecast['date'])
+                        htmlspecialchars($product->name),
+                        $forecast['sold_rounded'],
+                        wa_date("humandate", $forecast['date'])
                     );
                 }
                 $this->response['storefront_map'] = $product_model->getStorefrontMap($product->id);

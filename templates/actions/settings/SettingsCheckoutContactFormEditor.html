@@ -13,7 +13,7 @@
             <tr class="item-row">
                 <td class="min-width"><i class="icon16 sort"></i></td>
                 <td>
-                    <input type="text" name="{$prefix}[{$fid}][options][]" value="{$value|escape}" class="small short">
+                    <input type="text" name="{$prefix}[{$fid}][options][]" value="{$label|escape}" class="small short">
                     {if $ftype == 'branch'}
                         <input type="hidden" name="{$prefix}[{$fid}][hide][]" value="{implode(',', ifempty($hide[$value], array()))}">
                     {/if}

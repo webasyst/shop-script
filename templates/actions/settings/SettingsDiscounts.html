@@ -13,9 +13,9 @@
         <div class="block small">
             <p>[`How total discount should be calculated if multiple rules are applicable for an order:`]</p>
             <p>
-                <label><input type="radio" name="combiner" value="max"{if $combiner != 'sum'} checked{/if}> [`maximum`]</label>
+                <label><input type="radio" name="combiner" value="max"{if $combiner != 'sum'} checked{/if}> [`maximum of order-related discounts calculated after applying of order items’ individual maximum discounts`]</label>
                 <br><br>
-                <label><input type="radio" name="combiner" value="sum"{if $combiner == 'sum'} checked{/if}> [`sum`]</label>
+                <label><input type="radio" name="combiner" value="sum"{if $combiner == 'sum'} checked{/if}> [`all discounts for entire order and for order items`]</label>
             </p>
             <input type="button" id="combiner-save-button" value="[`Save`]" style="display:none">
         </div>
