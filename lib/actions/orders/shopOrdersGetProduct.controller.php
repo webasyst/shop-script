@@ -55,7 +55,7 @@ class shopOrdersGetProductController extends waJsonController
         //shopProduct always returns in standard store currency. @see shopRounding::roundProducts
         //Need to convert currencies into order currency
         if ($default_currency !== $currency) {
-            foreach (array('price', 'min_price', 'max_price') as $key) {
+            foreach (array('price', 'min_price', 'max_price', 'compare_price') as $key) {
                 $value = shop_currency($product[$key], $default_currency, $currency, false);
                 $product[$key] = round($value, 2);
             }
@@ -111,7 +111,14 @@ class shopOrdersGetProductController extends waJsonController
         $sku_price = $sku['price'];
 
         $services = $service_model->getAvailableServicesFullInfo($product, $sku['id']);
+        $services = $this->workupServices($services, $sku_price, $out_currency);
 
+        unset($service);
+        return $services;
+    }
+
+    protected function workupServices($services, $sku_price, $out_currency)
+    {
         foreach ($services as $service_id => &$service) {
             $service_currency = $service['currency'];
 
@@ -142,9 +149,9 @@ class shopOrdersGetProductController extends waJsonController
             }
         }
 
-        unset($service);
         return $services;
     }
+
 
     /**
      * Formats the price in a text string.

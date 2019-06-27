@@ -7,7 +7,7 @@
     <div class="field">
         <div class="name">[`SKU ID`]</div>
         <div class="value no-shift">
-            {$sku_id|escape}
+            {if ($sku_id > 0)}{$sku_id|escape}{else}—{/if}
         </div>
     </div>
 

@@ -24,6 +24,19 @@ class shopCsvProductrunController extends waLongActionController
         'include_sub_categories' => true,
     );
 
+    private static $non_sku_fields = array(
+        'summary',
+        'meta_title',
+        'meta_keywords',
+        'meta_description',
+        'description',
+        'sort',
+        'tags',
+        'images',
+        'images_descriptions',
+        'params',
+    );
+
     protected function preExecute()
     {
         $this->getResponse()->addHeader('Content-type', 'application/json');
@@ -35,7 +48,8 @@ class shopCsvProductrunController extends waLongActionController
         try {
             $this->data['timestamp'] = time();
             $this->data['direction'] = waRequest::post('direction', 'import');
-            $type_model = new shopTypeModel();
+            /** @var shopTypeModel $type_model */
+            $type_model = $this->model('type');
             /**
              * get available product types for current user
              */
@@ -95,6 +109,22 @@ class shopCsvProductrunController extends waLongActionController
             );
             exit;
         }
+    }
+
+    /**
+     * @param string $type
+     * @return waModel
+     */
+    private function model($type)
+    {
+        static $models = array();
+        if (!isset($models[$type])) {
+            $class = shopHelper::camelName($type, 'shop%sModel');
+            if (class_exists($class)) {
+                $models[$type] = new $class();
+            }
+        }
+        return $models[$type];
     }
 
     private function initRouting()
@@ -176,10 +206,12 @@ class shopCsvProductrunController extends waLongActionController
                         list($feature['type'], $feature['multiple'], $feature['selectable']) = explode(':', $matches[1]);
                         $feature['type'] = preg_replace('@([^\.]+\.)\1@', '$1', $feature['type']);
                         if (empty($feature_model)) {
-                            $feature_model = new shopFeatureModel();
+                            /** @var shopFeatureModel $feature_model */
+                            $feature_model = $this->model('feature');
                         }
                         if (empty($type_features_model)) {
-                            $type_features_model = new shopTypeFeaturesModel();
+                            /** @var shopTypeFeaturesModel $type_features_model */
+                            $type_features_model = $this->model('type_features');
                         }
                         $feature['id'] = $feature_model->save($feature);
                         if ($this->data['type_id']) {
@@ -333,6 +365,7 @@ class shopCsvProductrunController extends waLongActionController
             'images'                 => waRequest::post('images'),
             'extra_categories'       => !!waRequest::post('extra_categories'),
             'primary_sku'            => !!waRequest::post('primary_sku'),
+            'primary_sku_row'        => !!waRequest::post('primary_sku_row'),
             'include_sub_categories' => $this->params['include_sub_categories'] || !!waRequest::post('include_sub_categories'),
             # export extra fields (added by plugins and etc)
             'extra'                  => !!waRequest::post('extra'),
@@ -350,13 +383,15 @@ class shopCsvProductrunController extends waLongActionController
         }
 
         $this->data['composite_features'] = array();
-        $features_model = new shopFeatureModel();
+        /** @var shopFeatureModel $features_model */
+        $features_model = $this->model('feature');
         if (!empty($config['features'])) {
 
             if (preg_match('@^id/(.+)$@', $this->data['hash'], $matches)) {
                 $product_ids = array_unique(array_map('intval', explode(',', $matches[1])));
                 $features = $features_model->getByProduct($product_ids);
-                $feature_selectable_model = new shopProductFeaturesSelectableModel();
+                /** @var shopProductFeaturesSelectableModel $feature_selectable_model */
+                $feature_selectable_model = $this->model('product_features_selectable');
                 $feature_ids = $feature_selectable_model->getFeatures($product_ids);
                 $feature_ids = array_diff($feature_ids, array_keys($features));
                 if ($feature_ids) {
@@ -394,7 +429,8 @@ class shopCsvProductrunController extends waLongActionController
             }
         }
 
-        $tax_model = new shopTaxModel();
+        /** @var shopTaxModel $tax_model */
+        $tax_model = $this->model('tax');
         $taxes = $tax_model->getAll();
         if ($taxes) {
             $this->data['taxes'] = array();
@@ -470,7 +506,8 @@ SQL;
         );
 
         if ($this->data['export_category']) {
-            $model = new shopCategoryModel();
+            /** @var shopCategoryModel $model */
+            $model = $this->model('category');
             if (preg_match('@^category/(\d+)$@', $this->data['hash'], $matches)) {
                 $category_id = intval($matches[1]);
                 $category = $model->getById($category_id);
@@ -483,9 +520,12 @@ SQL;
                         if (!empty($category['include_sub_categories']) || $this->data['config']['include_sub_categories']) {
                             $route = null;
                             $categories = $model->getTree($category_id, null, false, $route);
-                            $categories = array_filter($categories, function ($c) {
-                                return $c['type'] == shopCategoryModel::TYPE_STATIC;
-                            });
+                            $categories = array_filter(
+                                $categories,
+                                function ($c) {
+                                    return $c['type'] == shopCategoryModel::TYPE_STATIC;
+                                }
+                            );
                             $this->data['include_sub_categories'] = array_keys($categories);
                             array_shift($categories);
                             $this->data['count'][self::STAGE_CATEGORY] += count($categories);
@@ -933,7 +973,8 @@ SQL;
          */
         static $type_features_model;
         if (empty($model)) {
-            $model = new shopProductModel();
+            /** @var shopProductModel $model */
+            $model = $this->model('product');
         }
         if (empty($currencies)) {
             $currencies = array();
@@ -986,7 +1027,8 @@ SQL;
         if (empty($primary)) {
             $keys = explode(':', $this->data['secondary']);
             if (empty($sku_model)) {
-                $sku_model = new shopProductSkusModel();
+                /** @var shopProductSkusModel $sku_model */
+                $sku_model = $this->model('product_skus');
             }
             $sku_fields = array(
                 end($keys) => self::getData($data, $keys),
@@ -1176,7 +1218,8 @@ SQL;
                 if (isset($data['features'][$code]) || isset($data['features_selectable'][$code])) {
                     if ($data['type_id'] && !in_array($data['type_id'], $feature['types'])) {
                         if (empty($type_features_model)) {
-                            $type_features_model = new shopTypeFeaturesModel();
+                            /** @var shopTypeFeaturesModel $type_features_model */
+                            $type_features_model = $this->model('type_features');
                         }
                         $type_features_model->updateByFeature($feature['id'], array($data['type_id']), false);
 
@@ -1220,16 +1263,11 @@ SQL;
     private function findType(&$data)
     {
         static $types = array();
-        /**
-         * @var shopTypeModel $model
-         */
-        static $model;
         if (!empty($data['type_name'])) {
             $type = mb_strtolower(self::flatData($data['type_name']));
             if (!isset($types[$type])) {
-                if (!$model) {
-                    $model = new shopTypeModel();
-                }
+                /** @var shopTypeModel $model */
+                $model = $this->model('type');
                 if ($type_row = $model->getByName($type)) {
                     $types[$type] = $type_row['id'];
                 } else {
@@ -1261,16 +1299,14 @@ SQL;
     private function findTax(&$data)
     {
         static $taxes;
-        static $tax_model;
         if (ifset($data['tax_name'])) {
             if (empty($data['tax_name'])) {
                 unset($data['tax_id']);
             } else {
                 $tax = mb_strtolower(self::flatData($data['tax_name']));
                 if (!isset($taxes[$tax])) {
-                    if (!$tax_model) {
-                        $tax_model = new shopTaxModel();
-                    }
+                    /** @var shopTaxModel $tax_model */
+                    $tax_model = $this->model('tax');
                     if ($tax_row = $tax_model->getByName($tax)) {
                         $taxes[$tax] = $tax_row['id'];
                     } else {
@@ -1293,11 +1329,7 @@ SQL;
     private function findImage($file, &$name, $product_id)
     {
         /** @var shopProductImagesModel $model */
-        static $model;
-
-        if (!$model) {
-            $model = new shopProductImagesModel();
-        }
+        $model = $this->model('product_images');
 
         $search = array(
             'product_id' => $product_id,
@@ -1550,7 +1582,8 @@ SQL;
                         }
 
                         if (isset($data['features'])) {
-                            $model = new shopFeatureModel();
+                            /** @var shopFeatureModel $model */
+                            $model = $this->model('feature');
                             $features = $model->getMultipleSelectableFeaturesByType($data['type_id'], 'code');
                             if (!$features) {
                                 $features = array();
@@ -1633,18 +1666,14 @@ SQL;
 
     private function stepImportImage()
     {
-        /** @var shopProductImagesModel $model */
-        static $model;
-
         if (!is_array($this->data['map'][self::STAGE_IMAGE]) && $this->data['map'][self::STAGE_IMAGE]) {
             $this->data['map'][self::STAGE_IMAGE] = array($this->data['map'][self::STAGE_IMAGE]);
         }
 
         if ($file = reset($this->data['map'][self::STAGE_IMAGE])) {
             $description = reset($this->data['map'][self::STAGE_IMAGE_DESCRIPTION]);
-            if (!$model) {
-                $model = new shopProductImagesModel();
-            }
+            /** @var shopProductImagesModel $model */
+            $model = $this->model('product_images');
 
             try {
                 $product = array(
@@ -1717,15 +1746,10 @@ SQL;
     private function stepImportCategory($data)
     {
         /** @var shopCategoryModel $model */
-        static $model;
-        /** @var shopCategoryParamsModel $params_model */
-        static $params_model;
+        $model = $this->model('category');
 
         $empty = $this->reader->getEmpty();
         $data += $empty;
-        if (!$model) {
-            $model = new shopCategoryModel();
-        }
         if (!isset($this->data['map'][self::STAGE_CATEGORY])) {
             $this->data['map'][self::STAGE_CATEGORY] = array();
         }
@@ -1790,9 +1814,6 @@ SQL;
 
             }
             if (!empty($data['params']) && !$this->emulate() && !empty($id)) {
-                if (!$params_model) {
-                    $params_model = new shopCategoryParamsModel();
-                }
                 $params = array();
                 foreach (explode("\n", $data['params']) as $param_str) {
                     $param = explode('=', $param_str);
@@ -1800,6 +1821,9 @@ SQL;
                         $params[$param[0]] = trim($param[1]);
                     }
                 }
+
+                /** @var shopCategoryParamsModel $params_model */
+                $params_model = $this->model('category_params');
                 $params_model->set($id, $params);
             }
 
@@ -1867,6 +1891,7 @@ SQL;
             }
         }
         if (($type == self::STAGE_PRODUCT) /*&& !empty($data['skus']) && ($sku = reset($data['skus'])) && (!empty($sku['sku']) || !empty($sku['name']))*/) {
+            // enable once product only data import
             $type = self::STAGE_SKU;
         }
 
@@ -2111,7 +2136,8 @@ SQL;
     {
         static $categories;
         if (!$categories) {
-            $model = new shopCategoryModel();
+            /** @var shopCategoryModel $model */
+            $model = $this->model('category');
             if (preg_match('@^category/(\d+)$@', $this->data['hash'], $matches)) {
                 $category_id = $matches[1];
                 $category = $model->getById($category_id);
@@ -2128,6 +2154,14 @@ SQL;
             } else {
                 $categories = $model->getFullTree('*', true);
             }
+
+            $categories = array_filter(
+                $categories,
+                function ($c) {
+                    return $c['type'] == shopCategoryModel::TYPE_STATIC;
+                }
+            );
+
             if (count($categories) != $count[self::STAGE_CATEGORY]) {
                 throw new waException(sprintf('Invalid category count. Expected %d but get %d', $this->data['count'][self::STAGE_CATEGORY], count($categories)));
             }
@@ -2136,7 +2170,8 @@ SQL;
             }
 
             if (!empty($this->data['config']['params']) && $categories) {
-                $params_model = new shopCategoryParamsModel();
+                /** @var shopCategoryParamsModel $params_model */
+                $params_model = $this->model('category_params');
                 $category_map = array();
                 foreach ($categories as &$category) {
                     $category['params'] = array();
@@ -2183,9 +2218,6 @@ SQL;
     private function stepExportProduct(&$current_stage, &$count, &$processed)
     {
         static $products;
-        static $product_feature_model;
-        static $feature_model;
-        static $tags_model;
 
         if (!$products) {
             $offset = $current_stage[self::STAGE_PRODUCT] - ifset($this->data['map'][self::STAGE_PRODUCT], 0);
@@ -2196,21 +2228,8 @@ SQL;
             $products = $this->getCollection()->getProducts($fields, $offset, 50, false);
         }
         $chunk = 5;
-        $non_sku_fields = array(
-            'summary',
-            'meta_title',
-            'meta_keywords',
-            'meta_description',
-            'description',
-            'sort',
-            'tags',
-            'images',
-            'images_descriptions',
-            'params',
-        );
         while (($chunk-- > 0) && ($product = reset($products))) {
             $exported = false;
-
             /* check rights per product type && settlement options */
             $rights = empty($product['type_id']) || in_array($product['type_id'], $this->data['types']);
 
@@ -2218,7 +2237,7 @@ SQL;
             /* check category match*/
             $category_match = !$this->data['export_category'] || ($category_id === $this->data['map'][self::STAGE_CATEGORY]);
 
-            $full = true;
+            $extra_category_record = false;
 
             if (!$category_match) {
 
@@ -2239,17 +2258,16 @@ SQL;
                 /* check extra categories match */
                 if (!$category_match && $this->data['config']['extra_categories']) {
                     $category_match = true;
-                    $full = false;
+                    $extra_category_record = true;
                 }
             }
 
             if ($rights && $category_match) {
                 $shop_product = new shopProduct($product);
-                if (!empty($this->data['options']['features'])) {
+                if (!empty($this->data['options']['features']) && !$extra_category_record) {
                     if (!isset($product['features'])) {
-                        if (!$product_feature_model) {
-                            $product_feature_model = new shopProductFeaturesModel();
-                        }
+                        /** @var shopProductFeaturesModel $product_feature_model */
+                        $product_feature_model = $this->model('product_features');
                         $product['features'] = $product_feature_model->getValues($product['id']);
                     }
                     foreach ($product['features'] as $code => &$feature) {
@@ -2260,12 +2278,14 @@ SQL;
                     }
                 }
 
-                if (!isset($product['tags'])) {
-                    if (!$tags_model) {
-                        $tags_model = new shopProductTagsModel();
-                    }
+                # tags
+                if (!isset($product['tags']) && !$extra_category_record) {
+                    /** @var shopProductTagsModel $tags_model */
+                    $tags_model = $this->model('product_tags');
                     $product['tags'] = $this->writeRow($tags_model->getTags($product['id']));
                 }
+
+                # images
                 if (!empty($this->data['options']['images'])) {
                     if (isset($product['images'])) {
                         $size = $this->getImageSize($this->data['config']['images']);
@@ -2284,191 +2304,222 @@ SQL;
                     }
                 }
 
+                # product params
                 if (!empty($product['params']) && is_array($product['params'])) {
                     $product['params'] = $this->paramsToString($product['params']);
                 }
 
                 $product['type_name'] = $shop_product->type['name'];
 
-                $skus = $shop_product->skus;
-
-                if (false && $product['sku_id']) {
-                    #default SKU reorder
-                    if (isset($skus[$product['sku_id']])) {
-                        $sku = $skus[$product['sku_id']];
-                        $sku['stock'][0] = $sku['count'];
-                        $product['skus'] = array(-1 => $sku);
-                        unset($skus[$product['sku_id']]);
-                    }
-                    $this->writer->write($product);
-                    if (!empty($this->data['options']['images'])) {
-                        if (isset($product['images'])) {
-                            $processed[self::STAGE_IMAGE] += count($product['images']);
-                        }
-                    }
-                    $exported = true;
-                    if (!empty($this->data['options']['features'])) {
-                        unset($product['features']);
-                    }
-                }
-
+                # taxes
                 if (!empty($product['tax_id'])) {
                     $product['tax_name'] = ifset($this->data['taxes'][$product['tax_id']]);
                 }
+
+                # features
                 if (!isset($product['features'])) {
                     $product['features'] = array();
                 }
 
-                $original_product = $product;
+                #skus
+                $skus = $shop_product->skus;
 
-                foreach ($skus as $sku_id => $sku) {
-                    $product = $original_product;
-                    if ($exported) {
-                        foreach ($non_sku_fields as $field) {
-                            if (isset($product[$field])) {
-                                unset($product[$field]);
+                $primary_sku_id = $product['sku_id'];
+                if (!isset($skus[$primary_sku_id])) {
+                    //set default sku as first
+                    $primary_sku_id = key($skus);
+                    $product['sku_id'] = $primary_sku_id;
+                }
+
+                $sku = $skus[$primary_sku_id];
+                if (!empty($this->data['config']['primary_sku'])) {
+                    $sku['_primary'] = '1';
+                }
+                unset($skus[$primary_sku_id]);
+                $skus = array($product['sku_id'] => $sku,) + $skus;
+
+                $this->exportProductRow($product, $sku, false, !$extra_category_record);
+
+
+                if (!$extra_category_record) {
+                    if (empty($this->data['config']['primary_sku_row'])
+                        && ($product['sku_type'] != shopProductModel::SKU_TYPE_SELECTABLE)
+                    ) {
+                        unset($skus[$primary_sku_id]);
+                    }
+
+                    foreach ($skus as $sku_id => $sku) {
+                        if (!empty($this->data['config']['primary_sku'])) {
+                            $sku['_primary'] = ($primary_sku_id == $sku_id) ? '1' : '';
+                        }
+
+                        $exported_product = $this->exportProductRow($product, $sku, true, !$extra_category_record);
+
+                        ++$current_stage[self::STAGE_SKU];
+                        if (!$extra_category_record) {
+                            ++$processed[self::STAGE_SKU];
+                            if (isset($exported_product['images'])) {
+                                $processed[self::STAGE_IMAGE] += count($exported_product['images']);
                             }
                         }
-                    }
-
-                    if (!empty($this->data['config']['primary_sku'])) {
-                        $sku['_primary'] = ($product['sku_id'] == $sku_id) ? '1' : '';
-                    }
-
-                    $sku['stock'][0] = $sku['count'];
-                    if (!empty($this->data['options']['features'])) {
-                        $sku['features'] = $product_feature_model->getValues($product['id'], -$sku_id);
-                        if ($product['sku_type'] == shopProductModel::SKU_TYPE_SELECTABLE) {
-                            if (!$exported) {
-                                $features_selectable_model = new shopProductFeaturesSelectableModel();
-                                if ($selected = $features_selectable_model->getByProduct($product['id'])) {
-                                    if (!$feature_model) {
-                                        $feature_model = new shopFeatureModel();
-                                    }
-                                    $features = $feature_model->getById(array_keys($selected));
-                                    foreach ($features as $feature_id => $feature) {
-                                        $values = shopFeatureModel::getValuesModel($feature['type'])->getValues(
-                                            array(
-                                                'feature_id' => $feature_id,
-                                                'id'         => $selected[$feature_id],
-                                            )
-                                        );
-                                        if (!empty($values[$feature['id']])) {
-                                            $f_values = $values[$feature['id']];
-                                            if (!isset($product['features'])) {
-                                                $product['features'] = array();
-                                            }
-                                            if (isset($sku['features'][$feature['code']])) {
-                                                array_unshift($f_values, (string)$sku['features'][$feature['code']]);
-                                            }
-
-                                            $product['features'][$feature['code']] = $this->writeRow($f_values, '<{%s}>', true);
-                                        }
-                                    }
-                                }
-
-                                $virtual_product = $product;
-                                if (isset($skus[$product['sku_id']])) {
-                                    $virtual_product['skus'] = array(-1 => $skus[$product['sku_id']]);
-                                } else {
-                                    $virtual_product['skus'] = array(-1 => $sku);
-                                }
-
-                                $virtual_product['skus'][-1]['stock'] = array(0 => $product['count']);
-                                if (!empty($virtual_product['features'])) {
-                                    foreach ($virtual_product['features'] as &$feature) {
-                                        if (is_array($feature)) {
-                                            $feature = $this->writeRow($feature);
-                                        }
-                                        unset($feature);
-                                    }
-                                }
-                                //unset name & sku for compressed virtual skus
-                                $virtual_product['skus'][-1]['name'] = '';
-                                $virtual_product['skus'][-1]['sku'] = '';
-                                $this->writer->write($virtual_product);
-                            }
-
-                            $product['features'] = $sku['features'];
-                        } else {
-                            if (!$exported) {
-                                foreach ($product['features'] as $code => &$values) {
-                                    if (isset($sku['features'][$code])) {
-                                        switch ($code) {
-                                            case 'weight':
-                                                if (!empty($sku['features'][$code])) {
-                                                    $values = $sku['features'][$code];
-                                                }
-                                                break;
-                                            default:
-                                                $values = array_unique(
-                                                    array_merge(
-                                                        is_array($values) ? $values : array($values),
-                                                        is_array($sku['features'][$code]) ? $sku['features'][$code] : array($sku['features'][$code])
-                                                    )
-                                                );
-                                                break;
-                                        }
-
-                                    }
-                                    unset($values);
-                                }
-                            } else {
-                                $features = $sku['features'];
-                                if (!isset($features['weight']) && isset($product['features']['weight'])) {
-                                    $features['weight'] = $product['features']['weight'];
-                                }
-                                $product['features'] = $features;
-                            }
-                        }
-                    }
-
-                    $product['skus'] = array(-1 => $sku);
-                    if ($exported) {
-                        if (!empty($sku['image_id'])) {
-                            if (isset($original_product['images'][$sku['image_id']])) {
-                                $product['images'] = array(
-                                    $sku['image_id'] => $original_product['images'][$sku['image_id']],
-                                );
-                            }
-                        }
-                    }
-                    if (!empty($product['features']) && $full) {
-                        foreach ($product['features'] as &$feature) {
-                            if (is_array($feature)) {
-                                $feature = $this->writeRow($feature);
-                            }
-                            unset($feature);
-                        }
-                    }
-                    if (isset($product['images'])) {
-                        $product['images'] = array_values($product['images']);
-                    }
-                    if (isset($product['images_descriptions'])) {
-                        $product['images_descriptions'] = array_values($product['images_descriptions']);
-                    }
-                    $this->writer->write($product);
-                    if (isset($product['images'])) {
-                        $processed[self::STAGE_IMAGE] += count($product['images']);
-                    }
-                    $exported = true;
-                    ++$current_stage[self::STAGE_SKU];
-                    if ($full) {
-                        ++$processed[self::STAGE_SKU];
                     }
                 }
+
+                $exported = true;
             } elseif (count($products) > 1) {
                 ++$chunk;
             }
 
             array_shift($products);
             ++$current_stage[self::STAGE_PRODUCT];
-            if ($exported && $full) {
+            if ($exported && !$extra_category_record) {
                 ++$processed[self::STAGE_PRODUCT];
             }
         }
 
         return ($current_stage[self::STAGE_PRODUCT] < $count[self::STAGE_PRODUCT]);
+    }
+
+    private function prepareProductFeatures(&$product, &$sku)
+    {
+        foreach ($product['features'] as $code => &$values) {
+            if (isset($sku['features'][$code])) {
+                switch ($code) {
+                    case 'weight':
+                        if (!empty($sku['features'][$code])) {
+                            $values = $sku['features'][$code];
+                        }
+                        break;
+
+                    default:
+                        $values = array_merge(
+                            is_array($values) ? $values : array($values),
+                            is_array($sku['features'][$code]) ? $sku['features'][$code] : array($sku['features'][$code])
+                        );
+
+                        $values = array_unique($values);
+                        break;
+                }
+
+            }
+            unset($values);
+        }
+
+        if ($product['sku_type'] == shopProductModel::SKU_TYPE_SELECTABLE) {
+            /** @var shopProductFeaturesSelectableModel $features_selectable_model */
+            $features_selectable_model = $this->model('product_features_selectable');
+            if ($selected = $features_selectable_model->getByProduct($product['id'])) {
+
+                /** @var shopFeatureModel $feature_model */
+                $feature_model = $this->model('feature');
+
+                $features = $feature_model->getById(array_keys($selected));
+
+                foreach ($features as $feature_id => $feature) {
+
+                    $search_feature_values = array(
+                        'feature_id' => $feature_id,
+                        'id'         => $selected[$feature_id],
+                    );
+
+                    if ($feature_model = shopFeatureModel::getValuesModel($feature['type'])) {
+
+                        $values = $feature_model->getValues($search_feature_values);
+
+                        if (!empty($values[$feature['id']])) {
+                            $f_values = $values[$feature['id']];
+                            if (!isset($product['features'])) {
+                                $product['features'] = array();
+                            }
+                            if (isset($sku['features'][$feature['code']])) {
+                                array_unshift($f_values, (string)$sku['features'][$feature['code']]);
+                            }
+
+                            $product['features'][$feature['code']] = $this->writeRow($f_values, '<{%s}>', true);
+                        }
+                    }
+                }
+            }
+
+            //???
+            //$product['skus'][-1]['stock'] = array(0 => $product['count']);
+
+
+            //unset name & sku for compressed virtual skus
+            //$sku['name'] = '';
+            //$sku['sku'] = '';
+        }
+    }
+
+    private function prepareProductSkuFeatures(&$product, $sku)
+    {
+        $features = $sku['features'];
+        if (!isset($features['weight']) && isset($product['features']['weight'])) {
+            $features['weight'] = $product['features']['weight'];
+        }
+        $product['features'] = $features;
+    }
+
+    private function exportProductRow($original_product, $sku, $sku_mode, $full)
+    {
+        $product = $original_product;
+        if ($sku_mode) {
+            foreach (self::$non_sku_fields as $field) {
+                if (isset($product[$field])) {
+                    unset($product[$field]);
+                }
+            }
+        }
+
+        $sku['stock'][0] = $sku['count'];
+
+        if ($full) {
+            if (!empty($this->data['options']['features'])) {
+
+                /** @var shopProductFeaturesModel $product_feature_model */
+                $product_feature_model = $this->model('product_features');
+                $sku['features'] = $product_feature_model->getValues($product['id'], -intval($sku['id']));
+
+                if ($sku_mode) {
+                    $this->prepareProductSkuFeatures($product, $sku);
+                } else {
+                    $this->prepareProductFeatures($product, $sku);
+                }
+
+                if (!empty($product['features'])) {
+                    foreach ($product['features'] as &$feature) {
+                        if (is_array($feature)) {
+                            $feature = $this->writeRow($feature);
+                        }
+                        unset($feature);
+                    }
+                }
+            }
+
+            if ($sku_mode) {
+                if (!empty($sku['image_id'])) {
+                    if (isset($original_product['images'][$sku['image_id']])) {
+                        $product['images'] = array(
+                            $sku['image_id'] => $original_product['images'][$sku['image_id']],
+                        );
+                    }
+                }
+            }
+        }
+
+        if (isset($product['images'])) {
+            $product['images'] = array_values($product['images']);
+        }
+
+        if (isset($product['images_descriptions'])) {
+            $product['images_descriptions'] = array_values($product['images_descriptions']);
+        }
+
+        $product['skus'] = array(-1 => $sku);
+
+        $this->writer->write($product);
+
+        return $product;
     }
 
     private function getImageSize($config)
@@ -2576,7 +2627,7 @@ SQL;
 
     private function getImageName($file)
     {
-        $name = preg_replace('@[^a-zA-Zа-яА-Я0-9\._\-]+@', '', basename(urldecode($file)));
+        $name = preg_replace('@[^a-zA-Zа-яёА-ЯЁ0-9\._\-]+@u', '', basename(urldecode($file)));
         $ext = pathinfo(urldecode($file), PATHINFO_EXTENSION);
         if (empty($ext) || !in_array($ext, array('jpeg', 'jpg', 'png', 'gif'))) {
             $ext = 'jpeg';
@@ -2596,7 +2647,10 @@ SQL;
         if ($_is_url) {
 
             $upload_file = tempnam($this->getImageTmpPath(true), '');
-            waFiles::upload($file, $upload_file);
+            $options = array(
+                'verify' => false,
+            );
+            waFiles::upload($file, $upload_file, $options);
             $file = $upload_file;
         } elseif ($file) {
             $file = $this->data['upload_path'].$file;

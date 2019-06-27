@@ -73,7 +73,7 @@
                                 <em class="black">{sprintf("[`You are currently authorized as <strong>%s</strong>. Please verify or update your contact information using the form below. Your existing contact info will be automatically updated.`]", $wa->user('name'))}</em>
                                 <br><br>
                             </p>
-                            
+
                         {/if}
                     </div>
                 {/if}
@@ -137,7 +137,8 @@
                 if ($(".checkout-step.step-" + step_id + ' .auth').length) {
                     $("input[name='user_type']").change();
                 }
-                VK.callMethod("resizeWindow", $("body").outerWidth(), $("body").outerHeight());
+
+                updateFrame();
             });
         }
         $(".checkout h2 a").click(function () {
@@ -186,7 +187,9 @@
                     });
                     $(".checkout-step.step-" + step_id + " .checkout-step-content").css({ height: 'auto'}).show(200, function () {
                         $(document).scrollTop($(".checkout-step.step-" + step_id).offset().top);
-                        VK.callMethod("resizeWindow", $("body").outerWidth(), $("body").outerHeight());
+
+                        updateFrame();
+
                     });
                     current.parent().find('a.back').hide();
                 }
@@ -197,12 +200,21 @@
                 $(".checkout-step.step-" + step_id).prev('.checkout-step').each(function () {
                     $(this).find('h2').removeClass('upcoming');
                 });
-                VK.callMethod("resizeWindow", $("body").outerWidth(), $("body").outerHeight());
+
+                updateFrame();
+
             }).always(function () {
                 f.find('span.loading').remove();
                 f.find('input:submit:last').removeAttr('disabled');
             });
             return false;
         });
+
+        function updateFrame() {
+            window.waTheme.getFrameSources().then( function(VK) {
+                var $body = $("body");
+                VK.callMethod("resizeWindow", $body.outerWidth(), $body.outerHeight());
+            });
+        }
     });
 </script>

@@ -258,7 +258,7 @@ class shopMigrateSimplaTransport extends shopMigrateTransport
 
     private function query($query, $params = array(), $file = null)
     {
-        waSessionStorage::close();
+        wa()->getStorage()->close();
         $login = $this->getOption('login');
         $hostname = preg_replace('@^https?://@', '', $this->getOption('url'));
         $password = $this->getOption('password');

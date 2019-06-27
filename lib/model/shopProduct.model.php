@@ -659,7 +659,7 @@ class shopProductModel extends waModel
     {
         $paid_date_sql = shopOrderModel::getDateSql('o.paid_date', $start_date, $end_date);
 
-        if ($order !== 'sales') {
+        if ($order !== 'sales' && $order !== 'quantity') {
             $order = 'profit';
         }
         $limit = (int)$limit;
@@ -692,7 +692,8 @@ class shopProductModel extends waModel
                     SUM({$sales_subtotal} - {$discount} - {$purchase}) AS profit,
                     SUM({$sales_subtotal}) AS sales_subtotal,
                     SUM({$discount}) AS discount,
-                    SUM({$purchase}) AS purchase
+                    SUM({$purchase}) AS purchase,
+                    SUM(oi.quantity) AS quantity
                 FROM shop_order AS o
                     JOIN shop_order_items AS oi
                         ON oi.order_id=o.id

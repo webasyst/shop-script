@@ -2027,8 +2027,10 @@ SQL;
                         if (isset($fields['stock_counts'])) {
                             if (empty($products[$s['product_id']]['has_stock_counts'])) {
                                 $s['stock'] = null;
-                            } else {
+                            } elseif (isset($s['stock'])) {
                                 $s['stock'] = ifempty($s['stock'], array()) + $empty_stocks;
+                            } else {
+                                $s['stock'] = null;
                             }
                         }
 
@@ -2607,18 +2609,8 @@ SQL;
             }
             $table = $table['table'];
         }
-        $t = explode('_', $table);
-        $alias = '';
-        foreach ($t as $tp) {
-            if ($tp == 'shop') {
-                continue;
-            }
-            $alias .= substr($tp, 0, 1);
-        }
 
-        if (!$alias) {
-            $alias = $table;
-        }
+        $alias = $this->getAlias($table);
 
         if (!isset($this->join_index[$alias])) {
             $this->join_index[$alias] = 1;
@@ -2643,6 +2635,41 @@ SQL;
         }
         return $alias;
     }
+
+    /**
+     * Returns alias for current table
+     *
+     * @param $table
+     * @return mixed|string
+     */
+    protected function getAlias($table)
+    {
+        $alias = '';
+
+        if (is_array($table)) {
+            if (isset($table['alias'])) {
+                $alias = $table['alias'];
+            }
+            $table = $table['table'];
+        }
+
+        if (!$alias) {
+            $t = explode('_', $table);
+            foreach ($t as $tp) {
+                if ($tp == 'shop') {
+                    continue;
+                }
+                $alias .= substr($tp, 0, 1);
+            }
+        }
+
+        if (!$alias) {
+            $alias = $table;
+        }
+
+        return $alias;
+    }
+
 
     /**
      *

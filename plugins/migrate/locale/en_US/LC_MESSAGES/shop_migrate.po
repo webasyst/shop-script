@@ -10,7 +10,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.5.5\n"
+"X-Generator: Poedit 1.8.7\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: en_US\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -31,9 +33,7 @@ msgid "Import data"
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/templates/actions/backend/BackendSetup.html:55
-msgid ""
-"Please do not close your browser window and do not leave this page until the "
-"entire migration process is finished."
+msgid "Please do not close your browser window and do not leave this page until the entire migration process is finished."
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/js/migrate.js:12
@@ -90,15 +90,8 @@ msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:13
 msgid ""
-"For WebAsyst <strong>PHP software</strong> installed on your server:<br /> "
-"1. Download data access script <a href=\"http://www.webasyst.com/wa-data/"
-"public/site/downloads/old-webasyst-export-php.zip\">export.php</a>, and "
-"upload it to your Webasyst published/ folder via FTP.<br /> 2. Enter the "
-"complete URL to this file, which should look like this: <strong>http://"
-"YOUR_WEBASYST_ROOT_URL/published/export.php</strong><br /><br /> For "
-"<strong>hosted accounts</strong>: get your Secure Data Access URL in your "
-"ACCOUNT.webasyst.net backend’s “Account (link in the top right corner) &gt; "
-"System Settings” page."
+"For WebAsyst <strong>PHP software</strong> installed on your server:<br /> 1. Download data access script <a href=\"http://www.webasyst.com/wa-data/public/site/downloads/old-webasyst-export-php.zip\">export.php</a>, and upload it to your Webasyst published/ folder via FTP.<br /> 2. Enter the complete URL to this file, which should look "
+"like this: <strong>http://YOUR_WEBASYST_ROOT_URL/published/export.php</strong><br /><br /> For <strong>hosted accounts</strong>: get your Secure Data Access URL in your ACCOUNT.webasyst.net backend’s “Account (link in the top right corner) &gt; System Settings” page."
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:18
@@ -117,13 +110,11 @@ msgstr ""
 msgid "WebAsyst user password"
 msgstr ""
 
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:68
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:87
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:68 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:87
 msgid "Invalid URL, login or password"
 msgstr ""
 
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:75
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:79
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:75 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:79
 msgid "Invalid server response"
 msgstr ""
 
@@ -147,9 +138,7 @@ msgstr ""
 msgid "Path to folder of the WebAsyst (old version) installation"
 msgstr ""
 
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystsameTransport.class.php:46
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystsameTransport.class.php:49
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystsameTransport.class.php:61
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystsameTransport.class.php:46 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystsameTransport.class.php:49 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystsameTransport.class.php:61
 msgid "Invalid PATH %s"
 msgstr ""
 
@@ -217,16 +206,13 @@ msgid_plural "%d coupons"
 msgstr[0] ""
 msgstr[1] ""
 
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:115
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:114
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:115 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:114
 msgid "%d page"
 msgid_plural "%d pages"
 msgstr[0] ""
 msgstr[1] ""
 
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:254
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:260
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:451
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:254 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:260 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:451
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:454
 msgid "Unknown default currency %s"
 msgstr ""
@@ -288,8 +274,7 @@ msgid "Importing product reviews..."
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:56
-msgid ""
-"Importing product images (this is the longest part, please be patient)..."
+msgid "Importing product images (this is the longest part, please be patient)..."
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:59
@@ -325,9 +310,7 @@ msgid "Preserve IDs"
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:166
-msgid ""
-"If product (or category) with a particular ID already exists in your new "
-"store, delete it and replace with the imported data."
+msgid "If product (or category) with a particular ID already exists in your new store, delete it and replace with the imported data."
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:180
@@ -335,10 +318,7 @@ msgid "Source language"
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:181
-msgid ""
-"Shop-Script 6 allows storing product info and database content in one "
-"language. Select primary language of your WebAsyst Shop-Script-based online "
-"store."
+msgid "Shop-Script 7 allows storing product info and database content in one language. Select primary language of your WebAsyst Shop-Script-based online store."
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:210
@@ -361,9 +341,7 @@ msgstr ""
 msgid "Default product type"
 msgstr ""
 
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:307
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:313
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1688
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:307 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:313 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1688
 msgid "Weight"
 msgstr ""
 
@@ -416,9 +394,7 @@ msgid "Service"
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:2619
-msgid ""
-"Services feature allows customers to customize product when adding it to "
-"shopping cart (either select or unselect particular service with the product)"
+msgid "Services feature allows customers to customize product when adding it to shopping cart (either select or unselect particular service with the product)"
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:2623
@@ -426,10 +402,7 @@ msgid "SKU"
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:2624
-msgid ""
-"SKUs feature allows tracking inventory by multiple stocks. Multiple product "
-"SKUs (purchase options) will be created according to this custom option "
-"value set"
+msgid "SKUs feature allows tracking inventory by multiple stocks. Multiple product SKUs (purchase options) will be created according to this custom option value set"
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:2769
@@ -444,8 +417,7 @@ msgstr ""
 msgid "Add as new feature"
 msgstr ""
 
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:2809
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:2923
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:2809 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:2923
 msgid "Add to existing"
 msgstr ""
 
@@ -458,9 +430,7 @@ msgid "Add as new service"
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/shopMigrate.plugin.php:9
-msgid ""
-"Migrate aux pages, categories, products with params, features, images and "
-"eproduct files"
+msgid "Migrate aux pages, categories, products with params, features, images and eproduct files"
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateYmlTransport.class.php:116
@@ -517,11 +487,8 @@ msgstr ""
 msgid "Order currency"
 msgstr ""
 
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateInsalesTransport.class.php:1119
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateOpencartTransport.class.php:682
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateSimplaTransport.class.php:311
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:325
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateYmlTransport.class.php:736
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateInsalesTransport.class.php:1119 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateOpencartTransport.class.php:682 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateSimplaTransport.class.php:311
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:325 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateYmlTransport.class.php:736
 msgid "Import data from %s"
 msgstr ""
 

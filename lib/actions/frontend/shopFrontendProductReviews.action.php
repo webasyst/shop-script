@@ -20,6 +20,7 @@ class shopFrontendProductReviewsAction extends shopFrontendProductAction
 
         $product = new shopProduct($product, true);
         $this->prepareProduct($product);
+        $this->assignFeaturesSelectable($product);
 
         // get services
         list($services, $skus_services) = $this->getServiceVars($product);

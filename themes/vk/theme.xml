@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="vk" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:vk" version="1.1.13">
+<theme id="vk" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:vk" version="1.1.14">
     <name locale="en_US">VK</name>
     <name locale="ru_RU">Вконтакте</name>
     <files>
@@ -172,6 +172,11 @@
 ]]>
     </about>
     <settings>
+        <setting var="shop_divider_1" control_type="group_divider">
+            <value></value>
+            <name locale="en_US">Shop settings</name>
+            <name locale="ru_RU">Настройки Магазина</name>
+        </setting>
         <setting var="ajax_filters" control_type="checkbox">
             <value>1</value>
             <name locale="en_US">AJAX-enabled product by-feature filtering</name>

@@ -9,7 +9,7 @@
                         <input {if !empty($m.error)}disabled="disabled"{/if} type="radio" name="payment_id" value="{$m.id}" {if $m.id == $payment_id}checked{/if}>
                         {$m.name|escape}
                     </label>
-        
+
                 </h3>
                 {if $m.description}<p>{$m.description}</p>{/if}
                 {if !empty($m.error)}<p class="error"><em>{$m.error}</em></p>{/if}
@@ -17,12 +17,17 @@
             </li>
         {foreachelse}
             <li>
-                <em class="error">[`Oops! We are sorry, but <strong>we can not offer any payment option for your order</strong>. Checkout can not be completed.`]</em>
+                <em class="error">[`Oops! We are sorry, but <strong>we cannot offer any payment option for your order</strong>. Checkout cannot be completed.`]</em>
             </li>
         {/foreach}
     </ul>
     <script type="text/javascript">
-        VK.callMethod("resizeWindow", $("body").outerWidth(), $("body").outerHeight());
+
+        window.waTheme.getFrameSources().then( function(VK) {
+            var $body = $("body");
+            VK.callMethod("resizeWindow", $body.outerWidth(), $body.outerHeight());
+        });
+
         $(".checkout-options.payment input:radio").change(function () {
             if ($(this).is(':checked')) {
                 $(".checkout-options.payment .wa-form").hide();

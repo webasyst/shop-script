@@ -298,6 +298,7 @@ abstract class shopMigrateTransport implements Serializable
                 'width'             => $image->width,
                 'height'            => $image->height,
                 'size'              => filesize($file),
+                'filename'          => '',
                 'original_filename' => $name,
                 'ext'               => pathinfo($name, PATHINFO_EXTENSION),
             );
@@ -324,10 +325,8 @@ abstract class shopMigrateTransport implements Serializable
             }
 
             $image_path = shopImage::getPath($data);
-            if (
-                (file_exists($image_path) && !is_writable($image_path))
-                ||
-                (!file_exists($image_path) && !waFiles::create($image_path))
+            if ((file_exists($image_path) && !is_writable($image_path))
+                || (!file_exists($image_path) && !waFiles::create($image_path))
             ) {
                 $model->deleteById($data['id']);
                 throw new waException(
@@ -349,7 +348,7 @@ abstract class shopMigrateTransport implements Serializable
             }
             ++$processed;
         } else {
-            $this->log(sprintf('Invalid image file', $file), self::LOG_ERROR);
+            $this->log(sprintf('Invalid image file %s', $file), self::LOG_ERROR);
         }
         return $processed;
     }

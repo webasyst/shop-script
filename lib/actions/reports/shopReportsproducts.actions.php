@@ -20,12 +20,10 @@ class shopReportsproductsActions extends waViewActions
             $request_options['sales_channel'] = $sales_channel;
             $model_options['sales_channel'] = $sales_channel;
         }
-        if ($order_by != 'sales') {
+        if ($order_by != 'sales' && $order_by != 'quantity') {
             $order_by = 'profit';
         }
-        if ($order_by) {
-            $request_options['sort'] = $order_by;
-        }
+        $request_options['sort'] = $order_by;
 
         // Top products
         $max_sales = 0;

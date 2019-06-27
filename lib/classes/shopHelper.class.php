@@ -1923,4 +1923,25 @@ SQL;
 
         return waOrder::factory($order_data);
     }
+
+    private static function camelCase($m)
+    {
+        return strtoupper($m[2]);
+    }
+
+    /**
+     * @param string $name e.g. my_custom_method
+     * @param string $template
+     * @return string e.g. shopMyCustomMethod
+     */
+    public static function camelName($name, $template = 'shop%s')
+    {
+        if (strpos($template, '%s') === 0) {
+            $pattern = '@(_)([a-z])@';
+        } else {
+            $pattern = '@(^|_)([a-z])@';
+        }
+        $camel_name = preg_replace_callback($pattern, array(__CLASS__, 'camelCase'), $name);
+        return sprintf($template, $camel_name);
+    }
 }

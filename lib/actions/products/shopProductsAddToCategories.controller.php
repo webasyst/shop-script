@@ -63,7 +63,6 @@ class shopProductsAddToCategoriesController extends waJsonController
             'products_id'     => $all_product_ids,
         );
         wa('shop')->event('products_set_categories.before', $params);
-        waLog::dump($params, 'products_set_categories.log');
 
         // add all products of collection with this hash
         $collection = new shopProductsCollection($hash);
@@ -93,7 +92,6 @@ class shopProductsAddToCategoriesController extends waJsonController
             'products_id'     => $all_product_ids,
         );
         wa('shop')->event('products_set_categories.after', $params);
-        waLog::dump($params, 'products_set_categories.log');
 
         // form a response
         $categories = $this->category_model->getByField('id', $category_ids, 'id');

@@ -1,4 +1,4 @@
-<script type="text/javascript" src="{$wa_app_static_url}js/product/services.js?v={$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/services.js?v={$wa->version()}"></script>
 
 <div class="sidebar left250px s-inner-sidebar">
     <ul class="menu-v with-icons stack" id="s-services-list">
@@ -141,7 +141,7 @@
                                     <table class="zebra">
                                         {foreach $products as $product}
                                             <tr data-product-id="{$product.id}">
-                                                <td><a href="#/product/{$product.id}/edit/services">{$product.name|escape}</a></td>
+                                                <td><a href="#/product/{$product.id}/edit/services/{$service.id}/">{$product.name|escape}</a></td>
                                                 <td class="min-width">
                                                     <a href="#" class="s-delete-product"><i class="icon16 delete"></i></a>
                                                     <input type="hidden" name="product[]" value="{$product.id}">
@@ -150,7 +150,7 @@
                                         {/foreach}
                                         {capture "template-services-new-product"}{literal}
                                         <tr data-product-id="{%#o.product.id%}" class="s-new-product">
-                                            <td><a href="#/product/{%#o.product.id%}/edit/services">{%=o.product.name%}</a></td>
+                                            <td><a href="#/product/{%#o.product.id%}/edit/services/{%#o.service_id%}/">{%=o.product.name%}</a></td>
                                             <td class="min-width">
                                                 <a href="#" class="s-delete-product"><i class="icon16 delete"></i></a>
                                                 <input type="hidden" name="product[]" value="{%#o.product.id%}">

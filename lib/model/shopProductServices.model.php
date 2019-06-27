@@ -44,10 +44,34 @@ class shopProductServicesModel extends waModel
         $this->deleteByField('service_variant_id', $variants);
     }
 
-    public function getServiceIds($product_id)
+    /**
+     * Get service IDs of current product
+     * @param int $product_id
+     * @param array $filter
+     *   array|scalar $filter['ignore']['status'] - status to ignore
+     * @return array
+     */
+    public function getServiceIds($product_id, $filter = array())
     {
-        $sql = "SELECT DISTINCT(service_id) FROM ".$this->table." WHERE product_id = i:product_id";
-        return $this->query($sql, array('product_id' => $product_id))->fetchAll(null, true);
+        $where = array(
+            'product_id = i:product_id'
+        );
+
+        $bind_params = array(
+            'product_id' => $product_id,
+        );
+
+        $sql = "SELECT DISTINCT(service_id) FROM `{$this->table}`";
+
+        if (isset($filter['ignore']['status'])) {
+            $where[] = '`status` NOT IN(:ignore_status)';
+            $bind_params['ignore_status'] = (array)$filter['ignore']['status'];
+        }
+
+        $where = join(' AND ', $where);
+        $sql .= " WHERE {$where}";
+
+        return $this->query($sql, $bind_params)->fetchAll(null, true);
     }
 
     public function getByProducts($product_ids, $hierarchy = false)
@@ -91,16 +115,13 @@ class shopProductServicesModel extends waModel
      *     75 => // id of variant
      *     array (
      *       'price' => 500, // string|float|null
-     *       'status' => '1',
-     *       'skus' =>
-     *       array (
-     *         933 =>
-     *         array (
+     *       'status' => '1', //
+     *       'skus' => array ( //sku_id=>data
+     *         933 => array (
      *           'price' => NULL,
      *           'status' => '1',
      *         ),
-     *         934 =>
-     *         array (
+     *         934 => array (
      *           'price' => NULL,
      *           'status' => '1',
      *         ),
@@ -110,15 +131,12 @@ class shopProductServicesModel extends waModel
      *     array (
      *       'price' => NULL,
      *       'status' => '2',
-     *       'skus' =>
-     *       array (
-     *         933 =>
-     *         array (
+     *       'skus' => array (
+     *         933 => array (
      *           'price' => NULL,
      *           'status' => '1',
      *         ),
-     *         934 =>
-     *         array (
+     *         934 => array (
      *           'price' => NULL,
      *           'status' => '1',
      *         ),
@@ -136,7 +154,11 @@ class shopProductServicesModel extends waModel
         if (!$product_id || !$service_id) {
             return false;
         }
-        $key = array('product_id' => $product_id, 'service_id' => $service_id);
+
+        $key = array(
+            'product_id' => $product_id,
+            'service_id' => $service_id,
+        );
 
         $add = array();
         $update = array();
@@ -195,12 +217,25 @@ class shopProductServicesModel extends waModel
 
     public function getProductStatus($product_id, $service_id)
     {
-        $product_id = (int) $product_id;
-        $service_id = (int) $service_id;
-        $sql = "SELECT MAX(status) status
+        $product_id = (int)$product_id;
+        if (is_array($service_id)) {
+            $service_id = array_map('intval', $service_id);
+            $in_service_id = implode(',', $service_id);
+            $sql = "SELECT MAX(status) status, service_id
+                FROM {$this->table}
+                WHERE product_id = $product_id AND service_id IN ($in_service_id)
+                GROUP BY service_id
+                ";
+            $status = $this->query($sql)->fetchAll('service_id', true);
+
+            return array_map('intval', $status) + array_fill_keys($service_id, 0);
+        } else {
+            $service_id = (int)$service_id;
+            $sql = "SELECT MAX(status) status
                 FROM {$this->table}
                 WHERE product_id = $product_id AND service_id = $service_id";
-        return (int)$this->query($sql)->fetchField('status');
+            return (int)$this->query($sql)->fetchField('status');
+        }
     }
 
     private function convertPrimaryPrices($product_id, $service_id)
@@ -381,7 +416,7 @@ class shopProductServicesModel extends waModel
 
         $variants = $this->getVariants($product_id, $service_ids);
 
-         foreach ($variants as $s_id => $service) {
+        foreach ($variants as $s_id => $service) {
             foreach ($service['variants'] as &$variant) {
                 if ($variant['status'] === null) {
                     $variant['status'] = $services[$s_id]['type_id'] ? self::STATUS_PERMITTED :

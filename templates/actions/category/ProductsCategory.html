@@ -307,54 +307,7 @@
                                                class="js-category-allow-filter" {if $settings.allow_filter}checked{/if}> [`Allow product filtering`]
                                         <span class="hint">[`Product filtering allows your customers to filter (search) products within this category by feature values, e.g. by color, manufacturer, price`]</span>
                                     </label>
-
-                                    <div class="block js-category-filter" {if !$settings.allow_filter}style="display:none;"{/if}>
-                                        <ul class="menu-v compact small">
-                                            {* Show enabled filters *}
-                                            {if !empty($settings.allow_filter_data)}
-                                                {foreach $settings.allow_filter_data as $allow_filter}
-                                                    <li title="{$feature.code|default:''|escape}" class="js-filter-item">
-                                                        <i class="icon16 sort"></i>
-                                                        <label>
-                                                            <input type="checkbox" name="filter[]" data-filter-id="{$allow_filter.id}" class="js-filter-chekbox" value="{$allow_filter.id}"
-                                                            {if $settings.type == 1}{* Dynamic category *}
-                                                                {if !empty($settings['conditions']['feature'][$allow_filter.code]['values'])}
-                                                                    {if count($settings['conditions']['feature'][$allow_filter.code]['values']) < 2}
-                                                                        data-disabled="1" disabled="disabled" title="[`Filtering by this feature is not available, because only one of its values is selected in “Product filtering options” section.`]"
-                                                                    {/if}
-                                                                {/if}
-                                                            {/if}
-                                                            checked="checked">
-                                                                 {$allow_filter.name|escape}
-                                                            {if isset($allow_filter.code)}
-                                                                <span class="hint">{$allow_filter.code|escape} {$allow_filter.type_name|default:''|escape}</span>
-                                                            {/if}
-                                                        </label>
-                                                    </li>
-                                                {/foreach}
-                                            {/if}
-                                            {foreach $settings.filter as $feature}
-                                                <li title="{$feature.code|default:''|escape}" class="js-filter-item unsortable">
-                                                    <i class="icon16 sort" style="display: none;"></i>
-                                                    <label>
-                                                        <input type="checkbox" name="filter[]" data-filter-id="{$feature.id}" class="js-filter-chekbox" value="{$feature.id}"
-                                                        {if $settings.type == 1}{* Dynamic category *}
-                                                            {if !empty($settings['conditions']['feature'][$feature.code]['values'])}
-                                                                {if count($settings['conditions']['feature'][$feature.code]['values']) < 2}
-                                                                    data-disabled="1" disabled="disabled" title="[`Filtering by this feature is not available, because only one of its values is selected in “Product filtering options” section.`]"
-                                                                {/if}
-                                                            {/if}
-                                                        {/if}
-                                                        {if ($feature.id == 'price' && !$settings.allow_filter)}checked="checked"{/if}>
-                                                             {$feature.name|escape}
-                                                        {if isset($feature.code)}
-                                                            <span class="hint">{$feature.code|escape} {$feature.type_name|default:''|escape}</span>
-                                                        {/if}
-                                                    </label>
-                                                </li>
-                                            {/foreach}
-                                        </ul>
-                                    </div>
+                                    {include file="./filter.template.html" inline}
                                 </div>
                             </div>
                         </div>
@@ -517,7 +470,6 @@
                                 </div>
                             </div>
                         </div>
-
                         {*CUSTOM PARAMS*}
                         <div class="field-group">
                             <div class="field">
@@ -535,6 +487,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="dialog-buttons">
                 <div class="dialog-buttons-gradient">
                     <input type="submit" value="[`Save`]" class="button green">
@@ -552,12 +505,20 @@
     var wa_url = '{$wa_url}';
     var wa_app = 'shop';
     var wa_lang = '{$lang}';
-
     (function ($) {
         new shopDialogProductsCategory({
             $wrapper: $('#s-product-category-dialog'),
-            category_id: {$settings.id|json_encode},
-            account_name: "{$wa->accountName()}"
+            category_id: {$settings.id|default:"new"|json_encode},
+            category_type: {$settings.type|json_encode},
+            account_name: "{$wa->accountName()}",
+            SEARCH_STEP: {shopFeatureModel::SEARCH_STEP},
+            filter_count: {$settings.filter_count},
+            templates: {
+               filter_element_html:{$smarty.capture['_filterElement']|json_encode}
+            },
+            texts: {
+                show_more_text: {_w('Show %d more')|json_encode} + ' ' + {_w('of')|json_encode}
+            }
         });
     })(jQuery);
 </script>

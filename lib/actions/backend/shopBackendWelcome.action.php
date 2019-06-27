@@ -311,6 +311,7 @@ class shopBackendWelcomeAction extends waViewAction
         if (isset($all_currencies[$currency])) {
             $currency_model = new shopCurrencyModel();
             wa('shop')->getConfig()->setCurrency($currency);
+            $currency_model->add($currency);
             $currency_model->setPrimaryCurrency($currency);
         } else {
             throw new waException('Currency not found');

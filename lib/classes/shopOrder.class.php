@@ -2006,6 +2006,7 @@ class shopOrder implements ArrayAccess
         }
     }
 
+
     ###############################
     # Discount section
     ###############################
@@ -2533,11 +2534,14 @@ class shopOrder implements ArrayAccess
         return $items;
     }
 
+    /**
+     * @param null $items
+     * @return bool
+     */
     protected function compareItems($items = null)
     {
-        if ($items === null) {
-            $items = $this->data['items'];
-        }
+        //Use items that have been parsed
+        $items = $this->data['items'];
 
         $is_changed = false;
 

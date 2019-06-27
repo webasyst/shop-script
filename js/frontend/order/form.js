@@ -27,8 +27,6 @@
         Auth.prototype.initClass = function() {
             var that = this;
 
-            console.log(that.errors);
-
             if (typeof that.errors === "object" && Object.keys(that.errors).length ) {
                 that.scope.DEBUG("Errors:", "error", that.errors);
                 that.renderErrors(that.errors);
@@ -2618,9 +2616,47 @@
 
                 if (!that.is_locked) {
                     that.is_locked = true;
-                    that.create().always( function() {
-                        that.is_locked = false;
-                    });
+
+                    buttonAnimation(true);
+
+                    that.create()
+                        .always( function() {
+                            buttonAnimation(false);
+                            that.is_locked = false;
+                        })
+                        .done( function(api) {
+                            if (api.order_id) {
+                                buttonAnimation(true);
+                                that.is_locked = true;
+                            }
+                        });
+                }
+
+                function buttonAnimation(show) {
+                    var $button = that.$submit_button;
+
+                    var loading_html = that.templates["loading_html"],
+                        loading_class = "is-loading",
+                        html_before = "";
+
+                    if (show) {
+                        var width_w = $button.width();
+                        html_before = $button.html();
+
+                        $button
+                            .data("html_before", html_before)
+                            .width(width_w)
+                            .addClass(loading_class)
+                            .html(loading_html);
+
+                    } else {
+                        html_before = $button.data("html_before");
+
+                        $button
+                            .removeAttr("style")
+                            .removeClass(loading_class)
+                            .html(html_before);
+                    }
                 }
             });
         };

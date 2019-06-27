@@ -99,6 +99,13 @@
                             <th style="width:50px;"></th>
                             <th></th>
                             <th class="align-right">
+                                {if $request_options.sort == 'quantity'}
+                                    [`Quantity`]<i class="icon16 darr"></i>
+                                {else}
+                                    <a href="#/products/bestsellers/sort=quantity/">[`Quantity`]</a>
+                                {/if}
+                            </th>
+                            <th class="align-right">
                                 {if $request_options.sort == 'sales'}
                                     [`Sales`]<i class="icon16 darr"></i>
                                 {else}
@@ -138,6 +145,11 @@
                         <tr{if $p@index >= $rows_show_immidiately - 1} style="display:none;"{/if}>
                             <td><a href="?action=products#/product/{$p.id}/">{$wa->shop->getProductImgHtml($p, $size, ['height' => 48, 'width' => 48])}</a></td>
                             <td><a href="?action=products#/product/{$p.id}/">{$p.name|escape}</a></td>
+                            <td class="align-right">
+                                <span>
+                                    {$p.quantity}
+                                </span>
+                            </td>
                             <td class="align-right">
                                 <span title="{sprintf_wp('[`Subtotal %1$s &minus; Discount %2$s`]', wa_currency($p.sales_subtotal, $def_cur), wa_currency($p.discount, $def_cur))}">
                                     {wa_currency_html($p.sales, $def_cur)}

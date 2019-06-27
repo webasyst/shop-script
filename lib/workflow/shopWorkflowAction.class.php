@@ -385,6 +385,8 @@ HTML;
     {
         $order = $this->getOrder($order_id, true);
 
+        $result = array();
+
         if ($order && ($shipping_plugin = $this->getShippingPlugin($order))) {
 
             $order['items'] = $this->order_items_model->getItems($order['id']);
@@ -432,10 +434,10 @@ HTML;
                                     break;
                             }
 
-                            $text = $icon.' '.sprintf($template, $wa_order->shipping_name);
+                            $result['text'] = $icon.' '.sprintf($template, $wa_order->shipping_name);
 
                             if (isset($data['view_data'])) {
-                                $text .= '<br/>'.$data['view_data'];
+                                $result['text'] .= '<br/>'.$data['view_data'];
                                 unset($data['view_data']);
                             }
 
@@ -454,12 +456,12 @@ HTML;
                             if ($data === false) {
 
                             } else {
-                                $text = '<i class="icon16 no"></i> ';
+                                $result['text'] = '<i class="icon16 no"></i> ';
                                 $template = _w("An error has occurred during the interaction with shipping service <strong>%s</strong>.");
 
-                                $text .= sprintf($template, $wa_order->shipping_name);
-                                $text .= "\n";
-                                $text .= $data;
+                                $result['text'] .= sprintf($template, $wa_order->shipping_name);
+                                $result['text'] .= "\n";
+                                $result['text'] .= $data;
                             }
                         }
 
@@ -470,7 +472,6 @@ HTML;
                 }
             }
         }
-        $result = compact('text');
 
         if (!empty($params['log']) && $result) {
             $result['order_id'] = $order_id;

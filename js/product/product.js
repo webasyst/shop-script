@@ -41,7 +41,13 @@ editClick:(function ($) {
             this.data[section][name] = value;
         },
 
-        standalone_tabs: ['images', 'services', 'pages', 'reviews'],
+        /** this tabs will be saved on blur action on it's **/
+        standalone_tabs: [
+            'images',
+            'services',
+            'pages',
+            'reviews'
+        ],
 
         /**
          * Setup options
@@ -73,11 +79,11 @@ editClick:(function ($) {
             }
         },
 
-        deleteDivider: function() {
+        deleteDivider: function () {
             $('.js-delete-divider').click(function () {
                 $(this).parent().find('input').val('');
                 $(this).parent().hide();
-                $('#s-product-save-button').removeClass('green').addClass('yellow');
+                $.product.helper.updateSubmitButton(true);
             })
         },
         /**
@@ -111,7 +117,7 @@ editClick:(function ($) {
          * @param {String} path
          */
         dispatch: function (path) {
-            if (typeof(path) == 'string') {
+            if (typeof (path) == 'string') {
                 path = this.parsePath(path);
             }
             var queue = [];
@@ -206,7 +212,7 @@ editClick:(function ($) {
         },
 
         isCallable: function (name) {
-            return (typeof(this[name]) == 'function');
+            return (typeof (this[name]) == 'function');
         },
         tabIsLoaded: function (path) {
             var $tab = $('#s-product-edit-forms').find('.s-product-form.' + path.tab);
@@ -326,6 +332,8 @@ editClick:(function ($) {
                 }, 100);
                 return false;
             }
+
+            //XXX add preSave
             if (this.path.tab) {
                 var save_method = 'editTab' + this.path.tab.substr(0, 1).toUpperCase() + this.path.tab.substr(1) + 'Save';
                 if (this.call(save_method) === false) {
@@ -340,14 +348,11 @@ editClick:(function ($) {
 
             // cut out all spaces for prices
             form.find('.s-price').find('input').each(function () {
-                /**
-                 *
-                 * @this HTMLInputElement
-                 */
+                /** @this HTMLInputElement */
                 this.value = this.value.replace(/\s+/g, '');
             });
 
-            $.shop.trace('$.product.saveData(' + mode + ',' + tab + ')');
+            $.shop.trace('$.product.saveData(mode=' + mode + ', tab=' + tab + ')');
 
             var $tags_input = $('#product-tags_tag');
             if ($tags_input.length) {
@@ -389,16 +394,23 @@ editClick:(function ($) {
                         self.refresh('success', response.data.message || '');
                         $.shop.trace('$.product.saveData updateData', [mode, tab]);
                         self.updateData(response.data, mode, tab);
-                        if (callback && (typeof(callback) == 'function')) {
+                        if (callback && (typeof (callback) == 'function')) {
                             callback();
                         }
 
                         if (self.path.tab) {
-                            var method = 'editTab' + self.path.tab.substr(0, 1).toUpperCase() + self.path.tab.substr(1) + 'Saved';
-                            if (self.call(method) === false) {
+                            var post_save_method = 'editTab' + self.path.tab.substr(0, 1).toUpperCase() + self.path.tab.substr(1) + 'Saved';
+                            if (self.call(post_save_method) === false) {
                                 return false;
                             }
                         }
+
+                        $.each(self.standalone_tabs, function (index, tab) {
+                            if (self.path.tab != tab) {
+                                var post_save_method = 'editTab' + tab.substr(0, 1).toUpperCase() + tab.substr(1) + 'Saved';
+                                self.call(post_save_method);
+                            }
+                        });
                     }
                     self.ajax.save = false;
                 },
@@ -490,8 +502,7 @@ editClick:(function ($) {
                         '</span> ';
                 }
                 if (html) {
-                    $('#s-product-frontend-links').find('.s-product-frontend-url-not-empty').
-                    wrapAll('<div></div>').closest('div').replaceWith(html);
+                    $('#s-product-frontend-links').find('.s-product-frontend-url-not-empty').wrapAll('<div></div>').closest('div').replaceWith(html);
                 }
 
 
@@ -592,7 +603,8 @@ editClick:(function ($) {
             this.helper.checkChanges(this.get('form'), true);
             /*, data.raw || {}*/
             $('#s-product-edit-menu li a i.icon10.status-yellow-tiny').remove();
-            $('#s-product-edit-save-panel :submit').removeClass('yellow').addClass('green');
+
+            this.helper.updateSubmitButton(false);
 
             // if sku type is flat (0) blank selectable features info
             if (data.raw.sku_type == '0') {
@@ -604,9 +616,7 @@ editClick:(function ($) {
                 // blank features
                 var feature_li = feature_superposition.find('ul.features li');
                 feature_li.find('.count').text('');
-                feature_li.find('i').
-                removeClass('status-blue-tiny status-gray-tiny').
-                addClass('status-gray-tiny');
+                feature_li.find('i').removeClass('status-blue-tiny status-gray-tiny').addClass('status-gray-tiny');
 
                 // blank counter
                 var counters = feature_superposition.find('.superposition-count');
@@ -643,13 +653,11 @@ editClick:(function ($) {
             var timeout = null;
             $container.append(this.message[status] || '');
             switch (status) {
-                case 'submit':
-                {
+                case 'submit': {
                     $container.addClass('status');
                     break;
                 }
-                case 'error':
-                {
+                case 'error': {
                     $container.addClass('errormsg');
                     for (var i = 0; i < message.length; i++) {
                         $container.append(message[i][0]);
@@ -657,13 +665,12 @@ editClick:(function ($) {
                     timeout = 20000;
                     break;
                 }
-                case 'success':
-                {
+                case 'success': {
                     if (message) {
                         $container.addClass('successmsg').append(message);
                     }
                     timeout = 3000;
-                    $('#s-product-edit-save-panel :submit').removeClass('yellow').addClass('green');
+                    this.helper.updateSubmitButton(false);
                     break;
                 }
             }
@@ -677,12 +684,10 @@ editClick:(function ($) {
         editTabLoad: function (path, force) {
             var self = this;
             var $tab = $('#s-product-edit-forms .s-product-form.' + path.tab);
-            if (force || (!$tab.length && (path.id == 'new'))) {
-                // XXX
-                $.shop.trace('product.profileTabHandler: create', [path.tab + ' — create', path]);
+            if ((force === true) || (!$tab.length && (path.id == 'new'))) {
+                $.shop.trace('product.editTabLoad: create', [path.tab + ' — create', path, force]);
                 this.saveData(this.path.mode, path.tab, function () {
                     if (path.tab) {
-                        //var tab = path.tab.substr(0, 1).toUpperCase() + path.tab.substr(1);
                         self.call(path);
                     }
                 });
@@ -712,7 +717,7 @@ editClick:(function ($) {
             this.ajax.link = $('#s-product-edit-menu li.' + path.tab);
             $.shop.trace('$.product.editTabLoadContent', [path, url, path.params]);
             if (path.params && post) {
-                var type = typeof(path.params);
+                var type = typeof (path.params);
                 switch (type) {
                     case 'String':
                         url += path.params;
@@ -780,21 +785,25 @@ editClick:(function ($) {
                 return;
             }
 
-            var self = this;
+            $('#s-product-edit-forms .s-product-form').hide();
+            $('#s-product-edit-menu li.selected').removeClass('selected');
+
             var tab = path.tab;
 
             if (this.standalone_tabs.indexOf(tab) !== -1) {
-                this.helper.checkChanges(this.get('form'), true, function () {
-                    self.saveData(self.path.mode, tab, function () {
-                        if (tab) {
-                            self.call(path);
-                        }
-                    });
+                var self = this;
+                this.helper.checkChanges(this.get('form'), true, function (changed) {
+                    if (changed) {
+                        $.shop.trace('$.product.editTabBlur: save standalone tab [' + tab + ']', self.standalone_tabs);
+                        self.saveData(self.path.mode, tab, function () {
+                            if (tab) {
+                                self.call(self.path);
+                            }
+                        });
+                    }
                 });
             }
 
-            $('#s-product-edit-forms .s-product-form').hide();
-            $('#s-product-edit-menu li.selected').removeClass('selected');
             this.path.tab = null;
             this.path.tail = null;
         },
@@ -821,7 +830,7 @@ editClick:(function ($) {
                 var actionNameChunk, callable, actionName = 'editTab';
                 while (actionNameChunk = args.shift()) {
                     actionName += actionNameChunk.substr(0, 1).toUpperCase() + actionNameChunk.substr(1);
-                    callable = (typeof(this[actionName]) == 'function');
+                    callable = (typeof (this[actionName]) == 'function');
                     $.shop.trace('$.settings.featuresClick try', [actionName, callable, args]);
                     if (callable === true) {
                         action = actionName;
@@ -836,7 +845,11 @@ editClick:(function ($) {
                     try {
                         this[action].apply(this, params);
                     } catch (e) {
-                        $.shop.error('Error: ' + e.message, e);
+                        $.shop.error(
+                            "Error at method $.product." + action +
+                            ". Original message: " + e.message,
+                            e
+                        );
                     }
                 }
             } else {
@@ -878,9 +891,7 @@ editClick:(function ($) {
                 'margin-left': $.product.options.sidebar_width
             }, duration);
 
-            $('#shop-productprofile').
-            off('click.edit-product', 'a.js-action').
-            on('click.edit-product', 'a.js-action', function () {
+            $('#shop-productprofile').off('click.edit-product', 'a.js-action').on('click.edit-product', 'a.js-action', function () {
                 return self.editClick($(this));
             });
 
@@ -944,7 +955,7 @@ editClick:(function ($) {
             if (type_id) {
                 $features.data('type', type_id);
             }
-            $features.show(400, function() {
+            $features.show(400, function () {
                 // show warning message on change selling mode (case:  if not select the parameters that will be available to customers)
                 $.product.checkFeatureValidation();
             });
@@ -957,27 +968,27 @@ editClick:(function ($) {
             }
 
             //copy prices if target are empty
-            var fields = ['compare_price','purchase_price'];
-            var $target,$source;
-            for(var i=0;i<fields.length;i++){
-                $target = $features.find(':input[name="product['+fields[i]+'_selectable]"]:first');
+            var fields = ['compare_price', 'purchase_price'];
+            var $target, $source;
+            for (var i = 0; i < fields.length; i++) {
+                $target = $features.find(':input[name="product[' + fields[i] + '_selectable]"]:first');
                 if ($target.length && !parseInt($target.val())) {
                     $source = $(':input[name^="skus"][name$="[' + fields[i] + ']"]:first');
-                    if($source.length) {
+                    if ($source.length) {
                         $target.val($source.val());
                     }
                 }
             }
         },
 
-        checkFeatureValidation: function(){
+        checkFeatureValidation: function () {
             var $features = $('#s-product-feature-superposition-field-group'),
                 $features_li = $features.find('ul.features li'),
                 $message_block = $("#product-save-message");
 
             if (!$features_li.find('.status-blue-tiny').length) {
                 $message_block.addClass('errormsg').empty().html($_('Select parameters to be available to customers for ordering this product in the storefront.')).show();
-            }else{
+            } else {
                 $message_block.removeClass('errormsg').empty();
             }
 
@@ -1072,9 +1083,7 @@ editClick:(function ($) {
 
                 // update icon
                 var icon_class = count ? 'status-blue-tiny' : 'status-gray-tiny';
-                feature_li.find('i').
-                removeClass('status-blue-tiny status-gray-tiny').
-                addClass(icon_class);
+                feature_li.find('i').removeClass('status-blue-tiny status-gray-tiny').addClass(icon_class);
 
                 self.featureSelectableCount($this);
 
@@ -1183,8 +1192,7 @@ editClick:(function ($) {
         editInit: function () {
 
             // Ctrl+S hotkey handler
-            $('#s-product-edit-forms').unbind('keydown.product').
-            bind('keydown.product', function (e) {
+            $('#s-product-edit-forms').unbind('keydown.product').bind('keydown.product', function (e) {
                 if ($(e.target).is(':input') && (e.ctrlKey || e.metaKey) && e.keyCode == 83) {
                     $('#s-product-save-button').click();
                     return false;
@@ -1210,7 +1218,7 @@ editClick:(function ($) {
             });
             $.shop.changeListener($form, ':input[name="product[url]"]', function () {
                 var $elem = $(this);
-                $.getJSON('?module=product&action=checkUrlInUse', { id: $.product.path.id,  url: $elem.val() || '' },
+                $.getJSON('?module=product&action=checkUrlInUse', {id: $.product.path.id, url: $elem.val() || ''},
                     function (r) {
                         $.product.informAboutUrlInUse(r.status === 'ok' && r.data.url_in_use);
                     }
@@ -1228,8 +1236,7 @@ editClick:(function ($) {
                     defaultText: ''
                 }).data('tags_input_init', true);
 
-                $('#s-product-popular-tags').off('click.product', 'a').
-                on('click.product', 'a', function () {
+                $('#s-product-popular-tags').off('click.product', 'a').on('click.product', 'a', function () {
                         var name = $(this).text();
                         product_tags.removeTag(name);
                         product_tags.addTag(name);
@@ -1261,8 +1268,6 @@ editClick:(function ($) {
 
             $form.on('change', 'input[name="product[sku_type]"]', function () {
                 $.product.onSkuTypeChange(this.value);
-                //$('#s-product-edit-menu li a i.icon10').addClass('status-yellow-tiny');
-                //$('#s-product-edit-save-panel :submit').removeClass('green').addClass('yellow');
             }).change();
 
             $.product.featureSelectableInit();
@@ -1309,9 +1314,7 @@ editClick:(function ($) {
                 'margin-left': 0
             }, duration);
 
-            $('#shop-productprofile').
-            off('click.edit-product', 'a.js-action').
-            on('click.edit-product', 'a.js-action', function () {
+            $('#shop-productprofile').off('click.edit-product', 'a.js-action').on('click.edit-product', 'a.js-action', function () {
                 return self.editClick($(this));
             });
         },
@@ -1489,17 +1492,15 @@ editClick:(function ($) {
                         self.hide();
                         parent.find('.s-product-delete-from-category').show();
                         input.val('');
-                        $.product.helper.onTabChanged('main', true);
-                        $('#s-product-save-button').removeClass('green').addClass('yellow');
+                        $.product.helper.onTabChanged('main', {'saving new category': true});
+                        //XXX fix it using defaultSeleted
                         $('#s-category-list>ul').trigger('add', [r.data, 'category']);
                     });
                 });
             });
 
             // delete category
-            main_tab_content.
-            off('click.product', '.s-product-delete-from-category').
-            on('click.product', '.s-product-delete-from-category',
+            main_tab_content.off('click.product', '.s-product-delete-from-category').on('click.product', '.s-product-delete-from-category',
                 function () {
                     var self = $(this);
                     var parent = self.parent('div');
@@ -1597,8 +1598,11 @@ editClick:(function ($) {
                 };
             },
             onTabChanged: function (tab, changed) {
-                $.shop.trace('$.product.onTabChanged id=' + tab + ' changed=' + changed);
+                $.shop.trace('$.product.onTabChanged id=' + tab + ' changed=' + !!changed, changed);
                 $('#s-product-edit-menu li.' + tab + ' .s-product-edit-tab-status').html(changed ? this.options.tab_changed : '');
+                if (changed) {
+                    this.updateSubmitButton(true);
+                }
             },
 
             /**
@@ -1640,22 +1644,29 @@ editClick:(function ($) {
             onChange: function (container) {
                 var id = this.getContainerId(container);
                 var self = this;
-                this.checkChanges(container.parents('form'), false, function (changed) {
-                    $('#s-product-edit-save-panel :submit').removeClass(changed ? 'green' : 'yellow').addClass(changed ? 'yellow' : 'green');
-                    if (changed) {
-                        self.checkChanges(container, false, function (changed) {
+                this.checkChanges(
+                    container.parents('form'),
+                    false,
+                    function (changed) {
+
+                        /*Update submit button*/
+                        self.updateSubmitButton(changed);
+
+                        if (changed) {
+                            self.checkChanges(container, false, function (changed) {
+                                self.onTabChanged(id, changed);
+                            });
+                        } else {
                             self.onTabChanged(id, changed);
-                        });
-                    } else {
-                        self.onTabChanged(id, changed);
+                        }
                     }
-                });
+                );
             },
             urlHelper: function (element, target) {
                 if (this.data.url_helper.timer) {
                     clearTimeout(this.data.url_helper.timer);
                 }
-                var data = { 'name': $(element).val() };
+                var data = {'name': $(element).val()};
                 $.shop.trace('$.product.urlHelper ', data);
                 if (data.url != this.data.url_helper.name) {
                     var self = this;
@@ -1704,10 +1715,10 @@ editClick:(function ($) {
                     clearTimeout(this.checkChangesStack[id]);
                     this.checkChangesStack[id] = null;
                 }
-                $.shop.trace('$.product.helper.checkChanges', [$container, update]);
                 var self = this;
                 this.checkChangesStack[id] = setTimeout(function () {
                     var changed = self.checkChangesDelayed($container, update);
+                    $.shop.trace('$.product.helper.checkChanges[' + id + ']', [$container, update, changed, onChange ? 'callback' : 'none']);
                     if (onChange) {
                         onChange(changed);
                     }
@@ -1725,17 +1736,18 @@ editClick:(function ($) {
                     if ($container.hasClass('ajax')) {
                         return false;
                     }
-                } else {
+                } else if (!$container.hasClass('s-product-form-chunk')) {
                     selector = '.s-product-form:not(.ajax) ' + selector;
                 }
                 $container.find(selector).each(function () {
                     /** @this HTMLInputElement */
-                    var type = ($(this).attr('type') || this.tagName).toLowerCase();
+                    var $this = $(this);
+                    var type = ($this.attr('type') || this.tagName).toLowerCase();
                     switch (type) {
                         case 'input':
                         case 'text':
                         case 'textarea':
-                            if ($(this).hasClass('ace_text-input')) {
+                            if ($this.hasClass('ace_text-input')) {
                                 break;
                             }
                             if (this.defaultValue != this.value) {
@@ -1764,7 +1776,6 @@ editClick:(function ($) {
                                             this.defaultSelected = this.selected;
                                         }
                                     }
-                                    return update || !changed;
                                 });
                             }
                             break;
@@ -1782,26 +1793,21 @@ editClick:(function ($) {
                             // ignore it
                             break;
                         case 'hidden':
-                            // case only change SkuType in Edit Product Page
-                            var $wrapper = $(this).closest('.s-selling-mode');
-
-                            if ($wrapper.length && $(this).attr('data-value')) {
-                                var defvalue = $(this).attr('data-value');
-
-                                if ($(this).attr('disabled')) {
-                                    $(this).attr('data-value', 'empty');
-                                }else{
-                                    $(this).attr('data-value', defvalue);
-                                }
-
-                                if ($(this).attr('data-value') != this.value) {
+                            if ($this.hasClass('js-check-change') && ($this.attr('data-value') !== undefined)) {
+                                defaultValue = $this.attr('data-value');
+                                if (this.disabled) {
+                                    if (update) {
+                                        var name_selector = $.shop.helper.escape(this.name);
+                                        var $value = $container.find(':input[name="' + name_selector + '"]:enabled');
+                                        if ($value.length) {
+                                            $this.attr('data-value', $value.val());
+                                        }
+                                    }
+                                } else if (defaultValue != this.value) {
                                     changed = true;
                                     if (update) {
-                                        $(this).attr('data-value', this.value);
+                                        $this.attr('data-value', this.value);
                                     }
-                                    return update || !changed;
-                                }else{
-
                                 }
                             }
                             break;
@@ -1811,6 +1817,7 @@ editClick:(function ($) {
                     }
                     if (!update && changed) {
                         $.shop.trace('$.product.helper.checkChangesDelayed', [this, changed, this.defaultValue, this.value]);
+                        changed = $this;
                     }
                     return update || !changed;
                 });
@@ -1850,6 +1857,12 @@ editClick:(function ($) {
                         $.shop.trace('$.product.helper.updateInput name', [input_name]);
                     }
                 }
+            },
+            updateSubmitButton: function (changed) {
+                $('#s-product-edit-save-panel :submit')
+                    .removeClass(changed ? 'green' : 'yellow')
+                    .addClass(changed ? 'yellow' : 'green')
+                ;
             },
             count: function (obj) {
                 var size = 0;
@@ -2099,7 +2112,7 @@ editClick:(function ($) {
                     $.product_images && $.product_images.options && $.product_images.options.enable_2x && $.fn.retina && $target.find('.s-product-image-crops img').retina();
 
                     if (sku_id > 0) {
-                        $.shop.trace('fileupload', [$target.find('.fileupload').length, typeof($target.find('.fileupload').fileupload)]);
+                        $.shop.trace('fileupload', [$target.find('.fileupload').length, typeof ($target.find('.fileupload').fileupload)]);
                         try {
                             var matches = document.cookie.match(new RegExp("(?:^|; )_csrf=([^;]*)"));
                             var csrf = matches ? decodeURIComponent(matches[1]) : '';
@@ -2119,7 +2132,7 @@ editClick:(function ($) {
 
                                 },
                                 done: function (e, data) {
-                                    $.shop.trace('fileupload done', [data.result, typeof(data.result)]);
+                                    $.shop.trace('fileupload done', [data.result, typeof (data.result)]);
                                     var file = (data.result.files || []).shift();
                                     $target.find('.js-progressbar-container').hide();
                                     if (!file || file.error) {
@@ -2230,7 +2243,7 @@ editClick:(function ($) {
             $container.find('.js-type-name').html($type.text());
             if (type != $container.data('type')) {
                 var $tab = $('#s-product-edit-forms .s-product-form.' + tab);
-                if ($tab.length && typeof(this.editTabFeaturesReload) != 'undefined') {
+                if ($tab.length && typeof (this.editTabFeaturesReload) != 'undefined') {
                     this.editTabFeaturesReload(type);
                 } else {
                     $tab_link = $('#s-product-edit-menu > li.' + tab + ' > a');
@@ -2357,7 +2370,7 @@ editClick:(function ($) {
                         },
                         keydown: function (e) {
                             //Ctrl+S
-                            if ((e.which == '115' || e.which == '83' ) && (e.ctrlKey || e.metaKey)) {
+                            if ((e.which == '115' || e.which == '83') && (e.ctrlKey || e.metaKey)) {
                                 e.preventDefault();
                                 $('#s-product-save-button').click();
                                 return false;
@@ -2437,7 +2450,7 @@ editClick:(function ($) {
                 if (!$salesChart.data('graph_rendered')) {
 
                     var renderChart = function () {
-                        var is_rendered = ( $salesChart.length && $salesChart.width() > 0 );
+                        var is_rendered = ($salesChart.length && $salesChart.width() > 0);
                         if (is_rendered) {
                             //Render graph
                             showSalesGraph(sales_data, typeof cash_type == 'undefined' ? null : cash_type);

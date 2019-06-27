@@ -55,13 +55,13 @@
                 <form class="addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if} method="post" action="{$wa->getUrl('shop/frontendCart/add')}">
                     <span class="price nowrap">{shop_currency_html($p.price)}</span>
                     <input type="hidden" name="product_id" value="{$p.id}">
-                    <input type="submit" value="[`Add to cart`]">
-                    <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $p.name, $_cart_url)}</span>
+                    <input type="submit" value="{_wd('shop', 'Add to cart')}">
+                    <span class="added2cart" style="display: none;">{sprintf(_wd('shop', '%s is now <a href="%s"><strong>in your shopping cart</strong></a>'), $p.name, $_cart_url)}</span>
                 </form>
                 <link itemprop="availability" href="http://schema.org/InStock" />
             {else}
                 <span class="price nowrap">{shop_currency_html($p.price)}</span>
-                <div class="out-of-stock"><strong>{if $wa->shop->settings('ignore_stock_count')}[`Pre-order only`]{else}[`Out of stock`]{/if}</strong></div>
+                <div class="out-of-stock"><strong>{if $wa->shop->settings('ignore_stock_count')}{_wd('shop', 'Pre-order only')}{else}{_wd('shop', 'Out of stock')}{/if}</strong></div>
                 <link itemprop="availability" href="http://schema.org/OutOfStock" />
             {/if}
         </div>

@@ -1085,10 +1085,10 @@ $.order_edit = {
             'tax',
             'subtotal'
         ];
-
         keys.forEach(function (key) {
-            if (typeof data[key] === 'number') {
-                data[key] = $.order_edit.roundFloat(parseFloat(data[key].toFixed(4)))
+            if (typeof data[key] === 'number' || typeof data[key] === 'string') {
+                var value = +data[key];
+                data[key] = $.order_edit.roundFloat(parseFloat(value.toFixed(2)))
             }
         });
 

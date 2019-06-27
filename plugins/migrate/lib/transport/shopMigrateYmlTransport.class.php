@@ -3,7 +3,7 @@
 /**
  * Class shopMigrateYmlTransport
  * @description Import data from file in YandexMarketLanguage format
- * @group YML
+ * @group       YML
  */
 class shopMigrateYmlTransport extends shopMigrateTransport
 {
@@ -20,15 +20,15 @@ class shopMigrateYmlTransport extends shopMigrateTransport
     private static $node_name_map = array(
         self::STAGE_CURRENCY => array(
             'currency',
-            'next'
+            'next',
         ),
         self::STAGE_CATEGORY => array(
             'category',
-            'next'
+            'next',
         ),
         self::STAGE_PRODUCT  => array(
             'offer',
-            'next'
+            'next',
         ),
     );
 
@@ -330,7 +330,8 @@ class shopMigrateYmlTransport extends shopMigrateTransport
         if ($code == 'RUR') {
             $code = 'RUB';
         }
-        $this->map[self::STAGE_CURRENCY][$code] = self::attribute($element, 'rate', 'double');
+        $value = self::attribute($element, 'rate');
+        $this->map[self::STAGE_CURRENCY][$code] = doubleval(str_replace(',', '.', $value));
         ++$current_stage;
         ++$processed;
 
@@ -427,13 +428,19 @@ class shopMigrateYmlTransport extends shopMigrateTransport
         $product->currency = $currency;
         $product->skus = array(
             -1 => array(
-                'price' => self::field($element, 'price', 'double'),
-                'stock' => (self::attribute($element, 'available') === 'true') ? null : 0,
+                'price'     => self::field($element, 'price', 'double'),
+                'count'     => (self::attribute($element, 'available') === 'true') ? null : 0,
+                'available' => (self::attribute($element, 'available') === 'true') ? 1 : 0,
             ),
         );
         $product->save();
 
-        foreach (self::xpath($element, 'picture') as $picture) {
+        $pictures = self::xpath($element, 'picture');
+
+        if (!is_array($pictures)) {
+            $pictures = array($pictures);
+        }
+        foreach ($pictures as $picture) {
             if ($url = (string)$picture) {
                 if (!isset($this->map[self::STAGE_PRODUCT_IMAGE])) {
                     $this->map[self::STAGE_PRODUCT_IMAGE] = array();
@@ -443,7 +450,7 @@ class shopMigrateYmlTransport extends shopMigrateTransport
                 }
                 $this->map[self::STAGE_PRODUCT_IMAGE][] = array(
                     $product->getId(),
-                    $url
+                    $url,
                 );
                 ++$count[self::STAGE_PRODUCT_IMAGE];
             }
@@ -468,7 +475,9 @@ class shopMigrateYmlTransport extends shopMigrateTransport
             list($product_id, $url) = $item;
 
             try {
-                $name = preg_replace('@[^a-zA-Zа-яА-Я0-9\._\-]+@', '', basename(urldecode($url)));
+                $name = preg_replace('@\?.*$@', '', basename(urldecode($url)));
+                $name = preg_replace('@[^a-zA-Zа-яёА-ЯЁ0-9\._\-]+@ui', '', $name);
+
                 $file = $this->getTempPath('pi');
                 if (waFiles::delete($file) && waFiles::upload($url, $file) && file_exists($file)) {
                     $processed += $this->addProductImage($product_id, $file, $name);
@@ -502,7 +511,7 @@ class shopMigrateYmlTransport extends shopMigrateTransport
 
     /**
      * @param SimpleXMLElement $element
-     * @param string $xpath
+     * @param string           $xpath
      * @return SimpleXMLElement[]
      */
     private function xpath($element, $xpath)
@@ -522,8 +531,8 @@ class shopMigrateYmlTransport extends shopMigrateTransport
      *
      *
      * @param SimpleXMLElement $element
-     * @param string $field
-     * @param string $type
+     * @param string           $field
+     * @param string           $type
      *
      * @return mixed
      */
@@ -539,11 +548,11 @@ class shopMigrateYmlTransport extends shopMigrateTransport
                     str_replace(
                         array(
                             ' ',
-                            ','
+                            ',',
                         ),
                         array(
                             '',
-                            '.'
+                            '.',
                         ),
                         (string)$value
                     )
@@ -555,11 +564,11 @@ class shopMigrateYmlTransport extends shopMigrateTransport
                     str_replace(
                         array(
                             ' ',
-                            ','
+                            ',',
                         ),
                         array(
                             '',
-                            '.'
+                            '.',
                         ),
                         (string)$value
                     )
@@ -571,11 +580,11 @@ class shopMigrateYmlTransport extends shopMigrateTransport
                     str_replace(
                         array(
                             ' ',
-                            ','
+                            ',',
                         ),
                         array(
                             '',
-                            '.'
+                            '.',
                         ),
                         (string)$value
                     )
@@ -595,7 +604,7 @@ class shopMigrateYmlTransport extends shopMigrateTransport
 
     /**
      * @param SimpleXMLElement $element
-     * @param string $attribute
+     * @param string           $attribute
      * @return string
      */
     private static function attribute(&$element, $attribute)
@@ -605,7 +614,7 @@ class shopMigrateYmlTransport extends shopMigrateTransport
             '/\\\\u([0-9a-f]{4})/i',
             array(
                 __CLASS__,
-                'replaceUnicodeEscapeSequence'
+                'replaceUnicodeEscapeSequence',
             ),
             $value
         );
@@ -613,7 +622,7 @@ class shopMigrateYmlTransport extends shopMigrateTransport
             '/\\\\u([0-9a-f]{4})/i',
             array(
                 __CLASS__,
-                'htmlDereference'
+                'htmlDereference',
             ),
             $value
         );
@@ -710,10 +719,9 @@ class shopMigrateYmlTransport extends shopMigrateTransport
                         $result = $this->read($method, false);
                         $path = implode('/', array_slice($this->path, 0, $depth));
 
-                    } while (
-                        $result &&
-                        ($path == $base) &&
-                        (($this->reader->nodeType != XMLReader::ELEMENT) || ($this->reader->name != $name))
+                    } while ($result
+                    && ($path == $base)
+                    && (($this->reader->nodeType != XMLReader::ELEMENT) || ($this->reader->name != $name))
                     );
                 } else {
                     $result = $this->reader->next();

@@ -161,7 +161,7 @@ For more information please refer to Magento Manual: <a href="http://devdocs.mag
         }
 
         # 3. validate hashes
-        $pattern = '@^[0-9a-z]{32}$@i';
+        $pattern = '@^[0-9a-f]{32}$@i';
         $fields = array(
             'consumer_key',
             'consumer_secret',
@@ -636,6 +636,7 @@ SQL;
             $this->getOption('consumer_secret'),
             ifempty($secret, $this->getOption('request_token_secret', '')),
         );
+
         $params += array(
             'oauth_consumer_key'     => $this->getOption('consumer_key'),
             'oauth_timestamp'        => $time = time(),
@@ -882,8 +883,8 @@ SQL;
         $p->type_id = $this->getOption('type');
 
         $p->name = $data['name'];
-        $p->description = $data['description'];
-        $p->summary = $data['short_description'];
+        $p->description = ifset($data['description']);
+        $p->summary = ifset($data['short_description']);
 
         #meta
         $p->meta_title = ifset($data['meta_title']);
@@ -956,7 +957,7 @@ SQL;
         $customer = new waContact();
         $customer['firstname'] = $data['firstname'];
         $customer['lastname'] = $data['lastname'];
-        $customer['middlename'] = $data['middlename'];
+        $customer['middlename'] = ifset($data['middlename']);
         $customer['email'] = $data['email'];
         $customer['phone'] = ifset($data['telephone']);
         // $customer['suffix'] = $data['suffix'];
@@ -974,8 +975,9 @@ SQL;
             $customer->addToCategory('shop');
             // }
             $result = $customer->getId();
-            $this->map[self::STAGE_CUSTOMER][$data['entity_id']] = $result;
-
+            if (!empty($data['entity_id']) && wa_is_int($data['entity_id'])) {
+                $this->map[self::STAGE_CUSTOMER][$data['entity_id']] = $result;
+            }
         }
         return $result;
     }
@@ -1242,10 +1244,9 @@ SQL;
             $workflow_config = shopWorkflow::getConfig();
 
             $states = $this->getOption('status');
-            if ($status_names = $this->get('orders/statuses', 'order_statuses')) {
+            if (false && ($status_names = $this->get('orders/statuses', 'order_statuses'))) {
                 foreach ($status_names as $status_id => $name) {
                     if (!empty($states[$status_id])) {
-                        ;
                         if ($states[$status_id] === '::new') {
                             $id = &$states[$status_id];
                             $workflow_status = array(

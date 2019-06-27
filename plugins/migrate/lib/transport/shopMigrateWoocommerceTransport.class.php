@@ -2,11 +2,11 @@
 
 /**
  * Class shopMigrateWoocommerceTransport
- * @title Woocommerce Wordpress plugin
+ * @title       Woocommerce Wordpress plugin
  * @description WooCommerce 2.1 and later WordPress ecommerce plugin
  * REST API must be enabled under WooCommerce > Settings
- * @link http://woothemes.github.io/woocommerce-rest-api-docs/
- * @link http://docs.woothemes.com/document/woocommerce-rest-api/
+ * @link        http://woothemes.github.io/woocommerce-rest-api-docs/
+ * @link        http://docs.woothemes.com/document/woocommerce-rest-api/
  */
 class shopMigrateWoocommerceTransport extends shopMigrateTransport
 {
@@ -207,6 +207,22 @@ HTML;
         return $count;
     }
 
+    /**
+     * @param $current
+     * @param $count
+     * @param $processed
+     * @param $stage
+     * @param $error
+     * @return bool
+     * @throws waException
+     * @uses shopMigrateWoocommerceTransport::stepCategory()
+     * @uses shopMigrateWoocommerceTransport::stepCategoryRebuild()
+     * @uses shopMigrateWoocommerceTransport::stepProduct()
+     * @uses shopMigrateWoocommerceTransport::stepProductImage()
+     * @uses shopMigrateWoocommerceTransport::stepCustomer()
+     * @uses shopMigrateWoocommerceTransport::stepOrder()
+     *
+     */
     public function step(&$current, &$count, &$processed, $stage, &$error)
     {
         $method_name = 'step'.ucfirst($stage);
@@ -303,8 +319,8 @@ HTML;
         static $raw = null;
         if (!$raw) {
             $params = array(
-                'limit'  => self::API_PRODUCT_PER_PAGE,
-                'offset' => $current_stage,
+                'filter[limit]'  => self::API_PRODUCT_PER_PAGE,
+                'filter[offset]' => $current_stage,
             );
             $response = $this->query('products', $params);
             $raw = ifset($response['products'], array());
@@ -354,6 +370,9 @@ HTML;
 
             //    string    Product URL (post permalink)
             $product->url = trim(str_replace(rtrim($this->getOption('url'), '/').'/product/', '', $p['permalink']), '/');
+            if (preg_match('/([^\/]+)\/?$/', trim($p['permalink']), $m)) {
+                $product->url = $m[1];
+            }
 
 //   string    Product type. By default in WooCommerce the following types are available: simple, grouped, external, variable. Default is simple
 #            $product->f = $p['type'];
@@ -469,7 +488,7 @@ HTML;
             list($product_id, $url, $description) = $item;
             $file = $this->getTempPath('pi');
             try {
-                $name = preg_replace('@[^a-zA-Zа-яА-Я0-9\._\-]+@', '', basename(urldecode($url)));
+                $name = preg_replace('@[^a-zA-Zа-яёА-ЯЁ0-9\._\-]+@u', '', basename(urldecode($url)));
                 $name = preg_replace('@(-\d+x\d+)(\.[a-z]{3,4})@', '$2', $name);
                 if (waFiles::delete($file) && waFiles::upload($url, $file)) {
                     $processed += $this->addProductImage($product_id, $file, $name, $description);
@@ -492,8 +511,8 @@ HTML;
         $result = false;
         if (!$raw) {
             $params = array(
-                'limit'  => self::API_CUSTOMERS_PER_PAGE,
-                'offset' => $current_stage,
+                'filter[limit]'  => self::API_CUSTOMERS_PER_PAGE,
+                'filter[offset]' => $current_stage,
             );
             $raw = $this->get('customers', 'customers', $params);
 
@@ -529,14 +548,14 @@ HTML;
         $customer['lastname'] = $data['last_name'];
         $customer['email'] = $data['email'];
         if (!empty($data['id']) && !empty($data['username'])) {
-            $customer['password'] = md5(microtime(true).rand(0, 10000).$customer['email']);
+            $customer['password'] = md5(microtime(true).rand(0, 10000).serialize($customer['email']));
         }
-        $customer['create_datetime'] = $this->formatDatetime($data['created_at']);
+        $customer['create_datetime'] = $this->formatDatetime(ifempty($data['created_at'], time()));
         $customer['create_app_id'] = 'shop';
         if ($errors = $customer->save()) {
             $this->log("Error while import customer", self::LOG_ERROR, $errors);
         } else {
-            if (($data['role'] == 'customer') || !empty($data['last_order_id'])) {
+            if ((ifempty($data['role']) == 'customer') || !empty($data['last_order_id'])) {
                 $customer->addToCategory('shop');
             }
             $result = $customer->getId();
@@ -553,14 +572,14 @@ HTML;
         $result = false;
         if (!$raw) {
             $params = array(
-                'limit'  => self::API_ORDERS_PER_PAGE,
-                'offset' => $current_stage,
+                'filter[limit]'  => self::API_ORDERS_PER_PAGE,
+                'filter[offset]' => $current_stage,
             );
             $raw = $this->get('orders', 'orders', $params);
 
         }
 
-        if ($data = reset($raw)) {
+        if (is_array($raw) && ($data = reset($raw)) && is_array($data)) {
 
             $order = array(
                 'id'              => $data['id'],
@@ -706,21 +725,22 @@ SQL;
 
     private function query($query, $params = array(), $file = null)
     {
-        waSessionStorage::close();
+        wa()->getStorage()->close();
         $time = microtime(true);
         $hostname = rtrim(preg_replace('@^https?://@', '', $this->getOption('url')), '/');
+        $protocol = parse_url($this->getOption('url'), PHP_URL_SCHEME);
         $params = array_filter($params);
 
         if ($query) {
             if (false) {
-                $url = "https://{$this->getOption('consumer_key')}:{$this->getOption('consumer_secret')}@{$hostname}/wc-api/{$this->getOption('version','v1')}/{$query}";
+                $url = "{$protocol}://{$this->getOption('consumer_key')}:{$this->getOption('consumer_secret')}@{$hostname}/wc-api/{$this->getOption('version','v1')}/{$query}";
             } else {
-                $url = "http://{$hostname}/wc-api/{$this->getOption('version')}/{$query}";
+                $url = "$protocol://{$hostname}/wc-api/{$this->getOption('version')}/{$query}";
                 $params = $this->getOauthParams($url, $params);
             }
 
         } else {
-            $url = "http://{$hostname}/wc-api/{$this->getOption('version')}/";
+            $url = "{$protocol}://{$hostname}/wc-api/{$this->getOption('version')}/";
 
         }
         $url = rtrim($url, '/');
@@ -731,7 +751,7 @@ SQL;
         if (function_exists('curl_init')) {
             $ch = @curl_init($url);
             @curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            @curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            @curl_setopt($ch, CURLOPT_TIMEOUT, 60);
             $response = curl_exec($ch);
             if (!$response) {
                 if ($error = curl_error($ch)) {
@@ -742,9 +762,13 @@ SQL;
             @curl_close($ch);
         } elseif (ini_get('allow_url_fopen')) {
             $context = stream_context_create(array(
-                'http' => array(
+                'http'  => array(
                     'ignore_errors' => true,
-                    'timeout'       => 10.0,
+                    'timeout'       => 60,
+                ),
+                'https' => array(
+                    'ignore_errors' => true,
+                    'timeout'       => 60,
                 ),
             ));
             $response = @file_get_contents($url, null, $context);
@@ -780,6 +804,8 @@ SQL;
             if ($response == 'false') {
                 $json = false;
             } else {
+                $response = preg_replace('/^[^{]+/', '', $response);
+                $response = preg_replace('/[^}]+$/', '', $response);
                 if (($json = @json_decode($response, true)) && is_array($json)) {
                     if (!empty($json['errors'])) {
                         $message = array();
@@ -806,8 +832,8 @@ SQL;
     }
 
     /**
-     * @param $method
-     * @param $field
+     * @param       $method
+     * @param       $field
      * @param array $params
      * @return array|bool|null
      * @throws waException
@@ -822,10 +848,11 @@ SQL;
     /**
      * Generate the parameters required for OAuth 1.0a authentication
      *
-     * @since 2.0
+     * @param $url
      * @param $params
      * @param $method
      * @return array
+     * @since 2.0
      */
     private function getOauthParams($url, $params, $method = 'GET')
     {
@@ -843,11 +870,12 @@ SQL;
     /**
      * Generate OAuth signature, see server-side method here:
      *
-     * @link https://github.com/woothemes/woocommerce/blob/master/includes/api/class-wc-api-authentication.php#L196-L252
+     * @link  https://github.com/woothemes/woocommerce/blob/master/includes/api/class-wc-api-authentication.php#L196-L252
      *
      * @since 2.0
      *
-     * @param array $params query parameters (including oauth_*)
+     * @param        $url
+     * @param array  $params      query parameters (including oauth_*)
      * @param string $http_method , e.g. GET
      * @return string signature
      */
@@ -885,11 +913,11 @@ SQL;
      *
      * Modeled after the core method here:
      *
-     * @link https://github.com/woothemes/woocommerce/blob/master/includes/api/class-wc-api-authentication.php#L254-L288
+     * @link  https://github.com/woothemes/woocommerce/blob/master/includes/api/class-wc-api-authentication.php#L254-L288
      *
      * @since 2.0
-     * @see rawurlencode()
-     * @param array $parameters un-normalized pararmeters
+     * @see   rawurlencode()
+     * @param array $parameters un-normalized parameters
      * @return array normalized parameters
      */
     private function normalize_parameters($parameters)
@@ -940,7 +968,9 @@ SQL;
                         } else {
                             $result[$target][$sub_target] .= ' ';
                         }
-                        $result[$target][$sub_target] .= $_data[$field];
+                        if (is_string($_data[$field])) {
+                            $result[$target][$sub_target] .= $_data[$field];
+                        }
                     }
                 } else {
                     $result[$target] = $_data[$field];

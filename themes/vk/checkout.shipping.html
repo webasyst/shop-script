@@ -79,7 +79,11 @@
 </ul>
 <script type="text/javascript">
     $(function () {
-        VK.callMethod("resizeWindow", $("body").outerWidth(), $("body").outerHeight());
+        window.waTheme.getFrameSources().then( function(VK) {
+            var $body = $("body");
+            VK.callMethod("resizeWindow", $body.outerWidth(), $body.outerHeight());
+        });
+
         {if $external_methods}
             $.get("{$wa->getUrl('/frontend/shipping')}", { shipping_id: [{implode(',', $external_methods)}]}, function (response) {
                 for (var shipping_id in response.data) {

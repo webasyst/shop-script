@@ -227,20 +227,20 @@ Product.prototype.updateSkuServices = function (sku_id) {
     this.form.find("div.stocks div").hide();
     this.form.find(".sku-" + sku_id + "-stock").show();
     for (var service_id in this.services[sku_id]) {
-        var v = this.services[sku_id][service_id];
-        if (v === false) {
+        var variants = this.services[sku_id][service_id];
+        if (variants === false) {
             this.form.find(".service-" + service_id).hide().find('input,select').attr('disabled', 'disabled').removeAttr('checked');
         } else {
             this.form.find(".service-" + service_id).show().find('input').removeAttr('disabled');
-            if (typeof (v) == 'string') {
-                this.form.find(".service-" + service_id + ' .service-price').html(this.currencyFormat(v));
-                this.form.find(".service-" + service_id + ' input').data('price', v);
+            if (typeof (variants) == 'string' || typeof (variants) === "number") {
+                this.form.find(".service-" + service_id + ' .service-price').html(this.currencyFormat(variants));
+                this.form.find(".service-" + service_id + ' input').data('price', variants);
             } else {
                 var select = this.form.find(".service-" + service_id + ' .service-variants');
                 var selected_variant_id = select.val();
-                for (var variant_id in v) {
+                for (var variant_id in variants) {
                     var obj = select.find('option[value=' + variant_id + ']');
-                    if (v[variant_id] === false) {
+                    if (variants[variant_id] === false) {
                         obj.hide();
                         if (obj.attr('value') == selected_variant_id) {
                             selected_variant_id = false;
@@ -249,7 +249,7 @@ Product.prototype.updateSkuServices = function (sku_id) {
                         if (!selected_variant_id) {
                             selected_variant_id = variant_id;
                         }
-                        obj.replaceWith(this.serviceVariantHtml(variant_id, v[variant_id][0], v[variant_id][1]));
+                        obj.replaceWith(this.serviceVariantHtml(variant_id, variants[variant_id][0], variants[variant_id][1]));
                     }
                 }
                 this.form.find(".service-" + service_id + ' .service-variants').val(selected_variant_id);

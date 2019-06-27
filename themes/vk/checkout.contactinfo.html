@@ -76,53 +76,63 @@
             {/if}
 
             {if $wa->storage('vk_user_id')}
-            <script type="text/javascript">
-                VK.api("users.get", { uid: "{$wa->storage('vk_user_id')}", fields: 'city,country,contacts' }, function (data) {
-                    if (data.response) {
-                        var u = data.response[0];
-                        var fields = {
-                            'first_name': 'firstname',
-                            'last_name': 'lastname',
-                            'home_phone': 'phone'
-                        };
-                        for (var f in fields) {
-                            if (u[f]) {
-                                var el = $('input[name="customer[' + fields[f] + ']"]');
-                                if (el.length && !el.val()) {
-                                    el.val(u[f]);
-                                }
-                            }
-                        }
-                        {$address = $wa->user()->getFirst('address.shipping')}
-                        {if empty($address.data.country)}
-                        if (u['country'] == 1) {
-                            $('select[name="customer[address.shipping][country]"]').val('rus');
-                        } else if (u['country']) {
-                            VK.api("places.getCountryById", { cids: u['country']}, function (data) {
+                <script>
+                    ( function($) {
+                        window.waTheme.getFrameSources().then( function(VK) {
+                            VK.api("users.get", { uid: "{$wa->storage('vk_user_id')}", fields: 'city,country,contacts' }, function (data) {
                                 if (data.response) {
-                                    var o = $('select[name="customer[address.shipping][country]"] option:contains("' + data.response[0].name + '")');
-                                    if (o.length) {
-                                        $('select[name="customer[address.shipping][country]"]').val(o.attr('value'));
+                                    var u = data.response[0];
+                                    var fields = {
+                                        'first_name': 'firstname',
+                                        'last_name': 'lastname',
+                                        'home_phone': 'phone'
+                                    };
+                                    for (var f in fields) {
+                                        if (u[f]) {
+                                            var el = $('input[name="customer[' + fields[f] + ']"]');
+                                            if (el.length && !el.val()) {
+                                                el.val(u[f]);
+                                            }
+                                        }
                                     }
+                                    {$address = $wa->user()->getFirst('address.shipping')}
+                                    {if empty($address.data.country)}
+                                    if (u['country'] == 1) {
+                                        $('select[name="customer[address.shipping][country]"]').val('rus');
+                                    } else if (u['country']) {
+
+                                        window.waTheme.getFrameSources().then( function(VK) {
+                                            VK.api("places.getCountryById", { cids: u['country']}, function (data) {
+                                                if (data.response) {
+                                                    var o = $('select[name="customer[address.shipping][country]"] option:contains("' + data.response[0].name + '")');
+                                                    if (o.length) {
+                                                        $('select[name="customer[address.shipping][country]"]').val(o.attr('value'));
+                                                    }
+                                                }
+                                            });
+                                        });
+                                    }
+                                    {/if}
+                                    {if empty($address.data.city)}
+                                    if (u['city']) {
+                                        if (u['city'] == 1 || u['city'] == 2) {
+                                            $('select[name="customer[address.shipping][region]"]').val(u['city'] == 1 ? 77 : 78);
+                                        }
+
+                                        window.waTheme.getFrameSources().then( function(VK) {
+                                            VK.api("places.getCityById", { cids: u['city']}, function (data) {
+                                                if (data.response) {
+                                                    $('input[name="customer[address.shipping][city]"]').val(data.response[0].name);
+                                                }
+                                            });
+                                        });
+                                    }
+                                    {/if}
                                 }
                             });
-                        }
-                        {/if}
-                        {if empty($address.data.city)}
-                        if (u['city']) {
-                            if (u['city'] == 1 || u['city'] == 2) {
-                                $('select[name="customer[address.shipping][region]"]').val(u['city'] == 1 ? 77 : 78);
-                            }
-                            VK.api("places.getCityById", { cids: u['city']}, function (data) {
-                                if (data.response) {
-                                    $('input[name="customer[address.shipping][city]"]').val(data.response[0].name);
-                                }
-                            });
-                        }
-                        {/if}
-                    }
-                });
-            </script>
+                        });
+                    })(jQuery);
+                </script>
             {/if}
             {if $wa->isAuthEnabled() && !$wa->user()->isAuth()}
             <div class="wa-field">
@@ -185,7 +195,11 @@
                         } else {
                             $("#create-user-div").hide().find('input').attr('disabled', 'disabled').val('');
                         }
-                        VK.callMethod("resizeWindow", $("body").outerWidth(), $("body").outerHeight());
+
+                        window.waTheme.getFrameSources().then( function(VK) {
+                            var $body = $("body");
+                            VK.callMethod("resizeWindow", $body.outerWidth(), $body.outerHeight());
+                        });
                     }).change();
 
                 });

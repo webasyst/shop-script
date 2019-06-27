@@ -121,6 +121,10 @@
         </form>
     </div>
 
+    {capture assign="_loading_html"}
+        <span class="s-points-wrapper"><span class="s-point"></span><span class="s-point"></span><span class="s-point"></span></span>
+    {/capture}
+
     <script>
         ( function($) {
             var $step = $("#wa-step-confirm-section"),
@@ -132,6 +136,7 @@
                     $wrapper: $step,
                     errors: {$_errors|json_encode},
                     templates: {
+                        loading_html: {waUtils::jsonEncode(trim(ifset($_loading_html, '')))},
                         terms_dialog: {waUtils::jsonEncode(trim(ifset($_terms_dialog, '')))}
                     },
                     urls: {
