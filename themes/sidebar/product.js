@@ -172,7 +172,7 @@ Product.prototype.updateSkuServices = function (sku_id) {
             this.form.find(".service-" + service_id).hide().find('input,select').attr('disabled', 'disabled').removeAttr('checked');
         } else {
             this.form.find(".service-" + service_id).show().find('input').removeAttr('disabled');
-            if (typeof (v) == 'string') {
+            if (typeof (v) === 'string' || typeof (v) === 'number') {
                 this.form.find(".service-" + service_id + ' .service-price').html(this.currencyFormat(v));
                 this.form.find(".service-" + service_id + ' input').data('price', v);
             } else {

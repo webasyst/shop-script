@@ -172,7 +172,7 @@ Product.prototype.updateSkuServices = function (sku_id) {
             this.form.find(".service-" + service_id).hide().find('input,select').attr('disabled', 'disabled').removeAttr('checked');
         } else {
             this.form.find(".service-" + service_id).show().find('input').removeAttr('disabled');
-            if (typeof (v) == 'string') {
+            if (typeof (v) === 'string' || typeof (v) === 'number') {
                 this.form.find(".service-" + service_id + ' .service-price').html(this.currencyFormat(v));
                 this.form.find(".service-" + service_id + ' input').data('price', v);
             } else {
@@ -225,7 +225,7 @@ Product.prototype.updatePrice = function (price, compare_price) {
         }
     });
     this.add2cart.find(".price").html(this.currencyFormat(price));
-}
+};
 
 Product.prototype.cartButtonVisibility = function (visible) {
     //toggles "Add to cart" / "%s is now in your shopping cart" visibility status
@@ -294,7 +294,9 @@ $(function () {
             } else {
                 a.append($(this));
             }
-            VK.callMethod('scrollTop');
+            window.waTheme.getFrameSources().then( function(VK) {
+                VK.callMethod('scrollTop');
+            });
             $(".vk-photo-zoom").show();
         }).each(function() {
                 //ensure image load is fired. Fixes opera loading bug
@@ -303,8 +305,10 @@ $(function () {
         return false;
     });
 
-    VK.addCallback('onScrollTop', function(scroll){
-        $(".vk-photo-zoom").css('top', scroll + 'px');
+    window.waTheme.getFrameSources().then( function(VK) {
+        VK.addCallback('onScrollTop', function(scroll){
+            $(".vk-photo-zoom").css('top', scroll + 'px');
+        });
     });
 
     $(".vk-photo-zoom,#vk-photo-zoom").click(function () {

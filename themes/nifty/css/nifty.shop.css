@@ -881,56 +881,56 @@ h1 .order-status {
 }
 .icon16.star,
 .icon16.star-full {
-  background-image: url("img/icons.png");
+  background-image: url("../img/icons.png");
   background-position: -16px 0;
 }
 .icon16.star-half {
-  background-image: url("img/icons.png");
+  background-image: url("../img/icons.png");
   background-position: -32px 0;
 }
 .icon16.star-empty {
-  background-image: url("img/icons.png");
+  background-image: url("../img/icons.png");
   background-position: -48px 0;
 }
 .icon16.star-hover {
-  background-image: url("img/icons.png");
+  background-image: url("../img/icons.png");
   background-position: -64px 0;
 }
 .icon10.star,
 .icon10.star-full {
-  background-image: url("img/icons.png");
+  background-image: url("../img/icons.png");
   background-position: 0 -16px;
 }
 .icon10.star-half {
-  background-image: url("img/icons.png");
+  background-image: url("../img/icons.png");
   background-position: -10px -16px;
 }
 .icon10.star-empty {
-  background-image: url("img/icons.png");
+  background-image: url("../img/icons.png");
   background-position: -20px -16px;
 }
 .icon16.remove {
-  background-image: url("img/icons.png");
+  background-image: url("../img/icons.png");
   background-position: -96px 0;
 }
 .icon16.saved {
-  background-image: url("img/icons.png");
+  background-image: url("../img/icons.png");
   background-position: -112px 0;
 }
 .icon16.stock-red {
-  background-image: url("img/icons.png");
+  background-image: url("../img/icons.png");
   background-position: -128px 0;
 }
 .icon16.stock-yellow {
-  background-image: url("img/icons.png");
+  background-image: url("../img/icons.png");
   background-position: -144px 0;
 }
 .icon16.stock-green {
-  background-image: url("img/icons.png");
+  background-image: url("../img/icons.png");
   background-position: -160px 0;
 }
 .icon16.stock-transparent {
-  background-image: url("img/icons.png");
+  background-image: url("../img/icons.png");
   background-position: -176px 0;
 }
 .icon16.loading {
