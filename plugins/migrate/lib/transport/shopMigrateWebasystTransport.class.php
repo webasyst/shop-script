@@ -59,7 +59,7 @@ SQL;
                 'control_type' => waHtmlControl::SELECT,
                 'title'        => _wp('Source language'),
                 'description'  => _wp(
-                    'Shop-Script 6 allows storing product info and database content in one language. Select primary language of your WebAsyst Shop-Script-based online store.'
+                    'Shop-Script 7 allows storing product info and database content in one language. Select primary language of your WebAsyst Shop-Script-based online store.'
                 ),
                 'options'      => array(),
             );
@@ -590,7 +590,7 @@ SQL;
             }
 
             #'global_rate';
-            $sql = 'SELECT `t`.`classID`, `t`.`value`,
+            $sql = 'SELECT `t`.`classID`, `t`.`value`
             FROM `SC_tax_rates` `t`
             WHERE
             (`classID` IN (%s))
@@ -2506,7 +2506,7 @@ SQL;
         $control_params['control_wrapper'] = '&nbsp;%2$s <a href="#"><i class="icon16 calendar"></i></a>';
         $control_params['value'] = date('Y-m-d', strtotime($datetime));
         $control_params['class'] = array_merge((array)ifset($control_params['class'], array()), array('small'));
-        $control = waHtmlControl::getControl(waHtmlControl::RADIOGROUP, 'radio', $params);
+        $control .= waHtmlControl::getControl(waHtmlControl::RADIOGROUP, 'radio', $params);
         $control .= $params['control_separator'];
         $control .= waHtmlControl::getControl(waHtmlControl::INPUT, 'custom', $control_params);
         $today = date('Y-m-d');

@@ -257,6 +257,26 @@ class shopMigrateInsalesTransport extends shopMigrateTransport
         return $count;
     }
 
+    /**
+     * @uses shopMigrateInsalesTransport::stepCategory()
+     * @uses shopMigrateInsalesTransport::stepCategoryRebuild()
+     * @uses shopMigrateInsalesTransport::stepCustomer()
+     * @uses shopMigrateInsalesTransport::stepCustomerCategory()
+     * @uses shopMigrateInsalesTransport::stepProduct()
+     * @uses shopMigrateInsalesTransport::stepProductImage()
+     * @uses shopMigrateInsalesTransport::stepProductCategory()
+     * @uses shopMigrateInsalesTransport::stepPages()
+     * @uses shopMigrateInsalesTransport::stepOrder()
+     * @uses shopMigrateInsalesTransport::stepOptions()
+     *
+     * @param $current
+     * @param $count
+     * @param $processed
+     * @param $stage
+     * @param $error
+     * @return bool
+     * @throws waException
+     */
     public function step(&$current, &$count, &$processed, $stage, &$error)
     {
         $method_name = 'step'.ucfirst($stage);
@@ -473,10 +493,11 @@ class shopMigrateInsalesTransport extends shopMigrateTransport
 
     private function stepProduct(&$current_stage, &$count, &$processed)
     {
-        static $xml = null;
-        if (!$xml) {
-            $xml = simplexml_load_file($this->getProductsPath($current_stage));
+        static $xmls = array();
+        if (empty($xmls[$current_stage])) {
+            $xmls[$current_stage] = simplexml_load_file($this->getProductsPath($current_stage));
         }
+        $xml = $xmls[$current_stage];
         if (!isset($this->map[self::STAGE_PRODUCT])) {
             $this->map[self::STAGE_PRODUCT] = array();
         }
@@ -660,7 +681,7 @@ class shopMigrateInsalesTransport extends shopMigrateTransport
         if ($item = reset($this->map[self::STAGE_PRODUCT_IMAGE])) {
             list($product_id, $url) = $item;
             try {
-                $name = preg_replace('@[^a-zA-Zа-яА-Я0-9\._\-]+@', '', basename(urldecode($url)));
+                $name = preg_replace('@[^a-zA-Zа-яА-ЯёЁ0-9\._\-]+@ui', '', basename(urldecode($url)));
                 $file = $this->getTempPath('pi');
                 if (waFiles::delete($file) && waFiles::upload($url, $file) && file_exists($file)) {
                     $processed += $this->addProductImage($product_id, $file, $name);
@@ -728,10 +749,11 @@ class shopMigrateInsalesTransport extends shopMigrateTransport
 
     private function stepCustomer(&$current_stage, &$count, &$processed)
     {
-        static $xml = null;
-        if (!$xml) {
-            $xml = simplexml_load_file($this->getCustomersPath($current_stage));
+        static $xmls = array();
+        if (empty($xmls[$current_stage])) {
+            $xmls[$current_stage] = simplexml_load_file($this->getCustomersPath($current_stage));
         }
+        $xml = $xmls[$current_stage];
         if (!$current_stage) {
             $this->map[self::STAGE_CUSTOMER] = array();
         }
@@ -775,7 +797,7 @@ class shopMigrateInsalesTransport extends shopMigrateTransport
 
     private function stepOrder(&$current_stage, &$count, &$processed)
     {
-        static $xml = null;
+        static $xmls = array();
         static $order_model = null;
         static $order_params_model = null;
         static $order_items_model = null;
@@ -813,9 +835,10 @@ class shopMigrateInsalesTransport extends shopMigrateTransport
             'total-price'                 => 'total',
             'currency'                    => '',
         );
-        if (!$xml) {
-            $xml = simplexml_load_file($this->getOrdersPath($current_stage));
+        if (empty($xmls[$current_stage])) {
+            $xmls[$current_stage] = simplexml_load_file($this->getOrdersPath($current_stage));
         }
+        $xml = $xmls[$current_stage];
 
         foreach ($xml->xpath('/orders/order') as $o) {
             $contact_id = isset($this->map[self::STAGE_CUSTOMER][(int)$o->{'client'}->{'id'}]) ? $this->map[self::STAGE_CUSTOMER][(int)$o->{'client'}->{'id'}] : null;
@@ -883,16 +906,16 @@ class shopMigrateInsalesTransport extends shopMigrateTransport
                 }
 
                 foreach ($o->xpath('order-lines/order-line') as $i) {
-                    $product_map = $this->map[self::STAGE_PRODUCT][(int)$i->{'product-id'}];
+                    $product_map = ifset($this->map[self::STAGE_PRODUCT][(int)$i->{'product-id'}], array());
                     $item = array(
                         'order_id'   => $order['id'],
-                        'product_id' => $this->map[self::STAGE_PRODUCT][(int)$i->{'product-id'}]['id'],
+                        'product_id' => ifset($this->map[self::STAGE_PRODUCT][(int)$i->{'product-id'}]['id']),
                         'quantity'   => (int)$i->{'quantity'},
                         'price'      => (double)$i->{'sale-price'},
                         'name'       => (string)$i->{'title'},
                         'type'       => 'product',
                         'stock_id'   => null,//TODO
-                        'sku_id'     => ifempty($product_map['skus'][$i->{'variant-id'}], $product_map['sku_id']),
+                        'sku_id'     => ifempty($product_map['skus'][(int)$i->{'variant-id'}], ifset($product_map['sku_id'])),
 
                         //                        ''           => (double)$i->{'product-id'},
                     );
@@ -943,6 +966,9 @@ class shopMigrateInsalesTransport extends shopMigrateTransport
                                     $workflow = new shopWorkflow();
                                     $workflow_map = array();
                                     foreach ($workflow->getAvailableActions() as $action_id => $action) {
+                                        if (empty($action['state'])) {
+                                            continue;
+                                        }
                                         if (!isset($workflow_map[$action['state']])) {
                                             $workflow_map[$action['state']] = $action_id;
                                         }
@@ -1142,11 +1168,6 @@ class shopMigrateInsalesTransport extends shopMigrateTransport
         }
     }
 
-    private function rewind($current)
-    {
-
-    }
-
     /**
      * @param $query
      * @param string[] $params
@@ -1156,7 +1177,7 @@ class shopMigrateInsalesTransport extends shopMigrateTransport
      */
     private function query($query, $params = array(), $file = null)
     {
-        waSessionStorage::close();
+        wa()->getStorage()->close();
         $apikey = $this->getOption('apikey');
         $hostname = $this->getOption('hostname');
         $password = $this->getOption('password');

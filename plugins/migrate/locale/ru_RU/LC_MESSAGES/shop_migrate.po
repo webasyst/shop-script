@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.7.4\n"
+"X-Generator: Poedit 1.8.7.1\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -205,8 +205,8 @@ msgid "Source language"
 msgstr "Исходный язык"
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:108
-msgid "Shop-Script 6 allows storing product info and database content in one language. Select primary language of your WebAsyst Shop-Script-based online store."
-msgstr "Shop-Script 6 позволяет хранить информацию о товарах и содержимое базы данных на одном языке. Выберите основной язык вашего магазина на базе WebAsyst Shop-Script."
+msgid "Shop-Script 7 allows storing product info and database content in one language. Select primary language of your WebAsyst Shop-Script-based online store."
+msgstr "Shop-Script 7 позволяет хранить информацию о товарах и содержимое базы данных на одном языке. Выберите основной язык вашего магазина на базе WebAsyst Shop-Script."
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:135
 msgid "Currency"
@@ -486,7 +486,7 @@ msgid "OpenCart 1.5.x with Web API 1.0 plugin"
 msgstr "OpenCart 1.5.x с установленным плагином Web API 1.0"
 
 #: /wa-apps/shop/plugins/migrate/lib/shopMigrate.plugin.php:30
-msgid "Migrate data from <a href=\"http://www.opencart.com\" target=\"_blank\">OpenCart</a>-powered online store via Web API 1.0 OpenCart plugin.<br><br><strong>IMPORTANT:</strong> <a href=\"https://github.com/zenwalker/opencart-webapi/\" target=\"_blank\">Web API 1.0 OpenCart plugin</a> must be installed to export your data from OpenCart."
+msgid "Migrate data from <a href=\"http://www.opencart.com\" target=\"_blank\">OpenCart</a>-powered online store via Web API 1.0 OpenCart plugin.<br><br><strong>IMPORTANT:</strong> <a href=\"http://www.opencart.com/index.php?route=extension/extension/info&extension_id=14754\" target=\"_blank\">Opencart API plugin</a> must be installed to export your data from OpenCart."
 msgstr "Перенос данных из интернет-магазина на основе <a href=\"http://www.opencart.com\" target=\"_blank\">OpenCart</a> с установленным плагином Web API 1.0.<br><br><strong>ВАЖНО:</strong> Для переноса данных в вашу установку OpenCart нужно обязательно добавить плагин <a href=\"https://github.com/zenwalker/opencart-webapi/\" target=\"_blank\">Web API 1.0 OpenCart</a>, иначе перенос работать не будет."
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateInsalesTransport.class.php:145
@@ -548,3 +548,110 @@ msgstr "Импортировать все товары, категории, по
 msgid "Import only orders and customers starting from"
 msgstr "Импортировать только заказы и покупателей начиная с указанной даты"
 
+msgid "Enable WooCommerce REST API and obtain Consumer Key and Consumer Secret according to this guide: <a href=\"%1$s\" target=\"_blank\">%1$s</a>"
+msgstr "Включите WooCommerce REST API и получите Consumer Key и Consumer Secret по этой инструкции: <a href=\"%1$s\" target=\"_blank\">%1$s</a>"
+
+msgid "Migrate data from <a href=\"http://www.woothemes.com/woocommerce/\" target=\"_blank\">WooCommerce</a>-powered online store (a plugin that enables ecommerce functionality for WordPress)."
+msgstr "Импортируйте данные из интернет-магазина на основе <a href=\"http://www.woothemes.com/woocommerce/\" target=\"_blank\">WooCommerce</a> — плагина, добавляющего функции интернет-магазина для WordPress."
+
+msgid "Enter your main WordPress blog URL"
+msgstr "Введите URL вашего блога на WordPress"
+
+msgid "Enter your OpenCart installation URL"
+msgstr "Введите URL вашей установки OpenCart"
+
+msgid "Import data from an online store powered by <a href=\"http://magento.com\" target=\"_blank\">Magento</a> CE 1.7 and later or Magento EE 1.12 and later."
+msgstr "Импорт данных из интернет-магазина на основе <a href=\"http://magento.com\" target=\"_blank\">Magento</a> CE 1.7 и старше либо Magento EE 1.12 и старше."
+
+msgid "Enter the URL of your Magento storefront. Make sure to enter storefront URL, not admin URL."
+msgstr "Введите URL вашей витрины Magento. Не перепутайте его с URL раздела администратора."
+
+msgid "Path to Magento admin (backend)"
+msgstr "Путь к административному разделу (бекенду) Magento"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:31
+msgid "Magento URL"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:41
+msgid "Admin mode path"
+msgstr "Путь к разделу администрирования"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:49
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWoocommerceTransport.class.php:33
+msgid "Consumer Key"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:58
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWoocommerceTransport.class.php:41
+msgid "Consumer Secret"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:114
+msgid "Verifier code"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:134
+msgid "Empty URL"
+msgstr "Пустой URL"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:141
+msgid "Invalid URL"
+msgstr "Недопустимый URL"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:148
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:151
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:657
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:712
+msgid "Magento installation was not found by this URL: %s"
+msgstr "Установка Magento не найдена по этому URL: %s"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:148
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:658
+msgid "empty server response"
+msgstr "пустой ответ сервера"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:158
+msgid "Empty value"
+msgstr "Пустое значение"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:173
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:694
+msgid "Invalid value"
+msgstr "Недопустимое значение"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:430
+msgid "Paste Magento verifier code to continue"
+msgstr "Вставьте Magento verifier code, чтобы продолжить"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:660
+msgid "Empty server response"
+msgstr "Пустой ответ сервера"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:713
+msgid "unexpected server response"
+msgstr "неожиданный ответ сервера"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:760
+msgid "1. Click this link: <a href=\"%1$s\" target=\"_blank\" style=\"color: #03c;\"><b>%1$s</b><i class=\"icon10 new-window\"></i></a><br> 2. Copy <b>verifier code</b> from the Magento window and paste in the field above.<br> 3. Click <b>Connect</b>. This will grant API access to your data in Magento admin mode."
+msgstr "1. Перейдите по ссылке: <a href=\"%1$s\" target=\"_blank\" style=\"color: #03c;\"><b>%1$s</b><i class=\"icon10 new-window\"></i></a><br> 2. Скопируйте <b>verifier code</b> и окна Magento и вставьте его в поле выше.<br> 3. Щелкните по <b>Connect</b>, чтобы предоставить API-доступ к вашим данным в режиме администрирование Magento."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:1170
+msgid "Get new verifier code"
+msgstr "Получить новый verifier code"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateMagentoTransport.class.php:1170
+msgid "This will generate new Magento request link so you can copy the new verifier code"
+msgstr "Это сгенерирует новую ссылку для запросов к Magento, чтобы вы могли скопировать новый verifier code"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWoocommerceTransport.class.php:25
+msgid "WordPress URL"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWoocommerceTransport.class.php:96
+msgid "Woocommerce plugin version"
+msgstr "Версия плагина Woocommerce"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWoocommerceTransport.class.php:106
+msgid "Woocommerce plugin version should be 2.2 or later"
+msgstr "Версия плагина Woocommerce должна быть не ниже 2.2"

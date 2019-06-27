@@ -2,8 +2,8 @@
 
 /**
  * Class shopMigrateOpencartTransport
- * @link https://github.com/zenwalker/opencart-webapi/
- * @title OpenCart 1.5.x with Web API 1.0 plugin
+ * @link        https://github.com/zenwalker/opencart-webapi/
+ * @title       OpenCart 1.5.x with Web API 1.0 plugin
  * @description migrate data via Web API 1.0 OpenCart plugin
  */
 class shopMigrateOpencartTransport extends shopMigrateTransport
@@ -127,6 +127,22 @@ class shopMigrateOpencartTransport extends shopMigrateTransport
         return $count;
     }
 
+    /**
+     * @uses shopMigrateOpencartTransport::stepCategory()
+     * @uses shopMigrateOpencartTransport::stepProduct()
+     * @uses shopMigrateOpencartTransport::stepProductImage()
+     * @uses shopMigrateOpencartTransport::stepProductCategory()
+     * @uses shopMigrateOpencartTransport::stepOptions()
+     * @uses shopMigrateOpencartTransport::stepPages()
+     *
+     * @param $current
+     * @param $count
+     * @param $processed
+     * @param $stage
+     * @param $error
+     * @return bool
+     * @throws waException
+     */
     public function step(&$current, &$count, &$processed, $stage, &$error)
     {
         $method_name = 'step'.ucfirst($stage);
@@ -210,7 +226,7 @@ class shopMigrateOpencartTransport extends shopMigrateTransport
                         $feature['id'] = $feature_model->save($feature);
                         $insert = array(
                             'feature_id' => $feature['id'],
-                            'type_id'    => $this->getOption('type', 0)
+                            'type_id'    => $this->getOption('type', 0),
                         );
                         $type_features_model->insert($insert, 2);
                         $map = 'f:'.$feature['code'].':'.ifempty($options[$id]['dimension']);
@@ -273,7 +289,7 @@ class shopMigrateOpencartTransport extends shopMigrateTransport
                             }
                             $this->map[self::STAGE_PRODUCT_IMAGE][] = array(
                                 $product_id,
-                                $url
+                                $url,
                             );
                             ++$count[self::STAGE_PRODUCT_IMAGE];
                         }
@@ -293,7 +309,7 @@ class shopMigrateOpencartTransport extends shopMigrateTransport
             list($product_id, $url) = $item;
             $file = $this->getTempPath('pi');
             try {
-                $name = preg_replace('@[^a-zA-Zа-яА-Я0-9\._\-]+@', '', basename(urldecode($url)));
+                $name = preg_replace('@[^a-zA-Zа-яёА-ЯЁ0-9\._\-]+@u', '', basename(urldecode($url)));
                 $name = preg_replace('@(-\d+x\d+)(\.[a-z]{3,4})@', '$2', $name);
                 if (waFiles::delete($file) && waFiles::upload($url, $file)) {
                     $processed += $this->addProductImage($product_id, $file, $name);
@@ -364,8 +380,8 @@ class shopMigrateOpencartTransport extends shopMigrateTransport
 
     /**
      * @param RecursiveArrayIterator $iterator
-     * @param int $current_stage
-     * @param int $processed
+     * @param int                    $current_stage
+     * @param int                    $processed
      */
     private function traverseStructure($iterator, &$current_stage, &$processed)
     {
@@ -375,7 +391,8 @@ class shopMigrateOpencartTransport extends shopMigrateTransport
                 if (is_int($iterator->key())) {
                     ++$count;
                     if ($count > $current_stage) {
-                        if ($this->addCategory($iterator->current())) {
+                        $current = $iterator->current();
+                        if ($this->addCategory($current)) {
 
                             ++$processed;
                         }
@@ -398,7 +415,7 @@ class shopMigrateOpencartTransport extends shopMigrateTransport
 
         $data = array(
             'name'        => $raw['name'],
-            'description' => $raw['description'],
+            'description' => ifset($raw['description']),
             'type'        => shopCategoryModel::TYPE_STATIC,
             'id'          => intval($raw['category_id']),
             'url'         => intval($raw['category_id']),
@@ -613,7 +630,7 @@ class shopMigrateOpencartTransport extends shopMigrateTransport
     }
 
     /**
-     * @param $query
+     * @param      $query
      * @param null $field
      * @return array
      * @throws waException
@@ -642,6 +659,14 @@ class shopMigrateOpencartTransport extends shopMigrateTransport
 
         $json = null;
         if ($response) {
+
+            //remove garbage before and after JSON string, if detected
+            if (preg_match('@^[^{]*\{[^}]*\}[^}]*$@', $response)) {
+                $response = preg_replace('@^[^{]+@', '', $response);
+                $response = preg_replace('@[^}]+$@', '', $response);
+                $response = str_replace(PHP_EOL, '', $response);
+            }
+
             if ($json = json_decode($response, true)) {
                 if (!is_array($json)) {
 
@@ -654,9 +679,13 @@ class shopMigrateOpencartTransport extends shopMigrateTransport
                 }
             } else {
                 $hint = "\n".htmlentities(strip_tags($response), ENT_NOQUOTES, 'utf-8');
+                waLog::log('Unexpected server response: '.nl2br($hint));
+                return null;
                 throw new waException('Unexpected server response: '.nl2br($hint));
             }
         } else {
+            waLog::log('Empty server response '.$url);
+            return null;
             throw new waException('Empty server response '.$url);
         }
         $result = ($field === null) ? $json : ifset($json[$field], null);
