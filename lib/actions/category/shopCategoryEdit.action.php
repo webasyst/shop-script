@@ -132,6 +132,7 @@ class shopCategoryEditAction extends waViewAction
     protected function getDynamicSettings($settings)
     {
         $category_helper = new shopCategoryHelper();
+        $conditions = ifset($settings, 'conditions', 'feature', []);
 
         $options_filter_count = [
             'frontend' => true,
@@ -145,7 +146,7 @@ class shopCategoryEditAction extends waViewAction
             'ignore_id' => array_keys($settings['allow_filter_data'])
         ];
         $options_features = [
-            'code'   => ifset($settings, 'conditions', 'feature', []),
+            'code'   => array_keys($conditions),
             'status' => null,
         ];
 
@@ -154,7 +155,7 @@ class shopCategoryEditAction extends waViewAction
         $settings['filter'] += $category_helper->getFilters($options_filter);
         $settings['features'] = $category_helper->getFilters($options_features);
 
-        $all = $this->extendSavedConditions($settings['features'], $options_features['code']);
+        $all = $this->extendSavedConditions($settings['features'], $conditions);
         $settings['features'] = $category_helper->getFeaturesValues($settings['features'], $all);
 
         return $settings;
