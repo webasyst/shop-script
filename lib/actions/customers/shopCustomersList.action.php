@@ -66,7 +66,7 @@ class shopCustomersListAction extends waViewAction
         $params = array('hash' => $hash, 'filter' => $filter);
         $backend_customers_list_result = wa()->event('backend_customers_list', $params);
 
-        if (wa()->appExists('crm')) {
+        if (wa()->appExists('crm') && wa()->getUser()->getRights('crm')) {
             // search button only from CRM if CRM installed
             unset($backend_customers_list_result['contacts']['top_li']);
         }
