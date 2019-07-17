@@ -668,11 +668,22 @@ class shopOrder implements ArrayAccess
     protected function getSubtotal()
     {
         $subtotal = 0.0;
-
         foreach ($this->items as $i) {
-            $subtotal += floatval($i['price']) * intval($i['quantity']);
+            if(array_key_exists('type', $i)) {
+                switch ($i['type']) {
+                    case 'product':
+                        $this->formatValues($i, self::$product_fields);
+                        break;
+                    case 'service':
+                        $this->formatValues($i, self::$service_fields);
+                        break;
+                }
+            } else {
+                $i['price'] = $this->formatValue($i['price'], 'float');
+                $i['quantity'] = $this->formatValue($i['quantity'], 'int');
+            }
+            $subtotal += $i['price']*$i['quantity'];
         }
-
         return $subtotal;
     }
 
