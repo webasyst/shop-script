@@ -5,6 +5,9 @@
 <script src="{$wa_app_static_url}js/lazy.load.js?v{$wa->version()}"></script>
 <script src="{$wa_active_theme_url}nifty.shop.js?v{$wa_theme_version}"></script>
 
+<link href="{$wa_active_theme_url}js/swipebox/css/swipebox.css" rel="stylesheet">
+<script src="{$wa_active_theme_url}js/swipebox/js/jquery.swipebox.js"></script>
+
 {if $wa->shop->config('enable_2x')}
     <script src="{$wa_static_url}wa-content/js/jquery-plugins/jquery.retina.min.js?v{$wa->version(true)}"></script>
     <script>$(window).load(function(){ $('.promo img,.product-list img,.product-page img,.cart img').retina()});</script>

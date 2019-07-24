@@ -59,6 +59,26 @@
                 </div>
             </section>
 
+            {strip}
+            {capture assign="_cross_selling_html"}
+                {$wa->shop->checkout()->crossSelling([
+                    "DEBUG" => true,
+                    "wrapper" => "#js-cross-selling-section"
+                ])}
+            {/capture}
+            {/strip}
+
+            {if !empty($_cross_selling_html)}
+                <section class="s-order-section s-cross-selling-section" id="js-cross-selling-section">
+                    <div class="s-section-header">
+                        <h2 class="s-header">{$config.recommendations.block_name|default:"[`Recommend`]"|escape}</h2>
+                    </div>
+                    <div class="s-section-body">
+                        {$_cross_selling_html}
+                    </div>
+                </section>
+            {/if}
+
         </div>
         <div class="s-order-column">
 
