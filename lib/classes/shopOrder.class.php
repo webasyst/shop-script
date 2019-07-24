@@ -69,6 +69,7 @@
  * @property-read waShipping $shipping_plugin       Shipping plugin instance if selected
  * @property-read string $shipping_address_text     Customer shipping address as human-readable text in one line
  * @property-read string $shipping_address_html     Customer shipping address as human-readable text with beautiful html-format
+ * @property-read array $shipping_custom_fields     Custom fields from shipping plugins
  * @property-read string $tracking                  HTML, contains tracking info or null if it not available
  * @property-read array $courier                    Courier data from shop_api_courier table
  * @property-read string $map                       HTML contains data to display map
@@ -688,7 +689,30 @@ class shopOrder implements ArrayAccess
         }
         $this->data['discount'] = $this->castPrice($this->discount, $this->currency);
         $this->data['shipping'] = $this->castPrice($this->shipping, $this->currency);
-        return max(0, $total - $this->data['discount'] + $this->data['shipping']);
+
+        $total = $total - $this->data['discount'] + $this->data['shipping'];
+        $total += $this->getNotIncludedTax();
+        return max(0, $total);
+    }
+
+    protected function getNotIncludedTax()
+    {
+        $not_included = 0;
+
+        //Add to the total cost tax not included in the price of goods
+        foreach ($this->items as $item) {
+            if (ifset($item, 'tax_included', '1') == 0) {
+                $not_included += ifset($item, 'tax', 0);
+            }
+        }
+
+        $shipping_tax_included = ifset($this->data,'params', 'shipping_tax_included', true);
+
+        if ($shipping_tax_included == 0) {
+            $not_included += ifset($this->data,'params', 'shipping_tax', true);
+        }
+
+        return $not_included;
     }
 
     protected function getPrintforms()
@@ -1548,7 +1572,7 @@ class shopOrder implements ArrayAccess
             if (!$this->contact->getId() && !empty($this->options['customer_is_company'])) {
                 $this->contact['is_company'] = 1;
             }
-            
+
             if (!empty($customer_validation_disabled)) {
                 $this->contact->save();
             } else {
@@ -1847,7 +1871,6 @@ class shopOrder implements ArrayAccess
 
             $plugin_params += shopShipping::convertTotalDimensions($total, $units);
             $rates = $plugin->getRates($this->data['items'], $shipping_address, $plugin_params);
-
 
 
             $params['shipping_plugin'] = $plugin->getId();
@@ -2368,8 +2391,15 @@ class shopOrder implements ArrayAccess
         }
 
         foreach ($items as $key => $item) {
+            if ($key === '%shipping%') {
+                continue;
+            }
+
             if (isset($item['tax'])) {
                 $this->data['items'][$key]['tax'] = $item['tax'];
+            }
+            if (isset($item['tax_included'])) {
+                $this->data['items'][$key]['tax_included'] = $item['tax_included'];
             }
         }
 
@@ -3653,11 +3683,12 @@ class shopOrder implements ArrayAccess
                         switch ($env) {
                             case 'backend':
                                 $id = sprintf('shop_tracking_%s', $this->id);
+                                $app_url = wa()->getAppUrl('shop');
                                 $tracking = <<<HTML
 <i class="icon16 loading" id="{$id}"></i>
 <script type="text/javascript">
     (function () {
-        $.get('?module=order&action=tracking&order_id={$this->id}', function (data) {
+        $.get('{$app_url}?module=order&action=tracking&order_id={$this->id}', function (data) {
             if (data && data.status === 'ok') {
                 $('#{$id}').replaceWith(data.data.tracking);
             }
@@ -3677,23 +3708,35 @@ HTML;
                         $tracking = $plugin->tracking($params['tracking_number']);
                     }
                 }
-                if ($custom_fields = $plugin->customFields(new waOrder())) {
-                    foreach ($custom_fields as $k => $v) {
-                        if (!empty($params['shipping_params_'.$k])) {
-                            $custom_fields[$k]['value'] = $params['shipping_params_'.$k];
-                        } else {
-                            unset($custom_fields[$k]);
-                        }
-                    }
-                    $view = wa()->getView();
-                    $view->assign('custom_fields', $custom_fields);
-                }
             } catch (waException $ex) {
                 $tracking = $ex->getMessage();
             }
         }
 
         return $tracking;
+    }
+
+    public function getShippingCustomFields()
+    {
+        $plugin = $this->getShippingPlugin();
+        if (!$plugin) {
+            return [];
+        }
+
+        $custom_fields = $plugin->customFields(new waOrder());
+        if (!$custom_fields) {
+            return [];
+        }
+
+        $params = $this->params;
+        foreach ($custom_fields as $k => $v) {
+            if (!empty($params['shipping_params_'.$k])) {
+                $custom_fields[$k]['value'] = $params['shipping_params_'.$k];
+            } else {
+                unset($custom_fields[$k]);
+            }
+        }
+        return $custom_fields;
     }
 
     public function getShippingPluginInfo($shipping_id = null)

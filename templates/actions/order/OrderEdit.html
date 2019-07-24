@@ -1,3 +1,15 @@
+{if !empty($embedded_version)}
+    {include 'templates/actions/backend/BackendOrders.html'}
+    <style>
+    #maincontent { margin-top: 0 !important }
+    .s-order-customer-details .back { display: none }
+    </style>
+{/if}
+
+{if !empty($embedded_version)}
+    <div id="s-content">
+{/if}
+
 <form id="order-edit-form" method="post" action="?module=order&action=save{if !empty($order.id)}&id={$order.id}{/if}">
 <div class="sidebar left400px s-order-customer-details">
     <div class="block top-padded">
@@ -260,7 +272,11 @@
     <div class="block double-padded">
 
         <div class="float-right" style="margin-left: 10px;">
-            <input id="customer-source" type="text" placeholder="[`Customer source`]" name="customer_source" value="{ifset($order, 'params', 'referer_host', '')|escape}">
+            {$_default_customer_source = ''}
+            {if empty($order.id) && !empty($order_editor_config['source'])}
+                {$_default_customer_source = $order_editor_config['source']}
+            {/if}
+            <input id="customer-source" type="text" placeholder="[`Customer source`]" name="customer_source" value="{ifset($order, 'params', 'referer_host', $_default_customer_source)|escape}">
         </div>
         <div class="block not-padded float-right" style="margin-left: 10px;">
             <select id="order-storefront" name="storefront">
@@ -483,6 +499,10 @@
 {$wa->csrf()}
 </form>
 
+{if !empty($embedded_version)}
+    </div>{* #s-content *}
+{/if}
+
 <!-- plugin hook: 'backend_order_edit' -->
 {* @event backend_order_edit.%plugin_id% *}
 {if !empty($backend_order_edit)}{foreach $backend_order_edit as $plugin_id => $plugin_html}{$plugin_html}{/foreach}{/if}
@@ -510,6 +530,7 @@
         ignore_stock_count: {if $ignore_stock_count}true{else}false{/if},
         title: title,
         float_delimeter: {if strpos((string)3.14, ",") !== false}","{else}"."{/if},
+        embedded_version: {if !empty($embedded_version)}1{else}0{/if},
         price_edit: true
     });
 

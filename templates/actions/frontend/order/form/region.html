@@ -1,6 +1,7 @@
 {strip}
 
 {$_config = $config.shipping}
+{$_system_address_field_names = $config->getSystemAddressFieldNames()}
 
 {$_errors = []}
 {if !empty($error_step_id) && $error_step_id === "region"}{$_errors = $errors}{/if}
@@ -68,7 +69,7 @@
 {capture assign="_zip_field"}
     {if !empty($_config.ask_zip)}
         <div class="wa-field-wrapper wa-zip-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MINI}">
-            <label class="wa-label">{_render_label _label="[`ZIP code`]" _required=!empty($_is_zip_required)}</label>
+            <label class="wa-label">{_render_label _label=$_system_address_field_names.zip _required=!empty($_is_zip_required)}</label>
             <input class="wa-input js-zip-field" autocomplete="false" name="region[zip]" type="text" value="{$region.selected_values.zip|default:""|escape}" {if !empty($_is_zip_required)}required{/if}>
         </div>
     {/if}
@@ -109,7 +110,7 @@
                         {* COUNTRY *}
                         <div class="wa-field-wrapper wa-country-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
 
-                            <label class="wa-label">{_render_label _label="[`Country`]" _required=!empty($_is_country_required)}</label>
+                            <label class="wa-label">{_render_label _label=$_system_address_field_names.country _required=!empty($_is_country_required)}</label>
 
                             {if empty($_active_location.country_locked)}
                                 <select class="wa-select js-country-field" name="region[country]" {if !empty($_is_country_required)}required{/if}>
@@ -146,7 +147,7 @@
                         {* REGION *}
                         <div class="wa-field-wrapper wa-region-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
 
-                            <label class="wa-label">{_render_label _label="[`Region`]" _required=!empty($_is_region_required)}</label>
+                            <label class="wa-label">{_render_label _label=$_system_address_field_names.region _required=!empty($_is_region_required)}</label>
                             {if empty($_active_location.region_locked)}
                                 {if !empty($_active_county.has_regions)}
                                     {$_active_region_id = $_active_location.region_id}
@@ -210,7 +211,7 @@
 
                         {* CITY *}
                         <div class="wa-field-wrapper wa-city-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
-                            <label class="wa-label">{_render_label _label="[`Locality`]" _required=!empty($_is_city_required)}</label>
+                            <label class="wa-label">{_render_label _label=$_system_address_field_names.city _required=!empty($_is_city_required)}</label>
 
                             {if empty($_active_location.city_locked)}
                                 {if $_active_region.has_cities}
@@ -320,7 +321,7 @@
                         {else}
 
                             <div class="wa-field-wrapper wa-country-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
-                                <label class="wa-label">{_render_label _label="[`Country`]" _required=!empty($_is_country_required)}</label>
+                                <label class="wa-label">{_render_label _label=$_system_address_field_names.country _required=!empty($_is_country_required)}</label>
 
                                 <select class="wa-select js-country-field" name="region[country]" {if !empty($_is_country_required)}required{/if}>
                                     {foreach $_countries as $_country}
@@ -352,7 +353,7 @@
 
                         {else}
                             <div class="wa-field-wrapper wa-region-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
-                                <label class="wa-label">{_render_label _label="[`Region`]" _required=!empty($_is_region_required)}</label>
+                                <label class="wa-label">{_render_label _label=$_system_address_field_names.region _required=!empty($_is_region_required)}</label>
 
                                 {if !empty($_active_county.has_regions)}
                                     {$_active_region_id = null}
@@ -400,7 +401,7 @@
 
                         {else}
                             <div class="wa-field-wrapper wa-city-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
-                                <label class="wa-label">{_render_label _label="[`Locality`]" _required=!empty($_is_city_required)}</label>
+                                <label class="wa-label">{_render_label _label=$_system_address_field_names.city _required=!empty($_is_city_required)}</label>
 
                                 {if $_active_region.has_cities}
                                     {$_active_city_id = null}

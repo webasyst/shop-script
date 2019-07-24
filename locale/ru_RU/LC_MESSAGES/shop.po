@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 2.0.6\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -11128,7 +11128,7 @@ msgstr "Разрешить покупателям выбирать другой 
 msgid "For example, to change product properties such as color or size"
 msgstr "Например, для изменения свойств товара: цвета, размера и т. п."
 
-msgid "Discout information per product"
+msgid "Discount information per product"
 msgstr "Отображение скидки на каждый товар"
 
 msgid "Total discount information"
@@ -11810,6 +11810,12 @@ msgstr "Возвращает URL страницы корзины"
 msgid "Nearest delivery date and time formatted as <em>yyyy-mm-dd</em>; e.g., <em>2001-12-31</em>."
 msgstr "Ближайшая дата и время доставки в формате <em>yyyy-mm-dd</em>, например, <em>2001-12-31</em>."
 
+msgid "Recommended"
+msgstr "Рекомендуем"
+
+msgid "Configure recommendations (Cross-selling)"
+msgstr "Настроить рекомендации (перекрестные продажи)"
+
 #: /wa-apps/shop/lib/config/checkout2/default.php:18
 msgid "Your shopping cart is empty"
 msgstr "Ваша корзина пуста"
@@ -12270,3 +12276,102 @@ msgstr "Экспортировать характеристики и изобр�
 
 msgid "For products in “Selectable parameters” mode, primary SKU’s features and image are always exported in a separate line."
 msgstr "Для товаров в режиме «Выбор параметров» характеристики и изображение основного артикула всегда экспортируются отдельной строкой."
+
+msgid "Add order"
+msgstr "Добавить заказ"
+
+msgid "type a product name"
+msgstr "введите название товара"
+
+msgid "without photos"
+msgstr "без фото"
+
+msgid "with photos"
+msgstr "с фото"
+
+msgid "Photos"
+msgstr "Фотографии"
+
+msgid "date"
+msgstr "дата"
+
+msgid "deleted ones"
+msgstr "удаленные"
+
+msgid "published"
+msgstr "опубликованные"
+
+msgid "pending moderation"
+msgstr "непроверенные"
+
+msgid "Moderation"
+msgstr "Модерация"
+
+msgid "view all reviews"
+msgstr "посмотреть все отзывы"
+
+msgid "Allow customers to attach images to their reviews"
+msgstr "Разрешать покупателям загружать изображения к отзывам"
+
+msgid "Publish reviews only after moderation"
+msgstr "Публиковать отзывы только после проверки"
+
+msgid "Recommended with enabled option “Allow customers to attach images to their reviews”."
+msgstr "Рекомендуется включить вместе с настройкой «Разрешать покупателям загружать изображения к отзывам»."
+
+msgid "Your review will be published after moderation."
+msgstr "Ваш отзыв появится на сайте после проверки."
+
+msgid "Too large total image size. Remove some images or reduce their size with an image processing program before uploading."
+msgstr "Слишком большой размер изображений. Удалите некоторые изображения или уменьшите их размер с помощью графического редактора."
+
+msgid "Image uploading is disabled."
+msgstr "Загрузка изображений заблокирована."
+
+msgid "Image deletion error"
+msgstr "Ошибка при удалении изображения"
+
+msgid "Confirm image deletion"
+msgstr "Подтвердите удаление изображения"
+
+msgid "Upload photos"
+msgstr "Загрузить фотографии"
+
+msgid "or drag &amp; drop here (max. 10 photos)"
+msgstr "или перетащите сюда (до 10 фото)"
+
+msgid "Add a description"
+msgstr "Добавить описание"
+
+msgid "Enter a description here"
+msgstr "Введите описание"
+
+msgid "You can upload a maximum of 10 photos."
+msgstr "Можно загрузить не больше 10 фотографий."
+
+msgid "Unsupported image type. Use PNG, GIF and JPEG image files only."
+msgstr "Недопустимый тип изображения. Используйте файлы в форматах PNG, GIF и JPEG."
+
+msgid "Total size of selected files cannot be greater than"
+msgstr "Общий размер выбранных файлов не должен превышать"
+
+msgid "Each file’s size cannot be greater than"
+msgstr "Размер каждого файла не должен превышать"
+
+msgid "publish"
+msgstr "опубликовать"
+
+msgid "Show order items’ and total order weight"
+msgstr "Показывать вес товаров и общий вес заказа"
+
+msgid "No products are selected"
+msgstr "Товары не выбраны"
+
+msgid "Open “<a href=\"%s\">%s</a>” section."
+msgstr "Откройте раздел «<a href=\"%s\">%s</a>»."
+
+msgid "Select products for a new coupon."
+msgstr "Выберите товары для нового купона."
+
+msgid "Perform “<em>%s</em>” action using the menu on the right."
+msgstr "Выполните действие «<em>%s</em>» с помощью меню справа."

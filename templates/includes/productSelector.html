@@ -16,7 +16,7 @@
                 <li>
                     <label class="black"><input type="radio" value="" name="hash"{if empty($hash.type)} checked="checked"{/if}> {_wd('shop',"All products")}</label>
                 </li>
-                <li{if $hash.type neq 'id'} style="display: none;"{/if}>
+                <li>
                     <label class="black"><input type="radio" value="id" name="hash"{if $hash.type eq 'id'} checked="checked"{/if}>
                         <input type="hidden" value="{$hash.product_ids|default:''}" name="product_ids"> <span data-text="{_wd('shop',"Selected products (%d)")|escape}">{if $hash.type eq 'id'}{$hash.count|string_format:"{_wd('shop',"Selected products (%d)")}"}{else}{'0'|string_format:"{_wd('shop',"Selected products (%d)")|escape}"}{/if}</span></label>
                 </li>
@@ -83,16 +83,26 @@
                 {if !empty($hints.type)}<br/><span class="small">{$hints.type}</span>{/if}
             </div>
         </div>
-        {if $hash.type eq 'id'}
         <div class="value js-hash-values js-hash-id" style="width: 400px;">
             <div class="bordered-left" style="padding-left: 20px; min-height: 130px;">
+                {if $hash.type eq 'id'}
                 <ul class="menu-v">
                     <li><a href="?action=products#/products/hash={"id/`$hash.product_ids`"|escape:'url'}" target="_blank" class="inline-link">{_wd('shop','%d product','%d products',$hash.count)|escape}<i class="icon16 new-window"></i></a></li>
                 </ul>
                 {if !empty($hints.id)}<br/><span class="small">{$hints.id}</span>{/if}
+                {else}
+                    <i class="icon16 exclamation"></i><strong>[`No products are selected`]</strong>
+                    <ol>
+                    	<li>{sprintf('[`Open “<a href="%s">%s</a>” section.`]', '?action=products', '[`Products`]')}<br><br></li>
+                    	<li>[`Select products for a new coupon.`]<br><br></li>
+                    	<li>{sprintf('[`Perform “<em>%s</em>” action using the menu on the right.`]', '[`Discount coupons`]')}</li>
+                    </ol>
+                    
+
+                {/if}
             </div>
         </div>
-        {/if}
+
         {if !empty($hash.data.categories) || !empty($hints.category)}
         <div class="value js-hash-values js-hash-category" style="width: 400px;">
             <div class="bordered-left" style="padding-left: 20px;">

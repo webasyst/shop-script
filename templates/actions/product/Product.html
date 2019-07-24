@@ -1202,7 +1202,7 @@
                             return false;
                         });
                 }).on('open', '.s-tab-block[data-tab="reviews"]', function() {
-                    loadTo($(this), '?module=product&action=reviews&id=' + $.product.getId());
+                    loadTo($(this), '?module=reviews&template=product&product_id=' + $.product.getId());
                 }).on('open', '.s-tab-block[data-tab="recent-orders"]', function() {
                     var view=$.storage.get('shop/orders/view') || '{$orders_default_view}';
                     loadTo($(this), '?module=product&action=orders&view=' + view + '&id=' + $.product.getId());

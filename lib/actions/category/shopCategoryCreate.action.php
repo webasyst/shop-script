@@ -29,7 +29,6 @@ class shopCategoryCreateAction extends waViewAction
             'status'   => null,
         );
         $features = $category_helper->getFilters($options);
-        $features = $category_helper->getFeaturesValues($features, true);
 
         //Get feature count
         $options_feature_count = [

@@ -13,13 +13,40 @@ class shopConfig extends waAppConfig
 
     public function checkRights($module, $action)
     {
+        static $event_done = false;
+        if (!$event_done) {
+            $event_done = true;
+            /**
+             * Modify current backend user rights.
+             * E.g. plugin can return [ 'orders' => 1 ] to grant current user access to Orders tab.
+             *
+             * @event backend_rights
+             * @param string $module
+             * @param string $action
+             * @return array[string]array $return[%plugin_id%] rights to set for current user; array of key => value pairs
+             */
+            $result = wa()->event(array($this->application, 'backend_rights'), ref([
+                'module' => $module,
+                'action' => $action,
+            ]));
+            if ($result) {
+                $contact_id = wa()->getUser()->getId();
+                $rights_model = new waContactRightsModel();
+                foreach ($result as $rights) {
+                    if ($rights && is_array($rights)) {
+                        $rights_model->saveOnce($contact_id, $this->application, $rights);
+                    }
+                }
+            }
+        }
+
         if ($module == 'frontend' && waRequest::param('ssl') &&
             (strpos($action, 'my') === 0 || $action === 'checkout')) {
             if (!waRequest::isHttps()) {
                 $url = 'https://'.waRequest::server('HTTP_HOST').wa()->getConfig()->getCurrentUrl();
                 wa()->getResponse()->redirect($url, 301);
             }
-        } elseif ($module == 'order' || $module == 'orders' || $module == 'coupons' || $module == 'workflow') {
+        } elseif (substr($module, 0, 5) == 'order' || $module == 'coupons' || $module == 'workflow') {
             return wa()->getUser()->getRights('shop', 'orders');
         } elseif (substr($module, 0, 7) == 'reports') {
             return wa()->getUser()->getRights('shop', 'reports');
@@ -27,7 +54,7 @@ class shopConfig extends waAppConfig
             return wa()->getUser()->getRights('shop', 'settings');
         } elseif (substr($module, 0, 7) == 'service') {
             return wa()->getUser()->getRights('shop', 'services');
-        } elseif ($module == 'customers') {
+        } elseif (substr($module, 0, 9) == 'customers') {
             return wa()->getUser()->getRights('shop', 'customers');
         } elseif ($module == 'importexport' || $module == 'csv' || $module == 'images') {
             return wa()->getUser()->getRights('shop', 'importexport');
@@ -225,6 +252,8 @@ class shopConfig extends waAppConfig
                          'gravatar_default'              => 'custom',
                          'require_captcha'               => 1, // is captcha is required for add reviews
                          'require_authorization'         => 0, // is authorization is required for add reviews
+                         'allow_image_upload'            => 0,
+                         'moderation_reviews'            => 0,
                          'review_service_agreement'      => '',
                          'review_service_agreement_hint' => '',
                          'sort_order_items'              => 'user_cart',
@@ -382,12 +411,12 @@ class shopConfig extends waAppConfig
         if (!$width) {
             return 250;
         }
-        return max(min($width, 400), 200);
+        return max(min($width, 1000), 200);
     }
 
     public function setSidebarWidth($width)
     {
-        $width = max(min((int)$width, 400), 200);
+        $width = max(min((int)$width, 1000), 200);
         $settings_model = new waContactSettingsModel();
         $settings_model->set(
             wa()->getUser()->getId(),
@@ -613,7 +642,7 @@ class shopConfig extends waAppConfig
             $route = $this->getStorefrontRoute();
         }
 
-        $checkout_version = (int) ifset($route, 'checkout_version', 1);
+        $checkout_version = (int)ifset($route, 'checkout_version', 1);
         $storefront_id = ifset($route, 'checkout_storefront_id', null);
 
         if ($checkout_version == 2 && $storefront_id) {

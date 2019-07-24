@@ -107,10 +107,12 @@ var shopDialogProductsCategory = (function ($) {
         }
     };
 
-    shopDialogProductsCategory.prototype.setFilterElement = function (filter, checked = false) {
+    shopDialogProductsCategory.prototype.setFilterElement = function (filter, checked) {
         var that = this,
             template = that.filter_element_html,
             category_filters = that.$wrapper.find('.js-category-filters');
+
+        checked = ( checked ? checked : false );
 
         template = template.replace(/%id/g, filter.id);
         template = template.replace(/%name/g, filter.name);
@@ -379,7 +381,7 @@ var shopDialogProductsCategory = (function ($) {
         );
 
         //render slider
-        if (f_type == 'range') {
+        if (f_type === 'range') {
             that.initRangeSlider('.js-feature-slider-' + feature.code);
         }
 
@@ -397,7 +399,7 @@ var shopDialogProductsCategory = (function ($) {
                     action_url = "?module=category&action=getFeatures&feature_id=" + feature_id,
                     loading = $(this).attr('data-loading');
 
-                if (!that.category_id) {
+                if (that.category_id === 'new') {
                     if (!loading) {
                         var this_elem = this;
 

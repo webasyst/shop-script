@@ -469,10 +469,11 @@ SQL;
         } else {
             if (isset($map['images'])) {
                 unset($map['images']);
+                unset($map['images_descriptions']);
             }
 
             foreach (array_keys($map) as $field) {
-                if (preg_match('@^images:\d+$@', $field)) {
+                if (preg_match('@^images(_descriptions):\d+$@', $field)) {
                     unset($map[$field]);
                 }
             }

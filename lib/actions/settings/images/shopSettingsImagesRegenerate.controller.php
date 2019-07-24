@@ -2,6 +2,8 @@
 
 class shopSettingsImagesRegenerateController extends waLongActionController
 {
+    protected $classes = ['shopImagesRegenerateProduct', 'shopImagesRegenerateReview'];
+
     public function execute()
     {
         try {
@@ -24,40 +26,14 @@ class shopSettingsImagesRegenerateController extends waLongActionController
         return false;
     }
 
-    /**
-     * @var shopProductModel
-     */
-    private $product_model;
-    /**
-     * @var shopProductImagesModel
-     */
-    private $images_model;
-
-    protected function restore()
-    {
-        parent::restore();
-        $this->images_model = new shopProductImagesModel();
-        $this->product_model = new shopProductModel();
-
-        //register_shutdown_function();
-    }
-
     protected function init()
     {
-        $image_model = new shopProductImagesModel();
-
-        $this->data['image_total_count'] = $image_model->countAvailableImages();
-        $this->data['image_count'] = 0;
-        $this->data['offset'] = 0;
-        $this->data['product_id'] = null;
-        $this->data['product_count'] = 0;
         $this->data['timestamp'] = time();
+        $this->data['image_total_count'] = 0;
+        $this->data['offset'] = 0;
 
-        $shop_config = wa('shop')->getConfig();
-        /**
-         * @var shopConfig $shop_config
-         */
-        $this->data['sizes'] = $shop_config->getImageSizes();
+        $this->setInstances();
+        $this->setImageTotalCount();
     }
 
     protected function isDone()
@@ -65,111 +41,29 @@ class shopSettingsImagesRegenerateController extends waLongActionController
         return $this->data['offset'] >= $this->data['image_total_count'];
     }
 
-    protected function getFilename($original_filename)
-    {
-        $filename = basename($original_filename, '.'.waFiles::extension($original_filename));
-        if (!preg_match('//u', $filename)) {
-            $tmp_name = @iconv('windows-1251', 'utf-8//ignore', $filename);
-            if ($tmp_name) {
-                $filename = $tmp_name;
-            }
-        }
-        $filename = preg_replace('/\s+/u', '_', $filename);
-        if ($filename) {
-            foreach (waLocale::getAll() as $l) {
-                $filename = waLocale::transliterate($filename, $l);
-            }
-        }
-        $filename = preg_replace('/[^a-zA-Z0-9_\.-]+/', '', $filename);
-        if (!strlen(str_replace('_', '', $filename))) {
-            $filename = '';
-        }
-        return $filename;
-    }
-
+    /**
+     * @return bool|void
+     */
     protected function step()
     {
-        $create_thumbnails = waRequest::post('create_thumbnails');
-        $restore_originals = waRequest::post('restore_originals');
-        $chunk_size = 50;
-        if ($create_thumbnails) {
-            $chunk_size = 10;
-        }
-        $sizes = $this->data['sizes'];
+        $chunk = $this->getChunk();
 
-        $use_filename = wa('shop')->getConfig()->getOption('image_filename');
+        foreach ($this->data['instances'] as $instance) {
+            /** @var shopImagesRegenerateInterface $instance */
+            $instance->setChunk($chunk);
+            $images = $instance->regenerate();
+            $this->setOffset(count($images));
 
-        $images = $this->images_model->getAvailableImages($this->data['offset'], $chunk_size);
-        foreach ($images as $i) {
-            if ($use_filename && !strlen($i['filename']) && strlen($i['original_filename'])) {
-                $filename = $this->getFilename($i['original_filename']);
-                if (strlen($filename)) {
-                    // move main image to new path
-                    $old_path = shopImage::getPath($i);
-                    $i['filename'] = $filename;
-                    $new_path = shopImage::getPath($i);
-                    if (is_readable($old_path) && @waFiles::move($old_path, $new_path)) {
-                        $this->images_model->updateById($i['id'], array('filename' => $filename));
-                        if (!$i['sort']) {
-                            $this->product_model->updateById($i['product_id'], array(
-                                'image_filename' => $filename,
-                            ));
-                        }
-                    } else {
-                        $i['filename'] = '';
-                    }
-                }
-            } elseif (!$use_filename && strlen($i['filename'])) {
-                // move main image to new path
-                $old_path = shopImage::getPath($i);
-                $old_filename = $i['filename'];
-                $i['filename'] = '';
-                $new_path = shopImage::getPath($i);
-                if (waFiles::move($old_path, $new_path)) {
-                    $this->images_model->updateById($i['id'], array('filename' => ''));
-                    if (!$i['sort']) {
-                        $this->images_model->updateById($i['product_id'], array(
-                            'image_filename' => '',
-                        ));
-                    }
-                } else {
-                    $i['filename'] = $old_filename;
-                }
+            // If the rendered images are less than necessary, then the rest should be transferred to the next type.
+            if (count($images) < $chunk) {
+                $chunk = $chunk - count($images);
+            } else {
+                break;
             }
-
-            if ($this->data['product_id'] != $i['product_id']) {
-                sleep(0.2);
-                $this->data['product_id'] = $i['product_id'];
-                $this->data['product_count'] += 1;
-            }
-            try {
-                // Delete existing thumbnails
-                $path = shopImage::getThumbsPath($i);
-                if (!waFiles::delete($path)) {
-                    throw new waException(sprintf(_w('Error when delete thumbnails for image %d'), $i['id']));
-                }
-
-                // Regenerate original-sized image from backup, if asked to
-                if ($restore_originals) {
-                    $this->restoreOriginals($i);
-                }
-
-                // Create thumbnails, if asked to
-                if ($create_thumbnails) {
-                    shopImage::generateThumbs($i, $sizes);
-                }
-
-                $this->data['image_count'] += 1;    // image count - count of successful processed images
-
-            } catch (Exception $e) {
-                $this->error($e->getMessage());
-            }
-            $this->data['offset'] += 1;
         }
 
         return true;
     }
-
 
     protected function info()
     {
@@ -184,9 +78,7 @@ class shopSettingsImagesRegenerateController extends waLongActionController
             'ready'     => $this->isDone(),
             'offset'    => $this->data['offset'],
         );
-        $response['progress'] = empty($this->data['image_total_count']) ? 100 : ($this->data['offset'] / $this->data['image_total_count']) * 100;
-        $response['progress'] = sprintf('%0.3f%%', $response['progress']);
-
+        $response['progress'] = $this->getProgress();
         if ($this->getRequest()->post('cleanup')) {
             $response['report'] = $this->report();
         }
@@ -196,10 +88,8 @@ class shopSettingsImagesRegenerateController extends waLongActionController
 
     protected function report()
     {
-        $report = '<div class="successmsg"><i class="icon16 yes"></i> '.
-            _w('Updated %d product image.', 'Updated %d product images.', $this->data['image_count']).
-            ' '.
-            _w('%d product affected.', '%d products affected.', $this->data['product_count']);
+        $report = '<div class="successmsg"><i class="icon16 yes"></i> ';
+        $report .= $this->getReports();
 
         if (!empty($this->data['timestamp'])) {
             $interval = time() - $this->data['timestamp'];
@@ -212,51 +102,86 @@ class shopSettingsImagesRegenerateController extends waLongActionController
         return $report;
     }
 
-    protected function restoreOriginals($i)
+    /**
+     * Creates class instances that generate images
+     *
+     * TODO You can add an event here.
+     */
+    protected function setInstances()
     {
-        $original_path = shopImage::getOriginalPath($i);
-        if (!is_readable($original_path)) {
-            // Uncomment this to apply plugins to product images
-            // even if there are no original version of this image.
-            //$original_path = shopImage::getPath($i);
-        }
-        if (is_readable($original_path)) {
-            try {
-                $p = shopImage::getPath($i);
-                $op = shopImage::getOriginalPath($i);
-                $image = waImage::factory($original_path);
-                $image_changed = false;
-                $event = wa()->event('image_upload', $image);
-                if ($event) {
-                    foreach ($event as $plugin_id => $result) {
-                        $image_changed = $image_changed || $result;
-                    }
-                }
-
-                if ($image_changed) {
-                    if ($original_path != $op) {
-                        waFiles::copy($original_path, $op);
-                    }
-                    $image->save($p);
-                } else {
-                    if ($original_path != $p) {
-                        waFiles::copy($original_path, $p);
-                    }
-                    if (is_writable($op)) {
-                        waFiles::delete($op);
-                    }
-                }
-            } catch (Exception $e) {
-                $this->error('Unable to regenerate original for image '.$i['id'].': '.$e->getMessage());
+        foreach ($this->classes as $class) {
+            $instance = new $class();
+            if ($instance instanceof shopImagesRegenerateInterface) {
+                $this->data['instances'][$class] = $instance;
             }
-            unset($image);
         }
     }
 
-    private function error($message)
+    /**
+     * Sets the number of images. Need to calculate interest
+     */
+    protected function setImageTotalCount()
     {
-        $path = wa()->getConfig()->getPath('log');
-        waFiles::create($path.'/shop/images_regenerate.log');
-        waLog::log($message, 'shop/images_regenerate.log');
+        foreach ($this->data['instances'] as $instance) {
+            /** @var shopImagesRegenerateInterface $instance */
+            $this->data['image_total_count'] += $instance->getImageTotalCount();
+        }
+    }
+
+    /**
+     * Updates the processed images counter
+     * @param $count
+     */
+    protected function setOffset($count)
+    {
+        $this->data['offset'] += $count;
+    }
+
+    /**
+     * Returns the number of images to be processed per step.
+     * @return int
+     */
+    protected function getChunk()
+    {
+        $create_thumbnails = waRequest::post('create_thumbnails');
+        $chunk_size = 50;
+        if ($create_thumbnails) {
+            $chunk_size = 10;
+        }
+
+        return $chunk_size;
+    }
+
+    /**
+     * Returns the amount of interest
+     * @return float|int|string
+     */
+    protected function getProgress()
+    {
+        if (empty($this->data['image_total_count'])) {
+            $progress = 100;
+        } else {
+            $progress = ($this->data['offset'] / $this->data['image_total_count']) * 100;
+        }
+        $progress = sprintf('%0.3f%%', $progress);
+
+        return $progress;
+    }
+
+    /**
+     * Collects report from classes
+     * @return string
+     */
+    protected function getReports()
+    {
+        $instances = $this->data['instances'];
+        $report = '';
+
+        /** @var shopImagesRegenerateInterface $instance */
+        foreach ($instances as $instance) {
+            $report .= $instance->getReport()."\n";
+        }
+
+        return $report;
     }
 }

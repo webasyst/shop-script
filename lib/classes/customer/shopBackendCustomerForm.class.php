@@ -162,7 +162,7 @@ class shopBackendCustomerForm {
         $list = $this->newStorefrontList();
         $list->addFilter(array(
             'contact_type' => $contact_type,
-            'url' => $this->options['storefront']
+            'url'          => $this->options['storefront']
         ));
 
         $storefront = $list->fetchFirst(array('checkout_config', 'contact_type'));
@@ -240,7 +240,7 @@ class shopBackendCustomerForm {
 
     /**
      * Get field list for customer form
-     * In this list also included 'address.shipping' and 'address.billing'
+     * In this list also included 'address.shipping' and 'address.billing' (if needed)
      *
      * @return array $result
      *   - string $result['type'] - what type of logic worked for forming of field list
@@ -249,21 +249,39 @@ class shopBackendCustomerForm {
      */
     protected function getFieldList()
     {
+        $contact_type = $this->options['contact_type'];
+
         $res = $this->getStorefrontFieldList();
 
         if ($res['status']) {
             $result = array(
-                'type' => 'storefront',
+                'type'       => 'storefront',
                 'field_list' => $res['field_list']
             );
         } else {
-            $result = array(
-                'type' => 'union',
-                'field_list' => $this->getUnitedFieldList()
-            );
+            $order_editor_config = $this->getOrderEditorConfig();
+
+            if ($order_editor_config['use_custom_config']) {
+                $field_list = $order_editor_config->getFieldList($contact_type);
+
+                $field_list['address.shipping']['fields'] = $order_editor_config->getFieldList(shopOrderEditorConfig::FIELDS_TYPE_ADDRESS);
+
+                if (!empty($order_editor_config['billing_address'][$contact_type])) {
+                    $field_list['address.billing'] = $field_list['address.shipping'];
+                }
+
+                $result = array(
+                    'type'       => 'custom_config',
+                    'field_list' => $field_list,
+                );
+            } else {
+                $result = array(
+                    'type'       => 'union',
+                    'field_list' => $this->getUnitedFieldList()
+                );
+            }
         }
-        
-        $contact_type = $this->options['contact_type'];
+
         if ($contact_type === shopCustomer::TYPE_PERSON) {
             unset($result['field_list']['title'], $result['field_list']['jobtitle'], $result['field_list']['company']);
         } else {
@@ -271,6 +289,64 @@ class shopBackendCustomerForm {
         }
 
         return $result;
+    }
+
+    /**
+     * Get fields config for customer form
+     * @return array
+     * @throws waException
+     */
+    public function getFieldsConfig()
+    {
+        $result = $this->getFieldList();
+
+        $fields_config = $result['field_list'];
+
+        /** @var shopConfig $config */
+        $config = wa('shop')->getConfig();
+
+        $order_editor_config = $this->getOrderEditorConfig();
+        $fix_delivery_area = !empty($order_editor_config['fixed_delivery_area']) ? $order_editor_config['fixed_delivery_area'] : [];
+
+        // set current country as a value
+        $current_country_value = $config->getGeneralSettings('country');
+        foreach (array('address.shipping', 'address.billing') as $field_id) {
+            if (isset($fields_config[$field_id]['fields']['country']) && empty($fields_config[$field_id]['fields']['country']['value'])) {
+                $fields_config[$field_id]['fields']['country']['value'] = $current_country_value;
+            }
+
+            if (isset($fields_config[$field_id]['fields']) && is_array($fields_config[$field_id]['fields'])) {
+                foreach ($fields_config[$field_id]['fields'] as $fld_id => $fld_params) {
+                    if (!empty($fix_delivery_area[$fld_id])) {
+                        $fields_config[$field_id]['fields'][$fld_id]['value'] = $fix_delivery_area[$fld_id];
+                    }
+                }
+            }
+        }
+
+        // for union case all fields are NOT required, otherwise don't touch, leave as in fields config
+        // for storefront and custom_config cases the 'required' flag is indicated in the config
+        if ($result['type'] === 'union') {
+
+            foreach ($fields_config as &$field) {
+                $field['required'] = false;
+            }
+            unset($field);
+
+            foreach ($fields_config['address.shipping']['fields'] as &$subfield) {
+                $subfield['required'] = false;
+            }
+            unset($subfield);
+
+            if (isset($fields_config['address.billing'])) {
+                foreach ($fields_config['address.billing']['fields'] as &$subfield) {
+                    $subfield['required'] = false;
+                }
+                unset($subfield);
+            }
+        }
+
+        return $fields_config;
     }
 
     /**
@@ -400,7 +476,6 @@ class shopBackendCustomerForm {
          */
         $config = $storefront['checkout_config'];
         $field_list = $this->getSettlementFieldsByContactType($config, $this->options['contact_type']);
-
         $field_list = $this->mergeWithMainFields($field_list);
 
         // address must not be in result fields list
@@ -417,7 +492,7 @@ class shopBackendCustomerForm {
         }
 
         return array(
-            'status' => true,
+            'status'     => true,
             'field_list' => $field_list
         );
     }
@@ -537,7 +612,6 @@ class shopBackendCustomerForm {
         }
 
         $subfields = $this->getOldCheckoutBillingAddressSubfields();
-
         $subfields = $this->mergeWithAddressMainSubfields($subfields);
 
         return $subfields;
@@ -584,7 +658,6 @@ class shopBackendCustomerForm {
         }
 
         if ($need_shipping_address) {
-
             $subfields = $this->getOldCheckoutShippingAddressSubfields();
             $subfields = $this->mergeWithAddressMainSubfields($subfields);
 
@@ -746,7 +819,6 @@ class shopBackendCustomerForm {
         return array_filter($result, function ($field) {
             return !empty($field['used']);
         });
-
     }
 
     /**
@@ -768,46 +840,7 @@ class shopBackendCustomerForm {
      */
     protected function buildContactForm()
     {
-        $result = $this->getFieldList();
-
-        $fields_config = $result['field_list'];
-
-        /**
-         * @var waContact $contact
-         */
-        $contact = $this->options['contact'];
-
-        /** @var shopConfig $config */
-        $config = wa('shop')->getConfig();
-
-        // set current country as a value
-        $current_country_value = $config->getGeneralSettings('country');
-        foreach (array('address.shipping', 'address.billing') as $field_id) {
-            if (isset($fields_config[$field_id]['fields']['country']) && empty($fields_config[$field_id]['fields']['country']['value'])) {
-                $fields_config[$field_id]['fields']['country']['value'] = $current_country_value;
-            }
-        }
-
-        // for NOT storefront case all fields are NOT required, otherwise don't touch, leave as in fields config
-        if ($result['type'] !== 'storefront') {
-
-            foreach ($fields_config as &$field) {
-                $field['required'] = false;
-            }
-            unset($field);
-
-            foreach ($fields_config['address.shipping']['fields'] as &$subfield) {
-                $subfield['required'] = false;
-            }
-            unset($subfield);
-
-            if (isset($fields_config['address.billing'])) {
-                foreach ($fields_config['address.billing']['fields'] as &$subfield) {
-                    $subfield['required'] = false;
-                }
-                unset($subfield);
-            }
-        }
+        $fields_config = $this->getFieldsConfig();
 
         $form = waContactForm::loadConfig(
             $fields_config,
@@ -815,6 +848,11 @@ class shopBackendCustomerForm {
                 'namespace' => $this->options['namespace'],
             )
         );
+
+        /**
+         * @var waContact $contact
+         */
+        $contact = $this->options['contact'];
 
         if ($contact) {
 
@@ -953,6 +991,14 @@ class shopBackendCustomerForm {
         }
 
         return $result;
+    }
+
+    protected function getOrderEditorConfig()
+    {
+        if (empty($this->cache['order_editor_config']) || !$this->cache['order_editor_config'] instanceof shopOrderEditorConfig) {
+            $this->cache['order_editor_config'] = new shopOrderEditorConfig();
+        }
+        return $this->cache['order_editor_config'];
     }
 
     public function __call($name, $arguments)

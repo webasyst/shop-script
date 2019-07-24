@@ -66,8 +66,8 @@ class shopCheckoutViewHelper
 
         $config = new shopCheckoutConfig(ifset(ref(wa()->getRouting()->getRoute()), 'checkout_storefront_id', []));
         return [
-            'cart'              => $order,
-            'currency_info'     => [
+            'cart'          => $order,
+            'currency_info' => [
                 'code'             => $currency_info['code'],
                 'fraction_divider' => ifset($locale_info, 'decimal_point', '.'),
                 'fraction_size'    => ifset($currency_info, 'precision', 2),
@@ -82,8 +82,8 @@ class shopCheckoutViewHelper
                 'rounding'      => $currency_info['rounding'],
                 'round_up_only' => $currency_info['round_up_only'],
             ],
-            'features'          => (new shopFeatureModel())->getByCode(array_keys($feature_codes)),
-            'config'            => $config,
+            'features'      => (new shopFeatureModel())->getByCode(array_keys($feature_codes)),
+            'config'        => $config,
         ];
     }
 
@@ -672,6 +672,61 @@ class shopCheckoutViewHelper
 
         return wa()->getRouteUrl('shop/frontend/cart', [], $absolute);
     }
+
+    /**
+     * Returns HTML rendering cross-selling block for new one-page checkout
+     *
+     * @param array
+     * @return string
+     */
+    public function crossSelling($opts = array())
+    {
+        try {
+            $checkout_config = new shopCheckoutConfig(true);
+            if (empty($checkout_config['recommendations']['used'])) {
+                return '';
+            }
+        } catch (waException $e) {
+            return '';
+        }
+
+        $template_path = wa()->getAppPath('templates/actions/frontend/order/cart/CrossSelling.html', 'shop');
+
+        $vars = $this->crossSellingVars();
+        if (empty($vars['products'])) {
+            return '';
+        }
+
+        return $this->renderTemplate($template_path, $vars + [
+                'shop_checkout_include_path' => wa()->getAppPath('templates/actions/frontend/order/', 'shop'),
+                'options'                    => $opts + [
+                        'adaptive' => true,
+                    ],
+            ]);
+    }
+
+    /**
+     * Returns variables that $wa->shop->checkout()->crossSelling() assigns to its template.
+     *
+     * @param bool $clear_cache
+     * @return array
+     */
+    public function crossSellingVars($clear_cache = false)
+    {
+        static $result = null;
+        if ($clear_cache || $result === null) {
+            $old_is_template = waConfig::get('is_template');
+            waConfig::set('is_template', null);
+            $vars = $this->cartVars();
+            $related = wa()->getView()->getHelper()->shop->crossSelling($vars['cart']['items'], 'product_id');
+            waConfig::set('is_template', $old_is_template);
+            $result = [
+                'products' => $related,
+            ];
+        }
+        return $result;
+    }
+
 
     /**
      * @return shopConfig

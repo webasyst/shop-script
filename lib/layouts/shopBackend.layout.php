@@ -2,6 +2,8 @@
 
 class shopBackendLayout extends waLayout
 {
+    protected $embedded_version = false;
+
     public function execute()
     {
         // Welcome-screen-ralated stuff: redirect on first login unless skipped
@@ -30,7 +32,8 @@ class shopBackendLayout extends waLayout
             'new_orders_count'  => $order_model->getStateCounters('new'),
             'tutorial_progress' => $tutorial_progress,
             'tutorial_visible'  => $tutorial_visible,
-            'is_web_push_on'    => $this->isWebPushOn()
+            'is_web_push_on'    => $this->isWebPushOn(),
+            'embedded_version' => $this->embedded_version,
         ));
     }
 
@@ -112,6 +115,10 @@ class shopBackendLayout extends waLayout
         }
     }
 
+    public function setEmbedded($v)
+    {
+        $this->embedded_version = $v;
+    }
 
     protected function isWebPushOn()
     {

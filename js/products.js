@@ -331,8 +331,10 @@
             }
         },
 
-        reviewsAction: function () {
-            this.load('?module=reviews');
+        reviewsAction: function(params_string, callback) {
+            var request_uri = "?module=reviews" + (params_string ? "&" + params_string : "");
+
+            this.load(request_uri);
         },
 
         stocksAction: function (order) {

@@ -11914,7 +11914,7 @@ msgid "For example, to change product properties such as color or size"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:309
-msgid "Discout information per product"
+msgid "Discount information per product"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2Blocks.inc.html:324
@@ -14194,3 +14194,6 @@ msgstr ""
 
 msgid "sku name"
 msgstr "SKU name"
+
+msgid "deleted ones"
+msgstr "deleted"

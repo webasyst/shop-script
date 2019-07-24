@@ -65,7 +65,7 @@
                     {/if}
 
                     {* DELIVERY *}
-                    <div class="wa-item">
+                    <div class="wa-item" {if empty($config["shipping"]["used"])}style="display: none;"{/if}>
                         <div class="wa-name">[`Shipping cost`]</div>
                         <div class="wa-value">
                             {if $confirm.shipping !== null}

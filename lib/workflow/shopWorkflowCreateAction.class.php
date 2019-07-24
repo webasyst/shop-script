@@ -524,7 +524,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         $data['before_state_id'] = '';
         $data['after_state_id'] = 'new';
 
-        $this->order_log_model->add($data);
+        $data['id'] = $this->order_log_model->add($data);
 
         /**
          * @event order_action.create

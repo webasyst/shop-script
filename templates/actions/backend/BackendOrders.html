@@ -12,6 +12,7 @@
 
 <link href="{$wa_app_static_url}js/order/timepicker/jquery.timepicker.css?v{$wa->version()}" rel="stylesheet" type="text/css" />
 
+{if empty($embedded_version)}
 <div class="s-alert s-orders-mobile-notice" id="s-orders-mobile-notice" data-alert="mobile-app">
     <div class="t-layout">
         <div class="t-column">
@@ -33,7 +34,9 @@
     </div>
     <a class="close s-alert-close" href="javascript:void(0);">&times;</a>
 </div>
+{/if}
 
+{if empty($embedded_version)}
 <div class="sidebar left200px s-inner-sidebar" id="s-sidebar">
     <div class="block">
         <ul class="menu-v with-icons">
@@ -161,12 +164,15 @@
     </div>
 
 </div>
+{/if}
 
+{if empty($embedded_version)}
 <div class="content left200px blank" id="s-content" style="padding-left: 10px;">
     <div class="block double-padded">
         [`Loading`] <i class="icon16 loading"></i>
     </div>
 </div>
+{/if}
 
 {capture name="template-order-product-img"}
 {literal}
@@ -444,6 +450,7 @@
     {/if}
 {/foreach}
 
+{if empty($embedded_version)}
 <script type="text/javascript">$(function() {
         $.orders.init({
             view: '{$default_view}'
@@ -500,4 +507,5 @@
         }, 1000);
         {/if}
 
-    });</script>
+});</script>
+{/if}

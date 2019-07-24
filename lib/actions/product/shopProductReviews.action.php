@@ -3,11 +3,12 @@
 class shopProductReviewsAction extends waViewAction
 {
     protected $orders = array(
-        'default' => 'datetime DESC',
-        'datetime' => 'datetime',
-        'best_rated' => 'rate DESC',
+        'default'     => 'datetime DESC',
+        'datetime'    => 'datetime',
+        'best_rated'  => 'rate DESC',
         'worse_rated' => 'rate'
     );
+
     public function execute()
     {
         $id = waRequest::get('id', null, waRequest::TYPE_INT);
@@ -31,16 +32,16 @@ class shopProductReviewsAction extends waViewAction
         );
 
         $this->view->assign(array(
-            'product' => $product,
-            'reviews' => $reviews,
-            'offset' => $offset,
-            'total_count' => $total_count ? $total_count : $product_reviews_model->count($id),
-            'reply_allowed' => true,
-            'lazy' => $lazy,
-            'current_author' => shopProductReviewsModel::getAuthorInfo(wa()->getUser()->getId()),
-            'count' => count($reviews),
-            'id' => $id,
-            'order' => $order,
+            'product'          => $product,
+            'reviews'          => $reviews,
+            'offset'           => $offset,
+            'total_count'      => $total_count ? $total_count : $product_reviews_model->count($id),
+            'reply_allowed'    => true,
+            'lazy'             => $lazy,
+            'current_author'   => shopProductReviewsModel::getAuthorInfo(wa()->getUser()->getId()),
+            'count'            => count($reviews),
+            'id'               => $id,
+            'order'            => $order,
             'sidebar_counters' => array(
                 'new' => $product_reviews_model->countNew()
             )

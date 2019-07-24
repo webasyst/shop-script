@@ -90,6 +90,8 @@
             var autocomplete_url = '?action=autocomplete&type=order';
             var last_response = [];
 
+            var search_xhr = null;
+
             var onSelect = function(autocomplete_item) {
                 switch (autocomplete_item.autocomplete_item_type) {
                     case 'order':
@@ -134,6 +136,9 @@
             search_input.unbind('keydown').
                 bind('keydown', function(event) {
                     if (event.keyCode == 13 || event.keyCode == 10) { // 'Enter'
+                        // search is running...
+                        if (search_xhr) { return false; }
+
                         var self = $(this);
                         if (!$(this).val()) {
                             location.hash = '#/orders/all/';
@@ -161,9 +166,14 @@
                     return false;
                 },
                 source : function(request, response) {
-                    $.getJSON(autocomplete_url, request, function(r) {
+                    if (search_xhr) { search_xhr.abort(); }
+
+                    search_xhr = $.getJSON(autocomplete_url, request, function(r) {
                         last_response = r;
                         response(r);
+
+                    }).always( function() {
+                        search_xhr = null;
                     });
                 }
             });

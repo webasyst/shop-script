@@ -37,6 +37,9 @@
 <script src="{$wa_url}wa-apps/shop/js/charts/d3.min.js?v{$wa->version()}"></script>
 <script src="{$wa_url}wa-apps/shop/js/charts/d3chart-sales.js?{$wa->version()}"></script>
 <script src="{$wa_url}wa-apps/shop/js/charts/d3chart-pie.js?{$wa->version()}"></script>
+
+<link href="{$wa_app_static_url}css/backend/products/reviews.css?v={$wa->version()}" rel="stylesheet">
+
 {$view = $wa->get('view')|default:$default_view}
 <div class="sidebar left{$sidebar_width}px" id="s-sidebar">
     <!-- top -->
@@ -69,6 +72,46 @@
                     <i class="icon16 ss comments"></i>[`Reviews`]
                     <strong class="small highlighted count-new">{if $count_reviews.new}+{$count_reviews.new}{/if}</strong>
                 </a>
+
+                <script>
+                    ( function($) {
+                        var $document = $(document),
+                            $wrapper = $("#s-all-reviews"),
+                            $counter = $wrapper.find(".count-new");
+
+                        var current_value = 0;
+
+                        $document.on("update_reviews_counter", watcher);
+                        function watcher(event, data) {
+                            var is_exist = $.contains(document, $wrapper[0]);
+                            if (is_exist) {
+                                var value = 0;
+                                if (data.new) { value = data.new; }
+                                if (data.moderation) { value = data.moderation; }
+                                if (current_value) {
+                                    if (data.reduce) { value = current_value - data.reduce; }
+                                }
+
+                                updateCounter(value);
+                            } else {
+                                $document.off("update_reviews_counter", watcher);
+                            }
+                        }
+
+                        function updateCounter(value) {
+                            value = ( value ? "+" + value : 0);
+                            $counter.text(value);
+
+                            if (value) {
+                                $counter.show();
+                            } else {
+                                $counter.hide();
+                            }
+
+                            current_value = value;
+                        }
+                    })(jQuery);
+                </script>
             </li>
             {if $wa->userRights('services')}
             <li id="s-services">

@@ -5,7 +5,7 @@ class shopBackendOrdersAction extends waViewAction
     public function execute()
     {
         if (!wa()->getUser()->getRights('shop', 'orders')) {
-            throw new waException(_w("Access denied"));
+            throw new waRightsException(_w("Access denied"));
         }
 
         $this->setLayout(new shopBackendLayout());

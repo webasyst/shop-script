@@ -19,25 +19,26 @@
  */
 class shopOrderTotalController extends waJsonController
 {
+
     public function execute()
     {
         $order = $this->getShopOrder();
+        $this->response['tax'] = $order->tax;
+        $this->response['items_tax'] = $order->items_tax;
 
         // To calculate all shipping rates, need extract clean ID
         $params = waRequest::request('params', array());
         $shipping_id = preg_replace('/\W.+$/', '', ifset($params, 'shipping_id', 0));
         $this->response['shipping_methods'] = $order->getShippingMethods(false, $shipping_id);
-
         $this->response['shipping_method_ids'] = array_keys($this->response['shipping_methods']);
         $this->response['discount'] = $order->discount;
         $this->response['discount_description'] = $order->discount_description;
-        $this->response['total'] = $order->total;
-        $this->response['subtotal'] = $order->subtotal;
         $this->response['errors'] = $order->errors();
         $this->response['shipping'] = $order->shipping;
-        $this->response['tax'] = $order->tax;
-        $this->response['items_tax'] = $order->items_tax;
         $this->response['items_discount'] = $order->items_discount;
+        $this->response['subtotal'] = $order->subtotal;
+        $this->response['total'] = $order->total;
+
     }
 
     public function getShopOrder()
@@ -50,7 +51,7 @@ class shopOrderTotalController extends waJsonController
         unset($data['order_id']);
 
         $form = new shopBackendCustomerForm();
-        $form->setAddressDisplayType('first');
+        $form->setAddressDisplayType('first'); // Use only first contact address
 
         $storefront = waRequest::post('storefront', null, waRequest::TYPE_STRING_TRIM);
         $form->setStorefront($storefront, true);

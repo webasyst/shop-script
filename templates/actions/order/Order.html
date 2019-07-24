@@ -111,10 +111,10 @@
                             <p class="s-order-address">
                                 {$shipping_address_html}
                             </p>
-                            {if !empty($custom_fields)}
+                            {if !empty($shipping_custom_fields)}
                                 <p class="s-order-shipping-custom-fields">
-                                    {foreach $custom_fields as $f}
-                                        {$f.title}: {$f.value}<br>
+                                    {foreach $shipping_custom_fields as $f}
+                                        {$f.title}: {$f.value|escape}<br>
                                     {/foreach}
                                 </p>
                             {/if}

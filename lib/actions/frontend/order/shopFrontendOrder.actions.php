@@ -117,6 +117,7 @@ class shopFrontendOrderActions extends waJsonActions
             'customer' => $contact_field_values,
             'items'    => $data['order']['items'],
             'discount' => 'calculate',
+            'tax'      => 'calculate',
         ];
 
         $options = [
@@ -462,6 +463,7 @@ class shopFrontendOrderActions extends waJsonActions
             'currency'   => wa('shop')->getConfig()->getCurrency(false),
             'items'      => $cart_items,
             'discount'   => 'calculate',
+            'tax'        => 'calculate',
         ], [
             'items_format'       => 'cart',
             'items_extend_round' => true,

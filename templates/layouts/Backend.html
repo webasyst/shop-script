@@ -87,10 +87,14 @@
 </head>
 <body>
 <div id="wa"{if isset($no_level2)} class="s-no-level2"{/if}>
-    {$wa->header()}
+
+    {if empty($embedded_version)}
+        {$wa->header()}
+    {/if}
 
     <div id="wa-app">
 
+        {if empty($embedded_version)}
         {strip}
             <div id="mainmenu">
                 <ul class="tabs">
@@ -331,6 +335,7 @@
                 })(jQuery);
             </script>
         {/strip}
+        {/if}{* $embedded_version *}
 
         <div id="maincontent"{if isset($no_level2)} class="s-no-level2"{/if}>
         {block name="content"}

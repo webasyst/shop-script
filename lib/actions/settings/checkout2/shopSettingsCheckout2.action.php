@@ -36,6 +36,7 @@ class shopSettingsCheckout2Action extends shopSettingsCheckoutAbstractAction
             'field_types'                              => waContactFields::getTypes(),
             'contact_fields'                           => $this->getContactFields(),
             'address_fields'                           => $this->getContactAddressFields(),
+            'system_address_field_names'               => $this->checkout_config->getSystemAddressFieldNames(),
             'format_contact_fields'                    => $this->getFormatContactFields(),
             'format_address_fields'                    => $this->getFormatContactAddressFields(),
             'countries'                                => $this->getCountries(),

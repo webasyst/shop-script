@@ -821,7 +821,7 @@ $.order_edit = {
         data['storefront'] = that.getStorefrontSelector().val();
 
         data.items = $.order_edit.getOrderItems(container);
-        
+
         //see discount property in shopOrder
         var update_discount = $('#update-discount').data('discount');
         if (update_discount !== undefined) {
@@ -1041,17 +1041,27 @@ $.order_edit = {
 
         if (type == 'add') {
             success = function (r) {
-                if ($.order_edit.slide(false, true)) {
+                $.order_edit.container.trigger('order_edit_save_success', {
+                    data: r.data,
+                    is_new: true
+                });
+                if (!$.order_edit.options.embedded_version && $.order_edit.slide(false, true)) {
                     location.href = '#/orders/state_id=new&view=split&id=' + r.data.order.id + '/';
                 }
             };
         } else {
             success = function (r) {
-                $.order_edit.container.find('.back').click();
+                $.order_edit.container.trigger('order_edit_save_success', {
+                    data: r.data,
+                    is_new: false
+                });
+                if (!$.order_edit.options.embedded_version) {
+                    $.order_edit.container.find('.back').click();
+                }
             };
         }
 
-        $.shop.trace(type, form.serialize());
+        //$.shop.trace(type, form.serialize());
 
         /**
          * @event order_edit_save
@@ -1168,7 +1178,7 @@ $.order_edit = {
             $('.s-order-editable').show();
 
             $.when(deferreds).done(function () {
-                if ($.order_list.lazy_load_win) {
+                if ($.order_list && $.order_list.lazy_load_win) {
                     $.order_list.lazy_load_win.lazyLoad('sleep');
                 }
                 if (typeof done === 'function') {

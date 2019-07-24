@@ -43,6 +43,8 @@ class shopNotifications
 
         self::prepareData($data);
 
+        $send_results = array();
+
         if ($notifications) {
             if (isset($data['storefront_route'])) {
                 $old_route = wa()->getRouting()->getRoute();
@@ -51,11 +53,17 @@ class shopNotifications
             }
 
             foreach ($notifications as $n) {
+                $send_res = array(
+                    'status' => false,
+                    'log_id' => null,
+                    'transport' => null
+                );
                 if (!$n['source'] || ($n['source'] == $data['source'])) {
                     $method = 'send'.ucfirst($n['transport']);
                     if (method_exists('shopNotifications', $method)) {
                         try {
-                            self::$method($n, $data);
+                            $send_res = self::$method($n, $data);
+                            $send_res['transport'] = $n['transport'];
                         } catch (Exception $ex) {
                             $error = sprintf(
                                 'Unable to send %s notifications for order %s: %s',
@@ -67,6 +75,7 @@ class shopNotifications
                         }
                     }
                 }
+                $send_results[$n['id']] = $send_res;
             }
 
             if (isset($data['storefront_route'])) {
@@ -80,13 +89,21 @@ class shopNotifications
          * @param array $notifications
          * @param array $data
          *
+         * @param array $send_results - indexed by notification id array of result of sending
+         * @param array $send_results[<notification.id>]
+         * @param bool  $send_results[<notification.id>]['status']
+         * @param int|null $send_results[<notification.id>]['log_id'] shop_order_log.id
+         * @param string   $send_results[<notification.id>]['transport'] 'sms' | 'email'
+         *
          * @event notifications_send.after
          */
         $event_params = [
             'event' => $event,
             'notifications' => $notifications,
             'data'  => &$data,
+            'send_results' => $send_results
         ];
+
         wa('shop')->event('notifications_send.after', $event_params);
 
         self::sendPushNotifications($event, $data);
@@ -463,8 +480,21 @@ SQL;
         return $merge_to;
     }
 
+    /**
+     * @param $n
+     * @param $data
+     * @throws waException
+     * @return array
+     *  - bool 'status' bool
+     *  - int|null 'log_id' - shop_order_log.id
+     */
     protected static function sendEmail($n, $data)
     {
+        $fail_result = array(
+            'status' => false,
+            'log_id' => null
+        );
+
         /**
          * @var shopConfig $config ;
          */
@@ -482,13 +512,13 @@ SQL;
         if ($n['to'] == 'customer') {
             $email = $customer->get('email', 'default');
             if (!$email) {
-                return;
+                return $fail_result;
             }
             $to = array($email);
             $log = sprintf(_w("Notification <strong>%s</strong> sent to customer."), $n['name']);
         } elseif ($n['to'] == 'admin') {
             if (!$general['email']) {
-                return;
+                return $fail_result;
             }
             $to = array($general['email']);
             $log = sprintf(_w("Notification <strong>%s</strong> sent to store admin."), $n['name']);
@@ -552,21 +582,41 @@ SQL;
             $message->setFrom($from, $from_name);
         }
 
-        if ($message->send()) {
-            $order_log_model = new shopOrderLogModel();
-            $order_log_model->add(array(
-                'order_id'        => $order_id,
-                'contact_id'      => null,
-                'action_id'       => '',
-                'text'            => '<i class="icon16 email"></i> '.$log,
-                'before_state_id' => $data['order']['state_id'],
-                'after_state_id'  => $data['order']['state_id'],
-            ));
+        if (!$message->send()) {
+            return $fail_result;
         }
+
+        $order_log_model = new shopOrderLogModel();
+        $log_id = $order_log_model->add(array(
+            'order_id'        => $order_id,
+            'contact_id'      => null,
+            'action_id'       => '',
+            'text'            => '<i class="icon16 email"></i> '.$log,
+            'before_state_id' => $data['order']['state_id'],
+            'after_state_id'  => $data['order']['state_id'],
+        ));
+
+        return array(
+            'status' => true,
+            'log_id' => $log_id
+        );
     }
 
+    /**
+     * @param $n
+     * @param $data
+     * @throws waException
+     * @return array
+     *  - bool 'status' bool
+     *  - int|null 'log_id' - shop_order_log.id
+     */
     protected static function sendSms($n, $data)
     {
+        $fail_result = array(
+            'status' => false,
+            'log_id' => null
+        );
+
         $general = wa('shop')->getConfig()->getGeneralSettings();
         /**
          * @var waContact $customer
@@ -575,7 +625,7 @@ SQL;
         $locale = $old_locale = null;
         if ($n['to'] == 'customer') {
             if (!$customer) {
-                return;
+                return $fail_result;
             }
             $locale = $customer->getLocale();
             $to = $customer->get('phone', 'default');
@@ -588,7 +638,7 @@ SQL;
             $log = sprintf(_w("Notification <strong>%s</strong> sent to %s."), $n['name'], $n['to']);
         }
         if (!$to) {
-            return;
+            return $fail_result;
         }
 
         if ($locale) {
@@ -615,19 +665,30 @@ SQL;
         $text = $view->fetch('string:'.$n['text']);
 
         $sms = new waSMS();
-        if ($sms->send($to, $text, isset($n['from']) ? $n['from'] : null)) {
-            $order_log_model = new shopOrderLogModel();
-            $order_log_model->add(array(
-                'order_id'        => $order_id,
-                'contact_id'      => null,
-                'action_id'       => '',
-                'text'            => '<i class="icon16 mobile"></i> '.$log,
-                'before_state_id' => $data['order']['state_id'],
-                'after_state_id'  => $data['order']['state_id'],
-            ));
-        }
+
+        $status = $sms->send($to, $text, isset($n['from']) ? $n['from'] : null);
 
         $old_locale && wa()->setLocale($old_locale);
+
+        if (!$status) {
+            return $fail_result;
+        }
+
+        $order_log_model = new shopOrderLogModel();
+        $log_id = $order_log_model->add(array(
+            'order_id'        => $order_id,
+            'contact_id'      => null,
+            'action_id'       => '',
+            'text'            => '<i class="icon16 mobile"></i> '.$log,
+            'before_state_id' => $data['order']['state_id'],
+            'after_state_id'  => $data['order']['state_id'],
+        ));
+
+        return array(
+            'status' => true,
+            'log_id' => $log_id
+        );
+
     }
 
     protected static function sendHttp($n, $data)

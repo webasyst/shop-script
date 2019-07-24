@@ -95,6 +95,7 @@ class shopOrderAction extends waViewAction
             'shipping_date'              => $shipping_date,
             'shipping_time_start'        => $shipping_time_start,
             'shipping_time_end'          => $shipping_time_end,
+            'shipping_custom_fields'     => $_order->shipping_custom_fields,
             'customer_delivery_date'     => $customer_delivery_date,
             'customer_delivery_time'     => $customer_delivery_time,
             'customer_delivery_date_str' => ifset($params['shipping_params_desired_delivery.date_str']),
