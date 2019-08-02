@@ -97,7 +97,7 @@
                                     {* IMAGE *}
                                     <div class="wa-column-image">
                                         <div class="wa-image-section">
-                                            <a href="{$_product_front_uri}" title="{$_item.product.name|escape}">
+                                            <a href="{$_product_front_uri}" title="{$_item.product.name|escape}" target="_blank">
                                                 {$_product_image_uri}
                                             </a>
                                         </div>
@@ -107,12 +107,12 @@
                                     <div class="wa-column-details">
                                         <div class="wa-details-section">
                                             <div class="wa-details">
-                                                <a class="wa-name" href="{$_product_front_uri}">{$_item.product.name|escape}</a>
+                                                <a class="wa-name" href="{$_product_front_uri}" target="_blank">{$_item.product.name|escape}</a>
                                                 {if isset($_item.sku_name) && strlen($_item.sku_name) && $_item.sku_name != $_item.product.name}
                                                     <span class="wa-sku">{$_item.sku_name|escape}</span>
                                                 {/if}
 
-                                                {if !empty($_item.weight_html)}
+                                                {if !empty($_config["show_weight"]) && !empty($_item.weight_html)}
                                                     <span class="wa-weight" title={_w('One item’s weight')|json_encode}>{$_item.weight_html}</span>
                                                 {/if}
 
@@ -432,7 +432,14 @@
                             </div>
                         </div>
 
-                        <div class="wa-weight-section" id="wa-cart-weight" style="{if empty($cart.total_weight_html) || empty($cart.count_html)}display: none;{/if}">{if !empty($cart.total_weight_html) && !empty($cart.count_html)}{sprintf('[`%s with total weight %s`]', "<span class=\"wa-count\">{$cart.count_html}</span>", "<span class=\"wa-weight\">{$cart.total_weight_html}</span>")}{/if}</div>
+                        {strip}
+                        {$_show_weight = ( !empty($_config["show_weight"]) && !empty($cart.total_weight_html) && !empty($cart.count_html) )}
+                        <div class="wa-weight-section" id="wa-cart-weight" style="{if empty($_show_weight)}display: none;{/if}">
+                            {if !empty($_show_weight)}
+                                {sprintf('[`%s with total weight %s`]', "<span class=\"wa-count\">{$cart.count_html}</span>", "<span class=\"wa-weight\">{$cart.total_weight_html}</span>")}
+                            {/if}
+                        </div>
+                        {/strip}
 
                     </div>
                 </div>
@@ -471,6 +478,11 @@
                         id: "wa-order-cart-js",
                         type: "js",
                         uri: "{$wa_app_static_url}js/frontend/order/cart.js?v={$wa->version()}"
+                    },
+                    {
+                        id: "wa-order-product-js",
+                        type: "js",
+                        uri: "{$wa_app_static_url}js/frontend/order/product.js?v={$wa->version()}"
                     }
                 ]).then(init);
 
@@ -592,6 +604,7 @@
                     window.waOrder.cart = new window.waOrder.Cart({
                         $wrapper: $("#wa-order-cart-wrapper"),
                         outer_options: {$options|json_encode},
+                        weight_enabled: {if !empty($_config["show_weight"])}true{else}false{/if},
                         templates: {
                             error: {_renderError|strip|trim|json_encode},
                             delete_product_dialog: {$_delete_product_dialog|strip|trim|json_encode},

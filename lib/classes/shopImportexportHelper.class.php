@@ -187,10 +187,12 @@ class shopImportexportHelper
     public static function parseHash($hash, $params = array())
     {
         $info = array(
-            'type'    => '',
-            'set_id'  => '',
-            'type_id' => '',
-            'data'    => array(),
+            'type'         => '',
+            'data'         => array(),
+            'set_id'       => '',
+            'type_id'      => '',
+            'product_ids'  => null,
+            'category_ids' => null,
         );
         if (strpos($hash, '/')) {
             list($info['type'], $hash) = explode('/', $hash, 2);

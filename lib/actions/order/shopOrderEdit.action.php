@@ -5,6 +5,11 @@ class shopOrderEditAction extends waViewAction
     private $crop_size = null;
 
     /**
+     * @var shopOrderEditorConfig
+     */
+    protected $order_editor_config;
+
+    /**
      * @var shopOrder
      */
     protected $order;
@@ -38,7 +43,7 @@ class shopOrderEditAction extends waViewAction
     protected function initShopOrderInfo()
     {
         $form = new shopBackendCustomerForm();
-        $form->setAddressDisplayType('first');
+        $form->setAddressDisplayType('first'); // Use only first contact address
 
         $order_id = waRequest::get('id', null, waRequest::TYPE_INT);
 
@@ -101,7 +106,10 @@ class shopOrderEditAction extends waViewAction
 
         $customer_form = $this->order->customerForm();
 
+        $order_editor_config = $this->getOrderEditorConfig();
+
         $this->view->assign(array(
+            'order_editor_config'          => $order_editor_config,
             'form'                         => $customer_form,
             'form_namespace'               => $customer_form->opt('namespace'),
             'order_storefront'             => $this->getOrderStorefront($this->order_data),
@@ -359,5 +367,16 @@ class shopOrderEditAction extends waViewAction
         $list = new shopStorefrontList();
         $storefronts = $list->fetchAll(array('contact_type'));
         return $storefronts;
+    }
+
+    /**
+     * @return shopOrderEditorConfig
+     */
+    protected function getOrderEditorConfig()
+    {
+        if (empty($this->order_editor_config)) {
+            $this->order_editor_config = new shopOrderEditorConfig();
+        }
+        return $this->order_editor_config;
     }
 }

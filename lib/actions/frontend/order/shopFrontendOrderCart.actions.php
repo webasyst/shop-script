@@ -84,17 +84,68 @@ class shopFrontendOrderCartActions extends waJsonActions
     protected function validateNewProduct($cart, $new_item)
     {
         // Make sure product is not already in the cart
-        // !!!
+        foreach($cart->items() as $item) {
+            if ($item['product_id'] == $new_item['product_id'] && $item['sku_id'] == $new_item['sku_id']) {
+                return [[
+                    'id' => 'already_in_cart',
+                    'text' => _w('The product is already in your cart.'),
+                ]];
+            }
+        }
 
-        // Make sure product exists and available on current storefront
-        // !!!
+        // Make sure product exists
+        $sku_model = new shopProductSkusModel();
+        $sku = $sku_model->getById($new_item['sku_id']);
+        if (!$sku || $sku['product_id'] != $new_item['product_id']) {
+            return [[
+                'id' => 'not_found',
+                'text' => _w('Product not found'),
+            ]];
+        }
+
+        $product_model = new shopProductModel();
+        $product = $product_model->getById($new_item['product_id']);
+        if (!$product) {
+            return [[
+                'id' => 'not_found',
+                'text' => _w('Product not found'),
+            ]];
+        }
+
+        // Make sure product is available on current storefront
+        if ( ( $types = waRequest::param('type_id'))) {
+            if (!in_array($product['type_id'], (array)$types)) {
+                return [[
+                    'id' => 'not_found',
+                    'text' => _w('Product not found'),
+                ]];
+            }
+        }
 
         // Make sure product is in stock
-        // !!!
+        if (!wa('shop')->getSetting('ignore_stock_count')) {
 
-        return array(
-            'Adding new product is not implemented yet. Sorry!' // !!! TODO
-        );
+            // limit by main stock set in storefront settings
+            if (wa('shop')->getSetting('limit_main_stock') && waRequest::param('stock_id')) {
+                $stock_id = waRequest::param('stock_id');
+                $product_stocks_model = new shopProductStocksModel();
+                $sku_stock = shopHelper::fillVirtulStock($product_stocks_model->getCounts($sku['id']));
+                if (isset($sku_stock[$stock_id])) {
+                    $sku['count'] = $sku_stock[$stock_id];
+                }
+            }
+
+            // Check if in stock
+            if ($sku['count'] !== null && $new_item['quantity'] > $sku['count']) {
+                $name = $product['name'].($sku['name'] ? ' ('.$sku['name'].')' : '');
+                return [[
+                    'id' => 'out_of_stock',
+                    'text' => sprintf(_w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience.'), $name),
+                ]];
+            }
+        }
+
+        return [];
     }
 
     protected function validateNewService($parent_item, $new_item)

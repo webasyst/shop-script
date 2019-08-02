@@ -150,6 +150,9 @@
 .s-checkout-order-page .s-back-link {
   text-align: right;
 }
+.s-checkout-order-page .s-order-section:not(:first-child) {
+  margin-top: 20px;
+}
 .s-checkout-order-page .s-order-section > .s-section-footer {
   padding: 18px 20px 17px 20px;
 }
@@ -214,6 +217,15 @@
 .s-checkout-order-page .wa-order-cart-wrapper > .wa-form-footer a,
 .s-checkout-order-page .wa-order-form-wrapper > .wa-form-footer a {
   color: #999;
+}
+.s-checkout-order-page .wa-order-cross_selling-wrapper > .wa-cross_selling-body {
+  background: #f7f7f7;
+  border: solid #ccc;
+  border-width: 0 1px 1px;
+  border-radius: 0 0 5px 5px;
+}
+.s-checkout-order-page .wa-order-cross_selling-wrapper .wa-slider-wrapper .wa-slider-actions .wa-action {
+  background: #f7f7f7;
 }
 .s-checkout-order-page .wa-order-cart-wrapper .wa-products {
   margin: -20px -20px 0;

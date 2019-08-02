@@ -14,6 +14,119 @@
         }
     };
 
+    function sourceLoader(sources) {
+        var deferred = $.Deferred();
+
+        loader(sources).then( function() {
+            deferred.resolve();
+        }, function(bad_sources) {
+            if (console && console.error) {
+                console.error("Error loading resource", bad_sources);
+            }
+            deferred.reject(bad_sources);
+        });
+
+        return deferred.promise();
+
+        function loader(sources) {
+            var deferred = $.Deferred(),
+                counter = sources.length;
+
+            var bad_sources = [];
+
+            $.each(sources, function(i, source) {
+                switch (source.type) {
+                    case "css":
+                        loadCSS(source).then(onLoad, onError);
+                        break;
+                    case "js":
+                        loadJS(source).then(onLoad, onError);
+                        break;
+                }
+            });
+
+            return deferred.promise();
+
+            function loadCSS(source) {
+                var deferred = $.Deferred(),
+                    promise = deferred.promise();
+
+                var $link = $("#" + source.id);
+                if ($link.length) {
+                    promise = $link.data("promise");
+
+                } else {
+                    $link = $("<link />", {
+                        id: source.id,
+                        rel: "stylesheet"
+                    }).appendTo("head")
+                        .data("promise", promise);
+
+                    $link
+                        .on("load", function() {
+                            deferred.resolve(source);
+                        }).on("error", function() {
+                        deferred.reject(source);
+                    });
+
+                    $link.attr("href", source.uri);
+                }
+
+                return promise;
+            }
+
+            function loadJS(source) {
+                var deferred = $.Deferred(),
+                    promise = deferred.promise();
+
+                var $script = $("#" + source.id);
+                if ($script.length) {
+                    promise = $script.data("promise");
+
+                } else {
+                    var script = document.createElement("script");
+                    document.getElementsByTagName("head")[0].appendChild(script);
+
+                    $script = $(script)
+                        .attr("id", source.id)
+                        .data("promise", promise);
+
+                    $script
+                        .on("load", function() {
+                            deferred.resolve(source);
+                        }).on("error", function() {
+                        deferred.reject(source);
+                    });
+
+                    $script.attr("src", source.uri);
+                }
+
+                return promise;
+            }
+
+            function onLoad(source) {
+                counter -= 1;
+                watcher();
+            }
+
+            function onError(source) {
+                bad_sources.push(source);
+                counter -= 1;
+                watcher();
+            }
+
+            function watcher() {
+                if (counter === 0) {
+                    if (!bad_sources.length) {
+                        deferred.resolve();
+                    } else {
+                        deferred.reject(bad_sources);
+                    }
+                }
+            }
+        }
+    }
+
     $.shop = {
         options: {
             'debug': true
@@ -742,6 +855,10 @@
                     idx = 0;
                 }
             }
+        },
+
+        loadSources: function(options) {
+            return sourceLoader(options);
         }
 
     };

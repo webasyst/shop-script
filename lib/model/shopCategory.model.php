@@ -278,6 +278,21 @@ class shopCategoryModel extends waNestedSetModel
     }
 
     /**
+     * Remove all regex-special characters in $url
+     * (except dashes which can not break preg_match() by themselves)
+     */
+    public function stripCategoryUrl($url)
+    {
+        $url_without_dashes = str_replace('-', '', $url);
+        $escaped_url_without_dashes = preg_quote($url_without_dashes, '!');
+        if ($escaped_url_without_dashes != $url_without_dashes) {
+            preg_match_all('~\\\\(.)~', $escaped_url_without_dashes, $matches);
+            $url = str_replace($matches[1], '', $url);
+        }
+        return ifempty($url, null);
+    }
+
+    /**
      * Insert new item to on some level (parent)
      * @param array $data
      * @param int $parent_id If 0 than root level
@@ -293,6 +308,9 @@ class shopCategoryModel extends waNestedSetModel
 
         if (isset($data['url']) && !$data['url']) {
             unset($data['url']);
+        }
+        if (isset($data['url'])) {
+            $data['url'] = $this->stripCategoryUrl($data['url']);
         }
 
         if (!isset($data['create_datetime'])) {
@@ -361,7 +379,7 @@ class shopCategoryModel extends waNestedSetModel
             unset($data['full_url']);
         }
         if (isset($data['url'])) {
-            $url = $data['url'];
+            $url = $this->stripCategoryUrl($data['url']);
             unset($data['full_url']);
             unset($data['url']);
         }

@@ -321,6 +321,9 @@ main.maincontent {
 .s-order-page .s-back-link {
   text-align: right;
 }
+.s-order-page .s-order-section:not(:first-child) {
+  margin-top: 20px;
+}
 .s-order-page .s-order-section > .s-section-header {
   padding: 18px 20px 17px 20px;
   background: #f3f3f3;
@@ -351,6 +354,10 @@ main.maincontent {
 }
 .s-order-page .s-order-section > .s-section-footer {
   padding: 18px 20px 17px 20px;
+}
+.s-order-page .wa-order-cross_selling-wrapper .wa-product-wrapper .wa-actions-wrapper .wa-button {
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 .s-order-page .wa-order-cart-wrapper p:first-child,
 .s-order-page .wa-order-form-wrapper p:first-child {

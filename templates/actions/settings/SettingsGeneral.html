@@ -254,6 +254,23 @@
                             </p>
                         </label>
                     </div>
+                    <div class="value no-shift">
+                        <label>
+                            <input type="checkbox" name="allow_image_upload" {if $allow_image_upload == '1'}checked="checked"{/if} value="1">
+                            [`Allow customers to attach images to their reviews`]
+                            <br>
+                        </label>
+                    </div>
+                    <div class="value no-shift">
+                        <label>
+                            <input type="checkbox" name="moderation_reviews" {if $moderation_reviews == '1'}checked="checked"{/if} value="1">
+                            [`Publish reviews only after moderation`]
+                            <br>
+                            <p class="hint">
+                                [`Recommended with enabled option “Allow customers to attach images to their reviews”.`]<br>
+                            </p>
+                        </label>
+                    </div>
                     <div id="setting-require-captcha">
                         <div class="value no-shift">
                             <label>

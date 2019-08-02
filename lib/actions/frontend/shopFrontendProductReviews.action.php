@@ -38,6 +38,7 @@ class shopFrontendProductReviewsAction extends shopFrontendProductAction
             $product['id'], 0, null, 'datetime DESC', array('escape' => true)
         );
 
+        /** @var shopConfig $config */
         $config = wa()->getConfig();
 
         $this->view->assign(array(

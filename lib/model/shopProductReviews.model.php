@@ -2,8 +2,10 @@
 
 class shopProductReviewsModel extends waNestedSetModel
 {
-    const STATUS_DELETED   = 'deleted';
+    const STATUS_DELETED = 'deleted';
     const STATUS_PUBLISHED = 'approved';
+    const STATUS_MODERATION = 'moderation';
+
     const AUTH_GUEST = 'guest';
     const AUTH_USER = 'user';
 
@@ -22,17 +24,23 @@ class shopProductReviewsModel extends waNestedSetModel
             $is_frontend = wa()->getEnv() == 'frontend';
 
             // extract reviews to reviews (comments)
-            $sql = "SELECT * FROM {$this->table} WHERE product_id = ".(int)$product_id.
-                    " AND review_id IN(".implode(',', array_keys($reviews)).")";
+            $sql = "SELECT * FROM {$this->table}";
+            $where = [
+                'product_id' => (int)$product_id,
+                'review_id'  => array_keys($reviews),
+            ];
+            $where += ifset($options, 'where', []);
+            $sql .= ' WHERE '.$this->getWhere($where);
             $sql .= " ORDER BY review_id, {$this->left}";
 
-            foreach ($this->query($sql) as $item) {
+            $result = $this->query($sql)->fetchAll();
+            foreach ($result as $item) {
                 $reviews[$item['review_id']]['comments'][$item['id']] = $item;
             }
             foreach ($reviews as &$review) {
                 if (!empty($review['comments'])) {
                     if ($is_frontend) {
-                        $this->cutOffDeleted($review['comments']);
+                        $this->cutOffDeletedOrModerated($review['comments']);
                     }
                     $this->extendItems($review['comments'], $options);
                 }
@@ -43,14 +51,14 @@ class shopProductReviewsModel extends waNestedSetModel
         return $reviews;
     }
 
-    private function cutOffDeleted(&$items)
+    private function cutOffDeletedOrModerated(&$items)
     {
         // need for cutting deleted reviews and its children in frontend
         $max_depth = 1000;
         if (!empty($items)) {
             $depth = $max_depth;
             foreach ($items as $id => $item) {
-                if ($item['status'] == self::STATUS_DELETED) {
+                if ($item['status'] == self::STATUS_DELETED || $item['status'] == self::STATUS_MODERATION) {
                     if ($item[$this->depth] < $depth) {
                         $depth = $item[$this->depth];
                     }
@@ -73,16 +81,25 @@ class shopProductReviewsModel extends waNestedSetModel
      * @param int $order
      * @param array $options
      * @return array
+     * @throws waException
      */
-    public function getReviews($product_id, $offset = 0, $count = null, $order = null, array $options = array())
+    public function getReviews($product_id, $offset = 0, $count = null, $order = null, array $options = [])
     {
         if (!$product_id) {
             return array();
         }
-        $sql = "SELECT * FROM {$this->table} WHERE product_id = ".(int)$product_id." AND review_id = 0";
+        $sql = "SELECT * FROM {$this->table}";
+        $where = [
+            'product_id' => (int)$product_id,
+            'review_id'  => 0
+        ];
+
         if (wa()->getEnv() == 'frontend') {
-            $sql .= " AND status = '".self::STATUS_PUBLISHED."'";
+            $where['status'] = self::STATUS_PUBLISHED;
         }
+        $where += ifset($options, 'where', []);
+        $sql .= ' WHERE '.$this->getWhere($where);
+
         $sql .= " ORDER BY ".($order ? $order : $this->left);
         if ($count !== null) {
             $sql .= " LIMIT ".(int)$offset.", ".(int)$count;
@@ -115,57 +132,169 @@ class shopProductReviewsModel extends waNestedSetModel
         );
     }
 
-    // fields = *,is_new,contac,product
+    /**
+     * @param string $fields
+     * @param array $options
+     * @return array
+     * @throws waException
+     */
     public function getList($fields = '*,is_new,contact,product', $options = array())
     {
         $options += $this->getListDefaultOptions();
 
-        $main_fields = '';
-        $post_fields = '';
+        $parsed_fields = $this->parseFields($fields);
+        $main_fields = $parsed_fields['main_fields'];
+        $post_fields = $parsed_fields['post_fields'];
 
-        foreach (explode(',', $fields) as $name) {
-            if ($this->fieldExists($name) || $name == '*') {
-                $main_fields .= ','.$name;
-            } else {
-                $post_fields .= ','.$name;
-            }
-        }
+        $where = $this->getWhere(ifset($options, 'where', []));
+        $order = $this->getOrder($options);
+        $limit = $this->getLimit($options);
 
-        $main_fields = substr($main_fields, 1);
-        $post_fields = substr($post_fields, 1);
+        $data = $this->select($main_fields)->where($where)->order($order)->limit($limit)->fetchAll('id');
 
-        $where = $this->getWhereByField($options['where']);
-
-        $limit_str = '';
-        if ($options['limit'] !== false) {
-            $limit_str = " LIMIT ".($options['offset'] ? $options['offset'].',' : '').(int)$options['limit'];
-        }
-
-        $sql = "SELECT $main_fields FROM `{$this->table}`".
-                ($where ? " WHERE $where" : "").
-                " ORDER BY datetime DESC, id".
-                $limit_str;
-
-        $data = $this->query($sql)->fetchAll('id');
         if (!$data) {
             return $data;
         }
-        foreach ($data as &$item) {
-            $item['datetime_ts'] = strtotime($item['datetime']);
-            if ($options['escape']) {
-                $item['title'] = htmlspecialchars($item['title']);
-            }
-        }
-        unset($item);
 
         $this->workupList($data, $post_fields, $options);
-        return $data;
 
+        return $data;
     }
+
+    /**
+     * Turns an array with conditions into a string
+     * @param array $fields
+     * @return string
+     * @throws waException
+     */
+    protected function getWhere($fields)
+    {
+        $where = '1=1';
+
+        if (!$fields) {
+            return $where;
+        }
+
+        foreach ($fields as $field => $condition) {
+            if ($field === 'filters') {
+                $this->parseFilters($where, $condition);
+            } else {
+                $this->joinWhere($where, [$field => $condition]);
+            }
+        }
+
+        return $where;
+    }
+
+    /**
+     * Handles filters from GET request
+     * @param string $where
+     * @param array $conditions
+     * @throws waException
+     */
+    protected function parseFilters(&$where, $conditions)
+    {
+        foreach ($conditions as $filter => $filter_data) {
+            if ($filter === 'status') {
+                switch ($filter_data) {
+                    case self::STATUS_DELETED:
+                    case self::STATUS_PUBLISHED:
+                    case self::STATUS_MODERATION:
+                        $this->joinWhere($where, ['status' => $filter_data]);
+                }
+            } elseif ($filter === 'images_count') {
+                if ($filter_data == 0) {
+                    $this->joinWhere($where, '`images_count` = 0');
+                } else {
+                    $this->joinWhere($where, '`images_count` > 0');
+                }
+            }
+        }
+    }
+
+    /**
+     * Combines conditions in one line.
+     * Connects only with the condition AND
+     *
+     * @param string $where
+     * @param array|string $conditions
+     * @throws waException
+     */
+    protected function joinWhere(&$where, $conditions)
+    {
+        if ($where) {
+            $where .= ' AND ';
+        }
+
+        if (is_array($conditions)) {
+            $where .= $this->getWhereByField($conditions);
+        } elseif (is_string($conditions)) {
+            $where .= $this->escape($conditions);
+        }
+    }
+
+    /**
+     * @param $options
+     * @return array|string
+     */
+    protected function getOrder($options)
+    {
+        $sort = ifset($options, 'sort', null);
+        $order = ifset($options, 'order', null);
+
+        if ($sort === 'rate') {
+            $result = $sort;
+        } else {
+            $result = 'datetime';
+        }
+        $result .= " {$order}, id";
+        $result = $this->escape($result);
+        return $result;
+    }
+
+    /**
+     * @param array $options
+     * @return string
+     */
+    protected function getLimit($options)
+    {
+        $limit = '';
+        if ($options['limit'] !== false) {
+            $limit = ($options['offset'] ? $options['offset'].',' : '').(int)$options['limit'];
+        }
+
+        return $limit;
+    }
+
+    /**
+     * @param $fields
+     * @return array
+     */
+    protected function parseFields($fields)
+    {
+        $result = [
+            'main_fields' => '',
+            'post_fields' => ''
+        ];
+
+        foreach (explode(',', $fields) as $name) {
+            if ($this->fieldExists($name) || $name == '*') {
+                $result['main_fields'] .= ','.$name;
+            } else {
+                $result['post_fields'] .= ','.$name;
+            }
+        }
+
+        foreach ($result as $type => $field) {
+            $result[$type] = substr($field, 1);
+        }
+
+        return $result;
+    }
+
 
     private function workupList(&$data, $fields, $options)
     {
-        $extract_contact_info = false;
         foreach (explode(',', $fields) as $field) {
 
             if ($field == 'contact') {
@@ -180,9 +309,9 @@ class shopProductReviewsModel extends waNestedSetModel
 
                 foreach ($data as &$item) {
                     $author = array(
-                        'name' =>  $item['name'],
+                        'name'  => $item['name'],
                         'email' => $item['email'],
-                        'site' =>  $item['site']
+                        'site'  => $item['site']
                     );
                     $item['author'] = array_merge(
                         $author,
@@ -244,10 +373,10 @@ class shopProductReviewsModel extends waNestedSetModel
                         if ($product['image_id']) {
                             $item['product_url_crop_small'] = shopImage::getUrl(
                                 array(
-                                    'id' => $product['image_id'],
+                                    'id'         => $product['image_id'],
                                     'product_id' => $product['id'],
-                                    'ext' => $product['ext'],
-                                    'filename' => $product['image_filename']
+                                    'ext'        => $product['ext'],
+                                    'filename'   => $product['image_filename']
                                 ),
                                 $image_size
                             );
@@ -258,9 +387,17 @@ class shopProductReviewsModel extends waNestedSetModel
                 }
                 unset($item);
             }
+
+            if ($field == 'images') {
+                $this->extendImages($data);
+            }
         }
 
         foreach ($data as &$item) {
+            $item['datetime_ts'] = strtotime($item['datetime']);
+            if ($options['escape']) {
+                $item['title'] = htmlspecialchars($item['title']);
+            }
             // recursive workuping
             if (!empty($item['comments'])) {
                 $this->extendItems($item['comments'], $options);
@@ -269,7 +406,7 @@ class shopProductReviewsModel extends waNestedSetModel
         unset($item);
     }
 
-    public function count($product_id = null, $reviews_only = true)
+    public function count($product_id = null, $reviews_only = true, $options = [])
     {
         if (wa()->getEnv() == 'frontend') {
             return $this->countInFrontend($product_id, $reviews_only);
@@ -277,16 +414,23 @@ class shopProductReviewsModel extends waNestedSetModel
 
         $sql = "SELECT COUNT(id) AS cnt FROM `{$this->table}` ";
 
-        $where = array();
+        $where = [];
+
         if ($product_id) {
-            $where[] = "product_id = ".(int)$product_id;
+            $where['product_id'] = (int)$product_id;
         }
         if ($reviews_only) {
-            $where[] = "review_id = 0";
+            $where['review_id'] = 0;
         }
+        if (isset($options['where'])) {
+            $where += $options['where'];
+        }
+        $where = $this->getWhere($where);
+
         if ($where) {
-            $sql .= " WHERE ".implode(' AND ', $where);
+            $sql .= " WHERE ".$where;
         }
+
         return $this->query($sql)->fetchField('cnt');
     }
 
@@ -301,7 +445,7 @@ class shopProductReviewsModel extends waNestedSetModel
         if ($reviews_only) {
             $sql = "SELECT COUNT(id) AS cnt FROM `{$this->table}` AS r
                 WHERE review_id = 0 AND status = '".self::STATUS_PUBLISHED."' ".
-                                ($where ? " AND " . $where : "");
+                ($where ? " AND ".$where : "");
             return $this->query($sql)->fetchField('cnt');
         }
 
@@ -311,13 +455,13 @@ class shopProductReviewsModel extends waNestedSetModel
         $fields[] = $this->right;
         $fields[] = $this->depth;
         $fields[] = 'status';
-        $sql = "SELECT " .  implode(',', $fields) . "
+        $sql = "SELECT ".implode(',', $fields)."
                 FROM `{$this->table}` ".
-                        ($where ? "WHERE $where " : " ").
-                        "ORDER BY `{$this->left}`";
+            ($where ? "WHERE $where " : " ").
+            "ORDER BY `{$this->left}`";
 
         $reviews = $this->query($sql)->fetchAll('id');
-        $this->cutOffDeleted($reviews);
+        $this->cutOffDeletedOrModerated($reviews);
 
         return count($reviews);
     }
@@ -351,8 +495,8 @@ class shopProductReviewsModel extends waNestedSetModel
         $product = $product_model->getById($product_id);
         if ($inc) {
             $update = array(
-                    'rating' => ($product['rating']*$product['rating_count'] + $rate)/($product['rating_count'] + 1),
-                    'rating_count' => $product['rating_count'] + 1
+                'rating'       => ($product['rating'] * $product['rating_count'] + $rate) / ($product['rating_count'] + 1),
+                'rating_count' => $product['rating_count'] + 1
             );
         } else {
 
@@ -360,8 +504,8 @@ class shopProductReviewsModel extends waNestedSetModel
             $rating = $rating_count > 0 ? ($product['rating'] * $product['rating_count'] - $rate) / $rating_count : 0;
 
             $update = array(
-                    'rating' => $rating ,
-                    'rating_count' => $rating_count
+                'rating'       => $rating,
+                'rating_count' => $rating_count
             );
         }
         $product_model->updateById($product_id, $update);
@@ -376,13 +520,18 @@ class shopProductReviewsModel extends waNestedSetModel
         if ($status == $review['status']) {
             return true;
         }
-        if ($status != self::STATUS_DELETED && $status != self::STATUS_PUBLISHED) {
+        if ($status != self::STATUS_DELETED && $status != self::STATUS_PUBLISHED && $status == shopProductReviewsModel::STATUS_MODERATION) {
             return false;
         }
         if ($status == self::STATUS_DELETED) {
             $this->recalcProductRating($review['product_id'], $review['rate'], false);
         } else {
-            $this->recalcProductRating($review['product_id'], $review['rate']);
+            // If moderation is enabled and the review has been deleted, then transfer it to moderated status
+            if ($review['status'] === self::STATUS_DELETED && wa()->getSetting('moderation_reviews', 0)) {
+                $status = shopProductReviewsModel::STATUS_MODERATION;
+            } else {
+                $this->recalcProductRating($review['product_id'], $review['rate']);
+            }
         }
         $this->updateById($review_id, array('status' => $status));
         return true;
@@ -413,7 +562,7 @@ class shopProductReviewsModel extends waNestedSetModel
             $review['ip'] = $ip;
         }
 
-        if(!empty($review['contact_id'])) {
+        if (!empty($review['contact_id'])) {
             $user = wa()->getUser();
             if ($user->getId() && !$user->get('is_user')) {
                 $user->addToCategory(wa()->getApp());
@@ -424,7 +573,7 @@ class shopProductReviewsModel extends waNestedSetModel
             $review['datetime'] = date('Y-m-d H:i:s');
         }
         if (isset($review['site']) && $review['site']) {
-            if (!preg_match('@^https?://@',$review['site'])) {
+            if (!preg_match('@^https?://@', $review['site'])) {
                 $review['site'] = 'http://'.$review['site'];
             }
         }
@@ -464,6 +613,7 @@ class shopProductReviewsModel extends waNestedSetModel
     public function validate($review)
     {
         $errors = array();
+        /** @var shopConfig $config */
         $config = wa('shop')->getConfig();
 
         if ($review['auth_provider'] == self::AUTH_GUEST) {
@@ -476,10 +626,10 @@ class shopProductReviewsModel extends waNestedSetModel
                 return array('captcha' => _w('Invalid captcha code'));
             }
 
-            if (!empty($review['site']) && strpos($review['site'], '://')===false) {
-                $review['site'] = "http://" . $review['site'];
+            if (!empty($review['site']) && strpos($review['site'], '://') === false) {
+                $review['site'] = "http://".$review['site'];
             }
-            if (empty($review['name']) || mb_strlen($review['name']) == 0 ) {
+            if (empty($review['name']) || mb_strlen($review['name']) == 0) {
                 $errors['name'] = _w('Name cannot be left blank');
             }
             if (mb_strlen($review['name']) > 255) {
@@ -535,22 +685,24 @@ class shopProductReviewsModel extends waNestedSetModel
         $contact_ids = array_unique($contact_ids);
         $contacts = self::getAuthorInfo($contact_ids);
 
-        foreach ($items as &$item) {
+        $this->extendImages($items);
+        foreach ($items as $id => &$item) {
             $item['datetime_ts'] = strtotime($item['datetime']);
             $author = array(
-                'name' =>  $item['name'],
+                'name'  => $item['name'],
                 'email' => $item['email'],
-                'site' =>  $item['site']
+                'site'  => $item['site']
             );
             $item['author'] = array_merge(
-                    $author,
-                    isset($contacts[$item['contact_id']]) ? $contacts[$item['contact_id']] : array()
+                $author,
+                isset($contacts[$item['contact_id']]) ? $contacts[$item['contact_id']] : array()
             );
             if ($escape) {
                 $item['author']['name'] = htmlspecialchars($item['author']['name']);
                 $item['text'] = nl2br(htmlspecialchars($item['text']));
                 $item['title'] = htmlspecialchars($item['title']);
             }
+
             // recursive workuping
             if (!empty($item['comments'])) {
                 $this->extendItems($item['comments'], $options);
@@ -560,6 +712,33 @@ class shopProductReviewsModel extends waNestedSetModel
             $this->checkForNew($items);
         }
         unset($item);
+    }
+
+    protected function extendImages(&$items)
+    {
+        if ($items && is_array($items)) {
+            $images = $this->getImages(array_keys($items));
+            foreach ($items as $id => &$item) {
+                $item['images'] = ifset($images, $id, []);
+            }
+        }
+    }
+
+    /**
+     * @param array|string $review_ids
+     * @return array
+     * @throws waException
+     */
+    protected function getImages($review_ids)
+    {
+        $model = new shopProductReviewsImagesModel();
+
+        /** @var shopConfig $config */
+        $config = wa('shop')->getConfig();
+        $sizes = $config->getImageSizes();
+        $images = $model->getImages($review_ids, $sizes, 'review_id');
+
+        return $images;
     }
 
     public function deleteByProducts(array $product_ids)
@@ -578,7 +757,9 @@ class shopProductReviewsModel extends waNestedSetModel
         }
     }
 
-    private function checkForNew(&$items) {
+    private function checkForNew(&$items)
+    {
+        /** @var shopConfig $config */
         $config = wa('shop')->getConfig();
         $storage = wa()->getStorage();
         $datetime = $config->getLastDatetime();
@@ -618,7 +799,7 @@ class shopProductReviewsModel extends waNestedSetModel
                     } else {
                         if ($viewed_reviews[$item['id']] !== true && ($viewed_reviews[$item['id']] + $review_highlight_time >= $time)) {
                             $item['is_new'] = true;
-                        } else if ($viewed_reviews[$item['id']] !== true) {
+                        } elseif ($viewed_reviews[$item['id']] !== true) {
                             $viewed_reviews[$item['id']] = true;
                             $outdated_reviews_count += 1;
                         }
@@ -630,5 +811,20 @@ class shopProductReviewsModel extends waNestedSetModel
         // save updated info
         $storage->set('shop_viewed_reviews', $viewed_reviews);
         $storage->set('shop_outdated_reviews_count', $outdated_reviews_count);
+    }
+
+    /**
+     * The number of reviews are on moderation
+     * @return int
+     */
+    public function getModerationReviewsCount()
+    {
+        $count = $this->count(null, false, [
+            'where' => [
+                'status' => 'moderation'
+            ]
+        ]);
+
+        return (int)$count;
     }
 }

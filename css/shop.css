@@ -112,7 +112,8 @@
 #s-sidebar.left950px .s-sidebar-width-control { width: 950px; }
 
 #s-sidebar { overflow: hidden; }
-#s-sidebar li a .name { display: inline-block; max-width: 100%; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+#s-sidebar li a .name { display: inline-block; max-width: calc(100% - 28px); line-height: 1.1em; text-overflow: ellipsis; overflow: hidden; }
+#s-sidebar.left200px .s-sidebar-width-control .arrow.left { display: none; }
 #s-sidebar.left950px .s-sidebar-width-control .arrow.right { display: none; }
 
 #s-fixed-blocks .block { border: 1px dashed #ddd; padding: 10px 9px 9px; border-top: 0; }
@@ -1232,6 +1233,28 @@ table.s-country-list i.icon16.country { margin-top: 1px; }
 .s-settings-checkout-empty-wrapper { background: #fff; margin-left: 200px; border-left: 1px solid #ddd; }
 .s-settings-checkout-empty-wrapper .s-settings-checkout-not-found { color: #999; margin: 0 auto; padding-top: 80px; text-align: center; }
 
+/* ORDER EDITOR */
+.s-settings-order-editor {}
+.s-settings-order-editor .s-custom-config-toggle-field { margin: 12px; }
+.s-settings-order-editor .s-toggle-wrapper { display: inline-block; }
+.s-settings-order-editor .s-toggle-wrapper .inline-toggle { display: inline-block; }
+.s-settings-order-editor .s-toggle-wrapper .s-toggle-status { color: #000; display: inline-block; vertical-align: top; padding-top: 1px; }
+.s-settings-order-editor .s-toggle-wrapper .s-toggle-status.disabled { color: #888; }
+.s-settings-order-editor .s-big-table { width: 100%; margin: 20px 0; }
+.s-settings-order-editor .s-block-container { padding: 20px 10px; }
+.s-settings-order-editor .s-block-content { padding-top: 20px; }
+.s-settings-order-editor .s-setting-variant:not(:first-child) { padding-top: 10px; }
+.s-settings-order-editor .s-sort-table { max-width: 610px; }
+.s-settings-order-editor .s-sort-table tr.ui-sortable-helper { display: table; }
+.s-settings-order-editor .s-fields-editor-hint { padding: 10px 0; }
+.s-settings-order-editor .s-billing-address-setting { padding-top: 10px; }
+
+.s-settings-order-editor .s-footer-actions { padding: 10px 0; }
+.s-settings-order-editor .s-form-buttons .s-footer-actions.is-bottom-fixed { position: fixed; bottom: 0; left: 0; width: 100%; height: auto; z-index: 10; background: #fff; border-top: 1px solid rgba(0,0,0,0.1); }
+.s-settings-order-editor .s-form-buttons .s-footer-actions.is-top-fixed { position: fixed; top: 0; left: 0; width: 100%; height: auto; z-index: 10; background: #fff; }
+.s-settings-order-editor .s-form-buttons .s-loading { margin: 9px 0 0 6px; }
+.s-settings-order-editor .s-form-buttons .fixed { padding: 10px 20px; }
+
 
 /* STOREFRONTS
 -------------- */
@@ -1509,7 +1532,8 @@ table.zebra p.hint { margin-bottom: 0; }
 .icon16.ss.sort-bw { background-position:-416px 0; }
 .icon16.ss.smiley-bw { background-position:-432px 0; }
 .icon16.ss.couriers-bw { background-position:-448px 0; }
-.icon16.ss.schedule-bw { background-image: url('../img/ss-schedule-icon.svg'); background-position: center; }
+.icon16.ss.schedule-bw { background-image: url('../img/ss-schedule-icon.svg'); background-position: center; background-size: 16px 16px; }
+.icon16.ss.fields-bw { background-image: url('../img/ss-fields-icon.svg'); background-position: center; background-size: 16px 16px; }
 
 /* order statuses */
 .icon16.ss.new { background-position:0 -32px; }

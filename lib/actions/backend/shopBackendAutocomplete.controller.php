@@ -466,9 +466,10 @@ class shopBackendAutocompleteController extends waController
                         $c['name'] = waContactNameField::formatName($c);
                     }
 
-                    $name = $c['name'];
-                    $email = ifset($c['email'], '');
-                    $phone = ifset($c['phone'], '');
+
+                    $name = htmlspecialchars($c['name'], ENT_QUOTES, 'utf-8');
+                    $email = htmlspecialchars(ifset($c['email'], ''), ENT_QUOTES, 'utf-8');
+                    $phone = htmlspecialchars(ifset($c['phone'], ''), ENT_QUOTES, 'utf-8');
 
                     $terms = (array)$search_terms[$index];
                     foreach ($terms as $term) {
@@ -476,12 +477,12 @@ class shopBackendAutocompleteController extends waController
                         $match = false;
 
                         if ($this->match($name, $term_safe)) {
-                            $name = $this->prepare($name, $term_safe);
+                            $name = $this->prepare($name, $term_safe, false);
                             $match = true;
                         }
 
                         if ($this->match($email, $term_safe)) {
-                            $email = $this->prepare($email, $term_safe);
+                            $email = $this->prepare($email, $term_safe, false);
                             if ($email) {
                                 $email = '<i class="icon16 email"></i>'.$email;
                             }
@@ -489,7 +490,7 @@ class shopBackendAutocompleteController extends waController
                         }
 
                         if ($this->match($phone, $term_safe)) {
-                            $phone = $this->prepare($phone, $term_safe);
+                            $phone = $this->prepare($phone, $term_safe, false);
                             if ($phone) {
                                 $phone = '<i class="icon16 phone"></i>'.$phone;
                             }

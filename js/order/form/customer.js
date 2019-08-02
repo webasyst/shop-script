@@ -78,7 +78,7 @@ var ShopBackendOrderEditorCustomerForm = ( function($) {
     ShopBackendOrderEditorCustomerForm.prototype.init = function () {
         var that = this;
 
-        that.initForm(that.editor.id ? 'edit' : 'add');
+        that.initForm();
 
         that.rememberInitialValues();
 
@@ -322,15 +322,12 @@ var ShopBackendOrderEditorCustomerForm = ( function($) {
     };
 
     /**
-     * @param {String} editing_mode
      */
-    ShopBackendOrderEditorCustomerForm.prototype.initForm = function (editing_mode) {
+    ShopBackendOrderEditorCustomerForm.prototype.initForm = function () {
         var that = this,
             customer_form = that.customer_form,
             editor = that.editor,
             $wrapper = that.$wrapper;
-
-        editing_mode = typeof editing_mode === 'undefined' ? 'add' : editing_mode;
 
         // Mark names fields (firstname, middlename, lastname) as having one name (class) of error
         var names = ['firstname', 'middlename', 'lastname'];
@@ -371,9 +368,11 @@ var ShopBackendOrderEditorCustomerForm = ( function($) {
         });
 
 
-        //
-        if (editing_mode === 'add') {
-            // mark whole form as disabled to user want use autocomplete
+        if (that.getContact().id > 0) {
+            // when there is existing contact, mark whole form as active (so no disabled inputs will be in contact form and no autocomplete)
+            that.activate();
+        } else {
+            // when there is not contact (or some sort of "empty" contact), mark whole form as disabled, so user could only use autocomplete
             that.activate(false);
         }
 

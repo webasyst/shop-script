@@ -1,11 +1,14 @@
 <!-- shop app css -->
 <link href="{$wa_active_theme_url}css/sidebar.shop.css?v{$wa_theme_version}" rel="stylesheet">
-<link href="{$wa_active_theme_url}jquery.bxslider.css?v{$wa_theme_version}" rel="stylesheet" />
 
-<!-- js -->
-<script src="{$wa_active_theme_url}jquery.bxslider.min.js?v{$wa_theme_version}"></script>
 <script src="{$wa_app_static_url}js/lazy.load.js?v{$wa->version()}"></script>
 <script src="{$wa_active_theme_url}sidebar.shop.js?v{$wa_theme_version}"></script>
+
+<link href="{$wa_active_theme_url}js/swipebox/css/swipebox.css" rel="stylesheet">
+<script src="{$wa_active_theme_url}js/swipebox/js/jquery.swipebox.js"></script>
+
+<link href="{$wa_active_theme_url}jquery.bxslider.css?v{$wa_theme_version}" rel="stylesheet" />
+<script src="{$wa_active_theme_url}jquery.bxslider.min.js?v{$wa_theme_version}"></script>
 
 {if $wa->shop->config('enable_2x')}
     <script src="{$wa_static_url}wa-content/js/jquery-plugins/jquery.retina.min.js?v{$wa->version(true)}"></script>

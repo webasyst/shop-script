@@ -127,6 +127,7 @@ class shopProductImagesModel extends waModel
      * Delete one image
      * @param int $id ID of image
      * @return bool
+     * @throws waException
      */
     public function delete($id)
     {
@@ -221,23 +222,23 @@ SQL;
         }
     }
 
+    /**
+     * @return int
+     */
     public function countAvailableImages()
     {
-        if (wa()->getUser()->getRights('shop', 'type.all')) {
-            $sql = "SELECT COUNT(id) FROM `{$this->table}`";
-        } else {
-            $type_model = new shopTypeModel();
-            $types = $type_model->getTypes();
-            if (!$types) {
-                return false;
-            }
-            $sql = "SELECT COUNT(i.id) FROM `{$this->table}` i
-                JOIN `shop_products` p ON p.id = i.product_id
-                WHERE p.type IN(".array_keys($types).")";
+        $result = 0;
+        if (wa()->getUser()->getRights('shop', 'settings')) {
+            $result = $this->countAll();
         }
-        return $this->query($sql)->fetchField();
+        return $result;
     }
 
+    /**
+     * @param int $offset
+     * @param null $limit
+     * @return array
+     */
     public function getAvailableImages($offset = 0, $limit = null)
     {
         if (!$limit) {
@@ -247,21 +248,12 @@ SQL;
             $offset = (int) $offset;
             $limit = (int) $limit;
         }
-        if (wa()->getUser()->getRights('shop', 'type.all')) {
-            $sql = "SELECT * FROM `{$this->table}` ORDER BY product_id, id LIMIT {$offset}, {$limit}";
-        } else {
-            $type_model = new shopTypeModel();
-            $types = $type_model->getTypes();
-            if (!$types) {
-                return array();
-            }
-            $sql = "SELECT i.* FROM `{$this->table}` i
-                JOIN `shop_products` p ON p.id = i.product_id
-                WHERE p.type_id IN (".array_keys($types).")
-                ORDER BY i.product_id, i.id
-                LIMIT {$offset}, {$limit}";
+        $result = [];
+
+        if (wa()->getUser()->getRights('shop', 'settings')) {
+            $result = $this->select('*')->order('product_id, id')->limit("{$offset}, {$limit}")->fetchAll('id');
         }
-        return $this->query($sql)->fetchAll('id');
+        return $result;
     }
 
     /**

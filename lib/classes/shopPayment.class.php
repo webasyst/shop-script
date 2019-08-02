@@ -762,8 +762,12 @@ class shopPayment extends waAppPayment
                 $order_total = $order['total'];
             }
 
+            /** @var shopConfig $config */
+            $config = wa('shop')->getConfig();
 
-            $invalid = !empty($order_total) && (abs($order_total - $total) > 0.01);
+            $tolerance = max(0.01, $config->getOption('order_amount_tolerance'));
+
+            $invalid = !empty($order_total) && (abs($order_total - $total) > $tolerance);
             if ($invalid) {
                 $error = sprintf('Invalid order amount: %0.2f expected, %0.2f received (%s)', $order_total, $total, $transaction_data['currency_id']);
             }

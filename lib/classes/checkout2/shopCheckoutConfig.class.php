@@ -328,16 +328,16 @@ class shopCheckoutConfig implements ArrayAccess
 
         return [
             self::ORDER_WITHOUT_AUTH_CREATE   => [
-                'name' => _w('Create a new customer profile for every guest order'),
-                'description' => $locales["locale_1"] . "<br><br>". $locales["locale_2"],
+                'name'        => _w('Create a new customer profile for every guest order'),
+                'description' => $locales["locale_1"]."<br><br>".$locales["locale_2"],
             ],
             self::ORDER_WITHOUT_AUTH_EXISTING => [
                 'name'        => _w('Add an order to existing customer profile with the same email address or phone number'),
-                'description' => $locales["locale_3"] . "<br><br>" . $locales["locale_4"] . "<br><br>" . $locales["locale_5"],
+                'description' => $locales["locale_3"]."<br><br>".$locales["locale_4"]."<br><br>".$locales["locale_5"],
             ],
             self::ORDER_WITHOUT_AUTH_CONFIRM  => [
-               'name' => _w('Checkout with mandatory email address or phone number confirmation'),
-                'description' => $locales["locale_6"] . "<br><br>" . $locales["locale_7"] . "<br><br>" . $locales["locale_8"]
+                'name'        => _w('Checkout with mandatory email address or phone number confirmation'),
+                'description' => $locales["locale_6"]."<br><br>".$locales["locale_7"]."<br><br>".$locales["locale_8"]
             ],
         ];
     }
@@ -469,24 +469,41 @@ class shopCheckoutConfig implements ArrayAccess
             return $methods;
         }
 
-        $storefront_currency = wa('shop')->getConfig()->getCurrency(false);
+        $out_currency = wa('shop')->getConfig()->getCurrency(false);
 
         foreach ($methods as $variant_id => &$variant_data) {
-            $variant_data['original_currency'] = $variant_currency = ifset($variant_data, 'currency', null);
+            $variant_data['original_currency'] = $in_currency = ifset($variant_data, 'currency', null);
             $variant_data['original_rate'] = $rate = ifset($variant_data, 'rate', null);
 
             if ($rate) {
-                if ($storefront_currency !== $variant_currency) {
-                    $rate = shop_currency($rate, $variant_currency, $storefront_currency, false);
-                    $variant_data['currency'] = $storefront_currency;
+                if (is_array($rate)) {
+                    foreach ($rate as $key => $value) {
+                        $variant_data['rate'][$key] = $this->convertRate($value,$in_currency, $out_currency);
+                    }
+                } else {
+                    $variant_data['rate'] = $this->convertRate($rate,$in_currency, $out_currency);
                 }
-                $variant_data['rate'] = shopRounding::roundCurrency($rate, $storefront_currency);
+
+                if ($out_currency !== $in_currency) {
+                    $variant_data['currency'] = $out_currency;
+                }
             }
 
         }
         unset($variant_data);
 
         return $methods;
+    }
+
+    protected function convertRate($rate, $in_currency, $out_currency)
+    {
+        if ($in_currency !== $out_currency) {
+            $rate = shop_currency($rate, $in_currency, $out_currency, false);
+        }
+
+        $rate = shopRounding::roundCurrency($rate, $out_currency);
+
+        return $rate;
     }
 
     // Overridden in unit tests
@@ -672,7 +689,7 @@ class shopCheckoutConfig implements ArrayAccess
         return $result;
     }
 
-   /**
+    /**
      * Return settings of address fields used in Details step (after shipping variant is selected).
      *
      * @param array $plugin_required_address_fields as returned by waShipping->requestedAddressFieldsForService()
@@ -1020,6 +1037,8 @@ class shopCheckoutConfig implements ArrayAccess
     {
         // Get all contact address fields
         $address_fields = $this->getContactAddressFields();
+        // The fields "Country", "Region" and "City" are always render in Shipping step. Is always. In this list they are useless.
+        // Wherever an array of address fields is used — we do not expect to see these fields in it.
         unset($address_fields['country'], $address_fields['region'], $address_fields['city']);
         // Get shipping address fields
         $shipping_address_fields = $this->getValue('shipping', 'address_fields');
@@ -1208,7 +1227,7 @@ class shopCheckoutConfig implements ArrayAccess
     protected function getSettingsMap()
     {
         return [
-            'design'       => [
+            'design'          => [
                 'custom'            => self::SETTING_TYPE_BOOL,
                 'logo'              => self::SETTING_TYPE_SCALAR,
                 'business_scope'    => self::SETTING_TYPE_SCALAR,
@@ -1220,14 +1239,19 @@ class shopCheckoutConfig implements ArrayAccess
                 'layout_background' => self::SETTING_TYPE_SCALAR,
                 'custom_css'        => self::SETTING_TYPE_SCALAR,
             ],
-            'cart'         => [
+            'cart'            => [
                 'block_name'       => self::SETTING_TYPE_SCALAR,
                 'empty_text'       => self::SETTING_TYPE_SCALAR,
                 'change_sku'       => self::SETTING_TYPE_BOOL,
                 'discount_item'    => self::SETTING_TYPE_VARIANT,
                 'discount_general' => self::SETTING_TYPE_VARIANT,
+                'show_weight'      => self::SETTING_TYPE_BOOL,
             ],
-            'schedule'     => [
+            'recommendations' => [
+                'used'       => self::SETTING_TYPE_BOOL,
+                'block_name' => self::SETTING_TYPE_SCALAR,
+            ],
+            'schedule'        => [
                 'mode'            => self::SETTING_TYPE_VARIANT,
                 'timezone'        => self::SETTING_TYPE_SCALAR,
                 'processing_time' => self::SETTING_TYPE_SCALAR,
@@ -1235,14 +1259,14 @@ class shopCheckoutConfig implements ArrayAccess
                 'extra_workdays'  => self::SETTING_TYPE_ARRAY,
                 'extra_weekends'  => self::SETTING_TYPE_ARRAY,
             ],
-            'order'        => [
+            'order'           => [
                 'block_name' => self::SETTING_TYPE_SCALAR,
                 // 'mode'                 => self::SETTING_TYPE_VARIANT,  @deprecated: available as an alias for [shipping][mode]                 - read only
                 // 'fixed_delivery_area'  => self::SETTING_TYPE_ARRAY,    @deprecated: available as an alias for [shipping][fixed_delivery_area]  - read only
                 // 'show_pickuppoint_map' => self::SETTING_TYPE_VARIANT,  @deprecated: available as an alias for [shipping][show_pickuppoint_map] - read only
                 // 'locations_list'       => self::SETTING_TYPE_ARRAY,    @deprecated: available as an alias for [shipping][locations_list]       - read only
             ],
-            'customer'     => [
+            'customer'        => [
                 'block_name'             => self::SETTING_TYPE_SCALAR,
                 'offer_login'            => self::SETTING_TYPE_SCALAR,
                 'offer_logout'           => self::SETTING_TYPE_SCALAR,
@@ -1256,7 +1280,7 @@ class shopCheckoutConfig implements ArrayAccess
                 'service_agreement'      => self::SETTING_TYPE_VARIANT,
                 'service_agreement_hint' => self::SETTING_TYPE_SCALAR,
             ],
-            'shipping'     => [
+            'shipping'        => [
                 'used'                   => self::SETTING_TYPE_BOOL,
                 'block_name'             => self::SETTING_TYPE_SCALAR,
                 'mode'                   => self::SETTING_TYPE_VARIANT, // moved from order block
@@ -1272,11 +1296,11 @@ class shopCheckoutConfig implements ArrayAccess
                 'service_agreement_hint' => self::SETTING_TYPE_SCALAR,
                 'plugin_timeout'         => self::SETTING_TYPE_SCALAR,
             ],
-            'payment'      => [
+            'payment'         => [
                 'used'       => self::SETTING_TYPE_BOOL,
                 'block_name' => self::SETTING_TYPE_SCALAR,
             ],
-            'confirmation' => [
+            'confirmation'    => [
                 'order_comment'      => self::SETTING_TYPE_BOOL,
                 'terms'              => self::SETTING_TYPE_BOOL,
                 'terms_text'         => self::SETTING_TYPE_SCALAR,
@@ -1440,6 +1464,9 @@ class shopCheckoutConfig implements ArrayAccess
         return $this->contact_fields["contact_{$contact_type}_fields"];
     }
 
+    /**
+     * @return waContactField[]
+     */
     protected function getContactAddressFields()
     {
         if (empty($this->contact_address_fields)) {
@@ -1456,6 +1483,32 @@ class shopCheckoutConfig implements ArrayAccess
         }
 
         return $this->contact_address_fields;
+    }
+
+    /**
+     * @return array
+     */
+    public function getSystemAddressFieldNames()
+    {
+        /**
+         * @var waContactField
+         */
+        $address_fields = $this->getContactAddressFields();
+
+        $system_address_field_names = [
+            'country' => _w('Country'),
+            'region'  => _w('Region'),
+            'city'    => _w('Locality'),
+            'zip'     => _w('ZIP code'),
+        ];
+
+        foreach ($system_address_field_names as $field_id => $field_name) {
+            if (!empty($address_fields[$field_id])) {
+                $system_address_field_names[$field_id] = $address_fields[$field_id]->getName();
+            }
+        }
+
+        return $system_address_field_names;
     }
 
     public function offsetSet($offset, $value)

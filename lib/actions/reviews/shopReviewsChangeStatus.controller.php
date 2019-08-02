@@ -12,7 +12,8 @@ class shopReviewsChangeStatusController extends waJsonController
         $status = waRequest::post('status', '', waRequest::TYPE_STRING_TRIM);
         if (
             $status == shopProductReviewsModel::STATUS_DELETED ||
-            $status == shopProductReviewsModel::STATUS_PUBLISHED
+            $status == shopProductReviewsModel::STATUS_PUBLISHED ||
+            $status == shopProductReviewsModel::STATUS_MODERATION
         ) {
             $product_reviews_model = new shopProductReviewsModel();
             $product_reviews_model->changeStatus($review_id, $status);

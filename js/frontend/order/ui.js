@@ -566,6 +566,91 @@
 
     })($);
 
+    var Styler = ( function($) {
+
+        Styler = function(options) {
+            var that = this;
+
+            // DOM
+            that.$wrapper = options["$wrapper"];
+
+            // CONST
+            that.periods = options["periods"];
+
+            // DYNAMIC VARS
+
+            // INIT
+            that.init();
+        };
+
+        Styler.prototype.init = function() {
+            var that = this;
+
+            var $window = $(window),
+                $document = $(document);
+
+            that.set();
+
+            $document.on("refresh", refreshWatcher);
+            function refreshWatcher() {
+                var is_exist = $.contains(document, that.$wrapper[0]);
+                if (is_exist) {
+                    that.set();
+                } else {
+                    $document.off("refresh", refreshWatcher);
+                }
+            }
+
+            $window.on("resize", resizeWatcher);
+            function resizeWatcher() {
+                var is_exist = $.contains(document, that.$wrapper[0]);
+                if (is_exist) {
+                    that.set();
+                } else {
+                    $window.off("refresh", resizeWatcher);
+                }
+            }
+        };
+
+        Styler.prototype.set = function() {
+            var that = this;
+
+            if (!that.periods.length) { return false; }
+
+            var width = that.$wrapper.outerWidth();
+
+            $.each(that.periods, function(i, period) {
+                var set_class = false;
+
+                if (period.min && period.max) {
+                    set_class = (width >= period.min && width <= period.max);
+
+                } else if (period.max) {
+                    set_class = (width <= period.max);
+
+                } else if (period.min) {
+                    set_class = (width >= period.min);
+
+                } else {
+                    set_class = true;
+                }
+
+                render(period.class, set_class);
+            });
+
+            function render(class_name, add_class) {
+                if (add_class) {
+                    that.$wrapper.addClass(class_name);
+                } else {
+                    that.$wrapper.removeClass(class_name);
+                }
+            }
+        };
+
+        return Styler;
+
+    })(jQuery);
+
     var load = function(sources) {
         var deferred = $.Deferred();
 
@@ -835,6 +920,7 @@
         Toggle: Toggle,
         Dialog: Dialog,
         Dropdown: Dropdown,
+        Styler: Styler,
         validate: {
             url: isURL,
             email: isEmail,

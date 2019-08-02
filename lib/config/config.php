@@ -33,6 +33,7 @@ return array(
     'features_values_per_page' => 7,
     'statrows_per_page'        => 50,
     'orders_update_list'       => 60000, // miliseconds
+    'order_amount_tolerance'   => 0.011,
 
     'stocks_log_items_per_page'   => 30,
     'marketing_expenses_per_page' => 25,

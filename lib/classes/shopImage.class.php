@@ -32,6 +32,7 @@ class shopImage
      * Constructor of an image object.
      *
      * @param string $file Full path to image file
+     * @throws waException
      */
     public function __construct($file)
     {
@@ -50,6 +51,7 @@ class shopImage
      * @param string|null $file Path to save file. If not specified, image is saved at its original path.
      * @param int|null $quality Image quality: from 1 to 100; defaults to 100.
      * @return bool Whether file was saved successfully
+     * @throws waException
      */
     public function save($file = null, $quality = null)
     {
@@ -110,7 +112,7 @@ class shopImage
      */
     public static function generateThumbs($image, $sizes = array(), $force = true)
     {
-        $sizes = (array) $sizes;
+        $sizes = (array)$sizes;
         $product_id = $image['product_id'];
         $config = wa('shop')->getConfig();
         /**
@@ -144,8 +146,8 @@ class shopImage
      * @param string $src_image_path Path to original image
      * @param string $size Size value string of the form '200x0', '96x96', etc.
      * @param int|bool $max_size Optional maximum size limit
-     * @throws waException
      * @return waImageImagick|waImageGd
+     * @throws waException
      */
     public static function generateThumb($src_image_path, $size, $max_size = false)
     {
@@ -227,6 +229,7 @@ class shopImage
      *
      * @param string $size Size value string (e.g., '500x400', '500', '96x96', '200x0')
      * @returns array Size info array ('type', 'width', 'height')
+     * @return array
      */
     public static function parseSize($size)
     {
@@ -255,6 +258,24 @@ class shopImage
     }
 
     /**
+     * @param array $image
+     * @return string
+     */
+    public static function getSubPath($image)
+    {
+        $review_id = ifset($image,'review_id', null);
+
+        if ($review_id) {
+            $review_id = $image['review_id'];
+            $sub_path = "reviews/{$review_id}/images";
+        } else {
+            $sub_path = 'images';
+        }
+
+        return $sub_path;
+    }
+
+    /**
      * Returns path to product image
      *
      * @param array $image Key-value image data object
@@ -267,7 +288,10 @@ class shopImage
         } else {
             $n = $image['id'];
         }
-        return shopProduct::getPath($image['product_id'], "images/{$n}.{$image['ext']}");
+        $sub_path = self::getSubPath($image);
+        $path = shopProduct::getPath($image['product_id'], "{$sub_path}/{$n}.{$image['ext']}");
+
+        return $path;
     }
 
     /**
@@ -280,7 +304,9 @@ class shopImage
      */
     public static function getOriginalPath($image)
     {
-        return shopProduct::getPath($image['product_id'], "images/{$image['id']}.original.{$image['ext']}");
+        $sub_path = self::getSubPath($image);
+        $path = shopProduct::getPath($image['product_id'], "$sub_path/{$image['id']}.original.{$image['ext']}");
+        return $path;
     }
 
     /**
@@ -294,15 +320,17 @@ class shopImage
     public static function getThumbsPath($image, $size = null)
     {
         $path = shopProduct::getFolder($image['product_id'])."/{$image['product_id']}/";
+        $sub_path = self::getSubPath($image);
+
         if (!$size) {
-            return wa()->getDataPath($path, true, 'shop', false)."images/{$image['id']}/";
+            return wa()->getDataPath($path, true, 'shop', false)."{$sub_path}/{$image['id']}/";
         } else {
             if (strlen($image['filename'])) {
                 $n = $image['filename'];
             } else {
                 $n = $image['id'];
             }
-            return wa()->getDataPath($path, true, 'shop', false)."images/{$image['id']}/{$n}.{$size}.{$image['ext']}";
+            return wa()->getDataPath($path, true, 'shop', false)."{$sub_path}/{$image['id']}/{$n}.{$size}.{$image['ext']}";
         }
     }
 
@@ -328,7 +356,8 @@ class shopImage
         } else {
             $n = $image['id'];
         }
-        $path = shopProduct::getFolder($image['product_id'])."/{$image['product_id']}/images/{$image['id']}/{$n}.{$size}.{$image['ext']}";
+        $sub_path = self::getSubPath($image);
+        $path = shopProduct::getFolder($image['product_id'])."/{$image['product_id']}/{$sub_path}/{$image['id']}/{$n}.{$size}.{$image['ext']}";
 
         if (waSystemConfig::systemOption('mod_rewrite')) {
             return wa()->getDataUrl($path, true, 'shop', $absolute);
@@ -348,8 +377,8 @@ class shopImage
      * @param array $image Key-value image data object
      * @param string|array|null $size Size value string (e.g., '200x0', '96x96', etc.) or size data array returned by method parseSize()
      *     If empty, default value of 'thumb' size is used as defined in class shopConfig
-     * @see shopConfig
      * @return array Array containing width and height values
+     * @see shopConfig
      */
     public static function getThumbDimensions($image, $size = null)
     {

@@ -308,7 +308,7 @@
 
     {* Item discount *}
     <div class="field">
-        <div class="name">[`Discout information per product`]</div>
+        <div class="name">[`Discount information per product`]</div>
         <div class="value radio">
             {foreach $cart_discount_item_variants as $_id => $_variant}
                 <div class="s-checkout-radio-variant">
@@ -336,6 +336,34 @@
                     </label>
                 </div>
             {/foreach}
+        </div>
+    </div>
+
+    {* Show weight *}
+    <div class="field">
+        <div class="name">[`Show order items’ and total order weight`]</div>
+        <div class="value">
+            <label>
+                <input type="hidden" name="data[cart][show_weight]" value="0" />
+                <input type="checkbox" name="data[cart][show_weight]"{if $settings.show_weight} checked{/if} />
+            </label>
+        </div>
+    </div>
+
+</div>
+{/function}
+
+{* Recommendations block *}
+{function recommendations_block settings=[]}
+<div class="s-checkout-field-group field-group">
+    <div style="margin-top: 10px;">
+    	{sprintf('<a href="%s" target="_blank">', '?action=settings#/recommendations/')}[`Configure recommendations (Cross-selling)`] <i class="icon16 new-window"></i></a>
+   	</div>
+    {* Block name *}
+    <div class="field">
+        <div class="name">[`Block name`]</div>
+        <div class="value input">
+            <input type="text" name="data[recommendations][block_name]" value="{$settings.block_name|escape}" autocomplete="off" />
         </div>
     </div>
 </div>
@@ -834,7 +862,7 @@
                                 <i style="display: inline-block; width: 16px; height: 16px; margin: -0.1em 0.25em 0 0;"></i>
                                 <label>
                                     <input type="checkbox" title="[`Use field`]" checked disabled>
-                                    [`Country`]
+                                    {$system_address_field_names.country|escape}
                                     <i class="hint">[`country`] — [`Text (input)`]</i>
                                 </label>
                             </td>
@@ -852,7 +880,7 @@
                                 <i style="display: inline-block; width: 16px; height: 16px; margin: -0.1em 0.25em 0 0;"></i>
                                 <label>
                                     <input type="checkbox" title="[`Use field`]" checked disabled>
-                                    [`Region`]
+                                    {$system_address_field_names.region|escape}
                                     <i class="hint">[`region`] — [`Text (input)`]</i>
                                 </label>
                             </td>
@@ -870,7 +898,7 @@
                                 <i style="display: inline-block; width: 16px; height: 16px; margin: -0.1em 0.25em 0 0;"></i>
                                 <label>
                                     <input type="checkbox" title="[`Use field`]" checked disabled>
-                                    [`Locality`]
+                                    {$system_address_field_names.city|escape}
                                     <i class="hint">[`locality`] — [`Text (input)`]</i>
                                 </label>
                             </td>

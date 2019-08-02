@@ -14,9 +14,6 @@ class shopContactsProfileTabHandler extends waEventHandler
         $om = new shopOrderModel();
 
         $total_orders = $om->countByField('contact_id', $contact_id);
-        if (!$total_orders) {
-            return null;
-        }
 
         return array(
             'html' => '',

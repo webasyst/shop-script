@@ -2,7 +2,7 @@
 
 {if !empty($ajax_append)}<li data-id={$review.id} data-parent-id="{$review.parent_id}">{/if}
 
-<figure class="review" itemprop="review" itemscope itemtype="http://schema.org/Review">
+<figure class="s-review-wrapper review" itemprop="review" itemscope itemtype="http://schema.org/Review" data-id="{$review.id|escape}">
     <div class="summary">
         <h6>
             {if !$review.parent_id && !empty($review.rate)}
@@ -22,11 +22,11 @@
         {else}
             <a href="{$review.site}" class="username" itemprop="author">{$review.author.name}</a>
         {/if}
-        
+
         {if ifempty($review.author.is_user) > 0}
             <span class="staff">{$wa->shop->settings('name')}</span>
         {/if}
-        
+
         <meta itemprop="itemReviewed" content="{$product.name|escape}">
         <meta itemprop="datePublished" content="{$review.datetime|date_format:'Y-m-d'}">
         <span class="date" title="{$review.datetime|wa_datetime}">{$review.datetime|wa_datetime:"humandatetime"}</span>
@@ -34,12 +34,70 @@
     {if $review.text}
         <p itemprop="description">{$review.text}</p>
     {/if}
-    
+
+    {strip}
+    {if !empty($review.images)}
+        <div class="s-images-list">
+            {foreach $review.images as $_image}
+                <a class="s-image-wrapper js-show-image" href="{$_image.url_0|escape}" title="{$_image.description|escape}" target="_blank">
+                    <img class="s-image" src="{$_image.url_2|escape}" alt="{$_image.description|escape}">
+                </a>
+            {/foreach}
+        </div>
+    {/if}
+    {/strip}
+
     {if $reply_allowed}
         <div class="actions">
             <a href="{if isset($reply_link)}{$reply_link}{else}#{/if}" class="review-reply inline-link"><b><i>[`reply`]</i></b></a>
         </div>
     {/if}
+
+    <script>
+        ( function($) {
+            var $document = $(document),
+                $review = $(".s-review-wrapper[data-id=\"" + {$review.id|escape} + "\"]");
+
+            $review.on("click", ".js-show-image", function(event) {
+                event.preventDefault();
+
+                var $image = $(this),
+                    images = [];
+
+                $review.find(".js-show-image").each(function () {
+                    var $_image = $(this);
+                    images.push({
+                        href: $_image.attr("href"),
+                        title: escape($_image.attr("title"))
+                    });
+                });
+
+                var k = $image.prevAll('.js-show-image').length;
+                if (k) {
+                    images = images.slice(k).concat(images.slice(0, k));
+                }
+
+                $.swipebox(images, {
+                    useSVG : false,
+                    hideBarsDelay: false,
+                    afterOpen: function() {
+                        $document.on("scroll", closeSwipe);
+                        function closeSwipe() {
+                            var $closeButton = $("#swipebox-close");
+                            if ($closeButton.length) {
+                                $closeButton.trigger("click");
+                            }
+                            $document.off("scroll", closeSwipe);
+                        }
+                    }
+                });
+
+                function escape(string) {
+                    return $("<div />").text(string).html();
+                }
+            });
+        })(jQuery);
+    </script>
 </figure>
 
 {if !empty($ajax_append)}<ul class="reviews-branch"></ul></li>{/if}

@@ -48,6 +48,32 @@
                             </td>
                         </tr>
 
+                        {* RECOMMENDATIONS SETTINGS *}
+                        <tr class="js-block-wrapper" data-block="cart">
+                            <td class="s-block-container">
+                                {* Show/hide settings *}
+                                <div class="float-right">
+
+                                    <div class="s-toggle-wrapper js-block-toggle-wrapper">
+                                        <input type="hidden" name="data[recommendations][used]" value="0" />
+                                        <input id="recommendations_used" name="data[recommendations][used]" class="ibutton js-toggle" type="checkbox"{if $checkout_config.recommendations.used} checked="checked"{/if}>
+                                        <label for="recommendations_used">
+                                            <span class="s-toggle-status js-toggle-status{if !$checkout_config.recommendations.used} disabled{/if}">{if $checkout_config.recommendations.used}[`Enabled`]{else}[`Disabled`]{/if}</span>
+                                        </label>
+                                    </div>
+
+                                    <a href="javascript:void(0);" class="inline-link s-settings-link js-settings-link"{if !$checkout_config.recommendations.used} style="display: none;"{/if}>
+                                        <i class="icon16 settings"></i>
+                                        <b><i>[`Settings`]</i></b>
+                                    </a>
+                                </div>
+                                <h3 class="name">[`Recommendations`]</h3>
+                                <div class="js-block-content" style="display: none;">
+                                    {recommendations_block settings=$checkout_config.recommendations}
+                                </div>
+                            </td>
+                        </tr>
+
                         {* ORDER SETTINGS *}
                         <tr class="block-wrapper js-block-wrapper" data-block="order">
                             <td class="s-block-container">

@@ -3374,13 +3374,13 @@
                 }).then();
             }
 
-            $document.on("wa_order_cart_changed", cartWatcher);
+            $document.on("wa_order_cart_changed wa_order_product_added", cartWatcher);
             function cartWatcher() {
                 var is_exist = $.contains(document, that.$wrapper[0]);
                 if (is_exist) {
                     that.update().then();
                 } else {
-                    $document.off("click", cartWatcher);
+                    $document.off("wa_order_cart_changed wa_order_product_added", cartWatcher);
                 }
             }
 
