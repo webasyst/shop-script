@@ -824,10 +824,10 @@ HTML;
 
     /**
      * @param array $options
-     * @param       bool [string] $options['offers']
-     * @param       bool [string] $options['outlets']
-     * @param       bool [string] $options['balance']
-     * @param       bool [string] $options['orders']
+     * @param bool [string] $options['offers']
+     * @param bool [string] $options['outlets']
+     * @param bool [string] $options['balance']
+     * @param bool [string] $options['orders']
      * @return null
      * @throws waException
      */
@@ -1476,14 +1476,14 @@ HTML;
     }
 
     /**
-     * @throws waException
-     * @param        mixed  [string] $data
-     * @param        int    [string] $data[order_id]        Номер заказа
-     * @param        string [string] $data[action_id]       ID действия
-     * @param        string [string] $data[before_state_id] ID статуса до выполнения действия
-     * @param        string [string] $data[after_state_id]  ID статуса после выполнения действия
-     * @param        int    [string] $data[id]              ID записи в логе истории заказа
+     * @param mixed  [string] $data
+     * @param int    [string] $data[order_id]        Номер заказа
+     * @param string [string] $data[action_id]       ID действия
+     * @param string [string] $data[before_state_id] ID статуса до выполнения действия
+     * @param string [string] $data[after_state_id]  ID статуса после выполнения действия
+     * @param int    [string] $data[id]              ID записи в логе истории заказа
      * @param string $event_name
+     * @throws waException
      * @link https://tech.yandex.ru/market/partner/doc/dg/reference/put-campaigns-id-orders-id-status-docpage/
      */
     public function orderActionHandler($data, $event_name = null)
@@ -1818,5 +1818,39 @@ HTML;
         }
 
         return $promo_rule['errors'] ? false : true;
+    }
+
+    public static function getImageSizes()
+    {
+        /** @var shopConfig $config */
+        $config = wa('shop')->getConfig();
+        $sizes = $config->getImageSizes();
+        $image_sizes = array(
+            'big' => 'Размер по умолчанию',
+        );
+        foreach ($sizes as $size) {
+            $size_info = shopImage::parseSize((string)$size);
+            $type = $size_info['type'];
+            $width = $size_info['width'];
+            $height = $size_info['height'];
+            switch ($type) {
+                case 'crop':
+                    $image_sizes[$size] = sprintf('%s: %d x %d px', _w('Square crop'), $width, $height);
+                    break;
+                case 'max':
+                    $image_sizes[$size] = sprintf('%s (%s, %s) = %d px', _w('Max'), _w('Width'), _w('Height'), $width);
+                    break;
+                case 'width':
+                    $image_sizes[$size] = sprintf('%s = %d px, %s = %s', _w('Width'), $width, _w('Height'), _w('auto'));
+                    break;
+                case 'height':
+                    $image_sizes[$size] = sprintf('%s = %s, %s = %d px', _w('Width'), _w('auto'), _w('Height'), $height);
+                    break;
+                case 'rectangle':
+                    $image_sizes[$size] = sprintf('%s = %s px, %s = %d px', _w('Width'), $width, _w('Height'), $height);
+                    break;
+            }
+        }
+        return $image_sizes;
     }
 }

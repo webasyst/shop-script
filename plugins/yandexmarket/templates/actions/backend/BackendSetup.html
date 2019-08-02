@@ -174,6 +174,7 @@
                         <li><b>%name%</b> — название товара</li>
                         <li><b>%contact_id%</b> — id контакта, создавшего товар</li>
                         <li><b>%badge%</b> — значок на товаре</li>
+                        <li><b>%offer.id%</b> — id товарного предложения</li>
                     </ul>
                     <b>Примеры:</b><br/>
                     utm_term=%id% (для PriceLab дополнительно заполните поле utm_source)<br/>
@@ -320,7 +321,7 @@
             <div class="name">Скидки</div>
             <div class="value no-shift">
                 <label for="s-plugin-yandexmarket-export-compare-price">
-                    <input name="export[compare_price]" id="s-plugin-yandexmarket-export-compare-price" type="checkbox" value="1"{if !empty($export.compare_price)} checked="checked" {/if}> Экспортировать зачеркнутую цену в параметр <tt>&lt;oldprice&gt;</tt> для рассчета скидки на товар
+                    <input name="export[compare_price]" id="s-plugin-yandexmarket-export-compare-price" type="checkbox" value="1"{if !empty($export.compare_price)} checked="checked" {/if}> Экспортировать зачеркнутую цену в параметр <tt>&lt;oldprice&gt;</tt> для расчета скидки на товар
                 </label>
                 <p class="hint">По правилам «Яндекс.Маркета» скидка должна быть не ниже 5% и не выше 95%.</p>
             </div>
@@ -560,6 +561,8 @@
                 {else}
                     {include file="./mapField.html" inline}
                 {/if}
+            {elseif !empty($info.available_options)}
+                {include file="./mapField.html" inline}
             {/if}
         {/foreach}
 

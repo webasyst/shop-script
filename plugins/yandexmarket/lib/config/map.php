@@ -10,6 +10,7 @@ return array(
                 'available'             => true,
                 'id'                    => true,
                 'url'                   => true,
+                'shop-sku'              => false,
                 'price'                 => true,
                 'oldprice'              => true,
                 'purchase_price'        => false,
@@ -43,6 +44,8 @@ return array(
                 'cbid'                  => false,
                 'rec'                   => false,
                 'param.*'               => false,
+                'condition'             => false,
+                'condition-reason'      => false,
             ),
         ),
         'vendor.model' => array(
@@ -52,6 +55,7 @@ return array(
                 'id'                    => true,
                 'group_id'              => false,
                 'url'                   => true,
+                'shop-sku'              => false,
                 'price'                 => true,
                 'oldprice'              => true,
                 'purchase_price'        => false,
@@ -131,6 +135,7 @@ return array(
                 'available'             => true,
                 'id'                    => true,
                 'url'                   => true,
+                'shop-sku'              => false,
                 'price'                 => true,
                 'oldprice'              => true,
                 'purchase_price'        => false,
@@ -418,6 +423,13 @@ return array(
             'description' => '',
             'format'      => '%0.512s',
             'source'      => 'field:frontend_url',
+            'callback'    => true,
+        ),
+        'shop-sku' => array(
+            'type'        => 'adjustable',
+            'name'        => 'Идентификатор товара',
+            'description' => 'Укажите для получения рекомендаций по ценам в маркетплейсе «Беру»',
+            'params'      => true,
         ),
         'price'    => array(
             'type'        => 'fixed',
@@ -467,14 +479,25 @@ return array(
         ),
         'categoryId'     => array(
             'type'        => 'fixed',
-            'name'        => 'Идентификатор категории товара ',
+            'name'        => 'Идентификатор категории товара',
             'description' => '(целое число не более 18 знаков). Товарное предложение может принадлежать только к одной категории.',
             'source'      => 'field:category_id',
         ),
         'picture'        => array(
-            'type'   => 'fixed',
-            'name'   => 'Ссылка на изображение соответствующего товарного предложения',
-            'source' => 'field:images',
+            'type'              => 'fixed',
+            'name'              => 'Изображение',
+            'description'       => 'Адрес изображения товарного предложения',
+            'help'              => '<a href="?action=settings#/images/">Настройка размеров изображений товаров</a>',
+            'source'            => 'field:images',
+            'available_options' => array(
+                'size' => array(
+                    'description' => 'Размер изображения: ',
+                    'options'     => shopYandexMarketPlugin::getImageSizes(),
+                ),
+            ),
+            'default_options'   => array(
+                'size' => 'big',
+            ),
         ),
         'downloadable'   => array(
             'type'        => 'adjustable',
@@ -1095,6 +1118,29 @@ return array(
             'sources'  => array(
                 'function',
             ),
+        ),
+        'condition-reason'      => array(
+            'type'        => 'adjustable',
+            'name'        => 'Уцененные товары',
+            'description' => 'Причина уценки',
+            'path'        => 'condition/reason',
+            'params'      => true,
+            'virtual'     => true,
+            'source'      => 'params:condition-reason',
+        ),
+        'condition'             => array(
+            'type'        => 'adjustable',
+            'name'        => '',
+            'description' => 'Состояние товара',
+            'path'        => 'condition[type]',
+            'attribute'   => true,
+            'values'      => array(
+                'likenew' => 'как новый (товар не был в употреблении, уценен из-за недостатков)',
+                'used'    => 'подержанный (товар был в употреблении)',
+            ),
+            'params'      => true,
+            'callback'    => true,
+            'source'      => 'params:condition',
         ),
         'param'                 => array(
             'type'        => 'adjustable',

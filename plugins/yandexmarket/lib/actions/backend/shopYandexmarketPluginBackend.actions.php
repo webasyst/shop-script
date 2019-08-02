@@ -255,12 +255,12 @@ class shopYandexmarketPluginBackendActions extends waViewActions
                 $info = shopImportexportHelper::parseHash($hash);
                 switch ($info['type']) {
                     case 'id':
-                        $ids = array_unique(array_map('intval', explode(',', $info['product_ids'] )));
+                        $ids = array_unique(array_map('intval', explode(',', $info['product_ids'])));
                         sort($ids);
                         $info['product_ids'] = implode(',', $ids);
                         break;
                     case 'set':
-                        $info['set_id'] = trim($hash);
+                        $info['set_id'] = trim($info['set_id']);
                         break;
                     case 'type':
                         $info['type_id'] = intval($hash);
@@ -288,7 +288,6 @@ class shopYandexmarketPluginBackendActions extends waViewActions
                             $info['type'] = 'id';
                         } catch (waException $ex) {
                             $error = $ex->getMessage();
-
                         }
                         break;
                 }

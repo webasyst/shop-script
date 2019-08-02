@@ -1565,6 +1565,7 @@ SQL;
      * @param $processed
      *
      * @usedby shopYandexmarketPluginRunController::step()
+     * @throws waException
      */
     private function stepProduct(&$current_stage, &$count, &$processed)
     {
@@ -2450,8 +2451,6 @@ SQL;
         $data = array(
             'id'    => $gift['id'],
             '@name' => $gift['name'],
-
-
         );
         if (!empty($gift['images'])) {
             $gift['images'] = $this->format('picture', $gift['images']);
@@ -2755,24 +2754,41 @@ SQL;
                 break;
             case 'url':
                 //max 512
-                $value = preg_replace_callback('@([^\[\]a-zA-Z\d_/-\?=%&,\.]+)@i', array(__CLASS__, 'rawurlencode'), $value);
-                if (isset($this->data['utm']) && !empty($this->data['utm'])) {
-                    $value .= (strpos($value, '?') ? '&' : '?').$this->data['utm'];
-                }
 
+                if (!empty($info)) {
+                    $value = preg_replace_callback('@([^\[\]a-zA-Z\d_/-\?=%&,\.]+)@i', array(__CLASS__, 'rawurlencode'), $value);
+                    if (isset($this->data['utm']) && !empty($this->data['utm'])) {
+                        $value .= (strpos($value, '?') ? '&' : '?').$this->data['utm'];
+                    }
 
-                if (!empty($this->data['custom_url'])) {
-                    $custom_url = $this->data['custom_url'];
-                    if (preg_match_all('@%([a-z_]+)%@', $custom_url, $matches)) {
-                        foreach ($matches[1] as $match) {
-                            $replace = rawurlencode(ifset($sku_data[$match], ifset($data[$match])));
-                            $custom_url = str_replace('%'.$match.'%', $replace, $custom_url);
+                    $value = array(
+                        'url' => ifempty($this->data['schema'], 'http://').ifempty($this->data['base_url'], 'localhost').$value,
+                    );
+
+                    if (!empty($this->data['custom_url'])) {
+                        $value['custom_url'] = $this->data['custom_url'];
+                        if (preg_match_all('@%([a-z_]+)%@', $value['custom_url'], $matches)) {
+                            foreach ($matches[1] as $match) {
+                                $replace = rawurlencode(ifset($sku_data[$match], ifset($data[$match])));
+                                $value['custom_url'] = str_replace('%'.$match.'%', $replace, $value['custom_url']);
+                            }
                         }
                     }
-                    $value .= (strpos($value, '?') ? '&' : '?').$custom_url;
+
+                } else {
+                    $value = is_array($value) ? $value['url'] : $value;
+                    if (!empty($data['url']['custom_url'])) {
+                        $custom_url = $data['url']['custom_url'];
+                        if (preg_match_all('@%offer\.([a-z_]+)%@', $custom_url, $matches)) {
+                            foreach ($matches[1] as $match) {
+                                $replace = rawurlencode(ifset($data[$match]));
+                                $custom_url = str_replace('%offer.'.$match.'%', $replace, $custom_url);
+                            }
+                        }
+                        $value .= (strpos($value, '?') ? '&' : '?').$custom_url;
+                    }
                 }
 
-                $value = ifempty($this->data['schema'], 'http://').ifempty($this->data['base_url'], 'localhost').$value;
                 break;
             case 'purchase_price':
                 if (empty($value) || empty($this->data['export']['purchase_price'])) {
@@ -2923,9 +2939,10 @@ SQL;
                 }
                 while (is_array($value) && ($image = array_shift($value)) && $limit--) {
                     if (!$size) {
-                        $shop_config = $this->getConfig();
-                        $size = $shop_config->getImageSize('big');
+                        $default_size = ifempty($info, 'default_options', 'size', 'big');
+                        $size = $this->getImageSize(ifempty($info, 'options', 'size', $default_size));
                     }
+
                     $values[] = ifempty($this->data['schema'], 'http://').ifempty($this->data['base_url'], 'localhost').shopImage::getUrl($image, $size);
                 }
                 $value = $values;
@@ -3311,6 +3328,18 @@ SQL;
             case 'downloadable':
                 $value = !empty($value) ? 'true' : null;
                 break;
+            case 'condition':
+                if (!empty($info)) {
+                    $value = in_array($value, array('likenew', 'new')) ? 'likenew' : 'used';
+                } elseif (empty($data['condition-reason'])) {
+                    $value = null;
+                } else {
+                    $value = array(
+                        'type'  => $value,
+                        '@reason' => $data['condition-reason'],
+                    );
+                }
+                break;
         }
         $format = ifempty($info['format'], '%s');
 
@@ -3326,7 +3355,7 @@ SQL;
 
             # XXX use map.php for configure this fields
             # implode values for non multiple and non complex fields
-            if (!in_array($field, array('email', 'picture', 'dataTour', 'additional', 'barcode', 'param', 'related_offer', 'local_delivery_cost', 'available', 'age'))) {
+            if (!in_array($field, array('email', 'picture','url', 'dataTour', 'additional', 'barcode', 'param', 'related_offer', 'local_delivery_cost', 'available', 'age','condition'))) {
                 $value = implode(', ', $value);
             }
         } elseif ($value !== null) {
@@ -3667,5 +3696,19 @@ SQL;
     private static function camelCase($m)
     {
         return strtoupper($m[2]);
+    }
+
+    private function getImageSize($config)
+    {
+        if (!isset($this->data['config']['__image_size'])) {
+            /** @var shopConfig $shop_config */
+            $shop_config = $this->getConfig();
+            if (in_array($config, $shop_config->getImageSizes(), true)) {
+                $this->data['config']['__image_size'] = $config;
+            } else {
+                $this->data['config']['__image_size'] = $shop_config->getImageSize('big');
+            }
+        }
+        return $this->data['config']['__image_size'];
     }
 }

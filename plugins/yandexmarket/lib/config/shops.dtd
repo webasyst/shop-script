@@ -31,7 +31,7 @@
         order-before CDATA #IMPLIED>
 
 <!ELEMENT offers (offer+)>
-<!ELEMENT offer (url?, buyurl?, price, oldprice?, wprice?, purchase_price?, currencyId, vat?, xCategory?, categoryId+, market_category?,
+<!ELEMENT offer (url?, buyurl?, shop-sku?, price, oldprice?, wprice?, purchase_price?, currencyId, vat?, xCategory?, categoryId+, market_category?,
         picture*, store?, pickup?, delivery?, deliveryIncluded?, ((local_delivery_cost?, orderingTime?)|(delivery-options?))?,
         ((typePrefix?, vendor, vendorCode?, model, (provider, tarifplan?)?) |
                 (author?, name, publisher?, series?, year?, ISBN?, volume?, part?, language?, binding?, page_extent?, table_of_contents?) |
@@ -50,6 +50,7 @@
         weight?,
         dimensions?,
         rec?,
+        condition?,
         param*,
         related_offer*
         )>
@@ -124,6 +125,7 @@
         hours CDATA #IMPLIED>
 
 <!ELEMENT deliveryTime EMPTY>
+<!ELEMENT shop-sku (#PCDATA)>
 <!ELEMENT price (#PCDATA)>
 <!ELEMENT oldprice (#PCDATA)>
 <!ELEMENT purchase_price (#PCDATA)>
@@ -198,6 +200,10 @@
 <!ELEMENT barcode (#PCDATA)>
 <!ELEMENT cpa (#PCDATA)>
 <!ELEMENT rec (#PCDATA)>
+<!ELEMENT condition (reason)>
+<!ATTLIST condition
+    type (likenew|used) #REQUIRED>
+<!ELEMENT reason (#PCDATA)>
 <!ELEMENT param (#PCDATA)>
 <!ATTLIST param
         name CDATA #REQUIRED

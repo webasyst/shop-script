@@ -115,6 +115,7 @@
                 <xs:element ref="url"/>
                 <xs:element ref="buyurl"/>
                 <xs:element ref="price"/>
+                <xs:element ref="shop-sku"/>
                 <xs:element ref="oldprice"/>
                 <xs:element ref="wprice"/>
                 <xs:element ref="currencyId"/>
@@ -196,6 +197,7 @@
                 <xs:element ref="expiry"/>
                 <xs:element ref="weight"/>
                 <xs:element ref="dimensions"/>
+                <xs:element ref="condition"/>
                 <xs:element ref="param"/>
                 <xs:element ref="related_offer"/>
                 <xs:element ref="delivery-options"/>
@@ -373,6 +375,15 @@
     <xs:element name="deliveryTime">
         <xs:complexType/>
     </xs:element>
+    <xs:element name="shop-sku">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="from" type="xs:string"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
     <xs:element name="price">
         <xs:complexType>
             <xs:simpleContent>
@@ -492,6 +503,22 @@
     <xs:element name="expiry" type="xs:string"/>
     <xs:element name="weight" type="xs:string"/>
     <xs:element name="dimensions" type="xs:string"/>
+    <xs:element name="condition">
+    <xs:complexType>
+    <xs:choice minOccurs="0" maxOccurs="1">
+    <xs:element ref="reason"/>
+    </xs:choice>
+        <xs:attribute name="type">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="likenew"/>
+                    <xs:enumeration value="used"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+    </xs:element>
+    <xs:element name="reason" type="xs:string"/>
     <xs:element name="param">
         <xs:complexType>
             <xs:simpleContent>

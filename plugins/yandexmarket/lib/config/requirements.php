@@ -6,10 +6,10 @@ return array(
     ),
     'app.shop'      => array(
         'strict'  => true,
-        'version' => '5.2.0.27755',
+        'version' => '8.4.6',
     ),
     'app.installer' => array(
         'strict'  => true,
-        'version' => '1.5.12.50',
+        'version' => '1.11.9',
     ),
 );
