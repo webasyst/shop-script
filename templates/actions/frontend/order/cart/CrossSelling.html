@@ -51,7 +51,7 @@
 
                                 {* PRICE *}
                                 <div class="wa-actions-wrapper">
-                                    <button class="wa-button gray js-add-product" title="{_w("Добавить в корзину")|escape}">
+                                    <button class="wa-button gray js-add-product" title="{_w("Add to cart")|escape}">
                                         <i class="wa-icon size-14 cart-icon"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#cart"></use></svg></i>
                                         {shop_currency($_product.price, ['in_currency' => true, 'format' => 'h'])}
                                     </button>
@@ -74,8 +74,8 @@
     </div>
 
     {capture assign="_success_button"}
-        <button class="wa-button gray" title="{_w("Добавлено")|escape}">
-            {_w("Добавлено")|escape}
+        <button class="wa-button gray" title="{_w("Added")|escape}">
+            {_w("Added")|escape}
         </button>
     {/capture}
 

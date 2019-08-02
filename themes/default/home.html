@@ -227,8 +227,8 @@
             {include file="list-thumbs.html" products=$bestsellers}
         </section>
 
-    {else}
-        <p class="hint align-center"><br><em>{sprintf('[`In your store backend, drag some products into <strong>%s</strong> product list (which is in the left sidebar of the Products screen), and these products will be automatically published here — right on your storefront homepage.`]', $theme_settings.homepage_productset_bestsellers|escape|default:'()' )}</em></p>
+    {elseif !empty($theme_settings.homepage_productset_bestsellers)}
+        <p class="hint align-center"><br><em>{sprintf('[`In your store backend, drag some products into <strong>%s</strong> product list (which is in the left sidebar of the Products screen), and these products will be automatically published here — right on your storefront homepage.`]', $theme_settings.homepage_productset_bestsellers|escape)}</em></p>
     {/if}
 
 </div>

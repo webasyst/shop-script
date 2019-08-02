@@ -91,14 +91,8 @@
                 </ul>
                 {if !empty($hints.id)}<br/><span class="small">{$hints.id}</span>{/if}
                 {else}
-                    <i class="icon16 exclamation"></i><strong>[`No products are selected`]</strong>
-                    <ol>
-                    	<li>{sprintf('[`Open “<a href="%s">%s</a>” section.`]', '?action=products', '[`Products`]')}<br><br></li>
-                    	<li>[`Select products for a new coupon.`]<br><br></li>
-                    	<li>{sprintf('[`Perform “<em>%s</em>” action using the menu on the right.`]', '[`Discount coupons`]')}</li>
-                    </ol>
-                    
-
+                    <h5><i class="icon16 exclamation"></i><strong>[`No products are selected`]</strong></h5>
+                    <p>[`Select products and execute a corresponding action using the menu on the right in “Products” section.`]</p>
                 {/if}
             </div>
         </div>

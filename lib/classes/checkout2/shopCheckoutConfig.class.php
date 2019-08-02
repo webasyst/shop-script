@@ -469,24 +469,41 @@ class shopCheckoutConfig implements ArrayAccess
             return $methods;
         }
 
-        $storefront_currency = wa('shop')->getConfig()->getCurrency(false);
+        $out_currency = wa('shop')->getConfig()->getCurrency(false);
 
         foreach ($methods as $variant_id => &$variant_data) {
-            $variant_data['original_currency'] = $variant_currency = ifset($variant_data, 'currency', null);
+            $variant_data['original_currency'] = $in_currency = ifset($variant_data, 'currency', null);
             $variant_data['original_rate'] = $rate = ifset($variant_data, 'rate', null);
 
             if ($rate) {
-                if ($storefront_currency !== $variant_currency) {
-                    $rate = shop_currency($rate, $variant_currency, $storefront_currency, false);
-                    $variant_data['currency'] = $storefront_currency;
+                if (is_array($rate)) {
+                    foreach ($rate as $key => $value) {
+                        $variant_data['rate'][$key] = $this->convertRate($value,$in_currency, $out_currency);
+                    }
+                } else {
+                    $variant_data['rate'] = $this->convertRate($rate,$in_currency, $out_currency);
                 }
-                $variant_data['rate'] = shopRounding::roundCurrency($rate, $storefront_currency);
+
+                if ($out_currency !== $in_currency) {
+                    $variant_data['currency'] = $out_currency;
+                }
             }
 
         }
         unset($variant_data);
 
         return $methods;
+    }
+
+    protected function convertRate($rate, $in_currency, $out_currency)
+    {
+        if ($in_currency !== $out_currency) {
+            $rate = shop_currency($rate, $in_currency, $out_currency, false);
+        }
+
+        $rate = shopRounding::roundCurrency($rate, $out_currency);
+
+        return $rate;
     }
 
     // Overridden in unit tests
@@ -1482,7 +1499,7 @@ class shopCheckoutConfig implements ArrayAccess
             'country' => _w('Country'),
             'region'  => _w('Region'),
             'city'    => _w('Locality'),
-            'zip'     => _w('ZIP'),
+            'zip'     => _w('ZIP code'),
         ];
 
         foreach ($system_address_field_names as $field_id => $field_name) {

@@ -61,15 +61,18 @@
 
             <div class="block double-padded">
 
-                <h1>[`Редактор заказов в бекенде`]</h1>
+                <h1>[`Manually added orders’ editor`]</h1>
 
-                <div class="s-page-description">[`Настройки создания и редактирования заказов в бекенде. Не влияют на витрины.`]</div>
+                <div class="s-page-description">
+                	<p>{sprintf('[`Select which fields must available for the editing of orders with selected order source “%s”.`]', '[`Manual order`]')}<br>
+                	[`If a storefront is selected as an order‘s source then that storefront’s checkout settings define which fields are available for order editing.`]</p>
+                </div>
 
                 <div class="fields">
 
                     <div class="field s-custom-config-toggle-field">
 
-                        <div class="name">[`Использовать кастомный конфиг`]</div>
+                        <div class="name">[`Use custom settings`]</div>
                         <div class="value">
 
                             <div class="s-toggle-wrapper">
@@ -78,7 +81,7 @@
 
                                 <input id="use-custom-config" name="data[use_custom_config]" class="ibutton js-custom-config-toggle js-toggle" type="checkbox"{if $config.use_custom_config} checked="checked"{/if}>
                                 <label for="use-custom-config">
-                                    <span class="s-toggle-status js-toggle-status{if !$config.use_custom_config} disabled{/if}">{if $config.use_custom_config}[`Используется`]{else}[`Не используется`]{/if}</span>
+                                    <span class="s-toggle-status js-toggle-status{if !$config.use_custom_config} disabled{/if}">{if $config.use_custom_config}[`Use`]{else}[`Do not use`]{/if}</span>
                                 </label>
 
                             </div>
@@ -102,7 +105,7 @@
                                         <b><i>[`Settings`]</i></b>
                                     </a>
                                 </div>
-                                <h3 class="name">[`Общие настройки`]</h3>
+                                <h3 class="name">[`General settings`]</h3>
                                 <div class="s-block-content js-block-content" style="display: none;">
 
                                     <div class="fields">
@@ -110,10 +113,10 @@
                                         {* SOURCE *}
                                         <div class="field">
 
-                                            <div class="name">[`Источник покупателя по умолчанию`]</div>
+                                            <div class="name">[`Default customer source`]</div>
                                             <div class="value">
 
-                                                <input type="text" name="data[source]"{if !empty($config.source)} value="{$config.source|escape}"{/if} placeholder="[`Введите название источника`]" autocomplete="off" />
+                                                <input type="text" name="data[source]"{if !empty($config.source)} value="{$config.source|escape}"{/if} placeholder="[`Type a source name`]" autocomplete="off" />
 
                                             </div>
 
@@ -121,7 +124,7 @@
 
                                         {* Fixed delivery area *}
                                         <div class="field js-fixed-delivery-area">
-                                            <div class="name">[`Limit shipping area`]</div>
+                                            <div class="name">[`Pre-fill address fields`]</div>
                                             <div class="value">
                                                 <label>
                                                     [`Country`]
@@ -150,7 +153,7 @@
                                                     <input name="data[fixed_delivery_area][city]" class="js-fix-delivery-city" type="text" value="{$config.fixed_delivery_area.city|default:null|escape}" autocomplete="off" />
                                                 </label>
                                                 <div class="hint">
-                                                    [`Устанавливаются по умолчанию в поля адреса при создании заказа.`]
+                                                    [`These values will be selected by default for new orders created in backend.`]
                                                 </div>
                                             </div>
                                         </div>
@@ -171,14 +174,14 @@
                                         <b><i>[`Settings`]</i></b>
                                     </a>
                                 </div>
-                                <h3 class="name">[`Поля Персон`]</h3>
+                                <h3 class="name">[`Person contacts’ fields`]</h3>
                                 <div class="s-block-content js-block-content" style="display: none;">
 
                                     {* NAME FORMAT *}
                                     <div class="fields">
                                         <div class="field">
 
-                                            <div class="name">[`Имя или ФИО`]</div>
+                                            <div class="name">[`Name fields`]</div>
                                             <div class="value">
 
                                                 {foreach $name_format_variants as $_variant_id => $_variant}
@@ -206,16 +209,16 @@
 
                                     <div class="s-fields-editor-hint hint">
                                         {if !empty($wa_settings)}
-                                            {$wa_backend_url|cat:'webasyst/settings/field/'|string_format:'[`<a href="%s" target="_blank">Редактировать контактные поля</a> <i class="icon16 new-window"></i> в приложении "Настройки".`]'}
+                                            {$wa_backend_url|cat:'webasyst/settings/field/'|string_format:'[`<a href="%s" target="_blank">Edit contact fields</a> <i class="icon10 new-window"></i> in Settings app.`]'}
                                         {else}
-                                            [`Для редактирования полей контакта необходим доступ к приложению "Настройки"`]
+                                            [`You need access to Settings app to edit contact fields.`]
                                         {/if}
                                     </div>
 
                                     <div class="s-billing-address-setting">
                                         <label>
                                             <input type="checkbox" name="data[billing_address][person]" value="1"{if !empty($config.billing_address.person)} checked{/if} />
-                                            [`Выводить адрес плательщика`]
+                                            [`Show payment address fields`]
                                         </label>
                                     </div>
 
@@ -233,7 +236,7 @@
                                         <b><i>[`Settings`]</i></b>
                                     </a>
                                 </div>
-                                <h3 class="name">[`Поля Компаний`]</h3>
+                                <h3 class="name">[`Company contacts’ fields`]</h3>
                                 <div class="s-block-content js-block-content" style="display: none;">
 
                                     {* Copmany field editor *}
@@ -245,16 +248,16 @@
 
                                     <div class="s-fields-editor-hint hint">
                                         {if !empty($wa_settings)}
-                                            {$wa_backend_url|cat:'webasyst/settings/field/'|string_format:'[`<a href="%s" target="_blank">Редактировать контактные поля</a> <i class="icon16 new-window"></i> в приложении "Настройки".`]'}
+                                            {$wa_backend_url|cat:'webasyst/settings/field/'|string_format:'[`<a href="%s" target="_blank">Edit contact fields</a> <i class="icon10 new-window"></i> in Settings app.`]'}
                                         {else}
-                                            [`Для редактирования полей контакта необходим доступ к приложению "Настройки"`]
+                                            [`You need access to Settings app to edit contact fields.`]
                                         {/if}
                                     </div>
 
                                     <div class="s-billing-address-setting">
                                         <label>
                                             <input type="checkbox" name="data[billing_address][company]" value="1"{if !empty($config.billing_address.company)} checked{/if} />
-                                            [`Выводить адрес плательщика`]
+                                            [`Show payment address fields`]
                                         </label>
                                     </div>
 
@@ -272,7 +275,7 @@
                                         <b><i>[`Settings`]</i></b>
                                     </a>
                                 </div>
-                                <h3 class="name">[`Поля адреса`]</h3>
+                                <h3 class="name">[`Address fields`]</h3>
                                 <div class="s-block-content js-block-content" style="display: none;">
 
                                     {* Address field editor *}
@@ -284,9 +287,9 @@
 
                                     <div class="s-fields-editor-hint hint">
                                         {if !empty($wa_settings)}
-                                            {$wa_backend_url|cat:'webasyst/settings/field/'|string_format:'[`<a href="%s" target="_blank">Редактировать контактные поля</a> <i class="icon16 new-window"></i> в приложении "Настройки".`]'}
+                                            {$wa_backend_url|cat:'webasyst/settings/field/'|string_format:'[`<a href="%s" target="_blank">Edit contact fields</a> <i class="icon10 new-window"></i> in Settings app.`]'}
                                         {else}
-                                            [`Для редактирования полей контакта необходим доступ к приложению "Настройки"`]
+                                            [`You need access to Settings app to edit contact fields.`]
                                         {/if}
                                     </div>
 
@@ -316,8 +319,8 @@
 </div>
 
 {$_locale = [
-    'use'      => _w('Используется'),
-    'dont_use' => _w('Не используется')
+    'use'      => _w('Use'),
+    'dont_use' => _w('Do not use')
 ]}
 
 <script src="{$wa_app_static_url}js/settings/order_editor.js?{$wa->version()}"></script>

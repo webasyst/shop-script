@@ -328,7 +328,7 @@
 
                         if (has_active) {
                             $select.val(selected_variant_id);
-                        } else {
+                        } else if ($select.length) {
                             $select[0].selectedIndex = 0;
                         }
                     }

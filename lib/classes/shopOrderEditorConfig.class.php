@@ -57,10 +57,10 @@ class shopOrderEditorConfig implements ArrayAccess
     {
         return [
             self::NAME_FORMAT_FULL => [
-                'name' => _w('Три поля для ФИО'),
+                'name' => _w('3 separate fields to enter name parts'),
             ],
             self::NAME_FORMAT_ONE_FIELD => [
-                'name' => _w('Одно общее поле Имя'),
+                'name' => _w('1 common field to enter a full name'),
             ],
         ];
     }

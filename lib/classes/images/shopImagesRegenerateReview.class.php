@@ -36,7 +36,7 @@ class shopImagesRegenerateReview implements shopImagesRegenerateInterface
 
     public function getReport()
     {
-        $success = _w('Updated %d review image.', 'Updated %d review images.', $this->data['success']);
+        $success = _w('%d review image updated.', '%d review images updated.', $this->data['success']);
         $reviews = _w('%d review affected.', '%d reviews affected.', $this->data['parent_count']);
         $report = <<<HTML
 $success

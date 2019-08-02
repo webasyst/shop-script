@@ -88,7 +88,7 @@ class shopFrontendOrderCartActions extends waJsonActions
             if ($item['product_id'] == $new_item['product_id'] && $item['sku_id'] == $new_item['sku_id']) {
                 return [[
                     'id' => 'already_in_cart',
-                    'text' => _w('Product is already in cart.'),
+                    'text' => _w('The product is already in your cart.'),
                 ]];
             }
         }

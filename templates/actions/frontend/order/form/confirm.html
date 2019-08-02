@@ -82,7 +82,7 @@
 
                     {* TOTAL *}
                     <div class="wa-item wa-item-total">
-                        <div class="wa-name">{if !empty($confirm.shipping)}[`Total`]{else}[`Total less shipping cost`]{/if}</div>
+                        <div class="wa-name">{if !empty($confirm.shipping) || empty($config["shipping"]["used"])}[`Total`]{else}[`Total less shipping cost`]{/if}</div>
                         <div class="wa-value">
                             <span class="wa-price">{shop_currency($confirm.total, ['in_currency' => true, 'format' => 'h'])}</span>
                         </div>

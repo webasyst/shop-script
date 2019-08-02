@@ -10496,6 +10496,9 @@ msgstr "Время начала позже времени окончания п�
 msgid "Use"
 msgstr "Использовать"
 
+msgid "Do not use"
+msgstr "Не использовать"
+
 msgid "apply"
 msgstr "применить"
 
@@ -12367,11 +12370,88 @@ msgstr "Показывать вес товаров и общий вес зака
 msgid "No products are selected"
 msgstr "Товары не выбраны"
 
-msgid "Open “<a href=\"%s\">%s</a>” section."
-msgstr "Откройте раздел «<a href=\"%s\">%s</a>»."
+msgid "Select products and execute a corresponding action using the menu on the right in “Products” section."
+msgstr "Выберите нужные товары и выполните соответствующее действие в меню справа в разделе «Товары»."
 
-msgid "Select products for a new coupon."
-msgstr "Выберите товары для нового купона."
+msgid "Order editor"
+msgstr "Редактирование заказов"
 
-msgid "Perform “<em>%s</em>” action using the menu on the right."
-msgstr "Выполните действие «<em>%s</em>» с помощью меню справа."
+msgid "Manually added orders’ editor"
+msgstr "Редактирование заказов, добавленных вручную"
+
+msgid "Select which fields must available for the editing of orders with selected order source “%s”."
+msgstr "Выберите, какие поля должны быть доступны при редактировании заказов, для которых выбран источник «%s»."
+
+msgid "If a storefront is selected as an order‘s source then that storefront’s checkout settings define which fields are available for order editing."
+msgstr "Если в качестве источника заказа выбрана витрина, то при редактировании заказа доступны поля, включенные в настройках оформления заказа для этой витрины."
+
+msgid "Use custom settings"
+msgstr "Использовать собственные настройки"
+
+msgid "Default customer source"
+msgstr "Источник покупателя по умолчанию"
+
+msgid "Type a source name"
+msgstr "Напишите название источника"
+
+msgid "Pre-fill address fields"
+msgstr "Автоматически заполнять поля адреса"
+
+msgid "These values will be selected by default for new orders created in backend."
+msgstr "Устанавливаются по умолчанию в поля адреса при создании заказа в бекенде."
+
+msgid "Person contacts’ fields"
+msgstr "Поля контактов-персон"
+
+msgid "Company contacts’ fields"
+msgstr "Поля контактов-компаний"
+
+msgid "Name fields"
+msgstr "Поля для имени"
+
+msgid "You need access to Settings app to edit contact fields."
+msgstr "Для редактирования полей контакта нужен доступ к приложению «Настройки»."
+
+msgid "Show payment address fields"
+msgstr "Показывать поля адреса плательщика."
+
+msgid "3 separate fields to enter name parts"
+msgstr "3 отдельных поля для ввода частей имени"
+
+msgid "1 common field to enter a full name"
+msgstr "1 общее поле для ввода полного имени"
+
+#: /wa-apps/shop/lib/actions/frontend/order/shopFrontendOrderCart.actions.php:91
+msgid "The product is already in your cart."
+msgstr "Товар уже в вашей корзине."
+
+#: /wa-apps/shop/lib/classes/images/shopImagesRegenerateReview.class.php:39
+msgid "%d review image updated."
+msgid_plural "%d review images updated."
+msgstr[0] "Обновлено %d изображение отзыва."
+msgstr[1] "Обновлены %d изображения отзывов."
+msgstr[2] "Обновлены %d изображений отзывов."
+
+#: /wa-apps/shop/lib/classes/images/shopImagesRegenerateReview.class.php:40
+msgid "%d review affected."
+msgid_plural "%d reviews affected."
+msgstr[0] "Обработан %d отзыв."
+msgstr[1] "Обработаны %d отзыва."
+msgstr[2] "Обработаны %d отзывов."
+
+#: /wa-apps/shop/templates/actions/frontend/order/cart/CrossSelling.html:66
+msgid "Prev"
+msgstr "Пред"
+
+#: /wa-apps/shop/templates/actions/frontend/order/cart/CrossSelling.html:69
+msgid "Next"
+msgstr "След"
+
+#: /wa-apps/shop/templates/actions/frontend/order/cart/CrossSelling.html:77
+#: /wa-apps/shop/templates/actions/frontend/order/cart/CrossSelling.html:79
+msgid "Added"
+msgstr "Добавлено"
+
+#: /wa-apps/shop/themes/default/reviews.html:301
+msgid "Adding"
+msgstr "Добавляется"

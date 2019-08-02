@@ -10,6 +10,7 @@
         //
 
         init: function (options) {
+
             var that = this;
             that.options = options;
             if (typeof($.History) != "undefined") {
@@ -17,7 +18,18 @@
                     that.dispatch();
                 });
             }
+
+            // Make sure we can access the original request URL from any jqXHR objects
+            // So we could in $.wa.errorHandler find to what url was request
+            $.ajaxPrefilter(function(options, originalOptions, jqXHR) {
+                jqXHR.originalRequestOptions = originalOptions;
+            });
+
             $.wa.errorHandler = function (xhr) {
+                // see ajaxPrefilter above
+                var originalRequestOptions = xhr.originalRequestOptions || {};
+
+
                 if ((xhr.status === 403) || (xhr.status === 404) ) {
                     var text = $(xhr.responseText);
                     if (text.find('.dialog-content').length) {
@@ -26,8 +38,32 @@
                     } else {
                         text = $('<div class="block double-padded"></div>').append(text.find(':not(style)'));
                     }
-                    $("#s-content").empty().append(text);
-                    $.orders.onPageNotFound();
+
+                    var container_type = 'content';
+
+                    var request_url = originalRequestOptions.url || '';
+                    if (request_url.length > 0) {
+                        var params_start_pos = request_url.indexOf('?');
+                        if (params_start_pos !== -1) {
+                            var params_str = request_url.substr(params_start_pos + 1);
+                            var params = $.shop.helper.parseParams(params_str) || {};
+                            if (params.module === 'order' && params.view !== 'table' && $('#s-order').length) {
+                                container_type = 'order';
+                            }
+                        }
+                    }
+
+                    if (container_type === 'order') {
+                        // just render content about error
+                        $('#s-order').empty().append(text);
+                    } else {
+                        // render content in common container and call destructor of order_list object, cause nothing we can do about it already
+                        $("#s-content").empty().append(text);
+                        if ($.order_list) {
+                            $.order_list.finit();
+                        }
+                    }
+
                     return false;
                 }
                 return true;
@@ -43,6 +79,9 @@
 
             // sync with app counters
             $(document).bind('wa.appcount', function(event, data) {
+                // data could be undefined
+                data = data || {};
+
                 var cnt = parseInt(data.shop, 10);
                 $('#s-pending-orders .small').text(cnt ? '+' + cnt : '');
 
@@ -76,12 +115,6 @@
             });
 
             this.checkAlerts();
-        },
-
-        onPageNotFound: function() {
-            if ($.order_list) {
-                $.order_list.finit();
-            }
         },
 
         initSearch: function() {

@@ -369,7 +369,7 @@ class shopHelper
                                 $currency_from = ifset($info, 'currency', reset($plugin_currency));
                                 $currency = $params['currency'];
                                 if ($rate !== null && $currency_from) {
-                                    $rate = (float)shop_currency($rate, $currency_from, $currency, false);
+                                    $rate = (float)shop_currency((float)$rate, $currency_from, $currency, false);
                                 }
                             } else {
                                 $rate = $info['rate'];
