@@ -78,15 +78,18 @@ $(function() {
         return false;
     });
 
-    addHotkeyHandler('textarea', 'ctrl+enter', addReview);
-    form.submit(function() {
-        addReview();
-        return false;
+    addHotkeyHandler('textarea', 'ctrl+enter', function(event) {
+        form.trigger("submit");
     });
 
-    function addReview() {
+    form.on("submit", function(event) {
+        event.preventDefault();
+        addReview(form);
+    });
+
+    function addReview(form) {
         $.post(
-            location.href.replace(/\/#\/[^#]*|\/#|\/$/g, '') + '/add/',
+            location.pathname + 'add/',
             form.serialize(),
             function (r) {
                 if (r.status == 'fail') {

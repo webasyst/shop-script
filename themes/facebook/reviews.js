@@ -392,9 +392,33 @@ $(function() {
         form.trigger("submit");
     });
 
+    var $submit_button = form.find(".js-submit-button"),
+        is_locked = false;
+
     form.on("submit", function(event) {
         event.preventDefault();
-        addReview(form);
+
+        if (!is_locked) {
+            is_locked = true;
+
+            var $loading = $('<i class="icon16 loading" />');
+            $loading.insertAfter($submit_button);
+
+            $submit_button
+                .attr("disabled", true)
+                .val( $submit_button.data("active") );
+
+            addReview(form)
+                .always( function() {
+                    $loading.remove();
+
+                    $submit_button
+                        .removeAttr("disabled")
+                        .val( $submit_button.data("inactive") );
+
+                    is_locked = false;
+                });
+        }
     });
 
     function addReview() {
