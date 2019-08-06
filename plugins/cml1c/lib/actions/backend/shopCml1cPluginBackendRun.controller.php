@@ -338,6 +338,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
      * @param string[]    $code
      * @param shopProduct $product
      * @return mixed
+     * @throws waException
      */
     private function getFeatureRelation($code, $product = null)
     {
@@ -354,10 +355,12 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                     /** @var shopFeatureModel $model */
                     $feature_model = $this->getModel('feature');
 
-                    $features = $feature_model->getById($selected);
-                    foreach ($features as $feature_code => $feature) {
-                        if (!in_array($feature_code, $code, true)) {
-                            unset($features[$feature_code]);
+                    $raw_features = $feature_model->getById($selected);
+                    $features = array();
+                    foreach ($raw_features as $feature_id => $feature) {
+                        $feature_code = $feature['code'];
+                        if (in_array($feature_code, $code, true)) {
+                            $features[$feature_code] = $feature;
                         }
                     }
 
@@ -716,6 +719,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
     private function initImportFeatures()
     {
+        $this->data['sku_features'] = $this->pluginSettings('sku_features');
         $this->data['features_map'] = array();
 
         $features_map = $this->pluginSettings('features_map');
@@ -957,7 +961,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         }
 
         if ($this->pluginSettings('stock_setup')) {
-
+            // Создавать новые артикулы с нулевыми остатками
             $this->data['stock_setup'] = array();
             if (empty($exists_stocks)) {
                 $exists_stocks = $stock_model->getAll('id');
@@ -3839,6 +3843,7 @@ SQL;
     /**
      * @param           $service
      * @param float|int $discount_rate
+     * @param float     $rate
      * @internal param $mixed [string] $service
      * @internal param $string [string] $service['id_1c']
      * @internal param $string [string] $service['name']
@@ -3846,7 +3851,6 @@ SQL;
      * @internal param $double [string] $service['price']
      * @internal param $double [string] $service['tax'] default is null
      * @internal param $bool [string] $service['tax_included'] default is null
-     * @param float     $rate
      */
     private function writeOrderService($service, $discount_rate = 0, $rate = 1.0)
     {
@@ -4154,8 +4158,8 @@ SQL;
      * @param $count
      * @param $processed
      *
-     * @throws waException
      * @return bool
+     * @throws waException
      * @uses shopCml1cPluginBackendRunController::stepImportStockConfigure()
      * @uses shopCml1cPluginBackendRunController::completeImportStockConfigure()
      * @uses shopCml1cPluginBackendRunController::stepImportPriceConfigure()
@@ -5291,13 +5295,15 @@ SQL;
 
                 if (empty($sku['stock'])) {
                     unset($sku['stock']);
-                } elseif (!empty($this->data['stock_complement']) &&
-                    (
-                        (count($sku['stock']) > 1)
-                        || !isset($sku['stock'][0])
-                    )
-                ) {
-                    $sku['stock'] += array_fill_keys($this->data['stock_complement'], 0);
+                } else {
+                    /** @var false|int[] $stock_complement */
+                    $stock_complement = $this->data['stock_complement'];
+                    $_stock_data_filled = (count($sku['stock']) > 1) || !isset($sku['stock'][0]);
+                    if (!empty($stock_complement) # Выбрана настройка "Обнулять остатки в несинхронизированных складах"
+                        && $_stock_data_filled
+                    ) {
+                        $sku['stock'] += array_fill_keys($stock_complement, 0);
+                    }
                 }
 
                 unset($sku);
@@ -6014,8 +6020,11 @@ SQL;
 
 
         $sku_features = array();
-        if ($features) {
-            $multiple_features = $this->getFeatureRelation(array_keys($features), $product);
+        if ($features && $this->data['sku_features']) {
+            $multiple_features = $this->getFeatureRelation(
+                array_keys($features),
+                ($this->data['sku_features'] == 'selectable') ? $product : null
+            );
             foreach ($multiple_features as $code) {
                 if (is_array($features[$code])) {
                     if (count($features[$code]) == 1) {
@@ -6041,13 +6050,13 @@ SQL;
 
         //TODO f: ignore|extend|override
         $skus = $product->skus;
-        if (!count($skus) || count($sku_features) || ($subject == self::STAGE_PRODUCT)) {
+        if (!count($skus) || count($sku_features) || ($subject == self::STAGE_SKU) || !empty($this->data['sku_from_good'])) {
             $skus[-1] = array(
                 'available' => ($subject == self::STAGE_PRODUCT) ? ($deleted ? false : true) : 1,
                 'id_1c'     => end($uuid),
             );
 
-            if (!empty($this->data['sku_from_good'])) {
+            if (!empty($this->data['sku_from_good']) || ($subject == self::STAGE_SKU)) {
                 $sku = self::field($element, 'Артикул');
                 if ($sku !== null) {
                     $skus[-1]['sku'] = $sku;
@@ -6109,6 +6118,9 @@ SQL;
         } else {
             // set available if it dummy SKU
             $skus[-1]['available'] = 0;
+
+            $skus[-1]['stock'][0] = 0;
+
             if ($deleted) {
                 if ($subject == self::STAGE_PRODUCT) {
                     $product->status = 0;
@@ -6342,6 +6354,8 @@ SQL;
             $update_fields = (array)$this->pluginSettings('update_product_fields');
         }
 
+        $stock_setup = $this->data['stock_setup'];
+
         $sku_fields = array(
             'sku_name' => 'name',
             'sku'      => 'sku',
@@ -6374,6 +6388,14 @@ SQL;
                         unset($_sku[$name]);
                     }
                 }
+                if (!empty($_sku['stock'])
+                    && isset($sku['stock'][0])
+                    && !isset($_sku['stock'][0])
+                    && !empty($stock_setup)
+                ) {
+                    // Создавать новые артикулы с нулевыми остатками
+                    $_sku['stock'] += array_fill_keys($stock_setup, 0);
+                }
                 $sku = array_merge($sku, $_sku);
                 $sku['virtual'] = 0;
             }
@@ -6382,13 +6404,16 @@ SQL;
 
         if (isset($skus[-1])) {
             $skus[-1]['available'] = !!$skus[-1]['available'];
-            if (!empty($this->data['stock_setup'])) {
+            if (!empty($stock_setup)) {
+                // Создавать новые артикулы с нулевыми остатками
                 if (isset($skus[-1]['stock'])) {
                     if (!isset($skus[-1]['stock'][0])) {
-                        $skus[-1]['stock'] += array_fill_keys($this->data['stock_setup'], 0);
+                        $skus[-1]['stock'] += array_fill_keys($stock_setup, 0);
                     }
                 } else {
-                    $skus[-1]['stock'] = 0;
+                    $skus[-1]['stock'] = array(
+                        0 => 0,
+                    );
                 }
             }
             if (!isset($skus[-1]['stock'])) {

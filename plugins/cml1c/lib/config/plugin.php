@@ -5,7 +5,7 @@ return array(
     'description'  => 'Обмен данными с системами товарного учета («1С», «МойСклад», «Бизнес.ру» и подобные).',
     'img'          => 'img/1c.png',
     'vendor'       => 'webasyst',
-    'version'      => '2.5.8',
+    'version'      => '2.5.10',
     'importexport' => true,
     'frontend'     => true,
     'handlers'     => array(
