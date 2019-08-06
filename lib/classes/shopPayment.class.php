@@ -769,7 +769,12 @@ class shopPayment extends waAppPayment
 
             $invalid = !empty($order_total) && (abs($order_total - $total) > $tolerance);
             if ($invalid) {
-                $error = sprintf('Invalid order amount: %0.2f expected, %0.2f received (%s)', $order_total, $total, $transaction_data['currency_id']);
+                $error = sprintf(
+                    _w('Order amount has changed: %0.2f expected, %0.2f received. Currency: %s.'),
+                    $order_total,
+                    $total,
+                    $transaction_data['currency_id']
+                );
             }
         } else {
             $invalid = false;

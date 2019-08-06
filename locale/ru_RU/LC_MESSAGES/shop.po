@@ -12455,3 +12455,6 @@ msgstr "Добавлено"
 #: /wa-apps/shop/themes/default/reviews.html:301
 msgid "Adding"
 msgstr "Добавляется"
+
+msgid "Order amount has changed: %0.2f expected, %0.2f received. Currency: %s."
+msgstr "Сумма заказа изменилась: ожидалось %0.2f, получено %0.2f. Валюта: %s."

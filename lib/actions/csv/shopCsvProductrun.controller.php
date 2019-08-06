@@ -1780,6 +1780,9 @@ SQL;
             $fields[$primary] = ifset($data[$primary]);
         }
 
+        //use ID only for search
+        unset($data['id']);
+
         try {
             self::filterEmptyRows($data, array('url'));
             $key = 'c:';

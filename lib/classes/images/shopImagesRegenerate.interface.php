@@ -10,7 +10,7 @@ interface shopImagesRegenerateInterface
     /**
      * @param string $chunk
      */
-    public function setChunk(string $chunk);
+    public function setChunk($chunk);
 
     /**
      * @return int
