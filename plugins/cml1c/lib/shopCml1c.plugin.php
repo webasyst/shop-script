@@ -171,7 +171,7 @@ class shopCml1cPlugin extends shopPlugin
         if ($id) {
             $pr_bits = md5($id, true);
         } else {
-            $fp = @fopen('/dev/urandom', 'rb');
+            $fp = @file_exists('/dev/urandom') ? @fopen('/dev/urandom', 'rb') : false;
             if ($fp !== false) {
                 $pr_bits = @fread($fp, 16);
                 @fclose($fp);
@@ -687,10 +687,11 @@ HTML;
 
     public function productHandler($product)
     {
+        $result = array();
         if (!empty($product['id_1c'])) {
-            $info_section = sprintf('<span class="hint" >Идентификатор «1С»: %s</span>', $product['id_1c']);
+            $result['info_section'] = sprintf('<span class="hint" >Идентификатор «1С»: %s</span>', $product['id_1c']);
         }
-        return compact('info_section', 'title_suffix');
+        return $result;
     }
 
     /**

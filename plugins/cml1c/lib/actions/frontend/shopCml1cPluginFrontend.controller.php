@@ -11,15 +11,14 @@ class shopCml1cPluginFrontendController extends waController
     /**
      *
      * @return shopCml1cPlugin
+     * @throws waException
      */
     private function plugin()
     {
         static $plugin;
         if (!$plugin) {
-            $plugin = wa()->getPlugin('cml1c');
-            /**
-             * @var shopCml1cPlugin $plugin
-             */
+            /** @var shopCml1cPlugin $plugin */
+            $plugin = wa('shop')->getPlugin('cml1c');
         }
         return $plugin;
     }
@@ -171,20 +170,25 @@ class shopCml1cPluginFrontendController extends waController
         $valid = false;
         foreach ($masks as $mask) {
             $mask = trim($mask);
-            if (strpos($mask, '-')) {
-                //IP interval
-                $interval = array_map('ip2long', array_map('trim', explode('-', $mask, 2)));
+            if (strpos($mask, '-')) { # interval
+                $interval = array_map('trim', explode('-', $mask, 2));
+                $interval = array_map('ip2long', $interval);
                 if (($ip <= max($interval)) && ($ip >= min($interval))) {
                     $valid = true;
                 }
-            } elseif (preg_match('@^(\d+\.\d+.\d+\.\d+)(/(\d+))?$', $mask, $matches)) {
-                if (!empty($matches[2])) {
-                    //mask
-                } else {
-                    $valid = (ip2long($mask) == $ip);
-                }
+            } elseif (strpos($mask, '/')) { #mask
+                list($range, $net_mask) = explode('/', $mask, 2);
+
+                $ip_decimal = ip2long($ip);
+                $range_decimal = ip2long($range);
+
+                $wildcard_decimal = (1 << (32 - $net_mask));
+                $net_mask_decimal = ~($wildcard_decimal - 1);
+
+                $valid = (($ip_decimal & $net_mask_decimal) == $range_decimal);
+
             } else {
-                //invalid mask
+                $valid = (ip2long($mask) == $ip);
             }
             if ($valid) {
                 break;
@@ -209,19 +213,20 @@ class shopCml1cPluginFrontendController extends waController
 
             $sizes = array(
                 ini_get('upload_max_filesize'),
+                ini_get('post_max_size'),
                 ini_get('memory_limit'),
                 '100M',
             );
 
             foreach ($sizes as &$size) {
 
-                if (preg_match('/(\d+)\s*([KMG]?)/', $size, $matches)) {
+                if (preg_match('/(\d+)\s*([KMG]?)/i', $size, $matches)) {
                     $m = array(
                         'K' => 1024,
                         'M' => 1048576,
                         'G' => 1073741824,
                     );
-                    $size = intval($matches[1]) * ifset($m[$matches[2]], 1);
+                    $size = intval($matches[1]) * ifset($m[strtoupper($matches[2])], 1);
                 }
                 unset($size);
             }
@@ -493,7 +498,6 @@ class shopCml1cPluginFrontendController extends waController
             $this->runner(true)->run();
             ob_get_clean();
         }
-
     }
 
 

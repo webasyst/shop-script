@@ -4535,10 +4535,9 @@ SQL;
         static $currency;
         $product_uuid = reset($uuid);
 
+        /** @var shopProductModel $model */
         $model = $this->getModel('product');
-        /**
-         * @var shopProductModel $model
-         */
+
         if ($data = $model->getByField('id_1c', $product_uuid)) {
             $product = new shopProduct($data['id']);
         } else {
@@ -4558,7 +4557,7 @@ SQL;
      * @param $sku
      * @return bool
      */
-    private function isDummySku($sku)
+    private function isDummySku($sku, $skus = array())
     {
         $count = true;
         if (in_array($sku['count'], $this->data['empty_count'], true)) {
@@ -4576,9 +4575,21 @@ SQL;
                 }
             }
         }
+        if (!empty($this->data['sku_from_good'])) {
+            $dummy_sku = $sku['sku'];
+            foreach ($skus as $_sku) {
+                if ($_sku['sku'] !== $dummy_sku) {
+                    $dummy_sku = '';
+                    break;
+                }
+            }
+
+        } else {
+            $dummy_sku = '';
+        }
 
         $dummy = (!$count)//
-            && ($sku['sku'] === '') // empty sku
+            && ($sku['sku'] === $dummy_sku) // empty or dummy SKU
             && ($sku['name'] === '')//empty name
             && empty($sku['price']) //empty price
             && empty($sku['purchase_price']) //empty price
@@ -5315,7 +5326,7 @@ SQL;
                 if ((count($uuid) > 1) && (count($skus) > 1) && (end($uuid) != reset($uuid))) {
                     $dummy_id = false;
                     foreach ($skus as $id => $sku) {
-                        if (($id > 0) && ($sku['id_1c'] == $product['id_1c']) && $this->isDummySku($sku)) {
+                        if (($id > 0) && ($sku['id_1c'] == $product['id_1c']) && $this->isDummySku($sku, $skus)) {
                             $dummy_id = $id;
                             break;
                         }
@@ -6069,7 +6080,8 @@ SQL;
         }
 
         $target = 'update';
-        if (!$product->getId()) {
+        $is_new_product = !$product->getId();
+        if ($is_new_product) {
             # update name/summary/description only for new items
 
             $product->status = ($this->pluginSettings('product_hide')) ? 0 : 1;
@@ -6119,7 +6131,7 @@ SQL;
             // set available if it dummy SKU
             $skus[-1]['available'] = 0;
 
-            $skus[-1]['stock'][0] = 0;
+            //$skus[-1]['stock'][0] = 0;
 
             if ($deleted) {
                 if ($subject == self::STAGE_PRODUCT) {
@@ -6178,10 +6190,11 @@ SQL;
         }
 
 
-        $this->mergeSkus($skus);
+        $this->mergeSkus($skus, $is_new_product);
 
         $product->skus = $skus;
         try {
+            shopProductStocksLogModel::setContext(shopProductStocksLogModel::TYPE_IMPORT, 'Обмен через CommerceML');
             $product->save();
 
             if (!empty($features) || !empty($sku_features)) {
@@ -6360,13 +6373,22 @@ SQL;
             'sku_name' => 'name',
             'sku'      => 'sku',
             'features' => 'features',
+            //XXX update base price
         );
-        //XXX update base price
+
+        if (isset($skus[-1]) && !isset($skus[-1]['id_1c'])) {
+            if (count($skus) > 1) {
+                unset($skus[-1]);
+            } else {
+                $this->error('invalid dummy sku: '.var_export($skus[-1], true));
+            }
+        }
+
         foreach ($skus as $id => & $sku) {
             if (($id > 0) && !count($sku['stock']) && ($sku['count'] !== null)) {
                 $sku['stock'][0] = $sku['count'];
             }
-            if (($id > 0) && isset($skus[-1]) && ($sku['id_1c'] == $skus[-1]['id_1c'])) {
+            if (($id > 0) && isset($skus[-1]) && isset($sku['id_1c']) && isset($skus[-1]['id_1c']) && ($sku['id_1c'] == $skus[-1]['id_1c'])) {
 
                 $_sku = $skus[-1];
                 unset($skus[-1]);
