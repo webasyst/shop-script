@@ -140,7 +140,7 @@ class shopSettingsShippingAction extends waViewAction
             if (!empty($plugin_info['handlers']['shipping_package'])) {
                 $shipping_package_provider['options'][$plugin_id] = array(
                     'name'  => $plugin_info['name'],
-                    'title' => $plugin_info['description'],
+                    'title' => (string)ifset($plugin_info, 'description', ''),
                     'value' => $plugin_id,
                 );
             }
