@@ -36,7 +36,7 @@ class shopNotifications
          */
         $event_params = [
             'event' => $event,
-            'notifications' => $notifications,
+            'notifications' => &$notifications,
             'data'  => &$data,
         ];
         wa('shop')->event('notifications_send.before', $event_params);
@@ -135,9 +135,9 @@ class shopNotifications
          */
         $event_params = [
             'id' => $id,
-            'notifications' => $n,
+            'notifications' => &$n,
             'data'  => &$data,
-            'to' => $to,
+            'to' => &$to,
         ];
         wa('shop')->event('notifications_send_one.before', $event_params);
 
