@@ -305,6 +305,8 @@ $.order_edit = {
         $("#payment_methods").change(function () {
             var pid = $(this).val();
             $("#payment-info > div").hide();
+            $.order_edit.updateTotal();
+
             if ($('#payment-custom-' + pid).length) {
                 $('#payment-custom-' + pid).show();
             }
@@ -838,6 +840,7 @@ $.order_edit = {
         }
 
         var shipping_id = $('#shipping_methods').val(),
+            payment_id = $('#payment_methods').val(),
             coupon_id = $('#coupon_id').val();
 
         //Send the cost of delivery of entered by hands
@@ -845,7 +848,7 @@ $.order_edit = {
             data.shipping = $('#shipping-rate').data('shipping');
         }
 
-        data['params'] = {shipping_id: shipping_id, coupon_id: coupon_id};
+        data['params'] = {shipping_id: shipping_id, coupon_id: coupon_id, payment_id: payment_id};
         data['customer[id]'] = data['contact_id'] = $('#s-customer-id').val();
         data.tax = 'calculate';
 
@@ -1246,6 +1249,7 @@ $.order_edit = {
             common_errors = [];
 
         $.shop.trace('showValidateErrors', validate_errors);
+        $('#shipping-info').find('.error').empty();
         $('.error').removeClass('error');
         $('#s-order-edit-customer .errormsg').empty();
 

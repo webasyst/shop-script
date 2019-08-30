@@ -14,8 +14,10 @@ class shopPaymentDummy extends waPayment implements waIPayment
     {
         return array(
             'img'         => null,
+            'logo'        => null,
             'name'        => _w('Manual payment'),
-            'description' => _w(''),
+            'description' => '',
+            'type'        => waPayment::TYPE_MANUAL,
         );
     }
 
@@ -27,5 +29,10 @@ class shopPaymentDummy extends waPayment implements waIPayment
     public function allowedCurrency()
     {
         return true;
+    }
+
+    public function getGuide($params = array())
+    {
+        return '';
     }
 }

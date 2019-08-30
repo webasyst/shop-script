@@ -15,12 +15,12 @@ class shopProductsAssignTagsController extends waJsonController
             return;
         }
 
-        $hash = waRequest::post('hash', '');
+        $hash = $this->getHash();
         $all_product_ids = null;
 
         // delete tags of selected products
         if (!$hash) {
-            $all_product_ids = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
+            $all_product_ids = $this->getProductsId();
             $hash = 'id/'.join(',', $all_product_ids);
         }
 
@@ -43,7 +43,7 @@ class shopProductsAssignTagsController extends waJsonController
         wa('shop')->event('products_tags_set.before', $params);
 
         // maintain all products of collection with this hash
-        $collection = new shopProductsCollection($hash);
+        $collection = new shopProductsCollection($hash, ['filter_by_rights' => true]);
         $offset = 0;
         $count = 100;
         $total_count = $collection->count();
@@ -95,6 +95,49 @@ class shopProductsAssignTagsController extends waJsonController
         );
         wa('shop')->event('products_tags_set.after', $params);
 
+        $this->response['denied_message'] = $this->getDeniedMessage($total_count);
         $this->response['cloud'] = $cloud;
+    }
+
+    /**
+     * Returns an error with the number of products to which access has been denied.
+     *
+     * @param int $collection_count the number of items to be changed
+     * @return string
+     */
+    protected function getDeniedMessage($collection_count)
+    {
+        $hash = $this->getHash();
+
+        if ($hash === 'all') {
+            $shop_products_model = new shopProductModel();
+            $total = $shop_products_model->countAll();
+        } else {
+            $products_id = $this->getProductsId();
+            $total = count($products_id);
+        }
+
+        $access_denied_products = $total - $collection_count;
+        $access_denied_products =  max(0, $access_denied_products);
+
+        $result = '';
+        if ($access_denied_products > 0) {
+            $result = _w('Editing of %d product is not allowed.', 'Editing of %d products is not allowed.', $access_denied_products);
+        }
+
+        return $result;
+    }
+
+    protected function getProductsId()
+    {
+        return waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
+    }
+
+    /**
+     * @return string
+     */
+    protected function getHash()
+    {
+        return waRequest::post('hash', '');
     }
 }

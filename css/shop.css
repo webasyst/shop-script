@@ -112,7 +112,9 @@
 #s-sidebar.left950px .s-sidebar-width-control { width: 950px; }
 
 #s-sidebar { overflow: hidden; }
-#s-sidebar li a .name { display: inline-block; max-width: calc(100% - 28px); line-height: 1.1em; text-overflow: ellipsis; overflow: hidden; }
+#s-sidebar li a { line-height: 1.1em; }
+#s-sidebar li a .name { display: inline-block; max-width: calc(100% - 30px); text-overflow: ellipsis; overflow: hidden; }
+#s-sidebar li a > * { vertical-align: top; margin-right: 5px; }
 #s-sidebar.left200px .s-sidebar-width-control .arrow.left { display: none; }
 #s-sidebar.left950px .s-sidebar-width-control .arrow.right { display: none; }
 
@@ -634,6 +636,7 @@ ul.menu-v.with-icons a.rate-clear { margin: 0; padding: 0; }
 .fields.s-dialog-form .CodeMirror-wrapping { padding: 10px; }
 
 .s-collection-list { margin-left: 14px; }
+.s-collection-list .count { max-width: 25px; text-align: right; }
 .s-collection-list .dr a .count .add { display: none !important; }
 .s-collection-list .dr a:hover .count .add { display: block !important; }
 .s-collection-list ul.menu-v li a.gray { color: #aaa !important; }

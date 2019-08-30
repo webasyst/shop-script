@@ -145,3 +145,13 @@
     </script>
 
 {/if}
+
+<script>
+    {* HIGHLIGHT SIDEBAR LINK *}
+    ( function($) {
+        var $sidebar = $('#s-sidebar');
+        var active_class = "selected";
+        $sidebar.find('li.' + active_class).removeClass(active_class);
+        $sidebar.find('#s-product-stocks-info').addClass(active_class);
+    })(jQuery);
+</script>

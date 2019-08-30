@@ -51,7 +51,7 @@ if (typeof($) != 'undefined') {
             $('#s-printform-menu > li.selected').removeClass('selected');
             $('#s-printform-menu > li > a[href$="\/plugins\/"]').parents('li').addClass('selected');
             var $content = $('#s-settings-content #s-printform-content');
-            var url = this.options.backend_url + 'installer/?module=plugins&action=view&options[no_confirm]=1&slug=shop&filter[tag]=printform&return_hash=/printform/';
+            var url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=shop&filter[tag]=printform&return_hash=/printform/';
             var self = this;
             $content.html(this.printform_options.loading).show().load(url, function () {
                 $content.prepend(self.printform_options.plugins_header);

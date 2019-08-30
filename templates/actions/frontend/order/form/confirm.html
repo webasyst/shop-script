@@ -82,7 +82,16 @@
 
                     {* TOTAL *}
                     <div class="wa-item wa-item-total">
-                        <div class="wa-name">{if !empty($confirm.shipping) || empty($config["shipping"]["used"])}[`Total`]{else}[`Total less shipping cost`]{/if}</div>
+                        {$_total_title = _w("Total")}
+                        {$_is_small = true}
+                        {if !empty($config["shipping"]["used"])}
+                            {if $confirm.shipping === null}
+                                {$_is_small = false}
+                                {$_total_title = _w("Total less shipping cost")}
+                            {/if}
+                        {/if}
+
+                        <div class="wa-name {if !empty($_is_small)}is-small{else}is-large{/if}">{$_total_title|escape}</div>
                         <div class="wa-value">
                             <span class="wa-price">{shop_currency($confirm.total, ['in_currency' => true, 'format' => 'h'])}</span>
                         </div>

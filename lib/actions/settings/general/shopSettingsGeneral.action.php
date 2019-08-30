@@ -7,7 +7,6 @@ class shopSettingsGeneralAction extends waViewAction
 {
     public function execute()
     {
-        $web_push = new shopWebPushNotifications();
         if (waRequest::post()) {
             $app_settings = new waAppSettingsModel();
             foreach ($this->getData() as $name => $value) {
@@ -34,15 +33,6 @@ class shopSettingsGeneralAction extends waViewAction
             } else {
                 $app_settings->del('shop', 'checkout_antispam');
             }
-
-            //
-            // Web push settings
-            //
-            $web_push_settings = $this->getRequest()->post('web_push_settings');
-            if (empty($web_push_settings['manifest']['name'])) {
-                $web_push_settings['manifest']['name'] = $this->getConfig()->getGeneralSettings('name');
-            }
-            $web_push->saveSettings($web_push_settings);
 
             $config_file = $this->getConfig()->getConfigPath('config.php');
             $lazy_loading = waRequest::post('lazy_loading', 0, waRequest::TYPE_INT);
@@ -77,8 +67,6 @@ class shopSettingsGeneralAction extends waViewAction
 
         $cm = new waCountryModel();
         $settings = $this->getConfig()->getGeneralSettings();
-
-        $this->view->assign('web_push', $web_push);
 
         $this->view->assign('sort_order_items_variants', $this->getConfig()->getSortOrderItemsVariants());
         $this->view->assign('countries', $cm->all());

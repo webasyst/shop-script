@@ -166,20 +166,16 @@ class shopCategoryEditAction extends waViewAction
         $category_helper = new shopCategoryHelper();
 
         $type_id = $category_helper->getTypesId($settings['id']);
-        $options_filter = array(
-            'frontend'  => true,
-            'type_id'   => $type_id,
-            'ignore_id' => array_keys($settings['allow_filter_data'])
-        );
 
-        $options_count = [
+        $options = [
+            'status'    => null,
             'frontend'  => true,
             'type_id'   => $type_id,
             'ignore_id' => array_keys($settings['allow_filter_data'])
         ];
 
-        $settings['filter'] += $category_helper->getFilters($options_filter);
-        $settings['filter_count'] = $category_helper->getCount($options_count);
+        $settings['filter'] += $category_helper->getFilters($options);
+        $settings['filter_count'] = $category_helper->getCount($options);
 
         return $settings;
     }

@@ -108,6 +108,7 @@ class shopFrontendOrderActions extends waJsonActions
             'params'          => [
                     'shipping_id' => ifset($data, 'shipping', 'selected_variant', 'variant_id', null),
                     'payment_id'  => ifset($data, 'payment', 'id', null),
+                    'departure_datetime' => shopDepartureDateTimeFacade::getDeparture($config['schedule'])->getDepartureDateTime(),
                     // stock_id, virtualstock_id see below
                 ] + $this->getOrderParamsFromRequest(),
 

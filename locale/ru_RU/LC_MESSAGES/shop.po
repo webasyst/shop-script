@@ -5387,7 +5387,8 @@ msgstr "Все доступные способы оплаты"
 
 # msgid "Shipping options"
 # msgstr "Способы доставки"
-#: /wa-apps/shop/lib/config/site.php:87 /wa-apps/shop/lib/config/site.php:91
+#: /wa-apps/shop/lib/config/site.php:87
+#: /wa-apps/shop/lib/config/site.php:91
 msgid "All available shipping options"
 msgstr "Все доступные способы доставки"
 
@@ -6447,7 +6448,8 @@ msgstr "Новый профиль"
 msgid "Perform action to all selected orders?"
 msgstr "Выполнить действие со всеми выбранными заказами?"
 
-#: /wa-apps/shop/js/product/list.js:407 /wa-apps/shop/js/product/list.js:568
+#: /wa-apps/shop/js/product/list.js:407
+#: /wa-apps/shop/js/product/list.js:568
 msgid "Drag products here"
 msgstr "Перетащите товары сюда"
 
@@ -6556,7 +6558,8 @@ msgstr "Автоматически перемещать вниз списка в
 msgid "When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more. Product quantities in all stocks are taken into account."
 msgstr "Товары, которых нет на складе, будут автоматически перемещены вниз всех списков товаров на витрине интернет-магазина: в результатах поиска, в списках товаров внутри категорий, в результатах фильтрации товаров и т. д. Учитываются остатки товаров на всех складах."
 
-#: /wa-apps/shop/lib/config/site.php:177 /wa-apps/shop/lib/config/site.php:181
+#: /wa-apps/shop/lib/config/site.php:177
+#: /wa-apps/shop/lib/config/site.php:181
 #: /wa-apps/shop/lib/config/site.php:182
 msgid "Setting <em>$available_only = true</em> will automatically exclude all out-of-stock products from the return"
 msgstr "Настройка <em>$available_only = true</em> автоматически исключит из результата все товары, которых нет на складе."
@@ -7304,7 +7307,8 @@ msgstr "Купить"
 #: /wa-apps/shop/themes/facebook/home.html:9
 #: /wa-apps/shop/themes/nifty/home.html:9
 #: /wa-apps/shop/themes/pinboard/home.html:9
-#: /wa-apps/shop/themes/sidebar/home.html:9 /wa-apps/shop/themes/vk/home.html:9
+#: /wa-apps/shop/themes/sidebar/home.html:9
+#: /wa-apps/shop/themes/vk/home.html:9
 msgid "Start by <a href=\"%s\">creating a product</a> in your store backend."
 msgstr "Начните с <a href=\"%s\">создания товара</a> в бекенде интернет-магазина."
 
@@ -8706,7 +8710,7 @@ msgstr "При сохранении динамики продаж %s на уро
 #: /wa-apps/shop/templates/actions/promos/PromosEditor.html:2
 #: /wa-apps/shop/templates/actions/promos/PromosDefault.html:25
 msgid "New promo"
-msgstr "Новая карточка"
+msgstr "Новая акция"
 
 #: /wa-apps/shop/templates/actions/promos/PromosDefault.html:18
 msgid "Promos is an efficient and super easy way to display your custom offers and specials on your online store homepage. Every promo card has a picture, a title, and a custom link."
@@ -9311,7 +9315,8 @@ msgstr "Главная страница"
 msgid "Social sharing Title (og:title)"
 msgstr "Заголовок (og:title)"
 
-#: /wa-apps/shop/lib/config/site.php:41 /wa-apps/shop/lib/config/site.php:58
+#: /wa-apps/shop/lib/config/site.php:41
+#: /wa-apps/shop/lib/config/site.php:58
 msgid "For detailed information on Open Graph parameters and examples please refer to <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>"
 msgstr "Подробная информация о возможных вариантах значений параметров Open Graph опубликована на сайте протокола <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>"
 
@@ -9459,9 +9464,6 @@ msgstr "Выбранный тип будет использован на вит�
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:164
 msgid "Get Google reCAPTCHA site key and secret for your site on <a href=\"https://www.google.com/recaptcha\" target=\"_blank\">https://www.google.com/recaptcha</a>"
 msgstr "Получите ключи Google reCAPTCHA для вашего сайта по адресу <a href=\"https://www.google.com/recaptcha\" target=\"_blank\">https://www.google.com/recaptcha</a>"
-
-msgid "Select Webasyst default captcha or Google reCAPTCHA"
-msgstr "Выбрать стандартную капчу Webasyst или Google reCAPTCHA"
 
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutContactinfo.class.php:114
 msgid "Spammy order alert"
@@ -10473,13 +10475,6 @@ msgstr "Получение автоматического запроса от п
 #: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:191
 msgid "Execution of “Paid” action manually in backend or automatically by a callback from a payment gateway."
 msgstr "Выполнение действия «Оплачен» в бекенде магазина либо в результате автоматического запроса (callback) платежной системы."
-
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:177
-msgid "To select an online map engine, you need access to Settings app."
-msgstr "Для выбора типа онлайн-карт необходим доступ к приложению «Настройки»."
-
-msgid "To select a captcha engine, you need access to Settings app."
-msgstr "Для выбора типа капчи необходим доступ к приложению «Настройки»."
 
 msgid "Only couriers for storefront %s are shown."
 msgstr "Показаны только курьеры, настроенные для витрины %s."
@@ -11567,10 +11562,6 @@ msgstr "Рекомендации по настройке оформления"
 msgid "Storefront not found."
 msgstr "Витрина не найдена."
 
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:315
-msgid "Select an online map service in <a href=\"%s\">Settings</a> app."
-msgstr "Выберите сервис онлайн-карт в приложении «<a href=\"%s\">Настройки</a>»."
-
 #: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:115
 msgid "This payment method may be unavilable during checkout due to limitations by shipping type or customer type."
 msgstr "Этот способ доставки может быть недоступен из-за ограничений по типу доставки и типу покупателя при оформлении заказа."
@@ -11881,13 +11872,6 @@ msgstr "Профиль"
 msgid "Image uploading error"
 msgstr "Ошибка загрузки изображения"
 
-#: /wa-apps/shop/lib/config/site.php:199
-msgid "<span class=\"checkout-2-background\">%s</span> (may be not supported by some design themes; please check your theme’s description or checkout settings after selecting this mode)"
-msgstr "<span class=\"checkout-2-background\">%s</span> (может не поддерживаться некоторыми темами дизайна; проверьте это в описании вашей темы или в настройках оформления заказа после выбора этого режима)"
-
-msgid "Set up connection to SMS providers in <a href=\"%s\">Settings</a> app."
-msgstr "Настройте подключение к SMS-провайдерам в приложении «<a href=\"%s\">Настройки</a>»."
-
 msgid "<a href=\"%s\" target=\"_blank\">Add a shipping method</a>"
 msgstr "<a href=\"%s\" target=\"_blank\">Добавьте способ доставки</a>"
 
@@ -11908,10 +11892,6 @@ msgstr "Эта настройка используется только в ре�
 
 msgid "Existing customer’s data will be updated by the data from a new order."
 msgstr "Данные существующего покупателя будут обновлены данными из нового заказа."
-
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:330
-msgid "You need access to Settings app to set up connection to SMS providers."
-msgstr "Для подключения к SMS-шлюзам нужен доступ к приложению «Настройки»."
 
 #: /wa-apps/shop/templates/actions/frontend/order/form/confirm.html:66
 #: /wa-apps/shop/templates/actions/frontend/order/form/details.html:157
@@ -12456,5 +12436,78 @@ msgstr "Добавлено"
 msgid "Adding"
 msgstr "Добавляется"
 
+msgid "All promos"
+msgstr "Все акции"
+
+msgid "Planned"
+msgstr "Запланированные"
+
+msgid "Finished"
+msgstr "Завершённые"
+
+msgid "Active promos"
+msgstr "Активные"
+
+msgid "Beginning"
+msgstr "Начало"
+
+msgid "End"
+msgstr "Окончание"
+
 msgid "Order amount has changed: %0.2f expected, %0.2f received. Currency: %s."
 msgstr "Сумма заказа изменилась: ожидалось %0.2f, получено %0.2f. Валюта: %s."
+
+msgid "Total:"
+msgstr "Всего:"
+
+msgid "Folders:"
+msgstr "Папки:"
+
+msgid "Files:"
+msgstr "Файлы:"
+
+msgid "Page:"
+msgstr "Страница:"
+
+msgid "prev"
+msgstr "пред."
+
+msgid "next"
+msgstr "след."
+
+msgid "Supported payment types"
+msgstr "Поддерживаемые типы оплаты"
+
+msgid "bank card on order receipt"
+msgstr "картой на месте получения заказа"
+
+msgid "cash on order receipt"
+msgstr "наличными на месте получения заказа"
+
+msgid "prepayment"
+msgstr "предоплата"
+
+msgid "In the “In-cart checkout” mode, selected payment types can be used to filter available payment options, if a list of requried payment types has been provided by a shipping plugin. These payment types are also passed on to shipping plugins for additional shipping rates calculation."
+msgstr "В режиме «Оформление заказа в корзине» выбранные типы оплаты могут использоваться для фильтрации вариантов оплаты, если плагин доставки предоставил перечень требуемых типов оплаты. Выбранные типы оплаты также передаются в плагины доставки для дополнительного перерасчета стоимости доставки."
+
+msgid "In the “Multi-step checkout” mode, this setting is not used."
+msgstr "В режиме «Пошаговое оформление заказа» эта настройка не используется."
+
+msgid "System settings"
+msgstr "Системные настройки"
+
+msgid "To be able to change system settings, you need access to Settings app."
+msgstr "Чтобы изменять системные настройки, необходим доступ к приложению «Настройки»."
+
+msgid "Editing of %d product is not allowed."
+msgid_plural "Editing of %d products is not allowed."
+msgstr[0] "Запрещено редактирование %d товара."
+msgstr[1] "Запрещено редактирование %d товаров."
+msgstr[2] "Запрещено редактирование %d товаров."
+
+msgid "UTM tags"
+msgstr "UTM-метки"
+
+msgid "You do not have sufficient access rights to set badges for selected products."
+msgstr "У вас недостаточно прав доступа, чтобы добавлять наклейки для выбранных товаров."
+

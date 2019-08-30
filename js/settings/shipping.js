@@ -55,7 +55,13 @@ if (typeof ($) != 'undefined') {
                 if ($this.hasClass('js-installer')) {
                     return (!$this.hasClass('js-confirm') || confirm($this.data('confirm-text') || $this.attr('title') || $_('Are you sure?')));
                 } else {
-                    return self.shippingPluginSave($this);
+                    var event = self.shippingPluginSaveEvent($this);
+
+                    if (event) {
+                        return self.shippingPluginSave($this);
+                    } else {
+                        return false;
+                    }
                 }
             });
 
@@ -69,6 +75,28 @@ if (typeof ($) != 'undefined') {
             self.shippingPluginClone();
 
             self.shippingResizeSetupList();
+        },
+
+        shippingPluginSaveEvent: function ($form) {
+            var self = this,
+                result = true,
+                beforeSaveEvent = new $.Event('shop_save_shipping');
+
+            beforeSaveEvent.errors = [];
+            $form.trigger(beforeSaveEvent);
+
+            if (beforeSaveEvent.isDefaultPrevented()) {
+                var message = [[self.locales.save_error]];
+
+                if (beforeSaveEvent.errors.length > 0) {
+                    message = beforeSaveEvent.errors;
+                }
+
+
+                self.shippingHelper.message('error', message);
+                return false;
+            }
+            return result;
         },
 
         shipping_data: {
@@ -454,7 +482,7 @@ if (typeof ($) != 'undefined') {
 
         shippingPlugins: function () {
             $('#s-settings-content').find('#s-settings-shipping').hide();
-            var url = this.options.backend_url + 'installer/?module=plugins&action=view&options[no_confirm]=1&slug=wa-plugins/shipping&return_hash=/shipping/plugin/add/%plugin_id%/';
+            var url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/shipping&return_hash=/shipping/plugin/add/%plugin_id%/';
             $('#s-settings-shipping-setup').show().html(this.shipping_options.loading).load(url);
         },
 

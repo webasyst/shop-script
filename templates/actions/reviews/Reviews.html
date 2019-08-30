@@ -44,6 +44,19 @@
 {/function}
 {/strip}
 
+{strip}
+{capture assign="_lazyloading_url"}
+    {$_params = []}
+    {foreach $_active_filters as $_name => $_value}
+        {if isset($_value) && mb_strlen($_value) > 0 && $_value !== "all"}
+            {$_params[] = "`$_name`=`$_value`"}
+        {/if}
+    {/foreach}
+
+    {$wa_app_url}?module=reviews{if !empty($_params)}&{$_params|join:"&"}{/if}
+{/capture}
+{/strip}
+
 {capture name="review_list"}
     {foreach $reviews as $id => $review}
         <li data-id="{$review.id}">{include file="./../product/include.review.html" reply_allowed=$reply_allowed inline}</li>
@@ -62,7 +75,12 @@
                     <ul class="s-filters-list menu-h dropdown" id="js-filters-list">
                         <li>
                             <div class="s-search-form">
-                                [`Product`]: <input class="s-search-field js-search-field" type="text" value="{$_product_name|default:""|escape}" placeholder="{_w("type a product name")}">
+                                <input class="s-search-field js-search-field" type="text" value="{$_product_name|default:""|escape}" placeholder="{_w("type a product name")}">
+                                {if !empty($_product_name)}
+                                    <a class="s-reset-link" href="{_render_filter_uri _filters_data=["product_id" => "all"]}">
+                                        <i class="icon16 close js-reset-form"></i>
+                                    </a>
+                                {/if}
 
                                 <script>
                                     {$_reset_uri = {_render_filter_uri _filters_data=["product_id" => "all"]}}
@@ -159,15 +177,6 @@
                     </script>
                 </div>
             </div>
-
-            {if !empty($_product_name)}
-                <h2 class="s-sub-title">
-                    <span class="gray">[`Product`]</span> {$_product_name|escape}
-                    <a class="inline-link" href="{_render_filter_uri _filters_data=["product_id" => "all"]}">
-                        <b><i>[`view all reviews`]</i></b>
-                    </a>
-                </h2>
-            {/if}
         </header>
 
         <div class="s-reviews">
@@ -199,6 +208,7 @@
                         published: '{shopProductReviewsModel::STATUS_PUBLISHED}'
                     },
                     lazy_loading: {
+                        url: {$_lazyloading_url|json_encode},
                         auto: true,
                         total_count: {$total_count},
                         count: {$count}

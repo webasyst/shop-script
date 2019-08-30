@@ -23,18 +23,27 @@ class shopCheckoutPaymentStep extends shopCheckoutStep
             // Filter based on shipping variant selected on previous step
             $selected_shipping_plugin_id = explode('.', $data['shipping']['selected_variant']['variant_id'], 2)[0];
             $selected_shipping_type = $data['shipping']['selected_variant']['type'];
+
+            $shipping_custom_data = ifset($data, 'shipping', 'selected_variant', 'custom_data', $selected_shipping_type, []);
+            if (empty($shipping_custom_data) && ($selected_shipping_type === waShipping::TYPE_TODOOR)) {
+                $shipping_custom_data = ifset($data, 'shipping', 'selected_variant', 'custom_data', 'courier', []);
+            }
+
+            $payment_type = ifset($shipping_custom_data, 'payment', []);
+            $selected_shipping_payment_type = $payment_type ? $payment_type : null;
         } else {
             // Shipping is disabled in checkout settings.
             // Do not filter payment options based on selected shipping variant.
             $selected_shipping_plugin_id = null;
             $selected_shipping_type = null;
+            $selected_shipping_payment_type = null;
         }
 
         // List of available payment options
         /** @var waContact $contact */
         $contact = $data['contact'];
         $customer_type = $contact['is_company'] ? shopCheckoutConfig::CUSTOMER_TYPE_COMPANY : shopCheckoutConfig::CUSTOMER_TYPE_PERSON;
-        $methods = $config->getPaymentRates($selected_shipping_plugin_id, $customer_type, $selected_shipping_type);
+        $methods = $config->getPaymentRates($selected_shipping_plugin_id, $customer_type, $selected_shipping_type, $selected_shipping_payment_type);
 
         // Currently selected payment option
         $selected_method_id = ifset($data, 'input', 'payment', 'id', null);

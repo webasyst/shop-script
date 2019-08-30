@@ -13,6 +13,7 @@ class shopPluginModel extends shopSortableModel
      * @param string $type plugin type
      * @param array $options
      * @return array[]
+     * @throws waException
      */
     public function listPlugins($type, $options = array())
     {
@@ -55,6 +56,16 @@ class shopPluginModel extends shopSortableModel
                     $plugin['available'] = false;
                 }
             }
+
+            #filter by payment type (applicable for payment plugins)
+            if ($plugin['available']
+                && !empty($options['payment_type'])
+                && !empty($plugin['options']['payment_type'])) {
+                $payment_type = array_keys(array_filter($plugin['options']['payment_type']));
+                if (!array_intersect($payment_type, $options['payment_type'])) {
+                    $plugin['available'] = false;
+                }
+            }
         }
         unset($plugin);
 
@@ -76,9 +87,21 @@ class shopPluginModel extends shopSortableModel
                             } else {
                                 $info = waShipping::info($plugin_id);
                             }
+
+                            $info += array(
+                                'type' => '',
+                            );
+
                             break;
                         case waPayment::PLUGIN_TYPE:
-                            $info = waPayment::info($plugin_id);
+                            if ($plugin_id == shopShipping::DUMMY) {
+                                $info = shopPaymentDummy::dummyInfo();
+                            } else {
+                                $info = waPayment::info($plugin_id);
+                            }
+                            $info += array(
+                                'type' => 'unknown',
+                            );
                             break;
                     }
                 } catch (waException $ex) {
@@ -175,6 +198,9 @@ class shopPluginModel extends shopSortableModel
         switch ($plugin['type']) {
             case waPayment::PLUGIN_TYPE:
                 shopPayment::fillDefaultData($plugin);
+                break;
+            case waShipping::PLUGIN_TYPE:
+                shopShipping::fillDefaultData($plugin);
                 break;
         }
     }

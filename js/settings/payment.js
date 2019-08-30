@@ -8,7 +8,7 @@
  * @method paymentBlur
  * @todo flush unavailable hash (edit/delete/etc)
  */
-if (typeof($) != 'undefined') {
+if (typeof ($) != 'undefined') {
 
     $.extend($.settings = $.settings || {}, {
 
@@ -206,16 +206,17 @@ if (typeof($) != 'undefined') {
             var self = this;
             var url = '?module=settings&action=paymentSetup&plugin_id=' + plugin_id;
             this.$payment_plugin_container.show().html(this.payment_options.loading).load(url, function () {
-                if (typeof(callback) == 'function') {
+                if (typeof (callback) == 'function') {
                     callback();
                     self.initElasticFooter();
                 }
 
                 self.$payment_plugin_container.find(':input[name="payment[options][customer_type]"]:checked, :input[name^="payment\[shipping_type\]"]').trigger('change');
+                self.paymentTypeHandler();
             });
         },
 
-        initElasticFooter:function() {
+        initElasticFooter: function () {
             var that = this;
 
             // DOM
@@ -312,12 +313,12 @@ if (typeof($) != 'undefined') {
 
                         //if plugin now off not need add text
                         if (!is_off) {
-                            $title.addClass('gray').text($title.text() + '(' + that.locales['disabled'] +')');
+                            $title.addClass('gray').text($title.text() + '(' + that.locales['disabled'] + ')');
                         }
 
                         //change id in url
-                        $setup.attr('href', '#/payment/plugin/setup/' + id +'/');
-                        $delete.attr('href', '#/payment/plugin/delete/' + id +'/');
+                        $setup.attr('href', '#/payment/plugin/setup/' + id + '/');
+                        $delete.attr('href', '#/payment/plugin/delete/' + id + '/');
 
                         //add new node
                         $plugin_list.append($new_plugin);
@@ -352,7 +353,7 @@ if (typeof($) != 'undefined') {
 
         paymentPlugins: function () {
             this.$payment_container.hide();
-            var url = this.options.backend_url + 'installer/?module=plugins&action=view&options[no_confirm]=1&slug=wa-plugins/payment&return_hash=/payment/plugin/add/%plugin_id%/';
+            var url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/payment&return_hash=/payment/plugin/add/%plugin_id%/';
             this.$payment_plugin_container.show().html(this.payment_options.loading).load(url);
         },
 
@@ -366,8 +367,53 @@ if (typeof($) != 'undefined') {
                 });
                 return shipping_types;
             }
-        }
+        },
 
+        /**
+         * Does not allow to choose both prepayment and on-site payment
+         */
+        paymentTypeHandler: function () {
+            var that = this,
+                $type_variants = that.$payment_plugin_container.find('.js-payment-type-variant'),
+                $prepaid = that.$payment_plugin_container.find(".js-payment-type-variant[data-payment-type='prepaid']"),
+                $card = that.$payment_plugin_container.find(".js-payment-type-variant[data-payment-type='card']"),
+                $cash = that.$payment_plugin_container.find(".js-payment-type-variant[data-payment-type='cash']");
+
+            $type_variants.on('click', function () {
+                var $self = $(this),
+                    value = $self.val();
+                update(value);
+            });
+
+            // Onload update
+            $type_variants.each(function () {
+                var $self = $(this);
+                if ($self.attr('checked')) {
+                    update($self.val());
+                    return true;
+                }
+            });
+
+            function update(value) {
+                if (value === 'prepaid') {
+                    // If you choose a prepayment, then turn off the remaining payment methods
+                    if ($prepaid.attr('checked')) {
+                        $card.attr('disabled', true).attr('checked', false);
+                        $cash.attr('disabled', true).attr('checked', false);
+                    } else {
+                        $card.attr('disabled', false).attr('checked', false);
+                        $cash.attr('disabled', false).attr('checked', false);
+                    }
+                } else {
+                    // If payment on the spot is selected, then turn off prepayment
+                    if (!$card.attr('checked') && !$cash.attr('checked')) {
+                        $prepaid.attr('disabled', false);
+                    } else {
+                        $prepaid.attr('disabled', true).attr('checked', false);
+                    }
+                }
+            }
+        }
     });
 } else {
     //

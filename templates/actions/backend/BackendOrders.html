@@ -144,22 +144,6 @@
             {* @event backend_orders.%plugin_id%.sidebar_bottom_li *}
             {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_bottom_li)}{/foreach}{/if}
 
-            {if $web_push->isOn() && $web_push->isTuned()}
-                <li id="s-web-push-notifications" style="margin-top: 20px; display: none;">
-                    <label style="margin-left: -16px;">
-                        <input type="checkbox" id="s-web-push-notification-subscribe"
-                               {if !$web_push->isAllowed()}disabled=disabled{/if}
-                               name="web_push_notification_subscribe[{$wa->user('id')}]" value="1"> [`Web push notifications`]
-                    </label>
-                </li>
-            {/if}
-
-            {if !$web_push->isTuned()}
-                <li id="s-web-push-notifications-message" style="margin-top: 20px; margin-left: -16px;">
-                    <span class="hint">[`To enable web push notifications, configure them in “Settings → <a href="?action=settings#/checkout/">Checkout</a>” screen.`]</span>
-                </li>
-            {/if}
-
         </ul>
     </div>
 
@@ -451,61 +435,15 @@
 {/foreach}
 
 {if empty($embedded_version)}
-<script type="text/javascript">$(function() {
+<script>
+    $(function() {
+        if ($.wa_push) {
+            $.wa_push.init();
+        }
+
         $.orders.init({
             view: '{$default_view}'
         });
-
-        {if $web_push->isOn() && $web_push->isTuned()}
-        setTimeout(function () {
-            OneSignal.push(function () {
-
-                var web_push_clients = {$web_push->getContactClientIds()|json_encode};
-
-                if (!OneSignal.isPushNotificationsSupported() || !OneSignal.isPushNotificationsEnabled()) {
-                    return;
-                }
-
-                OneSignal.init({
-                    appId: "{$web_push->getAppId()}",
-                    safari_web_id: "{$web_push->getSafariWebId()}",
-                    autoRegister: false,
-                    notifyButton: {
-                        enable: false
-                    },
-                    welcomeNotification: {
-                        title: "[`Shop orders`]",
-                        message: "[`Thank you for subscribing!`]"
-                    }
-                });
-
-                OneSignal.getUserId(function (uid) {
-                    $("#s-web-push-notifications").show();
-                    if (web_push_clients.indexOf(uid) >= 0) {
-                        $('#s-web-push-notification-subscribe').attr('checked', true);
-                    }
-                });
-
-                $('#s-web-push-notification-subscribe').click(function () {
-                    if ($(this).is(':checked')) {
-                        OneSignal.registerForPushNotifications();
-                        OneSignal.setSubscription(true);
-                        OneSignal.sendTags({ type: 'web', module: 'order' });
-                    } else {
-                        OneSignal.setSubscription(false);
-                    }
-                });
-
-                OneSignal.on('subscriptionChange', function (isSubscribed) {
-                    $('#s-web-push-notification-subscribe').attr('checked', isSubscribed);
-                    OneSignal.getUserId(function (uid) {
-                        $.post('?module=orders&action=webPushSubscribe', { status: isSubscribed ? 1 : 0, client_id: uid });
-                    });
-
-                });
-            });
-        }, 1000);
-        {/if}
-
-});</script>
+    });
+</script>
 {/if}

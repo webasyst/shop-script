@@ -23,6 +23,8 @@ class shopSettingsPaymentSetupAction extends waViewAction
 
             $shipping_types = shopShipping::getShippingTypes();
 
+            $payment_types = shopShipping::getShippingPaymentTypes();
+
             $model = new shopPluginModel();
 
             $options = array(
@@ -33,7 +35,7 @@ class shopSettingsPaymentSetupAction extends waViewAction
 
             $shipping = $model->listPlugins(shopPluginModel::TYPE_SHIPPING, $options);
 
-            $this->view->assign(compact('plugin', 'shipping_types', 'shipping', 'settings_html', 'guide_html'));
+            $this->view->assign(compact('plugin', 'shipping_types', 'payment_types', 'shipping', 'settings_html', 'guide_html'));
         } catch (waException $ex) {
             $this->view->assign('error', $ex->getMessage());
         }

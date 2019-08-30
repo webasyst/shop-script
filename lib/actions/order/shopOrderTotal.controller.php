@@ -28,7 +28,7 @@ class shopOrderTotalController extends waJsonController
 
         // To calculate all shipping rates, need extract clean ID
         $params = waRequest::request('params', array());
-        $shipping_id = preg_replace('/\W.+$/', '', ifset($params, 'shipping_id', 0));
+        $shipping_id = ifset($params, 'shipping_id', 0);
         $this->response['shipping_methods'] = $order->getShippingMethods(false, $shipping_id);
         $this->response['shipping_method_ids'] = array_keys($this->response['shipping_methods']);
         $this->response['discount'] = $order->discount;

@@ -51,7 +51,7 @@
                         };
                         $.get(
                             '?module=stocksBalance&offset=' + offset +
-                                '&total_count=' + total_count + 
+                                '&total_count=' + total_count +
                                 (self.options.order ? '&order=' + self.options.order : ''),
                             function(r) {
                                 if (r && r.status == 'ok') {
@@ -89,9 +89,6 @@
         },
 
         initView: function() {
-            var sidebar = $('#s-sidebar');
-            sidebar.find('li.selected').removeClass('selected');
-            sidebar.find('#s-product-stocks-info').addClass('selected');
             if (!this.append({ product_stocks: this.options.product_stocks, stocks: this.stocks })) {
                 return this;
             }

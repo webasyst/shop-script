@@ -54,8 +54,7 @@ class shopBackendOrdersAction extends waViewAction
             'all_count'       => $all_count,
             'sales_channels'  => $sales_channels,
             'backend_orders'  => $backend_orders,
-            'unsettled_count' => $unsettled_count,
-            'web_push'        => new shopWebPushNotifications()
+            'unsettled_count' => $unsettled_count
         ));
     }
 

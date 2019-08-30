@@ -26,14 +26,12 @@ class shopCategoryGetFeaturesController extends waJsonController
         }
 
         if (!$feature_id && $category) {
-            if ($category === 'new' || $category_type == shopCategoryModel::TYPE_DYNAMIC) {
-                $options_feature = [
-                    'status' => null,
-                ];
-            } elseif ($category_type == shopCategoryModel::TYPE_STATIC) {
-                $options_feature = array(
-                    'type_id' => $this->getTypesId($category),
-                );
+            $options_feature = [
+                'status' => null,
+            ];
+
+            if ($category_type == shopCategoryModel::TYPE_STATIC) {
+                $options_feature['type_id'] = $this->getTypesId($category);
             }
 
             if (!empty($options_feature)) {

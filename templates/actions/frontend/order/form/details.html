@@ -312,6 +312,21 @@
                     {/if}
                 {/if}
 
+                {$_text_errors = []}
+                {foreach $_errors as $_error}
+                    {if !empty($_error.id) && $_error.id === "details_plugin" && !empty($_error.text)}
+                        {$_text_errors[] = $_error}
+                    {/if}
+                {/foreach}
+
+                {if !empty($_text_errors)}
+                    <div class="wa-errors-wrapper">
+                        {foreach $_text_errors as $_error}
+                            <div class="wa-error-text">{$_error.text|escape}</div>
+                        {/foreach}
+                    </div>
+                {/if}
+
                 {* @event checkout_render_details *}
                 {foreach $event_hook.details as $_}
                     <div class="wa-plugin-hook">{$_}</div>

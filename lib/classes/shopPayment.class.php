@@ -46,10 +46,10 @@ class shopPayment extends waAppPayment
 
     /**
      *
-     * @param string $plugin plugin identity string (e.g. PayPal/WebMoney)
-     * @param int $plugin_id plugin instance id
-     * @throws waException
+     * @param string $plugin    plugin identity string (e.g. PayPal/WebMoney)
+     * @param int    $plugin_id plugin instance id
      * @return waPayment
+     * @throws waException
      */
     public static function getPlugin($plugin, $plugin_id = null)
     {
@@ -81,15 +81,15 @@ class shopPayment extends waAppPayment
             $info = array(
                 'plugin' => $id,
                 'status' => 1,
+                'type'   => waPayment::PLUGIN_TYPE,
             );
+
+            self::fillDefaultData($info);
         }
 
-        if ($info['plugin'] == self::DUMMY) {
-            $default_info = shopPaymentDummy::dummyInfo();
-        } else {
-            $default_info = waPayment::info($info['plugin']);
-        }
-        return is_array($default_info) ? array_merge($default_info, $info) : $default_info;
+        $info += $info['info'];
+
+        return $info;
     }
 
     public static function getList()
@@ -112,10 +112,39 @@ class shopPayment extends waAppPayment
 
     public static function fillDefaultData(&$data)
     {
+        if (!isset($data['info'])) {
+            if ($data['plugin'] == self::DUMMY) {
+                $data['info'] = shopPaymentDummy::dummyInfo();
+            } else {
+                $data['info'] = waPayment::info($data['plugin']);
+            }
+        }
+
         if (!isset($data['options']['shipping_type'])) {
             $shipping_types = shopShipping::getShippingTypes();
             $shipping_types = array_keys($shipping_types);
             $data['options']['shipping_type'] = array_combine($shipping_types, $shipping_types);
+        }
+
+        if (empty($data['options']['payment_type'])) {
+            $data['options']['payment_type'] = array();
+            $payment_type = &$data['options']['payment_type'];
+
+            switch (ifset($data, 'info', 'type', false)) {
+                case waPayment::TYPE_CARD:
+                    $payment_type[waShipping::PAYMENT_TYPE_PREPAID] = waShipping::PAYMENT_TYPE_PREPAID;
+                    break;
+                case waPayment::TYPE_MANUAL:
+                    $payment_type[waShipping::PAYMENT_TYPE_CASH] = waShipping::PAYMENT_TYPE_CASH;
+                    break;
+                case waPayment::TYPE_ONLINE:
+                    $payment_type[waShipping::PAYMENT_TYPE_PREPAID] = waShipping::PAYMENT_TYPE_PREPAID;
+                    break;
+                default:
+                    $payment_type[waShipping::PAYMENT_TYPE_PREPAID] = waShipping::PAYMENT_TYPE_PREPAID;
+                    break;
+            }
+            unset($payment_type);
         }
     }
 
@@ -180,7 +209,7 @@ class shopPayment extends waAppPayment
     }
 
     /**
-     * @param $transaction_data
+     * @param        $transaction_data
      * @param string $comment
      * @return int
      */
@@ -257,7 +286,7 @@ class shopPayment extends waAppPayment
     /**
      *
      * formalize order data
-     * @param string|array $order order ID or order data
+     * @param string|array              $order order ID or order data
      * @param waPayment|string|string[] $payment_plugin
      * @return waOrder
      * @throws waException
@@ -437,7 +466,7 @@ class shopPayment extends waAppPayment
                 //todo
                 $result = $module->refund(array(
                     'transaction'   => $params['transaction'],
-                    'refund_amount' => $params['refund_amount']
+                    'refund_amount' => $params['refund_amount'],
                 ));
             }
         }
@@ -793,7 +822,7 @@ class shopPayment extends waAppPayment
     }
 
     /**
-     * @param $order_id
+     * @param                      $order_id
      * @param int|string|waPayment $plugin
      * @return null|false|array last transaction
      */

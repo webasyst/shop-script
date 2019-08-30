@@ -297,13 +297,12 @@ html.swipebox-html.swipebox-touch {
 
 #swipebox-bottom-bar,
 #swipebox-top-bar {
-    text-shadow:1px 1px 1px #000;
     background:rgba(255,255,255,0.5);
 }
 
 #swipebox-top-bar {
-    color:#fff !important;
-    font-size:15px;
+    color:#000;
+    font-size:16px;
     line-height:43px;
     font-family:Helvetica,Arial,sans-serif
 }

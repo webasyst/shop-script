@@ -155,7 +155,8 @@
     if (typeof(window.$) != 'undefined') {
         $.settings.shippingInit({
             locales: {
-                disabled: {_w('disabled')|json_encode}
+                disabled: {_w('disabled')|json_encode},
+                save_error: {_w('Please correct errors.')|json_encode},
             }
         });
     }

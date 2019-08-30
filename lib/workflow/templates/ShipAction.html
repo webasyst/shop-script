@@ -164,7 +164,7 @@
         var time_from = $time_from_input.val();
         var time_to = $time_to_input.val();
         if (time_from || time_to) {
-            var valid_time_regex = /^\d\d:\d\d$/;
+            var valid_time_regex = /^((\d\d)|(\d)):\d\d$/;
             if (!time_from.match(valid_time_regex)) {
                 $time_from_input.addClass('error');
                 validation_passed = false;

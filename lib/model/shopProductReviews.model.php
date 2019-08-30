@@ -240,7 +240,7 @@ class shopProductReviewsModel extends waNestedSetModel
     protected function getOrder($options)
     {
         $sort = ifset($options, 'sort', null);
-        $order = ifset($options, 'order', null);
+        $order = ifset($options, 'order', 'DESC');
 
         if ($sort === 'rate') {
             $result = $sort;
@@ -248,7 +248,9 @@ class shopProductReviewsModel extends waNestedSetModel
             $result = 'datetime';
         }
         $result .= " {$order}, id";
+
         $result = $this->escape($result);
+
         return $result;
     }
 

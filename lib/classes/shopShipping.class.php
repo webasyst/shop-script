@@ -37,7 +37,7 @@ class shopShipping extends waAppShipping
     /**
      *
      * @param string $plugin
-     * @param int $plugin_id
+     * @param int    $plugin_id
      * @return waShipping
      * @throws waException
      */
@@ -77,16 +77,15 @@ class shopShipping extends waAppShipping
             $info = array(
                 'plugin' => $id,
                 'status' => 1,
+                'type'   => waShipping::PLUGIN_TYPE,
             );
+
+            self::fillDefaultData($info);
         }
 
-        if ($info['plugin'] == self::DUMMY) {
-            $default_info = shopShippingDummy::dummyInfo();
-        } else {
-            $default_info = waShipping::info($info['plugin']);
-        }
+        $info += $info['info'];
 
-        return is_array($default_info) ? array_merge($default_info, $info) : $default_info;
+        return $info;
     }
 
     public static function savePlugin($plugin)
@@ -164,7 +163,7 @@ class shopShipping extends waAppShipping
     /**
      *
      * formalize order data
-     * @param array $order order ID or order data
+     * @param array      $order order ID or order data
      * @param waShipping $shipping_plugin
      * @return waOrder
      * @throws waException
@@ -249,7 +248,7 @@ class shopShipping extends waAppShipping
         if (!isset($units['weight']) || !empty($units['weight'])) {
             if ($weight = $feature_model->getByCode('weight')) {
                 $map['weight'] = $weight;
-                $dimension_types['weight']='weight';
+                $dimension_types['weight'] = 'weight';
             }
         }
 
@@ -264,7 +263,7 @@ class shopShipping extends waAppShipping
                     if (isset($units['dimensions'])) {
                         foreach ($dimension_fields as $field) {
                             $units[$field] = $units['dimensions'];
-                            $dimension_types[$field]='length';
+                            $dimension_types[$field] = 'length';
                         }
                     }
                 }
@@ -430,7 +429,7 @@ class shopShipping extends waAppShipping
     }
 
     /**
-     * @param $total
+     * @param                  $total
      * @param waShipping|array $plugin
      * @return array
      */
@@ -461,9 +460,8 @@ class shopShipping extends waAppShipping
     }
 
 
-
     /**
-     * @param $items
+     * @param                  $items
      * @param waShipping|array $plugin
      */
     public static function convertItemsDimensions(&$items, $plugin)
@@ -557,6 +555,15 @@ class shopShipping extends waAppShipping
         );
     }
 
+    public static function getShippingPaymentTypes()
+    {
+        return array(
+            waShipping::PAYMENT_TYPE_CARD    => _w('bank card on order receipt'),
+            waShipping::PAYMENT_TYPE_CASH    => _w('cash on order receipt'),
+            waShipping::PAYMENT_TYPE_PREPAID => _w('prepayment'),
+        );
+    }
+
     private static function getShopSettings($field)
     {
         /** @var shopConfig $config */
@@ -587,5 +594,19 @@ class shopShipping extends waAppShipping
         }
 
         return $return;
+    }
+
+    public static function fillDefaultData(&$data)
+    {
+        if (!isset($data['info'])) {
+            if ($data['plugin'] == self::DUMMY) {
+                $data['info'] = shopShippingDummy::dummyInfo();
+            } else {
+                $data['info'] = waShipping::info($data['plugin']);
+            }
+        }
+        if (!isset($data['options']['customer_type'])) {
+            $data['options']['customer_type'] = '';
+        }
     }
 }

@@ -12,6 +12,7 @@ var shopDialogProductsCategory = (function ($) {
         that.category_type = options['category_type'];
         that.account_name = options['account_name'];
         that.filter_count = options['filter_count'];
+
         that.filter_ignore_id = [];
         that.ignore_id = [];
 
@@ -19,7 +20,7 @@ var shopDialogProductsCategory = (function ($) {
         that.filter_element_html = options['templates']['filter_element_html'];
 
         // TEXT
-        that.show_more_text = options['texts']['show_more_text'] + ' ' + that.filter_count;
+        that.show_more_filters_text = options['texts']['show_more_filters_text'];
 
         // INIT
         that.initClass();
@@ -90,20 +91,23 @@ var shopDialogProductsCategory = (function ($) {
             left = that.SEARCH_STEP,
             show_link = that.$wrapper.find('.js-show-more-filters'),
             filters = that.$wrapper.find('.js-category-filters .js-filter-checkbox').length,
-            text = that.show_more_text;
+            text = that.show_more_filters_text;
+
 
         filters -= 1;
         filters -= that.filter_ignore_id.length;
-
         if (filters + that.SEARCH_STEP > that.filter_count) {
             left = that.filter_count - filters;
         }
 
-        if (left < 1) {
-            show_link.hide();
-        } else {
+        if (left >= 1) {
+            var total_left = that.filter_count - filters;
+
             text = text.replace(/%d/g, left);
+            text = text.replace(/%all/g, total_left);
             show_link.text(text);
+        } else {
+            show_link.hide();
         }
     };
 
@@ -112,7 +116,7 @@ var shopDialogProductsCategory = (function ($) {
             template = that.filter_element_html,
             category_filters = that.$wrapper.find('.js-category-filters');
 
-        checked = ( checked ? checked : false );
+        checked = (checked ? checked : false);
 
         template = template.replace(/%id/g, filter.id);
         template = template.replace(/%name/g, filter.name);
@@ -181,7 +185,7 @@ var shopDialogProductsCategory = (function ($) {
             delay: 300,
             create: function () {
                 //move autocomplete container
-                $input.autocomplete( "widget" ).appendTo(".js-filter-autocomplete-block")
+                $input.autocomplete("widget").appendTo(".js-filter-autocomplete-block")
             },
             select: function (event, ui) {
                 event.preventDefault();
@@ -243,7 +247,7 @@ var shopDialogProductsCategory = (function ($) {
                 delay: 300,
                 create: function () {
                     //move autocomplete container
-                    $input.autocomplete( "widget" ).appendTo(".js-autocomplete-block")
+                    $input.autocomplete("widget").appendTo(".js-autocomplete-block")
                 },
                 select: function (event, ui) {
                     that.renderFeature(ui.item.id);

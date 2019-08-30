@@ -116,6 +116,11 @@ class shopProductsCollection
         if ($this->is_frontend) {
             $this->frontendConditions();
         }
+
+        if (isset($this->options['filter_by_rights'])) {
+            $this->addWhereByRights();
+        }
+
         if ($sort = waRequest::get('sort')) {
             if ($sort == 'stock') {
                 $sort = 'count';
@@ -571,7 +576,11 @@ SQL;
                 $this->order_by = $set['rule'];
             }
             if (!empty($set['rule']) && ($set['rule'] == 'compare_price DESC')) {
-                $this->where[] = 'compare_price > price';
+                $set_alias = 'p';
+                if (isset($this->join_index['ps'])) {
+                    $set_alias = 'ps1';
+                }
+                $this->where[] = "{$set_alias}.compare_price > {$set_alias}.price";
             }
         }
     }
@@ -2583,6 +2592,32 @@ SQL;
     {
         $this->where[] = $condition;
         return $this;
+    }
+
+    /**
+     * Add a condition if the user does not have edit access
+     */
+    protected function addWhereByRights()
+    {
+        $rights = wa()->getUser(193)->getRights('shop');
+        $backend_access = ifset($rights, 'backend', 0);
+
+        if ($backend_access == 1) {
+            $types = [];
+            foreach ($rights as $right => $right_constant) {
+                if (substr($right, 0, 5) === 'type.') {
+                    $right_value = substr($right, 5);
+                    if (is_numeric($right_value) && $right_constant >= shopRightConfig::RIGHT_EDIT) {
+                        $types[] = $right_value;
+                    }
+                }
+            }
+
+            if ($types) {
+                $types_string = implode(',', $types);
+                $this->addWhere("p.type_id IN ({$types_string})");
+            }
+        }
     }
 
     /**

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Second checkout step. Determine shipping region: country + region + city.
  * May also ask for zip code if set up in settings.
@@ -16,8 +17,8 @@ class shopCheckoutRegionStep extends shopCheckoutStep
                 'disabled' => true,
             ], $data, []);
             return array(
-                'result' => $result,
-                'errors' => [],
+                'result'       => $result,
+                'errors'       => [],
                 'can_continue' => true,
             );
         }
@@ -26,10 +27,12 @@ class shopCheckoutRegionStep extends shopCheckoutStep
         if (ifempty($cfg, 'shipping', 'mode', shopCheckoutConfig::SHIPPING_MODE_TYPE_DEFAULT) == shopCheckoutConfig::SHIPPING_MODE_TYPE_DEFAULT) {
             // Default mode is like fixed mode with a single location
             // for which we hide the selector.
-            $cfg_locations = [[
-                'name' => '',
-                'enabled' => true,
-            ] + ifempty($cfg, 'shipping', 'fixed_delivery_area', [])];
+            $cfg_locations = [
+                [
+                    'name'    => '',
+                    'enabled' => true,
+                ] + ifempty($cfg, 'shipping', 'fixed_delivery_area', [])
+            ];
         } else {
             $cfg_locations = ifempty($cfg, 'shipping', 'locations_list', []);
         }
@@ -40,11 +43,11 @@ class shopCheckoutRegionStep extends shopCheckoutStep
         $countries_by_id = [];
         foreach ($country_model->allWithFav() as $c) {
             $c = [
-                'id' => $c['iso3letter'],
-                'name' => $c['name'],
-                'fav' => $c['fav_sort'],
+                'id'          => $c['iso3letter'],
+                'name'        => $c['name'],
+                'fav'         => $c['fav_sort'],
                 'has_regions' => null,
-                'regions' => [],
+                'regions'     => [],
             ];
             $countries[] =& $c;
             if (!isset($countries_by_id[$c['id']])) {
@@ -76,8 +79,8 @@ class shopCheckoutRegionStep extends shopCheckoutStep
                 $region_id = ifset($cfg_loc, 'region', null);
                 if ($region_id) {
                     $countries_by_id[$country_id]['regions'][] = [
-                        'id' => $region_id,
-                        'name' => $region_id,
+                        'id'         => $region_id,
+                        'name'       => $region_id,
                         'has_cities' => false,
                     ];
                 }
@@ -93,13 +96,15 @@ class shopCheckoutRegionStep extends shopCheckoutStep
         // (shop is misconfigured; should never happen)
         if (!$cfg_locations) {
             $default_location_id = null;
-            $cfg_locations = [[
-                'name' => '',
-                'enabled' => true,
-                'country' => null,
-                'region' => null,
-                'city' => null,
-            ]];
+            $cfg_locations = [
+                [
+                    'name'    => '',
+                    'enabled' => true,
+                    'country' => null,
+                    'region'  => null,
+                    'city'    => null,
+                ]
+            ];
         }
 
         // Get address from contact (prefer shipping)
@@ -140,6 +145,10 @@ class shopCheckoutRegionStep extends shopCheckoutStep
         // Figure out what values to show in form fields
         $selected_values = $this->getSelectedValues($cfg, $cfg_locations, $location_id, $default_location_id, $address);
 
+        if (empty($selected_values['country_id'])) {
+            $selected_values['country_id'] = $this->getDefaultCountryID($countries_by_id);
+        }
+
         // For selected country load all regions.
         // For countries used in locations load names of fixed regions.
         // Change region to region_id in $selected_values if selected country has regions
@@ -173,7 +182,7 @@ class shopCheckoutRegionStep extends shopCheckoutStep
             } elseif ($c['regions']) {
                 // Load fixed regions for not-currently-selected country
                 $raw_regions = $region_model->getByField([
-                    'code' => array_column($c['regions'], 'id'),
+                    'code'         => array_column($c['regions'], 'id'),
                     'country_iso3' => $c['id'],
                 ], true);
                 $c['has_regions'] = !!$raw_regions;
@@ -184,10 +193,11 @@ class shopCheckoutRegionStep extends shopCheckoutStep
 
             $c['regions'] = array_map(function ($r) {
                 return [
-                    'id' => $r['code'],
-                    'name' => $r['name'],
-                    'fav' => $r['fav_sort'],
-                    'has_cities' => false,
+                    'id'            => $r['code'],
+                    'name'          => $r['name'],
+                    'fav'           => $r['fav_sort'],
+                    'region_center' => $r['region_center'],
+                    'has_cities'    => false,
                 ];
             }, $raw_regions);
 
@@ -208,19 +218,19 @@ class shopCheckoutRegionStep extends shopCheckoutStep
             $city_id = ifset($cfg_loc, 'city', null);
 
             $loc = array(
-                'id' => $loc_id,
-                'name' => ifset($cfg_loc, 'name', ''),
+                'id'         => $loc_id,
+                'name'       => ifset($cfg_loc, 'name', ''),
                 'country_id' => $country_id,
 
                 'region_id' => null, // see below
-                'region' => null,
+                'region'    => null,
 
-                'city_id' => null, // !!! TODO: lists of cities are not implemented yet (note $selected_values and has_cities flag, too)
-                'city' => $city_id,
+                'city_id' => null, // lists of cities are not implemented (note $selected_values and has_cities flag, too)
+                'city'    => $city_id,
 
                 'country_locked' => $country_id !== null,
-                'region_locked' => $region_id !== null,
-                'city_locked' => $city_id !== null,
+                'region_locked'  => $region_id !== null,
+                'city_locked'    => $city_id !== null,
             );
 
             if ($country_id !== null) {
@@ -238,35 +248,43 @@ class shopCheckoutRegionStep extends shopCheckoutStep
         $errors = [];
         if (empty($selected_values['country_id'])) {
             $errors[] = [
-                'name' => 'region[country]',
-                'text' => _w('This field is required.'),
+                'name'    => 'region[country]',
+                'text'    => _w('This field is required.'),
                 'section' => $this->getId(),
             ];
         } elseif (empty($countries_by_id[$selected_values['country_id']])) {
             $errors[] = [
-                'name' => 'region[country]',
-                'text' => _w('This field is required.'),
+                'name'    => 'region[country]',
+                'text'    => _w('This field is required.'),
                 'section' => $this->getId(),
             ];
         }
         if (empty($errors)) {
             if (empty($selected_values['region']) && empty($selected_values['region_id'])) {
                 $errors[] = [
-                    'name' => 'region[region]',
-                    'text' => _w('This field is required.'),
+                    'name'    => 'region[region]',
+                    'text'    => _w('This field is required.'),
                     'section' => $this->getId(),
                 ];
             } else {
                 // Make sure region exists if country has them
                 $c = ifset($countries_by_id, $selected_values['country_id'], null);
                 if ($c['has_regions']) {
-                    $region_found = array_reduce($c['regions'], function ($region_found, $r) use ($selected_values) {
-                        return $region_found || $r['id'] == $selected_values['region_id'];
-                    });
-                    if (!$region_found) {
+                    $selected_region = null;
+                    foreach ($c['regions'] as $r) {
+                        if ($r['id'] == $selected_values['region_id']) {
+                            $selected_region = $r;
+                        }
+                    }
+                    if ($selected_region) {
+                        // Attempt to select city automatically if set in region settings
+                        if (empty($selected_values['city']) && !empty($selected_region['region_center'])) {
+                            $selected_values['city'] = $selected_region['region_center'];
+                        }
+                    } else {
                         $errors[] = [
-                            'name' => 'region[region]',
-                            'text' => _w('This field is required.'),
+                            'name'    => 'region[region]',
+                            'text'    => _w('This field is required.'),
                             'section' => $this->getId(),
                         ];
                     }
@@ -275,98 +293,118 @@ class shopCheckoutRegionStep extends shopCheckoutStep
         }
         if (empty($errors) && empty($selected_values['city'])) {
             $errors[] = [
-                'name' => 'region[city]',
-                'text' => _w('This field is required.'),
+                'name'    => 'region[city]',
+                'text'    => _w('This field is required.'),
                 'section' => $this->getId(),
             ];
         }
         if (!empty($cfg['shipping']['ask_zip']) && empty($selected_values['zip'])) {
             $errors[] = [
-                'name' => 'region[zip]',
-                'text' => _w('This field is required.'),
+                'name'    => 'region[zip]',
+                'text'    => _w('This field is required.'),
                 'section' => $this->getId(),
             ];
         }
 
         $result = $this->addRenderedHtml([
             'selected_values' => $selected_values,
-            'locations' => array_values($locations),
-            'countries' => array_values($countries),
+            'locations'       => array_values($locations),
+            'countries'       => array_values($countries),
         ], $data, $errors);
 
         return array(
-            'result' => $result,
-            'errors' => $errors,
+            'result'       => $result,
+            'errors'       => $errors,
             'can_continue' => !$errors,
         );
     }
 
-/*
+    /*
 
-Variables passed to template by prepare()
+    Variables passed to template by prepare()
 
-countries: [
-  {
-    id: 'rus',
-    name: 'Россия',
-
-    // Country may or may not have list of regions.
-    // Selected country have all regions listed, unless region is fixed.
-    // Non-selected country have SOME regions listed (i.e. regions used in locations).
-    regions: [
+    countries: [
       {
-        id: '77',
-        name: 'Москва',
-        // May or may not have list of cities
-        cities: [
+        id: 'rus',
+        name: 'Россия',
+
+        // Country may or may not have list of regions.
+        // Selected country have all regions listed, unless region is fixed.
+        // Non-selected country have SOME regions listed (i.e. regions used in locations).
+        regions: [
           {
-            id: 'Москва',
-            name: 'Москва'
-          }
-        ]
-      },
+            id: '77',
+            name: 'Москва',
+            // May or may not have list of cities
+            cities: [
+              {
+                id: 'Москва',
+                name: 'Москва'
+              }
+            ]
+          },
+        ],
+      }
     ],
-  }
-],
 
-locations: [
-    {
-      id: id, // location id
+    locations: [
+        {
+          id: id, // location id
+          country_id: id|null,
+
+          // Can be specified an id from a list of regions in country
+          // OR user-supplied string in case region does not have a list of cities
+          region_id: id|null,
+          region: string|null,
+
+          // Can be specified an id from a list of cities in region,
+          // OR user-supplied string in case region does not have a list of cities
+          city_id: id|null,
+          city: string|null,
+
+          country_locked: true|false,
+          region_locked: true|false,
+          city_locked: true|false
+        }
+    ],
+
+    // Currently selected by user
+    selected_values: {
+      location_id: id|null,
       country_id: id|null,
-
-      // Can be specified an id from a list of regions in country
-      // OR user-supplied string in case region does not have a list of cities
+      // one of them will be set depending on whether country has list of regions
+      // Both may be null if user did not select anything
       region_id: id|null,
       region: string|null,
-
-      // Can be specified an id from a list of cities in region,
-      // OR user-supplied string in case region does not have a list of cities
+      // one of them will be set depending on whether region has list of cities
+      // Both may be null if user did not select anything
       city_id: id|null,
       city: string|null,
-
-      country_locked: true|false,
-      region_locked: true|false,
-      city_locked: true|false
+      // undefined will not show ZIP field
+      zip: string|null|undefined
     }
-],
 
-// Currently selected by user
-selected_values: {
-  location_id: id|null,
-  country_id: id|null,
-  // one of them will be set depending on whether country has list of regions
-  // Both may be null if user did not select anything
-  region_id: id|null,
-  region: string|null,
-  // one of them will be set depending on whether region has list of cities
-  // Both may be null if user did not select anything
-  city_id: id|null,
-  city: string|null,
-  // undefined will not show ZIP field
-  zip: string|null|undefined
-}
+    */
 
-*/
+    /**
+     * @param $countries
+     * @return string
+     */
+    protected function getDefaultCountryID($countries)
+    {
+        /**
+         * @var shopConfig $shop_config
+         */
+        $shop_config = wa('shop')->getConfig();
+        $default_country = $shop_config->getGeneralSettings('country');
+
+        $result = '';
+        if (isset($countries[$default_country])) {
+            $result = $default_country;
+        }
+
+        return $result;
+    }
 
     protected function getSelectedValues($cfg, $cfg_locations, $location_id, $default_location_id, $address)
     {
@@ -379,22 +417,22 @@ selected_values: {
         }
 
         $address = ((array)$address) + [
-            'country' => '',
-            'region' => '',
-            'city' => '',
-            'zip' => '',
-        ];
+                'country' => '',
+                'region'  => '',
+                'city'    => '',
+                'zip'     => '',
+            ];
 
         // At this point we don't know whether country has regions
         // or region has cities, so we assume it's a full name, not id.
 
         $selected_values = [
             'location_id' => $location_id,
-            'country_id' => $address['country'],
-            'region_id' => null,
-            'region' => $address['region'],
-            'city_id' => null,
-            'city' => $address['city'],
+            'country_id'  => $address['country'],
+            'region_id'   => null,
+            'region'      => $address['region'],
+            'city_id'     => null,
+            'city'        => $address['city'],
         ];
         if (!empty($cfg['shipping']['ask_zip'])) {
             $selected_values['zip'] = $address['zip'];

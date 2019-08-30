@@ -38,7 +38,7 @@ $checkout_version_params = array(
     'type'  => 'radio_select',
     'items' => array(
         2 => array(
-            'name'        => sprintf(_w('<span class="checkout-2-background">%s</span> (may be not supported by some design themes; please check your theme’s description or checkout settings after selecting this mode)'), _w('In-cart checkout')),
+            'name'        => sprintf('<span class="checkout-2-background">%s</span>', _w('In-cart checkout')),
             'description' => '<br>'.sprintf(_w('If your design theme does not support “in-cart checkout”, standard checkout design of “Default” theme can be used. <a href="%s" target="_blank">Set up</a> <i class="icon16 new-window"></i>in-cart checkout.'), wa()->getAppUrl('shop/?action=settings#/checkout')) . '<br><strong>'. _w('Read <a href="https://www.shop-script.com/help/29297/in-cart-checkout/" target="_blank">user manual</a> before enabling this checkout option.') . '</strong><br><br>',
         ),
         1 => array(

@@ -349,12 +349,14 @@ SQL;
         unset($i);
 
         // Shipping info
+        $data['shipping_plugin'] = null;
         if (!empty($data['order']['params']['shipping_id'])) {
             try {
                 $data['shipping_plugin'] = shopShipping::getPlugin(ifset($data['order']['params']['shipping_plugin']), $data['order']['params']['shipping_id']);
             } catch (waException $e) {
             }
         }
+
 
         // Shipping date and time
         $data['shipping_interval'] = null;
@@ -707,7 +709,7 @@ SQL;
         if ($event == 'order.create') {
 
             // Send web push notifications. This only applies to users.
-            $web_push = new shopWebPushNotifications(shopWebPushNotifications::SERVER_SEND_DOMAIN);
+            $web_push = new shopWebPushNotifications();
             $web_push->send($data);
 
             // Fetch all users to send mobile push notifications to
@@ -766,34 +768,69 @@ SQL;
          * @event notifications_send_push
          */
         $event_params = [
-            'event' => $event,
-            'data'  => &$data,
+            'event'             => $event,
+            'data'              => &$data,
             'notification_text' => &$notification_text,
-            'host_client_ids' => $host_client_ids,
+            'host_client_ids'   => $host_client_ids,
         ];
         wa('shop')->event('notifications_send_push', $event_params);
 
-        foreach ($host_client_ids as $shop_url => $client_ids) {
-            $request_data = array(
-                'app_id'             => "0b854471-089a-4850-896b-86b33c5a0198",
-                'data'               => array(
-                    'order_id' => $order['id'],
-                    'shop_url' => $shop_url,
-                ),
-                'include_player_ids' => array_values($client_ids),
-                'contents'           => array(
-                    "en" => $notification_text,
-                ),
+        $request_url = 'https://shop-script.com/push/api/v1/push.send/';
 
-                'ios_badgeType'  => 'Increase',
-                'ios_badgeCount' => 1,
-                'android_group'  => 'shop_orders',
-            );
+        /**
+         * @var $config shopConfig
+         */
+        $config = wa('shop')->getConfig();
+        if ($config->getOption('custom_push_sender')) {
+            $request_url = $config->getOption('custom_push_sender');
+        }
+
+        $d = waRequest::server('HTTP_HOST');
+
+        $wa_installer_apps = 'wa-installer/lib/classes/wainstallerapps.class.php';
+        if (!class_exists('waInstallerApps') && file_exists(wa()->getConfig()->getRootPath() .'/'. $wa_installer_apps)) {
+            $autoload = waAutoload::getInstance();
+            $autoload->add('waInstallerApps', $wa_installer_apps);
+        }
+        if (class_exists('waInstallerApps')) {
+            $current_app = wa()->getApp();
+            if (wa()->appExists('installer')) {
+                wa('installer', 1);
+            }
+
+            $wa_installer = new waInstallerApps();
+            $h = $wa_installer->getHash();
+            wa($current_app, 1);
+        }
+
+        $a = wa()->getApp();
+        $v = wa($a)->getVersion($a);
+
+        foreach ($host_client_ids as $shop_url => $client_ids) {
+            $request_data = [
+                'push' => [
+                    'message'            => $notification_text,
+                    'data'               => [
+                        'order_id' => $order['id'],
+                        'shop_url' => $shop_url
+                    ],
+                    'include_player_ids' => array_values($client_ids),
+                ]
+            ];
+
+            $request_data['d'] = $d;
+            if (!empty($h)) {
+                $request_data['h'] = $h;
+            }
+
+            $request_data['s'] = $a;
+            $request_data['v'] = $v;
 
             try {
-                $net = new waNet(array('format' => waNet::FORMAT_JSON));
-                $net->query("https://onesignal.com/api/v1/notifications", $request_data, waNet::METHOD_POST);
+                $net = new waNet(['timeout' => 10]);
+                $net->query($request_url, $request_data, waNet::METHOD_POST);
                 $result = $net->getResponse();
+                $result = json_decode($result, true);
                 if (!empty($result['errors'])) {
                     if (!empty($result['errors']['invalid_player_ids'])) {
                         $push_client_model->deleteById($result['errors']['invalid_player_ids']);

@@ -424,10 +424,16 @@ class shopCheckoutConfig implements ArrayAccess
 
         if ($single_plugin_params) {
             // Ask a single specific plugin for its rates
-            $params['shipping'] = ['id' => $single_plugin_params['id']];
-            $params['shipping_params'][$single_plugin_params['id']] = $single_plugin_params['shipping_params'];
+            $shipping_id = $single_plugin_params['id'];
+            $params['shipping'] = ['id' => $shipping_id];
+            $params['shipping_params'][$shipping_id] = $single_plugin_params['shipping_params'];
             if (isset($single_plugin_params['service'])) {
-                $params['shipping_params'][$single_plugin_params['id']]['service'] = $single_plugin_params['service'];
+                $params['shipping_params'][$shipping_id]['service'] = $single_plugin_params['service'];
+                $params['shipping_params'][$shipping_id]['%service_variant_id'] = ifset($single_plugin_params, 'service', 'variant_id', null);
+            }
+
+            if (!empty($single_plugin_params['payment_type'])) {
+                $params['shipping_params'][$shipping_id]['%payment_type'] = $single_plugin_params['payment_type'];
             }
         } else {
             // filter plugins by what's specified in routing
@@ -464,7 +470,7 @@ class shopCheckoutConfig implements ArrayAccess
         }
 
         // Do not convert if globally disabled for shipping methods
-        $round_shipping = wa()->getSetting('round_shipping', false, 'shop');
+        $round_shipping = wa('shop')->getSetting('round_shipping', false, 'shop');
         if (!$round_shipping) {
             return $methods;
         }
@@ -478,10 +484,10 @@ class shopCheckoutConfig implements ArrayAccess
             if ($rate) {
                 if (is_array($rate)) {
                     foreach ($rate as $key => $value) {
-                        $variant_data['rate'][$key] = $this->convertRate($value,$in_currency, $out_currency);
+                        $variant_data['rate'][$key] = $this->convertRate($value, $in_currency, $out_currency);
                     }
                 } else {
-                    $variant_data['rate'] = $this->convertRate($rate,$in_currency, $out_currency);
+                    $variant_data['rate'] = $this->convertRate($rate, $in_currency, $out_currency);
                 }
 
                 if ($out_currency !== $in_currency) {
@@ -533,14 +539,15 @@ class shopCheckoutConfig implements ArrayAccess
     /**
      * Available payment options based on selected shipping plugin.
      *
-     * @param int|null $selected_shipping_plugin_id
-     * @param string $customer_type
-     * @param string|null $shipping_type
+     * @param int|null    $selected_shipping_plugin_id
+     * @param string      $customer_type one of shopCheckoutConfig::CUSTOMER_TYPE_* constant
+     * @param string|null $shipping_type one of waShipping::TYPE_* constant
+     * @param string|null $shipping_payment_type one of waShipping::PAYMENT_TYPE_* constant
      * @return array
      */
-    public function getPaymentRates($selected_shipping_plugin_id = null, $customer_type = self::CUSTOMER_TYPE_PERSON_AND_COMPANY, $shipping_type = null)
+    public function getPaymentRates($selected_shipping_plugin_id = null, $customer_type = self::CUSTOMER_TYPE_PERSON_AND_COMPANY, $shipping_type = null, $shipping_payment_type = null)
     {
-        $methods = $this->getPaymentMethods($selected_shipping_plugin_id, $customer_type, $shipping_type);
+        $methods = $this->getPaymentMethods($selected_shipping_plugin_id, $customer_type, $shipping_type, $shipping_payment_type);
         $currencies = $this->getCurrencies();
         foreach ($methods as $key => &$m) {
             try {
@@ -586,7 +593,7 @@ class shopCheckoutConfig implements ArrayAccess
     }
 
     // Overridden in unit tests
-    protected function getPaymentMethods($selected_shipping_plugin_id = null, $customer_type = self::CUSTOMER_TYPE_PERSON_AND_COMPANY, $shipping_type = null)
+    protected function getPaymentMethods($selected_shipping_plugin_id = null, $customer_type = self::CUSTOMER_TYPE_PERSON_AND_COMPANY, $shipping_type = null, $shipping_payment_type = null)
     {
         if ($customer_type == self::CUSTOMER_TYPE_PERSON_AND_COMPANY) {
             $customer_type = '';
@@ -601,6 +608,9 @@ class shopCheckoutConfig implements ArrayAccess
         }
         if (!empty($shipping_type)) {
             $options['shipping_type'] = $shipping_type;
+        }
+        if (!empty($shipping_payment_type)) {
+            $options['payment_type'] = $shipping_payment_type;
         }
 
         // Payment plugins can be enabled or disabled on current storefront
@@ -1445,16 +1455,15 @@ class shopCheckoutConfig implements ArrayAccess
         if (empty($this->contact_fields["contact_{$contact_type}_fields"])) {
 
             $fields = [];
+            /** @var waContactField[] $contact_fields */
             $contact_fields = waContactFields::getAll($contact_type);
             foreach ($contact_fields as $field) {
-
                 // for company Name fields not any sense
                 // because it is alias for 'company' field, but could cause problems when it is and 'company' are in form at the same time
                 if ($field->getId() === 'name' && $contact_type === self::CUSTOMER_TYPE_COMPANY) {
                     continue;
                 }
 
-                /** @var waContactField $field */
                 $fields[$field->getId()] = $field;
             }
 

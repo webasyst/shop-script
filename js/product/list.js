@@ -1545,6 +1545,11 @@
                             // assignTags
                             var data = self.serializeArray().concat(products.serialized);
                             $.shop.jsonPost(url, data, function (r) {
+                                // Show error for items that are denied access
+                                if (r.data.denied_message) {
+                                    alert(r.data.denied_message)
+                                }
+
                                 if (r.data.cloud === 'search') {
                                     d.trigger('close');
                                 } else if(r.data.cloud) {
@@ -1794,11 +1799,10 @@
             });
 
             // Save badge
-            $.shop.jsonPost('?module=product&action=badgeSet', data, jsonComplete);
+            $.shop.jsonPost('?module=product&action=badgeSet', data, jsonComplete, errorHandler);
 
             // Helper to update DOM after badge has been saved
             function jsonComplete(r) {
-
                 var badge_html = (action == 'delete-badge' ? null : r.data);
                 $('#product-list [data-product-id]').each(function() {
                     var $li = $(this);
@@ -1825,6 +1829,12 @@
                 );
 
                 $.product_list.container.find('.s-select-all:first').trigger('select', false);
+            }
+            function errorHandler(r) {
+                if (typeof r.errors === 'object' && typeof r.errors[0] === "string") {
+                    alert(r.errors[0])
+                }
+                $li.find('.loading').remove();
             }
         },
 

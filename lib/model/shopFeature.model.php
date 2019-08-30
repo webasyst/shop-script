@@ -296,7 +296,7 @@ SQL;
         $fetch = 'code';
 
         $options += [
-            'status' => self::STATUS_PUBLIC,
+            'status' => null,
             'count'  => true,
             'ignore' => true,
         ];

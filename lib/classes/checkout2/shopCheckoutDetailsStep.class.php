@@ -143,6 +143,10 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
         // Ask shipping plugin for final shipping rate, taking all the custom and address data into account
         $updated_selected_variant = null;
         if (!$errors) {
+            $payment = ifset($data, 'input', 'payment', []);
+            if (!empty($payment['id'])) {
+                $payment += shopPayment::getPluginInfo($payment['id']);
+            }
             $rates = $config->getShippingRates(
                 $address,
                 $data['order']['items'],
@@ -151,13 +155,14 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
                     'shipping_params' => $custom_field_values,
                     'id'              => $shop_plugin_id,
                     'service'         => $selected_variant,
+                    'payment_type'    => array_keys(ifset($payment, 'options', 'payment_type', [])),
                 ]
             );
 
             if (isset($rates[$selected_variant['variant_id']]['error'])) {
                 // Shipping plugin returned an error
                 $errors[] = [
-                    'id'      => 'shipping',
+                    'id'      => 'details_plugin',
                     'text'    => $rates[$selected_variant['variant_id']]['error'],
                     'section' => $this->getId(),
                 ];

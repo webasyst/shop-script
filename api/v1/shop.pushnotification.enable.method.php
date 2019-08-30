@@ -27,11 +27,11 @@ class shopPushnotificationEnableMethod extends shopApiMethod
         }
 
         $push_client_model->insert(array(
-            'contact_id' => wa()->getUser()->getId(),
+            'contact_id'      => wa()->getUser()->getId(),
             'create_datetime' => date('Y-m-d H:i:s'),
-            'api_token' => waRequest::request('access_token', '', 'string'),
-            'client_id' => $client_id,
-            'shop_url' => $shop_url,
+            'api_token'       => waRequest::request('access_token', '', 'string'),
+            'client_id'       => $client_id,
+            'shop_url'        => $shop_url,
         ), 1);
     }
 }

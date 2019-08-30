@@ -65,33 +65,38 @@ class shopHelper
             )
         );
         foreach ($methods as $m_id => $m) {
-            $plugin = shopPayment::getPlugin($m['plugin'], $m['id']);
-            $custom_fields = $plugin->customFields($order);
-            if ($custom_fields) {
-                $params = array();
-                $params['namespace'] = 'payment_'.$m['id'];
-                $params['title_wrapper'] = '%s';
-                $params['description_wrapper'] = '<br><span class="hint">%s</span>';
-                $params['control_wrapper'] = '<div class="name">%s</div><div class="value">%s %s</div>';
-                $params['control_separator'] = '</div><div class="value>"';
+            try {
+                $plugin = shopPayment::getPlugin($m['plugin'], $m['id']);
+                $custom_fields = $plugin->customFields($order);
+                if ($custom_fields) {
+                    $params = array();
+                    $params['namespace'] = 'payment_'.$m['id'];
+                    $params['title_wrapper'] = '%s';
+                    $params['description_wrapper'] = '<br><span class="hint">%s</span>';
+                    $params['control_wrapper'] = '<div class="name">%s</div><div class="value">%s %s</div>';
+                    $params['control_separator'] = '</div><div class="value>"';
 
-                $controls = array();
-                foreach ($custom_fields as $name => $row) {
-                    $row = array_merge($row, $params);
-                    if (!empty($order_params['payment_id']) && ($m['id'] == $order_params['payment_id']) && isset($order_params['payment_params_'.$name])) {
-                        $row['value'] = $order_params['payment_params_'.$name];
+                    $controls = array();
+                    foreach ($custom_fields as $name => $row) {
+                        $row = array_merge($row, $params);
+                        if (!empty($order_params['payment_id']) && ($m['id'] == $order_params['payment_id']) && isset($order_params['payment_params_'.$name])) {
+                            $row['value'] = $order_params['payment_params_'.$name];
+                        }
+                        if (!empty($row['control_type'])) {
+                            $controls[$name] = waHtmlControl::getControl($row['control_type'], $name, $row);
+                        }
                     }
-                    if (!empty($row['control_type'])) {
-                        $controls[$name] = waHtmlControl::getControl($row['control_type'], $name, $row);
+                    if ($controls) {
+                        $custom_html = '';
+                        foreach ($controls as $c) {
+                            $custom_html .= '<div class="field">'.$c.'</div>';
+                        }
+                        $methods[$m_id]['custom_html'] = $custom_html;
                     }
                 }
-                if ($controls) {
-                    $custom_html = '';
-                    foreach ($controls as $c) {
-                        $custom_html .= '<div class="field">'.$c.'</div>';
-                    }
-                    $methods[$m_id]['custom_html'] = $custom_html;
-                }
+            } catch (waException $ex) {
+                $methods[$m_id]['custom_html'] = sprintf('<span class="error">%s</span>', htmlentities($ex->getMessage(), ENT_NOQUOTES, 'utf-8'));
+                $methods[$m_id]['status']=0;
             }
         }
 
@@ -172,8 +177,9 @@ class shopHelper
         $config = wa('shop')->getConfig();
         $params['currency'] = isset($params['currency']) ? $params['currency'] : $config->getCurrency();
         $params['allow_external_for'] = (array)ifempty($params['allow_external_for'], array());
+        $params['allow_external_for'] = array_map('intval', $params['allow_external_for']);
 
-        waNet::multiQuery(
+            waNet::multiQuery(
             'shop.shipping',
             [
                 'timeout' => ifset($params, 'timeout', 10),
@@ -326,6 +332,25 @@ class shopHelper
                     $address = array();
                 }
 
+                $extra_shipping_params = array(
+                    'payment_type',
+                );
+
+                foreach ($extra_shipping_params as $_name) {
+                    if (isset($params[$_name])) {
+                        $shipping_params[$_name] = $params[$_name];
+                    }
+                }
+
+                //pull $shipping_params['shipping_params']['%...'] to $shipping_params['%...']
+                if (isset($shipping_params['shipping_params'])) {
+                    foreach ($shipping_params['shipping_params'] as $_name => $_value) {
+                        if (strpos($_name, '%') === 0) {
+                            $shipping_params[substr($_name, 1)] = $_value;
+                            unset($shipping_params['shipping_params'][$_name]);
+                        }
+                    }
+                }
                 $m['__rates'] = $plugin->getRates($shipping_items, $address, $shipping_params);
             }
 
@@ -402,7 +427,7 @@ class shopHelper
                                 'rate'                 => $rate,
                                 'currency'             => $currency,
                                 'external'             => !empty($plugin_info['external']),
-                                'type'                 => ifset($plugin_info, 'type', null),
+                                'type'                 => ifset($info, 'type', ifset($plugin_info, 'type', null)),
                             );
 
                             if ($rate === null) {

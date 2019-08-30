@@ -352,7 +352,6 @@ class shopOrder implements ArrayAccess
                 shopOrderParamsModel::workupParams($order['params']);
             }
 
-
             $this->data = $order;
             $this->data += shopHelper::workupOrders($order, true);
         } else {
@@ -1860,7 +1859,7 @@ class shopOrder implements ArrayAccess
                 }
             }
 
-            if ($this->is_changed['items'] || empty($this->id)) {
+            if ($this->is_changed['items'] || !$this->id) {
                 $total = shopShipping::getItemsTotal($this->data['items']);
                 foreach ($total as $field => $value) {
                     $params['package_'.$field] = $value;
@@ -3859,22 +3858,63 @@ HTML;
             $method_params['allow_external_for'][] = $shipping_id;
         }
 
-        if ($this->params && !empty($this->params['shipping_id']) && $selected_only) {
-            $method_params[shopPluginModel::TYPE_SHIPPING] = array(
-                'id' => (int)$this->params['shipping_id'],
-            );
-            $method_params['allow_external_for'][] = (int)$this->params['shipping_id'];
+        $params = $this->params;
+        if (!empty($params['shipping_id'])) {
+            $method_params['allow_external_for'][] = $this->params['shipping_id'];
+
+            if ($selected_only) {
+                $method_params[shopPluginModel::TYPE_SHIPPING] = array(
+                    'id' => (int)$this->params['shipping_id'],
+                );
+            }
         }
 
-        if (!empty($this->id)) {
-            if ($this->params && !empty($this->params['shipping_id'])) {
-                $shipping_id = $this->params['shipping_id'];
-                foreach ($this->params as $name => $value) {
-                    if (preg_match('@^shipping_params_(.+)$@', $name, $matches)) {
-                        if (!isset($method_params['shipping_params'][$shipping_id])) {
-                            $method_params['shipping_params'][$shipping_id] = array();
+        if (!empty($params['payment_id'])) {
+            try {
+                $payment = shopPayment::getPluginInfo($params['payment_id']);
+                $method_params['payment_type'] = array_keys(ifset($payment, 'options', 'payment_type', []));
+            } catch (waException $ex) {
+                ;//Plugin not found;
+            }
+        }
+
+        $shipping_services = array();
+
+        foreach ($method_params['allow_external_for'] as &$_shipping_id) {
+            if (preg_match('@^(\d+)\D(.*)$@', $_shipping_id, $matches)) {
+                $service_id = $matches[2];
+                $_shipping_id = (int)$matches[1];
+                if (!isset($shipping_services[$_shipping_id])) {
+                    $shipping_services[$_shipping_id] = array();
+                }
+                $shipping_services[$_shipping_id][] = $service_id;
+            } else {
+                $_shipping_id = (int)$_shipping_id;
+            }
+            unset($_shipping_id);
+        }
+
+
+        if ($this->id) {
+            if ($params = $this->params) {
+                if (!empty($params['shipping_id'])) {
+                    $shipping_id = (int)$params['shipping_id'];
+
+                    if (preg_match('@^(\d+)\D(.*)$@', $params['shipping_id'], $matches)) {
+                        $service_id = $matches[2];
+                        if (!isset($shipping_services[$shipping_id])) {
+                            $shipping_services[$shipping_id] = array();
                         }
-                        $method_params['shipping_params'][$shipping_id][$matches[1]] = $value;
+                        $shipping_services[$shipping_id][] = $service_id;
+                    }
+
+                    foreach ($params as $name => $value) {
+                        if (preg_match('@^shipping_params_(.+)$@', $name, $matches)) {
+                            if (!isset($method_params['shipping_params'][$shipping_id])) {
+                                $method_params['shipping_params'][$shipping_id] = array();
+                            }
+                            $method_params['shipping_params'][$shipping_id][$matches[1]] = $value;
+                        }
                     }
                 }
             }
@@ -3884,6 +3924,14 @@ HTML;
             if (preg_match('@^shipping_(\d+)$@', $name, $matches)) {
                 $method_params['shipping_params'][$matches[1]] = $value;
             }
+        }
+
+        foreach ($shipping_services as $shipping_id => $services) {
+            if (!isset($method_params['shipping_params'][$shipping_id])) {
+                $method_params['shipping_params'][$shipping_id] = array();
+            }
+            $method_params['shipping_params'][$shipping_id]['%service_variant_ids'] = $services;
+            $method_params['shipping_params'][$shipping_id]['%service_variant_id'] = reset($services);
         }
 
         $shipping_methods = shopHelper::getShippingMethods($shipping_address, $this->shippingItems(), $method_params);
@@ -3920,7 +3968,7 @@ HTML;
     protected function getCourier()
     {
         $courier = null;
-        if (!empty($this->params['courier_id'])) {
+        if (($params = $this->params) && !empty($params['courier_id'])) {
             $courier_model = new shopApiCourierModel();
             $courier = $courier_model->getById($this->params['courier_id']);
         }

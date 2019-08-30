@@ -32,8 +32,7 @@ class shopBackendLayout extends waLayout
             'new_orders_count'  => $order_model->getStateCounters('new'),
             'tutorial_progress' => $tutorial_progress,
             'tutorial_visible'  => $tutorial_visible,
-            'is_web_push_on'    => $this->isWebPushOn(),
-            'embedded_version' => $this->embedded_version,
+            'embedded_version'  => $this->embedded_version,
         ));
     }
 
@@ -118,11 +117,5 @@ class shopBackendLayout extends waLayout
     public function setEmbedded($v)
     {
         $this->embedded_version = $v;
-    }
-
-    protected function isWebPushOn()
-    {
-        $web_push = new shopWebPushNotifications();
-        return $web_push->isOn();
     }
 }

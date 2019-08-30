@@ -180,17 +180,20 @@ $(document).ready(function () {
     var f = function () {
 
         var ajax_form_callback = function (f) {
-            var fields = f.serializeArray();
+            var fields = getFields(f);
             var params = [];
-            for (var i = 0; i < fields.length; i++) {
-                if (fields[i].value !== '') {
-                    params.push(fields[i].name + '=' + fields[i].value);
+
+            $.each(fields, function(i, field) {
+                if (field.name && field.value) {
+                    params.push(field.name + '=' + field.value);
                 }
-            }
-            var url = '?' + params.join('&');
+            });
+
+            var url = location.pathname + ( params.length ? "?" + params.join('&') : "");
+
             $(window).lazyLoad && $(window).lazyLoad('sleep');
             $('#product-list').html('<img src="' + f.data('loading') + '">');
-            $.get(url+'&_=_', function(html) {
+            $.get(url, function(html) {
                 var tmp = $('<div></div>').html(html);
                 $('#product-list').html(tmp.find('#product-list').html());
                 if (!!(history.pushState && history.state !== undefined)) {
@@ -198,6 +201,46 @@ $(document).ready(function () {
                 }
                 $(window).lazyLoad && $(window).lazyLoad('reload');
             });
+
+            function getFields($form) {
+                var result = [];
+
+                var form_array = $form.serializeArray();
+
+                $.each(form_array, function(i, field) {
+                    var full_name = field.name,
+                        search_string = "[unit]";
+
+                    var is_unit = (full_name.substr(-(search_string.length)) === search_string);
+                    if (is_unit) {
+                        var param_name = full_name.substr(0, full_name.length - search_string.length);
+                        var is_param_set = checkParam(param_name);
+                        if (is_param_set) {
+                            result.push(field);
+                        }
+
+                    } else {
+                        result.push(field);
+                    }
+                });
+
+                return result;
+
+                function checkParam(param_name) {
+                    var result = false;
+
+                    $.each(form_array, function(i, field) {
+                        if (field.name === param_name +"[min]" || field.name === param_name +"[max]") {
+                            if (field.value.length) {
+                                result = true;
+                                return true;
+                            }
+                        }
+                    });
+
+                    return result;
+                }
+            }
         };
 
         $('.filters.ajax form input').change(function () {

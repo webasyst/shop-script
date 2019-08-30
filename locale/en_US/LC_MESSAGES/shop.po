@@ -12372,18 +12372,6 @@ msgstr ""
 msgid "Sort order items"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:302
-msgid "Select Webasyst default captcha or Google reCAPTCHA"
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:304
-msgid "To select a captcha engine, you need access to Settings app."
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:317
-msgid "To select an online map engine, you need access to Settings app."
-msgstr ""
-
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:7
 msgid "Order weight &amp; dimensions"
 msgstr ""
@@ -13697,11 +13685,6 @@ msgstr ""
 msgid "Profile"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/frontend/FrontendOrderCart.html:197
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:330
-msgid "You need access to Settings app to set up connection to SMS providers."
-msgstr ""
-
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout2.html:51
 msgid "General checkout settings"
 msgstr ""
@@ -13788,14 +13771,6 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:118
 msgid "Add an order to existing customer profile with the same email address"
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:316
-msgid "Select an online map service in <a href=\"%s\">Settings</a> app."
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:329
-msgid "Set up connection to SMS providers in <a href=\"%s\">Settings</a> app."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsRegions.html:6
@@ -14580,6 +14555,9 @@ msgstr ""
 #: /wa-apps/shop/themes/default/order.html:77
 msgid "Recommend"
 msgstr ""
+
+msgid "Active promos"
+msgstr "Active"
 
 #: /wa-apps/shop/lib/classes/images/shopImagesRegenerateReview.class.php:39
 msgid "%d review image updated."

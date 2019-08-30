@@ -232,6 +232,16 @@ class shopOrderEditAction extends waViewAction
                 }
             }
         }
+
+        if (!empty($order['params']['payment_id'])) {
+            try {
+                $payment = shopPayment::getPluginInfo($order['params']['payment_id']);
+                $params['payment_type'] = array_keys(ifset($payment, 'options', 'payment_type', []));
+            } catch (waException $ex) {
+                ;//Plugin not found;
+            }
+        }
+
         return shopHelper::getShippingMethods($shipping_address, $order_items, $params);
     }
 

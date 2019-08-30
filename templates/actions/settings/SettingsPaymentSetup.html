@@ -91,6 +91,24 @@
             <div class="value hint">{sprintf('[`In  “%s” mode payment is offered only to selected customer types.<br>In “%s” mode this setting is ignored and payment is always offered to all customer types.`]', '[`In-cart checkout`]', '[`Multi-step checkout`]')}</div>
         </div>
 
+
+
+        <div class="field"{if !empty($plugin.info.type) && ($plugin.info.type neq waPayment::TYPE_MANUAL)} style="display: none;{/if}">
+            <div class="name">[`Supported payment types`]</div>
+            <div class="value">
+                {foreach $payment_types as $payment_type=>$type_name}
+                    <label><input {if !empty($plugin.options.payment_type[$payment_type])} checked {/if}
+                            class="js-payment-type-variant" data-payment-type="{$payment_type}" name="payment[options][payment_type][{$payment_type}]"
+                            type="checkbox" value="{$payment_type}"> {$type_name|escape}</label>
+                    {if !$type_name@last}<br>{/if}
+                {/foreach}
+            </div>
+            <div class="value">
+                <p class="hint">[`In the “In-cart checkout” mode, selected payment types can be used to filter available payment options, if a list of requried payment types has been provided by a shipping plugin. These payment types are also passed on to shipping plugins for additional shipping rates calculation.`]
+                    <br>[`In the “Multi-step checkout” mode, this setting is not used.`]</p>
+            </div>
+        </div>
+
         <div class="field">
             <div class="name">[`Offer this payment method with selected shipping types`]</div>
             <div class="value">

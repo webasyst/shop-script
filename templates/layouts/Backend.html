@@ -65,25 +65,6 @@
         });
     </script>
 
-    {if $is_web_push_on}
-        <link rel="manifest" href="/manifest.json">
-        <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>
-        <script>
-
-            var OneSignal = OneSignal || [];
-            OneSignal.push(function() {
-                OneSignal.LOGGING = true;
-                if (OneSignal.isPushNotificationsSupported()) {
-                    console.log("Push notifications are supported");
-                }
-                if (OneSignal.isPushNotificationsEnabled()) {
-                    console.log("Push notifications are enabled");
-                }
-            });
-
-        </script>
-    {/if}
-
 </head>
 <body>
 <div id="wa"{if isset($no_level2)} class="s-no-level2"{/if}>

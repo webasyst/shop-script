@@ -421,6 +421,8 @@
             fieldWatcher($region_field, [$city_field, $zip_field]);
             fieldWatcher($zip_field);
 
+            checkPreviousFields([$zip_field, $city_field, $region_field, $country_field, $location_field]);
+
             if ($city_field.length && $city_field.hasClass("js-city-autocomplete")) {
                 // hack for IE 11
                 setTimeout( function() {
@@ -611,6 +613,31 @@
                     change_timer = setTimeout( function() {
                         onChange($city_field);
                     }, time);
+                }
+            }
+
+            function checkPreviousFields(fields) {
+                var required_fields = [],
+                    is_ready = false;
+
+                $.each(fields, function(i, $field) {
+                    if ($field.length && $field.is(":visible")) {
+                        if (is_ready) {
+                            required_fields.push($field);
+                        } else {
+                            var value = $.trim($field.val());
+                            if (value) {
+                                is_ready = true;
+                            }
+                        }
+                    }
+                });
+
+                if (required_fields.length) {
+                    $.each(required_fields, function(i, $field) {
+                        var $field_wrapper = $field.closest(".wa-field-wrapper");
+                        that.scope.validate($field_wrapper, true);
+                    });
                 }
             }
         };

@@ -810,7 +810,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
             var url = [];
             if (path.plugin) {
                 if (path.plugin == 'plugins') {
-                    return $.importexport.options.backend_url + 'installer/?module=plugins&action=view&options[no_confirm]=1&slug=shop&filter[tag]=importexport';
+                    return $.importexport.options.backend_url + 'installer/?module=plugins&action=view&slug=shop&filter[tag]=importexport';
                 }
                 url.push('plugin=' + path.plugin);
             }
