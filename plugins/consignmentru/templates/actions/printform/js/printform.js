@@ -199,7 +199,7 @@ window.Printform = {
             };
 
         try {
-            price = parseFloat(price);
+            price = parseFloat(price).toFixed(format.fraction_size);
 
             if ( (price >= 0) && format) {
                 var price_floor = Math.floor(price),
