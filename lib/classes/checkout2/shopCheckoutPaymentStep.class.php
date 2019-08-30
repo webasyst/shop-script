@@ -30,7 +30,7 @@ class shopCheckoutPaymentStep extends shopCheckoutStep
             }
 
             $payment_type = ifset($shipping_custom_data, 'payment', []);
-            $selected_shipping_payment_type = $payment_type ? $payment_type : null;
+            $selected_shipping_payment_type = $payment_type ? array_keys($payment_type) : null;
         } else {
             // Shipping is disabled in checkout settings.
             // Do not filter payment options based on selected shipping variant.
