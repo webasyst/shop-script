@@ -412,6 +412,15 @@ HTML;
                         $params += shopShipping::convertTotalDimensions($total, $shipping_plugin);
                     }
 
+                    if (!empty($order['params']['payment_id'])) {
+                        try {
+                            $payment = shopPayment::getPluginInfo($order['params']['payment_id']);
+                            $params['payment_type'] = array_keys(ifset($payment, 'options', 'payment_type', []));
+                        } catch (waException $ex) {
+                            ;//Plugin not found;
+                        }
+                    }
+
                     $data = $shipping_plugin->setPackageState($wa_order, $state, $params);
                     if ($data !== null) {
                         if (is_array($data)) {

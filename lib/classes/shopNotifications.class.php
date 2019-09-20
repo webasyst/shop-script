@@ -775,7 +775,7 @@ SQL;
         ];
         wa('shop')->event('notifications_send_push', $event_params);
 
-        $request_url = 'https://shop-script.com/push/api/v1/push.send/';
+        $request_url = 'https://www.shop-script.com/push/api/v1/push.send/';
 
         /**
          * @var $config shopConfig

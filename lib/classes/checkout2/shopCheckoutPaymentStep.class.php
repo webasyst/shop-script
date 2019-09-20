@@ -30,7 +30,16 @@ class shopCheckoutPaymentStep extends shopCheckoutStep
             }
 
             $payment_type = ifset($shipping_custom_data, 'payment', []);
-            $selected_shipping_payment_type = $payment_type ? array_keys($payment_type) : null;
+            $payment_type = array_unique(array_merge(array_keys(array_filter($payment_type)), $payment_type));
+            $selected_shipping_payment_type = $payment_type ? $payment_type : null;
+            if ($selected_shipping_payment_type !== null) {
+                $known_payment_types = [
+                    waShipping::PAYMENT_TYPE_CARD,
+                    waShipping::PAYMENT_TYPE_CASH,
+                    waShipping::PAYMENT_TYPE_PREPAID,
+                ];
+                $selected_shipping_payment_type = array_intersect($known_payment_types, $selected_shipping_payment_type);
+            }
         } else {
             // Shipping is disabled in checkout settings.
             // Do not filter payment options based on selected shipping variant.
