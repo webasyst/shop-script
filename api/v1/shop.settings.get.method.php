@@ -125,7 +125,7 @@ class shopSettingsGetMethod extends shopApiMethod
         foreach (ifset($cfg['states'], array()) as $id => $state) {
             $result[] = array(
                 'id'                => $id,
-                'name'              => ifempty($state['name'], $id),
+                'name'              => waLocale::fromArray(ifempty($state['name'], $id)),
                 'options'           => array_merge($default_options, ifempty($state['options'], array())),
                 'available_actions' => ifempty($state['available_actions'], array()),
             );
