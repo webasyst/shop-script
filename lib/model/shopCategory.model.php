@@ -260,6 +260,8 @@ class shopCategoryModel extends waNestedSetModel
         }
 
         // delete related info
+        $category_og_model = new shopCategoryOgModel();
+        $category_og_model->deleteByField('category_id', $id);
         $category_params_model = new shopCategoryParamsModel();
         $category_params_model->clear($id);
         $category_products_model = new shopCategoryProductsModel();

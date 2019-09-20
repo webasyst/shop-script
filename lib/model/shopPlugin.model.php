@@ -88,9 +88,11 @@ class shopPluginModel extends shopSortableModel
                                 $info = waShipping::info($plugin_id);
                             }
 
-                            $info += array(
-                                'type' => '',
-                            );
+                            if (is_array($info)) {
+                                $info += array(
+                                    'type' => '',
+                                );
+                            }
 
                             break;
                         case waPayment::PLUGIN_TYPE:
@@ -99,9 +101,12 @@ class shopPluginModel extends shopSortableModel
                             } else {
                                 $info = waPayment::info($plugin_id);
                             }
-                            $info += array(
-                                'type' => 'unknown',
-                            );
+
+                            if (is_array($info)) {
+                                $info += array(
+                                    'type' => 'unknown',
+                                );
+                            }
                             break;
                     }
                 } catch (waException $ex) {

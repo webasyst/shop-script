@@ -152,9 +152,9 @@ class shopProductImagesModel extends waModel
         wa('shop')->event('product_images_delete', $image);
 
         // first of all try delete files from disk
-        waFiles::delete(shopImage::getThumbsPath($image));
-        waFiles::delete(shopImage::getPath($image));
-        waFiles::delete(shopImage::getOriginalPath($image));
+        waFiles::delete(shopImage::getThumbsPath($image), true);
+        waFiles::delete(shopImage::getPath($image), true);
+        waFiles::delete(shopImage::getOriginalPath($image), true);
 
         if (!$this->deleteById($id)) {
             return false;

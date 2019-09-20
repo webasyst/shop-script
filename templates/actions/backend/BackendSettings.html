@@ -26,11 +26,6 @@
                     <i class="icon16 ss features-bw"></i>[`Product types & Features`]
                 </a>
             </li>
-            <li class="nowrap">
-                <a href="?action=settings#/recommendations/">
-                    <i class="icon16 ss star-bw"></i>[`Recommendations`]
-                </a>
-            </li>
             <li>
                 <a href="?action=settings#/images/">
                     <i class="icon16 ss camera-bw"></i>[`Images`]
@@ -80,23 +75,8 @@
                 </a>
             </li>
             <li>
-                <a href="?action=settings#/discounts/">
-                    <i class="icon16 ss discounts-bw"></i>[`Discounts`]
-                </a>
-            </li>
-            <li>
-                <a href="?action=settings#/affiliate/">
-                    <i class="icon16 ss affiliate-bw"></i>[`Affiliate program`]
-                </a>
-            </li>
-            <li>
                 <a href="?action=settings#/currencies/">
                     <i class="icon16 ss currency-bw"></i>[`Currencies`]
-                </a>
-            </li>
-            <li>
-                <a href="{$wa_backend_url}webasyst/settings/regions/">
-                    <i class="icon16 ss globe-bw"></i>[`Countries & Regions`]
                 </a>
             </li>
             <li>
@@ -112,11 +92,6 @@
             <li>
                 <a href="?action=settings#/notifications/">
                     <i class="icon16 ss notification-bw"></i>[`Notifications`]
-                </a>
-            </li>
-            <li>
-                <a href="?action=settings#/followups/">
-                    <i class="icon16 ss stopwatch-bw"></i>[`Follow-ups`]
                 </a>
             </li>
             <li>
@@ -138,6 +113,10 @@
             {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_bottom_li)}{/foreach}{/if}
 
         </ul>
+
+        <div class="align-center hr" style="padding: 20px 0;">
+            <p class="hint">{sprintf('[`To set up <em>discounts</em>, <em>followups</em>, <em>recommendations</em>, and <em>affiliate programs</em>, please open “%s” section.`]', "<a href='{$wa_app_url}marketing/'>[`Marketing`]</a>")}</p>
+        </div>
     </div>
 </div>
 
@@ -151,12 +130,14 @@
     <!-- settings placeholder -->
 </div>
 
-    <div class="clear"></div>
-<script type="text/javascript" src="{$wa_app_static_url}js/settings/settings.js?v={$wa->version()}"></script>
-<script type="text/javascript">
+<div class="clear"></div>
+{capture assign="_loading"}{_w('Loading...')} <i class="icon16 loading"></i>{/capture}
+<script src="{$wa_app_static_url}js/settings/settings.js?v={$wa->version()}"></script>
+<script>
     $.settings.init({
-        debug:true,
-        loading : '[`Loading...`]<i class="icon16 loading"><'+'/i>',
-        backend_url:'{$wa_backend_url|escape:'javascript'}'
+        debug: true,
+        loading: {$_loading|json_encode},
+        backend_url: {$wa_backend_url|json_encode},
+        shop_marketing_url: {"`$wa_app_url`marketing/"|json_encode}
     });
 </script>

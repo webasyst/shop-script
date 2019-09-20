@@ -124,7 +124,7 @@ class shopReportsCohortsAction extends waViewAction
         }
 
         $this->view->assign(array(
-            'sources' => shopReportsmarketingcostsActions::getSources(),
+            'sources' => shopMarketingCostsAction::getSources(),
             'sales_channels' => shopReportsSalesAction::getSalesChannels(),
             'request_options' => $request_options,
             'table_headers' => $table_headers,

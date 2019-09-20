@@ -1,7 +1,6 @@
 {$query = $query|default:''}
 {$category_id = $category_id|default:null}
 {$filter_id = $filter_id|default:null}
-
 {capture assign="customers_list"}
     {foreach $customers as $c}
         <tr class="s-customer" data-customer-id="{$c.id}">
@@ -21,8 +20,8 @@
                 </h3>
 
                 {include file="./include.top_fields.html"
-                    top=$c['top']
-                    similar_contacts=$c['similar_contacts']
+                    top=$c['top']|default:[]
+                    similar_contacts=$c['similar_contacts']|default:[]
                     need_other_values=false
                 inline}
 

@@ -299,6 +299,7 @@ class shopCart
         $cart_items_model = new shopCartItemsModel();
         $items = $cart_items_model->getByField('parent_id', $item['id'], true);
         $price = shop_currency($item['price'], $item['currency'], null, false) * $item['quantity'];
+
         if (!$items) {
             return $price;
         }
@@ -333,6 +334,8 @@ class shopCart
         $rounding_enabled = shopRounding::isEnabled();
         $frontend_currency = wa('shop')->getConfig()->getCurrency(false);
         $round_services = wa()->getSetting('round_services');
+
+        wa_dumpc($items);
 
         foreach ($items as $s) {
             if (!isset($prices[$s['service_variant_id']])) {

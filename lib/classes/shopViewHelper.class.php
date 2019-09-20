@@ -7,6 +7,8 @@
  */
 class shopViewHelper extends waAppViewHelper
 {
+    const CROSS_SELLING_IN_STOCK = '%in_stock_settings';
+
     private $shop_cart;
     private $shop_customer;
     /**
@@ -18,6 +20,101 @@ class shopViewHelper extends waAppViewHelper
      * @var shopConfig
      */
     private $shop_config;
+
+
+    protected static $url = '';
+
+    /**
+     * @param $count
+     * @param $page
+     * @param $url_params
+     * @param $url_path
+     * @param int $limit
+     * @return string
+     */
+    public function pager($count, $page, $url_params = '', $url_path = '', $limit = shopConfig::ROWS_PER_PAGE)
+    {
+        $old_url_path = self::$url;
+        self::$url = $url_path;
+        $width = 5;
+        $html = '';
+        $page = max($page, 1);
+        self::$url .= '?page=';
+        $url_params = trim(trim($url_params), '&?');
+        $total = 0;
+        if (isset($count['folders']) && isset($count['files']) &&
+            is_numeric($count['folders']) &&
+            is_numeric($count['files'])
+        ) {
+            $total = intval($count['folders']) + intval($count['files']);
+        } elseif (is_numeric($count)) {
+            $total = $count;
+        }
+        if ($total) {
+            $pages = ceil($total / $limit);
+            if ($pages > 1) {
+                $page = intval($page);
+                $html = '<ul class="pager">';
+                if (is_numeric($count)) {
+                    $html .= '<li>'._w('Total:').' <em>'.number_format((float)$count, 0, '.', ' ').'</em></li>';
+                }
+                if (!empty($count['folders'])) {
+                    $html .= '<li>'._w('Folders:').' <em>'.number_format((float)$count['folders'], 0, '.', ' ').'</em></li>';
+                }
+                if (!empty($count['files'])) {
+                    $html .= '<li>'._w('Files:').' <em>'.number_format((float)$count['files'], 0, '.', ' ').'</em></li>';
+                }
+
+                $html .= ' <span>'._w('Page:').'</span></li>';
+
+                if ($page > 1) {
+                    $title = _w('prev');
+                    $url = self::$url.($page - 1).(strlen($url_params) > 0 ? '&'.$url_params : '');
+                    $html .= "<li><a href='{$url}' title='{$title}'><i class='icon10 larr'></i>{$title}</a></li>";
+                }
+
+                $html .= self::item(1, $page, $url_params);
+                for ($i = 2; $i < $pages; $i++) {
+                    if (abs($page - $i) < $width ||
+                        ($page - $i == $width && $i == 2) ||
+                        ($i - $page == $width && $i == $pages - 1)
+                    ) {
+                        $html .= self::item($i, $page, $url_params);
+                    } elseif (strpos(strrev($html), '...') != 5) { // 5 = strlen('</li>')
+                        $html .= '<li>...</li>';
+                    }
+                }
+
+                $html .= self::item($pages, $page, $url_params);
+
+                if ($page < $pages) {
+                    $title = _w('next');
+                    $url = self::$url.($page + 1).(strlen($url_params) > 0 ? '&'.$url_params : '');
+                    $html .= "<li><a href='{$url}' title='{$title}'>{$title}<i class='icon10 rarr'></i></a></li>";
+                }
+            }
+        }
+
+        self::$url = $old_url_path;
+
+        return $html;
+    }
+
+    /**
+     * @param $i
+     * @param $page
+     * @param $url_params
+     * @return string
+     */
+    protected static function item($i, $page, $url_params = '')
+    {
+        if ($page != $i) {
+            $url = self::$url.$i.(strlen($url_params) > 0 ? '&'.$url_params : '');
+            return "<li><a href='{$url}'>".number_format((float)$i, 0, '.', ' ')."</a></li>";
+        } else {
+            return "<li class='selected'>".number_format((float)$i, 0, '.', ' ')."</li>";
+        }
+    }
 
     /**
      *
@@ -640,6 +737,15 @@ SQL;
         return new shopProduct($id, true);
     }
 
+    /**
+     * If $ available_only is equal to self::CROSS_SELLING_IN_STOCK then you need to use stocks settings
+     *
+     * @param $product_id
+     * @param int $limit
+     * @param bool|string $available_only If the string, then the value is $ key.
+     * @param bool $key
+     * @return array|mixed
+     */
     public function crossSelling($product_id, $limit = 5, $available_only = false, $key = false)
     {
         if (!is_numeric($limit)) {
@@ -647,13 +753,18 @@ SQL;
             $available_only = $limit;
             $limit = 5;
         }
-        if (is_string($available_only)) {
+        if (is_string($available_only) && $available_only !== self::CROSS_SELLING_IN_STOCK) {
             $key = $available_only;
             $available_only = false;
         }
         if (!$product_id) {
             return array();
         }
+        $params = [
+            'limit'          => $limit,
+            'available_only' => $available_only
+        ];
+
         if (is_array($product_id)) {
             if ($key) {
                 foreach ($product_id as &$r) {
@@ -661,24 +772,32 @@ SQL;
                 }
                 unset($r);
             }
-
             $product_model = new shopProductModel();
             $sql = "SELECT p.* FROM  shop_product p JOIN shop_type t ON p.type_id = t.id
             WHERE (p.id IN (i:id)) AND (t.cross_selling !=  '' OR p.cross_selling = 2)
             ORDER BY RAND() LIMIT 1";
             $p = $product_model->query($sql, array('id' => $product_id))->fetchAssoc();
             $p = new shopProduct($p);
-            $result = $p->crossSelling($limit, $available_only);
+        } else {
+            $params['exclude'] = is_array($key) ? $key : array();
+            $p = new shopProduct($product_id);
+        }
+
+        if ($available_only == self::CROSS_SELLING_IN_STOCK) {
+            unset($params['available_only']);
+            $result = call_user_func_array([$p, 'crossSellingInStock'], $params);
+        } else {
+            $result = call_user_func_array([$p, 'crossSelling'], $params);
+        }
+
+        if (is_array($result) && is_array($product_id)) {
             foreach ($result as $p_id => $pr) {
                 if (in_array($p_id, $product_id)) {
                     unset($result[$p_id]);
                 }
             }
-            return $result;
-        } else {
-            $p = new shopProduct($product_id);
-            return $p->crossSelling($limit, $available_only, is_array($key) ? $key : array());
         }
+        return $result;
     }
 
     public function __get($name)
@@ -1092,21 +1211,21 @@ SQL;
 
         if (wa()->appExists('crm')) {
             if ($type === 'edit') {
-                $url = wa('crm')->getAppUrl('crm') . "contact/{$contact_id}/edit/";
+                $url = wa('crm')->getAppUrl('crm')."contact/{$contact_id}/edit/";
             } elseif ($type === 'delete') {
-                $url = wa('crm')->getAppUrl('crm') . "contact/{$contact_id}/delete/";
+                $url = wa('crm')->getAppUrl('crm')."contact/{$contact_id}/delete/";
             } elseif ($type === 'info') {
-                $url = wa('crm')->getAppUrl('crm') . "contact/{$contact_id}/info/";
+                $url = wa('crm')->getAppUrl('crm')."contact/{$contact_id}/info/";
             } else {
-                $url = wa('crm')->getAppUrl('crm') . "contact/{$contact_id}/";
+                $url = wa('crm')->getAppUrl('crm')."contact/{$contact_id}/";
             }
         } else {
             if ($type === 'edit') {
-                $url = wa()->getAppUrl('contacts') . "#/contact/{$contact_id}/contact/edit/";
+                $url = wa()->getAppUrl('contacts')."#/contact/{$contact_id}/contact/edit/";
             } elseif ($type === 'delete') {
-                $url = wa()->getAppUrl('contacts') . "#/contact/{$contact_id}/contact/delete/";
+                $url = wa()->getAppUrl('contacts')."#/contact/{$contact_id}/contact/delete/";
             } else {
-                $url = wa()->getAppUrl('contacts') . "#/contact/{$contact_id}/";
+                $url = wa()->getAppUrl('contacts')."#/contact/{$contact_id}/";
             }
         }
 

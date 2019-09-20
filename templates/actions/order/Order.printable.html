@@ -72,16 +72,22 @@
                                 </h3>
 
                                 <ul class="menu-v with-icons compact">
+
                                     {if $main_contact_info}
                                         {foreach $main_contact_info as $top_field}
-                                            <li>
-                                                {if $top_field.id !== 'im'}
-                                                    <i class="icon16 {$top_field.id}{if $top_field.default_value.is_confirmed}-confirmed ss{/if}" {if $top_field.default_value.is_confirmed}title="[`Confirmed`]"{/if}></i>
-                                                {/if}
-                                                {$top_field.default_value.formatted}
-                                            </li>
+                                            {if !empty($top_field.all_values)}
+                                                {foreach $top_field.all_values as $_value}
+                                                    <li>
+                                                        {if $top_field.id !== 'im'}
+                                                            <i class="icon16 {$top_field.id}{if $_value.is_confirmed}-confirmed ss{/if}" {if $_value.is_confirmed}title="[`Confirmed`]"{/if}></i>
+                                                        {/if}
+                                                        {$_value.formatted}
+                                                    </li>
+                                                {/foreach}
+                                            {/if}
                                         {/foreach}
                                     {/if}
+
                                     <!-- plugin hook: 'backend_order_print.info_section' -->
                                     {* @event backend_order_print.%plugin_id%.info_section *}
                                     {if !empty($backend_order_print)}

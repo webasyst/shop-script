@@ -1230,7 +1230,9 @@
 
         initToolbar: function () {
             var toolbar = this.toolbar;
-            toolbar.find('li').unbind('click.product_list').bind('click.product_list', function () {
+            toolbar.find('li').unbind('click.product_list').bind('click.product_list', function(event) {
+                event.preventDefault();
+
                 var $li = $(this);
                 var action = $li.attr('data-action');
                 if (!action) {
@@ -1286,6 +1288,9 @@
                         break;
                     case 'duplicate':
                         $.product_list.duplicateProducts(products, $(this));
+                        break;
+                    case 'promo':
+                        $.product_list.associatePromo(products, $(this));
                         break;
                     case 'coupon':
                         $.product_list.createCoupon(products);
@@ -1914,6 +1919,37 @@
 
         },
 
+        associatePromo: function(products, $link) {
+            var is_locked = $link.data("locked");
+            if (!is_locked) {
+                $link.data("locked", true);
+                showDialog().always( function() {
+                    $link.removeData("locked");
+                });
+            }
+
+            function showDialog() {
+                var href = location.pathname + "?module=productsAssociatePromoDialog",
+                    data = {
+                        products_hash: getHash(products.serialized)
+                    };
+
+                var lock_scroll_class = "is-scroll-locked";
+
+                return $.post(href, data).done( function(html) {
+                    $(html).waDialog({
+                        onLoad: function () {
+                            $("body").addClass(lock_scroll_class);
+                        },
+                        onCancel: function () {
+                            $("body").removeClass(lock_scroll_class);
+                            $(this).remove();
+                        }
+                    });
+                });
+            }
+        },
+
         // Fix for long table
         rubberTable: function() {
             var $wrapper = $("#wa"),
@@ -1940,4 +1976,26 @@
             $(window).resize();
         }
     };
+
+    function getHash(products_array) {
+        var ids = [];
+        var hash = "";
+
+        $.each(products_array, function(i, product) {
+            if (product.name) {
+                if (product.name === 'product_id[]') {
+                    ids.push(parseInt(product.value, 10));
+                } else if (product.name === 'hash') {
+                    hash = product.value;
+                }
+            }
+        });
+
+        if (!hash && ids.length) {
+            hash = 'id/' + ids.join(',');
+        }
+
+        return hash;
+    }
+
 })(jQuery);

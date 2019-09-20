@@ -10831,10 +10831,6 @@ msgstr ""
 msgid "format"
 msgstr ""
 
-#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:94
-msgid "current time is"
-msgstr ""
-
 #: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:135
 #: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:231
 #: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:204
@@ -13601,10 +13597,6 @@ msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:195
 msgid "Checkout mode"
-msgstr ""
-
-#: /wa-apps/shop/lib/config/site.php:199
-msgid "<span class=\"checkout-2-background\">%s</span> (may be not supported by some design themes; please check your theme’s description or checkout settings after selecting this mode)"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:200

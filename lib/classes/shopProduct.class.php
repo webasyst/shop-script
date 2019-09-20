@@ -112,6 +112,8 @@ class shopProduct implements ArrayAccess
             $this->data = $this->model->getById($data);
         }
 
+        $this->preparePromoPrices();
+
         if ($is_frontend) {
             $tmp = array(&$this->data);
             shopRounding::roundProducts($tmp);
@@ -121,6 +123,33 @@ class shopProduct implements ArrayAccess
             $tmp = array(&$this->data);
             shopRounding::roundProducts($tmp, $options['round_currency']);
         }
+    }
+
+    /**
+     * @return shopPromoProductPrices
+     */
+    protected function promoProductPrices()
+    {
+        static $promo_product_prices_class;
+
+        if (empty($promo_product_prices_class)) {
+            $promo_prices_model = new shopProductPromoPriceTmpModel();
+            $options = [
+                'model' => $promo_prices_model,
+            ];
+            if (!$this->is_frontend && !empty($this->options['storefront_context']) && is_scalar($this->options['storefront_context'])) {
+                $options['storefront'] = (string)$this->options['storefront_context'];
+            }
+            $promo_product_prices_class = new shopPromoProductPrices($options);
+        }
+
+        return $promo_product_prices_class;
+    }
+
+    protected function preparePromoPrices()
+    {
+        $tmp = array(&$this->data);
+        $this->promoProductPrices()->workupPromoProducts($tmp);
     }
 
     public function isFrontend()
@@ -230,7 +259,7 @@ class shopProduct implements ArrayAccess
 
             if ($this->category_id && isset($categories[$this->category_id])) {
                 $category = $categories[$this->category_id];
-            }  else {
+            } else {
                 $this->category_id = null;
             }
         }
@@ -313,7 +342,7 @@ class shopProduct implements ArrayAccess
         $categories = $this->getCategoriesByRoute();
         if ($this->category_id && isset($categories[$this->category_id])) {
             $category = $categories[$this->category_id];
-        }  else {
+        } else {
             $category = reset($categories);
         }
 
@@ -479,6 +508,8 @@ class shopProduct implements ArrayAccess
     public function getSkus()
     {
         $data = $this->getStorage('skus')->getData($this);
+        $this->promoProductPrices()->workupPromoSkus($data, [$this->getId() => $this->data]);
+
         if ($this->is_frontend) {
             shopRounding::roundSkus($data, array($this->data));
         }
@@ -930,7 +961,59 @@ class shopProduct implements ArrayAccess
      */
     public function crossSelling($limit = 5, $available_only = false, $exclude = array())
     {
+        $collection = $this->getCrossSellingCollection($exclude);
+        $result = [];
+        if (!empty($collection)) {
+            if ($available_only) {
+                $collection->addWhere('(p.count > 0 OR p.count IS NULL)');
+            }
+            $result = $collection->getProducts('*,skus_filtered', $limit);
+            unset($result[$this->getId()]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param int $limit
+     * @param array $exclude
+     * @return array
+     * @throws waDbException
+     * @throws waException
+     */
+    public function crossSellingInStock($limit = 5, $exclude = [])
+    {
+        $collection = $this->getCrossSellingCollection($exclude);
+        $result = [];
+
+        if (!empty($collection)) {
+            $result = $collection->getProducts('*,skus_filtered', $limit);
+            $ignore_stock_count = wa('shop')->getSetting('ignore_stock_count');
+
+            if (!$ignore_stock_count) {
+                //We remove products that are not in stock
+                foreach ($result as $id => $product) {
+                    if (!is_null($product['count']) && $product['count'] <= 0) {
+                        unset($result[$id]);
+                    }
+                }
+            }
+
+            unset($result[$this->getId()]);
+        }
+        return $result;
+    }
+
+    /**
+     * @param $exclude
+     * @return array|shopProductsCollection
+     * @throws waException
+     */
+    protected function getCrossSellingCollection($exclude)
+    {
+        $collection = [];
         $cross_selling = $this->getData('cross_selling');
+
         // cross selling on (using similar setting for type)
         if ($cross_selling == 1 || $cross_selling === null) {
             $type = $this->getType();
@@ -940,37 +1023,25 @@ class shopProduct implements ArrayAccess
                 if ($type['cross_selling'] != 'alsobought') {
                     $collection->orderBy('RAND()');
                 }
-            } else {
-                return array();
             }
-        } elseif (!$cross_selling) {
-            return array();
-        } else {
+        } elseif ($cross_selling) {
             $collection = new shopProductsCollection('related/cross_selling/'.$this->getId());
         }
-        if (!empty($collection)) {
-            if ($available_only) {
-                $collection->addWhere('(p.count > 0 OR p.count IS NULL)');
-            }
-            if ($exclude) {
-                $ids = array();
-                foreach ($exclude as $exclude_id) {
-                    $exclude_id = (int)$exclude_id;
-                    if ($exclude_id) {
-                        $ids[] = $exclude_id;
-                    }
-                }
-                if ($ids) {
-                    $collection->addWhere('p.id NOT IN ('.(implode(',', $ids)).')');
+
+        if ($collection instanceof shopProductsCollection && $exclude) {
+            $ids = [];
+            foreach ($exclude as $exclude_id) {
+                $exclude_id = (int)$exclude_id;
+                if ($exclude_id) {
+                    $ids[] = $exclude_id;
                 }
             }
-            $result = $collection->getProducts('*,skus_filtered', $limit);
-            if (isset($result[$this->getId()])) {
-                unset($result[$this->getId()]);
+            if ($ids) {
+                $collection->addWhere('p.id NOT IN ('.(implode(',', $ids)).')');
             }
-            return $result;
         }
-        return array();
+
+        return $collection;
     }
 
     /**

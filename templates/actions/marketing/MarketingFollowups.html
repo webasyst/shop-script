@@ -1,0 +1,394 @@
+{* PAGE *}
+<div class="s-followups-page block double-padded" id="js-followups-page">
+    {* HEADER *}
+    <header class="s-page-header">
+        <h1 class="s-title">[`Follow-ups`]</h1>
+    </header>
+
+    {* BODY *}
+    <div class="s-page-body">
+        <div class="s-table-box space-20">
+            <div class="s-page-sidebar sidebar left200px">
+                <div class="s-inner-sidebar">
+                    <ul class="menu-v stack with-icons">
+                        <li class="{if !empty($followups)}bottom-padded{/if}">
+                            <a href="{$marketing_url}followups/create/" class="small">
+                                <i class="icon10 add"></i>[`New follow-up`]
+                            </a>
+                        </li>
+
+                        {foreach $followups as $f}
+                            {$_item_classes = []}
+                            {if !empty($followup.id) && ($followup.id === $f.id)}
+                                {$_item_classes[] = "selected"}
+                            {/if}
+                            {if !$f.status}
+                                {$_item_classes[] = "gray"}
+                            {/if}
+
+                            <li class="{$_item_classes|join:" "}">
+                                <a href="{$marketing_url}followups/{$f.id}/">
+                                    <i class="icon16 {if $f.transport == 'sms'}mobile{else}clock{/if}"></i> {$f.name|escape}
+                                </a>
+                            </li>
+                        {/foreach}
+                    </ul>
+
+                    <div class="hr"></div>
+
+                    <div class="align-center" style="margin-top: 20px;">
+                        {if $cron_ok}
+                            <p class="hint">
+                                <i class="icon10 yes"></i> {$last_cron|wa_datetime:'humandatetime'|string_format:"[`Follow-ups are configured properly. Latest Cron execution time: <strong>%s</strong>`]"}
+                            </p>
+                        {else}
+                            <p class="red bold small s-cron-error">
+                                <i class="icon10 no"></i>
+                                [`Follow-ups will not be sent, because cron is not properly configured.`]
+                                <br>
+                                <a id="cron-message-link" href="javascript:void(0)">[`How to set up?`]</a>
+                            </p>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+
+            <div class="content left200px s-settings-form">
+                <div class="s-followups-sections">
+                    <form id="s-followup-form" action="{$marketing_url}?module=marketingFollowupsSave">{* Submitted via XHR *}
+
+                        <div class="s-table-box space-20">
+                            <div class="s-column">
+                                {if !empty($followup.id)}
+                                    <h1>{$followup.name|escape}</h1>
+                                    <input type="hidden" name="followup[id]" value="{$followup.id|escape}">
+                                {else}
+                                    <h1>[`New follow-up`]</h1>
+                                {/if}
+                            </div>
+
+                            {if !empty($followup.id)}
+                                <div class="s-column middle align-right">
+                                    <ul class="menu-h">
+                                        <li><a href="javascript:void(0)" id="s-delete-followup-link"><i class="icon16 delete"></i>[`Delete`]</a></li>
+                                    </ul>
+                                </div>
+                            {/if}
+                        </div>
+
+                        <div class="fields form">
+                            <div class="field-group">
+                                <div class="field">
+                                    <div class="name">[`Follow-up name`]</div>
+                                    <div class="value">
+                                        <input type="text" name="followup[name]" value="{$followup.name|escape}">
+                                        <br>
+                                        <span class="hint">[`This name is for your convenience only. It will never be shown to customers.`]</span>
+                                    </div>
+                                </div>
+
+                                {if $followup.id}
+                                    <div class="field">
+                                        <div class="name">[`Transport`]</div>
+                                        <div class="value no-shift">
+                                            <i class="icon16 {$transports[$followup.transport].icon}"></i>{$transports[$followup.transport].name}
+                                            <input type="hidden" name="followup[transport]" value="{$followup.transport}">
+                                        </div>
+                                    </div>
+                                {else}
+                                    <div class="field">
+                                        <div class="name">[`Transport`]</div>
+                                        <div class="value no-shift">
+                                            <ul class="menu-v">
+                                                {foreach $transports as $t_id => $t}
+                                                    <li>
+                                                        <label>
+                                                            <input class="transport" {if $t@first}checked{/if} type="radio" name="followup[transport]" value="{$t_id}">
+                                                            <i class="icon16 {$t.icon}"></i>{$t.name}
+                                                        </label>
+                                                    </li>
+                                                {/foreach}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                {/if}
+
+                                <div class="field">
+                                    <div class="name">[`Enabled`]</div>
+                                    <div class="value no-shift">
+                                        <input type="hidden" name="followup[status]" value="0">
+                                        <input type="checkbox" name="followup[status]" value="1" {if $followup.status}checked{/if}>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field">
+                                    <div class="name">[`Sending rules`]</div>
+                                    <div class="value">
+                                        <ul class="menu-v">
+                                            <li class="s-rule">
+                                                [`Send in`]
+                                                <input type="text" class="short numerical" name="followup[delay]" value="{(ifempty($followup.delay, 3*24*3600) / 3600.0)|wa_format_number:0}">
+                                                [`hours after the order was set to state`]
+                                                <select name="followup[state_id]">
+                                                    {foreach $states as $id => $s}
+                                                        <option value="{$id}"{if ($id==$followup.state_id)} selected="selected"{/if}>{$s->getName()|escape}</option>
+                                                    {/foreach}
+                                                </select>
+                                            </li>
+                                            <li class="s-rule">
+                                                <input type="hidden" name="followup[first_order_only]" value="0">
+                                                <label>
+                                                    <input type="checkbox" name="followup[first_order_only]" value="1"{if !empty($followup.first_order_only)} checked{/if}>
+                                                    [`Send for customer‘s first paid order only`]
+                                                </label>
+                                            </li>
+                                            <li class="s-rule">
+                                                <input type="hidden" name="followup[same_state_id]" value="0">
+                                                <label>
+                                                    <input type="checkbox" name="followup[same_state_id]" value="1"{if !empty($followup.same_state_id)} checked{/if}>
+                                                    [`Send only if order status has not been changed from the one selected above`]
+                                                </label>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field">
+                                    <div class="name">[`Source`]</div>
+                                    <div class="value no-shift">
+                                        <select name="followup[source]">
+                                            <option value="" {if !$followup.source}selected{/if}>[`All orders`]</option>
+                                            <option value="backend" {if $followup.source == 'backend'}selected{/if}>[`Backend orders`]</option>
+                                            {foreach $routes as $domain => $domain_routes}
+                                                {foreach $domain_routes as $route}
+                                                    {$url = $domain|cat:"/":$route.url}
+                                                    <option {if $url == $followup.source}selected{/if} value="{$url}">{$url}</option>
+                                                {/foreach}
+                                            {/foreach}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field-group f-transport-fields hidden" data-transport="email">
+                                <div class="field">
+                                    <div class="name">[`Send from`]</div>
+                                    <div class="value no-shift">
+                                        <select class="followup-from" name="followup[from]">
+                                            <option value="" {if !$followup.from}selected{/if}>{$default_email_from}</option>
+                                            <option value="other" {if $followup.from}selected{/if}>[`Other email...`]</option>
+                                        </select>
+                                        {if $followup.from}
+                                            <input type="text" name="from" value="{$followup.from}">
+                                        {/if}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field-group f-transport-fields hidden" data-transport="sms">
+                                <div class="field">
+                                    <div class="name">[`Send from`]</div>
+                                    <div class="value no-shift">
+
+                                        <select class="followup-from" name="followup[from]">
+                                            {$cnt = count($sms_from)}
+                                            <option value="" {if empty($folowup.from)}selected{/if}>[`Default (as configured in SMS gateway)`]</option>
+                                            {if $cnt >= 1 && !($cnt == 1 && isset($sms_from["*"]))}
+                                                {foreach $sms_from as $from => $value}
+                                                    <option value="{$from}" {if !empty($followup.from) && $followup.from == $from}selected{/if}>{$from}</option>
+                                                {/foreach}
+                                            {/if}
+                                            <option value="other" {if !empty($followup.from) && !isset($sms_from[$followup.from])}selected{/if}>[`Custom Sender ID...`]</option>
+                                        </select>
+                                        {if !empty($followup.from) && !isset($sms_from[$followup.from])}
+                                            <input type="text" name="from" value="{$followup.from}">
+                                        {/if}
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field-group f-transport-fields hidden" data-transport="email">
+                                <div class="field">
+                                    <div class="name">[`Email subject`]</div>
+                                    <div class="value">
+                                        <input type="text" class="bold long subject" name="followup[subject]" value="{$followup.subject|escape}">
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="name">[`Email body`]<br><span class="hint">[`HTML + Smarty`]</span></div>
+                                    <div class="value no-shift ace-fix">
+                                        <textarea id="f-email-body" class="body" name="followup[body]">{if $followup.id}{$followup.body|escape}{else}{$transports.email.template|escape}{/if}</textarea>
+                                        <div class="ace bordered">
+                                            <div id="f-email-body-container"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field-group f-transport-fields hidden" data-transport="sms">
+                                <div class="field">
+                                    <div class="name">[`Content`]<br><span class="hint">[`HTML + Smarty`]</span></div>
+                                    <div class="value no-shift ace-fix">
+                                        <textarea id="f-sms-body" class="body" name="followup[body]">{if $followup.id}{$followup.body|escape}{else}{$transports.sms.template|escape}{/if}</textarea>
+                                        <div class="ace bordered">
+                                            <div id="f-sms-body-container"></div>
+                                        </div>
+                                        <span class="hint">[`Max 300 chars. SMS is sent only if customer phone number was entered during the checkout.`]</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <div class="value">
+                                    <input type="submit" class="button green js-submit-button" value="[`Save`]">
+                                    {if $followup.id}
+                                        <input type="button" id="send-test-button" class="button" value="[`Send test`]">
+                                    {/if}
+                                    {$wa->getCheatSheetButton(["app" => {$wa->app()}, 'key' => 'followups'])}
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="clear-both"></div>
+
+                    <div id="send-test-dialog" class="dialog" style="display:none">
+                        <div class="dialog-background"></div>
+                        <div class="dialog-window">
+                            <div class="dialog-content">
+                                <div class="dialog-content-indent">
+                                    <h1>[`Test follow-up`]</h1>
+                                    {if empty($test_orders)}
+                                        <p>[`Follow-up testing requires at least one paid or complete order for sample data.`]</p>
+                                    {else}
+                                        <div class="fields form">
+                                            <div class="field">
+                                                <div class="name">[`Send to`]</div>
+                                                <div class="value">
+                                                    <input type="text" value="{if $followup.transport === 'email'}{$wa->user()->get('email', 'default')|escape}{else}{$wa->user()->get('phone', 'default')|escape}{/if}" class="bold">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <p class="clear-left message">[`Select an order to fetch sample data from`]</p>
+                                        <table class="zebra" style="cursor: pointer;">
+                                            {foreach $test_orders as $o}
+                                                <tr>
+                                                    <td>
+                                                        <input type="radio" name="order_selector" value="{$o.id|escape}">
+                                                    </td>
+                                                    <td class="nowrap">
+                                                        <span style="{$o.style|escape}">
+                                                            <i class="{$o.icon}"></i>{$o.id_str}
+                                                        </span>
+                                                    </td>
+                                                    <td>{$o.create_datetime|wa_date:'humandate'}</td>
+                                                    <td>
+                                                        {foreach $o.items as $i}
+                                                            {$i.name|escape} <span class="gray">x {$i.quantity}</span><br />
+                                                        {/foreach}
+                                                    </td>
+                                                    <td class="bold nowrap align-right">{$o.total_formatted}</td>
+                                                </tr>
+                                            {/foreach}
+                                        </table>
+                                    {/if}
+                                </div>
+                            </div>
+                            <div class="dialog-buttons">
+                                <div class="dialog-buttons-gradient">
+                                    <div class="before-send">
+                                        <input type="submit" class="button blue" value="[`Send test`]">
+                                        <span class="s-msg-after-button" style="display:none;"><i class="icon16 loading"></i></span>
+                                        <span> [`or`] </span><a href="#" class="cancel">[`cancel`]</a>
+                                    </div>
+                                    <div class="after-send">
+                                        <input class="button cancel" type="button" value="[`Close`]">
+                                        <em class="bold successmsg"><i class="icon16 yes"></i>[`Test message sent!`]</em>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {strip}
+                    {capture assign="_cron_dialog"}
+                        {if !$cron_ok}
+                            <div id="cron-message-dialog" style="display:none">
+                                <p>[`Follow-ups require CRON to be properly setup for the Shop-Script app, which is currently not the case.`]
+                                    {sprintf(
+                                    '[`Setup cron with the following command (<a href="%s" target="_blank">cron setup instructions</a>):`]',
+                                    '[`http://www.webasyst.com/framework/docs/server/cron/`]'
+                                )}</p>
+                                <p><strong class="highlighted">{$cron_command}</strong></p>
+                            </div>
+                        {/if}
+                    {/capture}
+                    {/strip}
+
+                    {foreach $backend_followup_edit as $plugin_id => $_}
+                        <div class="hidden followup-plugin-wrapper {$plugin_id}">{$_}</div>
+                    {/foreach}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) { "use strict";
+            $.shop.marketing.setTitle({_w("Follow-ups")|json_encode});
+
+            var sources = [{
+                id: "wa-content-design-css",
+                type: "css",
+                uri: "{$wa_url}wa-content/css/wa/design.css?{$wa->version(true)}"
+            }, {
+                id: "wa-content-ace-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/ace/ace.js?v={$wa->version(true)}"
+            }, {
+                id: "wa-shop-marketing-followups-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/marketing/followups.js?v={$wa->version()}"
+            }];
+
+            $.shop.marketing.load(sources).then( function() {
+                $.shop.marketing.load([{
+                    id: "wa-content-elrte-js",
+                    type: "js",
+                    uri: "{$wa_url}wa-content/js/jquery-wa/wa.elrte.ace.js"
+                }]).then(init);
+
+                function init() {
+                    var page = $.shop.marketing.init.initFollowupsPage({
+                        $wrapper: $("#js-followups-page"),
+                        followup_id: {if !empty($followup.id)}{$followup.id|json_encode}{else}null{/if},
+                        transport: {if !empty($followup.id)}{$followup.transport|json_encode}{else}null{/if},
+                        cron_enabled: {if !empty($cron_ok)}true{else}false{/if},
+                        templates: {
+                            cron_dialog: {$_cron_dialog|json_encode}
+                        },
+                        locales: {
+                            "confirm_text": {_w("Are you sure?")|json_encode},
+                            "locale_1": {_w("Please save changes to be able to send tests.")|json_encode},
+                            "locale_3": {_w("Close")|json_encode},
+                            "locale_4": {_w("Select an order to fetch sample data from")|json_encode}
+                        },
+                        urls: {
+                            "root": {$wa_url|json_encode},
+                            "dir_url": "{$marketing_url}followups/",
+                            "id_page": "{$marketing_url}followups/%id%/",
+                            "delete": "{$marketing_url}?module=marketingFollowupsDelete"
+                        }
+                    });
+                }
+            });
+
+        })(jQuery);
+    </script>
+</div>

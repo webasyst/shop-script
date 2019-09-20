@@ -3,27 +3,30 @@
 class shopProductsCollection
 {
     protected $hash;
-    protected $info = array();
+    protected $info = [];
 
-    protected $options = array();
+    protected $options = [];
     protected $prepared = false;
     protected $prepared_event = false;
     protected $filtered = false;
-    protected $filtered_by_features = array();
+    protected $filtered_by_features = [];
     protected $title;
 
-    protected $fields = array();
+    protected $fields = [];
     protected $where;
-    protected $having = array();
+    protected $having = [];
     protected $count;
     protected $order_by = 'p.create_datetime DESC';
     protected $group_by;
     protected $joins;
-    protected $join_index = array();
+    protected $join_index = [];
 
-    protected $post_fields = array();
+    protected $promo_skus;
+    protected $promo_prices;
 
-    protected $models = array();
+    protected $post_fields = [];
+
+    protected $models = [];
     protected $is_frontend;
 
     /**
@@ -31,7 +34,7 @@ class shopProductsCollection
      * Need for optimization - skip same JOIN with the same ON and WHERE that've been already processed.
      * @var array
      */
-    protected $unique_joins = array();
+    protected $unique_joins = [];
 
     /**
      * Creates a new product collection.
@@ -132,25 +135,27 @@ class shopProductsCollection
             }
             $model = $this->getModel();
 
+            if ($sort == 'price') {
+                if (!isset($this->join_index['ps'])) {
+                    $this->loadPromoPrices();
+                    if (!empty($this->promo_prices)) {
+                        $tmp_table_alias = $this->addJoin([
+                            'table' => 'shop_product_promo_price_tmp',
+                            'type'  => 'LEFT',
+                            'on'    => 'p.id = :table.product_id AND p.sku_id = :table.sku_id'
+                        ]);
 
-            // Ordering by price is tricky!
-            // We must not order by price of a SKU that is excluded after filtering.
-            // When skus table is joined, we can't just order by shop_product.price
-            // We use actual SKU price for ordering instead.
-            if ($sort == 'price' && isset($this->join_index['ps'])) {
-
-                // We use main SKU price if it's not filtered out;
-                // otherwise min of all remaining SKU prices.
-                $sku_price = 'MIN(ps1.primary_price)';
-                $main_sku_price = 'MAX(IF(ps1.id=p.sku_id, ps1.primary_price, -1))';
-                $main_sku_exists = '-1 < '.$main_sku_price;
-                $this->order_by = "IF($main_sku_exists, $main_sku_price, $sku_price) $order";
-
+                        $this->order_by = "IFNULL(MIN({$tmp_table_alias}.primary_price), p.price) $order";
+                    } else {
+                        $this->order_by = "p.price $order";
+                    }
+                }
             } elseif ($sort == 'stock_worth') {
 
                 $this->fields['order_by'] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
                 $this->order_by = 'stock_worth '.$order;
             } elseif ($sort === 'sku' || $sort === 'compare_price' || $sort === 'purchase_price') {
+                // TODO: If $sort == 'compare_price' — add join on shop_product_promo_price_tmp (see $sort == 'price')
                 $actual_joins = $this->getJoinsByTableName('shop_product_skus');
                 if ($actual_joins) {
                     $skus_alias = $actual_joins[0]['alias'];
@@ -179,7 +184,6 @@ class shopProductsCollection
                     $this->fields['order_by'] = implode(', ', $fields);
                 }
             }
-            //#
         }
         if ($type) {
             $method = strtolower($type).'Prepare';
@@ -308,18 +312,33 @@ class shopProductsCollection
         $price_filter = array();
         if (isset($data['price_min']) && $data['price_min'] !== '') {
             $price_min = str_replace(',', '.', $data['price_min']);
-            $this->where[] = 'p.max_price >= '.$this->toFloat(shop_currency($price_min, true, $config->getCurrency(true), false));
-            $price_filter['price_min'] = ' >= '.$this->toFloat(shop_currency($price_min, true, $config->getCurrency(true), false));
+            $price_filter['price_min'] = '>= '.$this->toFloat(shop_currency($price_min, true, $config->getCurrency(true), false));
         }
         if (isset($data['price_max']) && $data['price_max'] !== '') {
             $price_max = str_replace(',', '.', $data['price_max']);
-            $this->where[] = 'p.min_price <= '.$this->toFloat(shop_currency($price_max, true, $config->getCurrency(true), false));
-            $price_filter['price_max'] = ' <='.$this->toFloat(shop_currency($price_max, true, $config->getCurrency(true), false));
+            $price_filter['price_max'] = '<= '.$this->toFloat(shop_currency($price_max, true, $config->getCurrency(true), false));
         }
         if (!empty($price_filter)) {
-            $skus_alias = $this->addJoin('shop_product_skus', ':table.product_id = p.id', ':table.available > 0');
+            $skus_alias = $this->addJoin([
+                'table' => 'shop_product_skus',
+                'on'    => ':table.product_id = p.id',
+                'where' => ':table.available > 0',
+            ]);
+
+            $where_conditional = "({$skus_alias}.primary_price)";
+
+            $this->loadPromoPrices();
+            if (!empty($this->promo_prices)) {
+                $tmp_promo_sku_alias = $this->addJoin([
+                    'table' => 'shop_product_promo_price_tmp',
+                    'type'  => 'LEFT',
+                    'on'    => 'p.id = :table.product_id AND ps1.id = :table.sku_id',
+                ]);
+                $where_conditional = "(IFNULL({$tmp_promo_sku_alias}.primary_price, {$skus_alias}.primary_price))";
+            }
+
             foreach ($price_filter as $price_filter_item) {
-                $this->addWhere("({$skus_alias}.primary_price {$price_filter_item})");
+                $this->addWhere($where_conditional.' '.$price_filter_item);
             }
         }
 
@@ -1265,6 +1284,7 @@ SQL;
 
         if (false !== strpos(join('', $fields), 'price')) {
             $fields[] = 'currency'; // required for proper rounding and convertion
+            $fields[] = 'sku_id'; // be sure to get the main sku to find it in the promo
         }
 
         $virtual_fields = array(
@@ -1443,7 +1463,6 @@ SQL;
     public function getSQL()
     {
         $this->prepare();
-
 
         if (!$this->prepared_event) {
             /**
@@ -1694,19 +1713,6 @@ SQL;
             return;
         }
 
-        // Round prices for products
-        $config = wa('shop')->getConfig();
-        /**
-         * @var shopConfig $config
-         */
-        $default_currency = $config->getCurrency(true);
-        $frontend_currency = null;
-        if ($this->is_frontend) {
-            $frontend_currency = $config->getCurrency(false);
-            if (!empty($this->options['round_prices'])) {
-                shopRounding::roundProducts($products);
-            }
-        }
         $rounding = array(
             'price',
             'min_price',
@@ -1726,6 +1732,23 @@ SQL;
         );
 
         $fetch_params = !empty($this->options['params']) || (!empty($this->post_fields['_internal']) && in_array('params', $this->post_fields['_internal']));
+
+        // Workup promo promo prices
+        $this->promoProductPrices()->workupPromoProducts($products);
+
+        // Round prices for products
+        $config = wa('shop')->getConfig();
+        /**
+         * @var shopConfig $config
+         */
+        $default_currency = $config->getCurrency(true);
+        $frontend_currency = null;
+        if ($this->is_frontend) {
+            $frontend_currency = $config->getCurrency(false);
+            if (!empty($this->options['round_prices'])) {
+                shopRounding::roundProducts($products);
+            }
+        }
 
         foreach ($products as &$p) {
             foreach ($float as $field) {
@@ -1959,6 +1982,8 @@ SQL;
                             }
                         }
                     }
+
+                    $this->promoProductPrices()->workupPromoSkus($skus, $products);
 
                     // Sort SKUs by `sort` field
                     uasort($skus, array($this, 'sortSkus'));
@@ -2509,12 +2534,22 @@ SQL;
 
     /**
      * @param string $name
-     * @return shopProductModel|shopCategoryModel|shopTagModel|shopSetModel|shopFeatureModel|shopCategoryRoutesModel|shopCategoryProductsModel
+     * @return shopProductModel|shopCategoryModel|shopTagModel|shopSetModel|shopFeatureModel|shopCategoryRoutesModel|shopCategoryProductsModel|shopProductPromoPriceTmpModel
      */
     protected function getModel($name = 'product')
     {
         if (!isset($this->models[$name])) {
-            if (in_array($name, array('product', 'category', 'tag', 'set', 'feature', 'categoryRoutes', 'categoryProducts'))) {
+            $available_models = [
+                'product',
+                'category',
+                'tag',
+                'set',
+                'feature',
+                'categoryRoutes',
+                'categoryProducts',
+                'productPromoPriceTmp'
+            ];
+            if (in_array($name, $available_models)) {
                 $class_name = 'shop'.ucfirst($name).'Model';
                 $this->models[$name] = new $class_name();
             }
@@ -2757,6 +2792,36 @@ SQL;
         return $this->unique_joins[$join_key];
     }
 
+    protected function loadPromoPrices()
+    {
+        if (is_array($this->promo_prices)) {
+            return;
+        }
+        $this->promo_prices = $this->promoProductPrices()->getPromoPrices();
+        $this->promo_skus = $this->promoProductPrices()->getPromoSkus();
+    }
+
+    /**
+     * @return shopPromoProductPrices
+     */
+    protected function promoProductPrices()
+    {
+        static $promo_product_prices_class;
+
+        if (empty($promo_product_prices_class)) {
+            $promo_prices_model = $this->getModel('productPromoPriceTmp');
+            $options = [
+                'model'      => $promo_prices_model,
+            ];
+            if (!$this->is_frontend && !empty($this->options['storefront_context']) && is_scalar($this->options['storefront_context'])) {
+                $options['storefront'] = (string)$this->options['storefront_context'];
+            }
+            $promo_product_prices_class = new shopPromoProductPrices($options);
+        }
+
+        return $promo_product_prices_class;
+    }
+
 
     /**
      * Returns collection hash.
@@ -2831,9 +2896,27 @@ SQL;
      */
     public function getPriceRange()
     {
+        $promo_price_joins = $this->getJoinsByTableName('shop_product_promo_price_tmp');
+        if ($promo_price_joins) {
+            $promo_prices_alias = $promo_price_joins[0]['alias'];
+        } else {
+            $this->loadPromoPrices();
+            if (!empty($this->promo_prices)) {
+                $promo_prices_alias = $this->addJoin([
+                    'table' => 'shop_product_promo_price_tmp',
+                    'type'  => 'LEFT',
+                    'on'    => 'p.id = :table.product_id'
+                ]);
+            }
+        }
+
         $sql = $this->getSQL();
-        $sql = "SELECT MIN(p.min_price) min, MAX(p.max_price) max ".$sql;
-        $data = $this->getModel()->query($sql)->fetch();
+        $full_sql = "SELECT MIN(p.min_price) min, MAX(p.max_price) max ".$sql;
+        if (!empty($promo_prices_alias)) {
+            $full_sql = "SELECT MIN(IFNULL({$promo_prices_alias}.primary_price, p.min_price)) min, MAX(IFNULL({$promo_prices_alias}.primary_price, p.max_price)) max ".$sql;
+        }
+
+        $data = $this->getModel()->query($full_sql)->fetch();
         return array(
             'min' => (double)(isset($data['min']) ? $data['min'] : 0),
             'max' => (double)(isset($data['max']) ? $data['max'] : 0)

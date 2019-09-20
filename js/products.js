@@ -369,10 +369,6 @@
             //this.load('?module=transferList' + (params ? '&' + params : ''));
         },*/
 
-        promosAction: function (params) {
-            this.load('?module=promos' + (params ? '&' + Array.prototype.join.call(arguments, '/') : ''));
-        },
-
         servicesAction: function (id) {
             this.load('?module=services' + (id ? '&id=' + id : ''), function () {
                 $("#s-content").addClass('bordered-left');

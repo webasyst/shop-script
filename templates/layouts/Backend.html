@@ -45,7 +45,7 @@
         <script src="{$wa_url}wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js"></script>
     {/if}
     <script src="{$wa_app_static_url}js/shop.js?{$wa->version()}"></script>
-    <script src="?action=loc&amp;v{$wa->version()}"></script>
+    <script src="{$wa_app_url}?action=loc&amp;v{$wa->version()}"></script>
     {$wa->js()}
     {block name="head"} {/block}
 
@@ -82,16 +82,16 @@
                     {$rightmost_li_margin = ' style="margin-right: 30px;"'}
                     {if $wa->userRights('settings')}
                         <li class="small float-right{if $page=='plugins'} selected{else} no-tab{/if}"{$rightmost_li_margin}>
-                            <a href="?action=plugins">[`Plugins`]</a>
+                            <a href="{$wa_app_url}?action=plugins">[`Plugins`]</a>
                         </li>
                         <li class="small float-right{if $page=='settings'} selected{else} no-tab{/if}">
-                            <a href="?action=settings">[`Settings`]</a>
+                            <a href="{$wa_app_url}?action=settings">[`Settings`]</a>
                         </li>
                         {$rightmost_li_margin = ''}
                     {/if}
                     {if $wa->userRights('importexport')}
                         <li class="small float-right{if $page=='importexport'} selected{else} no-tab{/if}"{$rightmost_li_margin}>
-                            <a href="?action=importexport">[`Import / Export`]</a>
+                            <a href="{$wa_app_url}?action=importexport">[`Import / Export`]</a>
                         </li>
                         {$rightmost_li_margin = ''}
                     {/if}
@@ -138,21 +138,26 @@
                     {/if}
                     {if $wa->userRights('customers')}
                         <li class="{if $page=='customers'}selected{else}no-tab{/if}">
-                            <a href="?action=customers">[`Customers`]</a>
+                            <a href="{$wa_app_url}?action=customers">[`Customers`]</a>
                         </li>
                     {/if}
                     <li class="{if $page=='products'}selected{else}no-tab{/if}">
-                        <a href="?action=products">[`Products`]</a>
+                        <a href="{$wa_app_url}?action=products">[`Products`]</a>
                     </li>
+                    {if $wa->userRights('marketing')}
+                        <li class="{if $page == 'marketing'}selected{else}no-tab{/if}">
+                            <a href="{$wa_app_url}marketing/">[`Marketing`]</a>
+                        </li>
+                    {/if}
                     {if $wa->userRights('reports')}
                         <li class="{if $page=='reports'}selected{else}no-tab{/if}">
-                            <a href="?action=reports">[`Reports`]</a>
+                            <a href="{$wa_app_url}?action=reports">[`Reports`]</a>
                         </li>
                     {/if}
 
                     {if $wa->userRights('design') || $wa->userRights('pages')}
                         <li class="{if $page=='storefronts'}selected{else}no-tab{/if} s-storefronts-tab">
-                            <a href="?action=storefronts">[`Storefront`]</a>
+                            <a href="{$wa_app_url}?action=storefronts">[`Storefront`]</a>
                         </li>
                     {/if}
 
@@ -173,6 +178,7 @@
                         <a href="{$frontend_url}" target="_blank">[`Open storefront`]</a>
                     </li>
                 </ul>
+
                 {if !isset($no_level2)}
                     <div class="s-level2">
                         <div class="block bordered-bottom">

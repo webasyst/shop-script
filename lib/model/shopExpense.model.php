@@ -138,6 +138,13 @@ class shopExpenseModel extends waModel
         return array_values($result);
     }
 
+    public function calculateTotal($filters)
+    {
+        $where = $this->getWhereByField($filters);
+        $sql = "SELECT SUM(amount) FROM {$this->table} WHERE ".$where;
+        return $this->query($sql)->fetchField();
+    }
+
     public static function getCohortHeader($group_by, $reg_ts)
     {
         switch($group_by) {

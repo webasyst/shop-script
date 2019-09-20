@@ -408,6 +408,8 @@ class shopWorkflowCreateAction extends shopWorkflowAction
 
         $this->waLog('order_create', $order_id, null, $order['contact_id']);
 
+        $this->marketingPromoWorkflowRun($order_id);
+
         return array(
             'order_id'   => $order_id,
             'contact_id' => wa()->getEnv() == 'frontend' ? $contact->getId() : wa()->getUser()->getId()
@@ -664,5 +666,17 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                 }
             }
         }
+    }
+
+    /**
+     * Runner marketing promo workflow
+     * @param int $order_id
+     * @throws waException
+     */
+    private function marketingPromoWorkflowRun($order_id)
+    {
+        $order = new shopOrder($order_id);
+        $workflow = new shopMarketingPromoWorkflow($order);
+        $workflow->run();
     }
 }

@@ -60,8 +60,8 @@
             </li>
             {if $wa->user()->getRights('shop', 'setscategories')}
                 <li id="s-promos">
-                    <a href="#/promos/" class="s-promo-list">
-                        <span class="count">{$count_promos}</span>
+                    <a href="{$wa_app_url}marketing/" class="s-promo-list">
+                        <span class="count">{$count_promos|default:""}</span>
                         <i class="icon16 ss promo"></i>[`Promos`]
                     </a>
                 </li>

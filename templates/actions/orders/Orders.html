@@ -42,7 +42,7 @@
 
                     <p>
                         {% if (o.order.contact.name) { %}
-                            <span class="small black">{%=o.order.contact.name%}</span><br>
+                            <span class="small black">{%#o.order.contact.name%}</span><br>
                         {% } else { %}
                             <span class="hint">[`(no name)`]</span><br>
                         {% } %}

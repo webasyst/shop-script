@@ -1441,6 +1441,34 @@ class shopCheckoutConfig implements ArrayAccess
 
     // Helpers
 
+    public static function generateStorefrontId($domain = null, $url = null)
+    {
+        while (true) {
+            $id = md5(uniqid().$domain.$url.uniqid());
+            if (!self::duplicateStorefrontId($id)) {
+                return $id;
+            }
+        }
+    }
+
+    protected static function duplicateStorefrontId($id)
+    {
+        static $shop_routes;
+        if ($shop_routes === null) {
+            $shop_routes = wa()->getRouting()->getByApp('shop');
+        }
+
+        foreach ($shop_routes as $domain => $routes) {
+            foreach ($routes as $route) {
+                if (!empty($route['checkout_storefront_id']) && $route['checkout_storefront_id'] === $id) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     protected function getCountries()
     {
         if (empty(self::$static_cache['countries'])) {

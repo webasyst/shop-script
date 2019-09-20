@@ -748,18 +748,33 @@ return array(
         ),
     ),
     'shop_promo' => array(
-        'id' => array('int', 10, 'unsigned' => 1, 'null' => 0, 'autoincrement' => 1),
-        'type' => array('varchar', 32, 'null' => 0, 'default' => 'link'),
-        'title' => array('text'),
-        'body' => array('text'),
-        'link' => array('text'),
-        'color' => array('varchar', 8),
-        'background_color' => array('varchar', 8),
-        'ext' => array('varchar', 6, 'null' => 0),
-        'enabled' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
-        'countdown_datetime' => array('datetime'),
-        ':keys' => array(
+        'id'                  => array('int', 10, 'unsigned' => 1, 'null' => 0, 'autoincrement' => 1),
+        'type'                => array('varchar', 32, 'null' => 0, 'default' => 'link'),
+        'title'               => array('text'),
+        'body'                => array('text'),
+        'link'                => array('text'),
+        'color'               => array('varchar', 8),
+        'background_color'    => array('varchar', 8),
+        'ext'                 => array('varchar', 6, 'null' => 0),
+        'enabled'             => array('tinyint', 1, 'null' => 0, 'default' => '1'),
+        'consider_end_orders' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
+        'countdown_datetime'  => array('datetime'),
+        'text_id'             => array('varchar', 64),
+        'note'                => array('text'),
+        'start_datetime'      => array('datetime'),
+        'finish_datetime'     => array('datetime'),
+        'author_contact_id'   => array('int', 11),
+        'create_datetime'     => array('datetime'),
+        'update_datetime'     => array('datetime'),
+        ':keys'               => array(
             'PRIMARY' => 'id',
+        ),
+    ),
+    'shop_promo_orders' => array(
+        'order_id' => array('int', 10, 'unsigned' => 1, 'null' => 0),
+        'promo_id' => array('int', 11, 'unsigned' => 1, 'null' => 0),
+        ':keys'    => array(
+            'PRIMARY' => array('order_id', 'promo_id'),
         ),
     ),
     'shop_promo_routes' => array(
@@ -768,6 +783,17 @@ return array(
         'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => array('storefront', 'promo_id'),
+        ),
+    ),
+    'shop_promo_rules' => array(
+        'id'          => array('int', 11, 'unsigned' => 1, 'null' => 0, 'autoincrement' => 1),
+        'promo_id'    => array('int', 10, 'unsigned' => 1, 'null' => 0),
+        'rule_type'   => array('varchar', 32, 'null' => 0),
+        'rule_params' => array('longtext'),
+        ':keys'       => array(
+            'PRIMARY'   => 'id',
+            'promo_id'  => 'promo_id',
+            'rule_type' => 'rule_type',
         ),
     ),
     'shop_push_client' => array(

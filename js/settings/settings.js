@@ -5,6 +5,7 @@
 $.extend($.settings = $.settings || {}, {
     options: {
         backend_url: '/webasyst/',
+        shop_marketing_url: '/webasyst/shop/marketing/',
         loading: '<i class="icon16 loading"></i>',
         path: '#/'
     },
@@ -133,6 +134,17 @@ $.extend($.settings = $.settings || {}, {
             window.location.hash = hash;
         }
         var path = this.parsePath(hash.replace(/^[^#]*#\/*/, ''));
+        
+        // Redirect to Marketing tab
+        if (path.section === "discounts") {
+            window.location.href = this.options["shop_marketing_url"] + path.raw;
+            return false;
+        }
+
+        if (path.section === "affiliate") {
+            window.location.href = this.options["shop_marketing_url"] + "affiliate/";
+        }
+
         this.path.dispatch = path;
         $.shop && $.shop.trace('$.settings.dispatch ' + this.path.section + ' -> ' + path.section + ' # ' + path.tail);
 

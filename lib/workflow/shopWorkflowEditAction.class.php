@@ -181,6 +181,9 @@ class shopWorkflowEditAction extends shopWorkflowAction
                 }
             }
         }
+
+        $this->marketingPromoWorkflowRun($data['id']);
+
         return true;
     }
 
@@ -215,5 +218,17 @@ class shopWorkflowEditAction extends shopWorkflowAction
     <i class="icon16 loading" style="margin-left: 4px; display:none;"></i>
 </a>
 HTML;
+    }
+
+    /**
+     * Runner marketing promo workflow
+     * @param int $order_id
+     * @throws waException
+     */
+    private function marketingPromoWorkflowRun($order_id)
+    {
+        $order = new shopOrder($order_id);
+        $workflow = new shopMarketingPromoWorkflow($order);
+        $workflow->run();
     }
 }

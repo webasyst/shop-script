@@ -691,8 +691,7 @@ class shopCheckoutViewHelper
         }
 
         $template_path = wa()->getAppPath('templates/actions/frontend/order/cart/CrossSelling.html', 'shop');
-
-        $vars = $this->crossSellingVars();
+        $vars = $this->crossSellingVars(false, shopViewHelper::CROSS_SELLING_IN_STOCK);
         if (empty($vars['products'])) {
             return '';
         }
@@ -709,16 +708,17 @@ class shopCheckoutViewHelper
      * Returns variables that $wa->shop->checkout()->crossSelling() assigns to its template.
      *
      * @param bool $clear_cache
+     * @param bool $available_only
      * @return array
      */
-    public function crossSellingVars($clear_cache = false)
+    public function crossSellingVars($clear_cache = false, $available_only = false)
     {
         static $result = null;
         if ($clear_cache || $result === null) {
             $old_is_template = waConfig::get('is_template');
             waConfig::set('is_template', null);
             $vars = $this->cartVars();
-            $related = wa()->getView()->getHelper()->shop->crossSelling($vars['cart']['items'], 'product_id');
+            $related = wa()->getView()->getHelper()->shop->crossSelling($vars['cart']['items'], 5, $available_only, 'product_id');
             waConfig::set('is_template', $old_is_template);
             $result = [
                 'products' => $related,

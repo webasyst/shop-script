@@ -55,9 +55,6 @@ class shopBackendProductsAction extends waViewAction
         $config = $this->getConfig();
         $this->view->assign('default_view', $config->getOption('products_default_view'));
 
-        $promos_model = new shopPromoModel();
-        $this->view->assign('count_promos', $promos_model->countAll());
-
         /*
          * @event backend_products
          * @return array[string]array $return[%plugin_id%] array of html output

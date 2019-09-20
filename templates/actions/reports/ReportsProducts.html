@@ -151,12 +151,12 @@
                                 </span>
                             </td>
                             <td class="align-right">
-                                <span title="{sprintf_wp('[`Subtotal %1$s &minus; Discount %2$s`]', wa_currency($p.sales_subtotal, $def_cur), wa_currency($p.discount, $def_cur))}">
+                                <span title="{sprintf_wp('Subtotal %1$s &minus; discount %2$s', wa_currency($p.sales_subtotal, $def_cur), wa_currency($p.discount, $def_cur))}">
                                     {wa_currency_html($p.sales, $def_cur)}
                                 </span>
                             </td>
                             <td class="s-wider-cell align-right">
-                                <span title="{sprintf_wp('[`Total sales %1$s &minus; Purchase expense %2$s`]', wa_currency($p.sales, $def_cur), wa_currency($p.purchase, $def_cur))}">
+                                <span title="{sprintf_wp('Total sales %1$s &minus; Purchase expense %2$s', wa_currency($p.sales, $def_cur), wa_currency($p.purchase, $def_cur))}">
                                     {wa_currency_html($p.profit, $def_cur)}
                                 </span>
                             </td>

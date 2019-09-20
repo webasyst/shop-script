@@ -92,7 +92,6 @@ SQL;
 
     public function getItems($order_id, $extend = false)
     {
-
         $order = $order_id;
         if (is_array($order)) {
             $order_id = ifset($order['id']);
@@ -231,7 +230,15 @@ SQL;
      */
     private function getProductInfo($product_id, $sku_id = null, $order_id = null, $currency = null)
     {
+        /**
+         * @var $cache shopProduct[]
+         */
         static $cache = array();
+
+        if ($order_id) {
+            $order = $this->getOrder($order_id);
+        }
+
         if (is_array($product_id)) {
             $data = $product_id;
             if ($sku_id === null) {
@@ -239,7 +246,12 @@ SQL;
             }
         } else {
             if (!isset($cache[$product_id])) {
-                $cache[$product_id] = new shopProduct($product_id);
+                // Get product with storefront context
+                $product_options = [];
+                if (!empty($order['params']['storefront'])) {
+                    $product_options['storefront_context'] = $order['params']['storefront'];
+                }
+                $cache[$product_id] = new shopProduct($product_id, $product_options);
             }
             $product = $cache[$product_id];
             $data = $product->getData();
@@ -255,8 +267,7 @@ SQL;
         # get currency rate
         $rate = 1;
         $currency_model = $this->getModel('currency');
-        if ($order_id) {
-            $order = $this->getOrder($order_id);
+        if (!empty($order)) {
             $rate = $order['rate'];
         } elseif ($currency) {
             $rate = $currency_model->getRate($currency);

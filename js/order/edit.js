@@ -157,7 +157,12 @@ $.order_edit = {
             select: function (event, ui) {
 
                 $('.s-order-errors').empty();
-                var url = '?module=orders&action=getProduct&product_id=' + ui.item.id + '&order_id=' + $.order_edit.id + '&currency=' + $.order_edit.options.currency;
+                var url = '?module=orders&action=getProduct&product_id=' + ui.item.id + '&order_id=' + $.order_edit.id + '&currency=' + $.order_edit.options.currency,
+                    storefront = that.getStorefront();
+                if (storefront) {
+                    url += '&storefront='+storefront;
+                }
+
                 $.getJSON(url, function (r) {
                     var table = $('#order-items');
                     var index = parseInt(table.find('.s-order-item:last').attr('data-index'), 10) + 1 || 0;
@@ -194,7 +199,7 @@ $.order_edit = {
             }
         });
 
-        //Select product SKU
+        // Select product SKU
         this.container.off('change', '.s-orders-skus input[type=radio]').on('change', '.s-orders-skus input[type=radio]',
             function () {
                 var self = $(this);
@@ -209,7 +214,12 @@ $.order_edit = {
                     item_id = parseInt(self.attr('name').replace('sku[edit][', ''), 10);
                 }
 
-                var url = '?module=orders&action=getProduct&product_id=' + product_id + '&sku_id=' + sku_id + '&currency=' + $.order_edit.options.currency;
+                var url = '?module=orders&action=getProduct&product_id=' + product_id + '&sku_id=' + sku_id + '&currency=' + $.order_edit.options.currency,
+                    storefront = that.getStorefront();
+                if (storefront) {
+                    url += '&storefront='+storefront;
+                }
+
                 $.getJSON(url, function (r) {
                     var ns;
                     if (tr.find('input:first').attr('name').indexOf('add') !== -1) {
@@ -673,7 +683,7 @@ $.order_edit = {
                     $shipping_input.addClass('error');
                     $methods.addClass('error');
                 } else {
-                    $shipping_input.removeClass('error');
+                    $shipping_input.removeClass('error').hide();
                 }
                 $shipping_info.html(delivery_info.join('<br>')).show();
             } else {
@@ -820,7 +830,7 @@ $.order_edit = {
         }
 
         // For customer form need also storefront, cause functionality of form depends of storefront also
-        data['storefront'] = that.getStorefrontSelector().val();
+        data['storefront'] = that.getStorefront();
 
         data.items = $.order_edit.getOrderItems(container);
 
@@ -1331,6 +1341,10 @@ $.order_edit = {
      */
     getStorefrontSelector: function () {
         return this.$storefront_selector;
+    },
+
+    getStorefront: function () {
+        return this.getStorefrontSelector().val();
     },
 
     initStorefrontSelector: function () {

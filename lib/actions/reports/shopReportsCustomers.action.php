@@ -33,7 +33,7 @@ class shopReportsCustomersAction extends waViewAction
 
         // For each row in $table_data tell if it's a referrer source or UTM campaign
         $is_campaign = array();
-        foreach(shopReportsmarketingcostsActions::getCampaigns() as $c) {
+        foreach(shopMarketingCostsAction::getCampaigns() as $c) {
             $is_campaign[$c['name']] = true;
         }
         foreach($table_data as &$row) {

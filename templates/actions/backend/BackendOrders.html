@@ -135,11 +135,6 @@
 
     <div class="block">
         <ul class="menu-v with-icons">
-            <li id="s-coupons">
-                <span class="count">{$coupons_count}</span>
-                <a href="#/coupons/"><i class="icon16 ss coupon"></i>[`Discount coupons`]</a>
-            </li>
-
             <!-- plugin hook: 'backend_orders.sidebar_bottom_li' -->
             {* @event backend_orders.%plugin_id%.sidebar_bottom_li *}
             {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_bottom_li)}{/foreach}{/if}
@@ -147,6 +142,9 @@
         </ul>
     </div>
 
+    <div class="align-center hr" style="padding: 20px 0;">
+        <p class="hint">{sprintf('[`To set up <em>discount coupons</em>, please open “%s” section.`]', "<a href='{$wa_app_url}marketing/'>[`Marketing`]</a>")}</p>
+    </div>
 </div>
 {/if}
 
@@ -275,7 +273,8 @@
             <span>{%#product.skus[chosen_sku_id].price_html%}</span>
             <input type="hidden" name="price[add][{%#index%}][product]" value="{%#''+product.skus[chosen_sku_id].price%}" class="short">
             {% } else { %}
-            <input type="text" name="price[add][{%#index%}][product]" value="{%#''+product.skus[chosen_sku_id].price%}" class="short js-order-edit-item-price"><span style="padding-top: 2px;">{%#currency%}</span>
+            <input type="text" name="price[add][{%#index%}][product]" value="{%#''+product.skus[chosen_sku_id].price%}" class="short js-order-edit-item-price">
+            <span style="padding-top: 2px;">{%#currency%}</span>
             {% } %}
             <br/><span class="hint js-item-total-discount" data-discount-id="{%#index%}"></span>
         </td>

@@ -282,9 +282,8 @@ class shopBackendCustomerForm {
             }
         }
 
-        if ($contact_type === shopCustomer::TYPE_PERSON) {
-            unset($result['field_list']['title'], $result['field_list']['jobtitle'], $result['field_list']['company']);
-        } else {
+        // Title field -- only for person!
+        if ($contact_type !== shopCustomer::TYPE_PERSON) {
             unset($result['field_list']['title']);
         }
 
@@ -458,16 +457,16 @@ class shopBackendCustomerForm {
         // storefront by these constraints not found
         if (!$storefront) {
             return array(
-                'status' => false,
-                'field_list' => array()
+                'status'     => false,
+                'field_list' => []
             );
         }
 
         $checkout_version = ifset($storefront, 'route', 'checkout_version', false);
         if ($checkout_version < 2) {
             return array(
-                'status' => true,
-                'field_list' => $this->mergeWithMainFields($this->getOldCheckoutFieldList())
+                'status'     => true,
+                'field_list' => $this->getOldCheckoutFieldList()
             );
         }
 
@@ -476,7 +475,6 @@ class shopBackendCustomerForm {
          */
         $config = $storefront['checkout_config'];
         $field_list = $this->getSettlementFieldsByContactType($config, $this->options['contact_type']);
-        $field_list = $this->mergeWithMainFields($field_list);
 
         // address must not be in result fields list
         unset($field_list['address']);

@@ -440,6 +440,69 @@ SQL;
         }
     }
 
+    public function promoRulesAction()
+    {
+        $m = new shopPromoModel();
+        $promos = $m->getList([
+            'status'        => shopPromoModel::STATUS_ACTIVE,
+            'ignore_paused' => true,
+            'with_rules'    => true,
+        ]);
+        /*$promos = array_filter($promos, function($p) {
+            return !empty($p['rules']) && array_filter($p['rules'], function($r) {
+                return $r['rule_type'] == 'utm' && ifset($r, 'rule_params', 'utm_campaign', null);
+            });
+        });
+        wa_dump($promos);//*/
+
+        $utm_campaigns = [];
+        foreach($promos as $i => &$p) {
+            foreach(ifset($p, 'rules', []) as $i => $r) {
+                if ($r['rule_type'] != 'utm' || empty($r['rule_params']['utm_campaign'])) {
+                    unset($p['rules'][$i]);
+                    continue;
+                }
+                foreach((array)$r['rule_params']['utm_campaign'] as $c) {
+                    $utm_campaigns[$c] = $p['id'];
+                }
+            }
+            if (empty($p['rules'])) {
+                unset($promos[$i]);
+                continue;
+            }
+        }
+
+        if (empty($utm_campaigns)) {
+            die('nothing to do! no promo campaigns with UTM enabled');
+        }
+
+        $sql = "
+        SELECT op.order_id, op.value AS utm_campaign
+        FROM shop_order_params AS op
+        WHERE op.name = 'utm_campaign'
+            AND op.value IN (?)
+        ";
+        $rows = $m->query($sql, [array_keys($utm_campaigns)]);
+        $values = [];
+        foreach($rows as $row) {
+            $values[] = "({$row['order_id']}, {$utm_campaigns[$row['utm_campaign']]})";
+        }
+        unset($rows);
+
+        if (!$values) {
+            die('nothing to do! no orders match campaigns'. wa_dump_helper($utm_campaigns));
+        }
+
+        $sql = "INSERT IGNORE INTO shop_promo_orders (order_id, promo_id) VALUES ";
+        $sql .= join(',', $values);
+        $updated = $m->query($sql)->affectedRows();
+
+        $m = new shopSalesModel();
+        $m->deletePeriod(null);
+
+        die(sprintf('done! %d rows affected', $updated));
+    }
+
     public function emptyPathAction()
     {
         $paths = array();

@@ -433,6 +433,17 @@
                 fieldWatcher($city_field, [$zip_field]);
             }
 
+            // autofocus
+            $.each([$location_field, $country_field, $region_field, $city_field, $zip_field], function(i, $field) {
+                var is_visible = $field.is(":visible"),
+                    is_empty = !$field.val();
+
+                if (is_visible && is_empty) {
+                    $field.focus();
+                    return false;
+                }
+            });
+
             /**
              * @param {Object} $field
              * @param {Array?} $dependent_fields

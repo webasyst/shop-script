@@ -683,9 +683,6 @@ class shopOrder implements ArrayAccess
     {
         $total = $this->getSubtotal();
 
-        if ($total == 0) {
-            return $total;
-        }
         $this->data['discount'] = $this->castPrice($this->discount, $this->currency);
         $this->data['shipping'] = $this->castPrice($this->shipping, $this->currency);
 

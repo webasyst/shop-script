@@ -276,7 +276,16 @@ class shopOrdersGetProductController extends waJsonController
     protected function getProduct()
     {
         if (!$this->product) {
-            $this->product = new shopProduct($this->getProductId(), ['round_currency' => $this->getCurrency()]);
+            $options = [
+                'round_currency' => $this->getCurrency()
+            ];
+
+            $storefront_context = $this->getStorefront();
+            if (!empty($storefront_context)) {
+                $options['storefront_context'] = $storefront_context;
+            }
+
+            $this->product = new shopProduct($this->getProductId(), $options);
         }
 
         return $this->product;
@@ -289,6 +298,15 @@ class shopOrdersGetProductController extends waJsonController
     protected function getCurrency()
     {
         return waRequest::get('currency', null, waRequest::TYPE_STRING);
+    }
+
+    /**
+     * Return 'storefront' from $_GET
+     * @return null|string
+     */
+    protected function getStorefront()
+    {
+        return waRequest::get('storefront', null, waRequest::TYPE_STRING);
     }
 
     /**

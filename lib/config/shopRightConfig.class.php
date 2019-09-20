@@ -14,6 +14,7 @@ class shopRightConfig extends waRightConfig
         $this->addItem('services', _w('Can manage services'));
         $this->addItem('setscategories', _w('Can manage product sets, categories, and promos'));
         $this->addItem('importexport', _w('Can import and export data'));
+        $this->addItem('marketing', _w('Can manage marketing'));
         $this->addItem('reports', _w('Can view reports'));
         $this->addItem('pages', _ws('Can edit pages'));
         $this->addItem('design', _ws('Can edit design'));

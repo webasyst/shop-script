@@ -67,7 +67,7 @@
                     <input type="button" value="[`Set custom badge`]">
                 </div>
             </li>
-            <li class="top-padded" data-action='delete-badge'><a href="#"><i class="icon16 no-bw"></i>[`Remove badge`]</a></li>
+            <li data-action='delete-badge'><a href="#"><i class="icon16 no-bw"></i>[`Remove badge`]</a></li>
         </ul>
     </div>
 
@@ -111,8 +111,6 @@
                 <li data-action="delete-from-category"><a href="#"><i class="icon10 no-bw"></i>[`Remove from category`]</a></li>
             {/if}
 
-            <li data-action="coupon"><a href="#"><i class="icon16 ss coupon"></i>[`Discount coupons`]</a></li>
-
             {if $products_rights}
                 <li data-action="visibility" class="top-padded">
                     <a href="javascript:void(0)"><i class="icon16 ss visibility"></i>[`Manage visibility`]</a>
@@ -122,6 +120,12 @@
                 </li>
                 <li data-action="delete"><a href="#"><i class="icon16 delete"></i>[`Delete products`]</a></li>
             {/if}
+
+            <li class="top-padded" data-action="coupon"><a href="#"><i class="icon16 ss coupon"></i>[`Discount coupons`]</a></li>
+
+            <li data-action="promo">
+                <a href="#"><i class="icon16 ss promo"></i>[`Add to promo`]</a>
+            </li>
         </ul>
     </div>
 

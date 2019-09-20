@@ -53,6 +53,9 @@ class shopOrderAction extends waViewAction
         $order_data_array = $_order->dataArray();
         $order_items = $this->extendOrderItems($order_data_array);
         $order_data_array['contact'] = $_order->contact_essentials;
+        if (!empty($order_data_array['contact']['name'])) {
+            $order_data_array['contact']['name'] = htmlspecialchars($order_data_array['contact']['name']);
+        }
         $order_data_array['coupon'] = $_order['coupon'];
         $order_data_array['state'] = $_order['state'];
         $order_data_array['items'] = $order_items;

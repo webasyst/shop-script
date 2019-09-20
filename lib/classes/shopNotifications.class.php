@@ -786,6 +786,15 @@ SQL;
         }
 
         $d = waRequest::server('HTTP_HOST');
+        if (empty($d)) {
+            $asm = new waAppSettingsModel();
+            $root_url = wa()->getRootUrl(true);
+            $root_url = $asm->get('webasyst', 'url', $root_url);
+            $root_parsed_url = parse_url($root_url);
+            if (!empty($root_parsed_url['host'])) {
+                $d = $root_parsed_url['host'];
+            }
+        }
 
         $wa_installer_apps = 'wa-installer/lib/classes/wainstallerapps.class.php';
         if (!class_exists('waInstallerApps') && file_exists(wa()->getConfig()->getRootPath() .'/'. $wa_installer_apps)) {

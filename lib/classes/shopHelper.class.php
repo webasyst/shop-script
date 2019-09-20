@@ -40,6 +40,7 @@ class shopHelper
      *
      * @param array $order Array of order data whose parameters must be pre-filled in payment method's custom fields.
      * @return array
+     * @throws waException
      */
     public static function getPaymentMethods($order = array())
     {
@@ -96,7 +97,7 @@ class shopHelper
                 }
             } catch (waException $ex) {
                 $methods[$m_id]['custom_html'] = sprintf('<span class="error">%s</span>', htmlentities($ex->getMessage(), ENT_NOQUOTES, 'utf-8'));
-                $methods[$m_id]['status']=0;
+                $methods[$m_id]['status'] = 0;
             }
         }
 
@@ -109,6 +110,7 @@ class shopHelper
      * @param string $type Method type for which other type will be considered as complimentary; acceptable values: 'payment' or 'shipping'
      * @param int $id Id of method for which methods of other type must be returned
      * @return array Method ids
+     * @throws waDbException
      */
     public static function getDisabledMethods($type, $id)
     {
@@ -146,6 +148,7 @@ class shopHelper
      *     'no_external' => [bool]
      *     'allow_external_for' => int[] array of external shipping methods' ids
      * @return array
+     * @throws waException
      */
     public static function getShippingMethods($address = null, $items = array(), $params = array())
     {
@@ -179,7 +182,7 @@ class shopHelper
         $params['allow_external_for'] = (array)ifempty($params['allow_external_for'], array());
         $params['allow_external_for'] = array_map('intval', $params['allow_external_for']);
 
-            waNet::multiQuery(
+        waNet::multiQuery(
             'shop.shipping',
             [
                 'timeout' => ifset($params, 'timeout', 10),
@@ -549,13 +552,13 @@ class shopHelper
     }
 
     /**
+     * @param waOrder|array|null $order Order data; if not specified, print forms applicable to any orders are returned
+     * @return array
      * @deprecated
      * Use shopPrintforms::getOrderPrintforms instead of that method
      *
      * Returns array of ORDER print forms available for specified order.
      *
-     * @param waOrder|array|null $order Order data; if not specified, print forms applicable to any orders are returned
-     * @return array
      */
     public static function getPrintForms($order = null)
     {
@@ -601,23 +604,23 @@ class shopHelper
     }
 
     /**
-     * @deprecated
-     * Use shopHelper::getGravatarPic
-     *
-     * Returns Gravatar URL for specified email address.
-     * @see http://gravatar.com/site/implement/images/php/
-     *
      * @param string $email Email address
      * @param int $size Size in pixels, defaults to 50
      * @param string $default Default image set to use. Available image sets: 'custom', '404', 'mm', 'identicon', 'monsterid', 'wavatar'.
      * @param bool $full_protocol by default returns protocol-agnostic URL starting with // ; pass true to prepend with http://
      * @return string
+     * @see http://gravatar.com/site/implement/images/php/
+     *
+     * @deprecated
+     * Use shopHelper::getGravatarPic
+     *
+     * Returns Gravatar URL for specified email address.
      */
     public static function getGravatar($email, $size = 50, $default = 'mm', $full_protocol = false)
     {
         return self::getGravatarPic($email, array(
-            'size' => $size,
-            'default' => $default,
+            'size'          => $size,
+            'default'       => $default,
             'full_protocol' => $full_protocol
         ));
     }
@@ -687,12 +690,12 @@ class shopHelper
                 // removes the @ symbol (even escaped) from the URL before redirect.
 
                 $pic_path = "/wa-content/img/{$img_type}{$size}.jpg";
-                $pic_filepath = wa()->getConfig()->getRootPath() . $pic_path;
+                $pic_filepath = wa()->getConfig()->getRootPath().$pic_path;
                 if (!file_exists($pic_filepath)) {
                     $pic_path = "/wa-content/img/{$img_type}50.jpg";
                 }
 
-                $pic_url = wa()->getRootUrl(true) . $pic_path;
+                $pic_url = wa()->getRootUrl(true).$pic_path;
             }
 
             $default = urlencode($pic_url);
@@ -715,6 +718,7 @@ class shopHelper
      * @param array $orders Orders array
      * @param bool $single Whether only one order is specified; only in this case modified order data array is returned
      * @return null|array
+     * @throws waException
      */
     public static function workupOrders(&$orders, $single = false)
     {
@@ -788,9 +792,9 @@ class shopHelper
 
     /**
      * Returns shipping date set for an order and saved in its params.
-     * @example list($shipping_date, $shipping_time_start, $shipping_time_end) = shopHelper::getOrderShippingInterval($order_params);
      * @param array $order_params
      * @return array
+     * @example list($shipping_date, $shipping_time_start, $shipping_time_end) = shopHelper::getOrderShippingInterval($order_params);
      */
     public static function getOrderShippingInterval($order_params)
     {
@@ -1217,6 +1221,7 @@ class shopHelper
      * @param string $str Specified string
      * @param boolean $strict Whether a default value must be generated if provided string results in an empty URL
      * @return string
+     * @throws waException
      */
     public static function transliterate($str, $strict = true)
     {
@@ -1237,9 +1242,9 @@ class shopHelper
     /**
      * Verifies current user's access rights to contact with specified id.
      *
-     * @deprecated Shop app no longer considers access rights to other applications.
      * @param int|null $contact_id Contact id. If not specified, access rights to all contacts are verified.
      * @return bool
+     * @deprecated Shop app no longer considers access rights to other applications.
      */
     public static function getContactRights($contact_id = null)
     {
@@ -1401,9 +1406,9 @@ SQL;
     }
 
     /**
-     * @deprecated
      * @param bool $verbose
      * @return array
+     * @deprecated
      */
     public static function getStorefronts($verbose = false)
     {
@@ -1708,6 +1713,7 @@ SQL;
      * @param mixed[] $order
      * @param mixed [string] $options
      * @return waOrder
+     * @throws waException
      */
     public static function getWaOrder($order, $options = array())
     {

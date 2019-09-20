@@ -1,0 +1,108 @@
+{* PAGE *}
+<div class="s-discounts-page block double-padded" id="js-discounts-page">
+
+    {* BODY *}
+    <div class="s-page-body">
+        <div class="s-table-box space-20">
+
+            {* SIDEBAR *}
+            <div class="sidebar s-page-sidebar left200px">
+                {$discounts_sidebar}
+            </div>
+
+            {* CONTENT *}
+            <div class="content s-page-content left200px">
+
+                {* HEADER *}
+                <header class="s-page-header">
+                    <h1 class="s-title">[`By contact category`]</h1>
+                </header>
+
+                <div class="s-discounts-category-section">
+                    <form action="" id="s-discounts-category-form">
+                        <div class="fields form">
+                            <div class="field-group">
+                                <input type="hidden" name="dummy" value="1">
+                                <div class="field">
+                                    <div class="name">[`Status`]</div>
+                                    <div class="value no-shift s-ibutton-checkbox">
+                                        <ul class="menu-h">
+                                            <li><span class="gray" id="s-discount-type-disabled-label">[`Disabled`]</span></li>
+                                            <li>
+                                                <input type="checkbox" id="s-discount-type-status" name="enabled" value="1"{if $enabled} checked{/if}>
+                                            </li>
+                                            <li><span id="s-discount-type-enabled-label">[`Enabled`]</span></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field-group"{if !$enabled} style="display:none"{/if}>
+                                <div class="field">
+                                    <div class="name">[`Discounts`]</div>
+                                    <div class="value">
+                                        {if count($categories)}
+                                            {$_pattern = '^\d*\.?\d*$'}
+
+                                            <table class="zebra full-width">
+                                                {foreach $categories as $c}
+                                                    <tr>
+                                                        <td class="min-width">{$wa->shop->icon16($c.icon)}</td>
+                                                        <td>{$c.name|escape}</td>
+                                                        <td>
+                                                            <input type="input" class="numerical short" name="categories[{$c.id}]" value="{$c.value}" pattern="{$_pattern}" required>%
+                                                        </td>
+                                                    </tr>
+                                                {/foreach}
+                                            </table>
+                                        {else}
+                                            <p>{sprintf('[`No customer categories are defined in your store. Define one using the main <a href="%s">Customers</a> screen.`]',"`$wa_app_url`?action=customers")}</p>
+                                        {/if}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field-group"{if !$enabled} style="display:none"{/if}>
+                                <div class="field">
+                                    <div class="value submit">
+                                        <input class="button green js-submit-button" type="submit" value="[`Save`]">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </form>
+                    <div class="clear-left"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) { "use strict";
+            $.shop.marketing.setTitle({_w("By contact category")|json_encode});
+
+            var sources = [{
+                id: "wa-shop-marketing-discounts-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/marketing/discounts.js?v={$wa->version()}"
+            }];
+
+            $.shop.marketing.load(sources).then( function() {
+                var page = $.shop.marketing.init.discountsPage({
+                    $wrapper: $("#js-discounts-page"),
+                    urls: {
+                        "discounts_enable": "{$wa_app_url}marketing/?module=marketingDiscountsEnable",
+                        "save": "{$wa_app_url}marketing/?module=marketing&action=discountsCategorySave"
+                    }
+                });
+
+                page.initCategories();
+            });
+
+        })(jQuery);
+    </script>
+</div>
+
+
+

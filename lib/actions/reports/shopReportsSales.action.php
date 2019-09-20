@@ -226,9 +226,9 @@ class shopReportsSalesAction extends waViewAction
             $graph_row = array(
                 'date' => str_replace('-', '', $d['date'])
             );
-            foreach ($graph_row_numeric_fields as $field) {
-                $graph_row[$field] = ifset($d[$field], 0);
-            }
+            $graph_row['sales'] = ifset($d['sales'], 0);
+            $graph_row['profit'] = ifset($d['profit'], 0);
+            $graph_row['loss'] = ifset($d['profit'], 0); // profit can be negative; it renders as a red loss below zero
             $graph_data[] = $graph_row;
         }
         unset($d);
@@ -322,10 +322,18 @@ class shopReportsSalesAction extends waViewAction
             $start_date = null;
             $end_date = null;
         } elseif ($timeframe == 'custom') {
-            $from = waRequest::request('from', 0, 'int');
+            $from = waRequest::request('from', 0);
+            $from_timestamp = strtotime($from . ' 00:00:00');
+            if ($from_timestamp) {
+                $from = $from_timestamp;
+            }
             $start_date = $from ? date('Y-m-d', $from) : null;
 
-            $to = waRequest::request('to', 0, 'int');
+            $to = waRequest::request('to', 0);
+            $to_timestamp = strtotime($to . ' 23:59:59');
+            if ($to_timestamp) {
+                $to = $to_timestamp;
+            }
             $end_date = $to ? date('Y-m-d', $to) : null;
 
             $from && ($request_options['from'] = $from);

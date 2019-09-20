@@ -1,6 +1,9 @@
 <?php
+
 class shopPromoRoutesModel extends waModel
 {
+    const FLAG_ALL = '%all%';
+
     protected $table = 'shop_promo_routes';
 
     public function getMaxSorts()

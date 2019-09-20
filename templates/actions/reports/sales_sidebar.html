@@ -7,10 +7,7 @@
                 </li>
             {/foreach}
 
-            <li class="top-padded"><a href="#/sales/costs/" class="gray"><i class="icon16 dollar"></i>[`Marketing costs`]</a></li>
-            <li class="bottom-padded"><a href="#/sales/abtesting/" class="gray"><i class="icon16 split"></i>[`A/B tests`]</a></li>
-
-            <li class="top-padded bordered-top">
+            <li class="bordered-top" style="padding-top: 10px;">
                 <label>
                     <input type="checkbox" class="s-sales-details" id="s-sales-details"
                        {if !isset($filter.name) && !empty($is_details)}checked="checked"{/if}
@@ -20,6 +17,10 @@
             </li>
 
         </ul>
+    </div>
+
+    <div class="align-center hr" style="padding: 20px 0;">
+        <p class="hint">{sprintf('[`To view <em>marketing expenses</em> and set up <em>A/B tests</em>, please open section “%s”.`]', "<a href='{$wa_app_url}marketing/'>[`Marketing`]</a>")}</p>
     </div>
 </div>
 <script>(function() { "use strict";

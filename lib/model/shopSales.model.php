@@ -91,12 +91,19 @@ class shopSalesModel extends waModel
         $filter_sql = $this->getWhereByField($filter);
         $filter_sql = $filter_sql ? ' AND ' . $filter_sql : '';
 
+        $group_by_name_sql = '';
+        $group_by_name_select_sql = '';
+        if (!empty($options['group_by_name'])) {
+            $group_by_name_sql = ', ss.name';
+            $group_by_name_select_sql = 'ss.name AS name, ';
+        }
 
         // Make sure data is prepared in table
         empty($options['ensured']) && $this->ensurePeriod($type, $date_start, $date_end, $options);
 
         $date_sql = self::getDateSql('ss.`date`', $date_start, $date_end);
-        $sql = "SELECT {$date_col} AS `date`,
+        $sql = "SELECT {$group_by_name_select_sql}
+                    {$date_col} AS `date`,
                     SUM(order_count) AS order_count,
                     SUM(new_customer_count) AS new_customer_count,
                     SUM(sales - purchase - shipping - tax) AS profit,
@@ -110,11 +117,19 @@ class shopSalesModel extends waModel
                     AND {$date_sql}
                     {$type_sql}
                     {$filter_sql}
-                GROUP BY {$date_col}
+                GROUP BY {$date_col}{$group_by_name_sql}
                 ORDER BY `date`";
 
-
-        $sales_by_date = $this->query($sql, $hash)->fetchAll('date');
+        $db_result = $this->query($sql, $hash);
+        if (!empty($options['group_by_name'])) {
+            $sales_by_name_date = [];
+            foreach($db_result as $row) {
+                $sales_by_name_date[$row['name']][$row['date']] = $row;
+            }
+        } else {
+            $sales_by_name_date = ['' => $db_result->fetchAll('date')];
+        }
+        unset($db_result);
 
         // Add empty rows
         $empty_row = array(
@@ -131,18 +146,28 @@ class shopSalesModel extends waModel
         $start_ts = strtotime($date_start);
         for ($t = $start_ts; $t <= $end_ts; $t = strtotime(date('Y-m-d', $t) . ' +1 day')) {
             $date = date(($date_group == 'months') ? 'Y-m-01' : 'Y-m-d', $t);
-            if (empty($sales_by_date[$date])) {
-                $sales_by_date[$date] = array(
-                    'date' => $date,
-                ) + $empty_row;
+            foreach($sales_by_name_date as &$arr) {
+                if (empty($arr[$date])) {
+                    $arr[$date] = array(
+                        'date' => $date,
+                    ) + $empty_row;
+                }
+                foreach($empty_row as $k => $v) {
+                    $arr[$date][$k] = (float) $arr[$date][$k];
+                }
             }
-            foreach($empty_row as $k => $v) {
-                $sales_by_date[$date][$k] = (float) $sales_by_date[$date][$k];
-            }
+            unset($arr);
         }
-        ksort($sales_by_date);
 
-        return $sales_by_date;
+        foreach($sales_by_name_date as &$arr) {
+            ksort($arr);
+        }
+        unset($arr);
+
+        if (empty($options['group_by_name'])) {
+            return $sales_by_name_date[''];
+        }
+        return $sales_by_name_date;
     }
 
     /**
@@ -833,8 +858,9 @@ class shopSalesModel extends waModel
     protected function rebuildTmpTableCreate()
     {
         $this->exec("CREATE TEMPORARY TABLE IF NOT EXISTS shop_sales_tmp (
-            order_id INT(11) NOT NULL PRIMARY KEY,
-            name VARCHAR(255) NOT NULL
+            order_id INT(11) NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            INDEX `order` (`order_id`)
         ) DEFAULT CHARSET utf8");
         $this->exec("TRUNCATE shop_sales_tmp"); // being paranoid...
     }
@@ -876,6 +902,9 @@ class shopSalesModel extends waModel
                 break;
             case 'sales_channels':
                 $this->rebuildTmpBySalesChannels($order_date_sql, $options);
+                break;
+            case 'promos':
+                $this->rebuildTmpByPromos($order_date_sql, $options);
                 break;
             default:
                 $param_map = array(
@@ -1195,6 +1224,23 @@ class shopSalesModel extends waModel
                     {$storefront_where}
                     {$abtest_where}
                     AND SUBSTRING(IFNULL(op.value, ''), 1, 11) != 'storefront:'";
+        $this->exec($sql);
+    }
+
+    protected function rebuildTmpByPromos($date_sql, $options)
+    {
+        list($abtest_join, $abtest_where) = $this->getAbtestSql($options);
+        list($storefront_join, $storefront_where) = $this->getStorefrontSql($options);
+        $sql = "INSERT INTO shop_sales_tmp (order_id, name)
+                SELECT po.order_id, po.promo_id
+                FROM shop_order AS o
+                    JOIN shop_promo_orders AS po
+                        ON po.order_id=o.id
+                    {$storefront_join}
+                    {$abtest_join}
+                WHERE {$date_sql}
+                    {$storefront_where}
+                    {$abtest_where}";
         $this->exec($sql);
     }
 

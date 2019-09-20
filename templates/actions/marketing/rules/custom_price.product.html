@@ -1,0 +1,110 @@
+{strip}
+
+{if !empty($product.skus)}
+
+{if !empty($rule_name)}
+    {$_rule_name = $rule_name}
+{elseif !empty($options["rule_name"])}
+    {$_rule_name = $options["rule_name"]}
+{/if}
+
+{foreach $product.skus as $_sku}
+    {$_price = ""}
+    {$_compare_price = ""}
+    {$_currency = null}
+
+    {if !empty($rule_product_data)}
+        {$_currency = $rule_product_data.currency}
+
+        {if !empty($rule_product_data.skus[$_sku.id])}
+            {$_rule_sku_data = $rule_product_data.skus[$_sku.id]}
+
+            {$__price = $_rule_sku_data.price}
+            {$__compare_price = $_rule_sku_data.compare_price}
+
+            {if !empty($__price) && $__price >= 0}
+                {$_price = shop_currency($__price, $_currency, $product.currency, false)}
+            {/if}
+
+            {if !empty($__compare_price) && $__compare_price >= 0}
+                {$_compare_price = shop_currency($__compare_price, $_currency, $product.currency, false)}
+            {/if}
+        {else}
+            {* continue *}
+        {/if}
+    {/if}
+
+    <tr class="s-product-wrapper" data-id="{$product.id}" data-sku-id="{$_sku.id}">
+        {* IMAGE *}
+        <td class="s-image-column">
+            {if !empty($product.images)}
+                {$_product_images = $product.images|array_values}
+                {$_product_image = $_product_images.0}
+                {if !empty($_product_image.url_crop)}
+                    <div class="s-image-wrapper">
+                        <img class="s-image" src="{$_product_image.url_crop|escape}" alt=""/>
+                    </div>
+                {/if}
+            {/if}
+
+            <input type="hidden" name="{$_rule_name}[rule_params][{$product.id}][currency]" value="{$product.currency}" />
+        </td>
+
+        {* NAME *}
+        <td class="s-name-column">
+            <div class="s-name-wrapper">
+                <span class="s-name">{$product.name|escape}</span>
+                <span class="s-sku-id">{$_sku.sku|escape}</span>
+                {if $product.skus|count > 1 && $product.name !== $_sku.name}
+                    <span class="s-sku-name">{$_sku.name|escape}</span>
+                {/if}
+            </div>
+        </td>
+
+        {* PRICE *}
+        <td class="s-price-column">
+            <div class="s-price-wrapper">
+                <span class="s-price">{shop_currency_html($_sku.price, $product.currency)}</span>
+            </div>
+        </td>
+
+        {* COMPARE PRICE *}
+        <td class="s-compare-price-column">
+            <div class="s-price-wrapper">
+                {if $_sku.compare_price > 0}
+                    <span class="s-compare-price">{shop_currency_html($_sku.compare_price, $product.currency)}</span>
+                {else}
+                    —
+                {/if}
+            </div>
+        </td>
+
+        {* PRICE FIELD *}
+        <td class="s-price-field-column">
+            <label class="s-price-field">
+                <input class="s-field" type="text" autocomplete="off" name="{$_rule_name}[rule_params][{$product.id}][skus][{$_sku.id}][price]" value="{$_price}" placeholder="{$_sku.price|floatval|escape}" required>
+                <span class="s-label">{str_replace('0', '', {shop_currency_html(0, $product.currency)})}</span>
+            </label>
+        </td>
+
+        {* COMPARE PRICE FIELD *}
+        <td class="s-compare-price-field-column">
+            <label class="s-price-field">
+                <input class="s-field" type="text" autocomplete="off" name="{$_rule_name}[rule_params][{$product.id}][skus][{$_sku.id}][compare_price]" value="{$_compare_price}" placeholder="{$_sku.compare_price|floatval|escape}" >
+                <span class="s-label">{str_replace('0', '', {shop_currency_html(0, $product.currency)})}</span>
+            </label>
+        </td>
+
+        <td class="s-actions-column">
+            <div class="s-actions">
+                <a class="s-action js-delete-sku" href="javascript:void(0);" title="{_w("Delete")|escape}">
+                    <i class="icon16 close"></i>
+                </a>
+            </div>
+        </td>
+    </tr>
+{/foreach}
+
+{/if}
+
+{/strip}

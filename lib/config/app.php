@@ -17,7 +17,7 @@ return array(
     'pages'            => true,
     'mobile'           => true,
     'my_account'       => true,
-    'version'          => '8.4.11',
+    'version'          => '8.5.0', // RC1 (developer preview)
     'critical'         => '8.0.0',
     'vendor'           => 'webasyst',
     'csrf'             => true,
@@ -36,7 +36,7 @@ return array(
     'sms_plugins'      => true,
     'license'          => 'commercial',
     'routing_params' => array(
-        'checkout_version' => 2,
+        'checkout_version'       => 2,
         'checkout_storefront_id' => 'e0990613e758c2c1d93da7e5c228356f'
     ),
 );

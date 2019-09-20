@@ -352,6 +352,47 @@ class shopImportexportHelper
             }
         }
 
+        # promos
+        $promo_model = new shopPromoModel();
+        $params = array(
+            'status'        => 'active',
+            'ignore_paused' => true,
+            'rule_type'     => 'custom_price',
+            'with_rules'    => true,
+        );
+        $promos = $promo_model->getList($params);
+
+        foreach ($promos as $id => $shop_promo) {
+            $products = [];
+            if (!empty($shop_promo['rules'])) {
+                foreach ($shop_promo['rules'] as $rule) {
+                    if ($rule['rule_type'] != 'custom_price') {
+                        continue;
+                    }
+                    $products += array_keys($rule['rule_params']);
+                }
+            }
+
+            if (!empty($products)) {
+                $products = array_unique(array_map('intval', $products));
+                asort($products);
+                $promo = array(
+                    'type'           => self::PROMO_TYPE_FLASH_DISCOUNT,
+                    'name'           => _w('Overridden prices'),
+                    'description'    => sprintf('%s: %s', _w('Overridden prices'), $shop_promo['title']),
+                    'settings'       => sprintf('./marketing/promo/%d/', $id),
+                    'source'         => _w('Overridden prices'),
+                    'hint'           => $shop_promo['body'],
+                    'hash'           => 'id/'.implode(',', array_keys($products)),
+                    'end_datetime'   => strtotime($shop_promo['finish_datetime']),
+                    'start_datetime' => strtotime($shop_promo['start_datetime']),
+                );
+
+                $promo_id = sprintf('shop.promos.%s', $id);
+                $list[$promo_id] = $promo + $default_promo;
+            }
+        }
+
         # plugins
         $params = array(
             'plugin' => $this->plugin,

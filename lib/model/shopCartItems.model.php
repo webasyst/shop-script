@@ -33,6 +33,10 @@ class shopCartItemsModel extends waModel
             $products[$p_id]['original_price'] = $p['price'];
             $products[$p_id]['original_compare_price'] = $p['compare_price'];
         }
+
+        $this->promoProductPrices()->workupPromoProducts($products);
+        $this->promoProductPrices()->workupPromoSkus($skus, $products);
+
         $event_params = array(
             'products' => &$products,
             'skus' => &$skus
@@ -280,6 +284,9 @@ SQL;
                 $skus[$s_id]['original_compare_price'] = $s['compare_price'];
             }
 
+            $this->promoProductPrices()->workupPromoProducts($products);
+            $this->promoProductPrices()->workupPromoSkus($skus, $products);
+
             $event_params = array(
                 'products' => &$products,
                 'skus'     => &$skus,
@@ -455,6 +462,10 @@ SQL;
         $s['original_price'] = $s['price'];
         $s['original_compare_price'] = $s['compare_price'];
         $skus = array($s['id'] => $s);
+
+        $this->promoProductPrices()->workupPromoProducts($products);
+        $this->promoProductPrices()->workupPromoSkus($skus, $products);
+
         $event_params = array(
             'products' => &$products,
             'skus' => &$skus
@@ -576,5 +587,20 @@ SQL;
     public function getLastCode($contact_id)
     {
         return $this->select('code')->where('contact_id = ?', $contact_id)->order('id DESC')->fetchField();
+    }
+
+    /**
+     * @return shopPromoProductPrices
+     */
+    protected function promoProductPrices()
+    {
+        static $promo_product_prices_class;
+
+        if (empty($promo_product_prices_class)) {
+            $promo_prices_model = new shopProductPromoPriceTmpModel();
+            $promo_product_prices_class = new shopPromoProductPrices(['model' => $promo_prices_model]);
+        }
+
+        return $promo_product_prices_class;
     }
 }

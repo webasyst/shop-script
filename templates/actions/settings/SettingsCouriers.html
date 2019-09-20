@@ -101,7 +101,7 @@
                     <div class="field">
                         <div class="name">[`Edit orders`]</div>
                         <div class="value">
-                            <input type="checkbox" name="courier[rights_order_edit]" value='1'{if $courier.rights_order_edit} checked{/if}>
+                            <input type="checkbox" name="courier[rights_order_edit]" value='1'{if !empty($courier.rights_order_edit)} checked{/if}>
                             <br>
                             <span class="hint">[`If enabled, a courier can edit order items, discount amount, and shipping cost via the mobile app.`]
                                 <br>
@@ -113,7 +113,7 @@
                     <div class="field">
                         <div class="name">[`Edit customers`]</div>
                         <div class="value">
-                            <input type="checkbox" name="courier[rights_customer_edit]" value='1' {if $courier.rights_customer_edit} checked{/if}>
+                            <input type="checkbox" name="courier[rights_customer_edit]" value='1' {if !empty($courier.rights_customer_edit)} checked{/if}>
                             <br>
                             <span class="hint">[`Courier can edit customers’ contact details in mobile app.`]</span>
                         </div>

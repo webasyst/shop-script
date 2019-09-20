@@ -40,7 +40,8 @@ class shopOrdersCollection
      *     'search/state_id=new||processing&total>=100' — search by several fields of shop_order table; multiple conditions are separated by ampersand &
      *     'search/params.shipping_id=64' — search by values stored in table shop_order_params
      *     'search/items.service_id=2' — search by values stored in table shop_order_items
-     *     'search/items.product_id=10' - search orders related to specific (id=10) product
+     *     'search/items.product_id=10' — search orders related to specific (id=10) product
+     *     'search/promo_id=10' — search orders related to specific (id=10) promo
      * @param array $options Extra options
      */
     public function __construct($hash = '', $options = array())
@@ -1091,7 +1092,7 @@ class shopOrdersCollection
                         $t1 = $this->addJoin(
                             array(
                                 'table' => 'shop_order_params',
-                                'type' => 'LEFT'
+                                'type'  => 'LEFT'
                             ),
                             ":table.order_id = o.id AND :table.name = 'coupon_id'"
                         );
@@ -1099,18 +1100,32 @@ class shopOrdersCollection
                         $t2 = $this->addJoin(
                             array(
                                 'table' => 'shop_order_params',
-                                'type' => 'LEFT'
+                                'type'  => 'LEFT'
                             ),
                             ":table.order_id = o.id AND :table.name = 'coupon_code'"
                         );
 
                         $field = "IFNULL(:t2.value, IFNULL(:t1.value, ''))";
-                        $where = $field . $this->getExpression($op, $val);
+                        $where = $field.$this->getExpression($op, $val);
                         $where = str_replace(':t1', $t1, $where);
                         $where = str_replace(':t2', $t2, $where);
                         $this->where[] = $where;
 
                     }
+
+                } elseif ($param === 'promo_id') {
+
+                    $this->addJoin(array(
+                        'type'  => '',
+                        'table' => 'shop_promo',
+                        'on'    => ":table.id {$this->getExpression($op, $val)}",
+                    ));
+
+                    $this->addJoin(array(
+                        'type'  => '',
+                        'table' => 'shop_promo_orders',
+                        'on'    => "o.id = :table.order_id AND :table.promo_id {$this->getExpression($op, $val)}",
+                    ));
 
                 } elseif ($model->fieldExists($param)) {
 

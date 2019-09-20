@@ -105,7 +105,9 @@ class shopPayment extends waAppPayment
     private static function getPluginData($id)
     {
         $data = self::pluginModel()->getPlugin($id, shopPluginModel::TYPE_PAYMENT);
-        self::fillDefaultData($data);
+        if ($data) {
+            self::fillDefaultData($data);
+        }
 
         return $data;
     }

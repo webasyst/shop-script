@@ -58,6 +58,10 @@ class shopBackendLayout extends waLayout
         $module = waRequest::get('module', 'backend');
         $page = waRequest::get('action', ($module == 'backend') ? $default_page : 'default');
 
+        if (preg_match('~^(marketing)~ui', waRequest::param('module', null, waRequest::TYPE_STRING_TRIM))) {
+            $page = 'marketing';
+        }
+
         if ($page === 'reports') {
             $this->reportPagePrepare();
         }
@@ -72,7 +76,6 @@ class shopBackendLayout extends waLayout
             }
             $page = $plugin.':'.$page;
         }
-
         return $page;
     }
 

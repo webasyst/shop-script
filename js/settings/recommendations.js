@@ -33,12 +33,12 @@ $.extend($.settings = $.settings || {}, {
 
             var f = $(this).closest('div.field');
             if (this.checked) {
-                f.children('.field-settings').show();
+                f.find('.field-settings').show();
                 self.recommendationsRenderEdit(f);
             } else {
                 // save off
                 self.recommendationsSaveUpSelling(this);
-                f.children('.field-settings').empty().hide();
+                f.find('.field-settings').empty().hide();
             }
         });
         $("div.upselling").on('click', 'a.customize', function () {
@@ -53,9 +53,9 @@ $.extend($.settings = $.settings || {}, {
         var table = $('<table class="zebra"></table>');
         var self = this;
         var form = $('<form method="post"><input type="hidden" name="value" value="1"><input type="hidden" name="type_id" value="' + type_id + '"></form>').submit(function () {
-            $.post("?module=settings&action=recommendationsSave&setting=upselling", $(this).serialize(), function (response) {
+            $.post("?module=marketingRecommendationsSave&setting=upselling", $(this).serialize(), function (response) {
                 if (response.status == 'ok') {
-                    elem.children('.field-settings').html('<p class="small">' + response.data.html +
+                    elem.find('.field-settings').html('<p class="small">' + response.data.html +
                         ' <a href="javascript:void(0)" class="customize inline-link"><b><i>' + $_('Customize') + '</i></b></a>' + '</p>');
                     self.recommendations_options.data[response.data.type_id] = response.data.data;
                 }
@@ -63,7 +63,7 @@ $.extend($.settings = $.settings || {}, {
 
             return false;
         });
-        elem.children('.field-settings').html('<p class="small">' + $_('Upsell products will be offered for a particular base product according to the following criteria:') + '</p>').append(form.append(table));
+        elem.find('.field-settings').html('<p class="small">' + $_('Upsell products will be offered for a particular base product according to the following criteria:') + '</p>').append(form.append(table));
         for (var i = 0; i < data.length; i++) {
             this.recommendationsRenderEditFeature(data[i], table, type_id);
         }
@@ -195,7 +195,7 @@ $.extend($.settings = $.settings || {}, {
 
     recommendationsSaveCrossSelling: function (elem, value) {
         var f = $(elem).closest('.field');
-        $.post("?module=settings&action=recommendationsSave&setting=cross-selling", {
+        $.post("?module=marketingRecommendationsSave&setting=cross-selling", {
             type_id: f.data('type-id'),
             value: value
         }, function (response) {
@@ -214,7 +214,7 @@ $.extend($.settings = $.settings || {}, {
 
     recommendationsSaveUpSelling: function (elem) {
         var f = $(elem).closest('.field');
-        $.post("?module=settings&action=recommendationsSave&setting=upselling", {
+        $.post("?module=marketingRecommendationsSave&setting=upselling", {
             type_id: f.data('type-id'),
             value: 0
         }, function (response) {

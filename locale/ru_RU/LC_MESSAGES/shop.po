@@ -3419,7 +3419,7 @@ msgstr "Комментарий"
 
 #: /wa-apps/shop/lib/workflow/templates/PayAction.html:4
 msgid "Optional comments"
-msgstr "Комментарий (не обязательно)"
+msgstr "Комментарий (необязательно)"
 
 #: /wa-apps/shop/lib/model/shopProductReviews.model.php:248
 msgid "Review title cannot be left blank"
@@ -3441,15 +3441,15 @@ msgstr "Количество"
 msgid "from"
 msgstr "от"
 
+msgid "from "
+msgstr "от"
+
 #: /wa-apps/shop/themes/default/category.html:21
 msgid "to"
 msgstr "до"
 
-msgid "from "
-msgstr "с"
-
 msgid "to "
-msgstr "по"
+msgstr "до"
 
 #: /wa-apps/shop/themes/default/category.html:32
 msgid "Filter products"
@@ -4879,7 +4879,7 @@ msgstr "Ссылка на загрузку файла будет отправл�
 
 #: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:90
 msgid "Optional file description"
-msgstr "Комментарий к прикрепленному файлу (не обязательно)"
+msgstr "Комментарий к прикрепленному файлу (необязательно)"
 
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:33
 msgid "Invalid primary field"
@@ -5387,8 +5387,7 @@ msgstr "Все доступные способы оплаты"
 
 # msgid "Shipping options"
 # msgstr "Способы доставки"
-#: /wa-apps/shop/lib/config/site.php:87
-#: /wa-apps/shop/lib/config/site.php:91
+#: /wa-apps/shop/lib/config/site.php:87 /wa-apps/shop/lib/config/site.php:91
 msgid "All available shipping options"
 msgstr "Все доступные способы доставки"
 
@@ -6448,8 +6447,7 @@ msgstr "Новый профиль"
 msgid "Perform action to all selected orders?"
 msgstr "Выполнить действие со всеми выбранными заказами?"
 
-#: /wa-apps/shop/js/product/list.js:407
-#: /wa-apps/shop/js/product/list.js:568
+#: /wa-apps/shop/js/product/list.js:407 /wa-apps/shop/js/product/list.js:568
 msgid "Drag products here"
 msgstr "Перетащите товары сюда"
 
@@ -6558,8 +6556,7 @@ msgstr "Автоматически перемещать вниз списка в
 msgid "When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more. Product quantities in all stocks are taken into account."
 msgstr "Товары, которых нет на складе, будут автоматически перемещены вниз всех списков товаров на витрине интернет-магазина: в результатах поиска, в списках товаров внутри категорий, в результатах фильтрации товаров и т. д. Учитываются остатки товаров на всех складах."
 
-#: /wa-apps/shop/lib/config/site.php:177
-#: /wa-apps/shop/lib/config/site.php:181
+#: /wa-apps/shop/lib/config/site.php:177 /wa-apps/shop/lib/config/site.php:181
 #: /wa-apps/shop/lib/config/site.php:182
 msgid "Setting <em>$available_only = true</em> will automatically exclude all out-of-stock products from the return"
 msgstr "Настройка <em>$available_only = true</em> автоматически исключит из результата все товары, которых нет на складе."
@@ -7307,8 +7304,7 @@ msgstr "Купить"
 #: /wa-apps/shop/themes/facebook/home.html:9
 #: /wa-apps/shop/themes/nifty/home.html:9
 #: /wa-apps/shop/themes/pinboard/home.html:9
-#: /wa-apps/shop/themes/sidebar/home.html:9
-#: /wa-apps/shop/themes/vk/home.html:9
+#: /wa-apps/shop/themes/sidebar/home.html:9 /wa-apps/shop/themes/vk/home.html:9
 msgid "Start by <a href=\"%s\">creating a product</a> in your store backend."
 msgstr "Начните с <a href=\"%s\">создания товара</a> в бекенде интернет-магазина."
 
@@ -7787,6 +7783,15 @@ msgstr "Удалить запись"
 msgid "Modify expense"
 msgstr "Редактировать запись"
 
+msgid "Please select storefront to order promos for that storefront."
+msgstr "Выберите витрину, чтобы изменять расположение баннеров в слайдере перетаскиванием."
+
+msgid "Marketing"
+msgstr "Маркетинг"
+
+msgid "Can manage marketing"
+msgstr "Доступ к разделу Маркетинг"
+
 #: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:12
 #: /wa-apps/shop/templates/actions/reports/ReportsMarketingcosts.html:28
 msgid "New expense"
@@ -7975,11 +7980,8 @@ msgstr "Количество покупателей"
 msgid "Best selling products and services"
 msgstr "Бестселлеры"
 
-msgid "Subtotal %1$s &minus; Discount %2$s"
-msgstr "Общая стоимость %1$s &minus; Скидка %2$s"
-
-msgid "Total sales %1$s &minus; Purchase expense %2$s"
-msgstr "Общие продажи %1$s &minus; Закупочная стоимость %2$s"
+msgid "Subtotal %1$s &minus; discount %2$s"
+msgstr "Общая стоимость %1$s &minus; скидка %2$s"
 
 #: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:11
 #: /wa-apps/shop/templates/actions/reports/ReportsProductsAssets.html:17
@@ -8734,7 +8736,7 @@ msgstr "Если вы не видите промокарточки на витр
 
 #: /wa-apps/shop/templates/actions/promos/PromosEditor.html:3
 msgid "Delete promo"
-msgstr "Удалить промо"
+msgstr "Удалить акцию"
 
 #: /wa-apps/shop/templates/actions/promos/PromosEditor.html:17
 msgid "Promo title"
@@ -8912,7 +8914,7 @@ msgstr "Оплаченный период"
 
 #: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:87
 msgid "optional"
-msgstr "не обязательно"
+msgstr "необязательно"
 
 #: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:145
 msgid "A/B test Smarty code"
@@ -9315,8 +9317,7 @@ msgstr "Главная страница"
 msgid "Social sharing Title (og:title)"
 msgstr "Заголовок (og:title)"
 
-#: /wa-apps/shop/lib/config/site.php:41
-#: /wa-apps/shop/lib/config/site.php:58
+#: /wa-apps/shop/lib/config/site.php:41 /wa-apps/shop/lib/config/site.php:58
 msgid "For detailed information on Open Graph parameters and examples please refer to <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>"
 msgstr "Подробная информация о возможных вариантах значений параметров Open Graph опубликована на сайте протокола <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>"
 
@@ -9439,7 +9440,7 @@ msgstr "Капча"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:191
 msgid "Enable captcha for checkout (not required)"
-msgstr "Включить капчу для оформления заказов (не обязательно)"
+msgstr "Включить капчу для оформления заказов (необязательно)"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:194
 msgid "Optional. Enable checkout captcha when seamless anti-spam protection is not enough."
@@ -9610,8 +9611,8 @@ msgid "Table"
 msgstr "Таблица"
 
 #: /wa-apps/shop/templates/actions/promos/PromosEditor.html:62
-msgid "Default background color below the promo image."
-msgstr "Цвет фона под изображением."
+msgid "Image background color"
+msgstr "Цвет фона под изображением"
 
 #: /wa-apps/shop/templates/actions/promos/PromosEditor.html:66
 msgid "Timer"
@@ -9624,10 +9625,6 @@ msgstr "Обратный отсчет"
 #: /wa-apps/shop/templates/actions/promos/PromosEditor.html:94
 msgid "format"
 msgstr "формат"
-
-#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:94
-msgid "current time is"
-msgstr "текущее время:"
 
 #: /wa-apps/shop/templates/actions/stocks/Stocks.html:6
 #: /wa-apps/shop/templates/actions/transfer/Transfer.html:7
@@ -12439,10 +12436,10 @@ msgstr "Добавляется"
 msgid "All promos"
 msgstr "Все акции"
 
-msgid "Planned"
+msgid "Scheduled promos"
 msgstr "Запланированные"
 
-msgid "Finished"
+msgid "Finished promos"
 msgstr "Завершённые"
 
 msgid "Active promos"
@@ -12511,3 +12508,283 @@ msgstr "UTM-метки"
 msgid "You do not have sufficient access rights to set badges for selected products."
 msgstr "У вас недостаточно прав доступа, чтобы добавлять наклейки для выбранных товаров."
 
+msgid "To set up <em>discounts</em>, <em>followups</em>, <em>recommendations</em>, and <em>affiliate programs</em>, please open “%s” section."
+msgstr "Для настройки <em>скидок</em>, <em>триггерных рассылок</em>, <em>рекомендаций</em> и <em>партнерской программы</em> перейдите в раздел «%s»."
+
+msgid "To set up <em>discount coupons</em>, please open “%s” section."
+msgstr "Для настройки <em>купонов на скидку</em> перейдите в раздел «%s»."
+
+msgid "To view <em>marketing expenses</em> and set up <em>A/B tests</em>, please open section “%s”."
+msgstr "Для просмотра информации о <em>затратах на маркетинг</em> и настройки <em>А/Б-тестов</em> перейдите в раздел «%s»."
+
+msgid "Total values for entire promo period"
+msgstr "Итоговые показатели за время действия акции"
+
+msgid "Tools"
+msgstr "Инструменты"
+
+msgid "Costs"
+msgstr "Затраты"
+
+msgid "Coupon settings"
+msgstr "Настройка купона"
+
+msgid "Select coupons for this promo. Orders with selected coupons will be automatically associated with this promo."
+msgstr "Выберите купоны, которые используются в акции. Заказы с выбранными купонами будут автоматически относиться к этой акции."
+
+msgid "Enter coupon code"
+msgstr "Введите код купона"
+
+msgid "No coupons."
+msgstr "Купоны отсутствуют."
+
+msgid "Add a new coupon"
+msgstr "Создать новый купон"
+
+msgid "Use the form below to set up extra rules for ordinary and purchase prices which should apply while this promo is active."
+msgstr "С помощью формы ниже можно настроить дополнительные правила для обычных и зачеркнутых цен, которые будут применяться только во время действия акции."
+
+msgid "in catalog"
+msgstr "в каталоге"
+
+msgid "during promo period"
+msgstr "на время акции"
+
+msgid "No products in this tool. First add products please."
+msgstr "В этом инструменте нет товаров. Сначала добавьте товары."
+
+msgid "UTM tags help you learn where a customer has come from."
+msgstr "UTM-метки помогают, узнать откуда пришел покупатель."
+
+msgid "Read more about UTM tags"
+msgstr "Пoдробнее о UTM-метках"
+
+msgid "Add one parameter or several parameters separated with whitespaces:"
+msgstr "Добавьте один параметр или несколько параметров через пробел:"
+
+msgid "Campaign source"
+msgstr "Источник кампании"
+
+msgid "Traffic type"
+msgstr "Тип трафика"
+
+msgid "Campaign name"
+msgstr "Название кампании"
+
+msgid "Message ID"
+msgstr "Идентификтор объявления"
+
+msgid "Add UTM tag"
+msgstr "Добавить UTM-метку"
+
+msgid "Please add at least 2 versions."
+msgstr "Добавьте 2 или более вариантов."
+
+msgid "Promo does not exist."
+msgstr "Промоакция не существует."
+
+msgid "Promo not found."
+msgstr "Акция не найдена."
+
+msgid "Add a new promo based on this one"
+msgstr "Создать новую акцию на основе этой"
+
+msgid "Promo"
+msgstr "Акция"
+
+msgid "Period"
+msgstr "Действует"
+
+msgid "Scheduled"
+msgstr "Запланирована"
+
+msgid "Stop"
+msgstr "Остановить"
+
+msgid "Stopped"
+msgstr "Остановлена"
+
+msgid "Resume"
+msgstr "Возобновить"
+
+msgid "Banner"
+msgstr "Баннер"
+
+msgid "Set up banner"
+msgstr "Настроить баннер"
+
+msgid "Hide settings"
+msgstr "Свернуть настройки"
+
+msgid "date format"
+msgstr "формат даты"
+
+msgid "Add tools to run this promo campaign and to define when placed orders must be associated with this promo."
+msgstr "Добавьте инструменты для проведения акции и учета условий, при которых оформленные заказы будут отнесены к этой акции."
+
+msgid "Add tool"
+msgstr "Добавить инструмент"
+
+msgid "Tool"
+msgstr "Инструмент"
+
+msgid "Select a tool"
+msgstr "Выберите инструмент"
+
+msgid "Clone this promo?"
+msgstr "Клонировать промоакцию?"
+
+msgid "All data of this promo will be copied to a new promo."
+msgstr "Вся информация этой промоакции будет скопирована в новую акцию."
+
+msgid "A new promo will be dislabled by default."
+msgstr "Новая промоакция по умолчанию будет выключена."
+
+msgid "Delete promo?"
+msgstr "Удалить промоакцию?"
+
+msgid "All data of this promo will be deleted."
+msgstr "Будет удалена вся информация, связанная с промоакцией."
+
+msgid "You will not be able to undo this action."
+msgstr "Это действие невозможно отменить."
+
+msgid "d"
+msgstr "д."
+
+msgid "h"
+msgstr "ч."
+
+msgid "%s ago"
+msgstr "%s назад"
+
+msgid "in %s"
+msgstr "через %s"
+
+msgid "Do you really want to delete this tool?"
+msgstr "Вы действительно хотите удалить этот инструмент?"
+
+msgid "Add entry"
+msgstr "Добавить запись"
+
+msgid "Please specify a tool type."
+msgstr "Необходимо указать тип инструмента."
+
+msgid "Unknown tool type."
+msgstr "Неизвестный тип инструмента."
+
+msgid "Promos on website"
+msgstr "Акции на сайте"
+
+msgid "Change the sort order of active promos in the slider by using drag&amp;drop action."
+msgstr "Меняйте порядок отображения действующих акций в слайдере простым перетаскиванием."
+
+msgid "No active promos."
+msgstr "Активных акции нет."
+
+msgid "No scheduled promos."
+msgstr "Запланированных акций нет."
+
+msgid "No completed promos."
+msgstr "Завершенных акций нет."
+
+msgid "Completed promos"
+msgstr "Завершенные"
+
+msgid "Complete report"
+msgstr "Полный отчет"
+
+msgid "Promo name"
+msgstr "Название акции"
+
+msgid "No orders."
+msgstr "Заказов нет."
+
+#: /wa-apps/shop/templates/actions/marketing/MarketingPromo.html:591
+msgid "Saving"
+msgstr "Сохраняется"
+
+#: /wa-apps/shop/templates/actions/marketing/MarketingPromo.html:614
+msgid "Clone"
+msgstr "Клонировать"
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:94
+msgid "%s in stock"
+msgstr "%s на складе"
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:95
+msgid "+%s items to buy"
+msgstr "+%s шт. доступны для покупки"
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:159
+msgid "Total sales %1$s &minus; Purchase expense %2$s"
+msgstr "Общие продажи %1$s &minus; Закупочная стоимость %2$s"
+
+#: /wa-apps/shop/lib/cli/shopFollowup.cli.php:269
+msgid "Follow-up <strong>%s</strong> sent to customer."
+msgstr "Триггерное уведомление <strong>%s</strong> отправлено покупателю."
+
+#: /wa-apps/shop/lib/actions/marketing/coupons/shopMarketingCouponDelete.controller.php:13
+msgid "Invalid ID"
+msgstr "Неверный ID"
+
+#: /wa-apps/shop/lib/actions/marketing/coupons/shopMarketingCouponSave.controller.php:14
+msgid "Invalid data"
+msgstr "Недопустимые данные"
+
+#: /wa-apps/shop/lib/actions/marketing/coupons/shopMarketingCouponSave.controller.php:66
+msgid "This code already exists."
+msgstr "Такой код уже есть."
+
+#: /wa-apps/shop/lib/actions/marketing/followups/shopMarketingFollowupsSave.controller.php:79
+msgid "Saving error"
+msgstr "Ошибка сохранения"
+
+#: /wa-apps/shop/lib/actions/marketing/promo/shopMarketingPromoSave.controller.php:297
+msgid "Override the price of at least one product."
+msgstr "Переопределите цену хотя бы одного товара."
+
+#: /wa-apps/shop/lib/actions/marketing/promo/shopMarketingPromoSave.controller.php:322
+msgid "Add at least one UTM tag."
+msgstr "Добавьте хотя бы одну UTM-метку."
+
+#: /wa-apps/shop/lib/actions/marketing/promo/shopMarketingPromoSave.controller.php:343
+msgid "Please select at least one coupon."
+msgstr "Выберите хотя бы один купон."
+
+#: /wa-apps/shop/lib/actions/marketing/promo/shopMarketingPromoSave.controller.php:356
+msgid "An image must be uploaded."
+msgstr "Нужно загрузить изображение."
+
+#: /wa-apps/shop/lib/actions/marketing/promo/shopMarketingPromoClone.controller.php:59
+msgid "copy"
+msgstr "копия"
+
+#: /wa-apps/shop/lib/actions/marketing/abtesting/shopMarketingAbtestingSave.controller.php:16
+msgid "A/B test not found."
+msgstr "А/Б-тест не найден."
+
+#: /wa-apps/shop/lib/actions/marketing/costs/shopMarketingCosts.action.php:32
+#: /wa-apps/shop/lib/actions/marketing/costs/shopMarketingCosts.action.php:215
+#: /wa-apps/shop/lib/actions/marketing/costs/shopMarketingCosts.action.php:227
+msgid "Deleted promo"
+msgstr "Удаленная акция"
+
+#: /wa-apps/shop/lib/classes/shopImportexportHelper.class.php:381
+#: /wa-apps/shop/lib/classes/shopImportexportHelper.class.php:382
+#: /wa-apps/shop/lib/classes/shopImportexportHelper.class.php:384
+#: /wa-apps/shop/lib/model/shopPromoRules.model.php:12
+msgid "Overridden prices"
+msgstr "Переопределенные цены"
+
+msgid "Add to promo"
+msgstr "Добавить в акцию"
+
+msgid "Add selected products to promo %s"
+msgstr "Добавить выбранные товары в акцию %s"
+
+msgid "Add a new promo"
+msgstr "Создать новую акцию"
+
+msgid "No products."
+msgstr "Товаров нет."

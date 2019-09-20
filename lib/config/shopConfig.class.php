@@ -2,6 +2,8 @@
 
 class shopConfig extends waAppConfig
 {
+    const ROWS_PER_PAGE = 20;
+
     protected $_routes = array();
     protected $image_sizes = array(
         'big'        => '970',
@@ -48,6 +50,8 @@ class shopConfig extends waAppConfig
             }
         } elseif (substr($module, 0, 5) == 'order' || $module == 'coupons' || $module == 'workflow') {
             return wa()->getUser()->getRights('shop', 'orders');
+        } elseif (substr($module, 0, 9) == 'marketing') {
+            return wa()->getUser()->getRights('shop', 'marketing');
         } elseif (substr($module, 0, 7) == 'reports') {
             return wa()->getUser()->getRights('shop', 'reports');
         } elseif (substr($module, 0, 8) == 'settings') {
@@ -58,8 +62,6 @@ class shopConfig extends waAppConfig
             return wa()->getUser()->getRights('shop', 'customers');
         } elseif ($module == 'importexport' || $module == 'csv' || $module == 'images') {
             return wa()->getUser()->getRights('shop', 'importexport');
-        } elseif ($module == 'promos') {
-            return wa()->getUser()->getRights('shop', 'setscategories');
         }
         return true;
     }
@@ -120,7 +122,11 @@ class shopConfig extends waAppConfig
 
     public function getRouting($route = array(), $dispatch = false)
     {
-        $url_type = isset($route['url_type']) ? $route['url_type'] : 0;
+        if (empty($route['is_backend_route'])) {
+            $url_type = isset($route['url_type']) ? $route['url_type'] : 0;
+        } else {
+            $url_type = 'backend';
+        }
         if (!isset($this->_routes[$url_type]) || $dispatch) {
             $routes = parent::getRouting($route);
             if ($routes) {
@@ -181,6 +187,38 @@ class shopConfig extends waAppConfig
             $this->_routes[$url_type] = $routes;
         }
         return $this->_routes[$url_type];
+    }
+
+    protected function getRoutingRules($route = array())
+    {
+        $path = $this->getRoutingPath('frontend');
+        if (file_exists($path)) {
+            $routes = include($path);
+        } else {
+            $routes = array();
+        }
+
+        if ($this->getEnvironment() === 'backend') {
+            $path = $this->getRoutingPath('backend');
+            if (file_exists($path)) {
+                $routes['backend'] = include($path);
+            }
+        }
+
+        return $routes;
+    }
+
+    protected function getRoutingPath($type)
+    {
+        if ($type === null) {
+            $type = $this->getEnvironment();
+        }
+        $filename = ($type === 'backend') ? 'routing.backend.php' : 'routing.php';
+        $path = $this->getConfigPath($filename, true, $this->application);
+        if (!file_exists($path)) {
+            $path = $this->getConfigPath($filename, false, $this->application);
+        }
+        return $path;
     }
 
     /**

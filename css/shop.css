@@ -393,8 +393,6 @@ ul.menu-v.s-inline-links a { display: inline-block; }
 .s-coupon-margin { margin-left: 25px; display: inline-block; }
 .s-coupon-border { border: 1px dashed #efded6; border-radius: 2px; }
 .s-coupon-value { background: #ae6a5a; color: #fff; padding: 5px; font-size: 1.5em; font-weight: bold; }
-ul.s-coupon-list { margin-top: 13px; }
-ul.s-coupon-list li.s-expired a { color: #aaa; }
 
 .s-courier { background: #eeeedd; border-radius: 2px; padding: 5px; }
 .s-courier-block { margin-left: 25px; }
@@ -989,6 +987,24 @@ table.zebra.s-stocks-log .s-stock-productname-column { max-width: 250px; }
 .s-color-replacer { padding: 2px; cursor: pointer; }
 .s-color-replacer .icon16 { margin: -1px 0 0 0; padding: 0; vertical-align: middle; }
 
+/* styles for dialog (ProductsAssociatePromoDialog.html) */
+
+body.is-scroll-locked { overflow: hidden; }
+
+.s-product-associate-promo-dialog .dialog-window { bottom: auto; }
+.s-product-associate-promo-dialog .dialog-window .dialog-content { min-height: 200px; max-height: 500px; }
+.s-product-associate-promo-dialog .s-dialog-title { margin: 0; }
+.s-product-associate-promo-dialog .menu-v { margin: 0; padding: 0; }
+.s-product-associate-promo-dialog .menu-v > li { margin: 0; padding: 0; }
+.s-product-associate-promo-dialog .menu-v > li:not(:first-child) { margin-top: 1em; }
+.s-product-associate-promo-dialog label { cursor: pointer; }
+.s-product-associate-promo-dialog input[type="radio"] { margin: 0; vertical-align: -1px; }
+.s-product-associate-promo-dialog .s-new-promo-section,
+.s-product-associate-promo-dialog .s-active-promos-section,
+.s-product-associate-promo-dialog .s-planned-promos-section { margin-top: 20px; }
+.s-product-associate-promo-dialog .s-active-promos-section > .s-section-title,
+.s-product-associate-promo-dialog .s-planned-promos-section > .s-section-title { margin: 0 0 1em; }
+
 /* REPORTS
 ---------- */
 
@@ -1506,7 +1522,7 @@ table.zebra p.hint { margin-bottom: 0; }
 .icon16.restore { background-position:0 -16px; }
 
 /* settings */
-.icon16.ss { background-image: url('../img/ss-icon16.png?1607'); }
+.icon16.ss { background-image: url('../img/ss-icon16.png?v=2019-06-03'); }
 .icon16.ss.star-bw { background-position:-16px 0; }
 .icon16.ss.shipping-bw { background-position:-32px 0; }
 .icon16.ss.camera-bw { background-position:-48px 0; }
@@ -1635,8 +1651,9 @@ table.zebra p.hint { margin-bottom: 0; }
 .icon16.ss.chart-up { background-position:-144px -112px; }
 .icon16.ss.chart-down { background-position:-160px -112px; }
 .icon16.ss.promo { background-position:-192px -112px; }
+.icon16.ss.pause { background-position:-208px -112px; }
 
-.icon16.ss.orders-processing { background-position: 0px -128px; }
+.icon16.ss.orders-processing { background-position: 0 -128px; }
 .icon16.ss.orders-all { background-position: -16px -128px; }
 .icon16.ss.sku-type-flat { background-position: -32px -128px; }
 .icon16.ss.sku-type-selectable { background-position: -48px -128px; }

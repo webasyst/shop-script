@@ -98,7 +98,7 @@
                 this.$selectionMenu = this.options["$selectionMenu"];
                 if (this.$selectionMenu) {
                     $("#mainmenu .s-level2").append(this.$selectionMenu);
-                    this.select_all_input = this.$selectionMenu.find('.s-order-list-select-all')
+                    this.select_all_input = this.$selectionMenu.find('.s-order-list-select-all');
                     this.select_all_input.attr('checked', false);
                 }
             }

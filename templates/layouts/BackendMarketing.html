@@ -1,0 +1,47 @@
+{* SOURCES *}
+{wa_js}
+    {$wa_url}wa-content/js/jquery-wa/wa.dialog.js
+    {$wa_url}wa-content/js/jquery-wa/wa.contentrouter.js
+{/wa_js}
+
+{* Marketing *}
+<link href="{$wa_app_static_url}css/backend/marketing.css" rel="stylesheet">
+<script src="{$wa_app_static_url}js/backend/marketing/marketing.js"></script>
+
+{* PAGE *}
+<div class="s-marketing-page">
+    {* This code is moved to the beginning specifically *}
+    <script>
+        ( function($) { "use strict";
+            window.wa_app = {$wa->app()|json_encode}; {* need for editor2.js *}
+            window.wa_url = {$wa_url|json_encode}; {* need for waEditorAceInit *}
+            $.shop.marketing.title_pattern = "%s — {$wa->accountName(false)|escape:javascript}";
+            {if !empty($currency_info)}
+                $.shop.marketing.price_format = {$currency_info|json_encode};
+            {/if}
+        })(jQuery);
+    </script>
+
+    <div class="s-marketing-layout">
+        {* SIDEBAR *}
+        <aside class="s-marketing-sidebar-wrapper sidebar" role="navigation">
+            {$marketing_sidebar}
+        </aside>
+
+        {* CONTENT *}
+        <main class="s-marketing-content-wrapper content" role="main">
+            <div class="s-marketing-content" id="js-marketing-content">{$content}</div>
+
+            <script>
+                (function($) { "use strict";
+                    $.shop.marketing.content = new ContentRouter({
+                        $content: $("#js-marketing-content"),
+                        {* Set the url to the Marketing tab, so that when switching to another section js-routing does not work *}
+                        app_url: {"`$wa_app_url`marketing"|json_encode},
+                        base_href: {$wa_app_url|json_encode}
+                    });
+                })(jQuery);
+            </script>
+        </main>
+    </div>
+</div>
