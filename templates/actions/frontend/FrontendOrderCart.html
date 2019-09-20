@@ -133,7 +133,6 @@
                                             {if !empty($_item.services)}
                                                 <div class="wa-services">
                                                     {foreach $_item.services as $_service_id => $_service}
-                                                        <!-- {$_service|wa_dumpc} -->
                                                         {$_is_active = !empty($_service.id)}
                                                         <div class="wa-service {if !empty($_is_active)}is-active{/if}" data-id="{if !empty($_service.id)}{$_service.id}{/if}" data-service-id="{$_service_id}" data-enabled="{if !empty($_service.id)}1{else}0{/if}">
                                                             <label class="wa-label">
