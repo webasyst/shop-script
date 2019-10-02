@@ -3,27 +3,42 @@
 </style>
 
 <div class="checkout-result success">
+    <h1 class="s-header">
+        {if !empty($payment_success) && !empty($theme_settings["checkout_payment_success_title"])}
+            {$theme_settings["checkout_payment_success_title"]}
 
-    <h1>[`Thank you!`]</h1>
-    <p>[`We successfully accepted your order, and will contact you asap.`]<br />
-    [`Your order number is `] <strong>{$order.id}</strong>.</p>
-    
+        {elseif !empty($thankyou_header)}
+            {$thankyou_header}
+
+        {else}
+            [`Thank you!`]
+        {/if}
+    </h1>
+
+    <div class="s-description">
+        {if !empty($payment_success) && !empty($theme_settings["checkout_payment_success_description"])}
+            <p>{$theme_settings["checkout_payment_success_description"]}</p>
+
+        {elseif !empty($thankyou_content)}
+            <p>{$thankyou_content|replace:'$order_id':"<a href=\"`$my_order_url`\" class=\"s-order-number\">`$order.id`</a>"}</p>
+
+        {else}
+            <p>[`We successfully accepted your order, and will contact you asap.`] [`Your order number is `] <a href="{$wa->getUrl('shop/frontend/myOrder', ['id' => $order._id])}">{$order.id}</a>.</p>
+        {/if}
+    </div>
+
     {if !empty($payment)}
         <div class="plugin">
             {$payment}
         </div>
     {/if}
 
-    {if !empty($payment_success)}
-        <span class="highlighted">[`Your payment has been successfully accepted. We will process your order and contact you shortly.`]</span>
-    {/if}
-    
     <p class="back">
         &larr; <a href="{$wa_app_url}">[`Back to the store`]</a>
     </p>
-    
+
     <!-- plugin hook: 'frontend_checkout' -->
     {* @event frontend_checkout.%plugin_id% *}
-    {foreach $frontend_checkout as $_}{$_}{/foreach}    
-    
+    {foreach $frontend_checkout as $_}{$_}{/foreach}
+
 </div>

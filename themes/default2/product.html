@@ -173,7 +173,7 @@
         {/if}
 
         <!-- categories -->
-        {if count($product.categories) > 1}
+        {if $product.categories}
             <ul class="menu-h compact" id="product-categories">
             [`Categories`]:
                 {foreach $product.categories as $c}{if $c.status}

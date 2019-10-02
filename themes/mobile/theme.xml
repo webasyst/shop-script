@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="mobile" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:mobile" version="1.3.4">
+<theme id="mobile" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:mobile" version="1.3.5">
     <name locale="en_US">Mobile</name>
     <name locale="ru_RU">Mobile</name>
     <files>
@@ -66,7 +66,7 @@
         </file>
         <file path="main.html">
             <description locale="en_US">Main storefront layout and navigation</description>
-            <description locale="ru_RU">Основное макет вывода содержимого и навигации в интернет-магазине</description>
+            <description locale="ru_RU">Основной макет вывода содержимого и навигации в интернет-магазине</description>
         </file>
         <file path="my.affiliate.html">
             <description locale="en_US">Customer account interface: affiliate program</description>
@@ -234,7 +234,7 @@
         </setting>
         <setting var="store_address" control_type="text">
             <value></value>
-            <name locale="en_US">Store Address</name>
+            <name locale="en_US">Store address</name>
             <name locale="ru_RU">Адрес магазина</name>
             <description locale="en_US">Value for “address” element of Schema.org markup</description>
             <description locale="ru_RU">Значение элемента «address» микроразметки Schema.org</description>
@@ -245,6 +245,18 @@
             <name locale="ru_RU">Ценовой диапазон магазина</name>
             <description locale="en_US">Value for “priceRange” element of  Schema.org markup</description>
             <description locale="ru_RU">Значение элемента «priceRange» микроразметки Schema.org</description>
+        </setting>
+        <setting var="checkout_payment_success_title" control_type="text">
+            <value locale="en_US">Your payment has been accepted</value>
+            <value locale="ru_RU">Оплата получена</value>
+            <name locale="en_US">Successful payment page title</name>
+            <name locale="ru_RU">Заголовок страницы с сообщением об успешной оплате</name>
+        </setting>
+        <setting var="checkout_payment_success_description" control_type="text">
+            <value locale="en_US">We will process your order and will contact you shortly.</value>
+            <value locale="ru_RU">Мы вскоре обработаем ваш заказ и свяжемся с вами в ближайшее время.</value>
+            <name locale="en_US">Successful payment message</name>
+            <name locale="ru_RU">Сообщение после завершения оплаты заказа</name>
         </setting>
     </settings>
     <locales>

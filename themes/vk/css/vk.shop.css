@@ -148,6 +148,11 @@
 .s-review-images-section .s-errors-section .s-error:not(:first-child) {
   margin-top: 5px;
 }
+@media (max-width: 760px) {
+  .bx-wrapper .bx-pager {
+    display: none;
+  }
+}
 .s-review-images-section,
 .s-review-notice-section {
   display: inline-block;

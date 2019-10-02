@@ -29,7 +29,7 @@ $(function() {
         }
     });
 
-    content.off('click', '.review-reply, .write-review a').on('click', '.review-reply, .write-review a', function() { 
+    content.off('click', '.review-reply, .write-review a').on('click', '.review-reply, .write-review a', function() {
         var self = $(this);
         var item = self.parents('li:first');
         var parent_id = parseInt(item.attr('data-id'), 10) || 0;
@@ -80,15 +80,18 @@ $(function() {
         return false;
     });
 
-    addHotkeyHandler('textarea', 'ctrl+enter', addReview);
-    form.submit(function() {
-        addReview();
-        return false;
+    addHotkeyHandler('textarea', 'ctrl+enter', function(event) {
+        form.trigger("submit");
+    });
+
+    form.on("submit", function(event) {
+        event.preventDefault();
+        addReview(form);
     });
 
     function addReview() {
         $.post(
-            location.href.replace(/\/#\/[^#]*|\/#|\/$/g, '') + '/add/',
+            location.pathname + 'add/',
             form.serialize(),
             function (r) {
                 if (r.status == 'fail') {
@@ -106,7 +109,7 @@ $(function() {
                 var parent_id = parseInt(r.data.parent_id, 10) || 0;
                 var parent_item = parent_id ? form.parents('li:first') : content;
                 var ul = $('ul.reviews-branch:first', parent_item);
-                
+
                 if (parent_id) {
                     //reply to a review
                     ul.show().append(html);
@@ -116,13 +119,13 @@ $(function() {
                     ul.show().prepend(html);
                     ul.find('li:first .review').addClass('new');
                 }
-                
+
                 $('.reviews-count-text').text(r.data.review_count_str);
                 $('.reviews-count').text(r.data.count);
                 form.find('input[name=count]').val(r.data.count);
                 clear(form, true);
                 content.find('.write-review a').click();
-                
+
                 form_wrapper.hide();
                 if (typeof success === 'function') {
                     success(r);

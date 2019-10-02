@@ -24,7 +24,7 @@
     </ul>
 {/if}
 
-{if $wa->shop->cart->total() > 0}{$add2cart_label = '[`Add to cart`]'}{else}{$add2cart_label = '[`Buy`]'}{/if}
+{if $wa->shop->cart->total() > 0}{$add2cart_label = _wd('shop', 'Add to cart')}{else}{$add2cart_label = _wd('shop', 'Buy')}{/if}
 
 <ul class="thumbs product-list">
 {if !empty($theme_settings.list_features)}
