@@ -980,24 +980,57 @@ SQL;
         }
     }
 
-    public function fastExecute($profile_id)
+    public function fastExecute($profile_id, $progress = false)
     {
         $result = null;
         try {
+            $out = '';
             ob_start();
             $this->_processId = $profile_id;
             $this->init();
             $is_done = $this->isDone();
+            $out .= ob_get_clean();
+            $interval = 0;
             while (!$is_done) {
-
+                ob_start();
                 $this->step();
                 $is_done = $this->isDone();
+                $out .= ob_get_clean();
+                if ($progress) {
+                    if (!empty($this->data['timestamp'])) {
+                        $interval = time() - $this->data['timestamp'];
+                    }
+                    if (empty($report['interval']) || ($interval > $report['interval'])) {
+                        $report = array(
+                            'interval' => $interval,
+                            'time'     => sprintf('%d:%02d:%02d', floor($interval / 3600), floor($interval / 60) % 60, $interval % 60),
+                            'stage'    => false,
+                            'progress' => 0.0,
+                            'memory'   => sprintf('%0.2fMByte', $this->data['memory'] / 1048576),
+                        );
+
+                        $stage_num = 0;
+                        $stage_count = count($this->data['current']);
+                        foreach ($this->data['current'] as $stage => $current) {
+                            if ($current < $this->data['count'][$stage]) {
+                                $report['stage'] = $stage;
+                                $report['progress'] = sprintf('%0.3f%%', 100.0 * (1.0 * $current / $this->data['count'][$stage] + $stage_num) / $stage_count);
+                                break;
+                            }
+                            ++$stage_num;
+                        }
+
+                        print sprintf("\rВремя: %s\tПрогресс: %0.2f%%\tПамять: %s", $report['time'], $report['progress'], $report['memory']);
+                    }
+                }
             }
+
+            ob_start();
             $_POST['cleanup'] = true;
             $this->save();
             $this->finish(null);
+            $out .= ob_get_clean();
 
-            $out = ob_get_clean();
             $result = array(
                 'success' => $this->exchangeReport(),
             );
@@ -1058,7 +1091,7 @@ SQL;
                     $this->data['processed_count'][$stage]
                 );
                 if ($this->data['current'][$stage]
-                    && ($this->data['current'][$stage] ===  $this->data['count'][$stage])
+                    && ($this->data['current'][$stage] === $this->data['count'][$stage])
                 ) {
                     $complete_method_name = $this->getMethodName($stage, 'complete%s');
                     if (method_exists($this, $complete_method_name)) {
@@ -1334,7 +1367,8 @@ SQL;
     private function getCommonCollection($hash)
     {
         $options = array(
-            'frontend' => true,
+            'frontend'           => true,
+            'storefront_context' => rtrim($this->data['domain'], '*'),
         );
 
         if (!empty($this->data['export']['skip_ignored'])) {
@@ -1348,8 +1382,8 @@ SQL;
 
     /**
      *
-     * @internal param string $hash
      * @return shopProductsCollection
+     * @internal param string $hash
      */
     private function getCollection()
     {
@@ -1358,6 +1392,7 @@ SQL;
                 'frontend'              => true,
                 'round_prices'          => false,
                 'correct_category_urls' => true,
+                'storefront_context'    => rtrim($this->data['domain'], '*'),
             );
 
             if (!empty($this->data['export']['skip_ignored'])) {
@@ -1391,6 +1426,26 @@ SQL;
             $this->collection = new shopProductsCollection($hash, $options);
         }
         return $this->collection;
+    }
+
+
+    /**
+     * @return shopPromoProductPrices
+     */
+    private function promoProductPrices()
+    {
+        static $promo_product_prices_class;
+
+        if (empty($promo_product_prices_class) && class_exists('shopPromoProductPrices')) {
+            $promo_prices_model = new shopProductPromoPriceTmpModel();
+            $options = array(
+                'model'      => $promo_prices_model,
+                'storefront' => rtrim($this->data['domain'], '*'),
+            );
+            $promo_product_prices_class = new shopPromoProductPrices($options);
+        }
+
+        return $promo_product_prices_class;
     }
 
     /**
@@ -1646,6 +1701,11 @@ SQL;
                         }
                         unset($product);
                     }
+                }
+
+
+                if ($this->promoProductPrices()) {
+                    $this->promoProductPrices()->workupPromoProducts($products);
                 }
 
             } else {
@@ -1944,7 +2004,6 @@ SQL;
         }
         ++$current_stage;
     }
-
 
 
     private function completePromoRules($count, $processed)
@@ -2370,7 +2429,7 @@ SQL;
     }
 
     /**
-     * @param  DOMElement $node
+     * @param DOMElement  $node
      * @param             $data
      * @param             $map
      * @param array       $child_nodes
@@ -3335,7 +3394,7 @@ SQL;
                     $value = null;
                 } else {
                     $value = array(
-                        'type'  => $value,
+                        'type'    => $value,
                         '@reason' => $data['condition-reason'],
                     );
                 }
@@ -3355,7 +3414,8 @@ SQL;
 
             # XXX use map.php for configure this fields
             # implode values for non multiple and non complex fields
-            if (!in_array($field, array('email', 'picture','url', 'dataTour', 'additional', 'barcode', 'param', 'related_offer', 'local_delivery_cost', 'available', 'age','condition'))) {
+            if (!in_array($field,
+                array('email', 'picture', 'url', 'dataTour', 'additional', 'barcode', 'param', 'related_offer', 'local_delivery_cost', 'available', 'age', 'condition'))) {
                 $value = implode(', ', $value);
             }
         } elseif ($value !== null) {
@@ -3402,11 +3462,12 @@ SQL;
                         if (isset($product['&offer'])) {
                             $offer = $product['&offer'];
                             unset($product['&offer']);
-                            $value['@discount-price'] = array(
+                            $product['@discount-price'] = array(
                                 'currency' => $offer['currency'],
                                 'value'    => $offer['price'],
                             );
 
+                            $value[] = $product;
                         } else {
                             $value[] = $product;
                         }
