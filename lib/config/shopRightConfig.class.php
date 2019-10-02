@@ -12,9 +12,10 @@ class shopRightConfig extends waRightConfig
         $this->addItem('customers', _w('Can manage customers'));
         $this->addItem('settings', _w('Can manage settings'));
         $this->addItem('services', _w('Can manage services'));
-        $this->addItem('setscategories', _w('Can manage product sets, categories, and promos'));
+        $this->addItem('setscategories', _w('Can manage product sets, categories'));
         $this->addItem('importexport', _w('Can import and export data'));
-        $this->addItem('marketing', _w('Can manage marketing'));
+        $this->addItem('marketing', _w('Can use marketing tools'));
+        $this->addItem('setup_marketing', _w('Can set up marketing tools'));
         $this->addItem('reports', _w('Can view reports'));
         $this->addItem('pages', _ws('Can edit pages'));
         $this->addItem('design', _ws('Can edit design'));

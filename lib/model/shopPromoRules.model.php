@@ -9,18 +9,21 @@ class shopPromoRulesModel extends waModel
         $shop_types = [
             'custom_price' => [
                 'type'      => 'custom_price',
-                'name'      => _w('Overridden prices'),
+                'name'      => _w('Products & prices'),
                 'css_class' => 'dollar',
+                'max_count' => 1,
             ],
             'utm'          => [
                 'type'      => 'utm',
                 'name'      => _w('UTM tags'),
                 'css_class' => 'tags',
+                'max_count' => 1,
             ],
             'coupon'       => [
                 'type'      => 'coupon',
                 'name'      => _w('Coupons'),
                 'css_class' => 'ss coupon',
+                'max_count' => 1,
             ],
         ];
 

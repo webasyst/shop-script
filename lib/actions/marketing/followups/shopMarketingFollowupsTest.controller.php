@@ -3,7 +3,7 @@
 /**
  * Controller to send tests for follow-ups settings page.
  */
-class shopMarketingFollowupsTestController extends waJsonController
+class shopMarketingFollowupsTestController extends shopMarketingSettingsJsonController
 {
     public function execute()
     {

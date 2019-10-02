@@ -79,11 +79,12 @@ class shopShipping extends waAppShipping
                 'status' => 1,
                 'type'   => waShipping::PLUGIN_TYPE,
             );
-
-            self::fillDefaultData($info);
         }
 
-        $info += $info['info'];
+        self::fillDefaultData($info);
+        if ($info && !empty($info['info']) && is_array($info['info'])) {
+            $info += $info['info'];
+        }
 
         return $info;
     }
@@ -143,7 +144,7 @@ class shopShipping extends waAppShipping
             throw new waException(_w('Shipping plugins not installed yet'));
         }
         $list = waShipping::enumerate();
-        $list['dummy'] = shopShippingDummy::dummyInfo();
+        $list[self::DUMMY] = shopShippingDummy::info(self::DUMMY);
 
         return $list;
     }
@@ -600,7 +601,7 @@ class shopShipping extends waAppShipping
     {
         if (!isset($data['info'])) {
             if ($data['plugin'] == self::DUMMY) {
-                $data['info'] = shopShippingDummy::dummyInfo();
+                $data['info'] = shopShippingDummy::info($data['plugin']);
             } else {
                 $data['info'] = waShipping::info($data['plugin']);
             }

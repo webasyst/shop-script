@@ -37,7 +37,7 @@ class shopMarketingPromoAction extends shopMarketingViewAction
             list($chart_data, $promo_totals, $overall_totals) = self::getChartData($raw_data_promo, $raw_data_sales);
 
             $expense_model = new shopExpenseModel();
-            $promo_totals['expense'] = (float) $expense_model->calculateTotal([
+            $promo_totals['expense'] = (float)$expense_model->calculateTotal([
                 'type' => 'promo',
                 'name' => $promo_id,
             ]);
@@ -51,7 +51,7 @@ class shopMarketingPromoAction extends shopMarketingViewAction
 
         $overall_totals = ifempty($overall_totals);
         $promo_totals = ifempty($promo_totals);
-        $chart_data =ifempty($chart_data);
+        $chart_data = ifempty($chart_data);
 
         $available_rule_types = $this->getAvailableRuleTypes();
 
@@ -104,23 +104,23 @@ class shopMarketingPromoAction extends shopMarketingViewAction
         $event_result = wa()->event('backend_marketing_promo', $params);
 
         $additional_html = [
-            'action_link' => [],
+            'action_link'  => [],
             'info_section' => [],
-            'button' => [],
-            'bottom' => [],
+            'button'       => [],
+            'bottom'       => [],
         ];
-        foreach($event_result as $res) {
+        foreach ($event_result as $res) {
             if (!is_array($res)) {
                 $res = [
                     'bottom' => $res,
                 ];
             }
-            foreach($res as $k => $v) {
+            foreach ($res as $k => $v) {
                 if (isset($additional_html[$k])) {
                     if (!is_array($v)) {
                         $v = [$v];
                     }
-                    foreach($v as $html) {
+                    foreach ($v as $html) {
                         $additional_html[$k][] = $html;
                     }
                 }
@@ -139,14 +139,16 @@ class shopMarketingPromoAction extends shopMarketingViewAction
 
     public static function getTimeframeLimits($promo)
     {
-        $start_ts = time() - 30*24*3600;
+        $start_ts = time() - 30 * 24 * 3600;
         $start_date = date('Y-m-d', $start_ts);
         if (!empty($promo['start_datetime'])) {
             $start_date = explode(' ', $promo['start_datetime'])[0];
             $start_ts = strtotime($start_date);
-        } else if (!empty($promo['create_datetime'])) {
-            $start_date = explode(' ', $promo['create_datetime'])[0];
-            $start_ts = strtotime($start_date);
+        } else {
+            if (!empty($promo['create_datetime'])) {
+                $start_date = explode(' ', $promo['create_datetime'])[0];
+                $start_ts = strtotime($start_date);
+            }
         }
 
         $finish_ts = time();
@@ -156,7 +158,7 @@ class shopMarketingPromoAction extends shopMarketingViewAction
             $finish_ts = strtotime($finish_date);
         }
 
-        if ($finish_ts - $start_ts >= 365*24*3600) {
+        if ($finish_ts - $start_ts >= 365 * 24 * 3600) {
             $group_by = 'months';
         } else {
             $group_by = 'days';
@@ -178,9 +180,9 @@ class shopMarketingPromoAction extends shopMarketingViewAction
             'cost'               => 0,
         ];
 
-        $chart_data = array_map(function($d, $d_total) use (&$overall_totals, &$promo_totals) {
+        $chart_data = array_map(function ($d, $d_total) use (&$overall_totals, &$promo_totals) {
 
-            foreach($d as $k => $v) {
+            foreach ($d as $k => $v) {
                 if ($k != 'date') {
                     $promo_totals[$k] = ifset($promo_totals, $k, 0) + $v;
                     $overall_totals[$k] = ifset($overall_totals, $k, 0) + $d_total[$k];
@@ -194,7 +196,7 @@ class shopMarketingPromoAction extends shopMarketingViewAction
             ];
         }, $raw_data_promo, $raw_data_sales);
 
-        foreach([&$overall_totals, &$promo_totals] as &$totals) {
+        foreach ([&$overall_totals, &$promo_totals] as &$totals) {
             $totals['avg_order'] = 0;
             if ($totals['order_count'] > 0) {
                 $totals['avg_order'] = $totals['sales'] / $totals['order_count'];
@@ -202,10 +204,10 @@ class shopMarketingPromoAction extends shopMarketingViewAction
         }
         unset($totals);
 
-        foreach(['sales', 'order_count', 'avg_order'] as $k) {
+        foreach (['sales', 'order_count', 'avg_order'] as $k) {
             $promo_totals[$k.'_percent'] = 0;
             if ($overall_totals[$k] > 0) {
-                $promo_totals[$k.'_percent'] = $promo_totals[$k]*100 / $overall_totals[$k];
+                $promo_totals[$k.'_percent'] = $promo_totals[$k] * 100 / $overall_totals[$k];
             }
         }
 

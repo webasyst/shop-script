@@ -1,6 +1,6 @@
 <?php
 
-class shopMarketingDiscountsCategorySaveController extends waJsonController
+class shopMarketingDiscountsCategorySaveController extends shopMarketingSettingsJsonController
 {
     public function execute()
     {

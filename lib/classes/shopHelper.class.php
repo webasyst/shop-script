@@ -300,6 +300,7 @@ class shopHelper
                         'width'    => ifset($item['width']),
                         'length'   => ifset($item['length']),
                     );
+                    unset($item);
                 }
 
                 if ($total) {
@@ -538,11 +539,28 @@ class shopHelper
             foreach ($items as &$item) {
                 if (!empty($item['price'])) {
                     $item['price'] = floatval($item['price']);
+                    if (isset($item['total_discount'])) {
+                        $item['total_discount'] = floatval($item['total_discount']);
+                    }
+                    if (isset($item['discount'])) {
+                        $item['discount'] = floatval($item['discount']);
+                    }
                     if (!in_array($params['currency'], $plugin_currency)) {
                         $item['original_price'] = $item['price'];
+
                         $item['price'] = shop_currency($item['price'], $params['currency'], reset($plugin_currency), false);
+                        if (isset($item['total_discount'])) {
+                            $item['original_total_discount'] = $item['total_discount'];
+                            $item['total_discount'] = shop_currency($item['total_discount'], $params['currency'], reset($plugin_currency), false);
+                        }
+                        if (isset($item['discount'])) {
+                            $item['original_discount'] = $item['discount'];
+                            $item['discount'] = shop_currency($item['discount'], $params['currency'], reset($plugin_currency), false);
+                        }
                     }
-                    $total += $item['price'] * (isset($item['quantity']) ? max(0, $item['quantity']) : 1);
+                    $quantity = isset($item['quantity']) ? max(0, $item['quantity']) : 1;
+                    $total += $item['price'] * $quantity;
+                    $total -= empty($item['total_discount']) ? ifset($item, 'discount', 0) * $quantity : $item['total_discount'];
                 }
                 unset($item);
             }

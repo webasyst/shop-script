@@ -4,18 +4,23 @@ class shopShippingDummy extends waShipping
 {
     /**
      * @return waShipping
+     * @throws waException
      */
     public static function getDummy()
     {
         return new self('dummy');
     }
 
-    public static function dummyInfo()
+    public static function info($id, $options = array(), $type = null)
     {
         return array(
-            'img'         => null,
-            'name'        => _w('Free shipping'),
-            'description' => _w(''),
+            'img'              => null,
+            'icon'             => null,
+            'logo'             => null,
+            'version'          => '1.44',
+            'name'             => _w('Free shipping by courier'),
+            'description'      => '',
+            'services_by_type' => true,
         );
     }
 
@@ -27,9 +32,7 @@ class shopShippingDummy extends waShipping
     public function allowedCurrency()
     {
         $config = wa('shop')->getConfig();
-        /**
-         * @var shopConfig $config
-         */
+        /** @var shopConfig $config */
         return $config->getCurrency();
     }
 
@@ -40,12 +43,22 @@ class shopShippingDummy extends waShipping
 
     protected function calculate()
     {
-        return array(
-            'delivery' => array(
-                'est_delivery' => '',
+        return [
+            'courier' => [
+                'type'         => waShipping::TYPE_TODOOR,
                 'currency'     => $this->getPackageProperty('currency'),
+                'est_delivery' => '',
                 'rate'         => 0,
-            ),
-        );
+                'custom_data'  => [
+                    waShipping::TYPE_TODOOR => [
+                        'payment' => [
+                            waShipping::PAYMENT_TYPE_CARD    => true,
+                            waShipping::PAYMENT_TYPE_CASH    => true,
+                            waShipping::PAYMENT_TYPE_PREPAID => true,
+                        ],
+                    ],
+                ],
+            ],
+        ];
     }
 }

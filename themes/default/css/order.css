@@ -1,15 +1,15 @@
-html,
-body,
-.content,
-main.maincontent {
+html.is-order-page,
+html.is-order-page body,
+html.is-order-page .content,
+html.is-order-page main.maincontent {
   background: #e3e3e3;
 }
 @media screen and (max-width: 760px) {
-  .globalheader #globalnav {
+  html.is-order-page .globalheader #globalnav {
     z-index: 999;
   }
 }
-.container {
+html.is-order-page .container {
   min-width: 0;
   width: 100%;
   max-width: 100%;
@@ -20,22 +20,22 @@ main.maincontent {
   box-sizing: border-box;
 }
 @media screen and (max-width: 1300px) {
-  .container {
+  html.is-order-page .container {
     width: 100%;
   }
 }
 @media screen and (min-width: 1301px) {
-  .container {
+  html.is-order-page .container {
     width: 1300px;
   }
 }
 @media screen and (min-width: 761px) {
-  .container {
+  html.is-order-page .container {
     padding: 0 20px;
   }
 }
 @media screen and (min-width: 1101px) {
-  .container {
+  html.is-order-page .container {
     padding: 0 40px;
   }
 }

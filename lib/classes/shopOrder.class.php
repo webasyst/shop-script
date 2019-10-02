@@ -957,6 +957,7 @@ class shopOrder implements ArrayAccess
     /**
      * Validate internal data before save if not validated already.
      * @return array of errors
+     * @throws waException
      */
     public function errors()
     {
@@ -1742,6 +1743,7 @@ class shopOrder implements ArrayAccess
     /**
      * @param $params
      * @return mixed
+     * @throws waException
      */
     protected function parseParams($params)
     {
@@ -1856,8 +1858,8 @@ class shopOrder implements ArrayAccess
                 }
             }
 
-            if ($this->is_changed['items'] || !$this->id) {
-                $total = shopShipping::getItemsTotal($this->data['items']);
+            if (!empty($this->is_changed['items']) || !$this->id) {
+                $total = shopShipping::getItemsTotal(ifempty($this->data, 'items', []));
                 foreach ($total as $field => $value) {
                     $params['package_'.$field] = $value;
                 }
@@ -2997,6 +2999,7 @@ class shopOrder implements ArrayAccess
             # round to currency precision
             $item['price'] = shop_currency($item['price'], $this->currency, $this->currency, false);
             $item['total_discount'] = 0;
+            $item['currency'] = '';
 
             unset($item);
         }

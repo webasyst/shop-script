@@ -82,11 +82,7 @@ class shopPluginModel extends shopSortableModel
                 try {
                     switch ($type) {
                         case waShipping::PLUGIN_TYPE:
-                            if ($plugin_id == shopShipping::DUMMY) {
-                                $info = shopShippingDummy::dummyInfo();
-                            } else {
-                                $info = waShipping::info($plugin_id);
-                            }
+                            $info = waShipping::info($plugin_id);
 
                             if (is_array($info)) {
                                 $info += array(
@@ -96,11 +92,7 @@ class shopPluginModel extends shopSortableModel
 
                             break;
                         case waPayment::PLUGIN_TYPE:
-                            if ($plugin_id == shopShipping::DUMMY) {
-                                $info = shopPaymentDummy::dummyInfo();
-                            } else {
-                                $info = waPayment::info($plugin_id);
-                            }
+                            $info = waPayment::info($plugin_id);
 
                             if (is_array($info)) {
                                 $info += array(

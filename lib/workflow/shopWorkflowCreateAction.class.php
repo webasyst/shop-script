@@ -252,6 +252,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         // Calculate subtotal, taking currency conversion into account
         $subtotal = 0;
         foreach ($data['items'] as &$item) {
+            $item['currency'] = ifempty($item, 'currency', $currency);
             if ($currency != $item['currency']) {
                 $item['price'] = shop_currency($item['price'], $item['currency'], null, false);
                 if (!empty($item['purchase_price'])) {

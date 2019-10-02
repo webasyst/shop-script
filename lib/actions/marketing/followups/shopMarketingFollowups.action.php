@@ -3,7 +3,7 @@
 /**
  * Settings form for follow-ups, and submit controller for this form.
  */
-class shopMarketingFollowupsAction extends shopMarketingViewAction
+class shopMarketingFollowupsAction extends shopMarketingSettingsViewAction
 {
     public function execute()
     {

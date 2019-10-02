@@ -1,9 +1,10 @@
 <?php
-
 /**
  * Enable or disable given discount type when user toggles iButton.
+ * @deprecated
+ * Use shopMarketingDiscountsEnableController or write your own in plugin.
  */
-class shopMarketingDiscountsEnableController extends shopMarketingSettingsJsonController
+class shopSettingsDiscountsEnableController extends waJsonController
 {
     public function execute()
     {

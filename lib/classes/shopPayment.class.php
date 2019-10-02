@@ -87,7 +87,9 @@ class shopPayment extends waAppPayment
             self::fillDefaultData($info);
         }
 
-        $info += $info['info'];
+        if ($info && !empty($info['info']) && is_array($info['info'])) {
+            $info += $info['info'];
+        }
 
         return $info;
     }

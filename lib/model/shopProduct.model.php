@@ -655,6 +655,23 @@ class shopProductModel extends waModel
         return $this->select('currency')->where('id='.(int)$product_id)->fetchField('currency');
     }
 
+    /**
+     * Returns the currency of product
+     * @param array $product_ids
+     * @return array
+     */
+    public function getCurrencies($product_ids)
+    {
+        if (empty($product_ids)) {
+            return [];
+        }
+        $sql = "SELECT id, currency
+                FROM {$this->table}
+                WHERE id IN (?)";
+
+        return $this->query($sql, $product_ids)->fetchAll('id');
+    }
+
     public function getTop($limit, $order = 'sales', $start_date = null, $end_date = null, $options = array())
     {
         $paid_date_sql = shopOrderModel::getDateSql('o.paid_date', $start_date, $end_date);

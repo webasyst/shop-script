@@ -200,7 +200,7 @@
                             {$_is_active = $promo.enabled}
 
                             {$_status_icon_class = "play"}
-                            {$_status_title = "[`Period`]"}
+                            {$_status_title = "[`Active action`]"}
                             {if !empty($promo.start_datetime)}
                                 {$_start_time = $promo.start_datetime|strtotime}
                                 {$_now = waDateTime::format('timestamp')}
@@ -303,7 +303,9 @@
 
                             <div class="s-storefronts-section">
                                 {$_count = $promo["routes"]|default:[]|count}
-                                {if !empty($promo["routes"][shopPromoRoutesModel::FLAG_ALL])}
+                                {if empty($promo["id"])}
+                                    {$_count = $storefronts|count}
+                                {elseif !empty($promo["routes"][shopPromoRoutesModel::FLAG_ALL])}
                                     {$_count = $_count - 1}
                                 {/if}
 
@@ -505,27 +507,30 @@
 
                             <div class="s-rules-section js-rules-section">
 
-                                <div class="s-rule-section" data-id="" data-type="">
+                                <div class="s-rule-section">
                                     <header class="s-section-header">
 
                                         <div class="s-table-box middle">
                                             <div class="s-column">
-
-                                                <div class="is-visible">
-                                                    <a class="inline-link js-create-rule" href="javascript:void(0);">
-                                                        <i class="icon16 add"></i><b><i>[`Add tool`]</i></b>
-                                                    </a>
-                                                </div>
-                                                <div class="is-hidden">
-                                                    <span class="s-label">[`Tool`]</span>
-                                                    <select class="js-rule-type-select">
-                                                        <option disabled selected value="">[`Select a tool`]</option>
-                                                        {foreach $available_rule_types as $_rule}
-                                                            <option value="{$_rule.type|escape}">{$_rule.name|escape}</option>
-                                                        {/foreach}
-                                                    </select>
-                                                </div>
-
+                                                <ul class="menu-h dropdown">
+                                                    <li>
+                                                        <a href="javascript:void(0);" class="inline-link">
+                                                            <i class="icon16 add"></i><b><i>[`Add tool`]</i></b><i class="icon16 darr"></i>
+                                                        </a>
+                                                        <ul class="menu-v without-icons s-add-rules-list js-add-rules-list">
+                                                            {foreach $available_rule_types as $_rule}
+                                                                <li>
+                                                                    <a class="js-create-rule" href="javascript:void(0);" data-rule-type="{$_rule.type|escape}" data-max-count="{$_rule.max_count|default:""|escape}">
+                                                                        {$_rule.name|escape}
+                                                                    </a>
+                                                                </li>
+                                                            {/foreach}
+                                                            <li class="s-empty-message">
+                                                                <a class="s-message" href="javascript:void(0);">[`All available tools already added`]</a>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                </ul>
                                             </div>
                                             <div class="s-column">
                                                 <div class="s-actions is-hidden">
@@ -540,14 +545,22 @@
                                     <div class="s-section-footer js-section-footer"></div>
                                 </div>
 
-                                {foreach $promo.rules as $_rule}
-                                    {$_rule_type_data = ifempty($available_rule_types, $_rule.rule_type, null)}
-                                    <div class="s-rule-section" data-id="{$_rule.id|escape}" data-type="{$_rule.rule_type|escape}">
+                                {strip}
+                                {function name="_render_rule" _rule=[]}
+                                    {if !empty($_rule)}
+                                        {$_rule_type_data = ifempty($available_rule_types, $_rule.rule_type, null)}
+                                    {else}
+                                        {$_rule = [
+                                            "id" => "",
+                                            "rule_type" => ""
+                                        ]}
+                                    {/if}
 
+                                    <div class="s-rule-section" data-id="{$_rule.id|escape}" data-type="{$_rule.rule_type|escape}">
                                         <header class="s-section-header">
                                             <div class="s-table-box middle">
                                                 <div class="s-column">
-                                                    <h5 class="s-title">{if !empty($_rule_type_data)}<i class="icon16 {$_rule_type_data.css_class|escape}"></i>&nbsp;{$_rule_type_data.name|escape}{else}{$_rule.rule_type}{/if}</h5>
+                                                    <h5 class="s-title js-title">{if !empty($_rule_type_data)}<i class="icon16 {$_rule_type_data.css_class|escape}"></i>&nbsp;{$_rule_type_data.name|escape}{else}{$_rule.rule_type}{/if}</h5>
                                                 </div>
                                                 <div class="s-column">
                                                     <div class="s-actions">
@@ -560,9 +573,11 @@
                                                             <b><i>[`Cancel`]</i></b>
                                                         </a>
 
-                                                        <a class="inline-link js-delete-rule" href="javascript:void(0);">
-                                                            <i class="icon16 delete"></i><b><i>[`Delete`]</i></b>
-                                                        </a>
+                                                        {if !empty($_rule.id)}
+                                                            <a class="inline-link js-delete-rule" href="javascript:void(0);">
+                                                                <i class="icon16 delete"></i><b><i>[`Delete`]</i></b>
+                                                            </a>
+                                                        {/if}
                                                     </div>
                                                 </div>
                                             </div>
@@ -571,6 +586,15 @@
                                         <div class="s-section-body js-section-body"></div>
                                         <div class="s-section-footer js-section-footer"></div>
                                     </div>
+                                {/function}
+                                {/strip}
+
+                                {capture assign="_new_rule_template"}
+                                    {_render_rule _rule=[]}
+                                {/capture}
+
+                                {foreach $promo.rules as $_rule}
+                                    {_render_rule _rule=$_rule}
                                 {/foreach}
                             </div>
                         </div>
@@ -581,6 +605,7 @@
                     {$_html}
                 {/foreach}
 
+                <div class="s-page-errors-wrapper js-page-errors-wrapper"></div>
             </div>
 
             {* FOOTER *}
@@ -703,6 +728,7 @@
                         $wrapper: $("#js-promo-page"),
                         promo_id: {if !empty($promo.id)}{$promo.id|json_encode}{else}null{/if},
                         promo_options: {if !empty($options)}{$options|json_encode}{else}null{/if},
+                        rule_types: {$available_rule_types|default:[]|json_encode},
                         active_tab: {$_active_tab_id|json_encode},
                         chart_data: getChartData({$chart_data|json_encode}),
                         current_date_string: {waDateTime::date('Y-m-d')|json_encode},
@@ -711,7 +737,8 @@
                             "saving": {$_saving_html|json_encode},
                             "saved": {$_saved_html|json_encode},
                             "clone_confirm": {$_clone_confirm|json_encode},
-                            "delete_confirm": {$_delete_confirm|json_encode}
+                            "delete_confirm": {$_delete_confirm|json_encode},
+                            "new_rule_template": {$_new_rule_template|json_encode}
                         },
                         locales: {
                             "days": {_w("d")|json_encode},
@@ -720,7 +747,8 @@
                             "seconds": {_w("sec")|json_encode},
                             "after": "<i class=\"icon16 yes\"></i> " + {_w("%s ago")|json_encode},
                             "before": "<i class=\"icon16 alarm-clock\"></i> " + {_w("in %s")|json_encode},
-                            "rule_delete_confirm": {_w("Do you really want to delete this tool?")|json_encode}
+                            "rule_delete_confirm": {_w("Do you really want to delete this tool?")|json_encode},
+                            "server_error": {_w("Server error")|json_encode}
                         },
                         urls: {
                             "marketing_url": {$marketing_url|json_encode},

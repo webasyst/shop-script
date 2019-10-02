@@ -11,6 +11,7 @@
             // CONST
             that.coupon_id = options["coupon_id"];
             that.urls = options["urls"];
+            that.locales = options["locales"];
 
             // DYNAMIC VARS
 
@@ -84,7 +85,7 @@
                 var code_field = $('[name="coupon[code]"]');
                 if (!code_field.val()) {
                     valid = false;
-                    code_field.addClass('error').after($('<em class="errormsg"></em>').text("[`This field is required.`]"));
+                    code_field.addClass('error').after($('<em class="errormsg"></em>').text(that.locales["required"]));
                 }
 
                 var discount_value = 0;
@@ -93,7 +94,7 @@
                     discount_value = parseInt(discount_input.val(), 10);
                     if (isNaN(discount_value) || discount_value < 0 || discount_value > 100) {
                         valid = false;
-                        discount_input.addClass('error').nextAll().after($('<em class="errormsg"></em>').text("[`Must be a value from 0 to 100`]"));
+                        discount_input.addClass('error').nextAll().after($('<em class="errormsg"></em>').text(that.locales["incorrect_1"]));
                     }
                 }
 
@@ -133,11 +134,11 @@
             function initDelete() {
                 var is_locked = false;
 
-                var code = $('[name="coupon[code]"]').val();
+                var code = that.$wrapper.find('[name="coupon[code]"]').val();
                 if (code) {
                     $form.on("click", "#delete-coupon-link", function(event) {
                         event.preventDefault();
-                        if (!confirm("[`This will permanently delete discount coupon %s. Are you sure?`]".replace('%s', code))) {
+                        if (!confirm(that.locales["delete"].replace('%s', code))) {
                             return;
                         }
                         deleteCoupon();

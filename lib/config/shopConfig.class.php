@@ -698,10 +698,13 @@ class shopConfig extends waAppConfig
     public function getStorefrontRoute()
     {
         $storefronts = shopHelper::getStorefronts(true);
-        $shop_url = preg_replace('~^https?://~', '', wa()->getRouteUrl('shop/frontend', [], true));
+        $shop_url = preg_replace('~^https?://|[\\\\/]$~i', '', wa()->getRouteUrl('shop/frontend', [], true));
         foreach ($storefronts as $storefront) {
-            if (isset($storefront['route']) && isset($storefront['url']) && $storefront['url'] == $shop_url) {
-                return $storefront['route'];
+            if (isset($storefront['route']) && isset($storefront['url'])) {
+                $storefront_url = rtrim($storefront['url'], '\/');
+                if ($storefront_url == $shop_url) {
+                    return $storefront['route'];
+                }
             }
         }
 

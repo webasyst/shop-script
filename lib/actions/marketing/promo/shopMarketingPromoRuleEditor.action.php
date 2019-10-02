@@ -9,9 +9,9 @@ class shopMarketingPromoRuleEditorAction extends waViewAction
 
     protected function preExecute()
     {
-        $this->options = waRequest::post('options', [], waRequest::TYPE_ARRAY_TRIM);
+        $this->options   = waRequest::post('options', [], waRequest::TYPE_ARRAY_TRIM);
         $this->rule_type = waRequest::post('rule_type', null, waRequest::TYPE_STRING_TRIM);
-        $this->rule_id = waRequest::post('rule_id', null, waRequest::TYPE_INT);
+        $this->rule_id   = waRequest::post('rule_id', null, waRequest::TYPE_INT);
     }
 
     public function execute()
@@ -58,14 +58,13 @@ class shopMarketingPromoRuleEditorAction extends waViewAction
         if (!empty($this->rule) && !empty($product_ids)) {
             $hash = 'id/'.join(',', $product_ids);
             $collection = new shopProductsCollection($hash);
-        }
-
-        if (empty($this->rule_id) && !empty($this->options['products_hash'])) {
-            $collection = new shopProductsCollection($this->options['products_hash']);
-        }
-
-        if (!empty($collection)) {
             $products_data = $collection->getProducts('id,name,images,currency,skus');
+        }
+
+        if (!empty($this->options['products_hash'])) {
+            $collection = new shopProductsCollection($this->options['products_hash']);
+            $new_products = $collection->getProducts('id,name,images,currency,skus');
+            $products_data = array_merge($new_products, $products_data);
         }
 
         $this->view->assign([

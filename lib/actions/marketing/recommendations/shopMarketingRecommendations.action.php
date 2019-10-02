@@ -1,6 +1,6 @@
 <?php
 
-class shopMarketingRecommendationsAction extends shopMarketingViewAction
+class shopMarketingRecommendationsAction extends shopMarketingSettingsViewAction
 {
     public function execute()
     {

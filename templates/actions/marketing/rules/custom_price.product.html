@@ -8,10 +8,30 @@
     {$_rule_name = $options["rule_name"]}
 {/if}
 
-{foreach $product.skus as $_sku}
+{function name="_render_product" _sku=[] _type="product-with-sku"}
     {$_price = ""}
     {$_compare_price = ""}
     {$_currency = null}
+
+    {$_render_sku_id = true}
+    {$_render_images = true}
+    {$_render_name = true}
+    {$_render_details = true}
+    {$_render_prices = true}
+    {$_render_fields = true}
+    {$_render_actions = true}
+
+    {if $_type === "product"}
+        {$_render_sku_id = false}
+        {$_render_details = false}
+        {$_render_prices = false}
+        {$_render_fields = false}
+
+    {elseif $_type === "sku"}
+        {$_render_images = false}
+        {$_render_name = false}
+        {$_render_actions = false}
+    {/if}
 
     {if !empty($rule_product_data)}
         {$_currency = $rule_product_data.currency}
@@ -34,10 +54,12 @@
         {/if}
     {/if}
 
-    <tr class="s-product-wrapper" data-id="{$product.id}" data-sku-id="{$_sku.id}">
+    {$_product_uri = "`$wa_app_url`?action=products#/product/`$product.id`/"}
+
+    <tr class="s-product-wrapper" data-id="{$product.id}" {if !empty($_render_sku_id)}data-sku-id="{$_sku.id}"{/if}>
         {* IMAGE *}
         <td class="s-image-column">
-            {if !empty($product.images)}
+            {if !empty($_render_images) && !empty($product.images)}
                 {$_product_images = $product.images|array_values}
                 {$_product_image = $_product_images.0}
                 {if !empty($_product_image.url_crop)}
@@ -46,64 +68,79 @@
                     </div>
                 {/if}
             {/if}
-
-            <input type="hidden" name="{$_rule_name}[rule_params][{$product.id}][currency]" value="{$product.currency}" />
         </td>
 
         {* NAME *}
         <td class="s-name-column">
             <div class="s-name-wrapper">
-                <span class="s-name">{$product.name|escape}</span>
-                <span class="s-sku-id">{$_sku.sku|escape}</span>
-                {if $product.skus|count > 1 && $product.name !== $_sku.name}
+                {if !empty($_render_name)}
+                    <a class="s-name" href="{$_product_uri|escape}">{$product.name|escape}</a>
+                {/if}
+                {if !empty($_render_details)}
                     <span class="s-sku-name">{$_sku.name|escape}</span>
+                    <span class="s-sku-id">{$_sku.sku|escape}</span>
                 {/if}
             </div>
         </td>
 
-        {* PRICE *}
+        {* PRICES *}
         <td class="s-price-column">
-            <div class="s-price-wrapper">
-                <span class="s-price">{shop_currency_html($_sku.price, $product.currency)}</span>
-            </div>
+            {if !empty($_render_prices)}
+                <div class="s-price-wrapper">
+                    <span class="s-price">{shop_currency_html($_sku.price, $product.currency, $product.currency)}</span>
+                </div>
+
+                <div class="s-price-wrapper">
+                    {if $_sku.compare_price > 0}
+                        <span class="s-compare-price">{shop_currency_html($_sku.compare_price, $product.currency, $product.currency)}</span>
+                    {else}
+                        —
+                    {/if}
+                </div>
+            {/if}
         </td>
 
-        {* COMPARE PRICE *}
-        <td class="s-compare-price-column">
-            <div class="s-price-wrapper">
-                {if $_sku.compare_price > 0}
-                    <span class="s-compare-price">{shop_currency_html($_sku.compare_price, $product.currency)}</span>
-                {else}
-                    —
-                {/if}
-            </div>
-        </td>
-
-        {* PRICE FIELD *}
+        {* PRICE FIELDS *}
         <td class="s-price-field-column">
-            <label class="s-price-field">
-                <input class="s-field" type="text" autocomplete="off" name="{$_rule_name}[rule_params][{$product.id}][skus][{$_sku.id}][price]" value="{$_price}" placeholder="{$_sku.price|floatval|escape}" required>
-                <span class="s-label">{str_replace('0', '', {shop_currency_html(0, $product.currency)})}</span>
-            </label>
-        </td>
+            {if !empty($_render_fields)}
+                <label class="s-price-field">
+                    <input class="s-field" type="text" autocomplete="off" name="{$_rule_name}[rule_params][{$product.id}][skus][{$_sku.id}][price]" value="{$_price}" placeholder="{$_sku.price|floatval|escape}">
+                    <span class="s-label">{str_replace('0', '', {shop_currency_html(0, $product.currency, $product.currency)})}</span>
+                </label>
 
-        {* COMPARE PRICE FIELD *}
-        <td class="s-compare-price-field-column">
-            <label class="s-price-field">
-                <input class="s-field" type="text" autocomplete="off" name="{$_rule_name}[rule_params][{$product.id}][skus][{$_sku.id}][compare_price]" value="{$_compare_price}" placeholder="{$_sku.compare_price|floatval|escape}" >
-                <span class="s-label">{str_replace('0', '', {shop_currency_html(0, $product.currency)})}</span>
-            </label>
+                <label class="s-price-field s-compare-field">
+                    <input class="s-field" type="text" autocomplete="off" name="{$_rule_name}[rule_params][{$product.id}][skus][{$_sku.id}][compare_price]" value="{$_compare_price}" placeholder="{$_sku.compare_price|floatval|escape}" >
+                    <span class="s-label">{str_replace('0', '', {shop_currency_html(0, $product.currency, $product.currency)})}</span>
+                </label>
+
+                <input type="hidden" name="{$_rule_name}[rule_params][{$product.id}][currency]" value="{$product.currency}" />
+            {/if}
         </td>
 
         <td class="s-actions-column">
-            <div class="s-actions">
-                <a class="s-action js-delete-sku" href="javascript:void(0);" title="{_w("Delete")|escape}">
-                    <i class="icon16 close"></i>
-                </a>
-            </div>
+            {if !empty($_render_actions)}
+                <div class="s-actions">
+                    <a class="s-action js-delete-sku" href="javascript:void(0);" title="{_w("Delete")|escape}">
+                        <i class="icon16 close"></i>
+                    </a>
+                </div>
+            {/if}
         </td>
     </tr>
-{/foreach}
+{/function}
+
+{if $product.skus|count > 1}
+    {$_first_sku = $product.skus|reset}
+    {_render_product _sku=$_first_sku _type="product"}
+
+    {foreach $product.skus as $_sku}
+        {_render_product _sku=$_sku _type="sku"}
+    {/foreach}
+{else}
+
+    {$_first_sku = $product.skus|reset}
+    {_render_product _sku=$_first_sku _type="product-with-sku"}
+{/if}
 
 {/if}
 

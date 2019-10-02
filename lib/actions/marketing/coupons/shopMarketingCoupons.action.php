@@ -23,8 +23,8 @@ class shopMarketingCouponsAction extends shopMarketingViewAction
         $currencies = $curm->getAll('code');
         $coupons = $coupm->order('id DESC')->fetchAll('id');
         foreach ($coupons as &$c) {
-            $c['enabled'] = self::isEnabled($c);
-            $c['hint'] = self::formatValue($c, $currencies);
+            $c['enabled'] = shopCouponModel::isEnabled($c);
+            $c['hint'] = shopCouponModel::formatValue($c, $currencies);
         }
         unset($c);
 
@@ -83,47 +83,15 @@ class shopMarketingCouponsAction extends shopMarketingViewAction
         }
 
         $this->view->assign('product_sets', $set_model->getByField('type', shopSetModel::TYPE_STATIC, $set_model->getTableId()));
-
         $this->view->assign('product_types', $type_model->getTypes());
-
         $this->view->assign('types', $types);
         $this->view->assign('orders', $orders);
         $this->view->assign('coupon', $coupon);
         $this->view->assign('overall_discount', $overall_discount);
         $this->view->assign('overall_discount_formatted', $overall_discount_formatted);
-        $this->view->assign('formatted_value', self::formatValue($coupon, $currencies));
-        $this->view->assign('is_enabled', self::isEnabled($coupon));
+        $this->view->assign('formatted_value', shopCouponModel::formatValue($coupon, $currencies));
+        $this->view->assign('is_enabled', shopCouponModel::isEnabled($coupon));
 
-    }
-
-    public static function formatValue($c, $curr = null)
-    {
-        static $currencies = null;
-        if ($currencies === null) {
-            if ($curr) {
-                $currencies = $curr;
-            } else {
-                $curm = new shopCurrencyModel();
-                $currencies = $curm->getAll('code');
-            }
-        }
-
-        if ($c['type'] == '$FS') {
-            return _w('Free shipping');
-        } elseif ($c['type'] === '%') {
-            return waCurrency::format('%0', $c['value'], 'USD').'%';
-        } elseif (!empty($currencies[$c['type']])) {
-            return waCurrency::format('%0{s}', $c['value'], $c['type']);
-        } else {
-            // Coupon of unknown type. Possibly from a plugin?..
-            return '';
-        }
-    }
-
-    public static function isEnabled($c)
-    {
-        $result = $c['limit'] === null || $c['limit'] > $c['used'];
-        return $result && ($c['expire_datetime'] === null || strtotime($c['expire_datetime']) > time());
     }
 
     public static function getTypes($currencies)

@@ -28,6 +28,7 @@ class shopProductsCollection
 
     protected $models = [];
     protected $is_frontend;
+    protected $storefront_context;
 
     /**
      * Map of join => alias
@@ -62,13 +63,22 @@ class shopProductsCollection
      */
     public function __construct($hash = '', $options = array())
     {
+        $env_is_frontend = wa()->getEnv() == 'frontend';
+
+        if (!array_key_exists('storefront_context', $options) && $env_is_frontend) {
+            $routing_url = wa()->getRouting()->getRootUrl();
+            $storefront = wa()->getConfig()->getDomain().($routing_url ? '/'.$routing_url : '');
+            $options['storefront_context'] = $storefront;
+        }
         $this->setOptions($options);
+
         if ($this->is_frontend === null) {
-            $this->is_frontend = wa()->getEnv() == 'frontend';
+            $this->is_frontend = $env_is_frontend;
         }
         if (!isset($this->options['round_prices'])) {
             $this->options['round_prices'] = $this->is_frontend;
         }
+
         $this->setHash($hash);
 
         /**
@@ -91,6 +101,9 @@ class shopProductsCollection
         }
         if (isset($this->options['frontend'])) {
             $this->is_frontend = $this->options['frontend'];
+        }
+        if (array_key_exists('storefront_context', $options) && (is_null($options['storefront_context']) || is_scalar($options['storefront_context']))) {
+            $this->storefront_context = $options['storefront_context'];
         }
     }
 
@@ -135,27 +148,16 @@ class shopProductsCollection
             }
             $model = $this->getModel();
 
-            if ($sort == 'price') {
+            if ($sort == 'price' || $sort == 'compare_price') {
                 if (!isset($this->join_index['ps'])) {
-                    $this->loadPromoPrices();
-                    if (!empty($this->promo_prices)) {
-                        $tmp_table_alias = $this->addJoin([
-                            'table' => 'shop_product_promo_price_tmp',
-                            'type'  => 'LEFT',
-                            'on'    => 'p.id = :table.product_id AND p.sku_id = :table.sku_id'
-                        ]);
-
-                        $this->order_by = "IFNULL(MIN({$tmp_table_alias}.primary_price), p.price) $order";
-                    } else {
-                        $this->order_by = "p.price $order";
-                    }
+                    $this->order_by = "p.$sort $order";
+                    $this->addPriceSort($sort, $order);
                 }
             } elseif ($sort == 'stock_worth') {
 
                 $this->fields['order_by'] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
                 $this->order_by = 'stock_worth '.$order;
-            } elseif ($sort === 'sku' || $sort === 'compare_price' || $sort === 'purchase_price') {
-                // TODO: If $sort == 'compare_price' — add join on shop_product_promo_price_tmp (see $sort == 'price')
+            } elseif ($sort === 'sku' || $sort === 'purchase_price') {
                 $actual_joins = $this->getJoinsByTableName('shop_product_skus');
                 if ($actual_joins) {
                     $skus_alias = $actual_joins[0]['alias'];
@@ -328,11 +330,11 @@ class shopProductsCollection
             $where_conditional = "({$skus_alias}.primary_price)";
 
             $this->loadPromoPrices();
-            if (!empty($this->promo_prices)) {
+            if (!empty($this->storefront_context) && !empty($this->promo_prices[$this->storefront_context])) {
                 $tmp_promo_sku_alias = $this->addJoin([
                     'table' => 'shop_product_promo_price_tmp',
                     'type'  => 'LEFT',
-                    'on'    => 'p.id = :table.product_id AND ps1.id = :table.sku_id',
+                    'on'    => "p.id = :table.product_id AND ps1.id = :table.sku_id AND :table.storefront = '".$this->getModel()->escape($this->storefront_context)."'",
                 ]);
                 $where_conditional = "(IFNULL({$tmp_promo_sku_alias}.primary_price, {$skus_alias}.primary_price))";
             }
@@ -593,13 +595,45 @@ SQL;
         } else {
             if (!waRequest::get('sort') && !empty($set['rule'])) {
                 $this->order_by = $set['rule'];
+
+                if (!isset($this->join_index['ps']) && preg_match('~^(price)\s(asc|desc)$~ui', $set['rule'], $matches)) {
+                    $order = $matches[2];
+                    $this->addPriceSort('price', $order);
+                }
             }
             if (!empty($set['rule']) && ($set['rule'] == 'compare_price DESC')) {
                 $set_alias = 'p';
                 if (isset($this->join_index['ps'])) {
                     $set_alias = 'ps1';
                 }
-                $this->where[] = "{$set_alias}.compare_price > {$set_alias}.price";
+
+                $promo_price_joins = $this->getJoinsByTableName('shop_product_promo_price_tmp');
+                if ($promo_price_joins) {
+                    $tmp_promo_table_alias = $promo_price_joins[0]['alias'];
+                } else {
+                    $this->loadPromoPrices();
+                    if (!empty($this->storefront_context) && !empty($this->promo_prices[$this->storefront_context])) {
+                        $on = "{$set_alias}.id = :table.product_id AND {$set_alias}.sku_id = :table.sku_id";
+                        if ($set_alias == 'ps1') {
+                            // Join on skus
+                            $on = "{$set_alias}.product_id = :table.product_id AND {$set_alias}.id = :table.sku_id";
+                        }
+
+                        $tmp_promo_table_alias = $this->addJoin([
+                            'table' => 'shop_product_promo_price_tmp',
+                            'type'  => 'LEFT',
+                            'on'    => "{$on} AND :table.storefront = '".$this->getModel()->escape($this->storefront_context)."'",
+                        ]);
+                    }
+                }
+
+                if (!empty($tmp_promo_table_alias)) {
+                    $this->where[] = "IFNULL({$tmp_promo_table_alias}.compare_price, {$set_alias}.compare_price) > IFNULL({$tmp_promo_table_alias}.price, {$set_alias}.price)";
+                    $this->order_by = "IFNULL({$tmp_promo_table_alias}.compare_price, {$set_alias}.compare_price) DESC";
+                } else {
+                    $this->where[] = "{$set_alias}.compare_price > {$set_alias}.price";
+                    $this->order_by = "{$set_alias}.compare_price DESC";
+                }
             }
         }
     }
@@ -1733,8 +1767,10 @@ SQL;
 
         $fetch_params = !empty($this->options['params']) || (!empty($this->post_fields['_internal']) && in_array('params', $this->post_fields['_internal']));
 
-        // Workup promo promo prices
-        $this->promoProductPrices()->workupPromoProducts($products);
+        // Workup promo prices
+        if (!empty($this->storefront_context)) {
+            $this->promoProductPrices()->workupPromoProducts($products);
+        }
 
         // Round prices for products
         $config = wa('shop')->getConfig();
@@ -1983,7 +2019,9 @@ SQL;
                         }
                     }
 
-                    $this->promoProductPrices()->workupPromoSkus($skus, $products);
+                    if (!empty($this->storefront_context)) {
+                        $this->promoProductPrices()->workupPromoSkus($skus, $products);
+                    }
 
                     // Sort SKUs by `sort` field
                     uasort($skus, array($this, 'sortSkus'));
@@ -2792,34 +2830,66 @@ SQL;
         return $this->unique_joins[$join_key];
     }
 
+    protected function addPriceSort($field, $order)
+    {
+        $field = strtolower($field);
+        if ($field !== 'compare_price') {
+            $field = 'price';
+        }
+        $order = strtoupper($order);
+        if ($order !== 'DESC') {
+            $order = 'ASC';
+        }
+
+        $this->loadPromoPrices();
+        if (!empty($this->storefront_context) && !empty($this->promo_prices[$this->storefront_context])) {
+            $tmp_table_alias = $this->addJoin([
+                'table' => 'shop_product_promo_price_tmp',
+                'type'  => 'LEFT',
+                'on'    => "p.id = :table.product_id AND p.sku_id = :table.sku_id AND :table.storefront = '".$this->getModel()->escape($this->storefront_context)."'",
+            ]);
+
+            $this->order_by = "IFNULL({$tmp_table_alias}.primary_{$field}, p.{$field}) $order";
+        }
+    }
+
     protected function loadPromoPrices()
     {
-        if (is_array($this->promo_prices)) {
+        if (empty($this->storefront_context)) {
             return;
         }
-        $this->promo_prices = $this->promoProductPrices()->getPromoPrices();
-        $this->promo_skus = $this->promoProductPrices()->getPromoSkus();
+
+        if (!empty($this->promo_prices[$this->storefront_context]) && is_array($this->promo_prices[$this->storefront_context])) {
+            return;
+        }
+        // This has a side effect of populating tmp table shopProductPromoPriceTmpModel
+        $this->promo_prices[$this->storefront_context] = $this->promoProductPrices()->getPromoPrices();
+        $this->promo_skus[$this->storefront_context] = $this->promoProductPrices()->getPromoSkus();
     }
 
     /**
      * @return shopPromoProductPrices
+     * @throws waException
      */
     protected function promoProductPrices()
     {
-        static $promo_product_prices_class;
+        static $promo_product_prices;
 
-        if (empty($promo_product_prices_class)) {
+        // If there is no storefront - it makes no sense to create a temporary table (expensive).
+        if (empty($this->storefront_context)) {
+            throw new waException('Storefront required');
+        }
+
+        if (empty($promo_product_prices[$this->storefront_context])) {
             $promo_prices_model = $this->getModel('productPromoPriceTmp');
             $options = [
                 'model'      => $promo_prices_model,
+                'storefront' => $this->storefront_context,
             ];
-            if (!$this->is_frontend && !empty($this->options['storefront_context']) && is_scalar($this->options['storefront_context'])) {
-                $options['storefront'] = (string)$this->options['storefront_context'];
-            }
-            $promo_product_prices_class = new shopPromoProductPrices($options);
+            $promo_product_prices[$this->storefront_context] = new shopPromoProductPrices($options);
         }
 
-        return $promo_product_prices_class;
+        return $promo_product_prices[$this->storefront_context];
     }
 
 
@@ -2901,11 +2971,11 @@ SQL;
             $promo_prices_alias = $promo_price_joins[0]['alias'];
         } else {
             $this->loadPromoPrices();
-            if (!empty($this->promo_prices)) {
+            if (!empty($this->storefront_context) && !empty($this->promo_prices[$this->storefront_context])) {
                 $promo_prices_alias = $this->addJoin([
                     'table' => 'shop_product_promo_price_tmp',
                     'type'  => 'LEFT',
-                    'on'    => 'p.id = :table.product_id'
+                    'on'    => "p.id = :table.product_id AND :table.storefront = '".$this->getModel()->escape($this->storefront_context)."'",
                 ]);
             }
         }

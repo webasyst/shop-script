@@ -683,7 +683,7 @@ $.order_edit = {
                     $shipping_input.addClass('error');
                     $methods.addClass('error');
                 } else {
-                    $shipping_input.removeClass('error').hide();
+                    $shipping_input.removeClass('error');
                 }
                 $shipping_info.html(delivery_info.join('<br>')).show();
             } else {
@@ -878,22 +878,22 @@ $.order_edit = {
             "data": data,
             "success": function (response) {
                 if (response && response.status === 'ok') {
-                    var $shipping_rate = $('#shipping-rate');
+                    var $shipping_rate = $('#shipping-rate'),
+                        el = $("#shipping_methods"),
+                        el_selected = el.val(),
+                        el_selected_id = el_selected.replace(/\W.+$/, '');
 
                     if (response.data) {
                         response.data = $.order_edit.parseTotalResponse(response.data);
                     }
 
+                    //clear shipping data.
+                    el.empty();
+                    el.prepend('<option value=""></option>');
+
                     if (response.data.shipping_method_ids.length > 0) {
-                        var el = $("#shipping_methods"),
-                            el_selected = el.val(),
-                            el_selected_id = el_selected.replace(/\W.+$/, '');
-
-                        //clear shipping data.
-                        el.empty();
-                        el.prepend('<option value=""></option>');
-
-                        $('#shipping-custom').empty();
+                        var custom_html_container = $('#shipping-custom');
+                        custom_html_container.empty();
 
                         var shipping_method_ids = response.data.shipping_method_ids;
                         var shipping_methods = response.data.shipping_methods;
@@ -912,8 +912,6 @@ $.order_edit = {
                             found = true;
                             problem_shipping = true;
                         }
-
-                        var custom_html_container = $('#shipping-custom');
 
                         custom_html_container.find('>div.fields.form').hide();
 

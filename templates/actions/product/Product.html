@@ -667,16 +667,18 @@
                                         <input type="text" name="skus[{$sku_id}][compare_price]" value="{$sku.compare_price|escape}" class="strike {if empty($sku.available)} grey{/if}" placeholder="0" title="[`Compare at price`]">
                                     </td>
                                     <td class="s-price">
-                                        <input type="text" name="skus[{$sku_id}][price]" value="{$sku.price|escape}" class="bold large {if empty($sku.available)} grey{/if}" placeholder="0" title="[`Price`]">
-                                        {if $use_product_currency}
-                                            <select class="s-product-currency">
-                                                {foreach $currencies as $code => $currency}
-                                                <option value="{$code}" {if $code == $product.currency}selected="selected"{/if}>{$code}</option>
-                                                {/foreach}
-                                            </select>
-                                        {else}
-                                            {if $product.currency !== null}{$product.currency}{else}{$primary_currency}{/if}
-                                        {/if}
+                                        <div class="s-price-wrapper">
+                                            <input type="text" name="skus[{$sku_id}][price]" value="{$sku.price|escape}" class="bold large {if empty($sku.available)} grey{/if}" placeholder="0" title="[`Price`]">
+                                            {if $use_product_currency}
+                                                <select class="s-product-currency">
+                                                    {foreach $currencies as $code => $currency}
+                                                    <option value="{$code}" {if $code == $product.currency}selected="selected"{/if}>{$code}</option>
+                                                    {/foreach}
+                                                </select>
+                                            {else}
+                                                {if $product.currency !== null}{$product.currency}{else}{$primary_currency}{/if}
+                                            {/if}
+                                        </div>
                                     </td>
                                     <td class="s-stock">
                                         {if !count($sku.stock)}

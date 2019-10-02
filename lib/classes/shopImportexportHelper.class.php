@@ -336,7 +336,7 @@ class shopImportexportHelper
                 $promo = array(
                     'type'           => self::PROMO_TYPE_PROMO_CODE,
                     'name'           => _w('Coupon discount'),
-                    'description'    => sprintf('%s: %s', _w('Coupon discount'), shopCouponsAction::formatValue($coupon)),
+                    'description'    => sprintf('%s: %s', _w('Coupon discount'), shopCouponModel::formatValue($coupon)),
                     'settings'       => sprintf('./#/coupons/%d', $id),
                     'source'         => _w('Discount coupons'),
                     'hint'           => $coupon['comment'],
@@ -378,12 +378,12 @@ class shopImportexportHelper
                 asort($products);
                 $promo = array(
                     'type'           => self::PROMO_TYPE_FLASH_DISCOUNT,
-                    'name'           => _w('Overridden prices'),
-                    'description'    => sprintf('%s: %s', _w('Overridden prices'), $shop_promo['title']),
+                    'name'           => _w('Products & prices'),
+                    'description'    => sprintf('%s: %s', _w('Products & prices'), $shop_promo['title']),
                     'settings'       => sprintf('./marketing/promo/%d/', $id),
-                    'source'         => _w('Overridden prices'),
+                    'source'         => _w('Products & prices'),
                     'hint'           => $shop_promo['body'],
-                    'hash'           => 'id/'.implode(',', array_keys($products)),
+                    'hash'           => 'id/'.implode(',', $products),
                     'end_datetime'   => strtotime($shop_promo['finish_datetime']),
                     'start_datetime' => strtotime($shop_promo['start_datetime']),
                 );

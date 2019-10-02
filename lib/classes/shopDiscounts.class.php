@@ -343,7 +343,7 @@ HTML;
                 $coupon = $cm->getByField('code', $coupon_code);
 
                 // Coupon must be available for use.
-                if ($coupon && shopCouponsAction::isEnabled($coupon)) {
+                if ($coupon && shopCouponModel::isEnabled($coupon)) {
                     $result = $coupon;
                 }
             }

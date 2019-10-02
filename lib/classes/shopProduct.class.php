@@ -137,7 +137,7 @@ class shopProduct implements ArrayAccess
             $options = [
                 'model' => $promo_prices_model,
             ];
-            if (!$this->is_frontend && !empty($this->options['storefront_context']) && is_scalar($this->options['storefront_context'])) {
+            if (!empty($this->options['storefront_context']) && is_scalar($this->options['storefront_context'])) {
                 $options['storefront'] = (string)$this->options['storefront_context'];
             }
             $promo_product_prices_class = new shopPromoProductPrices($options);

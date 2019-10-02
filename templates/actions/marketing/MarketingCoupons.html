@@ -68,6 +68,11 @@
                         "delete": "{$marketing_url}?module=marketingCouponDelete",
                         "coupons": "{$marketing_url}coupons/",
                         "coupon": "{$marketing_url}coupons/%id%/"
+                    },
+                    locales: {
+                        "incorrect_1": {_w("Must be a value from 0 to 100")|json_encode},
+                        "delete": {_w("This will permanently delete discount coupon %s. Are you sure?")|json_encode},
+                        "required": {_w("This field is required.")|json_encode}
                     }
                 });
             });

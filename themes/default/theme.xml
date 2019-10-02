@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="3.3.8">
+<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="3.3.11">
     <name locale="en_US">Default 3.0</name>
     <name locale="ru_RU">Дефолт 3.0</name>
     <files>
@@ -20,7 +20,7 @@
         </file>
         <file path="head.html">
             <description locale="en_US">Shop-Script's &lt;head&gt; instructions</description>
-            <description locale="en_US">Блок &lt;head&gt; приложения Shop-Script</description>
+            <description locale="ru_RU">Блок &lt;head&gt; приложения Shop-Script</description>
         </file>
         <file path="header.html" custom="0">
     		<description locale="en_US">App specific header content</description>
@@ -441,13 +441,25 @@
 
         <setting var="store_address" control_type="text">
             <value></value>
-            <name locale="en_US">Store Address</name>
+            <name locale="en_US">Store address</name>
             <name locale="ru_RU">Адрес магазина</name>
         </setting>
         <setting var="store_price_range" control_type="text">
             <value></value>
             <name locale="en_US">Store price range</name>
             <name locale="ru_RU">Ценовой диапазон магазина</name>
+        </setting>
+        <setting var="checkout_payment_success_title" control_type="text">
+            <value locale="en_US">Your payment has been accepted</value>
+            <value locale="ru_RU">Оплата получена</value>
+            <name locale="en_US">Successful payment page title</name>
+            <name locale="ru_RU">Заголовок страницы с сообщением об успешной оплате</name>
+        </setting>
+        <setting var="checkout_payment_success_description" control_type="text">
+            <value locale="en_US">We will process your order and will contact you shortly.</value>
+            <value locale="ru_RU">Мы вскоре обработаем ваш заказ и свяжемся с вами в ближайшее время.</value>
+            <name locale="en_US">Successful payment message</name>
+            <name locale="ru_RU">Сообщение после завершения оплаты заказа</name>
         </setting>
 
     </settings>

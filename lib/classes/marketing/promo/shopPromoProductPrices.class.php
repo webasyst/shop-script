@@ -28,10 +28,10 @@ class shopPromoProductPrices
         if (wa()->getEnv() === 'frontend') {
             $routing_url = wa()->getRouting()->getRootUrl();
             $storefront = wa()->getConfig()->getDomain().($routing_url ? '/'.$routing_url : '');
-            $this->storefront = $storefront;
         } else {
-            $this->storefront = ifempty($options, 'storefront', null);
+            $storefront = null;
         }
+        $this->storefront = ifempty($options, 'storefront', $storefront);
 
         $this->options = $options;
         $this->shop_currency = wa('shop')->getConfig()->getCurrency();
@@ -54,21 +54,32 @@ class shopPromoProductPrices
         $prlm = new shopPromoRulesModel();
         $rules = $prlm->getByActivePromos($enabled_promo_params);
 
+        $product_ids = [];
+        foreach ($rules as $rule) {
+            foreach ($rule['rule_params'] as $product_id => $product_data) {
+                $product_ids[] = $product_id;
+            }
+        }
+
+        $product_currencies = (new shopProductModel())->getCurrencies($product_ids);
+
         $promo_skus = $promo_prices = [];
         foreach ($rules as $rule) {
             foreach ($rule['rule_params'] as $product_id => $product_data) {
-                $product_currency = $product_data['currency'];
+                if (empty($product_currencies[$product_id])) {
+                    continue 2;
+                }
                 foreach ($product_data['skus'] as $sku_id => $sku) {
                     $promo_sku = ifempty($promo_skus, $product_id, $sku_id, null);
                     if ($sku['price'] && (empty($promo_sku) || $promo_sku['price'] > $sku['price'])) {
                         $promo_skus[$product_id][$sku_id] = [
+                            'storefront'            => $this->storefront,
                             'product_id'            => $product_id,
                             'sku_id'                => $sku_id,
-                            'currency'              => $product_currency,
-                            'price'                 => $sku['price'],
-                            'primary_price'         => (float)shop_currency($sku['price'], $product_currency, $this->shop_currency, false),
-                            'compare_price'         => $sku['compare_price'],
-                            'primary_compare_price' => (float)shop_currency($sku['compare_price'], $product_currency, $this->shop_currency, false),
+                            'price'                 => (float)shop_currency($sku['price'], $product_data['currency'], $product_currencies[$product_id]['currency'], false),
+                            'primary_price'         => (float)shop_currency($sku['price'], $product_data['currency'], $this->shop_currency, false),
+                            'compare_price'         => (float)shop_currency($sku['compare_price'], $product_data['currency'], $product_currencies[$product_id]['currency'], false),
+                            'primary_compare_price' => (float)shop_currency($sku['compare_price'], $product_data['currency'], $this->shop_currency, false),
                         ];
                     }
                 }
@@ -185,33 +196,21 @@ class shopPromoProductPrices
         }
 
         $price_fields = [
-            'price',
             'primary_price',
+            'price',
             'compare_price'
         ];
 
         foreach ($skus as &$sku) {
             foreach ($this->promo_prices as $promo_sku_price) {
                 if ($sku['product_id'] == $promo_sku_price['product_id'] && $sku['id'] == $promo_sku_price['sku_id']) {
-
                     $sku['is_promo'] = true;
-
-                    // Save original sku prices
                     foreach ($price_fields as $k) {
                         if (isset($sku[$k])) {
                             $sku['raw_'.$k] = $sku[$k];
+                            $sku[$k] = $promo_sku_price[$k];
                         }
                     }
-
-                    $sku_product = ifset($products, $sku['product_id'], null);
-                    $sku_product_currency = ifset($sku_product, 'currency', null);
-
-                    $sku_price = (float)shop_currency($promo_sku_price['price'], $promo_sku_price['currency'], $sku_product_currency, false);
-                    $sku_compare_price = (float)shop_currency($promo_sku_price['compare_price'], $promo_sku_price['currency'], $sku_product_currency, false);
-
-                    $sku['primary_price'] = $promo_sku_price['primary_price'];
-                    $sku['price'] = $sku_price;
-                    $sku['compare_price'] = $sku_compare_price;
                 }
             }
         }

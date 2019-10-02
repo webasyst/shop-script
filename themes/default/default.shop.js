@@ -310,6 +310,10 @@ $(document).ready(function () {
                 }
             });
         });
+
+        window.addEventListener('popstate', function(event) {
+            location.reload();
+        });
     };
     f();
 

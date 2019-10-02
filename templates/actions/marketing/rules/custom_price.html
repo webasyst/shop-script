@@ -20,13 +20,22 @@
         [`Use the form below to set up extra rules for ordinary and purchase prices which should apply while this promo is active.`]
     </div>
 
+    <div class="s-products-autocomplete">
+        <span class="s-label">[`Add product`]:</span>
+        <i class="icon16 add"></i>
+        <div class="s-field-wrapper">
+            <input type="text" class="s-autocomplete js-autocomplete" value="" placeholder="{_w("type a product name")|escape}">
+            <div class="s-field-description hint">{sprintf("[`or add from “%s” section`]", "<a href=\"`$wa_app_url`?action=products\">[`Products`]</a>")}</div>
+        </div>
+    </div>
+
     <div class="s-products-wrapper {if empty($products)}is-empty{/if}">
         <table class="s-products-table">
             <thead>
                 <tr>
-                    <td colspan="2"></td>
-                    <td class="align-center" colspan="2">[`in catalog`]</td>
-                    <td class="align-center" colspan="2">[`during promo period`]</td>
+                    <td colspan="2">[`Products`]</td>
+                    <td>[`Default prices`]</td>
+                    <td>[`Promo’s prices`]</td>
                     <td></td>
                 </tr>
             </thead>
@@ -42,11 +51,6 @@
         </table>
 
         <div class="s-empty-message">[`No products in this tool. First add products please.`]</div>
-    </div>
-
-    <div class="s-products-autocomplete">
-        <span class="s-label">[`Add product`]:</span>
-        <input type="text" class="s-autocomplete js-autocomplete" value="" placeholder="{_w("type a product name")|escape}">
     </div>
 
     <input class="js-rule-type" type="hidden" name="{$_rule_name}[rule_type]" value="custom_price">

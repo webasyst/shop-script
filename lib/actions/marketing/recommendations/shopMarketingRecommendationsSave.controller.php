@@ -1,6 +1,6 @@
 <?php
 
-class shopMarketingRecommendationsSaveController extends waJsonController
+class shopMarketingRecommendationsSaveController extends shopMarketingSettingsJsonController
 {
     protected $type_id;
     /**

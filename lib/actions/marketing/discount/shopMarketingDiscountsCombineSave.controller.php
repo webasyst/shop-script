@@ -3,7 +3,7 @@
 /**
  * Save setting: how to conbine several applicable discounts, max or sum.
  */
-class shopMarketingDiscountsCombineSaveController extends waJsonController
+class shopMarketingDiscountsCombineSaveController extends shopMarketingSettingsJsonController
 {
     public function execute()
     {

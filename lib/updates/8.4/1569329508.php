@@ -1,6 +1,8 @@
 <?php
 
 $_file_paths = [
+    wa()->getAppPath('lib/actions/coupons/shopCoupons.action.php', 'shop'),
+    wa()->getAppPath('lib/actions/coupons/shopCouponsEditor.action.php', 'shop'),
     wa()->getAppPath('lib/actions/promos/shopPromos.actions.php', 'shop'),
     wa()->getAppPath('lib/actions/reports/shopReportsAbtesting.action.php', 'shop'),
     wa()->getAppPath('lib/actions/reports/shopReportsmarketingcosts.actions.php', 'shop'),
@@ -11,7 +13,7 @@ $_file_paths = [
     wa()->getAppPath('lib/actions/settings/discount/shopSettingsDiscountsCombineSave.controller.php', 'shop'),
     wa()->getAppPath('lib/actions/settings/discount/shopSettingsDiscountsCoupons.action.php', 'shop'),
     wa()->getAppPath('lib/actions/settings/discount/shopSettingsDiscountsCustomerTotal.action.php', 'shop'),
-    wa()->getAppPath('lib/actions/settings/discount/shopSettingsDiscountsEnable.controller.php', 'shop'),
+//    wa()->getAppPath('lib/actions/settings/discount/shopSettingsDiscountsEnable.controller.php', 'shop'),
     wa()->getAppPath('lib/actions/settings/discount/shopSettingsDiscountsOrderTotal.action.php', 'shop'),
     wa()->getAppPath('lib/actions/settings/followups/shopSettingsFollowups.action.php', 'shop'),
     wa()->getAppPath('lib/actions/settings/followups/shopSettingsFollowupsTest.controller.php', 'shop'),

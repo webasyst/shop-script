@@ -1,5 +1,17 @@
 {strip}
 
+{if empty($status)}
+    {$_title = _w("Marketing")}
+{elseif $status === shopPromoModel::STATUS_ACTIVE}
+    {$_title = _w("Active promos")}
+{elseif $status === shopPromoModel::STATUS_PLANNED}
+    {$_title = _w("Scheduled promos")}
+{elseif $status === shopPromoModel::STATUS_COMPLETED}
+    {$_title = _w("Completed promos")}
+{/if}
+
+{$wa->title($_title)}
+
 {$_active_sort = [
     "field" => ifset($sort, "field", "start_datetime"),
     "direction" => ifset($sort, "direction", "desc"),
@@ -267,9 +279,9 @@
                 </div>
 
                 {if !empty($active_storefront)}
-                    <p class="gray">[`Change the sort order of active promos in the slider by using drag&amp;drop action.`]</p>
+                    <p class="gray">[`Change the sort order of active promos by using drag&amp;drop.`]</p>
                 {else}
-                    <p class="gray">[`Please select storefront to order promos for that storefront.`]</p>
+                    <p class="gray">[`Select a storefront to change active promos’ sort order.`]</p>
                 {/if}
 
                 {if !empty($active_promos)}
@@ -350,7 +362,7 @@
 
                                         <div class="s-table-box inline">
                                             <div class="s-column">
-                                                <a class="s-image-wrapper" href="{$marketing_url}promo/{$_promo.id|escape}/" title="{$_promo.title|escape}">
+                                                <a class="s-image-wrapper" href="{$marketing_url}promo/{$_promo.id|escape}/" style='background-image: url("{$_promo.image_url|escape}");' title="{$_promo.title|escape}">
                                                     <img src="{$_promo.image_url|escape}" alt="">
                                                 </a>
                                             </div>
@@ -450,7 +462,7 @@
     <script>
         ( function($) {
 
-            $.shop.marketing.setTitle({_w("Promos")|json_encode});
+            $.shop.marketing.setTitle({$_title|json_encode});
 
             var sources = [{
                 id: "wa-shop-marketing-promos-js",

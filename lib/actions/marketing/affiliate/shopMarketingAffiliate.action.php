@@ -1,6 +1,6 @@
 <?php
 
-class shopMarketingAffiliateAction extends shopMarketingViewAction
+class shopMarketingAffiliateAction extends shopMarketingSettingsViewAction
 {
     public function execute()
     {

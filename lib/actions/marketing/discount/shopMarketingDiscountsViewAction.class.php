@@ -1,6 +1,6 @@
 <?php
 
-abstract class shopMarketingDiscountsViewAction extends shopMarketingViewAction
+abstract class shopMarketingDiscountsViewAction extends shopMarketingSettingsViewAction
 {
     protected $discount_type_id = 'coupons';
 

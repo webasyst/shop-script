@@ -387,6 +387,7 @@
             that.active_tab = options["active_tab"];
             that.promo_id = options["promo_id"];
             that.promo_options = options["promo_options"];
+            that.rule_types = options["rule_types"];
 
             that.templates = options["templates"];
             that.locales = options["locales"];
@@ -460,7 +461,7 @@
                             $icon.removeClass('split').removeClass('yes').removeClass('no').addClass('loading');
 
                             $.post(href, data, function (response) {
-                                if (response.status == 'ok') {
+                                if (response.status === "ok") {
                                     $icon.removeClass('loading').addClass('yes');
                                     var href = that.urls["edit_promo"].replace("%id%", response.data.id);
                                     $.shop.marketing.content.load(href);
@@ -513,7 +514,7 @@
                             $icon.removeClass('delete').removeClass('yes').removeClass('no').addClass('loading');
 
                             $.post(href, data, function (response) {
-                                if (response.status == 'ok') {
+                                if (response.status === "ok") {
                                     $icon.removeClass('loading').addClass('yes');
                                     var href = that.urls["marketing_url"];
                                     $.shop.marketing.content.load(href);
@@ -841,7 +842,7 @@
                     toggle(false);
                 });
 
-                $section.on("click", ".js-restore-status", function() {
+                $section.on("click", ".js-restore-status", function(event) {
                     event.preventDefault();
                     toggle(true);
                 });
@@ -1198,22 +1199,39 @@
             // VARS
             var create_iterator = 0;
 
-            // CREATE
-            $section.on("click", ".js-create-rule", function(event) {
-                event.preventDefault();
-                var $rule = $(this).closest(".s-rule-section"),
-                    $clone_rule = $rule.clone();
+            ruleCountWatch();
 
+            // CREATE
+            $section.on("click", ".js-create-rule", function(event, options) {
+                event.preventDefault();
+
+                var $link = $(this),
+                    $rule = $link.closest(".s-rule-section"),
+                    $clone_rule = $(that.templates["new_rule_template"]);
+
+                var rule_type = $link.data("rule-type"),
+                    type_data = that.rule_types[rule_type];
+
+                // set title
+                var title = ( type_data.css_class ? '<i class="icon16 ' + type_data.css_class + '"></i>' : "") + type_data.name;
+                $clone_rule.find(".s-section-header .js-title").html(title);
+
+                // set data and render
                 $clone_rule
                     .attr("data-ident", "" + create_iterator)
+                    .attr("data-type", rule_type)
                     .toggleClass(edit_class)
                     .insertAfter($rule);
 
+                $clone_rule.find(".js-edit-rule").trigger("click", [options]);
+
                 create_iterator += 1;
+
+                ruleCountWatch();
             });
 
             // EDIT
-            $section.on("click", ".js-edit-rule", function(event) {
+            $section.on("click", ".js-edit-rule", function(event, options) {
                 event.preventDefault();
 
                 var $rule = $(this).closest(".s-rule-section"),
@@ -1223,9 +1241,8 @@
 
                 if (!is_locked) {
                     $rule.data("is-locked", true);
-                    // todo type
                     var type = $rule.data("type");
-                    load($rule, type).always( function() {
+                    load($rule, type, options).always( function() {
                         $rule.data("is-locked", false);
                     });
                 }
@@ -1246,6 +1263,7 @@
                         $rule.data("is-locked", true).remove();
                         var $input = $('<input type="hidden" name="delete_rules[]">').val(id);
                         $section.append($input);
+                        ruleCountWatch();
                     }
                 }
             });
@@ -1268,45 +1286,42 @@
                     $rule.remove();
                 }
 
+                ruleCountWatch();
+
                 that.$window.trigger('resize');
             });
 
-            // CHANGE
-            $section.on("change", ".js-rule-type-select", function(event, options) {
-                event.preventDefault();
-
-                var $select = $(this),
-                    $rule = $select.closest(".s-rule-section"),
-                    is_locked = $rule.data("is-locked");
-
-                if (!is_locked) {
-                    $rule.data("is-locked", true);
-                    load($rule, $select.val(), options).always( function() {
-                        $rule.data("is-locked", false);
+            if (that.promo_options && that.promo_options["action"] === "associate") {
+                var options = [];
+                if (that.promo_options.products_hash) {
+                    options.push({
+                        products_hash: that.promo_options.products_hash
                     });
                 }
-            });
 
-            if (that.promo_options && that.promo_options["action"] === "associate") {
-                var $create_rule = $section.find(".js-create-rule");
-                $create_rule.trigger("click");
-                $(window).scrollTop( $create_rule.offset().top );
+                var $exist_edit_link = $section.find(".s-rule-section[data-type='custom_price'] .js-edit-rule");
+                if ($exist_edit_link.length) {
+                    $exist_edit_link.trigger("click", options);
 
-                if (that.promo_options.products_hash) {
-                    setTimeout( function() {
-                        $section.find(".js-rule-type-select:visible:first").val("custom_price").trigger("change", [{
-                            products_hash: that.promo_options.products_hash
-                        }]);
-                    }, 100);
+                } else {
+                    var $create_rule = $section.find(".js-create-rule[data-rule-type='custom_price']");
+                    $create_rule.trigger("click", options);
                 }
+
+                setTimeout( function () {
+                    $(window).scrollTop( $section.offset().top );
+                }, 20);
             }
 
             function load($rule, rule_type, options) {
                 var $body = $rule.find("> .s-section-body"),
                     $loading = $('<i class="icon16 loading"></i>');
 
-                var rule_id = "" + $rule.data("id"),
-                    rule_ident = "" + $rule.data("ident");
+                var rule_id = $rule.data("id"),
+                    rule_ident = $rule.data("ident");
+
+                rule_id = (typeof rule_id !== "undefined" ? "" + rule_id : null);
+                rule_ident = (typeof rule_ident !== "undefined" ? "" + rule_ident : null);
 
                 var href = that.urls["edit_rule"],
                     data = {
@@ -1337,7 +1352,39 @@
                     .done( function(html) {
                         $body.html(html);
                         that.$window.trigger('resize');
+
+                        $("html, body").animate({
+                            scrollTop: $body.offset().top
+                        }, 400);
                     });
+            }
+
+            function ruleCountWatch() {
+                var $list = $section.find(".js-add-rules-list"),
+                    $links = $list.find(".js-create-rule");
+
+                var hidden_class = "is-hidden";
+                var empty_class = "is-empty";
+
+                $links.each( function() {
+                    var $link = $(this),
+                        rule_type = $link.data("rule-type"),
+                        max_count = $link.data("max-count");
+
+                    var $_rules = $section.find(".s-rule-section[data-type='" + rule_type + "']");
+                    if (max_count && $_rules.length >= max_count) {
+                        $link.hide().addClass(hidden_class);
+                    } else {
+                        $link.removeClass(hidden_class).show();
+                    }
+                });
+
+                var $visible_links = $links.filter(":not(." + hidden_class + ")");
+                if ($visible_links.length) {
+                    $list.removeClass(empty_class);
+                } else {
+                    $list.addClass(empty_class);
+                }
             }
         };
 
@@ -1402,7 +1449,20 @@
                             }
                         })
                         .fail( function(state, errors) {
-                            renderErrors(errors);
+                            try {
+                                renderErrors(errors);
+                            } catch(error) {
+
+                                alert( that.locales["server_error"] );
+
+                                renderErrors([{
+                                    id: "server_error",
+                                    text: that.locales["server_error"]
+                                }]);
+
+                                $(window).scrollTop( that.$wrapper.find(".js-page-errors-wrapper").offset().top );
+                            }
+
                             that.$submit_button.attr("disabled", false);
                             $message.remove();
                         });
@@ -1452,7 +1512,13 @@
                             that.$wrapper.trigger("promo_countdown_error", [error]);
                         }
 
-                        $field = that.$wrapper.find("[name=\"" + error.name + "\"]");
+                        $field = that.$wrapper.find("[name=\"" + error.name + "\"]").first();
+
+                        if ($field.is(":checkbox") || $field.is(":radio")) {
+                            var $_rule = $field.closest(".s-rule-section");
+                            $field = $_rule;
+                            $error_wrapper = $_rule.find("> .js-section-footer");
+                        }
 
                         if (error.name === "promo[countdown_datetime][date]") {
                             $error_wrapper = $field.closest(".s-hidden");
@@ -1461,8 +1527,11 @@
 
                     } else if (error.id) {
                         if (error.id === "storefronts") {
-                            $field = $error_wrapper;
-                            $error_wrapper = that.$wrapper.find(".s-storefronts-section");
+                            $field = $error_wrapper = that.$wrapper.find(".s-storefronts-section");
+
+                        } else if (error.id === "server_error") {
+                            $error_wrapper = that.$wrapper.find(".js-page-errors-wrapper");
+                            $field = that.$wrapper;
 
                         } else if (error.id === "rule_error") {
                             var field_name = error.rule + "[rule_type]";
@@ -1806,8 +1875,6 @@
             var urls = options["urls"],
                 rule_name = options["rule_name"];
 
-            var empty_class = "is-empty";
-
             var product_ids = getProductIds();
 
             var $field = $wrapper.find(".js-autocomplete");
@@ -1818,14 +1885,27 @@
             $products_wrapper.on("click", ".js-delete-sku", function(event) {
                 event.preventDefault();
                 var $product = $(this).closest(".s-product-wrapper"),
-                    product_id = $product.data("id"),
+                    product_id = $product.data("id");
+
+                var $_products = $products_wrapper.find(".s-product-wrapper[data-id=\"" + product_id + "\"]");
+                $_products.each( function() {
+                    deleteProduct( $(this) );
+                });
+
+                productsToggle();
+            });
+
+            function deleteProduct($product) {
+                var product_id = $product.data("id"),
                     sku_id = $product.data("sku-id");
 
-                delete product_ids[product_id][sku_id];
+                if (sku_id) {
+                    delete product_ids[product_id][sku_id];
+                }
 
                 $product.remove();
                 product_ids = getProductIds();
-            });
+            }
 
             function initAutocomplete($field) {
                 var product_xhr = null;
@@ -1850,8 +1930,8 @@
                     getProductData(product_id).then( function(response) {
                         if (response.status === "ok") {
                             $list.append( formatProducts(response.data.html) );
-                            $products_wrapper.removeClass(empty_class);
                             product_ids = getProductIds();
+                            productsToggle(true);
                         }
                     });
                 }
@@ -1898,11 +1978,29 @@
                         product_id = $product.data("id"),
                         sku_id = $product.data("sku-id");
 
-                    if (!result[product_id]) { result[product_id] = {} }
-                    result[product_id][sku_id] = true;
+                    if (sku_id) {
+                        if (!result[product_id]) { result[product_id] = {} }
+                        result[product_id][sku_id] = true;
+                    }
                 });
 
                 return result;
+            }
+
+            function productsToggle(show) {
+                var empty_class = "is-empty";
+
+                show = ( typeof show === "boolean" ? show : null);
+
+                if (show === null) {
+                    show = !!$products_wrapper.find(".s-product-wrapper").length;
+                }
+
+                if (show) {
+                    $products_wrapper.removeClass(empty_class);
+                } else {
+                    $products_wrapper.addClass(empty_class);
+                }
             }
         };
 

@@ -1527,7 +1527,10 @@
                         }).then( function() {
                             var $section = $("#js-delivery-variants-section");
                             if ($section.length) {
-                                $section.find(".wa-dropdown-toggle").trigger("click");
+                                var items_count = $section.find(".wa-dropdown-item").length;
+                                if (items_count !== 1) {
+                                    $section.find(".wa-dropdown-toggle").trigger("click");
+                                }
                             }
                         });
                     }

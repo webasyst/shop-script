@@ -82,4 +82,34 @@ SQL;
         }
         return $this->query($sql, $datetime)->fetchAll($this->id);
     }
+
+    public static function isEnabled($coupon)
+    {
+        $result = $coupon['limit'] === null || $coupon['limit'] > $coupon['used'];
+        return $result && ($coupon['expire_datetime'] === null || strtotime($coupon['expire_datetime']) > time());
+    }
+
+    public static function formatValue($c, $curr = null)
+    {
+        static $currencies = null;
+        if ($currencies === null) {
+            if ($curr) {
+                $currencies = $curr;
+            } else {
+                $curm = new self();
+                $currencies = $curm->getAll('code');
+            }
+        }
+
+        if ($c['type'] == '$FS') {
+            return _w('Free shipping');
+        } elseif ($c['type'] === '%') {
+            return waCurrency::format('%0', $c['value'], 'USD').'%';
+        } elseif (!empty($currencies[$c['type']])) {
+            return waCurrency::format('%0{s}', $c['value'], $c['type']);
+        } else {
+            // Coupon of unknown type. Possibly from a plugin?..
+            return '';
+        }
+    }
 }

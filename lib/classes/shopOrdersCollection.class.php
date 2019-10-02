@@ -756,7 +756,7 @@ class shopOrdersCollection
                 $contact_ids[$o['contact_id']] = $o['contact_id'];
             }
             $contact_ids = array_values($contact_ids);
-            $contact_fields = 'id,name,photo,firstname,middlename,lastname';
+            $contact_fields = 'id,name,photo,firstname,middlename,lastname,is_user';
             if (isset($postprocess_fields['contact_full'])) {
                 $contact_fields .= ',phone,email,address,photo_url_40,photo_url_96';
             }

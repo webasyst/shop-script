@@ -1703,12 +1703,12 @@
                 }
             }
 
-            var url = '?action=orders#/coupons/';
+            var url = this.options['marketing_url'] +'coupons/create/';
             if (hash) {
-                url += 'hash/' + hash;
+                url += '?products_hash=' + hash;
                 window.location = url;
             } else if (ids.length) {
-                url += 'hash/id/' + ids.join(',');
+                url += '?products_hash=id/' + ids.join(',');
                 window.location = url;
             }
         },

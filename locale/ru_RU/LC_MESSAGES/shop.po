@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 1.8.7.1\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -7783,14 +7783,17 @@ msgstr "Удалить запись"
 msgid "Modify expense"
 msgstr "Редактировать запись"
 
-msgid "Please select storefront to order promos for that storefront."
-msgstr "Выберите витрину, чтобы изменять расположение баннеров в слайдере перетаскиванием."
+msgid "Select a storefront to change active promos’ sort order."
+msgstr "Выберите витрину, чтобы изменить порядок сортировки активных акций."
 
 msgid "Marketing"
 msgstr "Маркетинг"
 
-msgid "Can manage marketing"
-msgstr "Доступ к разделу Маркетинг"
+msgid "Can use marketing tools"
+msgstr "Использование инструментов маркетинга"
+
+msgid "Can set up marketing tools"
+msgstr "Настройка инструментов маркетинга"
 
 #: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:12
 #: /wa-apps/shop/templates/actions/reports/ReportsMarketingcosts.html:28
@@ -8643,8 +8646,8 @@ msgid "Can manage services"
 msgstr "Управление услугами"
 
 #: /wa-apps/shop/lib/config/shopRightConfig.class.php:15
-msgid "Can manage product sets, categories, and promos"
-msgstr "Управление промокарточками, категориями и списками товаров"
+msgid "Can manage product sets, categories"
+msgstr "Управление категориями и списками товаров"
 
 #: /wa-apps/shop/lib/config/shopRightConfig.class.php:16
 msgid "Can import and export data"
@@ -12554,13 +12557,13 @@ msgid "No products in this tool. First add products please."
 msgstr "В этом инструменте нет товаров. Сначала добавьте товары."
 
 msgid "UTM tags help you learn where a customer has come from."
-msgstr "UTM-метки помогают, узнать откуда пришел покупатель."
+msgstr "UTM-метки помогают узнать, откуда пришел покупатель."
 
 msgid "Read more about UTM tags"
 msgstr "Пoдробнее о UTM-метках"
 
-msgid "Add one parameter or several parameters separated with whitespaces:"
-msgstr "Добавьте один параметр или несколько параметров через пробел:"
+msgid "Press “Enter” upon entering each UTM tag to add it to the list."
+msgstr "Нажимайте «Enter» после ввода каждой метки, чтобы добавить ее в список."
 
 msgid "Campaign source"
 msgstr "Источник кампании"
@@ -12592,7 +12595,7 @@ msgstr "Создать новую акцию на основе этой"
 msgid "Promo"
 msgstr "Акция"
 
-msgid "Period"
+msgid "Active action"
 msgstr "Действует"
 
 msgid "Scheduled"
@@ -12676,8 +12679,8 @@ msgstr "Неизвестный тип инструмента."
 msgid "Promos on website"
 msgstr "Акции на сайте"
 
-msgid "Change the sort order of active promos in the slider by using drag&amp;drop action."
-msgstr "Меняйте порядок отображения действующих акций в слайдере простым перетаскиванием."
+msgid "Change the sort order of active promos by using drag&amp;drop."
+msgstr "Изменяйте порядок сортировки действующих акций перетаскиванием."
 
 msgid "No active promos."
 msgstr "Активных акции нет."
@@ -12774,8 +12777,8 @@ msgstr "Удаленная акция"
 #: /wa-apps/shop/lib/classes/shopImportexportHelper.class.php:382
 #: /wa-apps/shop/lib/classes/shopImportexportHelper.class.php:384
 #: /wa-apps/shop/lib/model/shopPromoRules.model.php:12
-msgid "Overridden prices"
-msgstr "Переопределенные цены"
+msgid "Products & prices"
+msgstr "Товары и цены"
 
 msgid "Add to promo"
 msgstr "Добавить в акцию"
@@ -12788,3 +12791,46 @@ msgstr "Создать новую акцию"
 
 msgid "No products."
 msgstr "Товаров нет."
+
+msgid "Free shipping by courier"
+msgstr "Бесплатная доставка курьером"
+
+msgid "All available tools already added"
+msgstr "Все доступные инструменты уже добавлены"
+
+msgid "https://www.shop-script.com/help/33511/marketing/"
+msgstr "https://support.webasyst.ru/shop-script/33510/marketing/"
+
+msgid "Help"
+msgstr "Помощь"
+
+msgid "Unknown tool type"
+msgstr "Неизвестный тип инструмента"
+
+msgid "Exceeded allowed number of tools of this type."
+msgstr "Превышено допустимое количество инструментов этого типа."
+
+msgid "Find coupon & add to promo"
+msgstr "Найти купон и добавить в акцию"
+
+msgid "or add from “%s” section"
+msgstr "или добавьте из раздела «%s»"
+
+msgid "Default prices"
+msgstr "Цены по умолчанию"
+
+msgid "Promo’s prices"
+msgstr "Цены во время акции"
+
+#: /wa-apps/shop/templates/actions/marketing/MarketingPromo.html:749
+msgid "Server error"
+msgstr "Ошибка сервера"
+
+#: /wa-apps/shop/lib/actions/marketing/promo/shopMarketingPromoSave.controller.php:419
+#: /wa-apps/shop/lib/actions/marketing/promo/shopMarketingPromoSave.controller.php:434
+#: /wa-apps/shop/lib/actions/marketing/promo/shopMarketingPromoSave.controller.php:451
+msgid "Invalid date or time"
+msgstr "Некорректная дата или время"
+
+msgid "Save a promo to add marketing costs for it."
+msgstr "Сохраните акцию, чтобы добавить для нее затраты на маркетинг."

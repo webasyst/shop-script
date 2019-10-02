@@ -33,7 +33,7 @@
                 <span class="s-label">[`Coupon discount`]:</span>
                 <span class="s-discount">
                     {if !empty($_coupon.id)}
-                        {shopMarketingCouponsAction::formatValue($_coupon)}
+                        {shopCouponModel::formatValue($_coupon)}
                     {else}
                         %discount%
                     {/if}
@@ -84,13 +84,14 @@
 
         {strip}
         <div class="s-coupon-autocomplete">
+            <span class="s-label">[`Find coupon & add to promo`]:</span>
             <i class="icon16 add"></i>
             <input type="text" class="s-autocomplete js-autocomplete" value="" placeholder="{_w("Enter coupon code")|escape}">
         </div>
         {/strip}
     {else}
-        <div class="block padded gray">
-            <span>[`No coupons.`]</span>
+        <div class="">
+            <span class="gray">[`No coupons.`]</span>
             <a href="{$marketing_url}coupons/create/">[`Add a new coupon`]</a>
         </div>
     {/if}

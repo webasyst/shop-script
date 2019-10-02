@@ -20,6 +20,11 @@ class shopMarketingPromoSaveController extends waJsonController
     /**
      * @var array
      */
+    protected $available_rule_types;
+
+    /**
+     * @var array
+     */
     protected $promo_data;
 
     /**
@@ -79,6 +84,7 @@ class shopMarketingPromoSaveController extends waJsonController
         $this->promo_id = ifempty($this->promo_data, 'id', null);
 
         // Rules
+        $this->available_rule_types = $this->promo_rules_model->getAvailableTypes();
         if (!empty($this->promo_id)) {
             $this->old_rules = $this->promo_rules_model->getByField('promo_id', $this->promo_id, 'id');
         }
@@ -96,6 +102,7 @@ class shopMarketingPromoSaveController extends waJsonController
 
     public function execute()
     {
+        $this->prepareDateTimes();
         $this->validate();
         if (!empty($this->errors)) {
             return $this->errors;
@@ -145,50 +152,6 @@ class shopMarketingPromoSaveController extends waJsonController
                 ];
             }
         }
-
-        $this->validateCountdown();
-    }
-
-    protected function validateCountdown()
-    {
-        $namespace = 'countdown_datetime';
-        $fields = ['date', 'hour', 'minute'];
-
-        $prev_field = null;
-        $prev_field_is_empty = false;
-
-        foreach ($fields as $i => $field) {
-            $current_field_is_empty = empty($this->promo_data[$namespace][$field]);
-
-            if ($prev_field && $prev_field_is_empty && !$current_field_is_empty) {
-                $this->errors[] = [
-                    'name' => "promo[{$namespace}][{$prev_field}]",
-                    'text' => _w('This field is required.'),
-                ];
-            }
-
-            $prev_field = $field;
-            $prev_field_is_empty = $current_field_is_empty;
-        }
-
-        if (!empty($this->errors)) {
-            return;
-        }
-
-        $this->prepareCountdown();
-
-        if (!empty($this->promo_data['countdown_datetime'])) {
-            $current_time = time();
-            $countdown_datetime = waDateTime::parse('Y-m-d H:i:s', $this->promo_data['countdown_datetime']);
-            $countdown_time = strtotime($countdown_datetime);
-
-            if (!$countdown_time || $current_time >= $countdown_time) {
-                $this->errors[] = [
-                    'name' => "promo[{$namespace}][date]",
-                    'text' => _w('Invalid value'),
-                ];
-            }
-        }
     }
 
     protected function validateStorefronts()
@@ -223,6 +186,74 @@ class shopMarketingPromoSaveController extends waJsonController
 
     protected function validateRules()
     {
+        $parse_rule_errors = function ($errors, $type = 'edit') {
+            foreach ($errors as $rule_id => $rule_errors) {
+                foreach ($rule_errors as $error) {
+                    if (!empty($error['field'])) {
+                        $error_field = (stripos($error['field'], '[') === 0) ? $error['field'] : "[{$error['field']}]";
+
+                        $field_name = "rules[{$rule_id}][rule_params]{$error_field}";
+                        if ($type == 'new') {
+                            $field_name = "rules[new][{$rule_id}][rule_params]{$error_field}";
+                        }
+
+                        $this->errors[] = [
+                            'name' => $field_name,
+                            'text' => $error['text'],
+                        ];
+                    }
+                    if (!empty($error['id'])) {
+                        $error_rule_name = "rules[{$rule_id}]";
+                        if ($type == 'new') {
+                            $error_rule_name = "rules[new][{$rule_id}]";
+                        }
+
+                        $this->errors[] = [
+                            'id'   => (string)$error['id'],
+                            'rule' => $error_rule_name,
+                            'text' => $error['text'],
+                        ];
+                    }
+                }
+            }
+        };
+
+        // Edited rules
+        $edited_rules_errors = $this->validateRulesList($this->edited_rules);
+        $parse_rule_errors($edited_rules_errors, 'edit');
+
+        // New rules
+        $new_rules_errors = $this->validateRulesList($this->new_rules);
+        $parse_rule_errors($new_rules_errors, 'new');
+    }
+
+    protected function validateRulesList($rules)
+    {
+        $validate_rule = function ($rule_type) {
+            // Validate type
+            $rule_type_params = ifempty($this->available_rule_types, $rule_type, null);
+            if (empty($rule_type_params)) {
+                return [
+                    'id'    => 'rule_error',
+                    'text'  => _w('Unknown tool type'),
+                ];
+            }
+
+            // Validate limit
+            $max_count = (int)ifempty($rule_type_params, 'max_count', 0);
+            $pushed_count = (int)ifempty($rule_type_params, 'pushed_count', 0);
+            if (!empty($max_count) && !empty($pushed_count) && $pushed_count >= $max_count) {
+                return [
+                    'id'    => 'rule_error',
+                    'text'  => _w('Exceeded allowed number of tools of this type.'),
+                ];
+            }
+
+            $this->available_rule_types[$rule_type]['pushed_count'] = ++$pushed_count;
+
+            return null;
+        };
+
         $validate_method = function ($rule_type) {
             $part_of_name = '';
             foreach (explode('_', $rule_type) as $part) {
@@ -234,73 +265,28 @@ class shopMarketingPromoSaveController extends waJsonController
         };
 
         $errors = [];
-        // Validate edited rules
-        foreach ($this->edited_rules as $rule_id => $rule) {
-            $method_name = $validate_method($rule['rule_type']);
-            if (method_exists($this, $method_name)) {
-                $errors = $this->$method_name($rule);
+        foreach ($rules as $rule_id => $rule) {
+            $rule_errors = [];
+            $rule_type_error = $validate_rule($rule['rule_type']);
+            if (!empty($rule_type_error)) {
+                $rule_errors[] = $rule_type_error;
             } else {
-                $params = [
-                    'rule'   => $rule,
-                    'errors' => &$errors,
-                ];
-                wa('shop')->event('promo_rule_validate', ref($params));
-            }
-
-            if (!empty($errors)) {
-                foreach ($errors as $error) {
-
-                    if (!empty($error['field'])) {
-                        $error_field = (stripos($error['field'], '[') === 0) ? $error['field'] : "[{$error['field']}]";
-                        $this->errors[] = [
-                            'name' => "rules[{$rule_id}][rule_params]{$error_field}",
-                            'text' => $error['text'],
-                        ];
-                    }
-                    if (!empty($error['id'])) {
-                        $this->errors[] = [
-                            'id'   => (string)$error['id'],
-                            'rule' => "rules[{$rule_id}]",
-                            'text' => $error['text'],
-                        ];
-                    }
+                $method_name = $validate_method($rule['rule_type']);
+                if (method_exists($this, $method_name)) {
+                    $rule_errors = $this->$method_name($rule);
+                } else {
+                    $params = [
+                        'rule'   => $rule,
+                        'errors' => &$rule_errors,
+                    ];
+                    wa('shop')->event('promo_rule_validate', ref($params));
                 }
             }
+
+            $errors[$rule_id] = $rule_errors;
         }
 
-        $errors = [];
-        // Validate new rules
-        foreach ($this->new_rules as $i => $rule) {
-            $method_name = $validate_method($rule['rule_type']);
-            if (method_exists($this, $method_name)) {
-                $errors = $this->$method_name($rule);
-            } else {
-                $params = [
-                    'rule'   => $rule,
-                    'errors' => &$errors,
-                ];
-                wa('shop')->event('promo_rule_validate', ref($params));
-            }
-
-            if (!empty($errors)) {
-                foreach ($errors as $error) {
-                    if (!empty($error['field'])) {
-                        $error_field = (stripos($error['field'], '[') === 0) ? $error['field'] : "[{$error['field']}]";
-                        $this->errors[] = [
-                            'name' => "rules[new][{$i}][rule_params]{$error_field}",
-                            'text' => $error['text'],
-                        ];
-                    }
-                    if (!empty($error['id'])) {
-                        $this->errors[] = [
-                            'id'   => (string)$error['id'],
-                            'rule' => "rules[new][{$i}]",
-                            'text' => $error['text'],
-                        ];
-                    }
-                }
-            }
-        }
+        return $errors;
     }
 
     protected function validateCustomPriceRule($rule)
@@ -418,6 +404,59 @@ class shopMarketingPromoSaveController extends waJsonController
     // Prepare
     //
 
+    protected function prepareDateTimes()
+    {
+        $datetime_format = 'Y-m-d H:i:s';
+        if (!empty($this->promo_data['start_date'])) {
+            $d = $this->promo_data['start_date'];
+            $t = ifempty($this->promo_data, 'start_time', '00:00');
+            $start_datetime = "{$d} {$t}:00";
+            $start_time = strtotime($start_datetime);
+            if ($start_time && $start_time > 0) {
+                $this->promo_data['start_datetime'] = waDateTime::parse($datetime_format, date($datetime_format, $start_time));
+            } else {
+                $this->errors[] = [
+                    'name' =>  'promo[start_time]',
+                    'text' => _w('Invalid date or time'),
+                ];
+            }
+        }
+
+        if (!empty($this->promo_data['finish_date'])) {
+            $d = $this->promo_data['finish_date'];
+            $t = ifempty($this->promo_data, 'finish_time', '23:59');
+            $finish_datetime = "{$d} {$t}:00";
+            $finish_time = strtotime($finish_datetime);
+            if ($finish_time && $finish_time > 0) {
+                $this->promo_data['finish_datetime'] = waDateTime::parse($datetime_format, date($datetime_format, $finish_time));
+            } else {
+                $this->errors[] = [
+                    'name' => 'promo[finish_time]',
+                    'text' => _w('Invalid date or time'),
+                ];
+            }
+        }
+
+        if (!empty($this->promo_data['countdown_datetime'])) {
+            $d = ifempty($this->promo_data, 'countdown_datetime', 'date', '0000-00-00');
+            $h = ifempty($this->promo_data, 'countdown_datetime', 'hour', '23');
+            $m = ifempty($this->promo_data, 'countdown_datetime', 'minute', '59');
+            $countdown_datetime = "{$d} {$h}:{$m}:00";
+            $countdown_time = strtotime($countdown_datetime);
+            $current_time = time();
+            if ($countdown_time && $countdown_time > $current_time) {
+                $this->promo_data['countdown_datetime'] = waDateTime::parse($datetime_format, date($datetime_format, $countdown_time));
+            } else {
+                $this->errors[] = [
+                    'name' => 'promo[countdown_datetime][date]',
+                    'text' => _w('Invalid date or time'),
+                ];
+            }
+        } else {
+            $this->promo_data['countdown_datetime'] = null;
+        }
+    }
+
     protected function prepare()
     {
         $this->preparePromo();
@@ -432,50 +471,8 @@ class shopMarketingPromoSaveController extends waJsonController
 
         $this->promo_data['type'] = 'link'; // TODO !!!
 
-        if (!empty($this->promo_data['start_date'])) {
-            $d = $this->promo_data['start_date'];
-            $t = ifempty($this->promo_data, 'start_time', '00:00');
-            $start_datetime = "{$d} {$t}:00";
-            if ($start_datetime = waDateTime::parse('Y-m-d H:i:s', $start_datetime)) {
-                $this->promo_data['start_datetime'] = $start_datetime;
-            }
-        }
-
-        if (!empty($this->promo_data['finish_date'])) {
-            $d = $this->promo_data['finish_date'];
-            $t = ifempty($this->promo_data, 'finish_time', '23:59');
-            $finish_datetime = "{$d} {$t}:00";
-            if ($finish_datetime = waDateTime::parse('Y-m-d H:i:s', $finish_datetime)) {
-                $this->promo_data['finish_datetime'] = $finish_datetime;
-            }
-        }
-
         if ($this->file->count()) {
             $this->promo_data['ext'] = $this->file->extension;
-        }
-    }
-
-    protected function prepareCountdown()
-    {
-        if (empty($this->promo_data['countdown_datetime'])) {
-            $this->promo_data['countdown_datetime'] = null;
-            return;
-        }
-
-        $d = ifempty($this->promo_data, 'countdown_datetime', 'date', '0000-00-00');
-
-        $h = (int)ifempty($this->promo_data, 'countdown_datetime', 'hour', 23);
-        if ($h > 23) $h = 23;
-        $h = $h < 10 ? '0'.$h : $h;
-
-        $m = (int)ifempty($this->promo_data, 'countdown_datetime', 'minute', 59);
-        if ($m > 59) $m = 59;
-        $m = $m < 10 ? '0'.$m : $m;
-
-        $datetime = "{$d} {$h}:{$m}:00";
-        $this->promo_data['countdown_datetime'] = null;
-        if ($countdown_datetime = waDateTime::parse('Y-m-d H:i:s', $datetime)) {
-            $this->promo_data['countdown_datetime'] = $countdown_datetime;
         }
     }
 

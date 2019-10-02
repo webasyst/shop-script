@@ -455,6 +455,7 @@
     });
 
     $.product_list.init({
+        marketing_url: {"`$wa_app_url`marketing/"|json_encode},
         view: '{$view}',
         collection_hash: {json_encode($collection_hash)},
         collection_param: '{$collection_param}',

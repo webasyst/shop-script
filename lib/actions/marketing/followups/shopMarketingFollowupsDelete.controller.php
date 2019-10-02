@@ -1,6 +1,6 @@
 <?php
 
-class shopMarketingFollowupsDeleteController extends waJsonController
+class shopMarketingFollowupsDeleteController extends shopMarketingSettingsJsonController
 {
     public function execute()
     {

@@ -54,7 +54,7 @@
                                         $stats.date_min|wa_date:humandate,
                                         $stats.date_max|wa_date:humandate
                                         )}
-                                        <a href="#/sales/type=sources&abtest={$test.id}&from={strtotime($stats.date_min)}&to={strtotime($stats.date_max)}">[`View details`]</a>
+                                        <a href="{$wa_app_url}?action=reports#/sales/#/sales/type=sources&abtest={$test.id}&from={strtotime($stats.date_min)}&to={strtotime($stats.date_max)}">[`View details`]</a>
                                     </p>
                                 {/if}
 

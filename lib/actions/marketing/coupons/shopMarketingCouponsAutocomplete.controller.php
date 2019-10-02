@@ -38,7 +38,7 @@ class shopMarketingCouponsAutocompleteController extends waJsonController
         $coupons = $cm->query($sql, [$ignore_ids])->fetchAll();
 
         foreach ($coupons as &$coupon) {
-            $coupon['discount_string'] = shopMarketingCouponsAction::formatValue($coupon);
+            $coupon['discount_string'] = shopCouponModel::formatValue($coupon);
             if (!empty($coupon['expire_datetime'])) {
                 $coupon['expire_datetime_string'] = waDateTime::format('date', $coupon['expire_datetime']);
             }

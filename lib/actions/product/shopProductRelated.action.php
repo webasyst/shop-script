@@ -29,7 +29,7 @@ class shopProductRelatedAction extends waViewAction
         if ($type['upselling']) {
             $type_upselling_model = new shopTypeUpsellingModel();
             $data = $type_upselling_model->getByType($type['id']);
-            $type['upselling_html'] = shopSettingsRecommendationsAction::getConditionHTML($data);
+            $type['upselling_html'] = shopMarketingRecommendationsAction::getConditionHTML($data);
         }
 
         if ($type['cross_selling'] && substr($type['cross_selling'], 0, 9) == 'category/') {

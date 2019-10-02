@@ -860,12 +860,14 @@ SQL;
             if (!$routes) {
                 return false;
             }
-            if ($domain && !isset($routes[$domain])) {
-                return false;
+            if (!$domain) {
+                $domain = $current_domain;
+                if (!isset($routes[$domain])) {
+                    $domain = key($routes);
+                }
             }
-            $domain = $current_domain;
             if (!isset($routes[$domain])) {
-                $domain = key($routes);
+                return false;
             }
         } else {
             $current_route['domain'] = $current_domain;

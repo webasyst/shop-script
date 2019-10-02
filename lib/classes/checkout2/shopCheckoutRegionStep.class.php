@@ -428,14 +428,14 @@ class shopCheckoutRegionStep extends shopCheckoutStep
 
         $selected_values = [
             'location_id' => $location_id,
-            'country_id'  => $address['country'],
+            'country_id'  => trim($address['country']),
             'region_id'   => null,
-            'region'      => $address['region'],
+            'region'      => trim($address['region']),
             'city_id'     => null,
-            'city'        => $address['city'],
+            'city'        => trim($address['city']),
         ];
         if (!empty($cfg['shipping']['ask_zip'])) {
-            $selected_values['zip'] = $address['zip'];
+            $selected_values['zip'] = trim($address['zip']);
         }
 
         // Replace values fixed in selected location
