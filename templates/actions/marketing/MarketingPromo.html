@@ -1,7 +1,9 @@
 {$_title = ""}
 {if !empty($promo)}
-    {if !empty($promo.title)}
+    {if !empty($promo.title) && trim($promo.title)}
         {$_title = $promo.title}
+    {elseif !empty($promo.id)}
+        {$_title = _w("<no name>")}
     {else}
         {$_title = _w("New promo")}
     {/if}
@@ -54,7 +56,7 @@
                         <h1 class="s-title">
                             <a href="{$marketing_url}" class="back nowrap">&larr;&nbsp;[`Back`]</a>
                             <span class="editable js-name-editable">{$_title|escape}</span>
-                            <input class="s-title-field js-title-field" type="text" value="{$_title|escape}">
+                            <input class="s-title-field js-title-field" type="text" value="{$promo.title|default:''|escape}">
                         </h1>
                     </div>
                     {if !empty($promo.id)}
@@ -370,7 +372,7 @@
                                         <div class="name">[`Title`]</div>
                                         <div class="value">
 
-                                            <input type="text" name="promo[title]" value="{$promo.title|default:$_title|escape}" required {if empty($promo.id)}autofocus{/if}>
+                                            <input type="text" name="promo[title]" value="{$promo.title|default:''|escape}" required {if empty($promo.id)}autofocus{/if}>
 
                                             {if !empty($promo.id)}
                                                 <div class="s-ident-wrapper">
@@ -400,7 +402,7 @@
                                     <div class="field">
                                         <div class="name">[`Text color`]</div>
                                         <div class="value">
-                                            <input type="text" name="promo[color]" value="#ffffff" class="short">
+                                            <input type="text" name="promo[color]" value="{ifempty($promo, 'color', '#ffffff')|escape}" class="short">
                                             <i class="icon16 color"></i>
                                             <div class="js-colorpicker"></div>
                                         </div>
@@ -408,7 +410,7 @@
                                     <div class="field">
                                         <div class="name">[`Background color`]</div>
                                         <div class="value">
-                                            <input type="text" name="promo[background_color]" value="#aaaaaa" class="short">
+                                            <input type="text" name="promo[background_color]" value="{ifempty($promo, 'background_color', '#aaaaaa')|escape}" class="short">
                                             <i class="icon16 color"></i>
                                             <div class="js-colorpicker"></div>
                                             <p class="hint">[`Image background color`]</p>

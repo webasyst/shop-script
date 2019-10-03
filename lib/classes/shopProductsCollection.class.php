@@ -1505,8 +1505,8 @@ SQL;
              * @event products_collection.prepared
              * @param shopProductsCollection $this
              */
-            wa('shop')->event('products_collection.prepared', $this);
             $this->prepared_event = true;
+            wa('shop')->event('products_collection.prepared', $this);
         }
 
         $sql = "FROM shop_product p";

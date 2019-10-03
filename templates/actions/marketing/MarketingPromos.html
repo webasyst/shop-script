@@ -72,7 +72,7 @@
 
             <div class="s-promo-header">
                 <h5 class="s-title">
-                    <a href="{$marketing_url}promo/{$_promo.id|escape}/" title="{$_promo.title|escape}">{$_promo.title|escape}</a>
+                    <a href="{$marketing_url}promo/{$_promo.id|escape}/" title="{$_promo.title|escape}">{$_promo.title|default:"{_w('<no name>')}"|escape}</a>
                 </h5>
 
                 {$roi_value = ifset($promos_stats, $_promo.id, 'roi', null)}
@@ -479,7 +479,7 @@
                     $wrapper: $("#js-promos-page"),
                     promo_sort_enabled: {if !empty($active_storefront)}1{else}0{/if},
                     urls: {
-                        sort: "{$wa_app_url}?module=marketingPromo&action=sort&storefront="+{ifset($active_storefront)|escape|json_encode}
+                        sort: "{$wa_app_url}?module=marketingPromo&action=sort&storefront="+{ifset($active_storefront)|urlencode|json_encode}
                     }
                 });
             });
