@@ -337,7 +337,7 @@ class shopImportexportHelper
                     'type'           => self::PROMO_TYPE_PROMO_CODE,
                     'name'           => _w('Coupon discount'),
                     'description'    => sprintf('%s: %s', _w('Coupon discount'), shopCouponModel::formatValue($coupon)),
-                    'settings'       => sprintf('./#/coupons/%d', $id),
+                    'settings'       => sprintf('./marketing/coupons/%d', $id),
                     'source'         => _w('Discount coupons'),
                     'hint'           => $coupon['comment'],
                     'promo_code'     => $coupon['code'],

@@ -419,7 +419,7 @@
 
                         {*Coupon show/remove*}
                         {if !empty($order.coupon)}
-                                <a href="#/coupons/{$order.coupon.id|escape}" class="s-order-edit-coupon" target="_blank">
+                                <a href="{$wa_app_url}marketing/coupons/{$order.coupon.id|escape}/" class="s-order-edit-coupon" target="_blank">
                                     <input type="hidden" id="coupon_id" name="coupon_id" value="{$order.coupon.id}">
                                     <i class="icon16 ss coupon"></i><strong>{$order.coupon.code|escape}</strong>
                                 </a>

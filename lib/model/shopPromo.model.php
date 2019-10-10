@@ -93,7 +93,7 @@ class shopPromoModel extends waModel
             if (empty($joins['promo_routes'])) {
                 $joins['promo_routes'] = 'shop_promo_routes AS r ON p.id = r.promo_id';
             }
-            $order_by = 'ORDER BY r.sort ASC, p.id ASC';
+            $order_by = "ORDER BY MIN(IF(r.storefront = '%all%', 100500, r.sort)) ASC, p.id ASC";
         } elseif ($status === self::STATUS_PLANNED) {
             $cond[] = "p.start_datetime IS NOT NULL AND p.start_datetime > :datetime";
             $order_by = "ORDER BY p.start_datetime ASC";
@@ -226,10 +226,13 @@ class shopPromoModel extends waModel
         $sql = "SELECT p.*, r.sort
                 FROM {$this->table} AS p
                     JOIN shop_promo_routes AS r
-                        ON p.id=r.promo_id
-                WHERE r.storefront IN (?)
-                    AND type=? :enable
-                ORDER BY r.sort, p.id";
+                        ON p.id = r.promo_id
+                WHERE r.storefront IN (:storefronts)
+                    AND type = :type
+                    :enable
+                    AND (p.start_datetime IS NULL OR p.start_datetime <= :datetime)
+                    AND (p.finish_datetime IS NULL OR p.finish_datetime >= :datetime)
+                ORDER BY IF(r.storefront = '%all%', 100500, r.sort) ASC, p.id ASC";
 
         if ($enable_status === null) {
             $sql = str_replace(':enable', '', $sql);
@@ -243,9 +246,18 @@ class shopPromoModel extends waModel
             rtrim($storefront, '/') . '/',
             rtrim($storefront, '/')
         );
-        $result = $this->query($sql, array($storefronts, $type))->fetchAll('id');
 
-        $result_all = array_diff_key($this->query($sql, array('%all%', $type))->fetchAll('id'), $result);
+        $vars = [
+            'storefronts' => $storefronts,
+            'type'        => $type,
+            'datetime'    => date('Y-m-d H:i:s'),
+        ];
+
+        $result = $this->query($sql, $vars)->fetchAll('id');
+
+        $vars['storefronts'] = shopPromoRoutesModel::FLAG_ALL;
+
+        $result_all = array_diff_key($this->query($sql, $vars)->fetchAll('id'), $result);
         if ($result_all) {
 
             $max_sort = 0;

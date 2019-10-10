@@ -372,7 +372,7 @@
                                         <div class="name">[`Title`]</div>
                                         <div class="value">
 
-                                            <input type="text" name="promo[title]" value="{$promo.title|default:''|escape}" required {if empty($promo.id)}autofocus{/if}>
+                                            <input type="text" name="promo[title]" value="{$promo.title|default:''|escape}" {if empty($promo.id)}autofocus{/if}>
 
                                             {if !empty($promo.id)}
                                                 <div class="s-ident-wrapper">

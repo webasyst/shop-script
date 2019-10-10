@@ -221,7 +221,7 @@ HTML;
             $discount = $percent * $order['total'] / 100.0;
             foreach ($order['items'] as $item_id => $item) {
                 $item_discount = $percent * $item['price'] / 100.0;
-                $item_discount = shop_currency($item_discount * $item['quantity'], $item['currency'], $order['currency'], false);
+                $item_discount = shop_currency($item_discount * $item['quantity'], ifempty($item, 'currency', $order['currency']), $order['currency'], false);
                 $result['items'][$item_id] = array(
                     'discount'    => $item_discount,
                     'description' => $description,
@@ -523,7 +523,7 @@ HTML;
                 continue;
             }
             $item_discount = $percent * $item['price'] / 100.0;
-            $item_discount = shop_currency($item_discount * $item['quantity'], $item['currency'], $order['currency'], false);
+            $item_discount = shop_currency($item_discount * $item['quantity'], ifempty($item, 'currency', $order['currency']), $order['currency'], false);
             $total_discount += $item_discount;
 
             $result['items'][$item_id] = array(
@@ -620,7 +620,7 @@ HTML;
         }
 
         foreach ($order['items'] as &$item) {
-            if (!isset($item['currency'])) {
+            if (empty($item['currency'])) {
                 $item['currency'] = $order['currency'];
             }
         }
@@ -678,7 +678,7 @@ HTML;
         }
 
         if ($item['discount']) {
-            $item['discount'] = min(max(0, $item['discount']), shop_currency($item['price'], $item['currency'], $currency, false) * $item['quantity']);
+            $item['discount'] = min(max(0, $item['discount']), shop_currency($item['price'], ifempty($item, 'currency', $currency), $currency, false) * $item['quantity']);
             // round discount per one item
             if ($item['quantity'] > 1) {
                 $round_discount = $item['quantity'] * shop_currency($item['discount'] / $item['quantity'], $currency, $currency, false);
