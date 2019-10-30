@@ -843,6 +843,10 @@ SQL;
                 $category['description'] = wa()->getView()->fetch('string:'.$category['description']);
             }
         }
+        $is_from_template = waConfig::get('is_template');
+        waConfig::set('is_template', null);
+        wa('shop')->event('view_category', $category);
+        waConfig::set('is_template', $is_from_template);
         return $category;
     }
 
