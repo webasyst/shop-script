@@ -17,7 +17,17 @@ class shopWorkflowPerformController extends waJsonController
 
         $workflow = new shopWorkflow();
         // @todo: check action availability in state
+        // @todo: run data validation
+        /** @var shopWorkflowAction $action */
         $action = $workflow->getActionById($action_id);
-        $this->response = $action->run($order_id);
+        try {
+            $this->response = $action->run($order_id);
+        } catch (waException $ex) {
+            $data = array();
+            if ($action instanceof shopWorkflowAction) {
+                $data = $action->getErrorData();
+            }
+            $this->setError($ex->getMessage(), $data);
+        }
     }
 }

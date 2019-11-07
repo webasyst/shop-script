@@ -94,6 +94,10 @@ class shopWorkflowSettleAction extends shopWorkflowAction
                         $update['paid_date'] = $order['paid_date'];
                     }
 
+                    if (!empty($order['auth_date'])) {
+                        $update['auth_date'] = $order['auth_date'];
+                    }
+
                     $params = array(
                         'order_id' => $target_order_id,
                         'update'   => $update,

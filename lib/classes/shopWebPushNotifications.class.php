@@ -51,8 +51,10 @@ class shopWebPushNotifications
 
             $push->sendByContact($shop_user_ids, $data);
         } catch (Exception $ex) {
-            $result = $ex->getMessage();
-            waLog::log('Unable to send PUSH notifications: '.$result, 'shop/webpush.log');
+            if (wa()->getConfig()->isDebug()) {
+                $result = $ex->getMessage();
+                waLog::log('Unable to send PUSH notifications: '.$result, 'shop/webpush.log');
+            }
             $success = false;
         }
 

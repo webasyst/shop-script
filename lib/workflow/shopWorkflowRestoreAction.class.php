@@ -8,21 +8,27 @@ class shopWorkflowRestoreAction extends shopWorkflowAction
         $params = array();
         $this->state_id = $this->order_log_model->getPreviousState($order_id, $params);
         shopAffiliate::reapplyDiscount($order_id);
-        // Restore order.paid_*, customer.total_spent and customer.affiliation_bonus
-        $paid_date = ifset($params['paid_date']);
-        if ($paid_date) {
+        // Restore order.paid_*, order.auth_date, customer.total_spent and customer.affiliation_bonus
+        $update = array();
 
+        if ($paid_date = ifset($params['paid_date'])) {
             $t = strtotime($paid_date);
-            $result['update'] = array(
-                    'paid_year' => date('Y', $t),
-                    'paid_quarter' => floor((date('n', $t) - 1) / 3) + 1,
-                    'paid_month' => date('n', $t),
-                    'paid_date' => date('Y-m-d', $t),
+            $update += array(
+                'paid_year'    => date('Y', $t),
+                'paid_quarter' => floor((date('n', $t) - 1) / 3) + 1,
+                'paid_month'   => date('n', $t),
+                'paid_date'    => date('Y-m-d', $t),
             );
-            return $result;
         }
 
-        return true;
+        if ($auth_date = ifset($params['auth_date'])) {
+            $t = strtotime($auth_date);
+            $update += array(
+                'auth_date' => date('Y-m-d', $t),
+            );
+        }
+
+        return $update ? compact('update') : true;
     }
 
     public function postExecute($order_id = null, $result = null)

@@ -793,8 +793,8 @@
 
             initBannerSection();
             initColorPickers();
-            initDatePickers();
             initDateTimers();
+            initDatePickers();
             initStorefrontsSection();
             initStatusSection();
             initCountdownSection();
@@ -865,27 +865,120 @@
 
                 $section.find(".js-datepicker").each( function() {
                     var $input = $(this),
+                        $alt_field = null,
                         alt_field_selector = $input.data("alt");
 
+                    var error_class = "error";
+
+                    var options = {
+                        changeMonth: true,
+                        changeYear: true
+                    };
+
                     if (alt_field_selector) {
-                        var $alt_field = $section.find(alt_field_selector);
-
-                        var options = {
-                            changeMonth: true,
-                            changeYear: true
-                        };
-
+                        $alt_field = $section.find(alt_field_selector);
                         if ($alt_field.length) {
                             options = $.extend(options, {
                                 altField: $alt_field,
                                 altFormat: "yy-mm-dd"
                             });
                         }
-
-                        $input.datepicker(options);
                     }
 
+                    $input.on("blur change", function() {
+                        var $field = $(this),
+                            value = $.trim( $field.val() );
+
+                        if (value.length) {
+                            if (!checkDate(value)) {
+                                $field.val("").addClass(error_class);
+                                if ($alt_field && $alt_field.length) {
+                                    $alt_field.val("");
+                                }
+                            }
+                        } else {
+                            if ($alt_field && $alt_field.length) {
+                                $alt_field.val("");
+                            }
+                        }
+                    });
+
+                    $input.on("focus keydown", function(event) {
+                        var $field = $(this),
+                            has_error = $field.hasClass(error_class);
+
+                        if (has_error) {
+                            $field.removeClass(error_class);
+                        }
+                    });
+
+                    $input.on("keydown", function(event) {
+                        var key = event.keyCode,
+                            is_enter = ( key === 13 );
+
+                        if (is_enter) {
+                            event.preventDefault();
+                            $(this).trigger("change");
+                        }
+                    });
+
+                    $input.datepicker(options);
+
                 });
+
+                validateStartFinish();
+
+                function validateStartFinish() {
+                    var $start_field = $root_section.find(".js-start-date"),
+                        $finish_field = $root_section.find(".js-finish-date");
+
+                    $start_field.on("change", function() {
+                        var $field = $(this),
+                            value = $.trim( $field.val() ),
+                            date = null;
+
+                        if (value) {
+                            var is_valid = checkDate(value);
+                            if (is_valid) {
+                                date = $field.datepicker("getDate");
+                            }
+                        }
+
+                        $finish_field.datepicker("option", "minDate", date);
+                    });
+
+                    $finish_field.on("change", function() {
+                        var $field = $(this),
+                            value = $.trim( $field.val() ),
+                            date = null;
+
+                        if (value) {
+                            var is_valid = checkDate(value);
+                            if (is_valid) {
+                                date = $field.datepicker("getDate");
+                            }
+                        }
+
+                        $start_field.datepicker("option", "maxDate", date);
+                    });
+
+                    $start_field.trigger("change");
+                    $finish_field.trigger("change");
+                }
+
+                function checkDate(date) {
+                    var format = $.datepicker._defaults.dateFormat,
+                        is_valid = null;
+
+                    try {
+                        $.datepicker.parseDate(format, date);
+                        is_valid = true;
+                    } catch(e) {
+                        is_valid = false
+                    }
+
+                    return is_valid;
+                }
             }
 
             function initCountdownSection() {
@@ -1147,11 +1240,17 @@
             }
 
             function initBannerSection() {
-                var $_banner_section = $root_section.find(".s-banner-section");
+                var $_banner_section = $root_section.find(".s-banner-section"),
+                    active_class = "is-extended";
+
+                $_banner_section.on("error", function(event) {
+                    event.preventDefault();
+                    $_banner_section.addClass(active_class);
+                });
 
                 $_banner_section.on("click", ".js-section-toggle", function(event) {
                     event.preventDefault();
-                    $_banner_section.toggleClass("is-extended");
+                    $_banner_section.toggleClass(active_class);
                 });
             }
         };
@@ -1395,6 +1494,16 @@
 
             that.$submit_button.on("click", function() {
                 that.$wrapper.addClass("with-errors");
+
+                that.$wrapper.find("input:required").each( function() {
+                    var $field = $(this),
+                        is_empty = ($.trim($field.val()).length === 0),
+                        is_visible = $field.is(":visible");
+
+                    if (is_empty && !is_visible) {
+                        $field.trigger("error");
+                    }
+                });
             });
 
             $form.on("submit", function(event) {
@@ -1570,7 +1679,9 @@
                                 $error.insertAfter($field);
                             }
 
-                            $field.on("change keyup", removeFieldError);
+                            $field
+                                .trigger("error")
+                                .on("change keyup", removeFieldError);
                         }
                     }
 
@@ -1929,7 +2040,7 @@
 
                     getProductData(product_id).then( function(response) {
                         if (response.status === "ok") {
-                            $list.append( formatProducts(response.data.html) );
+                            $list.prepend( formatProducts(response.data.html) );
                             product_ids = getProductIds();
                             productsToggle(true);
                         }

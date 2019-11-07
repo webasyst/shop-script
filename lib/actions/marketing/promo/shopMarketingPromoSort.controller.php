@@ -12,18 +12,6 @@ class shopMarketingPromoSortController extends waJsonController
         }
 
         $promo_routes_model = new shopPromoRoutesModel();
-
-        $sort = 0;
-        foreach($ids as $promo_id) {
-
-            $promo_routes_model->updateByField([
-                'promo_id' => $promo_id,
-                'storefront' => $storefront,
-            ], [
-                'sort' => $sort,
-            ]);
-
-            $sort++;
-        }
+        $promo_routes_model->reorderPromos($storefront, $ids);
     }
 }

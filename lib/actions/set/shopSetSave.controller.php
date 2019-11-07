@@ -2,8 +2,15 @@
 
 class shopSetSaveController extends waJsonController
 {
+    /**
+     * @var shopSetModel object
+     */
     protected $model = null;
 
+    /**
+     * @throws waException
+     * @throws waRightsException
+     */
     public function execute()
     {
         if (!$this->getUser()->getRights('shop', 'setscategories')) {
@@ -33,6 +40,10 @@ class shopSetSaveController extends waJsonController
         }
     }
 
+    /**
+     * @param $set_id
+     * @return bool
+     */
     protected function saveName($set_id)
     {
         $edit = waRequest::get('edit', null, waRequest::TYPE_STRING_TRIM);
@@ -52,6 +63,12 @@ class shopSetSaveController extends waJsonController
         return false;
     }
 
+    /**
+     * @param $id
+     * @param $data
+     * @return bool|string
+     * @throws waException
+     */
     private function saveSetSettings($id, &$data)
     {
         if (empty($data['count']) || $data['count'] < 0) {
@@ -65,7 +82,7 @@ class shopSetSaveController extends waJsonController
             } else {
                 $data['id'] = $this->model->suggestUniqueId($data['id']);
             }
-            if (!$this->setSettingsValidate(null, $data)) {
+            if (!$this->setSettingsValidate($data, null)) {
                 return false;
             }
             if (empty($data['name'])) {
@@ -74,7 +91,7 @@ class shopSetSaveController extends waJsonController
             $id = $this->model->add($data);
         } else {
             $set = $this->model->getById($id);
-            if (!$this->setSettingsValidate($set, $data)) {
+            if (!$this->setSettingsValidate($data,$set)) {
                 return false;
             }
             if (empty($data['name'])) {
@@ -104,7 +121,12 @@ class shopSetSaveController extends waJsonController
         return $id;
     }
 
-    private function setSettingsValidate($set = null, $data)
+    /**
+     * @param null $set
+     * @param $data
+     * @return bool
+     */
+    private function setSettingsValidate($data, $set = null)
     {
         if (!preg_match("/^[a-z0-9\._-]+$/i", $data['id'])) {
             $this->errors['id'] = _w('Only Latin characters, numbers, underscore and hyphen symbols are allowed');
@@ -119,7 +141,10 @@ class shopSetSaveController extends waJsonController
         return empty($this->errors);
     }
 
-
+    /**
+     * @return array
+     * @throws waException
+     */
     private function getData()
     {
         $type = waRequest::post('type', 0, waRequest::TYPE_INT);
@@ -134,8 +159,66 @@ class shopSetSaveController extends waJsonController
             $rule = waRequest::post('rule', null, waRequest::TYPE_STRING);
             $data['rule'] = !empty($rule) ? $rule : null;
             $data['count'] = waRequest::post('count', 100, waRequest::TYPE_INT);
+            $data['json_params'] = $this->getJsonParams();
         }
 
         return $data;
+    }
+
+    /**
+     * @return false|string
+     * @throws waException
+     */
+    protected function getJsonParams()
+    {
+        $date_start = $this->getDateStart();
+        $params = [];
+        if ($date_start) {
+            $params['date_start'] = $this->parseDayFormat($date_start);
+        }
+
+        $date_end = $this->getDateEnd();
+        if ($date_end) {
+            $params['date_end'] = $this->parseDayFormat($date_end);
+        }
+
+        return json_encode($params);
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function getDateStart()
+    {
+        return waRequest::post('date_start', '', waRequest::TYPE_STRING);
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function getDateEnd()
+    {
+        return waRequest::post('date_end', '', waRequest::TYPE_STRING);
+    }
+
+    /**
+     * @param $date
+     * @return string
+     * @throws waException
+     */
+    protected function parseDayFormat($date)
+    {
+        $date = trim($date);
+        $new_date = waDateTime::parse('date', $date, null, 'ru_RU');
+
+        if (!$new_date) {
+            $new_date = waDateTime::parse('date', $date, null, 'en_US');
+
+            if (!$new_date) {
+                throw new waException(_w('Invalid date'));
+            }
+        }
+
+        return $new_date;
     }
 }

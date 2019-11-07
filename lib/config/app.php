@@ -18,12 +18,13 @@ return array(
     'pages'            => true,
     'mobile'           => true,
     'my_account'       => true,
-    'version'          => '8.5.2',
+    'version'          => '8.6.0', // release candidate (developer preview)
     'critical'         => '8.0.0',
     'vendor'           => 'webasyst',
     'csrf'             => true,
     'payment_plugins'  => array(
-        'taxes'        => true,
+        'taxes'     => true,
+        'rights'    => 'settings',
     ),
     'shipping_plugins' => array(
         'desired_date'  => true,
@@ -32,11 +33,14 @@ return array(
         'cancel'        => true,
         'taxes'         => true,
         'custom_fields' => true,
-        'dimensions'    => false, //actual value casted via shopShipping::getAppProperties
+        'dimensions'    => false,   //actual value casted via shopShipping::getAppProperties
+        'sync'          => true,    //actual value casted via shopShipping::getAppProperties
+        'callback'      => array(), //actual value casted via shopShipping::getAppProperties
+        'rights'        => 'settings',
     ),
     'sms_plugins'      => true,
     'license'          => 'commercial',
-    'routing_params' => array(
+    'routing_params'   => array(
         'checkout_version'       => 2,
         'checkout_storefront_id' => class_exists('shopCheckoutConfig') ? ['shopCheckoutConfig', 'generateStorefrontId'] : md5(uniqid()),
     ),

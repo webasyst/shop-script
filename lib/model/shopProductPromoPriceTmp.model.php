@@ -13,24 +13,14 @@ class shopProductPromoPriceTmpModel extends waModel
 
     public function __construct($type = null, $writable = false)
     {
-        $this->setupAdapter($type, $writable);
-        $this->setupTable();
-        parent::__construct($type, $writable);
+        $this->writable = $writable;
+        $this->type = $type ? $type : 'default';
+        $this->adapter = waDbConnector::getConnection($this->type, $this->writable);
     }
 
     public function __destruct()
     {
         $this->destroyTable();
-    }
-
-    protected function setupAdapter($type, $writable)
-    {
-        if ($this->adapter) {
-            return;
-        }
-        $this->writable = $writable;
-        $this->type = $type ? $type : 'default';
-        $this->adapter = waDbConnector::getConnection($this->type, $this->writable);
     }
 
     public function setupTable()
@@ -48,8 +38,9 @@ class shopProductPromoPriceTmpModel extends waModel
                         INDEX `sku_id` (`sku_id`),
                         INDEX `primary_price` (`primary_price`),
                         unique (storefront, product_id, sku_id)
-                    ) DEFAULT CHARSET utf8");
+                    ) ENGINE = MEMORY DEFAULT CHARSET utf8");
         $this->exec("TRUNCATE {$this->table}");
+        $this->getMetadata();
     }
 
     public function destroyTable()

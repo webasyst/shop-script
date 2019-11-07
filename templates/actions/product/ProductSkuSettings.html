@@ -124,7 +124,10 @@
 
     {if count($features)}
         <h5 class="heading">[`SKU features`]</h5>
-        <p class="hint">[`Defining feature values for SKUs is great for dynamic product filtering customer experience. When customer finds a product using by-feature filters, product’s default SKU will be selected according to the filter conditions.`]</p>
+        <p class="hint">
+            [`Defining feature values for SKUs is great for dynamic product filtering customer experience. When customer finds a product using by-feature filters, product’s default SKU will be selected according to the filter conditions.`]
+            <a href="{$wa_app_url}?action=settings#/features/" target="_blank" style="display: inline-block;"><i class="icon16 settings" style="display: inline-block; margin: 0 4px 0 0; position: static; float: none;"></i>[`Set up types &amp; features`]</a>
+        </p>
     {/if}
     {foreach $features as $code => $feature}
         <div class="field">

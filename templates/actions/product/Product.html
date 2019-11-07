@@ -109,8 +109,43 @@
                 </ul>
             {/if}
 
+            {if $wa->userRights('marketing') && !empty($product_promos)}
+                {$_limit = 3}
+                {$_is_long_list = $product_promos|count > $_limit}
+
+                <div class="s-product-promos-section" id="js-product-promos-section" style="margin-top: 20px;">
+                    <h5 class="heading">[`Featured in promos`]</h5>
+                    <ul class="s-product-promos-list menu-v compact with-icons">
+                        {foreach $product_promos as $_promo}
+                            <li class="s-product-promo js-product-promo" {if $_promo@iteration > $_limit}style="display: none;"{/if}>
+                                <a href="{$wa_app_url}marketing/promo/{$_promo.id|escape}/"><i class="icon16 ss promo"></i>{$_promo.title|default:"Promo"|escape}</a>
+                            </li>
+                        {/foreach}
+                    </ul>
+
+                    {if $_is_long_list}
+                        <div class="s-product-promos-actions js-extend-promos" style="margin-top: 10px;">
+                            <a href="javascript:void(0);" class="inline-link gray">
+                                <b><i>{_w("%d more promo", "%d more promos", $product_promos|count - $_limit)}</i></b>
+                            </a>
+                            <script>
+                                ( function($) {
+                                    var $section = $("#js-product-promos-section");
+
+                                    $section.on("click", ".js-extend-promos", function(event) {
+                                        event.preventDefault();
+                                        $(this).hide();
+                                        $section.find(".js-product-promo").show();
+                                    });
+                                })(jQuery);
+                            </script>
+                        </div>
+                    {/if}
+                </div>
+            {/if}
+
             {if $edit_rights > 1 || $product.contact_id == $wa->userId()}
-                <div id="s-product-delete" class="block align-center top-padded">
+                <div id="s-product-delete" style="margin-top: 20px;">
                     <ul class="menu-h with-icons">
                         <li><a href="#/product/{$product.id}/edit/main/product/delete/" class="inline-link js-action"><i class="icon16 delete"></i>[`Delete product`]</a></li>
                     </ul>
@@ -440,7 +475,7 @@
                         <div class="value no-shift" data-type="{$product.type.id|escape}">
                             <span class="js-type-icon">{shopHelper::getIcon($product.type.icon)}</span>
                             <strong class="js-type-name">{$product.type.name|escape}</strong>&nbsp;
-                            <a href="#/product/{$product.id}/edit/main/type/select/" class="js-action gray inline-link"><b><i>[`Change type`]</i></b></a>
+                            <a class="js-action gray inline-link" href="#/product/{$product.id}/edit/main/type/select/"><b><i>[`Change type`]</i></b></a>
 
                             <select name="product[type_id]" style="display:none;" class="js-shop-product-set-type">
                             {if empty($product.type.id)}
@@ -452,6 +487,10 @@
                                 </option>
                             {/foreach}
                             </select>
+
+                            <a href="{$wa_app_url}?action=settings#/features/" target="_blank" style="display: inline-block; margin-left: 20px; font-size: 12px;">
+                                <i class="icon16 settings" style="margin: 0 4px 0 0;"></i>[`Set up types &amp; features`]
+                            </a>
                         </div>
                     </div>
                 {else}
@@ -712,7 +751,7 @@
 
                                     </td>
                                     <td class="extra-top-padded">
-                                      <a href="#/product/{$product.id}/edit/main/sku/settings/{$sku_id}/" class="inline-link nowrap inline-link gray js-action" title="[`Show all options`]"><i class="icon16 settings"></i><b><i>[`More`]</i></b></a>
+                                      <a href="#/product/{$product.id}/edit/main/sku/settings/{$sku_id}/" class="inline-link nowrap inline-link js-action" title="[`Show all options`]"><i class="icon16 settings"></i><b><i>[`More`]</i></b></a>
                                     </td>
                                     <td class="extra-top-padded">
                                           <a href="#/product/{$product.id}/edit/main/sku/delete/{$sku_id}/" {if count($product.skus) <= 1}style="display:none;"{/if}

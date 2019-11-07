@@ -75,42 +75,117 @@ class shopProductListAction extends waViewAction
 
     protected function getHash()
     {
-        $hash = waRequest::request('hash', null, waRequest::TYPE_STRING_TRIM);
-        if ($hash) {
-            $this->collection_param = 'hash='.$hash;
-            return explode('/', trim(ltrim($hash, '#'), '/'));
-        }
+        $page_type = $this->getPageType();
+        $result = null;
 
-        $text = waRequest::get('text', null, waRequest::TYPE_STRING_TRIM);
-        if ($text) {
+        if ($page_type == 'hash') {
+            $hash = $this->getRawHash();
+            $this->collection_param = 'hash='.$hash;
+            $result = explode('/', trim(ltrim($hash, '#'), '/'));
+        } elseif ($page_type == 'text') {
+            $text = $this->getRawText();
             $this->text = urldecode($text);
             $this->collection_param = 'text='.$this->text;
-            return array('search', 'query='.str_replace('&', '\&', $this->text));
-        }
-        $tag = waRequest::get('tag', null, waRequest::TYPE_STRING_TRIM);
-        if ($tag) {
+            $result = array('search', 'query='.str_replace('&', '\&', $this->text));
+        } elseif ($page_type == 'tag') {
+            $tag = $this->getRawTag();
             $tag = urldecode($tag);
             $this->collection_param = 'tag='.$tag;
-            return array('tag', urldecode($tag));
-        }
-        $category_id = waRequest::get('category_id', null, waRequest::TYPE_INT);
-        if ($category_id) {
+            $result = array('tag', urldecode($tag));
+        } elseif ($page_type == 'category') {
+            $category_id = $this->getRawCategoryID();
             $this->collection_param = 'category_id='.$category_id;
-            return array('category', $category_id);
-        }
-        $set_id = waRequest::get('set_id', null, waRequest::TYPE_STRING_TRIM);
-        if ($set_id) {
+            $result = array('category', $category_id);
+        } elseif ($page_type == 'set') {
+            $set_id = $this->getRawSetID();
             $this->collection_param = 'set_id='.$set_id;
-            return array('set', $set_id);
-        }
-        $type_id = waRequest::get('type_id', null, waRequest::TYPE_INT);
-        if ($type_id) {
+            $result = array('set', $set_id);
+        } elseif ($page_type == 'type') {
+            $type_id = $this->getRawTypeID();
             $this->collection_param = 'type_id='.$type_id;
-            return array('type', $type_id);
+            $result = array('type', $type_id);
         }
-        return null;
+
+        return $result;
     }
 
+    /**
+     * @return int|string|null
+     */
+    protected function getPageType()
+    {
+        $variants = [
+            'hash'     => $this->getRawHash(),
+            'text'     => $this->getRawText(),
+            'tag'      => $this->getRawTag(),
+            'category' => $this->getRawCategoryID(),
+            'set'      => $this->getRawSetID(),
+            'type'     => $this->getRawTypeID(),
+        ];
+        $result = null;
+
+        foreach ($variants as $type => $raw) {
+            if ($raw) {
+                $result = $type;
+                break;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function getRawHash()
+    {
+        return waRequest::request('hash', null, waRequest::TYPE_STRING_TRIM);
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function getRawText()
+    {
+        return waRequest::get('text', null, waRequest::TYPE_STRING_TRIM);
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function getRawTag()
+    {
+        return waRequest::get('tag', null, waRequest::TYPE_STRING_TRIM);
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function getRawCategoryID()
+    {
+        return waRequest::get('category_id', null, waRequest::TYPE_INT);
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function getRawSetID()
+    {
+        return waRequest::get('set_id', null, waRequest::TYPE_STRING_TRIM);
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function getRawTypeID()
+    {
+        return waRequest::get('type_id', null, waRequest::TYPE_INT);
+    }
+
+    /**
+     * @param $products
+     * @throws waException
+     */
     protected function workupProducts(&$products)
     {
         $config = wa('shop')->getConfig();
@@ -193,7 +268,7 @@ class shopProductListAction extends waViewAction
                                 $sku_stock_count = $sku['stock'][$stock['id']];
                                 $sku_stock_icon = shopHelper::getStockCountIcon($sku_stock_count, $stock_id);
                                 $sku['stock'][$stock['id']] = array(
-                                    'count' => $sku_stock_count,
+                                    'count'     => $sku_stock_count,
                                     'icon_html' => $sku_stock_icon
                                 );
                             }

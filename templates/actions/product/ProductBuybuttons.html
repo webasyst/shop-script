@@ -267,7 +267,6 @@
 
         that.changeTimeout = setTimeout( function() {
 
-
             that.$wrapper.find('.s-embed-param').each(function () {
                 var el = $(this);
                 if (el.is(':radio') && !el.is(':checked')) {
@@ -309,6 +308,8 @@
 
             });
 
+            app_static_url = app_static_url.replace(/http:/g, "").replace(/https:/g, "");
+
             params.push("data-height=':height:'");
 
             $.storage.set('shop/buybuttons/' + that.button_id, params_in_storage);
@@ -342,7 +343,7 @@
 
             var embed_block = that.$wrapper.find('.s-product-embed-code');
             var prev_embed_code = embed_block.html();
-            if (prev_embed_code != html) {
+            if (prev_embed_code !== html) {
                 embed_block.html(html);
 
                 that.$preview.html(

@@ -7,6 +7,9 @@ class shopSetModel extends waModel
     const TYPE_STATIC  = 0;
     const TYPE_DYNAMIC = 1;
 
+    const TOTAL_COUNT_RULE = 'total_count';
+    const BESTSELLERS_RULE = 'bestsellers';
+
     public function add($data)
     {
         if (!empty($data)) {

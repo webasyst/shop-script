@@ -58,14 +58,25 @@ class shopMarketingPromoRuleEditorAction extends waViewAction
         if (!empty($this->rule) && !empty($product_ids)) {
             $hash = 'id/'.join(',', $product_ids);
             $collection = new shopProductsCollection($hash);
-            $products_data = $collection->getProducts('id,name,images,currency,skus');
+            $products_data = $collection->getProducts('id,name,images,currency,skus', 0, 10000);
         }
 
         if (!empty($this->options['products_hash'])) {
             $collection = new shopProductsCollection($this->options['products_hash']);
-            $new_products = $collection->getProducts('id,name,images,currency,skus');
+            $new_products = $collection->getProducts('id,name,images,currency,skus', 0, 10000);
             $products_data = array_merge($new_products, $products_data);
         }
+
+        $lambda_body = 'return strcasecmp(mb_strtolower($a["name"]), mb_strtolower($b["name"]));';
+        // Sort products by name
+        usort($products_data, wa_lambda('$a, $b', $lambda_body));
+        // Sort product skus by name
+        foreach ($products_data as &$product) {
+            if (!empty($product['skus']) && is_array($product['skus'])) {
+                usort($product['skus'], wa_lambda('$a, $b', $lambda_body));
+            }
+        }
+        unset($product);
 
         $this->view->assign([
             'products' => $products_data,

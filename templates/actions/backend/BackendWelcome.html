@@ -84,16 +84,25 @@
                         </div>
                         <div class="s-demo-sources-wrapper">
                             {$_sources_html = []}
+                            
+                            {$_can_work = $shop_demo_importer_can_work.status}
+                            {$_reason   = $shop_demo_importer_can_work.reason}
+
+                            {if !$_can_work}
+                                <p class="errormsg"><i class="icon16 exclamation"></i> {$_reason}</p>
+                            {/if}
+
                             {foreach $shop_demo_data_source_list as $_source_id => $_source}
                                 {capture append="_sources_html"}
                                     <div class="s-source-wrapper">
                                         <label>
-                                            <input type="radio" name="demo_db" value="{$_source_id}">
+                                            <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if}>
                                             {$_source.name|default:''|escape}
                                         </label>
                                     </div>
                                 {/capture}
                             {/foreach}
+
                             {capture append="_sources_html"}
                                 <div class="s-source-wrapper">
                                     <label>

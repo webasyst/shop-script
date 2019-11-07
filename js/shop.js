@@ -127,6 +127,90 @@
         }
     }
 
+    /**
+     * @param {string|number} price
+     * @param {Object} format
+     * @param {boolean?} text
+     * @return {string}
+     * */
+    function formatPrice(price, format, text) {
+        var result = price;
+
+        if (!format) { return result; }
+
+        try {
+            price = parseFloat(price).toFixed(format.fraction_size);
+
+            if ( (price >= 0) && format) {
+                var price_floor = Math.floor(price),
+                    price_string = getGroupedString("" + price_floor, format.group_size, format.group_divider),
+                    fraction_string = getFractionString(price - price_floor);
+
+                result = ( text ? format.pattern_text : format.pattern_html ).replace("%s", price_string + fraction_string );
+            }
+
+        } catch(e) {
+            if (console && console.log) {
+                console.log(e.message, price);
+            }
+        }
+
+        return result;
+
+        function getGroupedString(string, size, divider) {
+            var result = "";
+
+            if (!(size && string && divider)) {
+                return string;
+            }
+
+            var string_array = string.split("").reverse();
+
+            var groups = [];
+            var group = [];
+
+            for (var i = 0; i < string_array.length; i++) {
+                var letter = string_array[i],
+                    is_first = (i === 0),
+                    is_last = (i === string_array.length - 1),
+                    delta = (i % size);
+
+                if (delta === 0 && !is_first) {
+                    groups.unshift(group);
+                    group = [];
+                }
+
+                group.unshift(letter);
+
+                if (is_last) {
+                    groups.unshift(group);
+                }
+            }
+
+            for (i = 0; i < groups.length; i++) {
+                var is_last_group = (i === groups.length - 1),
+                    _group = groups[i].join("");
+
+                result += _group + ( is_last_group ? "" : divider );
+            }
+
+            return result;
+        }
+
+        function getFractionString(number) {
+            var result = "";
+
+            if (number > 0) {
+                number = number.toFixed(format.fraction_size + 1);
+                number = Math.round(number * Math.pow(10, format.fraction_size))/Math.pow(10, format.fraction_size);
+                var string = number.toFixed(format.fraction_size);
+                result = string.replace("0.", format.fraction_divider);
+            }
+
+            return result;
+        }
+    }
+
     $.shop = {
         options: {
             'debug': true
@@ -859,7 +943,9 @@
 
         loadSources: function(options) {
             return sourceLoader(options);
-        }
+        },
+
+        formatPrice: formatPrice
 
     };
 })(jQuery);

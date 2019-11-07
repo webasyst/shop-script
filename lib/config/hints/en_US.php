@@ -10,7 +10,7 @@ return array(
     ),
 
     'product_type' => array(
-        'text' => 'Kind of products with its own set of features. Different product types can be displayed in different storefronts. Separate access rights to product types can be set up for backend users and user groups.',
+        'text' => 'Each product type; e.g., “TVs”, “Phones”, or “Clocks”, can have its own set of features. You can decide which product types to make visible in a storefront. Separate access rights to product types can be set up for backend users and user groups.',
         'link' => 'https://www.shop-script.com/help/11307/product-types/'
     ),
 

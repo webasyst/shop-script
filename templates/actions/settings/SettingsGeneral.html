@@ -68,8 +68,9 @@
                     <div class="name">[`Sort order items`]</div>
                     {foreach $sort_order_items_variants as $sort_variant => $variant_data}
                         <div class="value no-shift">
-                            <input type="radio" name="sort_order_items" value="{$sort_variant}" {if $sort_variant == $sort_order_items}checked{/if}> {$variant_data.name|default:''}
-                            <br>
+                            <label>
+                                <input type="radio" name="sort_order_items" value="{$sort_variant}" {if $sort_variant == $sort_order_items}checked{/if}> {$variant_data.name|default:''}
+                            </label>
                         </div>
                     {/foreach}
                 </div>

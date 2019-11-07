@@ -38,9 +38,9 @@ $size = false;
 $enable_2x = false;
 
 // /wa-data/public/shop/products/69/42/14269/images/194/194.96x96.jpg
-$image_pattern = '#((?:\d{2}/){2}([0-9]+)/images/)([0-9]+)/([a-zA-Z0-9_\.-]+)\.(\d+(?:x\d+)?)(@2x)?\.([a-z]{3,4})#i';
+$image_pattern = '#^((?:\d{2}/){2}([0-9]+)/images/)([0-9]+)/([a-zA-Z0-9_\.-]+)\.(\d+(?:x\d+)?)(@2x)?\.([a-z]{3,4})$#i';
 // /wa-data/public/shop/products/69/42/14269/video/96x96.jpg
-$video_pattern = '#((?:\d{2}/){2}([0-9]+)/video)/(\d+(?:x\d+)?)(@2x)?\.([a-z]{3,4})#i';
+$video_pattern = '#^((?:\d{2}/){2}([0-9]+)/video)/(\d+(?:x\d+)?)(@2x)?\.([a-z]{3,4})$#i';
 if (preg_match($image_pattern, $request_file, $matches)) {
     if ($matches[3] === $matches[4]) {
         $n = $matches[3];

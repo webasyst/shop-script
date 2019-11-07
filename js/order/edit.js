@@ -41,6 +41,8 @@ $.order_edit = {
      */
     options: {},
 
+    locales: {},
+
     init: function (options) {
         this.options = options;
         if (options.id) {
@@ -62,6 +64,10 @@ $.order_edit = {
 
         if (!options.float_delimeter) {
             options.float_delimeter = '.';
+        }
+
+        if (options.locales) {
+            this.locales = options.locales;
         }
 
         //VAL
@@ -160,7 +166,7 @@ $.order_edit = {
                 var url = '?module=orders&action=getProduct&product_id=' + ui.item.id + '&order_id=' + $.order_edit.id + '&currency=' + $.order_edit.options.currency,
                     storefront = that.getStorefront();
                 if (storefront) {
-                    url += '&storefront='+storefront;
+                    url += '&storefront=' + storefront;
                 }
 
                 $.getJSON(url, function (r) {
@@ -217,7 +223,7 @@ $.order_edit = {
                 var url = '?module=orders&action=getProduct&product_id=' + product_id + '&sku_id=' + sku_id + '&currency=' + $.order_edit.options.currency,
                     storefront = that.getStorefront();
                 if (storefront) {
-                    url += '&storefront='+storefront;
+                    url += '&storefront=' + storefront;
                 }
 
                 $.getJSON(url, function (r) {
@@ -423,6 +429,12 @@ $.order_edit = {
 
         //Prevent shipping cost updates
         $('#shipping-rate').change(function () {
+            var $self = $(this);
+            if ($self.val() < 0) {
+                alert($.order_edit.locales.wrong_cost);
+                $self.val(0);
+                return false;
+            }
             $('#shipping-rate').data('shipping', $(this).val());
             $.order_edit.updateTotal();
         });
@@ -618,7 +630,7 @@ $.order_edit = {
     /**
      * Enumerates all the product and tries to update the services as a percentage.
      */
-    initUpdateServicePrice: function() {
+    initUpdateServicePrice: function () {
         var items = this.container.find('.s-order-item');
         items.each(function () {
             $.order_edit.updateServicePriceInPercent($(this));
@@ -1098,7 +1110,7 @@ $.order_edit = {
      * @param data
      * @returns {*}
      */
-    parseTotalResponse: function(data) {
+    parseTotalResponse: function (data) {
         var keys = [
             'total',
             'discount',

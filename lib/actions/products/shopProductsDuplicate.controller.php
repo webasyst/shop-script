@@ -11,6 +11,12 @@ class shopProductsDuplicateController extends waJsonController
             if (!$product_ids) {
                 return;
             }
+            if (!$this->checkProductRights($product_ids)) {
+                return $this->errors = [
+                    'code'    => 403,
+                    'message' => _w('Insufficient access rights to edit selected products.'),
+                ];
+            }
             // add just selected products
             foreach ($product_ids as $id) {
                 $p = new shopProduct($id);
@@ -31,6 +37,12 @@ class shopProductsDuplicateController extends waJsonController
             $total_count = $collection->count();
             while ($offset < $total_count) {
                 $product_ids = array_keys($collection->getProducts('id,name,url', $offset, $limit));
+                if (!$this->checkProductRights($product_ids)) {
+                    return $this->errors = [
+                        'code'    => 403,
+                        'message' => _w('Insufficient access rights to edit selected products.'),
+                    ];
+                }
                 foreach ($product_ids as $id) {
                     $p = new shopProduct($id);
                     $new_p = $p->duplicate(array(), $this->errors);
@@ -46,6 +58,26 @@ class shopProductsDuplicateController extends waJsonController
                 'new_ids'     => $new_ids,
             );
         }
+    }
+
+    protected function checkProductRights($product_ids)
+    {
+        if (empty($product_ids) || wa()->getUser()->isAdmin('shop')) {
+            return true;
+        }
+
+        $product_model = new shopProductModel();
+        foreach ($product_ids as $product_id) {
+            try {
+                if (!$product_model->checkRights($product_id)) {
+                    return false;
+                }
+            } catch (waException $e) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 }

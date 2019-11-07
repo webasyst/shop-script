@@ -48,6 +48,7 @@ class shopCart
      * @param string $key
      * @param mixed $default
      * @return mixed
+     * @throws waException
      */
     protected function getSessionData($key, $default = null)
     {
@@ -58,6 +59,7 @@ class shopCart
     /**
      * @param string $key
      * @param mixed $value
+     * @throws waException
      */
     protected function setSessionData($key, $value)
     {
@@ -76,6 +78,7 @@ class shopCart
      *
      * @param bool $discount Whether applicable discounts must be taken into account
      * @return int
+     * @throws waException
      */
     public function total($discount = true)
     {
@@ -106,6 +109,7 @@ class shopCart
      *
      * @param $order
      * @return float
+     * @throws waException
      */
     public function discount(&$order = array())
     {

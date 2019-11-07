@@ -24,12 +24,52 @@ class shopSettingsShippingAction extends waViewAction
 
         $shipping_params = $this->getShippingParams();
 
+        $cron_params = $this->getCronParams($plugins);
+
         $this->view->assign(array(
             'instances'       => $instances,
             'plugins'         => $plugins,
             'shipping_params' => $shipping_params,
+            'cron_params'     => $cron_params,
             'installer'       => $this->getUser()->getRights('installer', 'backend'),
         ));
+    }
+
+    protected function getCronParams($plugins)
+    {
+        $interval = null;
+        $count = 0;
+        foreach ($plugins as $info) {
+            if (!empty($info['sync'])) {
+                ++$count;
+                if (is_int($info['sync'])) {
+                    if (empty($interval) || ($interval === true)) {
+                        $interval = $info['sync'];
+                    } else {
+                        $interval = min($interval, $info['sync']);
+                    }
+
+                } elseif (empty($interval)) {
+                    $interval = true;
+                }
+            }
+        }
+        $model = new waAppSettingsModel();
+        $time = $model->get('shop', 'shipping_plugins_sync');
+        $command = 'php '.$this->getConfig()->getRootPath().'/cli.php shop shipping';
+
+        if ($interval === true) {
+            $interval = 24;
+        }
+        if (empty($time)) {
+            $status = 'error';
+        } elseif (($time + 2 * $interval * 3600) < time()) {
+            $status = 'warning';
+        } else {
+            $status = 'ok';
+        }
+
+        return compact('interval', 'command', 'count', 'time', 'status');
     }
 
     protected function getShippingParams()

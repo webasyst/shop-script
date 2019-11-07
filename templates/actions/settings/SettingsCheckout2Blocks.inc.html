@@ -341,11 +341,13 @@
 
     {* Show weight *}
     <div class="field">
-        <div class="name">[`Show order items’ and total order weight`]</div>
+        <div class="name">
+            <label for="data[cart][show_weight]">[`Show order items’ and total order weight`]</label>
+        </div>
         <div class="value">
             <label>
                 <input type="hidden" name="data[cart][show_weight]" value="0" />
-                <input type="checkbox" name="data[cart][show_weight]"{if $settings.show_weight} checked{/if} />
+                <input type="checkbox" name="data[cart][show_weight]" id="data[cart][show_weight]" {if $settings.show_weight}checked{/if} />
             </label>
         </div>
     </div>

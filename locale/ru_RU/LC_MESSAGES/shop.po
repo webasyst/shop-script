@@ -3621,9 +3621,14 @@ msgstr "к товару <a href=\"%s\">%s</a>"
 msgid "Install plugins"
 msgstr "Плагины"
 
-#: /wa-apps/shop/templates/actions/stocks/Stocks.html:61
-msgid "Please add at least one stock in your store settings."
-msgstr "Добавьте хотя бы один склад в настройках магазина, чтобы этот раздел заработал."
+msgid "How to view the stock balance of all products"
+msgstr "Как просматривать остатки по складам для всех товаров"
+
+msgid "Add at least one stock in your <a href=\"%s\">store settings</a>."
+msgstr "Добавьте хотя бы один склад в <a href=\"%s\">настройках магазина</a>."
+
+msgid "Save stock quantities for your <a href=\"%s\">products</a>."
+msgstr "Сохраните количество на складе в свойствах <a href=\"%s\">товаров</a>."
 
 #: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateSave.controller.php:43
 msgid "State name cannot be empty"
@@ -4323,7 +4328,7 @@ msgid "Cron for follow-ups is configured properly. Latest execution time: <stron
 msgstr "CRON для отправки триггерных (отложенных) сообщений настроен и работает. Последнее время запуска: <strong>%s</strong>."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:28
-msgid "Follow-ups are configured properly. Latest Cron execution time: <strong>%s</strong>"
+msgid "Follow-ups are configured properly. Latest cron execution time: <strong>%s</strong>."
 msgstr "Отправка триггерных (отложенных) сообщений настроена и готова к работе. Последний запуск планировщика CRON: <strong>%s</strong>."
 
 #: /wa-apps/shop/themes/default/category.html:52
@@ -9593,7 +9598,7 @@ msgid "Background color"
 msgstr "Цвет фона"
 
 #: /wa-apps/shop/templates/actions/product/ProductRelated.html:53
-msgid "Upselling & Similar product recommendations are not configured for %s product type. Setup filtering conditions for %s in the master <a href=\"%s\">recommendation settings</a>."
+msgid "Upselling & similar product recommendations are not configured for product type “%s”. Set up filtering conditions for “%s” in the <a href=\"%s\">recommendation settings</a>."
 msgstr "Для типа товаров «%s» условия подбора схожих и альтернативных товаров не заданы. Настройте условия подбора для товаров типа «%s» в основных <a href=\"%s\">настройках рекомендаций</a>."
 
 #: /wa-apps/shop/templates/actions/products/product_list_skus.html:145
@@ -12834,3 +12839,142 @@ msgstr "Некорректная дата или время"
 
 msgid "Save a promo to add marketing costs for it."
 msgstr "Сохраните акцию, чтобы добавить для нее затраты на маркетинг."
+
+msgid "Zip extension for PHP is required to be enabled on the server to import product examples into your online store."
+msgstr "Требуется расширение Zip для PHP на сервере для импорта примеров товаров в ваш интернет-магазин."
+
+msgid "Count values from date"
+msgstr "Учитывать статистику с даты"
+
+msgid "Count values until date"
+msgstr "Учитывать статистику до даты"
+
+msgid "Bestsellers by sold amount"
+msgstr "Хиты по сумме продаж"
+
+msgid "Bestsellers by sold quantity"
+msgstr "Хиты по количеству проданных единиц"
+
+msgid "Bestsellers by complex value of “quantity × amount × rating”"
+msgstr "Хиты по совокупности значений «количество × сумма × рейтинг»"
+
+msgid "Featured in promos"
+msgstr "Участвует в акциях"
+
+#: /wa-apps/shop/themes/default/product.html:179
+msgid "%d more promo"
+msgid_plural "%d more promos"
+msgstr[0] "Еще %d акция"
+msgstr[1] "Еще %d акции"
+msgstr[2] "Еще %d акций"
+
+msgid "Pause promo"
+msgstr "Остановка акции"
+
+msgid "Promo <span class=\"bold\">“%promo_name%”</span> will be paused."
+msgstr "Акция <span class=\"bold\">«%promo_name%»</span> будет остановлена."
+
+msgid "Operation of all tools enabled for this promo will be discontinued—special product prices will be replaced by their ordinary prices, UTM tags will no longer be used to register incoming customer traffic, orders will not be counted by applied coupons, etc."
+msgstr "Прекратят работу все инструменты, настроенные для этой акции: вместо специальных цен товаров на витрине будут видны их обычные цены, перестанет регистрироваться трафик по UTM-меткам, не будут считаться заказы, оформленные с выбранными купонами, и&nbsp;т.&nbsp;д."
+
+msgid "Pause this promo"
+msgstr "Остановить акцию"
+
+msgid "Resume promo"
+msgstr "Возобновление акции"
+
+msgid "Promo <span class=\"bold\">“%promo_name%”</span> will be resumed."
+msgstr "Акция <span class=\"bold\">«%promo_name%»</span> будет возобновлена."
+
+msgid "Resume this promo"
+msgstr "Возобновить акцию"
+
+msgid "To be refunded"
+msgstr "Нужно возвратить"
+
+msgid "Will be refunded"
+msgstr "Будет возвращено"
+
+msgid "Full"
+msgstr "Полный"
+
+msgid "Partial"
+msgstr "Частичный"
+
+msgid "Return money via the payment gateway"
+msgstr "Вернуть деньги через платежную систему"
+
+msgid "Moneyback via Shop-Script is not supported by the payment gateway. Please use your account on the payment gateway website."
+msgstr "Возврат денег через Shop-Script не поддерживается платежной системой. Используйте личный кабинет на сайте платежной системы."
+
+msgid "Items to be refunded"
+msgstr "Товары на возврат"
+
+msgid "Refund amount"
+msgstr "Сумма возврата"
+
+msgid "Complete the refund"
+msgstr "Завершить возврат"
+
+msgid "Insufficient access rights to edit selected products."
+msgstr "Недостаточно прав доступа для редактирования выбранных товаров."
+
+msgid "Shipping-related information is automatically updated. Latest cron execution time: <strong>%s</strong>."
+msgstr "Автоматическое обновление информации о доставке выполняется. Последний запуск планировщика CRON: <strong>%s</strong>."
+
+msgid "Shipping-related information is not automatically updated, because cron is not properly configured."
+msgstr "Автоматическое обновление информации о доставке не выполняется, потому что не настроен планировщик CRON."
+
+msgid "Latest cron execution time: <strong>%s</strong>."
+msgstr "Последний запуск планировщика CRON: <strong>%s</strong>."
+
+msgid "Recommended cron execution interval is %d hour."
+msgid_plural "Recommended cron execution interval is %d hours."
+msgstr[0] "Рекомендуемая частота срабатывания интервала планировщика CRON — %d час."
+msgstr[1] "Рекомендуемая частота срабатывания интервала планировщика CRON — %d часа."
+msgstr[2] "Рекомендуемая частота срабатывания интервала планировщика CRON — %d часов."
+
+msgid "For shipping-related information to be automatically updated, a cron setup is required."
+msgstr "Для автоматического обновления информации о доставке необходимо настроить планировщик CRON."
+
+msgid "Set up types &amp; features"
+msgstr "Настроить типы и характеристики"
+
+msgid "Return refunded items to selected stocks"
+msgstr "На какие склады вернуть товары"
+
+msgid "To items’ original stocks"
+msgstr "На исходные склады для каждого товара"
+
+msgid "Funds are captured"
+msgstr "Деньги заблокированы"
+
+msgid "Authorize payment"
+msgstr "Авторизовать платеж"
+
+msgid "Payment was authorized"
+msgstr "Платеж авторизован"
+
+msgid "Cancel payment"
+msgstr "Отменить платеж"
+
+msgid "Order payment was canceled"
+msgstr "Оплата заказа отменена"
+
+msgid "Capture payment"
+msgstr "Заблокировать средства"
+
+msgid "Order payment was captured"
+msgstr "Средства для оплаты заказа заблокированы"
+
+msgid "Order payment was captured on %s"
+msgstr "Средства для оплаты заказа заблокированы %s"
+
+msgid "Items were returned to stock “%s”."
+msgstr "Товары возвращены на склад «%s»."
+
+msgid "Order deletion reason"
+msgstr "Причина удаления заказа"
+
+msgid "You can use either one common feature, or several features for each of the dimensions. Please empty the fields that do not apply."
+msgstr "Разрешается использовать либо одну общую характеристику, либо несколько характеристик для каждого измерения. Очистите значения лишних полей."

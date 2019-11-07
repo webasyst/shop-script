@@ -23,7 +23,7 @@ class shopOrderLogModel extends waModel implements shopOrderStorageInterface
                     'order_id' => $order_id,
                     'log_id'   => $log_id,
                     'name'     => $name,
-                    'value'    => $value,
+                    'value'    => is_array($value) ? waUtils::jsonEncode($value) : $value,
                 );
             }
             $params_model->multipleInsert($params);
@@ -39,7 +39,7 @@ class shopOrderLogModel extends waModel implements shopOrderStorageInterface
     public function getLog($order_id)
     {
         $data = $this->getLogItems("l.order_id = i:order_id", array(
-            'order_id' => $order_id
+            'order_id' => $order_id,
         ));
         return array_values($data);
     }
@@ -70,12 +70,12 @@ class shopOrderLogModel extends waModel implements shopOrderStorageInterface
         }
 
         return $this->getLogItems('l.id IN(:ids)', array(
-            'ids' => $log_ids
+            'ids' => $log_ids,
         ));
     }
 
     /**
-     * @param $where
+     * @param       $where
      * @param array $bind_params
      * @return array
      * @throws waException
@@ -162,6 +162,8 @@ class shopOrderLogModel extends waModel implements shopOrderStorageInterface
 
         $log = is_array($log) ? $log : array();
 
+        $stock_names = array();
+
         foreach ($log as &$l) {
             if (!$l['action_id']) {
                 continue;
@@ -202,10 +204,32 @@ class shopOrderLogModel extends waModel implements shopOrderStorageInterface
                         && !empty($l['plugin_icon_url'])
                         && (strpos($l['plugin_icon_url'], $root_url) !== 0)
                     ) {
-                        $l['plugin_icon_url'] = $root_url . $l['plugin_icon_url'];
+                        $l['plugin_icon_url'] = $root_url.$l['plugin_icon_url'];
                     }
 
                 }
+            }
+
+            if ($l['action_id'] === 'refund') {
+                if (!empty($l['params']['refund_items'])) {
+                    $l['params']['refund_items'] = waUtils::jsonDecode($l['params']['refund_items'], true);
+                }
+            }
+
+            if (!empty($l['params']['return_stock'])) {
+                $stock_id = intval($l['params']['return_stock']);
+                if (!isset($stock_names[$stock_id])) {
+                    $stock_names[$stock_id] = $stock_id;
+                }
+                $l['params']['return_stock_name'] =& $stock_names[$stock_id];
+            }
+        }
+
+        if ($stock_names) {
+            $model = new shopStockModel();
+            $stocks = $model->getById(array_keys($stock_names));
+            foreach ($stocks as $stock_id => $stock) {
+                $stock_names[$stock_id] = $stock['name'];
             }
         }
 

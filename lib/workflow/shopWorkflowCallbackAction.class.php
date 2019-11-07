@@ -66,8 +66,14 @@ HTML;
 
     private function getCallbackDetails($params)
     {
-        $data = empty($params['view_data']) ? '' : ($params['view_data'].' - ');
-        return $params['state'].' ('.$data.$params['amount'].' '.$params['currency_id'].')';
+        $details = $params['state'];
+        $data = array(
+            empty($params['view_data']) ? '' : ($params['view_data'].' - '),
+            ifset($params['amount'], ''),
+            ifset($params['currency_id'], ''),
+        );
+        $data = array_filter(array_map('trim', $data), 'strlen');
+        return $details.($data ? ' ('.implode(' ', $data).')' : '');
     }
 
     private function getOrderLink($id)

@@ -148,10 +148,45 @@ class shopProductsCollection
             }
             $model = $this->getModel();
 
-            if ($sort == 'price' || $sort == 'compare_price') {
+            if ($sort == 'price') {
                 if (!isset($this->join_index['ps'])) {
-                    $this->order_by = "p.$sort $order";
-                    $this->addPriceSort($sort, $order);
+                    $this->order_by = "p.price $order";
+                    $this->addPromoPriceSort('price', $order);
+                } else {
+                    // Build the condition for regular prices:
+                    $main_sku_price = 'MAX(IF(ps1.id = p.sku_id, ps1.primary_price, -1))';
+                    $main_sku_exists = '-1 < '.$main_sku_price;
+                    $sku_price = 'MIN(ps1.primary_price)';
+                    // We use main SKU price if it's not filtered out;
+                    // otherwise min of all remaining SKU prices.
+                    $price_sort = "IF($main_sku_exists, $main_sku_price, $sku_price)";
+
+                    $this->order_by = "$price_sort $order";
+
+                    // Check promo prices
+                    $this->loadPromoPrices();
+                    if (!empty($this->storefront_context) && !empty($this->promo_prices[$this->storefront_context])) {
+                        // If we have promo-prices, and the filter is on the product_skus - this is a disaster :((((
+                        $promo_prices_tmp_alias = $this->getPromoPricesTmpAlias();
+                        if (!$promo_prices_tmp_alias) {
+                            // To get started, add join to the temporary table with promo-prices.
+                            $promo_prices_tmp_alias = $this->addJoin([
+                                'table' => 'shop_product_promo_price_tmp',
+                                'type'  => 'LEFT',
+                                'on'    => "p.id = :table.product_id AND ps1.id = :table.sku_id AND :table.storefront = '".$this->getModel()->escape($this->storefront_context)."'",
+                            ]);
+                        }
+
+                        // Build a sorting condition for promo-prices
+                        $promo_main_sku_price = "MAX(IF({$promo_prices_tmp_alias}.sku_id = p.sku_id, {$promo_prices_tmp_alias}.primary_price, -1))";
+                        $promo_main_sku_exists = '-1 < '.$promo_main_sku_price;
+                        $promo_sku_price = "MIN({$promo_prices_tmp_alias}.primary_price)";
+                        $promo_price = "IF($promo_main_sku_exists, $promo_main_sku_price, $promo_sku_price)";
+                        $promo_price_exists = '-1 < '.$promo_price; // In SQL, we first make sure that we have promo-prices
+
+                        // Build one big sort condition:
+                        $this->order_by = "IF($promo_price_exists, $promo_price, $price_sort) $order";
+                    }
                 }
             } elseif ($sort == 'stock_worth') {
 
@@ -329,14 +364,18 @@ class shopProductsCollection
 
             $where_conditional = "({$skus_alias}.primary_price)";
 
+            // Check promo prices
             $this->loadPromoPrices();
             if (!empty($this->storefront_context) && !empty($this->promo_prices[$this->storefront_context])) {
-                $tmp_promo_sku_alias = $this->addJoin([
-                    'table' => 'shop_product_promo_price_tmp',
-                    'type'  => 'LEFT',
-                    'on'    => "p.id = :table.product_id AND ps1.id = :table.sku_id AND :table.storefront = '".$this->getModel()->escape($this->storefront_context)."'",
-                ]);
-                $where_conditional = "(IFNULL({$tmp_promo_sku_alias}.primary_price, {$skus_alias}.primary_price))";
+                $promo_prices_tmp_alias = $this->getPromoPricesTmpAlias();
+                if (!$promo_prices_tmp_alias) {
+                    $promo_prices_tmp_alias = $this->addJoin([
+                        'table' => 'shop_product_promo_price_tmp',
+                        'type'  => 'LEFT',
+                        'on'    => "p.id = :table.product_id AND ps1.id = :table.sku_id AND :table.storefront = '".$this->getModel()->escape($this->storefront_context)."'",
+                    ]);
+                }
+                $where_conditional = "(IFNULL({$promo_prices_tmp_alias}.primary_price, {$skus_alias}.primary_price))";
             }
 
             foreach ($price_filter as $price_filter_item) {
@@ -569,6 +608,7 @@ SQL;
     /**
      * @param int $id - ID of the set
      * @param bool $auto_title
+     * @throws waException
      */
     protected function setPrepare($id, $auto_title = true)
     {
@@ -593,49 +633,94 @@ SQL;
                 $this->order_by = $alias.'.sort ASC';
             }
         } else {
-            if (!waRequest::get('sort') && !empty($set['rule'])) {
+            $rule = ifset($set, 'rule', false);
+
+            $json_params = ifset($set, 'json_params', '');
+            $params = json_decode($json_params, true);
+
+            if (
+                $rule === shopSetModel::BESTSELLERS_RULE ||
+                $rule === shopSetModel::TOTAL_COUNT_RULE ||
+                !empty($params['date_start']) ||
+                !empty($params['date_end'])
+            ) {
+                $alias_items = $this->addJoin([
+                    'table' => 'shop_order_items',
+                    'on'    => ":table.product_id=p.id AND :table.type='product'",
+                ]);
+
+                $alias_order = $this->addJoin([
+                    'table' => 'shop_order',
+                    'alias' => 'o',
+                    'on'    => "{$alias_items}.order_id=:table.id",
+                ]);
+            }
+
+            if ($rule === shopSetModel::BESTSELLERS_RULE) {
+                $this->fields['sales'] = "{$alias_items}.price * {$alias_order}.rate * {$alias_items}.quantity AS sales";
+                $this->groupBy('p.id');
+                $this->orderBy('sales DESC');
+            } elseif ($rule === shopSetModel::TOTAL_COUNT_RULE) {
+                $this->groupBy('p.id');
+                // If you call the function - there will be infinite recursion :[
+                $this->order_by = "sum($alias_items.quantity) DESC";
+            } elseif ($rule == 'compare_price DESC') {
+                $this->setByComparePrice();
+            } else {
                 $this->order_by = $set['rule'];
 
                 if (!isset($this->join_index['ps']) && preg_match('~^(price)\s(asc|desc)$~ui', $set['rule'], $matches)) {
                     $order = $matches[2];
-                    $this->addPriceSort('price', $order);
+                    $this->addPromoPriceSort('price', $order);
                 }
             }
-            if (!empty($set['rule']) && ($set['rule'] == 'compare_price DESC')) {
-                $set_alias = 'p';
-                if (isset($this->join_index['ps'])) {
-                    $set_alias = 'ps1';
-                }
 
-                $promo_price_joins = $this->getJoinsByTableName('shop_product_promo_price_tmp');
-                if ($promo_price_joins) {
-                    $tmp_promo_table_alias = $promo_price_joins[0]['alias'];
-                } else {
-                    $this->loadPromoPrices();
-                    if (!empty($this->storefront_context) && !empty($this->promo_prices[$this->storefront_context])) {
-                        $on = "{$set_alias}.id = :table.product_id AND {$set_alias}.sku_id = :table.sku_id";
-                        if ($set_alias == 'ps1') {
-                            // Join on skus
-                            $on = "{$set_alias}.product_id = :table.product_id AND {$set_alias}.id = :table.sku_id";
-                        }
+            if (!empty($params['date_start'])) {
+                $this->where[] = "{$alias_order}.paid_date >= '{$params['date_start']}'";
+            }
 
-                        $tmp_promo_table_alias = $this->addJoin([
-                            'table' => 'shop_product_promo_price_tmp',
-                            'type'  => 'LEFT',
-                            'on'    => "{$on} AND :table.storefront = '".$this->getModel()->escape($this->storefront_context)."'",
-                        ]);
-                    }
-                }
-
-                if (!empty($tmp_promo_table_alias)) {
-                    $this->where[] = "IFNULL({$tmp_promo_table_alias}.compare_price, {$set_alias}.compare_price) > IFNULL({$tmp_promo_table_alias}.price, {$set_alias}.price)";
-                    $this->order_by = "IFNULL({$tmp_promo_table_alias}.compare_price, {$set_alias}.compare_price) DESC";
-                } else {
-                    $this->where[] = "{$set_alias}.compare_price > {$set_alias}.price";
-                    $this->order_by = "{$set_alias}.compare_price DESC";
-                }
+            if (!empty($params['date_end'])) {
+                $this->where[] = "{$alias_order}.paid_date <= '{$params['date_end']}'";
             }
         }
+    }
+
+    protected function setByComparePrice()
+    {
+        $set_alias = 'p';
+
+        if (isset($this->join_index['ps'])) {
+            $set_alias = 'ps1';
+        }
+
+        $where = "{$set_alias}.compare_price > {$set_alias}.price";
+        $order_by = "{$set_alias}.compare_price DESC";
+
+        // Check promo prices
+        $this->loadPromoPrices();
+        if (!empty($this->storefront_context) && !empty($this->promo_prices[$this->storefront_context])) {
+            $promo_prices_tmp_alias = $this->getPromoPricesTmpAlias();
+            if (!$promo_prices_tmp_alias) {
+
+                $on = "{$set_alias}.id = :table.product_id AND {$set_alias}.sku_id = :table.sku_id";
+                if ($set_alias == 'ps1') {
+                    // Join on skus
+                    $on = "{$set_alias}.product_id = :table.product_id AND {$set_alias}.id = :table.sku_id";
+                }
+
+                $promo_prices_tmp_alias = $this->addJoin([
+                    'table' => 'shop_product_promo_price_tmp',
+                    'type'  => 'LEFT',
+                    'on'    => "{$on} AND :table.storefront = '".$this->getModel()->escape($this->storefront_context)."'",
+                ]);
+            }
+
+            $where = "IFNULL({$promo_prices_tmp_alias}.compare_price, {$set_alias}.compare_price) > IFNULL({$promo_prices_tmp_alias}.price, {$set_alias}.price)";
+            $order_by = "IFNULL({$promo_prices_tmp_alias}.compare_price, {$set_alias}.compare_price) DESC";
+        }
+
+        $this->where[] = $where;
+        $this->order_by = $order_by;
     }
 
     protected function idPrepare($ids_str)
@@ -894,26 +979,32 @@ SQL;
 
     protected function bestsellersPrepare($query, $auto_title = true)
     {
-        $this->group_by = 'p.id';
-        $this->fields['sales'] = 'oi.price*o.rate*oi.quantity AS sales';
-        $this->joins[] = array(
-            'table' => 'shop_order_items',
-            'alias' => 'oi',
-            'on'    => "oi.product_id=p.id AND oi.type='product'",
-        );
-        $this->joins[] = array(
-            'table' => 'shop_order',
-            'alias' => 'o',
-            'on'    => "oi.order_id=o.id",
-        );
-        $this->order_by = 'sales DESC';
-
+        $this->bestsellersJoin();
         if ($query && wa_is_int($query)) {
             $date_start = date('Y-m-d H:i:s', time() - $query);
             $this->where[] = "o.paid_date >= '{$date_start}'";
         } else {
             $this->where[] = "o.paid_date IS NOT NULL";
         }
+    }
+
+    protected function bestsellersJoin()
+    {
+        $alias_items = $this->addJoin([
+            'table' => 'shop_order_items',
+            'on'    => ":table.product_id=p.id AND :table.type='product'",
+        ]);
+
+        $alias_order = $this->addJoin([
+            'table' => 'shop_order',
+            'alias' => 'o',
+            'on'    => "{$alias_items}.order_id=:table.id",
+        ]);
+
+        $this->fields['sales'] = "{$alias_items}.price * {$alias_order}.rate * {$alias_items}.quantity AS sales";
+        $this->groupBy('p.id');
+
+        $this->orderBy('sales DESC');
     }
 
     protected function searchPrepare($query, $auto_title = true)
@@ -2830,7 +2921,7 @@ SQL;
         return $this->unique_joins[$join_key];
     }
 
-    protected function addPriceSort($field, $order)
+    protected function addPromoPriceSort($field, $order)
     {
         $field = strtolower($field);
         if ($field !== 'compare_price') {
@@ -2841,15 +2932,19 @@ SQL;
             $order = 'ASC';
         }
 
+        // Check promo prices
         $this->loadPromoPrices();
         if (!empty($this->storefront_context) && !empty($this->promo_prices[$this->storefront_context])) {
-            $tmp_table_alias = $this->addJoin([
-                'table' => 'shop_product_promo_price_tmp',
-                'type'  => 'LEFT',
-                'on'    => "p.id = :table.product_id AND p.sku_id = :table.sku_id AND :table.storefront = '".$this->getModel()->escape($this->storefront_context)."'",
-            ]);
+            $promo_prices_tmp_alias = $this->getPromoPricesTmpAlias();
+            if (!$promo_prices_tmp_alias) {
+                $promo_prices_tmp_alias = $this->addJoin([
+                    'table' => 'shop_product_promo_price_tmp',
+                    'type'  => 'LEFT',
+                    'on'    => "p.id = :table.product_id AND p.sku_id = :table.sku_id AND :table.storefront = '".$this->getModel()->escape($this->storefront_context)."'",
+                ]);
+            }
 
-            $this->order_by = "IFNULL({$tmp_table_alias}.primary_{$field}, p.{$field}) $order";
+            $this->order_by = "IFNULL({$promo_prices_tmp_alias}.primary_{$field}, p.{$field}) $order";
         }
     }
 
@@ -2892,6 +2987,15 @@ SQL;
         return $promo_product_prices[$this->storefront_context];
     }
 
+    /**
+     * If there is a join to the temporary table with promo-prices, the method will return the alias of the table.
+     * @return null|string
+     */
+    protected function getPromoPricesTmpAlias()
+    {
+        $promo_price_joins = $this->getJoinsByTableName('shop_product_promo_price_tmp');
+        return ifempty($promo_price_joins, 0, 'alias', null);
+    }
 
     /**
      * Returns collection hash.
@@ -2966,13 +3070,12 @@ SQL;
      */
     public function getPriceRange()
     {
-        $promo_price_joins = $this->getJoinsByTableName('shop_product_promo_price_tmp');
-        if ($promo_price_joins) {
-            $promo_prices_alias = $promo_price_joins[0]['alias'];
-        } else {
-            $this->loadPromoPrices();
-            if (!empty($this->storefront_context) && !empty($this->promo_prices[$this->storefront_context])) {
-                $promo_prices_alias = $this->addJoin([
+        // Check promo prices
+        $this->loadPromoPrices();
+        if (!empty($this->storefront_context) && !empty($this->promo_prices[$this->storefront_context])) {
+            $promo_prices_tmp_alias = $this->getPromoPricesTmpAlias();
+            if (!$promo_prices_tmp_alias) {
+                $promo_prices_tmp_alias = $this->addJoin([
                     'table' => 'shop_product_promo_price_tmp',
                     'type'  => 'LEFT',
                     'on'    => "p.id = :table.product_id AND :table.storefront = '".$this->getModel()->escape($this->storefront_context)."'",
@@ -2982,8 +3085,8 @@ SQL;
 
         $sql = $this->getSQL();
         $full_sql = "SELECT MIN(p.min_price) min, MAX(p.max_price) max ".$sql;
-        if (!empty($promo_prices_alias)) {
-            $full_sql = "SELECT MIN(IFNULL({$promo_prices_alias}.primary_price, p.min_price)) min, MAX(IFNULL({$promo_prices_alias}.primary_price, p.max_price)) max ".$sql;
+        if (!empty($promo_prices_tmp_alias)) {
+            $full_sql = "SELECT MIN(IFNULL({$promo_prices_tmp_alias}.primary_price, p.min_price)) min, MAX(IFNULL({$promo_prices_tmp_alias}.primary_price, p.max_price)) max ".$sql;
         }
 
         $data = $this->getModel()->query($full_sql)->fetch();

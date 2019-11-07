@@ -139,6 +139,34 @@ if ($notifications_model->countAll() == 0) {
     }
 }
 
+//payment plugins
+try {
+    $plugins = shopPayment::getList();
+    foreach ($plugins as $plugin => $info) {
+        if ($plugin === 'cash') {
+            $info['status'] = 1;
+        }
+        $info['plugin'] = $plugin;
+        shopPayment::savePlugin($info);
+    }
+} catch (waException $ex) {
+    waLog::log($ex->getMessage(), 'wa-apps/shop/install.log');
+}
+
+//shipping plugins
+try {
+    $plugins = shopShipping::getList();
+    foreach ($plugins as $plugin => $info) {
+        if ($plugin === 'dummy') {
+            $info['status'] = 1;
+        }
+        $info['plugin'] = $plugin;
+        shopShipping::savePlugin($info);
+    }
+} catch (waException $ex) {
+    waLog::log($ex->getMessage(), 'wa-apps/shop/install.log');
+}
+
 // Unless we're called from another application, redirect to backend welcome screen
 if (wa()->getEnv() == 'backend' && !wa()->getApp()) {
     // redirect to welcome

@@ -18,13 +18,17 @@
 {$feature_type=0}
 
 <div class="field">
-    <div class="name">[`Product type`]</div>
+    <div class="name">[`Product type`] {shopHinter::hint('product_type')}</div>
     <div class="value no-shift">
         <span class="js-type-icon">{shopHelper::getIcon($product.type.icon)}</span>
         <strong>{$product.type.name|escape}</strong>&nbsp;
         {if $type_id != $product.type_id}&nbsp;&rarr;&nbsp;{shopHelper::getIcon($product_types[$type_id]['icon'])}
             <strong>{$product_types[$type_id]['name']}</strong>{/if}
         <a href="#/product/{$product.id}/edit/main/type/select/" class="inline-link js-action"><b><i>[`Change type`]</i></b></a>
+
+        <a href="{$wa_app_url}?action=settings#/features/" target="_blank" style="display: inline-block; font-size: 12px; margin-left: 20px;">
+            <i class="icon16 settings" style="display: inline-block; margin: 0 4px 0 0;"></i>[`Set up types &amp; features`]
+        </a>
     </div>
 </div>
 

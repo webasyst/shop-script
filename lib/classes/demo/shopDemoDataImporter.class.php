@@ -391,6 +391,26 @@ class shopDemoDataImporter
         $this->clean();
     }
 
+    /**
+     * @return array $result
+     *   - bool   $result['status'] Can importer work
+     *   - string $result['reason'] String reason why can't work
+     */
+    public static function canWork()
+    {
+        if (class_exists('ZipArchive')) {
+            return array(
+                'status' => true,
+                'reason' => ''
+            );
+        } else {
+            return array(
+                'status' => false,
+                'reason' => _w('Zip extension for PHP is required to be enabled on the server to import product examples into your online store.')
+            );
+        }
+    }
+
     public static function getSourceList()
     {
         if (self::$source_list === null) {

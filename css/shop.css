@@ -9,6 +9,8 @@
 /* GENERAL BACKEND LAYOUT
 ------------------------- */
 
+label { cursor: pointer; }
+
 #wa { background: #fff; }
 #wa.s-no-level2 { background: #f0f0f0; }
 #wa-header { background: #f0f0f0; }
@@ -615,6 +617,13 @@ ul.tabs li.s-aff-bonus-total { background: #efd !important; margin-right: 10px; 
 /* PRODUCTS
 ----------- */
 
+/**
+ * styles for DialogProductSet.html
+ */
+#s-product-set-dialog .s-datepicker-wrapper { position: relative; display: inline-block; }
+#s-product-set-dialog .s-datepicker-wrapper .s-datepicker { vertical-align: top; padding-right: 22px; min-width: auto !important; width: 132px !important; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box }
+#s-product-set-dialog .s-datepicker-wrapper .calendar { position: absolute; top: 50%; right: 4px; -webkit-transform: translate(0, -50%); -moz-transform: translate(0, -50%); -o-transform: translate(0, -50%); -ms-transform: translate(0, -50%); transform: translate(0, -50%); margin: 0 }
+
 .s-stock-warning-low { color: #b75; }
 .s-stock-warning-none { color: #e00; }
 
@@ -713,7 +722,8 @@ table#product-list td.s-product-name { min-width: 150px; }
 table#product-list th.min-width,
 table#product-list td.min-width { min-width: 0; }
 table#product-list.zebra a { display: inline; }
-#s-product-list-table-container { }
+#s-product-list-table-container { overflow: hidden; }
+#s-product-list-table-container .s-column-value { max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #product-list .show-on-hover { visibility: hidden; opacity: 0; -webkit-transition: opacity 200ms ease-in-out; transition: opacity 200ms ease-in-out; }
 #product-list .show-on-hover i { vertical-align: baseline; }
 #product-list tr:hover .show-on-hover,
@@ -1242,6 +1252,11 @@ table.s-country-list i.icon16.country { margin-top: 1px; }
 }
 @media screen and (max-width:1250px) {
     .s-settings-checkout-content .s-locations-table .s-editor { min-width: 100px !important; max-width: 100px !important; }
+}
+
+@media (min-width: 1501px) {
+    #s-settings-content .s-settings-checkout-sidebar { width: 400px; }
+    #s-settings-content .s-settings-checkout-content { margin-left: 400px; }
 }
 
 .s-settings-checkout-content .s-footer-actions { padding: 10px 0; }

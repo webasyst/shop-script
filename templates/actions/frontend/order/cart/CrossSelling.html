@@ -53,7 +53,7 @@
                                 <div class="wa-actions-wrapper">
                                     <button class="wa-button gray js-add-product" title="{_w("Add to cart")|escape}">
                                         <i class="wa-icon size-14 cart-icon"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#cart"></use></svg></i>
-                                        {shop_currency($_product.price, ['in_currency' => true, 'format' => 'h'])}
+                                        {shop_currency($_product.frontend_price, ['in_currency' => true, 'format' => 'h'])}
                                     </button>
                                 </div>
                             </div>

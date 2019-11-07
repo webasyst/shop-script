@@ -142,9 +142,16 @@ class shopFrontendBuybuttonsAction extends waViewAction
 
         $route = $this->getCurrentRoute();
 
-        $product_url = wa()->getRouteUrl("shop/frontend/product", array(
+        $url_params = array(
             'product_url' => $product['url']
-        ), true, $route['domain'], $route['url']);
+        );
+
+        $category_url = $product->getCategoryUrl($route);
+        if ($category_url) {
+            $url_params['category_url'] = $category_url;
+        }
+
+        $product_url = wa()->getRouteUrl("shop/frontend/product", $url_params, true, $route['domain'], $route['url']);
 
         $this->featuresSelectableAssigns($product);
 

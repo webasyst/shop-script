@@ -2,6 +2,9 @@
 
 class shopProductsAction extends shopProductListAction
 {
+    /**
+     * @throws waException
+     */
     public function execute()
     {
         $products_per_page = $this->getConfig()->getOption('products_per_page');
@@ -48,13 +51,25 @@ class shopProductsAction extends shopProductListAction
         ));
 
         $total_count = $this->collection->count();
+
+        // For dynamic lists, turn off sorting.
+        // Because the collection does not know how to work with it and an inadequate result is obtained
+        $is_dynamic_set = $this->isDynamicSet();
+        $sort = $this->sort;
+        $order = $this->order;
+
+        if ($is_dynamic_set) {
+            $sort = null;
+            $order = null;
+        }
+
         $this->assign(array(
             'lazy_loading'                    => $lazy_loading,
             'products'                        => $products,
             'total_count'                     => $total_count,
             'count'                           => count($products),
-            'sort'                            => $this->sort,
-            'order'                           => $this->order,
+            'sort'                            => $sort,
+            'order'                           => $order,
             'text'                            => $this->text,
             'title'                           => $this->hash[0] != 'search' ? $this->collection->getTitle() : $this->text,
             'info'                            => $this->collection->getInfo(),
@@ -63,9 +78,7 @@ class shopProductsAction extends shopProductListAction
             'additional_columns'              => self::getAdditionalColumns(),
             'additional_columns_autocomplete' => self::isColumnsAutocomplete(),
             'primary_currency'                => $config->getCurrency(),
-            /*
-            'use_product_currency' => wa()->getSetting('use_product_currency'),
-            'currencies' => $config->getCurrencies()*/
+            'is_dynamic_set'                  => $is_dynamic_set,
         ));
 
         if (!$lazy_loading) {
@@ -74,6 +87,11 @@ class shopProductsAction extends shopProductListAction
         }
     }
 
+    /**
+     * @param $options
+     * @return array
+     * @throws waException
+     */
     private function getProducts($options)
     {
         $fields = $options['fields'];
@@ -84,6 +102,26 @@ class shopProductsAction extends shopProductListAction
         $this->workupProducts($products);
         $products = array_values($products);
         return $products;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function isDynamicSet()
+    {
+        $result = false;
+
+        if ($this->getPageType() === 'set') {
+            $set_model = new shopSetModel();
+            $set = $set_model->getById($set_model->escape($this->getRawSetID()));
+            $set_type = ifset($set, 'type', 0);
+
+            if ($set_type == 1) {
+                $result = true;
+            }
+        }
+
+        return $result;
     }
 }
 

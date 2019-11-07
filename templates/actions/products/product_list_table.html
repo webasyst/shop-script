@@ -118,7 +118,11 @@
         {/literal}
         {foreach $enabled_columns as $c}
             {if $c.id != 'image_crop_small' && $c.id != 'sku'}
-                <td class="s-product-col-{$c.id} align-center" title="{$c.name|escape}">{literal}{%#p.{/literal}{$c.id}_html || p.{$c.id}{literal}%}{/literal}</td>
+                {capture assign="_value"}{literal}{%#p.{/literal}{$c.id}_html || p.{$c.id}{literal}%}{/literal}{/capture}
+
+                <td class="s-product-col-{$c.id} align-center" title="{$c.name|escape}">
+                    <div class="s-column-value">{$_value|escape}</div>
+                </td>
             {/if}
         {/foreach}
         <td class="min-width">

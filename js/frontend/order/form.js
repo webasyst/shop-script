@@ -397,10 +397,10 @@
             var that = this;
 
             var key_timer = 0,
-                key_timeout = 2000,
+                key_timeout = 10000,
                 change_timer = 0,
                 change_timeout = 100,
-                update_after_blur = false;
+                is_update_launched = false;
 
             if (typeof that.errors === "object" && Object.keys(that.errors).length ) {
                 that.scope.DEBUG("Errors:", "error", that.errors);
@@ -419,7 +419,7 @@
             fieldWatcher($location_field, [$country_field, $region_field, $city_field, $zip_field]);
             fieldWatcher($country_field, [$region_field, $city_field, $zip_field]);
             fieldWatcher($region_field, [$city_field, $zip_field]);
-            fieldWatcher($zip_field);
+            staticFieldsWatcher($zip_field, $city_field);
 
             checkPreviousFields([$zip_field, $city_field, $region_field, $country_field, $location_field]);
 
@@ -430,26 +430,15 @@
                 }, 100);
 
             } else {
-                fieldWatcher($city_field, [$zip_field]);
+                staticFieldsWatcher($city_field, $zip_field);
             }
-
-            // autofocus
-            $.each([$location_field, $country_field, $region_field, $city_field, $zip_field], function(i, $field) {
-                var is_visible = $field.is(":visible"),
-                    is_empty = !$field.val();
-
-                if (is_visible && is_empty) {
-                    $field.focus();
-                    return false;
-                }
-            });
 
             /**
              * @param {Object} $field
              * @param {Array?} $dependent_fields
              * */
             function fieldWatcher($field, $dependent_fields) {
-                if ($field.length && $field.is(":visible")) {
+                if (isRendered($field)) {
 
                     $field.on("keydown", function() {
                         onKeyDown($field);
@@ -465,6 +454,53 @@
                         }
 
                         onChange($field);
+                    });
+
+                    $field.on("focus", function() {
+                        if (is_update_launched) {
+                            $field.trigger("blur");
+                        }
+                    });
+                }
+            }
+
+            /**
+             * @param {Object} $field
+             * @param {Object} $dependent_field
+             * */
+            function staticFieldsWatcher($field, $dependent_field) {
+                if (isRendered($field)) {
+                    var is_depends = isRendered($dependent_field);
+                    if (!is_depends) {
+                        fieldWatcher($field);
+                        return false;
+                    }
+
+                    // $field.on("change", function() {
+                    //     var dependent_value = $.trim($dependent_field.val());
+                    //     if (dependent_value) {
+                    //         key_timer = setTimeout( function() {
+                    //             onChange($field);
+                    //         }, 10);
+                    //     }
+                    // });
+
+                    $field.on("keydown", function(event) {
+                        var code = event.keyCode,
+                            is_enter = (code === 13);
+
+                        if (is_enter) {
+                            onChange($field);
+                            $field.trigger("blur");
+                        }
+                    });
+
+                    $field.on("focus", function() {
+                        clearTimeout(key_timer);
+
+                        if (is_update_launched) {
+                            $field.trigger("blur");
+                        }
                     });
                 }
             }
@@ -486,32 +522,20 @@
             function onChange($field) {
                 clearTimeout(key_timer);
 
+                var value = $.trim( $field.val() );
+                if (!value.length) { return false; }
+
                 that.scope.trigger("region_change");
 
-                // var $field_wrapper = $field.closest(".wa-field-wrapper"),
-                //     error = that.scope.validate($field_wrapper, true);
-                //
-                // if (!error.length) {
-                //     var errors = that.scope.validate(that.$wrapper);
-                //     if (!errors.length) {
-                //         that.scope.trigger("region_change");
-                //     }
-                // }
+                is_update_launched = true;
             }
 
             function initAutocomplete($city_field) {
+                var is_depends = isRendered($zip_field);
 
                 var xhr = null;
                 var change_timer = 0,
                     auto_use_timer = 0;
-
-                $city_field.on("change", function() {
-                    change();
-                });
-
-                $city_field.on("keydown", function() {
-                    clearTimeout(auto_use_timer);
-                });
 
                 $city_field.autocomplete({
                     source: function(field_data, resolve) {
@@ -532,11 +556,38 @@
                     }
                 });
 
+                $city_field.on("change", function() {
+                    change();
+                });
+
+                $city_field.on("keydown", function(event) {
+                    clearTimeout(auto_use_timer);
+
+                    var code = event.keyCode,
+                        is_enter = (code === 13);
+
+                    if (is_enter) {
+                        onChange($city_field);
+                        $city_field.trigger("blur");
+                    }
+                });
+
+                $city_field.on("focus", function() {
+                    clearTimeout(key_timer);
+
+                    if (is_update_launched) {
+                        $city_field.trigger("blur");
+                    }
+                });
+
                 function autoUse() {
                     clearTimeout(auto_use_timer);
-                    auto_use_timer = setTimeout( function() {
-                        change(true);
-                    }, 2000);
+
+                    if (!is_depends) {
+                        auto_use_timer = setTimeout( function() {
+                            change(true);
+                        }, key_timeout);
+                    }
                 }
 
                 function getData() {
@@ -621,9 +672,16 @@
                     $city_field.trigger("blur");
 
                     clearTimeout(change_timer);
-                    change_timer = setTimeout( function() {
-                        onChange($city_field);
-                    }, time);
+
+                    if (!is_depends) {
+                        run();
+                    }
+
+                    function run() {
+                        change_timer = setTimeout( function() {
+                            onChange($city_field);
+                        }, time);
+                    }
                 }
             }
 
@@ -650,6 +708,10 @@
                         that.scope.validate($field_wrapper, true);
                     });
                 }
+            }
+
+            function isRendered($field) {
+                return !!($field.length && $field.is(":visible"));
             }
         };
 
@@ -761,7 +823,7 @@
                 // VARS
                 that.show_map = options["show_map"];
                 that.templates = options["templates"];
-                that.variants = options["variants"];
+                that.variants = formatVariants(options["variants"]);
                 that.active_variant = options["active_variant"];
 
                 // FUNCTIONS
@@ -775,6 +837,21 @@
 
                 // INIT
                 that.initClass();
+
+                function formatVariants(variants) {
+                    $.each(variants, function(id, variant) {
+                        var lat = (variant.lat ? parseFloat(variant.lat) : null),
+                            lng = (variant.lng ? parseFloat(variant.lng) : null);
+
+                        lat = (isNaN(lat) ? null : lat);
+                        lng = (isNaN(lng) ? null : lng);
+
+                        variant.lat = lat;
+                        variant.lng = lng;
+                    });
+
+                    return variants;
+                }
             };
 
             PickupDialog.prototype.initClass = function() {
@@ -863,6 +940,7 @@
                     initSearch();
 
                     that.map_deferred.resolve({
+                        map: map,
                         placemarks: placemarks,
                         refresh: function(variant_ids) {
                             var placemarks_array = [];
@@ -1014,6 +1092,7 @@
                     }
 
                     that.map_deferred.resolve({
+                        map: map,
                         placemarks: placemarks,
                         refresh: function(variant_ids) {
                             var placemarks_array = [];
@@ -1147,9 +1226,6 @@
                         lng_array = [];
 
                     $.each(variants, function(id, variant) {
-                        var lat = null,
-                            lng = null;
-
                         if (variant.lat && variant.lng) {
                             lat_array.push(variant.lat);
                             lng_array.push(variant.lng);
@@ -1679,7 +1755,7 @@
                 show_map = dialog.options.show_map,
                 dropdown = dialog.options.dropdown;
 
-            new PickupDialog({
+            var pickup_dialog = new PickupDialog({
                 $wrapper: $wrapper,
                 dialog: dialog,
 
@@ -1704,6 +1780,8 @@
                     }
                 }
             });
+
+            that.scope.DEBUG("Pickup Dialog initialized", "info", pickup_dialog);
         };
 
         // REQUIRED
@@ -1923,6 +2001,8 @@
         Details.prototype.initClass = function() {
             var that = this;
 
+            var is_update_launched = false;
+
             if (typeof that.errors === "object" && Object.keys(that.errors).length ) {
                 that.scope.DEBUG("Errors:", "error", that.errors);
             }
@@ -1946,16 +2026,14 @@
                         that.update({
                             reload: true
                         });
+                        is_update_launched = true;
                     }
+                }
+            });
 
-                    // } else {
-                    //     var errors = that.scope.validate(that.$wrapper);
-                    //     if (!errors.length) {
-                    //         that.update({
-                    //             reload: true
-                    //         });
-                    //     }
-                    // }
+            that.$wrapper.on("focus", "select, textarea, input", function(event) {
+                if (is_update_launched) {
+                    $(this).trigger("blur");
                 }
             });
 
@@ -2385,6 +2463,8 @@
         Payment.prototype.initClass = function() {
             var that = this;
 
+            var is_update_launched = true;
+
             if (typeof that.errors === "object" && Object.keys(that.errors).length ) {
                 that.scope.DEBUG("Errors:", "error", that.errors);
             }
@@ -2408,16 +2488,15 @@
                         that.update({
                             reload: true
                         });
-                    }
 
-                    // } else {
-                    //     var errors = that.scope.validate(that.$wrapper);
-                    //     if (!errors.length) {
-                    //         that.update({
-                    //             reload: true
-                    //         });
-                    //     }
-                    // }
+                        is_update_launched = true;
+                    }
+                }
+            });
+
+            that.$wrapper.on("focus", "select, textarea, input", function(event) {
+                if (is_update_launched) {
+                    $(this).trigger("blur");
                 }
             });
 
@@ -2652,52 +2731,50 @@
                 }
             });
 
+            var start_form_data_json = "";
+
+            that.scope.$wrapper.on("ready changed", changeWatcher);
+            function changeWatcher() {
+                var is_exist = $.contains(document, that.$wrapper[0]);
+                if (is_exist) {
+                    start_form_data_json = JSON.stringify(that.scope.getFormData());
+                } else {
+                    that.scope.$wrapper.off("ready changed", changeWatcher);
+                }
+            }
+
             that.$submit_button.on("click", function(event) {
                 event.preventDefault();
 
                 if (!that.is_locked) {
                     that.is_locked = true;
 
-                    buttonAnimation(true);
+                    var promise = null;
 
-                    that.create()
+                    var is_create = (that.$submit_button.data("action") === "create");
+                    if (is_create) {
+                        var finish_form_data_json = JSON.stringify(that.scope.getFormData()),
+                            is_changed = ( start_form_data_json !== finish_form_data_json );
+
+                        if (!is_changed) {
+                            promise = that.create();
+                        } else {
+                            promise = that.scope.update();
+                        }
+                    } else {
+                        promise = that.scope.update();
+                    }
+
+                    promise
                         .always( function() {
-                            buttonAnimation(false);
                             that.is_locked = false;
                         })
                         .done( function(api) {
                             if (api.order_id) {
-                                buttonAnimation(true);
+                                that.buttonAnimation(true);
                                 that.is_locked = true;
                             }
                         });
-                }
-
-                function buttonAnimation(show) {
-                    var $button = that.$submit_button;
-
-                    var loading_html = that.templates["loading_html"],
-                        loading_class = "is-loading",
-                        html_before = "";
-
-                    if (show) {
-                        var width_w = $button.width();
-                        html_before = $button.html();
-
-                        $button
-                            .data("html_before", html_before)
-                            .width(width_w)
-                            .addClass(loading_class)
-                            .html(loading_html);
-
-                    } else {
-                        html_before = $button.data("html_before");
-
-                        $button
-                            .removeAttr("style")
-                            .removeClass(loading_class)
-                            .html(html_before);
-                    }
                 }
             });
         };
@@ -3329,6 +3406,35 @@
             new ChannelConfirmDialog(options);
         };
 
+        Confirm.prototype.buttonAnimation = function(show) {
+            var that = this;
+
+            var $button = that.$submit_button;
+
+            var loading_html = that.templates["loading_html"],
+                loading_class = "is-loading",
+                html_before = "";
+
+            if (show) {
+                var width_w = $button.width();
+                html_before = $button.html();
+
+                $button
+                    .data("html_before", html_before)
+                    .width(width_w)
+                    .addClass(loading_class)
+                    .html(loading_html);
+
+            } else {
+                html_before = $button.data("html_before");
+
+                $button
+                    .removeAttr("style")
+                    .removeClass(loading_class)
+                    .html(html_before);
+            }
+        };
+
         return Confirm;
 
     })($);
@@ -3457,6 +3563,16 @@
                     $document.off("wa_order_reload_start", reloadWatcher);
                 }
             }
+
+            that.$wrapper.find("input:visible").each( function() {
+                var $field = $(this),
+                    value = $.trim($field.val());
+
+                if (!value.length) {
+                    $field.trigger("focus");
+                    return false;
+                }
+            });
         };
 
         Form.prototype.DEBUG = function() {
@@ -3849,9 +3965,15 @@
                     }
 
                     section.$wrapper.addClass(locked_class);
+                    if (section_id === "confirm") {
+                        section.buttonAnimation(true);
+                    }
 
                     promise
                         .always( function() {
+                            if (section_id === "confirm") {
+                                section.buttonAnimation(false);
+                            }
                             section.$wrapper.removeClass(locked_class);
                         })
                         .then( function(api) {

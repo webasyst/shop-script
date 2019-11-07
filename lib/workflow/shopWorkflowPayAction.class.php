@@ -47,8 +47,16 @@ class shopWorkflowPayAction extends shopWorkflowAction
             $this->waLog('order_pay_callback', $order_id, $order['contact_id']);
         }
 
+        $this->preparePayData($result, $order);
+
+        return $result;
+
+    }
+
+    protected function preparePayData(&$result, $order)
+    {
         if (!$order['paid_year']) {
-            shopAffiliate::applyBonus($order_id);
+            shopAffiliate::applyBonus($order['id']);
             if ($this->getConfig()->getOption('order_paid_date') == 'create') {
                 $time = strtotime($order['create_datetime']);
             } else {
@@ -79,9 +87,6 @@ class shopWorkflowPayAction extends shopWorkflowAction
             }
             $result['text'] .= '<ul class="menu-v">'.implode($changes).'</ul>';
         }
-
-        return $result;
-
     }
 
     public function postExecute($params = null, $result = null)
@@ -116,7 +121,7 @@ class shopWorkflowPayAction extends shopWorkflowAction
                 shopProductStocksLogModel::TYPE_ORDER,
                 _w('Order %s was paid'),
                 array(
-                    'order_id' => $order_id
+                    'order_id' => $order_id,
                 )
             );
 
@@ -125,7 +130,7 @@ class shopWorkflowPayAction extends shopWorkflowAction
             shopProductStocksLogModel::clearContext();
         }
 
-        $this->setPackageState(waShipping::STATE_DRAFT, $order, array('log'=>true));
+        $this->setPackageState(waShipping::STATE_DRAFT, $order, array('log' => true));
 
         return $data;
     }

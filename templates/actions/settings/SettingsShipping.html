@@ -40,17 +40,106 @@
                 <div class="field-group" style="display: none;">
                     <div class="field">
                         <div class="value submit">
-                            <input type="submit" value="[`Save`]" class="button green">
+                            <div class="js-errors-place" style="margin-bottom: 10px;"></div>
+
+                            <input class="button green js-submit-button" type="submit" value="[`Save`]">
                             <span class="js-form-status" style="display:none"><!-- message placeholder --></span>
                         </div>
                     </div>
                 </div>
             </form>
+
+            <script>
+                ( function($) {
+                    var locales = {
+                        "locale" : {_w("You can use either one common feature, or several features for each of the dimensions. Please empty the fields that do not apply.")|json_encode}
+                    };
+
+                    var $section = $("#s-settings-shipping-params"),
+                        $submit_button = $section.find(".js-submit-button"),
+                        $select = $section.find("select[name='params[dimensions]']"),
+                        $fields = $section.find("select[name='params[height]'], select[name='params[width]'], select[name='params[length]']"),
+                        $errors_place = $section.find(".js-errors-place");
+
+                    if (!$select.length || !$fields.length) { return false; }
+
+                    $select.on("change", onChange);
+                    $fields.on("change", onChange);
+
+                    function onChange(error_text) {
+                        var select_value = $.trim($select.val());
+                        var is_field_has_value = false;
+
+                        $fields.each( function() {
+                            var $field = $(this),
+                                value = $.trim($field.val());
+
+                            if (value.length) {
+                                is_field_has_value = true;
+                                return false;
+                            }
+                        });
+
+                        if (is_field_has_value && select_value.length) {
+                            renderError(locales["locale"]);
+                        } else {
+                            renderError(null);
+                        }
+                    }
+
+                    function renderError(text) {
+                        $errors_place.html("");
+
+                        if (text) {
+                            $errors_place.append( $("<div class='errormsg' />").text(text) );
+                        }
+
+                        $submit_button.attr("disabled", !!text);
+                    }
+
+                })(jQuery);
+            </script>
         </div>
+
+        {if $cron_params.count}
+        <div id="s-settings-shipping-cron" class="block double-padded">
+            {if $cron_params.status==='ok'}
+                <p class="hint">
+                    <i class="icon10 {if $cron_params.status==='ok'}yes{else} exclamation{/if}"></i> {$cron_params.time|wa_datetime:'humandatetime'|string_format:"[`Shipping-related information is automatically updated. Latest cron execution time: <strong>%s</strong>.`]"}
+                </p>
+            {else}
+                <p class="red bold small s-cron-error">
+                    <i class="icon10 {if $cron_params.status==='error'}no{else}exclamation{/if}"></i>
+                    [`Shipping-related information is not automatically updated, because cron is not properly configured.`]
+                    <br>
+                    <a id="cron-message-link" href="javascript:void(0)">[`How to set up?`]</a>
+                </p>
+
+                {if $cron_params.time}
+                    <p class="hint">
+                        <i class="icon10 info"></i> {$cron_params.time|wa_datetime:'humandatetime'|string_format:"[`Latest cron execution time: <strong>%s</strong>.`]"}
+                    </p>
+                {/if}
+
+
+                <div id="cron-message-dialog" style="display:none">
+                    <p>[`For shipping-related information to be automatically updated, a cron setup is required.`]
+                        {sprintf(
+                        '[`Setup cron with the following command (<a href="%s" target="_blank">cron setup instructions</a>):`]',
+                        '[`http://www.webasyst.com/framework/docs/server/cron/`]'
+                        )}</p>
+                    <p><strong class="highlighted">{$cron_params.command}</strong></p>
+                    <p><strong class="highlighted">{_w('Recommended cron execution interval is %d hour.', 'Recommended cron execution interval is %d hours.', $cron_params.interval)}</strong></p>
+                </div>
+            {/if}
+        </div>
+        {/if}
 
         <div id="s-settings-shipping-rounding" class="block double-padded hr s-settings-shipping-rounding">
             <p>{sprintf_wp("Rounding of fractional shipping costs can be set up in %scurrency settings%s.", '<a href="#/currencies/">', '</a>')}</p>
         </div>
+
+
 
         <div class="float-right">
             <ul class="menu-h with-icons dropdown s-add-shipping-method" id="s-shipping-menu">
@@ -158,6 +247,16 @@
                 disabled: {_w('disabled')|json_encode},
                 save_error: {_w('Please correct errors.')|json_encode},
             }
+        });
+
+        $('#cron-message-link').click(function() {
+            $('#cron-message-dialog').waDialog({
+                'height': '200px',
+                'width': '400px',
+                'buttons': $('<button class="button"></button>').text("[`Close`]").click(function() {
+                    $(this).trigger('close');
+                })
+            })
         });
     }
 }());</script>

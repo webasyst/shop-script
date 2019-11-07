@@ -16,17 +16,17 @@
 {function name="_render_coupon" _coupon=[]}
     <div class="s-coupon-wrapper" data-id="{$_coupon.id|default:"%coupon_id%"}">
         <div class="s-checkbox-column">
-            <input class="s-checkbox" type="checkbox" name="{$_rule_name}[rule_params][]" value="{$_coupon.id|default:"%coupon_id%"}" {if empty($_coupon.id) || in_array($_coupon.id, $selected_coupon_ids)}checked{/if}>
+            <input class="s-checkbox" id="id-coupon-{$_uniqid}-{$_coupon.id|default:"%coupon_id%"}" type="checkbox" name="{$_rule_name}[rule_params][]" value="{$_coupon.id|default:"%coupon_id%"}" {if empty($_coupon.id) || in_array($_coupon.id, $selected_coupon_ids)}checked{/if}>
         </div>
         <div class="s-details-column">
             <div class="s-name-wrapper">
-                <span class="s-name">
+                <label class="s-name" for="id-coupon-{$_uniqid}-{$_coupon.id|default:"%coupon_id%"}">
                     {if !empty($_coupon.code)}
                         {$_coupon.code|escape}
                     {else}
                         %code%
                     {/if}
-                </span>
+                </label>
             </div>
 
             <div class="s-discount-wrapper">

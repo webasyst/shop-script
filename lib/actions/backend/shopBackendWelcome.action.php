@@ -142,7 +142,8 @@ class shopBackendWelcomeAction extends waViewAction
             'backend_welcome'   => $this->getBackendWelcomeEvent(),
             'tutorial_progress' => shopTutorialActions::getTutorialProgress(),
             'tutorial_visible'  => $tutorial_visible,
-            'shop_demo_data_source_list' => shopDemoDataImporter::getSourceList()
+            'shop_demo_data_source_list' => shopDemoDataImporter::getSourceList(),
+            'shop_demo_importer_can_work' => shopDemoDataImporter::canWork()
         ));
     }
 

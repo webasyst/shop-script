@@ -4,17 +4,17 @@
     <input type="hidden" name="id" value="{$order_id}">
     <input type="hidden" name="action_id" value="{$action_id}">
 
-    {* begin shipping plugin form*}
     {if !empty($shipping_controls)}
         <div class="form">
-            {foreach $shipping_controls as $control}
-
-                {$control}
+            {* begin shipping plugin form*}
+            {if !empty($shipping_controls)}
+            {foreach $shipping_controls as $_control}
+                {$_control}
             {/foreach}
+            {/if}
+            {* end shipping plugin form *}
         </div>
     {/if}
-    {* end shipping plugin form *}
-
     {if !empty($plugins_html)}
     {foreach $plugins_html as $plugin_id => $html}
         <!-- {$plugin_id} -->

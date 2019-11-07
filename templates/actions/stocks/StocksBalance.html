@@ -1,40 +1,46 @@
 {if !empty($product_stocks)}
 
     <table class="zebra" id="s-product-stocks">
-        <tr class="header white">
-            <th colspan=2>&nbsp;</th>
-            {foreach $stocks as $stock}
+        <thead>
+            <tr class="header white">
+                <th colspan=2>&nbsp;</th>
+                {foreach $stocks as $stock}
+                    <th>{strip}
+                        {$sort_key = 'stock_count_'|cat:$stock.id}
+                        <a href="#/stocks/stock_count_{$stock.id}_{if $sort == $sort_key && $order == 'asc'}desc{else}asc{/if}">
+                            {$stock.name|escape}
+                            {if $sort == $sort_key}
+                                <i class="icon16 {if $order == 'desc'}darr{else}uarr{/if}"></i>
+                            {/if}
+                        </a>
+                    {/strip}</th>
+                {/foreach}
                 <th>{strip}
-                    {$sort_key = 'stock_count_'|cat:$stock.id}
-                    <a href="#/stocks/stock_count_{$stock.id}_{if $sort == $sort_key && $order == 'asc'}desc{else}asc{/if}">
-                        {$stock.name|escape}
-                        {if $sort == $sort_key}
+                    <a href="#/stocks/{if $sort === 'count' && $order == 'asc'}desc{else}asc{/if}/" class="s-sort-handler bold">
+                        [`All stocks`]
+                        {if $sort === 'count'}
                             <i class="icon16 {if $order == 'desc'}darr{else}uarr{/if}"></i>
                         {/if}
                     </a>
                 {/strip}</th>
-            {/foreach}
-            <th>{strip}
-                <a href="#/stocks/{if $sort === 'count' && $order == 'asc'}desc{else}asc{/if}/" class="s-sort-handler bold">
-                    [`All stocks`]
-                    {if $sort === 'count'}
-                        <i class="icon16 {if $order == 'desc'}darr{else}uarr{/if}"></i>
-                    {/if}
-                </a>
-            {/strip}</th>
-        </tr>
+            </tr>
+        </thead>
     </table>
 
     <div class="lazyloading-wrapper">
         <div class="lazyloading-progress-string">{_w('%d product','%d products', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
         <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more products`]</a>
-            <span class="lazyloading-progress" style="display:none">
-                <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d product', '%d products', min($total_count - $count, $count))}...</span>
-            </span>
+        <span class="lazyloading-progress" style="display:none">
+            <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d product', '%d products', min($total_count - $count, $count))}...</span>
+        </span>
     </div>
 
 {else}
-    <p>[`Please add at least one stock in your store settings.`]</p>
+    <h5>[`How to view the stock balance of all products`]</h5>
+    <ol>
+        <li>{sprintf('[`Add at least one stock in your <a href="%s">store settings</a>.`]', '?action=settings#/stock')}<br><br></li>
+        <li>{sprintf('[`Save stock quantities for your <a href="%s">products</a>.`]', '?action=products#/products/')}</li>
+    </ol>
 {/if}
 
 {if !empty($product_stocks)}
@@ -49,7 +55,7 @@
         {% for (var i = 0, sz = data.length; i < sz; i += 1) { %}
             {% var product = data[i], skus = product.skus, stocks = product.stocks; %}
             {% var sku_count = skus.length; %}
-            <tr>
+            <tr class="s-product" data-id="{%#product.id%}">
                 {% var hash = "#/product/"+product.id+"/"; %}
                 <td class="s-product min-width">
                     <a href="{%#hash%}">
@@ -131,7 +137,6 @@
     {/literal}
 
     <script type="text/javascript">
-        document.title = '{"[`Stocks`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
         $.product_stocks.init({
             product_stocks: {json_encode($product_stocks)},
             stocks: {json_encode($stocks)},

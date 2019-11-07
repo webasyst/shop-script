@@ -1,4 +1,4 @@
-(function($) {
+( function($) {
     $.product_stocks = {
         /**
          * {Object}
@@ -6,6 +6,8 @@
         options: {},
 
         container: null,
+
+        products_ids: [],
 
         init: function(options) {
             this.options = options;
@@ -161,13 +163,34 @@
         },
 
         append: function(data) {
+            var that = this;
+
+            data = formatData(data);
+
             try {
                 this.container.append(tmpl('template-product-stocks', data));
+
             } catch (e) {
                 console.error('Error: ' + e.message);
                 return false;
             }
+
             return true;
+
+            function formatData(result) {
+                var products = [];
+
+                $.each(result.product_stocks, function(i, product) {
+                    if (that.products_ids.indexOf(product.id) < 0) {
+                        products.push(product);
+                        that.products_ids.push(product.id);
+                    }
+                });
+
+                result.product_stocks = products;
+
+                return result;
+            }
         }
     };
 })(jQuery);

@@ -393,7 +393,7 @@ class shopMarketingPromoSaveController extends waJsonController
         } catch (Exception $e) {
             $this->errors[] = [
                 'name' => 'image',
-                'text' =>_ws('Not an image or invalid image:').' '.$this->file->name,
+                'text' =>_ws('Not an image or invalid image:').' '.$this->file->name.': '.$e->getMessage(),
             ];
 
             return;
@@ -474,6 +474,9 @@ class shopMarketingPromoSaveController extends waJsonController
         if ($this->file->count()) {
             $this->promo_data['ext'] = $this->file->extension;
         }
+
+        $this->promo_data['start_datetime'] = ifempty($this->promo_data, 'start_datetime', null);
+        $this->promo_data['finish_datetime'] = ifempty($this->promo_data, 'finish_datetime', null);
     }
 
     protected function prepareOldRules()

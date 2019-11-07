@@ -1,7 +1,7 @@
 {$new = false}
 {if !$settings.id}{$new = true}{/if}
 
-<div class="dialog width650px height300px" id="s-product-set-dialog">
+<div class="dialog width650px height500px" id="s-product-set-dialog">
     <div class="dialog-background"></div>
     <form id="s-product-set-form" method="post"
           action="?module=set&action=save&set_id={$settings.id|default:0}"
@@ -32,7 +32,8 @@
                         <div class="field">
                             <div class="name">[`Set ID`]</div>
                             <div class="value no-shift">
-                                &#123;$wa->shop->productSet("<input type="text" name="id" class="s-full-width-input js-product-set-id" value="{$settings.id|escape}" style="margin-top: -3px;">")&#125;
+                                &#123;$wa->shop->productSet("<input type="text" name="id" class="s-full-width-input js-product-set-id" value="{$settings.id|escape}"
+                                                                    style="margin-top: -3px;">")&#125;
                                 <em class="errormsg"></em>
                                 <p class="hint">[`Set ID is used in the code for embedding product set into frontend design templates and pages.`]
                                     {if !$new}[`Changing the set ID <em>will not</em> automatically update templates and pages in which this code is embedded, so be sure to update them if you change the ID.`]</p> {/if}
@@ -73,41 +74,75 @@
                                     </div>
                                 </div>
                             </div>
-                            {else}
+                        {else}
                             <input type="hidden" name="type" value="{$settings.type}">
                         {/if}
 
                         {if $settings.type == shopSetModel::TYPE_DYNAMIC || $new}
-                        <div class="field-group js-set-dynamic-settings" style="{if $new}display: none;{/if}">
-                            <div class="field">
-                                <div class="name">
-                                    {if $new}[`Product filtering`]{else}[`Dynamic set rule`]{/if}
+                            <div class="field-group js-set-dynamic-settings" style="{if $new}display: none;{/if}">
+                                <div class="field">
+                                    <div class="name">
+                                        {if $new}[`Product filtering`]{else}[`Dynamic set rule`]{/if}
+                                    </div>
+                                    <div class="value no-shift">
+                                        <select name="rule" class="js-set-rules">
+                                            <option value="price DESC" {if $settings.rule == 'price DESC'}selected="selected"{/if}>[`Most expensive`]</option>
+                                            <option value="price ASC" {if $settings.rule == 'price ASC'}selected="selected"{/if}>[`Least expensive`]</option>
+                                            <option value="rating DESC" {if $settings.rule == 'rating DESC'}selected="selected"{/if}>[`Highest rated`]</option>
+                                            <option value="rating ASC" {if $settings.rule == 'rating ASC'}selected="selected"{/if}>[`Lowest rated`]</option>
+                                            <option value="total_sales DESC" {if $settings.rule == 'total_sales DESC'}selected="selected"{/if}
+                                                    data-date-field="1">[`Bestsellers by sold amount`]
+                                            </option>
+                                            <option value="{shopSetModel::TOTAL_COUNT_RULE}" {if $settings.rule == shopSetModel::TOTAL_COUNT_RULE}selected="selected"{/if}
+                                                    data-date-field="1">[`Bestsellers by sold quantity`]
+                                            </option>
+                                            <option value="{shopSetModel::BESTSELLERS_RULE}" {if $settings.rule == shopSetModel::BESTSELLERS_RULE}selected="selected"{/if}
+                                                    data-date-field="1">[`Bestsellers by complex value of “quantity × amount × rating”`]
+                                            </option>
+                                            <option value="total_sales ASC" {if $settings.rule == 'total_sales ASC'}selected="selected"{/if}>[`Worst sellers`]</option>
+                                            <option value="name ASC" {if $settings.rule == 'name ASC'}selected="selected"{/if}>[`By name`]</option>
+                                            <option value="compare_price DESC" {if $settings.rule == 'compare_price DESC'}selected="selected"{/if}>[`Compare at price is set`]
+                                            </option>
+                                            <option value="" {if empty($settings.rule)}selected="selected"{/if}>[`Date added`]</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div class="value no-shift">
-                                    <select name="rule">
-                                        <option value="price DESC" {if $settings.rule == 'price DESC'}selected="selected"{/if}>[`Most expensive`]</option>
-                                        <option value="price ASC" {if $settings.rule == 'price ASC'}selected="selected"{/if}>[`Least expensive`]</option>
-                                        <option value="rating DESC" {if $settings.rule == 'rating DESC'}selected="selected"{/if}>[`Highest rated`]</option>
-                                        <option value="rating ASC" {if $settings.rule == 'rating ASC'}selected="selected"{/if}>[`Lowest rated`]</option>
-                                        <option value="total_sales DESC" {if $settings.rule == 'total_sales DESC'}selected="selected"{/if}>[`Best sellers`]</option>
-                                        <option value="total_sales ASC" {if $settings.rule == 'total_sales ASC'}selected="selected"{/if}>[`Worst sellers`]</option>
-                                        <option value="name ASC" {if $settings.rule == 'name ASC'}selected="selected"{/if}>[`By name`]</option>
-                                        <option value="compare_price DESC" {if $settings.rule == 'compare_price DESC'}selected="selected"{/if}>[`Compare at price is set`]
-                                        </option>
-                                        <option value="" {if empty($settings.rule)}selected="selected"{/if}>[`Date added`]</option>
-                                    </select>
+                                <div class="field">
+                                    <div class="name">
+                                        [`Count values from date`]
+                                    </div>
+                                    <div class="value">
+
+                                        <label class="s-datepicker-wrapper">
+                                            <input type="text" class="s-datepicker js-sd-date js-datepicker js-start-date" value="{$date_start|wa_date|default:''|escape}" name="date_start" autocomplete="off">
+                                            <i class="icon16 calendar"></i>
+                                        </label>
+
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="name">
+                                        [`Count values until date`]
+                                    </div>
+                                    <div class="value">
+
+                                        <label class="s-datepicker-wrapper">
+                                            <input type="text" class="s-datepicker js-sd-date js-datepicker js-finish-date" value="{$date_end|wa_date|default:''|escape}" name="date_end" autocomplete="off">
+                                            <i class="icon16 calendar"></i>
+                                        </label>
+
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="name">
+                                        [`Max number of products`]
+                                    </div>
+                                    <div class="value">
+                                        <input type="text" name="count" value="{if $new}{$default_count}{else}{$settings.count|escape}{/if}">
+                                        <p class="hint">[`Limit the maximum number of products in this set`]</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="field">
-                                <div class="name">
-                                    [`Max number of products`]
-                                </div>
-                                <div class="value">
-                                    <input type="text" name="count" value="{if $new}{$default_count}{else}{$settings.count|escape}{/if}">
-                                    <p class="hint">[`Limit the maximum number of products in this set`]</p>
-                                </div>
-                            </div>
-                        </div>
                         {/if}
                     </div>
                 </div>
@@ -120,13 +155,13 @@
             {$wa->csrf()}
         </div>
     </form>
-</div>
 
-<script type="text/javascript">
-    (function ($) {
-        new shopDialogProductsSet({
-            $wrapper: $('#s-product-set-dialog'),
-            is_new: {$new|json_encode}
-        });
-    })(jQuery);
-</script>
+    <script>
+        ( function($) {
+            new shopDialogProductsSet({
+                $wrapper: $('#s-product-set-dialog'),
+                is_new: {$new|json_encode}
+            });
+        })(jQuery);
+    </script>
+</div>

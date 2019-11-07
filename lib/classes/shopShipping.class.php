@@ -145,6 +145,7 @@ class shopShipping extends waAppShipping
         }
         $list = waShipping::enumerate();
         $list[self::DUMMY] = shopShippingDummy::info(self::DUMMY);
+        uasort($list, wa_lambda('$a, $b', 'return strcasecmp($a["name"], $b["name"]);'));
 
         return $list;
     }
@@ -204,10 +205,11 @@ class shopShipping extends waAppShipping
     }
 
     /**
-     * @param array      $params
+     * @param array $params
      * @param waShipping $plugin
-     * @param array      $plugin_info
+     * @param array $plugin_info
      * @return array
+     * @throws waException
      */
     public static function workupShippingParams($params, $plugin, $plugin_info)
     {
@@ -433,6 +435,7 @@ class shopShipping extends waAppShipping
      * @param                  $total
      * @param waShipping|array $plugin
      * @return array
+     * @throws waException
      */
     public static function convertTotalDimensions($total, $plugin)
     {
@@ -587,9 +590,21 @@ class shopShipping extends waAppShipping
                     $return = $shipping_package_provider;
                 }
             }
+        } elseif ($name === 'sync') {
+            $return = wa('shop')->getSetting('shipping_plugins_sync', true);
+        } elseif ($name === 'callback') {
+            $methods = get_class_methods(get_class($this));
+            $return = array();
+            foreach ($methods as $method) {
+                if (preg_match('@callback(.+)Handler@', $method, $matches)) {
+                    $return[] = $matches[1];
+                }
+            }
         } elseif ($name === null) {
             $return = parent::getAppProperties($name);
             $return['dimensions'] = $this->getAppProperties('dimensions');
+            $return['sync'] = $this->getAppProperties('sync');
+            $return['callback'] = $this->getAppProperties('callback');
         } else {
             $return = parent::getAppProperties($name);
         }
@@ -609,5 +624,73 @@ class shopShipping extends waAppShipping
         if (!isset($data['options']['customer_type'])) {
             $data['options']['customer_type'] = '';
         }
+    }
+
+    protected function callbackNotifyHandler($status_data)
+    {
+        return $this->callbackAction($status_data);
+    }
+
+
+    protected function callbackAction($status_data)
+    {
+        $result = array();
+        $order_model = new shopOrderModel();
+
+        $workflow = new shopWorkflow();
+        /** @var shopWorkflowCallbackAction $callback */
+        $callback = $workflow->getActionById('callback');
+
+        if (!empty($status_data['order_id'])) {
+            /** @var waShipping $plugin */
+            $plugin = ifset($status_data['shipping_plugin_instance']);
+
+            $order = $order_model->getById($status_data['order_id']);
+            if (!$order) {
+                $result['error'] = 'Order not found';
+            } else {
+                $appropriate = $this->isSuitable($order['id'], $plugin);
+                if ($appropriate !== true) {
+                    $result['error'] = $appropriate;
+                } else {
+                    if (empty($status_data['customer_id']) && !empty($order['contact_id'])) {
+                        $result['customer_id'] = $order['contact_id'];
+                        $status_data['customer_id'] = $order['contact_id'];
+                    }
+                }
+            }
+
+
+        } else {
+            $result['error'] = 'Order not found';
+        }
+
+
+        if (empty($result['error'])) {
+            $status_data['plugin'] = 'shipping:'.$status_data['shipping_id'];
+            $callback->run($status_data);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Verify if shipping type is valid for this order
+     * @param int        $order_id
+     * @param waShipping $plugin
+     * @return bool|string
+     */
+    private function isSuitable($order_id, $plugin)
+    {
+        if (!$plugin) {
+            return 'Invalid plugin id';
+        } else {
+            $order_params_model = new shopOrderParamsModel();
+
+            if ($plugin->getPluginKey() != $order_params_model->getOne($order_id, 'shipping_id')) {
+                return 'Order shipping type did not match the callback request';
+            }
+        }
+        return true;
     }
 }

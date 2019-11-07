@@ -54,8 +54,9 @@ class shopSettingsFeaturesFeatureSaveController extends waJsonController
             $copy = $features;
             $type_features_model->fillTypes($copy);
             foreach ($features as $feature_id => & $feature) {
-                $feature['sort'] = $copy[$feature_id]['sort'];
-                if (empty($copy[$feature_id]['sort'])) {
+                $sort = ifset($copy, $feature_id, 'sort', null);
+                $feature['sort'] = $sort;
+                if (!$sort) {
                     $feature['sort_json'] = '{}';
                 } else {
                     $feature['sort_json'] = json_encode($copy[$feature_id]['sort']);

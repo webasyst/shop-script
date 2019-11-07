@@ -13,7 +13,8 @@
                 <li class="dr {if $id == $info.id}selected{/if}" id="state-{$id}">
                     <a href="#/orderStates/{$id}/" style="{$s->getStyle()}">
                         <i class="icon16 sort count"></i>
-                        <i class="{$s->getOption('icon')}"></i>{$s->getName()|escape}
+                        <i class="{$s->getOption('icon')}"></i>
+                        <span style="display: inline-block; width: calc(100% - 28px);">{$s->getName()|escape}</span>
                     </a>
                 </li>
             {/foreach}

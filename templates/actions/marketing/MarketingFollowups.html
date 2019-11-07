@@ -39,7 +39,7 @@
                     <div class="align-center" style="margin-top: 20px;">
                         {if $cron_ok}
                             <p class="hint">
-                                <i class="icon10 yes"></i> {$last_cron|wa_datetime:'humandatetime'|string_format:"[`Follow-ups are configured properly. Latest Cron execution time: <strong>%s</strong>`]"}
+                                <i class="icon10 yes"></i> {$last_cron|wa_datetime:'humandatetime'|string_format:"[`Follow-ups are configured properly. Latest cron execution time: <strong>%s</strong>.`]"}
                             </p>
                         {else}
                             <p class="red bold small s-cron-error">

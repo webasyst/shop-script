@@ -101,6 +101,8 @@ class shopPayment extends waAppPayment
         }
         $list = waPayment::enumerate();
         $list['dummy'] = shopPaymentDummy::dummyInfo();
+        uasort($list, wa_lambda('$a, $b', 'return strcasecmp($a["name"], $b["name"]);'));
+
         return $list;
     }
 
@@ -695,7 +697,7 @@ class shopPayment extends waAppPayment
                 $transaction_data['order_id'] = $result['order_id'];
             }
 
-            $workflow->getActionById('pay')->run($transaction_data['order_id']);
+            $workflow->getActionById('pay')->run($transaction_data);
             $result['result'] = true;
         }
         return $result;
@@ -823,6 +825,25 @@ class shopPayment extends waAppPayment
     public function callbackNotifyHandler($transaction_data)
     {
         return $this->callbackAction($transaction_data);
+    }
+
+    /**
+     * @param array $transaction_data
+     * @return array
+     */
+    public function callbackAuthHandler($transaction_data)
+    {
+        $result = $this->callbackAction($transaction_data, true);
+        if (empty($result['error'])) {
+            $workflow = new shopWorkflow();
+            if (!empty($result['order_id'])) {
+                $transaction_data['order_id'] = $result['order_id'];
+            }
+
+            $workflow->getActionById('auth')->run($transaction_data);
+            $result['result'] = true;
+        }
+        return $result;
     }
 
     /**

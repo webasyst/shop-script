@@ -54,8 +54,8 @@ class shopPromoModel extends waModel
 
     public function getList($params = [], &$total_count = null)
     {
-        $offset = $limit = null;
         // LIMIT
+        $offset = $limit = null;
         if (isset($params['offset']) || isset($params['limit'])) {
             $offset = (int)ifset($params['offset'], 0);
             $limit = (int)ifset($params['limit'], shopConfig::ROWS_PER_PAGE);
@@ -324,5 +324,33 @@ class shopPromoModel extends waModel
         ];
         $result['total'] = array_sum($result);
         return $result;
+    }
+
+    public function getProductPromos($product_id)
+    {
+        $list_params = [
+            'rule_type' => 'custom_price',
+            'status' => shopPromoModel::STATUS_ACTIVE,
+        ];
+
+        $product_promos = $all_promos = [];
+
+        $promos = $this->getList($list_params);
+        $list_params['status'] = shopPromoModel::STATUS_PLANNED;
+        $promos = array_merge($promos, $this->getList($list_params));
+        $all_promo_ids = [];
+        foreach ($promos as $promo) {
+            $all_promo_ids[] = $promo['id'];
+            $all_promos[$promo['id']] = $promo;
+        }
+
+        $rules = (new shopPromoRulesModel())->getByField(['promo_id' => $all_promo_ids, 'rule_type' => 'custom_price'], true);
+        foreach ($rules as $rule) {
+            if (array_key_exists($product_id, $rule['rule_params'])) {
+                $product_promos[$rule['promo_id']] = $all_promos[$rule['promo_id']];
+            }
+        }
+
+        return $product_promos;
     }
 }

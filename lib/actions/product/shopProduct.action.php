@@ -157,6 +157,9 @@ class shopProductAction extends waViewAction
                     }
                 }
             }
+
+            $this->view->assign('product_promos', (new shopPromoModel())->getProductPromos($product->id));
+
         } else {
             $frontend_urls[] = array(
                 'url' => wa()->getRouteUrl('/frontend/product', array('product_url' => '%product_url%'), true),

@@ -10,7 +10,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 2.0.6\n"
 "Plural-Forms: nplurals=2; plural=n == 1 ? 0 : 1;\n"
 "Language: en_US\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -3454,7 +3454,7 @@ msgid "New follow-up"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:20
-msgid "Follow-ups are configured properly. Latest Cron execution time: <strong>%s</strong>"
+msgid "Follow-ups are configured properly. Latest cron execution time: <strong>%s</strong>."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:25
@@ -4687,10 +4687,6 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/stocks/Stocks.html:62
 msgid "Transfer"
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/stocks/Stocks.html:69
-msgid "Please add at least one stock in your store settings."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/stocks/Stocks.html:164
@@ -10791,7 +10787,7 @@ msgid "Link video"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductRelated.html:53
-msgid "Upselling & Similar product recommendations are not configured for %s product type. Setup filtering conditions for %s in the master <a href=\"%s\">recommendation settings</a>."
+msgid "Upselling & similar product recommendations are not configured for product type “%s”. Set up filtering conditions for “%s” in the <a href=\"%s\">recommendation settings</a>."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/products/product_list_skus.html:145

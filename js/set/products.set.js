@@ -17,6 +17,7 @@ var shopDialogProductsSet = (function ($) {
             that.initTransliterateSetID();
         }
         that.initTypeSwitch();
+        that.initDatepickers();
     };
 
     shopDialogProductsSet.prototype.initTypeSwitch = function () {
@@ -31,6 +32,88 @@ var shopDialogProductsSet = (function ($) {
             }
         });
     };
+
+    shopDialogProductsSet.prototype.initDatepickers = function () {
+        var that = this;
+
+        that.$wrapper.find('.js-datepicker').each( function() {
+            var $field = $(this),
+                options = {};
+
+            $field.datepicker(options);
+        });
+
+        validateStartFinish();
+
+        function validateStartFinish() {
+            var $start_field = that.$wrapper.find(".js-start-date"),
+                $finish_field = that.$wrapper.find(".js-finish-date");
+
+            var error_class = "error";
+
+            $start_field.on("change", function() {
+                var $field = $(this),
+                    value = $.trim( $field.val() ),
+                    date = null;
+
+                if (value) {
+                    var is_valid = checkDate(value);
+                    if (is_valid) {
+                        date = new Date( $field.datepicker("getDate").getTime() + 1000 * 60 * 60 * 24 );
+                    } else {
+                        $field.val("").addClass(error_class);
+                    }
+                }
+
+                $finish_field.datepicker("option", "minDate", date);
+            });
+
+            $finish_field.on("change", function() {
+                var $field = $(this),
+                    value = $.trim( $field.val() ),
+                    date = null;
+
+                if (value) {
+                    var is_valid = checkDate(value);
+                    if (is_valid) {
+                        date = new Date( $field.datepicker("getDate").getTime() - 1000 * 60 * 60 * 24 );
+                    } else {
+                        $field.val("").addClass(error_class);
+                    }
+                }
+
+                $start_field.datepicker("option", "maxDate", date);
+            });
+
+            $([$start_field, $finish_field]).on("keydown", function(event) {
+                var $field = $(this),
+                    has_error = $field.hasClass(error_class);
+
+                if (has_error) {
+                    $field.removeClass(error_class);
+                }
+            });
+
+            $start_field.trigger("change").datepicker("refresh");
+            $finish_field.trigger("change").datepicker("refresh");
+
+            function checkDate(date) {
+                var format = $.datepicker._defaults.dateFormat,
+                    is_valid = null;
+
+                try {
+                    $.datepicker.parseDate(format, date);
+                    is_valid = true;
+
+                } catch(e) {
+                    is_valid = false;
+                }
+
+                return is_valid;
+            }
+        }
+    };
+
     shopDialogProductsSet.prototype.initTransliterateSetID = function () {
         var that = this,
             $wrapper = that.$wrapper,
@@ -140,14 +223,18 @@ var shopDialogProductsSet = (function ($) {
                                     rendered_errors += 1;
 
                                     var $wrapper = $field.parent().find('.errormsg');
-                                    if ($wrapper.length) { $wrapper.text(errors[name]); }
+                                    if ($wrapper.length) {
+                                        $wrapper.text(errors[name]);
+                                    }
 
-                                    $field.one("keyup", function() {
+                                    $field.one("keyup", function () {
                                         rendered_errors -= 1;
                                         showSubmit();
 
                                         $field.removeClass('error');
-                                        if ($wrapper.length) { $wrapper.text(""); }
+                                        if ($wrapper.length) {
+                                            $wrapper.text("");
+                                        }
                                     });
                                 }
                             }

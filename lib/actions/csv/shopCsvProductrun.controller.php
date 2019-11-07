@@ -473,7 +473,7 @@ SQL;
             }
 
             foreach (array_keys($map) as $field) {
-                if (preg_match('@^images(_descriptions):\d+$@', $field)) {
+                if (preg_match('@^images(_descriptions)?:\d+$@', $field)) {
                     unset($map[$field]);
                 }
             }

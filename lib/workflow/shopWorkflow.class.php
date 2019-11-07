@@ -90,7 +90,7 @@ class shopWorkflow extends waWorkflow
             $original_actions = ifset($original_config['actions'], array());
             foreach ($config['actions'] as $action_id => &$action) {
                 $action['original'] = isset($original_actions[$action_id]);
-                $action['plugin'] = !preg_match('@^shopWorkflow\w+Action$@', $action['classname']);
+                $action['plugin'] = isset($action['classname']) && !preg_match('@^shopWorkflow\w+Action$@', $action['classname']);
             }
             unset($action);
         }
@@ -166,6 +166,9 @@ class shopWorkflow extends waWorkflow
         return $id;
     }
 
+    /**
+     * @return array
+     */
     public static function getExtendsActions()
     {
         return array(

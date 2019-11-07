@@ -76,10 +76,10 @@ class shopPromoProductPrices
                             'storefront'            => $this->storefront,
                             'product_id'            => $product_id,
                             'sku_id'                => $sku_id,
-                            'price'                 => (float)shop_currency($sku['price'], $product_data['currency'], $product_currencies[$product_id]['currency'], false),
-                            'primary_price'         => (float)shop_currency($sku['price'], $product_data['currency'], $this->shop_currency, false),
-                            'compare_price'         => (float)shop_currency($sku['compare_price'], $product_data['currency'], $product_currencies[$product_id]['currency'], false),
-                            'primary_compare_price' => (float)shop_currency($sku['compare_price'], $product_data['currency'], $this->shop_currency, false),
+                            'price'                 => (float)shop_currency($sku['price'], $product_data['currency'], $product_currencies[$product_id]['currency'], null),
+                            'primary_price'         => (float)shop_currency($sku['price'], $product_data['currency'], $this->shop_currency, null),
+                            'compare_price'         => (float)shop_currency($sku['compare_price'], $product_data['currency'], $product_currencies[$product_id]['currency'], null),
+                            'primary_compare_price' => (float)shop_currency($sku['compare_price'], $product_data['currency'], $this->shop_currency, null),
                         ];
                     }
                 }
@@ -96,6 +96,7 @@ class shopPromoProductPrices
         $this->promo_skus = $promo_skus;
 
         if (!empty($promo_prices)) {
+            $this->model->setupTable();
             $this->model->multipleInsert($promo_prices);
         }
     }

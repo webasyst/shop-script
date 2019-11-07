@@ -17,7 +17,10 @@ class shopSettingsShippingSetupAction extends waViewAction
                 'namespace' => "shipping[settings]",
                 'value'     => waRequest::post('shipping[settings]'),
             );
-            $this->view->assign('settings_html', shopShipping::getPlugin($info['plugin'], $plugin_id)->getSettingsHTML($params));
+            $instance = shopShipping::getPlugin($info['plugin'], $plugin_id);
+            $guide_html = method_exists($instance, 'getGuide') ? $instance->getGuide($params) : '';
+            $this->view->assign('settings_html', $instance->getSettingsHTML($params));
+            $this->view->assign('guide_html', $guide_html);
         } catch (waException $ex) {
             $this->view->assign('error', $ex->getMessage());
         }

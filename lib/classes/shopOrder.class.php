@@ -2872,7 +2872,7 @@ class shopOrder implements ArrayAccess
         $item += $this->formatValues($s, self::$service_fields);
 
         # remap fields: id=>service_id
-        if (isset($s['id'])) {
+        if (isset($s['id']) && empty($s['service_id'])) {
             $s['service_id'] = $this->formatValue($s['id'], 'int');
             unset($s['id']);
         }

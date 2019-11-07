@@ -50,10 +50,10 @@
                     <span class="hint">
                         {$product.type = null}
                         {sprintf(
-                            _w('Upselling & Similar product recommendations are not configured for %s product type. Setup filtering conditions for %s in the master <a href="%s">recommendation settings</a>.'),
+                            _w('Upselling & similar product recommendations are not configured for product type “%s”. Set up filtering conditions for “%s” in the <a href="%s">recommendation settings</a>.'),
                             $product.type.name|default:'',
                             $product.type.name|default:'',
-                            '?action=settings#/recommendations/'
+                            "`$wa_app_url`marketing/recommendations/"
                         )}
                     </span>
                 {/if}

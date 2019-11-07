@@ -43,6 +43,22 @@ return array(
                 'delete',
             ),
         ),
+        'auth'       => array(
+            'name'              => _w('Funds are captured'),
+            'options'           => array(
+                'icon'  => 'icon16 ss flag-white',
+                'style' => array(
+                    'color'      => '#008800',
+                    'font-style' => 'italic',
+                ),
+            ),
+            'available_actions' => array(
+                'capture',
+                'cancel',
+                'comment',
+                'message',
+            ),
+        ),
         'paid'       => array(
             'name'              => _w('Paid'),
             'options'           => array(
@@ -121,7 +137,7 @@ return array(
 
     ),
     'actions' => array(
-        'create'   => array(
+        'create'              => array(
             'classname' => 'shopWorkflowCreateAction',
             'internal'  => true,
             'name'      => _w('Create'),
@@ -130,44 +146,44 @@ return array(
             ),
             'state'     => 'new',
         ),
-        'process'  => array(
+        'process'             => array(
             'classname' => 'shopWorkflowProcessAction',
             'name'      => _w('Process'),
             'options'   => array(
                 'log_record'   => _w('Order was confirmed and accepted for processing'),
                 'button_class' => 'green',
-                'description' => sprintf(_w('Order status will be changed to “%s”.'), _w('Processing')),
+                'description'  => sprintf(_w('Order status will be changed to “%s”.'), _w('Processing')),
             ),
             'state'     => 'processing',
         ),
-        'pay'      => array(
+        'pay'                 => array(
             'classname' => 'shopWorkflowPayAction',
             'name'      => _w('Paid'),
             'options'   => array(
                 'log_record'   => _w('Order was paid'),
                 'button_class' => 'yellow',
-                'description' => sprintf(_w('Order status will be changed to “%s”.'), _w('Paid'))
+                'description'  => sprintf(_w('Order status will be changed to “%s”.'), _w('Paid'))
                     .' '._w('A payment date will be saved.'),
             ),
             'state'     => 'paid',
         ),
-        'ship'     => array(
+        'ship'                => array(
             'classname' => 'shopWorkflowShipAction',
             'name'      => _w('Sent'),
             'options'   => array(
                 'log_record'   => _w('Order was shipped'),
                 'button_class' => 'blue',
-                'description' => sprintf(_w("Order status will be changed to “%s”."), _w('Sent')),
+                'description'  => sprintf(_w("Order status will be changed to “%s”."), _w('Sent')),
             ),
             'state'     => 'shipped',
         ),
-        'refund'   => array(
+        'refund'              => array(
             'classname' => 'shopWorkflowRefundAction',
             'name'      => _w('Refund'),
             'options'   => array(
                 'log_record'   => _w('Order was refunded'),
                 'button_class' => 'red',
-                'description' => sprintf(_w("Order status will be changed to “%s”."), _w('Refunded'))
+                'description'  => sprintf(_w("Order status will be changed to “%s”."), _w('Refunded'))
                     .' '._w('Quantities of ordered products and their SKUs, if non-empty, will be increased accordingly. Order payment date will be cleared.'),
             ),
             'state'     => 'refunded',
@@ -179,7 +195,7 @@ return array(
 
                 ),
         */
-        'edit'     => array(
+        'edit'                => array(
             'classname' => 'shopWorkflowEditAction',
             'name'      => _w('Edit order'),
             'options'   => array(
@@ -188,7 +204,7 @@ return array(
                 'log_record' => _w('Order was edited'),
             ),
         ),
-        'editshippingdetails'     => array(
+        'editshippingdetails' => array(
             'classname' => 'shopWorkflowEditshippingdetailsAction',
             'name'      => _w('Edit shipping details'),
             'options'   => array(
@@ -197,33 +213,33 @@ return array(
                 'log_record' => _w('Shipping details changed'),
             ),
         ),
-        'delete'   => array(
+        'delete'              => array(
             'classname' => 'shopWorkflowDeleteAction',
             'name'      => _w('Delete'),
             'options'   => array(
-                'log_record' => _w('Order was deleted'),
+                'log_record'  => _w('Order was deleted'),
                 'description' => sprintf(_w('Order status will be changed to “%s”.'), _w('Deleted'))
                     .' '._w('Quantities of ordered products and their SKUs, if non-empty, will be increased accordingly. Order payment date will be cleared.'),
             ),
             'state'     => 'deleted',
         ),
-        'restore'  => array(
+        'restore'             => array(
             'classname' => 'shopWorkflowRestoreAction',
             'name'      => _w('Restore'),
             'options'   => array(
                 'icon'         => 'restore',
                 'log_record'   => _w('Order was re-opened'),
                 'button_class' => 'green',
-                'description' => _w('Order status will be changed to the one the order had before deletion.'),
+                'description'  => _w('Order status will be changed to the one the order had before deletion.'),
             ),
         ),
-        'complete' => array(
+        'complete'            => array(
             'classname' => 'shopWorkflowCompleteAction',
             'name'      => _w('Mark as Completed'),
             'options'   => array(
                 'log_record'   => _w('Order was marked as completed'),
                 'button_class' => 'purple',
-                'description' => sprintf(_w('Order status will be changed to “%s”.'), _w('Completed'))
+                'description'  => sprintf(_w('Order status will be changed to “%s”.'), _w('Completed'))
                     .' '._w('A payment date will be saved.'),
             ),
             'state'     => 'completed',
@@ -258,13 +274,42 @@ return array(
             ),
 
         ),
+        'auth' => array(
+            'classname' => 'shopWorkflowAuthAction',
+            'internal'  => true,
+            'name'      => _w('Authorize payment'),
+            'state'     => 'auth',
+            'options'   => array(
+                'log_record' => _w('Payment was authorized'),
+            ),
+
+        ),
         'settle'   => array(
             'classname' => 'shopWorkflowSettleAction',
             'internal'  => true,
             'name'      => _w('Merge'),
             'options'   => array(
-                'head'       => true,
                 'log_record' => _w('Order was settled'),
+            ),
+        ),
+        'cancel'   => array(
+            'classname' => 'shopWorkflowCancelAction',
+            'internal'  => true,
+            'name'      => _w('Cancel payment'),
+            'state'     => 'refunded',
+            'options'   => array(
+                'button_class' => 'red',
+                'log_record'   => _w('Order payment was canceled'),
+            ),
+        ),
+        'capture'  => array(
+            'classname' => 'shopWorkflowCaptureAction',
+            'internal'  => true,
+            'state'     => 'paid',
+            'name'      => _w('Capture payment'),
+            'options'   => array(
+                'button_class' => 'red',
+                'log_record'   => _w('Order payment was captured'),
             ),
         ),
     ),

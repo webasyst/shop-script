@@ -119,7 +119,8 @@
                         {/if}
                     {/if}
 
-                    <button class="wa-button wa-submit-button js-submit-order-button" {if !empty($_locked)}disabled{/if}>[`Confirm order`]</button>
+                    {$_create_order = empty($errors)}
+                    <button class="wa-button wa-submit-button js-submit-order-button" data-action="{if !empty($_create_order)}create{else}calculate{/if}" {if !empty($_locked)}disabled{/if}>[`Confirm order`]</button>
                 </div>
             </div>
 

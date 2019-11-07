@@ -667,9 +667,9 @@ class shopProductModel extends waModel
         }
         $sql = "SELECT id, currency
                 FROM {$this->table}
-                WHERE id IN (?)";
+                WHERE id IN (i:ids)";
 
-        return $this->query($sql, $product_ids)->fetchAll('id');
+        return $this->query($sql, ['ids' => $product_ids])->fetchAll('id');
     }
 
     public function getTop($limit, $order = 'sales', $start_date = null, $end_date = null, $options = array())

@@ -285,7 +285,12 @@
     </tr>
 {/function}
 
-<div class="blank block double-padded{if !$stocks && !$rule_groups} hidden{/if}">
+{$_show_rules = false}
+{if !empty($rule_groups) || (!empty($stocks) && $stocks|count > 1)}
+    {$_show_rules = true}
+{/if}
+
+<div class="blank block double-padded {if !$_show_rules}hidden{/if}">
     <h1 style="margin-bottom: 0.75em;">[`Stock linking rules`]</h1>
     <p>[`When order is placed, ordered items will be automatically linked with a stock according to the rules defined below. E.g. different stocks may be preferred depending on selected shipping option or particular customer location. When no matching stock rule were found, ordered items will be linked to the current storefront default stock.`]</p>
     <div class="block bottom-padded">

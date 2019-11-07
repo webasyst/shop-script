@@ -44,6 +44,10 @@ class shopHelper
      */
     public static function getPaymentMethods($order = array())
     {
+        $is_template = waConfig::get('is_template');
+        if ($is_template) {
+            waConfig::set('is_template', null);
+        }
         $plugin_model = new shopPluginModel();
         $methods = $plugin_model->listPlugins(shopPluginModel::TYPE_PAYMENT);
         $order_params = $order ? $order['params'] : array();
@@ -99,6 +103,10 @@ class shopHelper
                 $methods[$m_id]['custom_html'] = sprintf('<span class="error">%s</span>', htmlentities($ex->getMessage(), ENT_NOQUOTES, 'utf-8'));
                 $methods[$m_id]['status'] = 0;
             }
+        }
+
+        if ($is_template) {
+            waConfig::set('is_template', $is_template);
         }
 
         return $methods;
@@ -1703,16 +1711,19 @@ SQL;
 
             $items[] = array(
                 'id'              => ifset($item['id']),
+                'parent_id'       => ifset($item['parent_id']),
                 'name'            => ifset($item['name']),
                 'sku'             => ifset($item['sku_code']),
                 'tax_rate'        => ifset($item['tax_percent']),
                 'tax_included'    => ifset($item['tax_included'], 1),
                 'description'     => '',
                 'price'           => (float)$item['price'],
+                'currency'        => $options['currency'],
                 'quantity'        => (int)ifset($item['quantity'], 0),
                 'total'           => (float)$item['price'] * (int)$item['quantity'],
                 'type'            => ifset($item['type'], 'product'),
                 'product_id'      => ifset($item['product_id']),
+                'sku_id'          => ifset($item['sku_id']),
                 'weight'          => (float)ifset($item['weight']),
                 'height'          => (float)ifset($item['height']),
                 'length'          => (float)ifset($item['length']),

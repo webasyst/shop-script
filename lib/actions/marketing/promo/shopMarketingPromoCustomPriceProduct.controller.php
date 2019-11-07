@@ -10,7 +10,7 @@ class shopMarketingPromoCustomPriceProductController extends waJsonController
         }
 
         $collection = new shopProductsCollection('id/'.$product_id);
-        $product_data = $collection->getProducts('id,name,images,currency,skus');
+        $product_data = $collection->getProducts('id,name,images,currency,skus', 0, 10000);
         if (empty($product_data)) {
             return;
         }

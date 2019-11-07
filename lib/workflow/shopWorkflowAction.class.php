@@ -127,6 +127,8 @@ HTML;
          * @event order_action_form.restore
          * @event order_action_form.complete
          * @event order_action_form.comment
+         * @event order_action_form.refund
+         *
          *
          * @param array [string]mixed $data
          * @param array [string]int $data['order_id']
@@ -238,6 +240,10 @@ HTML;
         /**
          * @event order_action.callback
          * @event order_action.pay
+         * @event order_action.auth
+         * @event order_action.capture
+         * @event order_action.cancel
+         * @event order_action.refund
          * @event order_action.ship
          * @event order_action.process
          * @event order_action.delete
@@ -251,6 +257,9 @@ HTML;
          * @param array [string]int $data['before_state_id']
          * @param array [string]int $data['after_state_id']
          * @param array [string]int $data['id'] Order log record id
+         * @param array [string]double $data['params']['refund_amount'] refund amount (at partial refund order_action.refund)
+         * @param array [string]array $data['params']['refund_items'] array of refunded items (at partial refund order_action.refund)
+         * @param array [string]int $data['params']['return_stock'] stock id
          * @param array [string]mixed $data['callback_transaction_data'] payment gateway callback formalized data for order_action.callback event
          * @param array [string][string]string $data['callback_transaction_data']['plugin']
          * @param array [string][string]mixed $data['callback_transaction_data']['merchant_id']
@@ -305,7 +314,6 @@ HTML;
     /**
      * @param $order_id
      * @return null|waPayment|waIPaymentRefund
-     * @throws waException
      */
     protected function getPaymentPlugin($order_id)
     {
@@ -321,10 +329,22 @@ HTML;
         return $plugin;
     }
 
+    protected function getPaymentTransactions(&$plugin, $order_id)
+    {
+        if (empty($plugin)) {
+            $plugin = $this->getPaymentPlugin($order_id);
+        }
+        if ($plugin) {
+            $transactions = $plugin->getAvailableTransactions($order_id);
+        } else {
+            $transactions = array();
+        }
+        return $transactions;
+    }
+
     /**
      * @param int|array $order
      * @return null|waShipping
-     * @throws waException
      */
     protected function getShippingPlugin($order)
     {
@@ -500,6 +520,11 @@ HTML;
             return $this->order_log_model->add($result);
         }
         return $result;
+    }
+
+    public function getErrorData()
+    {
+        return array();
     }
 
     protected function getShippingFields($order_id, $state)

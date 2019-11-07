@@ -48,6 +48,24 @@ return array(
     'order_refund' => array(
         'name' => /*_w*/('refunded an order')
     ),
+    'order_partial_refund' => array(
+        'name' => /*_w*/('partial refunded an order')
+    ),
+    'order_auth_callback' => array(
+        'name' => /*_w*/('TODO: auth payment of an order from payment gateway')
+    ),
+    'order_capture' => array(
+        'name' => /*_w*/('TODO: capture payment of an order')
+    ),
+    'order_capture_callback' => array(
+        'name' => /*_w*/('TODO: capture payment of an order from payment gateway')
+    ),
+    'order_cancel' => array(
+        'name' => /*_w*/('TODO: cancel payment of an order')
+    ),
+    'order_cancel_callback' => array(
+        'name' => /*_w*/('TODO: cancel payment of an order from payment gateway')
+    ),
     'order_edit' => array(
         'name' => /*_w*/('edited an order')
     ),

@@ -1757,7 +1757,9 @@
                             });
                         });
 
-                        $.products.dispatch();
+                        if (data || new_ids) {
+                            $.products.dispatch();
+                        }
                     },
                     'error': function (data) {
 
@@ -1863,10 +1865,20 @@
                     } else {
                         options.finish(response.data || {}, new_ids);
                     }
+                } else if (response.status == 'fail' && response.errors.message) {
+                    var $error_dialog = $("#s-product-list-duplicate-error-dialog");
+                    $error_dialog.waDialog();
                 }
             }, function (r) {
                 if (r.errors) {
-                    alert(r.errors);
+                    options.finish();
+                    if (r.errors.message) {
+                        var $error_dialog = $("#s-product-list-duplicate-error-dialog");
+                        $error_dialog.find('.js-content').html(r.errors.message);
+                        $error_dialog.waDialog();
+                    } else {
+                        alert(r.errors);
+                    }
                 }
             });
         },

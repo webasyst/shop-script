@@ -72,9 +72,11 @@
     }
 
     function updateHeight(iframe, iframe_height) {
-        if ( !(iframe_height > 0) ) {
+        try {
             var document = iframe.contentWindow.document;
             iframe_height = document.getElementsByTagName("form")[0].offsetHeight;
+        } catch(e) {
+            console.log(e);
         }
 
         iframe.style.height = iframe_height + "px";

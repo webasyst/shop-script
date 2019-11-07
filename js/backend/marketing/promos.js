@@ -9,8 +9,9 @@
             that.$wrapper = options["$wrapper"];
 
             // CONST
-            that.urls = options.urls;
-            that.promo_sort_enabled = options.promo_sort_enabled;
+            that.urls = options["urls"];
+            that.templates = options["templates"];
+            that.sort_enabled = options["sort_enabled"];
 
             // DYNAMIC VARS
 
@@ -25,7 +26,11 @@
             ready_promise.resolve(that);
             that.$wrapper.trigger("ready", that);
 
-            that.initSortable();
+            if (that.sort_enabled) {
+                that.initSortable();
+            }
+
+            that.initStatusChange();
         };
 
         PromosPage.prototype.initPromo = function(options) {
@@ -220,10 +225,6 @@
         PromosPage.prototype.initSortable = function() {
             var that = this;
 
-            if (!that.promo_sort_enabled) {
-                return;
-            }
-
             var $promos_lists = that.$wrapper.find(".js-active-promos-list");
 
             $promos_lists.each(function() {
@@ -249,6 +250,114 @@
                 });
 
             });
+        };
+
+        PromosPage.prototype.initStatusChange = function() {
+            var that = this;
+
+            var pause_class = "is-paused",
+                stop_class = "is-stopped",
+                active_class = "is-active";
+
+            that.$wrapper.on("click", ".js-pause-promo", function(event) {
+                event.preventDefault();
+
+                var $button = $(this),
+                    $bar = $button.closest(".s-bar-section"),
+                    $promo = $button.closest(".s-promo-wrapper");
+
+                pausePromo($promo).then( function() {
+                    $button.removeClass("js-pause-promo").addClass("js-play-promo");
+                    $button.find(".play").removeClass("play").addClass("ss pause");
+                    $bar.removeClass(active_class).addClass(stop_class);
+                    $promo.removeClass(active_class).addClass(pause_class);
+                });
+            });
+
+            that.$wrapper.on("click", ".js-play-promo", function(event) {
+                event.preventDefault();
+
+                var $button = $(this),
+                    $bar = $button.closest(".s-bar-section"),
+                    $promo = $button.closest(".s-promo-wrapper");
+
+                playPromo($promo).then( function() {
+                    $button.removeClass("js-play-promo").addClass("js-pause-promo");
+                    $button.find(".ss.pause").removeClass("ss pause").addClass("play");
+                    $bar.removeClass(stop_class).addClass(active_class);
+                    $promo.removeClass(pause_class).addClass(active_class);
+                });
+            });
+
+            function pausePromo($promo) {
+                var template = that.templates["pause"],
+                    promo_name = $.trim($promo.find(".s-promo-header .s-title").text()),
+                    promo_id = $promo.data("id");
+
+                var $template = $(template.replace("%promo_name%", promo_name));
+
+                return showDialog($template, {
+                    promo_id: promo_id,
+                    enabled: 0
+                });
+            }
+
+            function playPromo($promo) {
+                var template = that.templates["play"],
+                    promo_name = $.trim($promo.find(".s-promo-header .s-title").text()),
+                    promo_id = $promo.data("id");
+
+                var $template = $(template.replace("%promo_name%", promo_name));
+
+                return showDialog($template, {
+                    promo_id: promo_id,
+                    enabled: 1
+                });
+            }
+
+            function showDialog($template, data) {
+                var is_locked = false;
+
+                var deferred = $.Deferred();
+
+                $template.waDialog({
+                    onLoad: function() {
+                        var $dialog_wrapper = $(this);
+
+                        // Submit confirm
+                        $dialog_wrapper.on('click', '.js-submit', function(event) {
+                            event.preventDefault();
+
+                            var $button = $(this);
+
+                            if (!is_locked) {
+                                $button.attr("disabled", true);
+                                is_locked = true;
+
+                                $.post(that.urls["status"], data)
+                                    .always( function() {
+                                        $button.attr("disabled", false);
+                                        is_locked = false;
+                                    }).done( function() {
+                                        deferred.resolve();
+                                        $dialog_wrapper.trigger('close');
+                                    }).fail( function () {
+                                        deferred.reject();
+                                    });
+                            }
+                        });
+
+                        // Close
+                        $dialog_wrapper.on('click', '.js-cancel', function (event) {
+                            event.preventDefault();
+                            deferred.reject();
+                            $dialog_wrapper.trigger('close');
+                        });
+                    }
+                });
+
+                return deferred.promise();
+            }
         };
 
         return PromosPage;

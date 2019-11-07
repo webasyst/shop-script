@@ -532,7 +532,10 @@
         title: title,
         float_delimeter: {if strpos((string)3.14, ",") !== false}","{else}"."{/if},
         embedded_version: {if !empty($embedded_version)}1{else}0{/if},
-        price_edit: true
+        price_edit: true,
+        locales: {
+            wrong_cost: {_w('Todo Стоимость не может быть меньше 0')|json_encode}
+        }
     });
 
     {$contact_type = shopCustomer::TYPE_PERSON}

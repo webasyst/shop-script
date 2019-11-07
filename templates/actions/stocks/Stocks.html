@@ -42,7 +42,7 @@
 </div>
 
 <script>
-    $(function () {
+    $( function() {
         var container = $('#s-stocks-container');
         var menu = $('.s-stocks-tabs', container);
         var loadTab = function (tab, params) {
@@ -111,5 +111,6 @@
             });
         {/if}
 
+        document.title = '{"[`Stocks`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     });
 </script>
