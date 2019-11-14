@@ -230,16 +230,26 @@ class shopWorkflowRefundAction extends shopWorkflowAction
                 }
             } catch (waException $ex) {
                 $result = false;
+                $data = compact('transaction', 'refund_amount', 'refund_items');
+                if (!empty($response)) {
+                    $data['response'] = $response;
+                }
                 $message = sprintf(
                     "Error during refund order #%d: %s\nDATA:%s",
                     $order_id,
                     $ex->getMessage(),
-                    var_export(compact('transaction', 'refund_amount', 'refund_items'), true)
+                    var_export($data, true)
                 );
                 waLog::log($message, 'shop/workflow/refund.error.log');
             }
         } else {
             $result = false;
+            $message = sprintf(
+                "Refund order #%d not available\nDATA:%s",
+                $order_id,
+                var_export(compact('transaction', 'refund_amount', 'refund_items'), true)
+            );
+            waLog::log($message, 'shop/workflow/refund.error.log');
         }
 
         return $result;

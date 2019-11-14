@@ -398,9 +398,7 @@
 
             var key_timer = 0,
                 key_timeout = 10000,
-                change_timer = 0,
-                change_timeout = 100,
-                is_update_launched = false;
+                change_timeout = 100;
 
             if (typeof that.errors === "object" && Object.keys(that.errors).length ) {
                 that.scope.DEBUG("Errors:", "error", that.errors);
@@ -455,12 +453,6 @@
 
                         onChange($field);
                     });
-
-                    $field.on("focus", function() {
-                        if (is_update_launched) {
-                            $field.trigger("blur");
-                        }
-                    });
                 }
             }
 
@@ -497,10 +489,6 @@
 
                     $field.on("focus", function() {
                         clearTimeout(key_timer);
-
-                        if (is_update_launched) {
-                            $field.trigger("blur");
-                        }
                     });
                 }
             }
@@ -526,23 +514,17 @@
                 if (!value.length) { return false; }
 
                 that.scope.trigger("region_change");
-
-                is_update_launched = true;
             }
 
             function initAutocomplete($city_field) {
                 var is_depends = isRendered($zip_field);
 
                 var xhr = null;
-                var change_timer = 0,
-                    auto_use_timer = 0;
 
                 $city_field.autocomplete({
                     source: function(field_data, resolve) {
                         getData().then( function(data) {
                             resolve(data);
-
-                            if (!data.length) { autoUse(); }
                         });
                     },
                     minLength: 2,
@@ -551,18 +533,12 @@
                     },
                     select: function(event, ui) {
                         $city_field.val(ui.item.value);
-                        change(true);
+                        onChange($city_field);
                         return false;
                     }
                 });
 
-                $city_field.on("change", function() {
-                    change();
-                });
-
                 $city_field.on("keydown", function(event) {
-                    clearTimeout(auto_use_timer);
-
                     var code = event.keyCode,
                         is_enter = (code === 13);
 
@@ -574,21 +550,7 @@
 
                 $city_field.on("focus", function() {
                     clearTimeout(key_timer);
-
-                    if (is_update_launched) {
-                        $city_field.trigger("blur");
-                    }
                 });
-
-                function autoUse() {
-                    clearTimeout(auto_use_timer);
-
-                    if (!is_depends) {
-                        auto_use_timer = setTimeout( function() {
-                            change(true);
-                        }, key_timeout);
-                    }
-                }
 
                 function getData() {
                     var deferred = $.Deferred();
@@ -663,24 +625,6 @@
                         });
 
                         return result;
-                    }
-                }
-
-                function change(force) {
-                    var time = ( force ? 0 : 100 );
-
-                    $city_field.trigger("blur");
-
-                    clearTimeout(change_timer);
-
-                    if (!is_depends) {
-                        run();
-                    }
-
-                    function run() {
-                        change_timer = setTimeout( function() {
-                            onChange($city_field);
-                        }, time);
                     }
                 }
             }
@@ -2001,8 +1945,6 @@
         Details.prototype.initClass = function() {
             var that = this;
 
-            var is_update_launched = false;
-
             if (typeof that.errors === "object" && Object.keys(that.errors).length ) {
                 that.scope.DEBUG("Errors:", "error", that.errors);
             }
@@ -2026,14 +1968,7 @@
                         that.update({
                             reload: true
                         });
-                        is_update_launched = true;
                     }
-                }
-            });
-
-            that.$wrapper.on("focus", "select, textarea, input", function(event) {
-                if (is_update_launched) {
-                    $(this).trigger("blur");
                 }
             });
 
@@ -2463,8 +2398,6 @@
         Payment.prototype.initClass = function() {
             var that = this;
 
-            var is_update_launched = true;
-
             if (typeof that.errors === "object" && Object.keys(that.errors).length ) {
                 that.scope.DEBUG("Errors:", "error", that.errors);
             }
@@ -2488,15 +2421,7 @@
                         that.update({
                             reload: true
                         });
-
-                        is_update_launched = true;
                     }
-                }
-            });
-
-            that.$wrapper.on("focus", "select, textarea, input", function(event) {
-                if (is_update_launched) {
-                    $(this).trigger("blur");
                 }
             });
 
@@ -2773,6 +2698,11 @@
                             if (api.order_id) {
                                 that.buttonAnimation(true);
                                 that.is_locked = true;
+                            } else {
+                                if (!api.errors) {
+                                    var confirm_section = that.scope.sections["confirm"];
+                                    confirm_section.$submit_button.trigger("click");
+                                }
                             }
                         });
                 }
@@ -3477,6 +3407,7 @@
             that.ui = window.waOrder.ui;
 
             // VARS
+            that.is_updating = false;
             that.sections = {};
             that.render_scheduled = false;
             that.calculate_promise = null;
@@ -3571,6 +3502,12 @@
                 if (!value.length) {
                     $field.trigger("focus");
                     return false;
+                }
+            });
+
+            that.$wrapper.on("focus", "select, textarea, input", function(event) {
+                if (that.is_updating) {
+                    $(this).trigger("blur");
                 }
             });
         };
@@ -3950,6 +3887,8 @@
 
             } else {
 
+                that.is_updating = true;
+
                 promise = (options.create ? that.create(form_data) : that.calculate(form_data));
 
                 var locked_class = "is-locked";
@@ -3991,11 +3930,15 @@
                         });
                 });
 
-                promise.then( function(api) {
-                    if (is_changed) {
-                        that.trigger("changed", api);
-                    }
-                });
+                promise
+                    .always( function() {
+                        that.is_updating = false;
+                    })
+                    .then( function(api) {
+                        if (is_changed) {
+                            that.trigger("changed", api);
+                        }
+                    });
             }
 
             return promise;

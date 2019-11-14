@@ -27,6 +27,7 @@ class shopProductPromoPriceTmpModel extends waModel
     {
         $this->exec("CREATE TEMPORARY TABLE IF NOT EXISTS {$this->table} (
                         storefront            VARCHAR(255) NOT NULL,
+                        promo_id              INT(11) NOT NULL,
                         product_id            INT(11) NOT NULL,
                         sku_id                INT(11) NOT NULL,
                         price                 DECIMAL(15, 4) DEFAULT '0.0000' NOT NULL,

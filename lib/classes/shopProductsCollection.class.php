@@ -667,7 +667,7 @@ SQL;
             } elseif ($rule == 'compare_price DESC') {
                 $this->setByComparePrice();
             } else {
-                $this->order_by = $set['rule'];
+                $this->order_by = !empty($set['rule']) ? $set['rule'] : 'p.create_datetime DESC';
 
                 if (!isset($this->join_index['ps']) && preg_match('~^(price)\s(asc|desc)$~ui', $set['rule'], $matches)) {
                     $order = $matches[2];
@@ -980,11 +980,12 @@ SQL;
     protected function bestsellersPrepare($query, $auto_title = true)
     {
         $this->bestsellersJoin();
+        $shop_order_alias = ifset(ref($this->getJoinsByTableName('shop_order')), 0, 'alias', 'o');
         if ($query && wa_is_int($query)) {
             $date_start = date('Y-m-d H:i:s', time() - $query);
-            $this->where[] = "o.paid_date >= '{$date_start}'";
+            $this->where[] = $shop_order_alias.".paid_date >= '{$date_start}'";
         } else {
-            $this->where[] = "o.paid_date IS NOT NULL";
+            $this->where[] = $shop_order_alias.".paid_date IS NOT NULL";
         }
     }
 
@@ -1562,7 +1563,10 @@ SQL;
     public function getOrderBy()
     {
         if (!$this->order_by) {
-            return array();
+            return [
+                0 => null,
+                1 => null,
+            ];
         } else {
             $order = explode(',', $this->order_by);
             $order = explode(' ', trim(end($order)));

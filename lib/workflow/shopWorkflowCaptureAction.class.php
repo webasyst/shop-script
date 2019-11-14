@@ -68,7 +68,7 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
                         var_export(compact('transaction'), true)
                     );
                     waLog::log($message, 'shop/workflow/capture.error.log');
-                    throw new waException(_w('TODO: Error occurred during capture order. For details see error log'));
+                    throw new waException(_w('An error occurred during the order capture. See error log for details.'));
                 }
 
                 if (empty($response)) {
@@ -80,7 +80,7 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
 
                         $capture_amount_html = shop_currency_html($amount, $currency_id);
 
-                        $template = _w('Capture %s via %s payment gateway.');
+                        $template = _w('Capture %s via payment gateway %s.');
 
                         $result = array(
                             'params' => array(
@@ -89,7 +89,7 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
                             'text'   => sprintf($template, $capture_amount_html, $plugin->getName()),
                         );
                     } else {
-                        throw new waException(sprintf(_w('TODO: Transaction error: %s'), $response['description']));
+                        throw new waException(sprintf(_w('Transaction error: %s'), $response['description']));
                     }
                 }
 

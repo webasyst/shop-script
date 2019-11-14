@@ -379,7 +379,7 @@
                     {if !empty($order.paid_date)}
                         <div class="s-paid-order-stamp" title="{sprintf('[`Order was paid on %s`]', $order.paid_date|wa_date:'humandate')}"><div class="s-stamp-inner"></div><span>[`Paid`]</span></div>
                     {elseif !empty($order.auth_date)}
-                        <div class="s-paid-order-stamp" title="{sprintf('[`Order payment was captured on %s`]', $order.auth_date|wa_date:'humandate')}"><div class="s-stamp-inner"></div><span style="font-size: 12px;">[`Funds are captured`]</span></div>
+                        <div class="s-paid-order-stamp" title="{sprintf('[`Order payment was captured on %s`]', $order.auth_date|wa_date:'humandate')}"><div class="s-stamp-inner"></div><span style="font-size: 12px;">[`Payment is authorized`]</span></div>
                     {/if}
 
                     <div class="block half-padded s-printable-print-button align-center">

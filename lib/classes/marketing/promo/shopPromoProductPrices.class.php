@@ -73,6 +73,7 @@ class shopPromoProductPrices
                     $promo_sku = ifempty($promo_skus, $product_id, $sku_id, null);
                     if ($sku['price'] && (empty($promo_sku) || $promo_sku['price'] > $sku['price'])) {
                         $promo_skus[$product_id][$sku_id] = [
+                            'promo_id'              => $rule['promo_id'],
                             'storefront'            => $this->storefront,
                             'product_id'            => $product_id,
                             'sku_id'                => $sku_id,
@@ -134,7 +135,7 @@ class shopPromoProductPrices
         ];
 
         foreach ($products as &$p) {
-            if (!isset($p['price'])) {
+            if (!isset($p['price']) || !empty($p['is_promo'])) {
                 continue;
             }
 
@@ -144,6 +145,10 @@ class shopPromoProductPrices
             }
 
             $p['is_promo'] = true;
+            $p['used_promo_ids'] = array_values(array_unique(array_map(function($sku) {
+                return $sku['promo_id'];
+            }, $promo_sku_prices)));
+            $p['used_promo_id'] = reset($p['used_promo_ids']);
 
             // Save original product prices
             foreach ($price_fields as $k) {
@@ -203,9 +208,13 @@ class shopPromoProductPrices
         ];
 
         foreach ($skus as &$sku) {
+            if (!empty($sku['is_promo'])) {
+                continue;
+            }
             foreach ($this->promo_prices as $promo_sku_price) {
                 if ($sku['product_id'] == $promo_sku_price['product_id'] && $sku['id'] == $promo_sku_price['sku_id']) {
                     $sku['is_promo'] = true;
+                    $sku['used_promo_id'] = $promo_sku_price['promo_id'];
                     foreach ($price_fields as $k) {
                         if (isset($sku[$k])) {
                             $sku['raw_'.$k] = $sku[$k];

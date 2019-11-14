@@ -58,12 +58,12 @@ class shopMarketingPromoRuleEditorAction extends waViewAction
         if (!empty($this->rule) && !empty($product_ids)) {
             $hash = 'id/'.join(',', $product_ids);
             $collection = new shopProductsCollection($hash);
-            $products_data = $collection->getProducts('id,name,images,currency,skus', 0, 10000);
+            $products_data = $collection->getProducts('id,name,images,currency,skus', 0, 10000, false);
         }
 
         if (!empty($this->options['products_hash'])) {
             $collection = new shopProductsCollection($this->options['products_hash']);
-            $new_products = $collection->getProducts('id,name,images,currency,skus', 0, 10000);
+            $new_products = $collection->getProducts('id,name,images,currency,skus', 0, 10000, false);
             $products_data = array_merge($new_products, $products_data);
         }
 

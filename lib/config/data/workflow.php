@@ -44,7 +44,7 @@ return array(
             ),
         ),
         'auth'       => array(
-            'name'              => _w('Funds are captured'),
+            'name'              => _w('Payment is authorized'),
             'options'           => array(
                 'icon'  => 'icon16 ss flag-white',
                 'style' => array(

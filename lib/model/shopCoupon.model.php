@@ -89,24 +89,24 @@ SQL;
         return $result && ($coupon['expire_datetime'] === null || strtotime($coupon['expire_datetime']) > time());
     }
 
-    public static function formatValue($c, $curr = null)
+    public static function formatValue($coupon, $curr = null)
     {
         static $currencies = null;
         if ($currencies === null) {
             if ($curr) {
                 $currencies = $curr;
             } else {
-                $curm = new self();
+                $curm = new shopCurrencyModel();
                 $currencies = $curm->getAll('code');
             }
         }
 
-        if ($c['type'] == '$FS') {
+        if ($coupon['type'] == '$FS') {
             return _w('Free shipping');
-        } elseif ($c['type'] === '%') {
-            return waCurrency::format('%0', $c['value'], 'USD').'%';
-        } elseif (!empty($currencies[$c['type']])) {
-            return waCurrency::format('%0{s}', $c['value'], $c['type']);
+        } elseif ($coupon['type'] === '%') {
+            return waCurrency::format('%0', $coupon['value'], 'USD').'%';
+        } elseif (!empty($currencies[$coupon['type']])) {
+            return waCurrency::format('%0{s}', $coupon['value'], $coupon['type']);
         } else {
             // Coupon of unknown type. Possibly from a plugin?..
             return '';

@@ -70,6 +70,8 @@ var OrderRefundSection = ( function($) {
                     $amount_fields.val(0).trigger("change");
                 }
             }
+
+            that.$wrapper.trigger("refresh");
         });
 
         that.$products.on("keydown", ".js-quantity-field", function(event) {
@@ -334,6 +336,9 @@ var OrderRefundSection = ( function($) {
                         that.$submit_button.attr("disabled", false);
                         is_locked = false;
                     }).done( function() {
+                        // this event is used in CRM app
+                        that.$form.trigger("formSend");
+
                         if ($.order && $.order.reload) {
                             $.order.reload();
                         }

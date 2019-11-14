@@ -40,7 +40,7 @@ return array(
         'name' => /*_w*/('marked an order as paid')
     ),
     'order_pay_callback' => array(
-        'name' => /*_w*/('paid an order')
+        'name' => /*_w*/('paid for an order')
     ),
     'order_ship' => array(
         'name' => /*_w*/('shipped an order')
@@ -49,22 +49,22 @@ return array(
         'name' => /*_w*/('refunded an order')
     ),
     'order_partial_refund' => array(
-        'name' => /*_w*/('partial refunded an order')
+        'name' => /*_w*/('partially refunded an order')
     ),
     'order_auth_callback' => array(
-        'name' => /*_w*/('TODO: auth payment of an order from payment gateway')
+        'name' => /*_w*/('payment for an order authorized by payment gateway')
     ),
     'order_capture' => array(
-        'name' => /*_w*/('TODO: capture payment of an order')
+        'name' => /*_w*/('captured payment for an order')
     ),
     'order_capture_callback' => array(
-        'name' => /*_w*/('TODO: capture payment of an order from payment gateway')
+        'name' => /*_w*/('payment for an order captured by payment gateway')
     ),
     'order_cancel' => array(
-        'name' => /*_w*/('TODO: cancel payment of an order')
+        'name' => /*_w*/('canceled payment for an order')
     ),
     'order_cancel_callback' => array(
-        'name' => /*_w*/('TODO: cancel payment of an order from payment gateway')
+        'name' => /*_w*/('payment for an order canceled by payment gateway')
     ),
     'order_edit' => array(
         'name' => /*_w*/('edited an order')

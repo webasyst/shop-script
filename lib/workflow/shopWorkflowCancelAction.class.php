@@ -42,7 +42,7 @@ class shopWorkflowCancelAction extends shopWorkflowDeleteAction
 
                         $cancel_amount_html = shop_currency_html($amount, $currency_id);
 
-                        $template = _w('Cancel %s via %s payment gateway.');
+                        $template = _w('Cancel %s via payment gateway %s.');
 
                         $result = array(
                             'params' => array(

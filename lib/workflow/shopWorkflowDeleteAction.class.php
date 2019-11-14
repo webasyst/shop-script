@@ -38,7 +38,7 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
     public function postExecute($order_id = null, $result = null)
     {
         $data = parent::postExecute($order_id, $result);
-        if ($order_id != null) {
+        if ($data && ($order_id != null)) {
 
             $this->waLog('order_delete', $order_id);
 
@@ -58,7 +58,7 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
                     $return_stock = ifempty($result, 'params', 'return_stock', null);
                     $return_stock = $this->order_model->returnProductsToStocks($order_id, null, $return_stock);
                     if (empty($return_stock)) {
-                        unset($result['params']['return_stock']);
+                        unset($data['params']['return_stock']);
                     }
                 }
 

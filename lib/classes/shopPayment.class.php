@@ -709,7 +709,17 @@ class shopPayment extends waAppPayment
      */
     public function callbackCancelHandler($transaction_data)
     {
-        return $this->callbackAction($transaction_data);
+        $result = $this->callbackAction($transaction_data);
+        if (empty($result['error'])) {
+            $workflow = new shopWorkflow();
+            if (!empty($result['order_id'])) {
+                $transaction_data['order_id'] = $result['order_id'];
+            }
+            if ($workflow->getActionById('cancel')->run($transaction_data)) {
+                $result['result'] = true;
+            }
+        }
+        return $result;
     }
 
     /**
@@ -840,8 +850,9 @@ class shopPayment extends waAppPayment
                 $transaction_data['order_id'] = $result['order_id'];
             }
 
-            $workflow->getActionById('auth')->run($transaction_data);
-            $result['result'] = true;
+            if ($workflow->getActionById('auth')->run($transaction_data)) {
+                $result['result'] = true;
+            }
         }
         return $result;
     }

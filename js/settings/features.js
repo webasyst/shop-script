@@ -1026,7 +1026,7 @@ if (typeof($) != 'undefined') {
                             if (response.errors) {
                                 // display error;
                                 var $error = $('#s-settings-features-type-error:first');
-                                $error.text(response.errors.concat(' ')).slideDown();
+                                $error.text(response.errors.join(' ')).slideDown();
                                 setTimeout(function () {
                                     $error.slideUp(500);
                                 }, 5000);

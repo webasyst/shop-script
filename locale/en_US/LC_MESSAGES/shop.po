@@ -8440,7 +8440,7 @@ msgid "marked an order as paid"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/logs.php:43
-msgid "paid an order"
+msgid "paid for an order"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/logs.php:46
