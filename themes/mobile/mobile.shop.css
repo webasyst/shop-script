@@ -490,7 +490,7 @@ input[type="radio"] {
   margin: 0 0 0 -1.5rem;
   width: 3rem;
   height: 100%;
-  background: transparent url("../../../site/themes/mobile/img/icons/refresh.png") 50% no-repeat;
+  background: transparent url("./img/icons/refresh.png") 50% no-repeat;
   -webkit-background-size: 2rem;
   -moz-background-size: 2rem;
   background-size: 2rem;
@@ -655,7 +655,7 @@ input[type="radio"] {
   content: "";
   width: 1.2em;
   height: 100%;
-  background: transparent url("../../../site/themes/mobile/img/icons/hamburger.png") 50% no-repeat;
+  background: transparent url("./img/icons/hamburger.png") 50% no-repeat;
   -webkit-background-size: 1em;
   -moz-background-size: 1em;
   background-size: 1em;
@@ -786,7 +786,7 @@ input[type="radio"] {
   display: block;
   width: 100%;
   height: 100%;
-  background: transparent url("../../../site/themes/mobile/img/icons/arrow-right.png") 95% 50% no-repeat;
+  background: transparent url("./img/icons/arrow-right.png") 95% 50% no-repeat;
   -webkit-background-size: 1em;
   -moz-background-size: 1em;
   background-size: 1em;
@@ -1213,7 +1213,7 @@ input[type="radio"] {
   filter: alpha(opacity=33);
   width: 2.5rem;
   height: 2.5rem;
-  background: transparent url("../../../site/themes/mobile/img/icons/arrow-child.png") 50% no-repeat;
+  background: transparent url("./img/icons/arrow-child.png") 50% no-repeat;
   -webkit-background-size: 1em;
   -moz-background-size: 1em;
   background-size: 1em;
@@ -1261,7 +1261,7 @@ input[type="radio"] {
   right: 0;
   width: 2em;
   height: 100%;
-  background: transparent url("../../../site/themes/mobile/img/icons/arrow-right.png") 50% no-repeat;
+  background: transparent url("./img/icons/arrow-right.png") 50% no-repeat;
   -webkit-background-size: 1em;
   -moz-background-size: 1em;
   background-size: 1em;
@@ -1668,7 +1668,7 @@ input[type="radio"] {
   display: block;
   width: 2em;
   height: 100%;
-  background: transparent url("../../../site/themes/mobile/img/icons/arrow-right.png") 50% no-repeat;
+  background: transparent url("./img/icons/arrow-right.png") 50% no-repeat;
   -webkit-background-size: 0.6em;
   -moz-background-size: 0.6em;
   background-size: 0.6em;

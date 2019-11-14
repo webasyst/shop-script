@@ -7,7 +7,9 @@
     <ul class="menu-h sorting">
         <li>[`Sort by`]:</li>
         {if !empty($category) && !$category.sort_products}
-            <li{if !$active_sort} class="selected"{/if}><a href="{$wa->currentUrl(0, 1)}">[`New & Popular`]</a></li>
+            <li {if !$active_sort}class="selected"{/if}>
+                {$wa->shop->sortUrl("new", "[`New & Popular`]", $active_sort)}
+            </li>
         {/if}
         {foreach $sort_fields as $sort => $name}
             <li{if $active_sort == $sort} class="selected"{/if}>{$wa->shop->sortUrl($sort, $name, $active_sort)}</li>

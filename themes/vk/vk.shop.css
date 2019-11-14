@@ -19,23 +19,6 @@
 
 /* Homepage */
 
-.promo { padding: 0; margin: 10px 0; overflow: hidden; background: #fff; border-bottom: 1px solid #ccc; }
-.promo a { display: block; height: 383px; text-decoration: none; }
-.promo a .image { float: right; margin-right: 60px; margin-top: 10px; position: relative; }
-.promo a .image .corner.right { right: 30px; }
-.promo a .image .corner.top { top: 20px; }
-.promo a .info { position: absolute; margin-left: 40px; margin-top: 15px; z-index: 183; }
-.promo a .info h2 { font-size: 2em; color: #000; line-height: 1.5em; margin-bottom: 0; margin-right: 380px; }
-.promo a .info p { color: #555; font-size: 1.1em; text-shadow: 0 0 3px #fff; margin-right: 380px; }
-.promo .purchase { padding: 10px 0 0; margin-right: 0; background: #fff; }
-
-.promo .bx-wrapper { margin: 0 auto; direction: ltr; }
-.promo .bx-wrapper .bx-viewport { border: none; box-shadow: none; left: 0; }
-.promo .bx-wrapper .bx-pager,
-.promo .bx-wrapper .bx-controls-auto { bottom: 20px; }
-.promo .bx-wrapper .bx-prev { left: 0; }
-.promo .bx-wrapper .bx-next { right: 0; }
-
 .promos { margin: 5px -25px; }
 .promos ul { padding: 0; margin: 0; }
 .promos ul li { padding: 0; margin: 0; list-style: none; display: inline-block; width: 25%; float: left; }

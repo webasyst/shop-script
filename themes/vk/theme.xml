@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="vk" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:vk" version="1.1.16">
+<theme id="vk" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:vk" version="1.1.17">
     <name locale="en_US">VK</name>
     <name locale="ru_RU">Вконтакте</name>
     <files>
@@ -13,6 +13,10 @@
         <file path="vk.shop.css">
             <description locale="en_US">Core storefront CSS</description>
             <description locale="ru_RU">Основной CSS интернет-магазина</description>
+        </file>
+        <file path="css/vk.shop.css">
+            <description locale="en_US">Additional CSS</description>
+            <description locale="ru_RU">Дополнительный CSS</description>
         </file>
         <file path="content.html">
             <description locale="en_US">Main storefront layout and navigation</description>

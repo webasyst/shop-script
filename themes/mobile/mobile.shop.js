@@ -144,6 +144,10 @@ var ProductsFilter = ( function($) {
         var that = this;
         //
         that.bindEvents();
+
+        window.addEventListener('popstate', function(event) {
+            location.reload();
+        });
     };
 
     ProductsFilter.prototype.bindEvents = function() {
