@@ -437,6 +437,7 @@ return array(
             'description' => 'Цена товарного предложения округляется и выводится в зависимости от настроек пользователя.',
             'format'      => '%0.2f',
             'source'      => 'field:price',
+            'callback'    => true,
         ),
 
         'oldprice'       => array(

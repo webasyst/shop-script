@@ -1637,6 +1637,11 @@ SQL;
                     $sku_model = new shopProductSkusModel();
                 }
                 $skus = $sku_model->getDataByProductId(array_keys($products));
+
+                if ($this->promoProductPrices()) {
+                    $this->promoProductPrices()->workupPromoSkus($skus, $products);
+                }
+
                 foreach ($skus as $sku_id => $sku) {
                     if (isset($products[$sku['product_id']])) {
                         $product = &$products[$sku['product_id']];
@@ -1701,11 +1706,6 @@ SQL;
                         }
                         unset($product);
                     }
-                }
-
-
-                if ($this->promoProductPrices()) {
-                    $this->promoProductPrices()->workupPromoProducts($products);
                 }
 
             } else {
@@ -1864,6 +1864,12 @@ SQL;
                         if ($check_available && $check_sku_price && $check_count) {
                             if (count($skus) == 1) {
                                 $product['price'] = $sku['price'];
+                                if (isset($sku['raw_price'])) {
+                                    $product['raw_price'] = $sku['raw_price'];
+                                }
+                                if (isset($sku['used_promo_id'])) {
+                                    $product['used_promo_id'] = $sku['used_promo_id'];
+                                }
                                 $product['compare_price'] = $sku['compare_price'];
                                 $product['purchase_price'] = $sku['purchase_price'];
                                 $product['file_name'] = $sku['file_name'];
@@ -2081,6 +2087,21 @@ SQL;
                                 }
                             }
                             break;
+                        case 'price':
+                            $_rule_id = null;
+                            if (!empty($product['used_promo_id']) && !empty($product['raw_price'])) {
+                                $_rule_id = sprintf('shop.promos.%d', $product['used_promo_id']);
+                            }
+
+                            if ($_rule_id && !empty($this->data['export']['promo_rules'][$_rule_id])) {
+                                $value = array(
+                                    'value' => isset($product[$param]) ? $product[$param] : null,
+                                    'raw_price'   => isset($product['raw_price']) ? $product['raw_price'] : null,
+                                );
+                            } else {
+                                $value = isset($product[$param]) ? $product[$param] : null;
+                            }
+                            break;
                         default:
                             $value = isset($product[$param]) ? $product[$param] : null;
                             break;
@@ -2116,6 +2137,20 @@ SQL;
                             }
                             break;
                         case 'price':
+                            $_rule_id = null;
+                            if (!empty($sku['used_promo_id']) && !empty($sku['raw_price'])) {
+                                $_rule_id = sprintf('shop.promos.%d', $sku['used_promo_id']);
+                            }
+
+                            if ($_rule_id && !empty($this->data['export']['promo_rules'][$_rule_id])) {
+                                $value = array(
+                                    'value'     => isset($sku[$param]) ? $sku[$param] : null,
+                                    'raw_price' => isset($sku['raw_price']) ? $sku['raw_price'] : null,
+                                );
+                            } else {
+                                $value = ifset($sku[$param], $value);
+                            }
+                            break;
                         case 'count':
                         case 'sku':
                         case 'group_id':
@@ -2365,7 +2400,7 @@ SQL;
             }
         }
         $offers->appendChild($product_xml);
-        $this->setOffer($offer);
+        $this->setOffer($data);
 
         return $data;
     }
@@ -2379,15 +2414,26 @@ SQL;
                 $sku_id = 0;
                 $id = $offer['id'];
             }
+
+            if (isset($offer['price.raw']) && is_array($offer['price.raw'])) {
+                if (isset($offer['price.raw']['value'])) {
+                    $price = $offer['price.raw']['value'];
+                } else {
+                    $price = reset($offer['price.raw']);
+                }
+
+            } else {
+                $price = $offer['price'];
+            }
             if (!isset($this->data['offers_map'][$id])) {
                 $this->data['offers_map'][$id] = array(
                     'currency' => $offer['currencyId'],
                     'price'    => array(
-                        $sku_id => $offer['price'],
+                        $sku_id => $price,
                     ),
                 );
             } elseif ($sku_id) {
-                $this->data['offers_map'][$id]['price'][$sku_id] = $offer['price'];
+                $this->data['offers_map'][$id]['price'][$sku_id] = $price;
             }
         }
     }
@@ -2865,7 +2911,12 @@ SQL;
                 } else {
                     if (empty($info) && !empty($data['price'])) {
                         //it's second stage
-                        $rate = $data['price'] / $value;
+                        if (is_array($data['price'])) {
+                            $_price = isset($data['price']['raw_price']) ? $data['price']['raw_price'] : reset($data['price']);
+                        } else {
+                            $_price = $data['price'] / $value;
+                        }
+                        $rate = $_price / $value;
                         if (($rate < 0.05) || ($rate > 0.95)) {
                             $value = null;
                         }
@@ -2878,7 +2929,19 @@ SQL;
                 }
                 break;
             case 'price':
-                $value = $this->convertCurrency($value, $data, $sku_data);
+                if (empty($info)) {
+                    if (is_array($value)) {
+                        $value = isset($value['raw_price']) ? $value['raw_price'] : reset($value);
+                    }
+                } elseif (is_array($value)) {
+                    foreach ($value as &$_value) {
+                        $_value = $this->convertCurrency($_value, $data, $sku_data);
+                        unset($_value);
+                    }
+                } else {
+                    $value = $this->convertCurrency($value, $data, $sku_data);
+                }
+
                 break;
             case 'currencyId':
                 if (!in_array($value, $this->data['currency'])) {
@@ -3415,7 +3478,7 @@ SQL;
             # XXX use map.php for configure this fields
             # implode values for non multiple and non complex fields
             if (!in_array($field,
-                array('email', 'picture', 'url', 'dataTour', 'additional', 'barcode', 'param', 'related_offer', 'local_delivery_cost', 'available', 'age', 'condition'))) {
+                array('email', 'picture', 'url', 'dataTour', 'additional', 'barcode', 'param', 'related_offer', 'local_delivery_cost', 'available', 'age', 'condition','price'))) {
                 $value = implode(', ', $value);
             }
         } elseif ($value !== null) {

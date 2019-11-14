@@ -784,27 +784,30 @@ HTML;
 
     private function updateApiLimits($method, $headers)
     {
+        if (is_null($this->api_limits)) {
+            $this->api_limits = array();
+        }
+
         /**
          * X-RateLimit-Resource-Limit: 10000
          * X-RateLimit-Resource-Until: Tue, 17 Apr 2012 00:00:00 GMT
          * X-RateLimit-Resource-Remaining: 9998
          */
         $limits = array(
-            'limit'     => (int)$headers['X-RateLimit-Resource-Limit'],
-            'until'     => strtotime($headers['X-RateLimit-Resource-Until']),
-            'remaining' => (int)$headers['X-RateLimit-Resource-Remaining'],
+            'limit'     => (int)ifset($headers['X-RateLimit-Resource-Limit']),
+            'until'     => strtotime(ifset($headers['X-RateLimit-Resource-Until'], '+7 days')),
+            'remaining' => (int)ifset($headers['X-RateLimit-Resource-Remaining']),
         );
 
         $day = 24 * 3600;
 
         $limits['since'] = $limits['until'] - $day;
+        $interval = max(0, time() - $limits['since']);
 
-        $limits['speed'] = (($limits['limit'] - $limits['remaining']) / $limits['limit']) / ((time() - $limits['since']) / $day);
-
-        if (is_null($this->api_limits)) {
-            $this->api_limits = array();
+        if ($limits['limit'] && $interval) {
+            $limits['speed'] = (($limits['limit'] - $limits['remaining']) / $limits['limit']) / ($interval / $day);
+            $this->api_limits[self::normalizeMethod($method)] = $limits;
         }
-        $this->api_limits[self::normalizeMethod($method)] = $limits;
     }
 
     private static function normalizeMethod($method)
