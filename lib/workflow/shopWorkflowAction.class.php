@@ -554,8 +554,7 @@ HTML;
                     if (!empty($order['params']['shipping_data_'.$name])) {
                         $control['value'] = $order['params']['shipping_data_'.$name];
                     }
-                    $control = array_merge($control, $params);
-                    $controls[$name] = waHtmlControl::getControl($control['control_type'], $name, $control);
+                    $controls[$name] = waHtmlControl::getControl($control['control_type'], $name, $control + $params);
                 }
             }
         }
