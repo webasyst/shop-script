@@ -2007,7 +2007,7 @@ editClick:(function ($) {
             if (!d.length) {
                 p = $('<div></div>').appendTo('body');
             }
-            p.load('?module=dialog&action=productsDelete&count=' + 1, showDialog);
+            p.load('?module=dialog&action=productsDelete', { product_id: [$.product.path.id] }, showDialog);
             return false;
         },
 

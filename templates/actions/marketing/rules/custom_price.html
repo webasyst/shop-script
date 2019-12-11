@@ -55,6 +55,13 @@
 
     <input class="js-rule-type" type="hidden" name="{$_rule_name}[rule_type]" value="custom_price">
 
+    {capture assign="_custom_price_delete_dialog_template"}{include file="./custom_price_delete.dialog.html"}{/capture}
+    {capture assign="_custom_price_confirm_dialog_template"}{include file="./custom_price_confirm.dialog.html"}{/capture}
+    {$_templates = [
+        'custom_price_delete_dialog' => $_custom_price_delete_dialog_template,
+        'custom_price_confirm_dialog' => $_custom_price_confirm_dialog_template
+    ]}
+
     <script>
         ( function($) {
             var $wrapper = $("#js-custom-price-rule-section-{$_uniqid}").removeAttr('id');
@@ -67,7 +74,11 @@
                     urls: {
                         "autocomplete": "{$wa_app_url}?action=autocomplete",
                         "product": "{$wa_app_url}?module=marketingPromo&action=customPriceProduct"
-                    }
+                    },
+                    locales: {
+                        "disabled_product": {_w("Not included in the promo")|json_encode}
+                    },
+                    templates: {$_templates|json_encode}
                 });
             });
         })(jQuery);

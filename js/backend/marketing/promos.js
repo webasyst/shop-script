@@ -26,9 +26,7 @@
             ready_promise.resolve(that);
             that.$wrapper.trigger("ready", that);
 
-            if (that.sort_enabled) {
-                that.initSortable();
-            }
+            that.initSortable();
 
             that.initStatusChange();
         };
@@ -239,13 +237,33 @@
                     tolerance: "pointer",
                     update: function(event, ui) {
 
-                        var promo_ids = $promo_list.find(".s-promo-wrapper").map( function() {
-                            return $(this).data("id");
-                        }).get();
+                        if (that.sort_enabled) {
+                            var promo_ids = $promo_list.find(".s-promo-wrapper").map( function() {
+                                return $(this).data("id");
+                            }).get();
 
-                        $.post(that.urls['sort'], {
-                            ids: promo_ids
-                        });
+                            $.post(that.urls['sort'], {
+                                ids: promo_ids
+                            });
+                        } else {
+
+                            var $sort_notice_dialog = $(that.templates["sort_notice_dialog"]).clone();
+                            $sort_notice_dialog.waDialog({
+                                onLoad: function () {
+                                    var $dialog_wrapper = $(this);
+
+                                    // Close
+                                    $dialog_wrapper.on('click', '.js-cancel', function () {
+                                        $dialog_wrapper.trigger('close');
+                                    });
+                                },
+                                onClose: function () {
+                                    $(this).remove();
+                                }
+                            });
+
+                        }
+
                     }
                 });
 

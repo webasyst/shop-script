@@ -22,7 +22,10 @@ class shopWorkflowRefundAction extends shopWorkflowAction
             $discount += $item['total_discount'];
         }
 
-        $extra_total_discount = max(0, $order->discount - $discount) / $order->subtotal;
+        $extra_total_discount = 0;
+        if ($order->subtotal) {
+            $extra_total_discount = max(0, $order->discount - $discount) / $order->subtotal;
+        }
 
         $refund_discount = 0.0;
 
@@ -38,8 +41,8 @@ class shopWorkflowRefundAction extends shopWorkflowAction
                 $quantity = true;
             } elseif (is_array($refund_items) && isset($refund_items[$item_id]['quantity'])) {
                 $quantity = max(0, $refund_items[$item_id]['quantity']);
-                $quantity = min($quantity, $item['quantity']);
-                if ($quantity === 0) {
+                $quantity = intval(max(0, min($quantity, $item['quantity'])));
+                if (!$quantity) {
                     $quantity = false;
                 }
             } else {
@@ -47,12 +50,16 @@ class shopWorkflowRefundAction extends shopWorkflowAction
             }
 
             if ($quantity !== false) {
-
-
                 $order_items[$item['id']] = $item;
+                $item['quantity'] = intval($item['quantity']);
                 if ($item['quantity']) {
                     if ($quantity || $extra_total_discount) {
-                        $item_discount = $extra_total_discount + $item['total_discount'] / ($item['price'] * $item['quantity']);
+                        $item['price'] = floatval($item['price']);
+                        if ($item['price']) {
+                            $item_discount = $extra_total_discount + $item['total_discount'] / ($item['price'] * $item['quantity']);
+                        } else {
+                            $item_discount = 0;
+                        }
 
                         if ($quantity) {
                             if ($quantity === true) {
@@ -66,11 +73,8 @@ class shopWorkflowRefundAction extends shopWorkflowAction
 
                         $item['total_discount'] = $item_discount * ($item['quantity'] - $quantity) / $item['quantity'];
                         $item['quantity'] -= $quantity;
-
                     }
                 }
-
-
             }
             unset($item);
         }
@@ -113,7 +117,7 @@ class shopWorkflowRefundAction extends shopWorkflowAction
         $refund = ifset($options, 'action_options', 'refund', waRequest::post('refund'));
         $refund_amount = ifset($options, 'action_options', 'refund_amount', waRequest::post('refund_amount'));
         $refund_mode = ifset($options, 'action_options', 'refund_mode', waRequest::post('refund_mode'));
-        $return_stock = ifset($options, 'action_options', 'return_stock', waRequest::post('return_stock'));
+        $return_stock = intval(ifset($options, 'action_options', 'return_stock', waRequest::post('return_stock')));
 
         $refund_items = ifset($options, 'action_options', 'refund_items', waRequest::post('refund_items'));
 
@@ -127,6 +131,7 @@ class shopWorkflowRefundAction extends shopWorkflowAction
         if ($refund_mode === 'partial') {
             $order_options = array(
                 'ignore_stock_validate' => true,
+                'return_stock'          => $return_stock,
             );
             $order = new shopOrder($order_id, $order_options);
 
@@ -273,18 +278,20 @@ class shopWorkflowRefundAction extends shopWorkflowAction
                         'auth_date' => null,
                     ));
 
+
+
                     // for logging changes in stocks
                     shopProductStocksLogModel::setContext(
                         shopProductStocksLogModel::TYPE_ORDER,
                         'Order %s was refunded',
                         array(
                             'order_id' => $order_id,
+                            'return_stock_id' => ifempty($result, 'params', 'return_stock', null),
                         )
                     );
 
                     // refund, so return
-                    $return_stock = ifempty($result, 'params', 'return_stock', null);
-                    $this->order_model->returnProductsToStocks($order_id, null, $return_stock);
+                    $this->order_model->returnProductsToStocks($order_id);
                     shopProductStocksLogModel::clearContext();
 
                     shopAffiliate::refundDiscount($order);
@@ -299,25 +306,6 @@ class shopWorkflowRefundAction extends shopWorkflowAction
                 } else {
                     #partial refund
                     $this->waLog('order_partial_refund', $order_id);
-
-                    // for logging changes in stocks
-                    shopProductStocksLogModel::setContext(
-                        shopProductStocksLogModel::TYPE_ORDER,
-                        'Order %s was refunded',
-                        array(
-                            'order_id' => $order_id,
-                        )
-                    );
-
-                    // refund, so return
-                    $refund_items = ifempty($result, 'params', 'refund_items', null);
-                    $return_stock = ifempty($result, 'params', 'return_stock', null);
-
-                    $this->order_model->returnProductsToStocks($order_id, $refund_items, $return_stock);
-                    shopProductStocksLogModel::clearContext();
-
-                    //XXX
-                    //shopAffiliate::refundDiscount($order);
                     $order['items'] = $result['params']['refund_items'];
 
                     shopAffiliate::applyBonus($order);
@@ -377,9 +365,11 @@ class shopWorkflowRefundAction extends shopWorkflowAction
         }
 
         $order_items = $this->partialRefund($order, true);
+        $order_items_count = 0;
 
         $order_items = $this->workupOrderItems($order, $transaction_data ? $plugin : null, $order_items);
         foreach ($order_items as &$item) {
+            $order_items_count += intval($item['quantity']);
             if ($item['quantity']) {
                 $item['price_with_discount'] = $item['price'] - $item['total_discount'] / $item['quantity'];
             } else {
@@ -387,7 +377,19 @@ class shopWorkflowRefundAction extends shopWorkflowAction
             }
         }
 
-        $this->getView()->assign(compact('transaction_data', 'partial_refund', 'shipping_controls', 'button_class', 'order_items', 'order', 'currency_info', 'stocks'));
+        $this->getView()->assign(
+            compact(
+                'transaction_data',
+                'partial_refund',
+                'shipping_controls',
+                'button_class',
+                'order_items',
+                'order_items_count',
+                'order',
+                'currency_info',
+                'stocks'
+            )
+        );
 
         $this->setOption('html', true);
         return parent::getHTML($order_id);
@@ -414,5 +416,10 @@ class shopWorkflowRefundAction extends shopWorkflowAction
 
         return $items;
 
+    }
+
+    public function getButton()
+    {
+        return parent::getButton('data-container="#workflow-content"');
     }
 }

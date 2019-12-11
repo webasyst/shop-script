@@ -1,0 +1,81 @@
+{strip}
+
+{$_uniqid = uniqid()}
+
+{$_rule_name = ""}
+{if !empty($rule.id)}
+    {$_rule_name = "rules[{$rule.id}]"}
+
+{else}
+    {$_rule_name = "rules[new]"}
+    {if isset($options.ident)}
+        {$_rule_name = "{$_rule_name}[{$options.ident}]"}
+    {/if}
+{/if}
+
+{/strip}
+
+<div class="s-banner-rule-section js-banner-rule-section" id="js-banner-rule-section-{$_uniqid}">
+    <div class="s-section-header">
+        <div class="s-section-description">[`A banner is a promo image displayed in the storefront home page. To change the sort order of banners, change the sort order of promos for a selected storefront.`]</div>
+        {* @description Show this block when multiple banners are used *}
+        <div class="s-add-banner-wrapper" style="display: none;">
+            <a class="inline-link js-banner-add" href="javascript:void(0);">
+                <i class="icon16 add"></i><b><i>[`Add banner`]</i></b>
+            </a>
+        </div>
+    </div>
+
+    <div class="s-banners-wrapper js-banners-wrapper {if empty($rule.rule_params.banners)}is-empty{/if}">
+
+        <div class="s-banners-list js-banners-list" data-name="{$_rule_name}">
+            {if !empty($rule.rule_params.banners)}
+                {foreach $rule.rule_params.banners as $_i => $_banner}
+                    {$_banner = $rule.rule_params.banners[$_i]|default:[]}
+                    {include file="./banner.item.html" banner=$_banner rule_name=$_rule_name inline}
+                {/foreach}
+            {/if}
+        </div>
+
+        <div class="s-empty-message">[`Add at least one banner.`]</div>
+    </div>
+
+    <input class="js-rule-type" type="hidden" name="{$_rule_name}[rule_type]" value="banner">
+
+    {capture assign="_banner_item_template"}{include file="./banner.item.html"}{/capture}
+    {capture assign="_banner_confirm_dialog_template"}{include file="./banner_delete.dialog.html"}{/capture}
+    {$_templates = [
+        'banner_item_template'  => $_banner_item_template,
+        'banner_confirm_dialog' => $_banner_confirm_dialog_template
+    ]}
+
+    <script>
+        ( function($) {
+            var $wrapper = $("#js-banner-rule-section-{$_uniqid}").removeAttr('id');
+
+            var ready_promise = $("#js-promo-page").data("ready");
+            ready_promise.then( function(controller) {
+
+                var banner_rule_section = controller.initBannerRulesSection({
+                    $wrapper: $wrapper,
+                    rule_name: {$_rule_name|json_encode},
+                    urls: {
+                        "image_upload_controller": "{$wa_app_url}?module=marketingPromoBannerUpload"
+                    },
+                    templates: {$_templates|json_encode}
+                });
+
+                controller.initRuleSection({
+                    rule_id: {if !empty($rule.id)}{$rule.id|json_encode}{else}null{/if},
+                    rule_ident: {if isset($options.ident)}{$options.ident|json_encode}{else}null{/if},
+                    onSubmit: function() {
+                        return banner_rule_section.onSubmit();
+                    },
+                    renderErrors: function(errors) {
+                        return banner_rule_section.renderErrors(errors);
+                    }
+                });
+            });
+        })(jQuery);
+    </script>
+</div>

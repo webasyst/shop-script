@@ -100,19 +100,25 @@
         </div>
     {/if}
 
-    <div class="s-sidebar-section">
-        <ul class="s-section-list menu-v with-icons">
-            {if $wa->user()->isAdmin('shop') && $wa->user()->isAdmin('installer')}
-                <li>
-                    <a href="{$wa_app_url}marketing/plugins/">
-                        <i class="icon16 plugins"></i>
-                        <span class="s-name">[`Plugins`]</span>
-                    </a>
-                </li>
-            {/if}
-            {foreach $additional_items.bottom_li as $li}{$li}{/foreach}
-        </ul>
-    </div>
+    {capture assign="_plugins_section"}
+        {if $wa->user()->isAdmin('shop') && $wa->user()->isAdmin('installer')}
+            <li>
+                <a href="{$wa_app_url}marketing/plugins/">
+                    <i class="icon16 plugins"></i>
+                    <span class="s-name">[`Plugins`]</span>
+                </a>
+            </li>
+        {/if}
+        {foreach $additional_items.bottom_li as $li}{$li}{/foreach}
+    {/capture}
+
+    {if !empty($_plugins_section)}
+        <div class="s-sidebar-section">
+            <ul class="s-section-list menu-v with-icons">
+                {$_plugins_section}
+            </ul>
+        </div>
+    {/if}
 
     {foreach $additional_items.custom_html as $block}{$block}{/foreach}
 

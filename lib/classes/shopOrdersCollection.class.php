@@ -362,6 +362,26 @@ class shopOrdersCollection
     }
 
     /**
+     * @return float
+     * @throws waException
+     */
+    public function getSum()
+    {
+        $this->prepare();
+
+        $statements = array(
+            'joins'    => $this->joins,
+            'where'    => $this->where,
+            'order_by' => $this->order_by
+        );
+
+        $sql = $this->buildSQL($statements);
+        $sql = "SELECT ".($this->joins ? 'DISTINCT o.id, ' : '')."SUM(o.total * o.rate) as amount {$sql}";
+        $num = (float)self::getModel()->query($sql)->fetchField('amount');
+        return $num;
+    }
+
+    /**
      * @param string $name
      * @return shopOrderModel
      */
@@ -562,6 +582,21 @@ class shopOrdersCollection
     }
 
     /**
+     * Get distinct field values of order list
+     * Be sure field_id input not involve any injection
+     *
+     * @param string $field_id
+     * @return array
+     */
+    public function getDistinctFieldValues($field_id)
+    {
+        $sql = $this->getSQL();
+        $sql = "SELECT DISTINCT {$field_id} {$sql}";
+        $data = self::getModel()->query($sql)->fetchAll($field_id, true);
+        return array_keys($data);
+    }
+
+    /**
      * @return int
      * @throws waException
      */
@@ -598,13 +633,10 @@ class shopOrdersCollection
             'where' => $where,
             'order_by' => $this->order_by
         );
-        if ($this->joins) {
-            $statements['group_by'] = 'o.id';
-        }
 
         $sql = $this->buildSQL($statements);
-        $sql = "SELECT SUM(o.total * o.rate) {$sql}";
-        $num = (float)self::getModel()->query($sql)->fetchField();
+        $sql = "SELECT ".($this->joins ? 'DISTINCT o.id, ' : '')."SUM(o.total * o.rate) as amount".$sql;
+        $num = (float)self::getModel()->query($sql)->fetchField('amount');
         return $num;
     }
 

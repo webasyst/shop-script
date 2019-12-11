@@ -3,7 +3,7 @@
     {% var check_all = o.check_all; %}
     {% var order, order_iterator = $.shop.iterator(orders); %}
     {% while (order = order_iterator.next()) { %}
-        <tr class="order{% if (order.unsettled==='1') { %} s-unsettled{% } %}" data-order-id="{%#order.id%}">
+        <tr class="order{% if (order.unsettled==='1') { %} s-unsettled{% } %}  {% if (check_all) { %}selected{% } %}" data-order-id="{%#order.id%}" data-state-id="{%#order.state_id%}">
             {% if (!o.hide_checkbox) { %}
                 <td><input type="checkbox" {% if (check_all) { %}checked="checked"{% } %}></td>
             {% } %}

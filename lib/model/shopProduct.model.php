@@ -740,14 +740,23 @@ class shopProductModel extends waModel
     }
 
     /**
-     * Get product ids and leave only allowed by rights
+     * Get product ids and leave only allowed by rights.
+     *
+     * Used to remove products current user is not allowed to delete.
+     * shopRightConfig::RIGHT_EDIT means user can only modify products they created.
+     * This checks shop_product.contact_id
+     *
+     * @see checkRights
+     * @see shopProductsCollection::addWhereByRights()
      *
      * @param array $product_ids
      * @return array
+     * @throws waDbException
+     * @throws waException
      */
     public function filterAllowedProductIds(array $product_ids)
     {
-        if (wa('shop')->getUser()->getRights('shop', 'type.all') > 1) {
+        if (wa('shop')->getUser()->getRights('shop', 'type.all') > shopRightConfig::RIGHT_EDIT) {
             return $product_ids;
         }
 
@@ -758,13 +767,12 @@ class shopProductModel extends waModel
             return array();
         }
 
-
         $full_types = $own_types = array();
         foreach ($types as $type_id => $t) {
             // user can delete own products only
-            if (wa()->getUser()->getRights('shop', 'type.'.$type_id) == 1) {
+            if (wa()->getUser()->getRights('shop', 'type.'.$type_id) == shopRightConfig::RIGHT_EDIT) {
                 $own_types[] = $type_id;
-            } elseif (wa()->getUser()->getRights('shop', 'type.'.$type_id) > 1) {
+            } elseif (wa()->getUser()->getRights('shop', 'type.'.$type_id) > shopRightConfig::RIGHT_EDIT) {
                 $full_types[] = $type_id;
             }
         }
@@ -776,6 +784,11 @@ class shopProductModel extends waModel
         if ($own_types) {
             $where[] = '(type_id IN ('.implode(',', $own_types).') AND contact_id = '.(int)wa()->getUser()->getId().')';
         }
+
+        if (!$where) {
+            return array();
+        }
+
         $where = implode(' OR ', $where);
 
         $product_ids = array_map('intval', $product_ids);
@@ -790,36 +803,90 @@ class shopProductModel extends waModel
     }
 
     /**
-     * Check current user rights to product with its type id
+     * Check current user rights to one product by it type id
      *
-     * @param array|int $product
+     * See also how works these methods:
+     * @param array|int $product ID or db record of a single product
+     *
+     * @param array $options extra options
+     *  - int|string $options['level'] [optional]
+     *      If numeric, that min level to check
+     *      If string 'delete' - check can contact delete product
+     *      If skipped just return rights level as it (shopRightConfig::RIGHT_*)
+     *
+     * @return boolean|int
      * @throws waException
-     * @return boolean
+     *
+     * @see shopProductsCollection::addWhereByRights()
+     * @see shopRightConfig
+     * @see filterAllowedProductIds
      */
-    public function checkRights($product)
+    public function checkRights($product, $options = array())
     {
-        if (is_numeric($product)) {
-            $type_id = $this->select('type_id')->where('id='.(int)$product)->fetchField('type_id');
-            if (!$type_id && false) {
-                throw new waException(_w("Unknown type"));
-            }
-        } elseif (is_array($product)) {
-            if (!isset($product['type_id'])) {
-                //throw new waException(_w("Unknown type"));
-                $type_id = null;
+        // what level to check option
+        $options = is_array($options) ? $options : array();
+        $options['level'] = ifset($options['level']);
+
+        // current user info vars
+        $user = wa()->getUser();
+        $user_id = $user->getId();
+
+        // admins can do anything
+        if ($user->isAdmin('webasyst') || $user->isAdmin('shop')) {
+            if (wa_is_int($options['level']) || $options['level'] === 'delete') {
+                return true;
             } else {
+                return PHP_INT_MAX;
+            }
+        }
+
+        // No access to backend => no access to product
+        if ($user->getRights('shop', 'backend') <= 0) {
+            if (wa_is_int($options['level']) || $options['level'] === 'delete') {
+                return false;
+            } else {
+                return 0;
+            }
+        }
+
+        // vars to check rights
+        $type_id = null;
+        $product_contact_id = null;
+
+        // get product info
+        if (is_numeric($product)) {
+            $product = $this->select('type_id, contact_id')->where('id=' . (int)$product)->fetchField('type_id');
+        }
+
+        // fill vars for check rights
+        if (is_array($product)) {
+            if (isset($product['type_id'])) {
                 $type_id = $product['type_id'];
             }
-        } else {
-            $type_id = null;
-            //throw new waException(_w("Unknown type"));
+            if (isset($product['contact_id'])) {
+                $product_contact_id = (int)$product['contact_id'];
+            }
         }
-        return wa()->getUser()->getRights('shop', 'type.'.$type_id);
+
+        // current user's right level to this product
+        $rights_level = $user->getRights('shop', 'type.'.$type_id);
+
+        // what return dispatch
+        if (wa_is_int($options['level'])) {
+            return $rights_level >= $options['level'];
+        } elseif ($options['level'] === 'delete') {
+            return $rights_level > shopRightConfig::RIGHT_EDIT || ($rights_level == shopRightConfig::RIGHT_EDIT && $user_id === $product_contact_id);
+        } else {
+            return $rights_level;
+        }
+
     }
 
     /**
      * @param int $id
      * @return bool
+     * @throws waDbException
+     * @throws waException
      */
     public function correct($id)
     {

@@ -60,6 +60,12 @@ class shopProductsCollection
      *     'conditions' => upselling items selection conditions; for upselling-type collections only
      *     'params'     => whether extra product params must be included in collection products
      *     'absolute'   => whether absolute product image URLs must be returned for collection products
+     *     'filter_by_rights' => (bool|string), filter products by rights
+     *        - TRUE: leave products with right level to type >= shopRightsConfig::RIGHT_EDIT
+     *        - FALSE: not check rights
+     *        - int: min right level to product type (see shopRightsConfig::RIGHT_* constants). Compare will be by '>=' logic
+     *        - 'delete': if right level to product type is shopRightsConfig::RIGHT_EDIT it also check contact_id of product. User can delete own products if level is shopRightsConfig::RIGHT_EDIT
+     * @throws waException
      */
     public function __construct($hash = '', $options = array())
     {
@@ -133,8 +139,8 @@ class shopProductsCollection
             $this->frontendConditions();
         }
 
-        if (isset($this->options['filter_by_rights'])) {
-            $this->addWhereByRights();
+        if (isset($this->options['filter_by_rights']) && $this->options['filter_by_rights'] !== false) {
+            $this->addWhereByRights($this->options['filter_by_rights']);
         }
 
         if ($sort = waRequest::get('sort')) {
@@ -2763,29 +2769,124 @@ SQL;
     }
 
     /**
-     * Add a condition if the user does not have edit access
+     * Add a condition for filter by rights
+     *
+     * Take into account:
+     *   - admin accesses (webasyst, shop)
+     *   - not access to shop at all
+     *   - meta-right 'type.all'
+     *   - default cases when in DB no yet 'type.%d+' records
+     *   - cases when there are somehow 'type.%d+' records of deleted types in DB (some inconsistent that could be in real world)
+     *   - 'delete' right - can delete when right level to product type >= shopRightConfig::RIGHT_FULL OR if == shopRightConfig::RIGHT_EDIT that can delete own products
+     *
+     * @param mixed $right_level
+     * @throws waDbException
+     * @throws waException
      */
-    protected function addWhereByRights()
+    protected function addWhereByRights($right_level)
     {
-        $rights = wa()->getUser(193)->getRights('shop');
-        $backend_access = ifset($rights, 'backend', 0);
+        $user = wa()->getUser();
 
-        if ($backend_access == 1) {
-            $types = [];
-            foreach ($rights as $right => $right_constant) {
-                if (substr($right, 0, 5) === 'type.') {
-                    $right_value = substr($right, 5);
-                    if (is_numeric($right_value) && $right_constant >= shopRightConfig::RIGHT_EDIT) {
-                        $types[] = $right_value;
-                    }
+        $contact_id = $user->getId();
+
+        $min_right_level = null;
+        $check_delete = false;
+
+        if ($right_level === true) {
+            $min_right_level = shopRightConfig::RIGHT_EDIT;
+        } elseif (wa_is_int($right_level)) {
+            $min_right_level = (int)$right_level;
+        } elseif ($right_level === 'delete') {
+            $min_right_level = shopRightConfig::RIGHT_FULL;
+            $check_delete = true;
+        }
+
+        // this is backend super admin - full access to products
+        if ($user->isAdmin('webasyst')) {
+            return;
+        }
+
+        // this is backend shop admin - full access to products
+        if ($user->isAdmin('shop')) {
+            return;
+        }
+
+        // shop rights
+        $rights = $user->getRights('shop');
+
+        // type.all meta-right rule exists
+        if (isset($rights['type.all'])) {
+
+            // If check delete right, then check contact_id in shopRightConfig::RIGHT_EDIT level
+            // Otherwise if right less min_right_level 'close access' (by where 0)
+            // Otherwise not mix-in any condition (all products are available)
+            if ($check_delete && $rights['type.all'] == shopRightConfig::RIGHT_EDIT) {
+                $this->addWhere("p.contact_id = {$contact_id}");
+            } elseif ($rights['type.all'] < $min_right_level) {
+                $this->addWhere(0);
+            }
+
+            // type.all check stops here - no go further
+            return;
+        }
+
+        // get type ids now in DB
+        $type_model = new shopTypeModel();
+        $all_type_ids = $type_model->getAll(null, true);
+
+        // and mix-in type ids extracted from 'type.%d+' records of deleted types in DB (some inconsistent that could be in real world)
+        foreach ($rights as $right_name => $level) {
+            if (substr($level, 0, 5) === 'type.') {
+                $type_id = substr($level, 5);
+                if (is_numeric($type_id)) {
+                    $all_type_ids[] = intval($type_id);
                 }
             }
-
-            if ($types) {
-                $types_string = implode(',', $types);
-                $this->addWhere("p.type_id IN ({$types_string})");
-            }
         }
+
+        $all_type_ids = array_unique($all_type_ids);
+
+        // collect allowed types
+        $allowed_types = [];
+        $allowed_own_types = [];
+
+        foreach ($all_type_ids as $type_id) {
+            $right_name = "type.{$type_id}";
+
+            $level = shopRightConfig::RIGHT_READ;   // this is default access right ( default cases when in DB no yet 'type.%d+' records )
+            if (isset($rights[$right_name]) && wa_is_int($rights[$right_name])) {
+                $level = $rights[$right_name];
+            }
+
+            // user can delete own products only in shopRightConfig::RIGHT_EDIT
+            if ($check_delete && $level == shopRightConfig::RIGHT_EDIT) {
+                $allowed_own_types[] = $type_id;
+            } elseif ($level >= $min_right_level) {
+                $allowed_types[] = $type_id;
+            }
+
+        }
+
+        $where = array();
+        if ($allowed_types) {
+            $types_string = implode(',', $allowed_types);
+            // has access to products of that types
+            $where[] = "(p.type_id IN ({$types_string}))";
+        }
+
+        if ($allowed_own_types) {
+            $types_string = implode(',', $allowed_own_types);
+            // has access to products of that types
+            $where[] = " (p.type_id IN ({$types_string}) AND p.contact_id = {$contact_id})";
+        }
+
+        $where = implode(' OR ', $where);
+        if ($where) {
+            $this->addWhere($where);
+        } else {
+            $this->addWhere(0);
+        }
+
     }
 
     /**

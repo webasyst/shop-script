@@ -5,6 +5,11 @@
 
 {$_errors = []}
 {if !empty($error_step_id) && $error_step_id === "confirm"}{$_errors = $errors}{/if}
+{$_button_text = _w("Confirm order")}
+{$_zip_enabled = $config.shipping.ask_zip}
+{if empty($_zip_enabled) && $error_step_id === "region"}
+    {$_button_text = _w("Select shipping")}
+{/if}
 
 <section class="wa-step-section wa-step-confirm-section" id="wa-step-confirm-section">
     {* BODY *}
@@ -120,7 +125,7 @@
                     {/if}
 
                     {$_create_order = empty($errors)}
-                    <button class="wa-button wa-submit-button js-submit-order-button" data-action="{if !empty($_create_order)}create{else}calculate{/if}" {if !empty($_locked)}disabled{/if}>[`Confirm order`]</button>
+                    <button class="wa-button wa-submit-button js-submit-order-button" type="button" data-action="{if !empty($_create_order)}create{else}calculate{/if}" {if !empty($_locked)}disabled{/if}>{$_button_text|escape}</button>
                 </div>
             </div>
 

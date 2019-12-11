@@ -88,11 +88,13 @@
             printforms: null
         },
 
+
         init: function(options) {
             this.options = options = options || {};
             this.filter_params = options.filter_params || {};
             this.filter_params_str = options.filter_params_str || '';
             this.container = $('#order-list');
+
             if (options.view == 'table') {
                 this.container = $('#order-list').find('tbody:first');
                 this.$selectionMenu = this.options["$selectionMenu"];
@@ -102,11 +104,18 @@
                     this.select_all_input.attr('checked', false);
                 }
             }
+
+            // for define which actions available for whole order list (see onSelectItem)
+            this.options.all_order_state_ids = this.options.all_order_state_ids || null;
+
             this.sidebar = $('#s-sidebar');
             this.id = options.id || 0;
 
             if (options.orders && options.orders.length && options.view) {
                 try {
+                    // template variants:
+                    // template-order-list-table
+                    // template-order-list-split
                     this.container.append(
                         tmpl('template-order-list-' + this.options.view, {
                             orders: options.orders
@@ -179,6 +188,7 @@
                         var process = function() {
                             return $.getJSON(self.buildLoadListUrl(id),
                                     function (r) {
+
                                         if (r.status == 'ok') {
                                             try {
                                                 self.container.append(
@@ -273,92 +283,207 @@
             });
 
 
-            var performAction = function(action_id, selected_orders) {
-                var finish = function(r, onFinish) {
+            var performAction = function(action_id, selected_orders, onFinish) {
+
+                // ensure that we load chunk of order list to common list of orders
+                var ensureOrderListChunkLoaded = function () {
+                    var $win = $(window),
+                        def = $.Deferred();
+
+                    // make sense only for all selected orders and lazy loading not yet loaded all list of orders
+                    if (!selected_orders.all || $win.lazyLoad('get', 'stopped')) {
+                        def.resolve();
+                        return def;
+                    }
+
+                    var event_name = 'append_order_list.ensureOrderListChunkLoaded';
+
+                    that.container.one(event_name, function () {
+                        def.resolve();
+                    });
+
+                    // safe timeout - after 2 seconds conclude that we load chunk anyway
+                    setTimeout(function () {
+                        that.container.off(event_name);
+                        def.resolve();
+                    }, 2000);
+
+                    // load chunk
+                    $win.lazyLoad('force');
+
+                    return def;
+                };
+
+                // update chunk of order list (change status)
+                var updateOrderListChunk = function (r) {
+                    var def = $.Deferred();
+
+                    if ($.isEmptyObject(r.data.orders)) {
+                        def.resolve();
+                        return def;
+                    }
+
+                    var event_name = 'append_order_list.updateOrderListChunk';
+
+                    that.container.one(event_name, function () {
+                        def.resolve();
+                    });
+
+                    // safe timeout - after 1 second conclude that we load chunk anyway
+                    setTimeout(function () {
+                        that.container.off(event_name);
+                        def.resolve();
+                    }, 1000);
+
+                    that.updateListItems(r.data.orders);
+
+                    return def;
+                };
+
+                // hide chunk of order list after some timeout
+                var hideOrderListChunk = function (r) {
+                    var def = $.Deferred();
+
+                    var showEmptyListHtml = function () {
+                        if (!that.container.find('.order:not(:hidden):first').length) {
+                            var html = '<div class="block double-padded align-center blank"><br><br><br><br><span class="gray large">'+$_("There are no orders in this view.")+'</span><div class="clear-left"></div></div></div>';
+                            $('#s-content').html(html);
+                        }
+                    };
+
+                    var ids = [];
+                    var filter_params = that.filter_params;
+                    if (!$.isEmptyObject(r.data.orders)) {
+                        for (var i = 0, n = r.data.orders.length; i < n; i++) {
+                            if (!$.isEmptyObject(filter_params) && filter_params.state_id) {
+                                if ($.type(filter_params.state_id) === 'string' && filter_params.state_id !== r.data.orders[i].state_id) {
+                                    ids.push(r.data.orders[i].id);
+                                } else if ($.type(filter_params.state_id) === 'array' && filter_params.state_id.indexOf(r.data.orders[i].state_id) === -1) {
+                                    ids.push(r.data.orders[i].id);
+                                }
+                            }
+                        }
+                    }
+
+                    if (!$.isEmptyObject(ids)) {
+                        that.hideListItems(ids).done(function() {
+                            showEmptyListHtml();
+                            def.resolve();
+                        });
+
+                        // safe timeout - after 1 second conclude that we load chunk anyway
+                        setTimeout(function () {
+                            def.resolve();
+                        }, 1000);
+
+                    } else {
+                        showEmptyListHtml();
+                        def.resolve();
+                    }
+
+                    return def;
+                };
+
+                var updateSidebarCounters = function (r) {
                     $.order_list.updateCounters({
                         state_counters: r.data.state_counters,
                         common_counters: {
                             pending: r.data.pending_count
                         }
                     });
-
-                    if (!$.isEmptyObject(r.data.orders)) {
-                        $.order_list.updateListItems(r.data.orders);
-                    }
-                    $.order_list.select_all_input.trigger('select', false);
-
-                    var ids = [];
-                    var filter_params = $.order_list.filter_params;
-                    if (!$.isEmptyObject(r.data.orders)) {
-                        for (var i = 0, n = r.data.orders.length; i < n; i++) {
-                            if (!$.isEmptyObject(filter_params) && filter_params.state_id) {
-                                if ($.type(filter_params.state_id) === 'string' && filter_params.state_id !== r.data.orders[i].state_id) {
-                                    ids.push(r.data.orders[i].id);
-                                } else if ($.type(filter_params.state_id) === 'array' && filter_params.state_id.indexOf(r.data.orders[i].state_id) !== -1) {
-                                    ids.push(r.data.orders[i].id);
-                                }
-                            }
-                        }
-                    }
-                    if (!$.isEmptyObject(ids)) {
-                        $.order_list.hideListItems(ids).done(function() {
-                            if (!$.order_list.container.find('.order:not(:hidden):first').length) {
-                                var html = '<div class="block double-padded align-center blank"><br><br><br><br><span class="gray large">'+$_("There are no orders in this view.")+'</span><div class="clear-left"></div></div></div>';
-                                $('#s-content').html(html);
-                            }
-                        });
-                    }
-
-                    if (onFinish instanceof Function) {
-                        onFinish(r);
-                    }
                 };
+
+                var eachStep = function (r) {
+                    var def = $.Deferred();
+
+                    ensureOrderListChunkLoaded().done(function () {
+                        updateOrderListChunk(r).done(function () {
+                            hideOrderListChunk(r).done(function () {
+                                updateSidebarCounters(r);
+                                //that.count
+                                def.resolve();
+                            });
+                        })
+                    });
+
+                    return def;
+                };
+
                 var step = function(offset, onFinish) {
                     offset = offset || 0;
+
                     $.shop.jsonPost(
                         '?module=orders&action=performAction' +
                             '&id='+action_id +
                             '&offset=' + offset +
-                            '&' + $.order_list.options.filter_params_str,
+                            '&' + that.options.filter_params_str,
                         selected_orders,
                         function(r) {
-                            if (r.status == 'ok') {
-                                if (r.data.offset < r.data.total_count) {
-                                    step(r.data.offset, finish);
-                                } else {
-                                    finish(r, onFinish);
-                                }
+                            if (r.status === 'ok') {
+                                eachStep(r).done(function () {
+                                    if (r.data.offset < r.data.total_count) {
+                                        step(r.data.offset, onFinish);
+                                    } else {
+                                        onFinish(r);
+                                    }
+                                });
                             } else {
-                                finish(r, onFinish);
+                                onFinish(r);
                             }
                         }
                     );
                 };
-                step(0, function() {
-                    $.orders.dispatch();
-                });
+
+                step(0, onFinish);
             };
 
             if (that.$selectionMenu) {
-                that.$selectionMenu.on("click", "a", function () {
-                    var $link = $(this),
-                        action_id = $link.data("action-id");
+                that.$selectionMenu
+                    .off("click.order_list", ".js-wf-action-item")
+                    .on("click.order_list", ".js-wf-action-item",
+                        function () {
+                            var $item = $(this),
+                                action_id = $item.data("action-id");
 
-                    if (action_id) {
-                        onActionClick(action_id);
-                    }
-                    return false;
-                });
+                            // disabled menu item
+                            if ($item.hasClass('s-disabled')) {
+                                return;
+                            }
+
+                            if (action_id) {
+                                onActionClick(action_id);
+                            }
+                            return false;
+                        }
+                    );
             }
 
             function onActionClick( action_id ) {
+
                 var selected_orders = $.order_list.getSelectedOrders();
-                if (!selected_orders.order_id) { // means all orders
+
+                var perform = function () {
+
+                    that.$selectionMenu.addClass('s-disabled');
+                    that.$selectionMenu.find('.js-selection-menu-loading').show();
+                    that.select_all_input.attr('disabled', true);
+
+                    performAction(action_id, selected_orders, function () {
+                        that.$selectionMenu.removeClass('s-disabled');
+                        that.$selectionMenu.find('.js-selection-menu-loading').hide();
+                        that.select_all_input.removeAttr('disabled');
+                        that.select_all_input.trigger('select', false);
+
+                        $.orders.dispatch();
+                    });
+                };
+
+                if (selected_orders.all) {
                     if (confirm($_('Perform action to all selected orders?'))) {
-                        performAction(action_id, selected_orders);
+                        perform();
                     }
                 } else {
-                    performAction(action_id, selected_orders);
+                    perform();
                 }
             }
 
@@ -440,7 +565,7 @@
                     hash = hash.replace(/(^[^#]*#\/*|\/$)/g, ''); /* fix syntax highlight*/
 
                     if (!hash.split('/')[1]) {
-                        hash = '#/orders/state_id=new|processing|paid'
+                        hash = '#/orders/state_id=new|processing|auth|paid'
                     }
 
                     // clear hash, delete substring like sort[0]=foo and sort[1]=bar
@@ -558,10 +683,81 @@
             });
         },
 
+        /**
+         * Update UI enable/disable statuses of selection menu items by workflow states
+         * @param {Array|String} state_id One or list of workflow states available now
+         */
+        updateSelectionMenuActionItemsByStates: function(state_id) {
+            var that = this;
+
+            // state_ids, typecast input argument
+            var state_ids = [];
+            if (typeof state_id === 'string') {
+                state_ids.push(state_id);
+            } else if ($.isArray(state_id)) {
+                state_ids = [].concat(state_id)
+            } else {
+                // unsupported input type
+                return;
+            }
+
+            var $action_items = that.$selectionMenu.find('.wf-actions .js-wf-action-item');
+
+            // all items disabled at beginning
+            $action_items.addClass('s-disabled');
+
+            // state_id => [action_id]
+            var enabled_states_actions = {};
+
+            // collect { state_id => [action_id] } map, for each state get list of available actions
+            $action_items.each(function () {
+                var $item = $(this),
+                    action_id = $item.data('actionId'),
+                    available_for_states_str = $item.data('availableForStates'),
+                    available_for_states = available_for_states_str.split(',');
+
+                // loop over state_ids and define available actions for each state
+                for (var i = 0; i < state_ids.length; i++) {
+                    var current_state_id = state_ids[i];
+                    if (available_for_states.indexOf(current_state_id) !== -1) {
+                        enabled_states_actions[current_state_id] = enabled_states_actions[current_state_id] || [];
+                        enabled_states_actions[current_state_id].push(action_id);
+                    }
+                }
+            });
+
+            // now calculate intersection for all states we has
+            var enable_actions = $.shop.intersectArrays($.shop.getValues(enabled_states_actions), true);
+            
+            // and UI enable actions itself
+            if (enable_actions.length > 0) {
+                var $enabled_items = $action_items.filter(function () {
+                    return $.inArray($(this).data('actionId'), enable_actions) > -1;
+                });
+                $enabled_items.removeClass('s-disabled');
+            }
+        },
+
+        enableAllSelectionMenuActionItems: function() {
+            var that = this;
+            that.$selectionMenu.find('.wf-actions .js-wf-action-item').removeClass('s-disabled');
+        },
+
+        disableAllSelectionMenuActionItems: function() {
+            var that = this;
+            that.$selectionMenu.find('.wf-actions .js-wf-action-item').addClass('s-disabled');
+        },
+
         initSelecting: function() {
             var that = this,
                 container = this.container,
                 select_all_input = this.select_all_input;
+
+
+            // update ui state on action items in selection menu
+            if (that.filter_params && that.filter_params.state_id && select_all_input.is(':checked')) {
+                that.updateSelectionMenuActionItemsByStates(that.filter_params.state_id);
+            }
 
             select_all_input.click(function() {
                 $(this).trigger('select', this.checked);
@@ -594,17 +790,51 @@
             });
 
             var onSelectItem = function() {
-                if ($.order_list.filter_params && !$.order_list.filter_params.length) {
-                    var $table = $('#order-list'),
-                        is_checked = select_all_input.attr("checked"),
-                        is_selected = ( $table.find('.order.selected:first').length );
 
-                    if (is_checked || is_selected) {
-                        that.$selectionMenu.show();
-                    } else {
-                        that.$selectionMenu.hide();
-                    }
+                var $table = $('#order-list'),
+                    is_all_selected = select_all_input.attr("checked"),
+                    is_one_selected = ( $table.find('.order.selected:first').length ),
+                    is_selected = is_all_selected || is_one_selected;
+
+                // guard case - hide menu and this just it
+                if (!is_selected) {
+                    that.$selectionMenu.hide();
+                    return;
                 }
+
+                // below a little bit more complicated logic
+
+                // first of all show menu
+                that.$selectionMenu.show();
+
+                // current list of order states (null means not defined for some reason)
+                var state_ids = null;
+
+                if (is_all_selected) {
+                    if (that.options.all_order_state_ids) {                             // option from controller
+                        state_ids = that.options.all_order_state_ids;
+                    } else if (that.filter_params && that.filter_params.state_id) {     // or filter by state_id
+                        state_ids = that.filter_params.state_id;
+                    } else {
+                        state_ids = null;                                               // or undefined (select all actions)
+                    }
+                } else {
+                    // Extract all state ids from DOM items
+                    // Not so effective solution, but simple to understand
+                    // For example effective solution could be: keep track { state_id => count } map to dynamically has all "selected" state ids in current moment
+                    state_ids = that.container.find('.order.selected').map(function() {
+                        return $(this).data('stateId');
+                    }).toArray();
+                }
+
+                // update UI state of menu
+                if (state_ids !== null) {
+                    state_ids = $.shop.getUniqueValues(state_ids);
+                    that.updateSelectionMenuActionItemsByStates(state_ids);
+                } else {
+                    that.enableAllSelectionMenuActionItems();
+                }
+
             };
 
             // handler of triggerable 'select' event

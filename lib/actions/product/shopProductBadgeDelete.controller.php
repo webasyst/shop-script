@@ -37,17 +37,15 @@ class shopProductBadgeDeleteController extends waJsonController
         while ($offset < $total_count) {
             $products = $collection->getProducts('id, type_id', $offset, $count);
             $product_ids = [];
-            $type_ids = [];
 
             foreach ($products as $product) {
-                $type_ids[] = $product['type_id'];
                 $product_ids[] = $product['id'];
             };
 
-            $type_ids = array_unique($product_ids);
+            $product_ids = array_unique($product_ids);
 
-            foreach ($type_ids as $type_id) {
-                $right = $product_model->checkRights($type_id);
+            foreach ($product_ids as $product_id) {
+                $right = $product_model->checkRights($product_id);
 
                 if (!$right) {
                     throw new waException(_w("Access denied"));

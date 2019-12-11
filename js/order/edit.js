@@ -892,7 +892,7 @@ $.order_edit = {
                 if (response && response.status === 'ok') {
                     var $shipping_rate = $('#shipping-rate'),
                         el = $("#shipping_methods"),
-                        el_selected = el.val(),
+                        el_selected = $.trim(el.val()) || '',
                         el_selected_id = el_selected.replace(/\W.+$/, '');
 
                     if (response.data) {

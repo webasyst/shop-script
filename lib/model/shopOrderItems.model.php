@@ -607,6 +607,9 @@ SQL;
         $update = array();
         $sku_stock = array();
 
+        $context = shopProductStocksLogModel::getContext();
+        $return_stock_id = ifset($context, 'params', 'return_stock_id', null);
+
         $parent_id = null;
         foreach ($items as $item) {
 
@@ -647,7 +650,11 @@ SQL;
                 if ($item['type'] == 'product') {
 
                     $sku_id = $item['sku_id'];
-                    $stock_id = $item['stock_id'];
+                    $stock_id = (int)$item['stock_id'];
+
+                    if ($stock_id && (!empty($return_stock_id))) {
+                        $stock_id = (int)$return_stock_id;
+                    }
 
                     // Reset virtualstock_id to NULL if stock_id changed to something not included in original virtual stock
                     if (array_key_exists('stock_id', $diff)
@@ -704,10 +711,15 @@ SQL;
             foreach ($old_items as $old_item) {
                 // check stock changes
                 if ($old_item['type'] == 'product') {
-                    if (!isset($sku_stock[$old_item['sku_id']][$old_item['stock_id']])) {
-                        $sku_stock[$old_item['sku_id']][$old_item['stock_id']] = 0;
+                    $stock_id = (int)$old_item['stock_id'];
+                    if ($stock_id && (!empty($return_stock_id))) {
+                        $stock_id = (int)$return_stock_id;
                     }
-                    $sku_stock[$old_item['sku_id']][$old_item['stock_id']] += $old_item['quantity'];
+                    $sku_id = $old_item['sku_id'];
+                    if (!isset($sku_stock[$sku_id][$stock_id])) {
+                        $sku_stock[$sku_id][$stock_id] = 0;
+                    }
+                    $sku_stock[$sku_id][$stock_id] += $old_item['quantity'];
                 }
             }
             $this->deleteById(array_keys($old_items));
@@ -785,6 +797,7 @@ SQL;
                         $log_data = array(
                             'product_id'   => $product_id,
                             'sku_id'       => $sku_id,
+                            //'stock_id'     => $stock_id,
                             'before_count' => $before_count,
                             'after_count'  => $before_count + $count,
                             'diff_count'   => $count,

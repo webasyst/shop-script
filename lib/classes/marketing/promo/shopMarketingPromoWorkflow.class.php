@@ -140,6 +140,12 @@ class shopMarketingPromoWorkflow
         foreach (explode('_', $rule['rule_type']) as $part) {
             $part_of_name .= ucfirst($part);
         }
+
+        /**
+         * @uses shopMarketingPromoWorkflow::workupCustomPriceRule();
+         * @uses shopMarketingPromoWorkflow::workupUtmRule();
+         * @uses shopMarketingPromoWorkflow::workupCouponRule();
+         */
         $method_name = "workup{$part_of_name}Rule";
 
         if (method_exists($this, $method_name)) {

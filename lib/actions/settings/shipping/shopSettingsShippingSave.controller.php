@@ -13,6 +13,21 @@ class shopSettingsShippingSaveController extends waJsonController
                     $plugin['settings'] = array();
                 }
                 shopShipping::savePlugin($plugin);
+
+                $is_edit = $plugin['id'] > 0;
+
+                $log_params = array(
+                    'id' => $plugin['id'],
+                    'status' => $plugin['status'],
+                    'plugin' => $plugin['plugin']
+                );
+
+                if ($is_edit) {
+                    $this->logAction('shipping_plugin_edit', $log_params);
+                } else {
+                    $this->logAction('shipping_plugin_add', $log_params);
+                }
+
                 $this->response['message'] = _w('Saved');
             } catch (waException $ex) {
                 $this->setError($ex->getMessage());

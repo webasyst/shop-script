@@ -29,7 +29,7 @@
                             <span class="bold">[`Full`]</span>
                         </label>
                         <label>
-                            <input class="js-mode-toggle" type="radio" name="refund_mode" value="partial" {if !empty($transaction_data) && empty($partial_refund)}disabled{/if}>
+                            <input class="js-mode-toggle" type="radio" name="refund_mode" value="partial" {if empty($order_items_count) ||(!empty($transaction_data) && empty($partial_refund))}disabled{/if}>
                             <span class="bold">[`Partial`]</span>
                         </label>
                     </div>

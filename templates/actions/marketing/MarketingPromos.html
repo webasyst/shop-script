@@ -63,7 +63,7 @@
         {$_promo_classes[] = "is-paused"}
     {/if}
 
-    {if empty($_promo.image_url)}
+    {if empty($_promo.image)}
         {$_promo_classes[] = "without-image"}
     {/if}
 
@@ -72,7 +72,7 @@
 
             <div class="s-promo-header">
                 <h5 class="s-title">
-                    <a href="{$marketing_url}promo/{$_promo.id|escape}/" title="{$_promo.title|escape}">{$_promo.title|default:"{_w('<no name>')}"|escape}</a>
+                    <a href="{$marketing_url}promo/{$_promo.id|escape}/" title="{$_promo.name|escape}">{$_promo.name|default:"{_w('<no name>')}"|escape}</a>
                 </h5>
 
                 {$roi_value = ifset($promos_stats, $_promo.id, 'roi', null)}
@@ -111,7 +111,7 @@
 
             <div class="s-promo-body">
                 <div class="s-image-section">
-                    <div class="s-image-wrapper" style="background-image: url({$_promo.image_url|default:"{$wa_app_static_url}img/backend/marketing/image.svg"|escape});"></div>
+                    <div class="s-image-wrapper" style="{if !empty($_promo.image)}background-image: url({$_promo.image|escape});{else}background-color: {shopPromoBannerHelper::getColorById($_promo.id)};{/if}"></div>
                     <div class="s-rules-wrapper">
                         {foreach ifset($promos_markers, $_promo.id, []) as $marker}
                             <div class="s-rule-wrapper" data-type="{$marker.type|escape}">
@@ -334,8 +334,8 @@
                         <thead>
                             <tr>
                                 <th>
-                                    <a class="s-sort-toggle" href="{_render_sort_uri _data=["field" => "title"]}">
-                                        [`Promo name`]{_render_sort_icon _data=["field" => "title"]}
+                                    <a class="s-sort-toggle" href="{_render_sort_uri _data=["field" => "name"]}">
+                                        [`Promo name`]{_render_sort_icon _data=["field" => "name"]}
                                     </a>
                                 </th>
                                 <th>
@@ -364,13 +364,13 @@
 
                                         <div class="s-table-box inline">
                                             <div class="s-column">
-                                                <a class="s-image-wrapper" href="{$marketing_url}promo/{$_promo.id|escape}/" style='background-image: url("{$_promo.image_url|escape}");' title="{$_promo.title|escape}">
-                                                    <img src="{$_promo.image_url|escape}" alt="">
+                                                <a class="s-image-wrapper" href="{$marketing_url}promo/{$_promo.id|escape}/" style='background-image: url("{$_promo.image|escape}");' title="{$_promo.name|escape}">
+                                                    <img src="{$_promo.image|escape}" alt="">
                                                 </a>
                                             </div>
                                             <div class="s-column">
                                                 <div class="s-name-wrapper">
-                                                    <a href="{$marketing_url}promo/{$_promo.id|escape}/" title="{$_promo.title|escape}">{$_promo.title|escape}</a>
+                                                    <a href="{$marketing_url}promo/{$_promo.id|escape}/" title="{$_promo.name|default:''|escape}">{$_promo.name|default:''|escape}</a>
                                                 </div>
 
                                                 <div class="s-rules-wrapper">
@@ -502,6 +502,25 @@
         </div>
     {/capture}
 
+    {capture assign="_sort_notice_dialog"}
+        <div class="dialog width500px height200px s-sort-notice-dialog">
+            <div class="dialog-background"></div>
+            <div class="dialog-window">
+                <div class="dialog-content">
+                    <div class="dialog-content-indent">
+                        <h2 class="s-title">[`Promos cannot be sorted`]</h2>
+                        <p class="s-description">[`Select a storefront to change active promos’ sort order.`]</p>
+                    </div>
+                </div>
+                <div class="dialog-buttons">
+                    <div class="dialog-buttons-gradient">
+                        <a class="button gray js-cancel" href="javascript:void(0);">[`Close`]</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {/capture}
+
     <script>
         ( function($) {
 
@@ -523,7 +542,8 @@
                     sort_enabled: {if !empty($active_storefront)}true{else}false{/if},
                     templates: {
                         pause: {$_promo_pause_template_dialog|json_encode},
-                        play: {$_promo_play_template_dialog|json_encode}
+                        play: {$_promo_play_template_dialog|json_encode},
+                        sort_notice_dialog: {$_sort_notice_dialog|json_encode}
                     },
                     urls: {
                         sort: "{$wa_app_url}?module=marketingPromo&action=sort&storefront="+{ifset($active_storefront)|urlencode|json_encode},

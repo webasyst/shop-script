@@ -397,8 +397,7 @@
             var that = this;
 
             var key_timer = 0,
-                key_timeout = 10000,
-                change_timeout = 100;
+                key_timeout = 3000;
 
             if (typeof that.errors === "object" && Object.keys(that.errors).length ) {
                 that.scope.DEBUG("Errors:", "error", that.errors);
@@ -408,11 +407,36 @@
                 event.preventDefault();
             });
 
+            that.$wrapper.on("click", ".js-calculate-form", function(event) {
+                event.preventDefault();
+
+                var errors = that.scope.validate(that.$wrapper, true);
+                if (!errors.length) {
+                    that.scope.update();
+                }
+            });
+
             var $location_field = that.$form.find(".js-location-field"),
                 $country_field = that.$form.find(".js-country-field"),
                 $region_field = that.$form.find(".js-region-field"),
                 $city_field = that.$form.find(".js-city-field"),
                 $zip_field = that.$form.find(".js-zip-field");
+
+            that.$wrapper.on("click", ".js-clean-address-fields", function(event) {
+                event.preventDefault();
+
+                if (isRendered($city_field)) {
+                    $city_field.val("");
+                }
+
+                if (isRendered($zip_field)) {
+                    $zip_field.val("");
+                }
+
+                that.scope.update({
+                    render_errors: false
+                });
+            });
 
             fieldWatcher($location_field, [$country_field, $region_field, $city_field, $zip_field]);
             fieldWatcher($country_field, [$region_field, $city_field, $zip_field]);
@@ -430,6 +454,8 @@
             } else {
                 staticFieldsWatcher($city_field, $zip_field);
             }
+
+            //
 
             /**
              * @param {Object} $field
@@ -453,6 +479,10 @@
 
                         onChange($field);
                     });
+
+                    $field.on("focus blur", function() {
+                        clearTimeout(key_timer);
+                    });
                 }
             }
 
@@ -468,63 +498,54 @@
                         return false;
                     }
 
-                    // $field.on("change", function() {
-                    //     var dependent_value = $.trim($dependent_field.val());
-                    //     if (dependent_value) {
-                    //         key_timer = setTimeout( function() {
-                    //             onChange($field);
-                    //         }, 10);
-                    //     }
-                    // });
+                    $field.on("timeout_change", function() {
+                        var dependent_value = $.trim($dependent_field.val());
+                        if (dependent_value) {
+                            validate($field);
+                            $field.trigger("blur");
+                        }
+                    });
 
                     $field.on("keydown", function(event) {
                         var code = event.keyCode,
                             is_enter = (code === 13);
 
                         if (is_enter) {
-                            onChange($field);
+                            validate($field);
                             $field.trigger("blur");
+                        } else {
+                            onKeyDown($field);
                         }
                     });
 
-                    $field.on("focus", function() {
+                    $field.on("focus blur", function() {
                         clearTimeout(key_timer);
                     });
                 }
-            }
 
-            /**
-             * @param {Object} $field
-             * */
-            function onKeyDown($field) {
-                clearTimeout(key_timer);
-
-                key_timer = setTimeout( function() {
-                    $field.trigger("change");
-                }, key_timeout);
-            }
-
-            /**
-             * @param {Object} $field
-             * */
-            function onChange($field) {
-                clearTimeout(key_timer);
-
-                var value = $.trim( $field.val() );
-                if (!value.length) { return false; }
-
-                that.scope.trigger("region_change");
+                function validate() {
+                    var errors = that.scope.validate(that.$wrapper, true);
+                    if (!errors.length) {
+                        onChange($field);
+                    }
+                }
             }
 
             function initAutocomplete($city_field) {
                 var is_depends = isRendered($zip_field);
 
-                var xhr = null;
+                var xhr = null,
+                    is_blur_enabled = true;
 
                 $city_field.autocomplete({
                     source: function(field_data, resolve) {
+                        is_blur_enabled = true;
                         getData().then( function(data) {
                             resolve(data);
+                            is_blur_enabled = !data.length;
+                            if (data.length) {
+                                onKeyDown($city_field);
+                            }
                         });
                     },
                     minLength: 2,
@@ -533,7 +554,7 @@
                     },
                     select: function(event, ui) {
                         $city_field.val(ui.item.value);
-                        onChange($city_field);
+                        validate($city_field, true);
                         return false;
                     }
                 });
@@ -543,13 +564,31 @@
                         is_enter = (code === 13);
 
                     if (is_enter) {
-                        onChange($city_field);
-                        $city_field.trigger("blur");
+                        validate($city_field, true);
+                    } else {
+                        onKeyDown($city_field);
                     }
                 });
 
-                $city_field.on("focus", function() {
+                $city_field.on("timeout_change", function() {
+                    var errors = that.scope.validate(that.$wrapper, false);
+                    if (!errors.length) {
+                        validate($city_field, true);
+                    }
+                });
+
+                $city_field.on("focus blur", function() {
                     clearTimeout(key_timer);
+                });
+
+                $city_field.on("blur", function() {
+                    if (!is_blur_enabled) {
+                        clearTimeout(key_timer);
+                    } else {
+                        if (!is_depends) {
+                            validate($city_field, false);
+                        }
+                    }
                 });
 
                 function getData() {
@@ -627,6 +666,41 @@
                         return result;
                     }
                 }
+
+                function validate($field, blur) {
+                    var errors = that.scope.validate(that.$wrapper, true);
+                    if (!errors.length) {
+                        onChange($field);
+                    }
+                    if (blur) {
+                        $field.trigger("blur");
+                    }
+                }
+            }
+
+            //
+
+            /**
+             * @param {Object} $field
+             * */
+            function onKeyDown($field) {
+                clearTimeout(key_timer);
+
+                key_timer = setTimeout( function() {
+                    $field.trigger("change").trigger("timeout_change");
+                }, key_timeout);
+            }
+
+            /**
+             * @param {Object} $field
+             * */
+            function onChange($field) {
+                clearTimeout(key_timer);
+
+                var value = $.trim( $field.val() );
+                if (!value.length) { return false; }
+
+                that.scope.trigger("region_change");
             }
 
             function checkPreviousFields(fields) {
@@ -1601,6 +1675,11 @@
                         });
                     }
                 });
+
+                var items_count = $variants_section.find(".wa-dropdown-item").length;
+                if (items_count === 1) {
+                    dropdown.lock(true);
+                }
 
                 $types_section.on("click", ".wa-type-wrapper.is-active", function() {
                     dropdown.$button.trigger("click");
@@ -2684,10 +2763,14 @@
                         if (!is_changed) {
                             promise = that.create();
                         } else {
-                            promise = that.scope.update();
+                            promise = that.scope.update({
+                                render_errors: true
+                            });
                         }
                     } else {
-                        promise = that.scope.update();
+                        promise = that.scope.update({
+                            render_errors: true
+                        });
                     }
 
                     promise
@@ -2703,6 +2786,10 @@
                                     var confirm_section = that.scope.sections["confirm"];
                                     confirm_section.$submit_button.trigger("click");
                                 }
+                            }
+                        }).fail( function(state, errors) {
+                            if (errors.length) {
+                                focus(errors[0]);
                             }
                         });
                 }
@@ -2843,40 +2930,6 @@
             }
 
             return deferred.promise();
-
-            function focus(error) {
-                var scroll_top = 0,
-                    lift = 40;
-
-                if (error["$field"] && error["$field"].length) {
-                    var top = getTop(error["$field"]);
-                    scroll_top = top - lift;
-                    error["$field"].focus();
-                }
-
-                if (error["$wrapper"] && error["$wrapper"].length) {
-                    scroll_top = error["$wrapper"].offset().top - lift;
-                }
-
-                $("html, body").scrollTop(scroll_top);
-
-                function getTop($wrapper) {
-                    var result = 0,
-                        is_visible = $wrapper.is(":visible");
-
-                    if (is_visible) {
-                        result = $wrapper.offset().top;
-
-                    } else {
-                        var $parent = $wrapper.parent();
-                        if ($parent.length) {
-                            result = getTop($parent);
-                        }
-                    }
-
-                    return result;
-                }
-            }
 
             function create(deferred) {
                 return that.scope.update({
@@ -3367,6 +3420,40 @@
 
         return Confirm;
 
+        function focus(error) {
+            var scroll_top = 0,
+                lift = 40;
+
+            if (error["$field"] && error["$field"].length) {
+                var top = getTop(error["$field"]);
+                scroll_top = top - lift;
+                error["$field"].focus();
+            }
+
+            if (error["$wrapper"] && error["$wrapper"].length) {
+                scroll_top = error["$wrapper"].offset().top - lift;
+            }
+
+            $("html, body").scrollTop(scroll_top);
+
+            function getTop($wrapper) {
+                var result = 0,
+                    is_visible = $wrapper.is(":visible");
+
+                if (is_visible) {
+                    result = $wrapper.offset().top;
+
+                } else {
+                    var $parent = $wrapper.parent();
+                    if ($parent.length) {
+                        result = getTop($parent);
+                    }
+                }
+
+                return result;
+            }
+        }
+
     })($);
 
     // SCOPE
@@ -3827,11 +3914,10 @@
                 }
 
                 if (typeof section.getData === "function") {
-                    var render_section_errors = (render_errors && !errors.length),
-                        data = section.getData({
+                    var data = section.getData({
                             clean: clean,
                             only_api: !!(options.only_api),
-                            render_errors: render_section_errors
+                            render_errors: render_errors
                         });
 
                     if (data.length) {

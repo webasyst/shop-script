@@ -62,7 +62,13 @@ label { cursor: pointer; }
 .s-orders-selection-menu ul.menu-h.dropdown ul { width: 300px; }
 .s-orders-selection-menu .table-layout { display: table; height: 100%; }
 .s-orders-selection-menu .table-layout .column-item { display: table-cell; vertical-align: middle; }
+.s-orders-selection-menu li.s-disabled a { color: gray; cursor: default; }
+.s-orders-selection-menu li.s-disabled a:hover { color: grey !important; }
 .s-printform-item-sep { border-top: 1px solid black; }
+.s-orders-selection-menu.s-disabled a { color: gray; }
+.s-orders-selection-menu.s-disabled a .darr { display: none; }
+.s-orders-selection-menu.s-disabled ul.menu-h.dropdown li:hover ul { display: none; }
+.s-orders-selection-menu.s-disabled ul.menu-h.dropdown a:hover { color: grey !important; }
 
 #maincontent { padding: 0 5px; margin-top: 84px /* #mainmenu offset */; }
 .s-no-level2 #maincontent { margin-top: 43px; padding: 0; /* when there is no 2nd level menu, and #mainmenu is not fixed */ }

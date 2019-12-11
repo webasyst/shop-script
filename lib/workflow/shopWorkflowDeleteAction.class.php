@@ -49,14 +49,14 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
                     /*_w*/ ('Order %s was deleted'),
                     array(
                         'order_id' => $order_id,
+                        'return_stock_id' => ifempty($result, 'params', 'return_stock', null),
                     )
                 );
 
                 // was reducing in past?
                 $reduced = $this->order_params_model->getOne($order_id, 'reduced');
                 if ($reduced) {
-                    $return_stock = ifempty($result, 'params', 'return_stock', null);
-                    $return_stock = $this->order_model->returnProductsToStocks($order_id, null, $return_stock);
+                    $return_stock = $this->order_model->returnProductsToStocks($order_id);
                     if (empty($return_stock)) {
                         unset($data['params']['return_stock']);
                     }

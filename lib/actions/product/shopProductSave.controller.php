@@ -44,7 +44,6 @@ class shopProductSaveController extends waJsonController
             }
         }
 
-
         $skus = waRequest::post('skus', array());
         if (isset($data['skus'])) {
             foreach ($skus as $s_id => $s) {
@@ -144,42 +143,7 @@ class shopProductSaveController extends waJsonController
                 $this->response['categories'] = array_values($this->response['categories']);
 
                 $this->response = array_merge($this->response, $this->getMeta($product->getId()));
-
-                //$product->categories
-
-//                $sales_rate = waRequest::post('sales_rate', 0, waRequest::TYPE_STRING_TRIM);
-//                $sales_rate = (double)str_replace(',', '.', $sales_rate);
-
-//                $runout = $product->getRunout($sales_rate);
-//                if (!empty($runout['product'])) {
-//                    $runout['product']['date_str'] = wa_date("humandate", $runout['product']['date']);
-//                    $runout['product']['days_str'] = _w('%d day', '%d days', $runout['product']['days']);
-//                    if ($runout['product']['days'] < 3 * 365 && $runout['product']['days'] > 0) {
-//                        $runout['product_str'] =
-//                            sprintf(_w('Based on last 30 days sales dynamic (%d items of %s sold during last 30 days), you will run out of %s in <strong>%d days</strong> (on %s)'),
-//                                $sales_rate * 30, $product->name, $product->name, $runout['product']['days'], wa_date("humandate", $runout['product']['date'])
-//                            );
-//                    }
-//                } else {
-//                    $runout['product'] = new stdClass(); /* {} */
-//                }
-//                if (!empty($runout['sku'])) {
-//                    foreach ($runout['sku'] as &$sk_r) {
-//                        if (empty($sk_r['stock'])) {
-//                            $sk_r['date_str'] = wa_date("humandate", $sk_r['date']);
-//                            $sk_r['days_str'] = _w('%d day', '%d days', $sk_r['days']);
-//                        } else {
-//                            foreach ($sk_r['stock'] as &$st_r) {
-//                                $st_r['date_str'] = wa_date("humandate", $st_r['date']);
-//                                $st_r['days_str'] = _w('%d day', '%d days', $st_r['days']);
-//                            }
-//                        }
-//                    }
-//                    unset($sk_r, $st_r);
-//                } else {
-//                    $runout['sku'] = new stdClass(); /* {} */
-//                }
-
+                
                 $forecast = $product->getNextForecast();
                 if ($forecast['date'] !== null && $forecast['days'] < shopProduct::MAX_FORECAST_DAYS) {
                     $this->response['raw']['runout_str'] = sprintf(

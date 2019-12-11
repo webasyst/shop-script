@@ -1,27 +1,27 @@
-{$_title = ""}
+{$_name = ""}
 {if !empty($promo)}
-    {if !empty($promo.title) && trim($promo.title)}
-        {$_title = $promo.title}
+    {if !empty($promo.name) && trim($promo.name)}
+        {$_name = $promo.name}
     {elseif !empty($promo.id)}
-        {$_title = _w("<no name>")}
+        {$_name = _w("<no name>")}
     {else}
-        {$_title = _w("New promo")}
+        {$_name = _w("New promo")}
     {/if}
 {else}
-    {$_title = _w("Promo does not exist.")}
+    {$_name = _w("Promo does not exist.")}
 {/if}
 
 {$_tabs = [
     "rules" => [
-        "id" => "rules",
+        "id"   => "rules",
         "name" => _w("Tools")
     ],
     "orders" => [
-        "id" => "orders",
+        "id"   => "orders",
         "name" => _w("Orders")
     ],
     "costs"  => [
-        "id" => "costs",
+        "id"   => "costs",
         "name" => _w("Costs")
     ]
 ]}
@@ -55,8 +55,8 @@
                     <div class="s-column s-title-column">
                         <h1 class="s-title">
                             <a href="{$marketing_url}" class="back nowrap">&larr;&nbsp;[`Back`]</a>
-                            <span class="editable js-name-editable">{$_title|escape}</span>
-                            <input class="s-title-field js-title-field" type="text" value="{$promo.title|default:''|escape}">
+                            <span class="editable js-name-editable">{$_name|escape}</span>
+                            <input class="s-title-field js-title-field" type="text" value="{$promo.name|default:''|escape}">
                         </h1>
                     </div>
                     {if !empty($promo.id)}
@@ -156,7 +156,7 @@
                                 <tr class="s-total-indicators">
                                     <th>
                                         [`Total`]
-                                        <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Total values for entire promo period`]</span></span>
+                                        <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Data of all paid orders received from storefronts enabled for this promo, including orders not matching the promo’s settings`]</span></span>
                                     </th>
                                     <td>
                                         <div class="s-indicator-block is-blue">
@@ -194,6 +194,22 @@
                 {/if}
 
                 <div class="s-options-section">
+                    {* Name *}
+                    <div class="field">
+                        <div class="name">[`Name`]</div>
+                        <div class="value">
+                            <input type="text" name="promo[name]" value="{$promo.name|default:''|escape}">
+
+                            {if !empty($promo.id)}
+                                <div class="s-ident-wrapper">
+                                    <span class="s-label">[`ID`]:</span>
+                                    <span class="s-ident">{$promo.id|escape}</span>
+                                </div>
+                            {/if}
+                        </div>
+                    </div>
+
+                    {* Status *}
                     <div class="field">
                         <div class="name">[`Status`]</div>
                         <div class="value">
@@ -202,7 +218,7 @@
                             {$_is_active = $promo.enabled}
 
                             {$_status_icon_class = "play"}
-                            {$_status_title = "[`Active action`]"}
+                            {$_status_title = _w("Active action")}
                             {if !empty($promo.start_datetime)}
                                 {$_start_time = $promo.start_datetime|strtotime}
                                 {$_now = waDateTime::format('timestamp')}
@@ -324,150 +340,18 @@
                                                     {if empty($promo["id"]) || !empty($promo["routes"][shopPromoRoutesModel::FLAG_ALL])}checked{/if}> [`All storefronts`]
                                             </label>
                                         </li>
-                                        {foreach $storefronts as $_id => $_name}
+                                        {foreach $storefronts as $_id => $_storefront}
                                             {$_is_active = false}
-                                            {if empty($promo["id"]) || !empty($promo["routes"][$_name])}
+                                            {if empty($promo["id"]) || !empty($promo["routes"][$_storefront])}
                                                 {$_is_active = true}
                                             {/if}
                                             <li>
                                                 <label>
-                                                    <input type="checkbox" class="js-storefront-toggle" name="storefronts[{$_name|escape}]" value="1" {if !empty($_is_active)}checked{/if}> {waIdna::dec($_name|escape)}
+                                                    <input type="checkbox" class="js-storefront-toggle" name="storefronts[{$_storefront|escape}]" value="1" {if !empty($_is_active)}checked{/if}> {waIdna::dec($_storefront|escape)}
                                                 </label>
                                             </li>
                                         {/foreach}
                                     </ul>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div class="field s-banner-field s-banner-section {if empty($promo.id)}is-extended{/if}">
-                        <div class="name">[`Banner`]</div>
-                        <div class="value">
-
-                            <div class="s-visible">
-                                <a class="inline-link js-section-toggle" href="javascript:void(0);"><b><i>[`Set up banner`]</i></b></a>
-                            </div>
-
-                            <div class="s-hidden">
-                                <a class="inline-link js-section-toggle" href="javascript:void(0);"><b><i>[`Hide settings`]</i></b></a>
-
-                                <div class="s-fields-wrapper">
-                                    <div class="field">
-                                        <div class="name">[`Image`]</div>
-                                        <div class="value">
-
-                                            {if !empty($promo.image_url)}
-                                                <div class="s-image-wrapper">
-                                                    <img src="{$promo.image_url|default:""|escape}" alt="">
-                                                </div>
-                                            {/if}
-
-                                            <input type="file" name="image" value="{$promo.image_url|default:""|escape}">
-
-                                        </div>
-                                    </div>
-                                    <div class="field">
-                                        <div class="name">[`Title`]</div>
-                                        <div class="value">
-
-                                            <input type="text" name="promo[title]" value="{$promo.title|default:''|escape}" {if empty($promo.id)}autofocus{/if}>
-
-                                            {if !empty($promo.id)}
-                                                <div class="s-ident-wrapper">
-                                                    <span class="s-label">[`ID`]:</span>
-                                                    <span class="s-ident">{$promo.id|escape}</span>
-                                                </div>
-                                            {/if}
-
-                                        </div>
-                                    </div>
-                                    <div class="field">
-                                        <div class="name">[`Promo subtitle`]</div>
-                                        <div class="value">
-
-                                            <textarea type="text" name="promo[body]">{$promo.body|default:""|escape}</textarea>
-
-                                        </div>
-                                    </div>
-                                    <div class="field">
-                                        <div class="name">[`Link`]</div>
-                                        <div class="value">
-
-                                            <input type="text" name="promo[link]" value="{$promo.link|default:""|escape}" required>
-
-                                        </div>
-                                    </div>
-                                    <div class="field">
-                                        <div class="name">[`Text color`]</div>
-                                        <div class="value">
-                                            <input type="text" name="promo[color]" value="{ifempty($promo, 'color', '#ffffff')|escape}" class="short">
-                                            <i class="icon16 color"></i>
-                                            <div class="js-colorpicker"></div>
-                                        </div>
-                                    </div>
-                                    <div class="field">
-                                        <div class="name">[`Background color`]</div>
-                                        <div class="value">
-                                            <input type="text" name="promo[background_color]" value="{ifempty($promo, 'background_color', '#aaaaaa')|escape}" class="short">
-                                            <i class="icon16 color"></i>
-                                            <div class="js-colorpicker"></div>
-                                            <p class="hint">[`Image background color`]</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <div class="name">[`Countdown`]</div>
-                        <div class="value">
-
-                            <div class="s-countdown-section {if !empty($promo.countdown_datetime)}is-extended{/if}">
-                                <div class="s-visible">
-                                    <label>
-                                        <input class="js-countdown-toggle" type="checkbox" {if !empty($promo.countdown_datetime)}checked{/if}>
-                                        <span class="s-toggle-text">[`Turn on`]</span>
-                                    </label>
-
-                                    <span class="s-timer js-date-timer"
-                                        data-pattern="%s"
-                                        {if !empty($promo.countdown_datetime)}
-                                            data-date="{$promo.countdown_datetime|wa_datetime:"Y-m-d-H-i"}"
-                                        {/if}
-                                    ></span>
-                                </div>
-                                <div class="s-hidden">
-                                    {$_date = ""}
-                                    {$_date_view = ""}
-                                    {$_time_hours = ""}
-                                    {$_time_minutes = ""}
-                                    {if !empty($promo.countdown_datetime)}
-                                        {$_date_view = $promo.countdown_datetime|wa_date}
-                                        {$_date = $promo.countdown_datetime|wa_datetime:"Y-m-d"}
-                                        {$_time_hours = $promo.countdown_datetime|wa_datetime:"H"}
-                                        {$_time_minutes = $promo.countdown_datetime|wa_datetime:"i"}
-                                    {/if}
-
-                                    <div class="line">
-                                        <label class="s-datepicker-wrapper">
-                                            <input class="s-datepicker js-datepicker" type="text" value="{$_date_view}" data-alt="input[name='promo[countdown_datetime][date]']" required  {if empty($promo.countdown_datetime)}disabled{/if}>
-                                            <input type="hidden" name="promo[countdown_datetime][date]" value="{$_date}" {if empty($promo.countdown_datetime)}disabled{/if}>
-                                        </label>
-                                        <label class="s-time-wrapper">
-                                            <input class="s-time short js-hours" type="text" name="promo[countdown_datetime][hour]" pattern="{'[0-9]{2}'}" placeholder="00" maxlength="2" autocomplete="off" value="{$_time_hours}" required {if empty($promo.countdown_datetime)}disabled{/if}>
-                                        </label>
-                                        <span>:</span>
-                                        <label class="s-time-wrapper">
-                                            <input class="s-time short js-minutes" type="text" name="promo[countdown_datetime][minute]" pattern="{'[0-9]{2}'}" placeholder="00" maxlength="2" autocomplete="off" value="{$_time_minutes}" required {if empty($promo.countdown_datetime)}disabled{/if}>
-                                        </label>
-                                    </div>
-                                    <div class="line">
-                                        <span class="hint">([`date format`] <span class="s-countdown-user-date-format">DD.MM.YYYY</span><span class="s-countdown-current-user-time"></span>)</span>
-                                    </div>
                                 </div>
                             </div>
 
@@ -645,11 +529,11 @@
         {capture assign="_saving_html"}
             <span class="s-message">[`Saving`]...</span>
         {/capture}
-        {/strip}
-
-        {strip}
         {capture assign="_saved_html"}
             <span class="s-message"><i class="icon16 yes"></i> [`Saved`]</span>
+        {/capture}
+        {capture assign="_prepare_html"}
+            <span class="s-message">[`Preparing`] ...</span>
         {/capture}
         {/strip}
 
@@ -697,6 +581,27 @@
             </div>
         {/capture}
 
+        {capture assign="_unsaved_data_dialog"}
+            <div class="dialog width500px height150px">
+                <div class="dialog-background"></div>
+                <div class="dialog-window">
+                    <div class="dialog-content">
+                        <div class="dialog-content-indent">
+                            <h2>[`This page contains unsaved changes.`]</h2>
+                            <p>[`You are about to leave this page without saving your changes. Are you sure?`]</p>
+                        </div>
+                    </div>
+                    <div class="dialog-buttons">
+                        <div class="dialog-buttons-gradient">
+                            <a class="js-submit button red" href="javascript:void(0);">[`Yes`]</a>
+                            [`or`]
+                            <a class="js-cancel" href="javascript:void(0);">[`cancel`]</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {/capture}
+
         <script>
             ( function($) { "use strict";
                 var sources = [{
@@ -711,6 +616,14 @@
                     id: "wa-content-color-picker-css",
                     type: "css",
                     uri: "{$wa_url}wa-content/js/farbtastic/farbtastic.css?v={$wa->version(true)}"
+                },{
+                    id: "wa-content-ibutton-js",
+                    type: "js",
+                    uri: "{$wa_url}wa-content/js/jquery-plugins/ibutton/jquery.ibutton.min.js?v={$wa->version(true)}"
+                },{
+                    id: "wa-content-ibutton-css",
+                    type: "css",
+                    uri: "{$wa_url}wa-content/js/jquery-plugins/ibutton/jquery.ibutton.min.css?v={$wa->version(true)}"
                 },{
                     id: "wa-content-tags-input-plugin-js",
                     type: "js",
@@ -738,9 +651,11 @@
                             "hint": {$_hint_template|strip|json_encode},
                             "saving": {$_saving_html|json_encode},
                             "saved": {$_saved_html|json_encode},
+                            "prepare": {$_prepare_html|json_encode},
                             "clone_confirm": {$_clone_confirm|json_encode},
                             "delete_confirm": {$_delete_confirm|json_encode},
-                            "new_rule_template": {$_new_rule_template|json_encode}
+                            "new_rule_template": {$_new_rule_template|json_encode},
+                            "unsaved_data_dialog": {$_unsaved_data_dialog|json_encode}
                         },
                         locales: {
                             "days": {_w("d")|json_encode},
@@ -753,6 +668,7 @@
                             "server_error": {_w("Server error")|json_encode}
                         },
                         urls: {
+                            "backend_url": {$wa_backend_url|json_encode},
                             "marketing_url": {$marketing_url|json_encode},
                             "submit": "{$marketing_url}?module=marketingPromoSave",
                             "orders": "{$marketing_url}?module=marketingPromoOrders",
@@ -827,7 +743,7 @@
 
     <script>
         ( function($) {
-            $.shop.marketing.setTitle({$_title|json_encode});
+            $.shop.marketing.setTitle({$_name|json_encode});
         })(jQuery);
     </script>
 </div>

@@ -62,6 +62,7 @@ var OrderRefundSection = ( function($) {
                         .find("input:not(.is-disabled)").attr("disabled", true);
 
                     $total_price.html(that.total_price);
+                    that.$submit_button.attr("disabled", false);
 
                 } else {
                     that.$products.show()
@@ -183,6 +184,8 @@ var OrderRefundSection = ( function($) {
 
                 total_price += product_price;
             });
+
+            that.$submit_button.attr("disabled", !(total_price > 0));
 
             $total_price.html( formatPrice(total_price) );
         }

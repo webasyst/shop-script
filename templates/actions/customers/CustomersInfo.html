@@ -114,9 +114,9 @@
                 {if $total_paid_num > 0}
                     {$total_paid_str}
                     {if $days_ago < 1}
-                        <span class="hint">[`Today`]</span>
+                        <span class="hint">[`Last paid order: today`]</span>
                     {else}
-                        <span class="hint">{_w('Last order %d day ago', 'Last order %d days ago', $days_ago)}</span>
+                        <span class="hint">{_w('Last paid order: %d day ago', 'Last paid order: %d days ago', $days_ago)}</span>
                     {/if}
                 {else}
                     [`No paid orders yet`]

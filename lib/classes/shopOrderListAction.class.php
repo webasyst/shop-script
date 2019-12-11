@@ -55,6 +55,18 @@ class shopOrderListAction extends waViewAction
         return $this->collection->count();
     }
 
+    /**
+     * Get distinct field values of order list
+     * Be sure field_id input not involve any injection - check $field_id from user OR use static predefined const
+     *
+     * @param string $field_id
+     * @return array
+     */
+    public function getDistinctOrderFieldValues($field_id)
+    {
+        return $this->collection->getDistinctFieldValues($field_id);
+    }
+
     public function getListView()
     {
         $default_view = $this->getConfig()->getOption('orders_default_view');

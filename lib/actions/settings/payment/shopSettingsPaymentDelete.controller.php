@@ -12,6 +12,14 @@ class shopSettingsPaymentDeleteController extends waJsonController
                 $settings_model = new shopPluginSettingsModel();
                 $settings_model->del($plugin['id'], null);
                 $model->deleteById($plugin['id']);
+
+                $log_params = array(
+                    'id' => $plugin['id'],
+                    'plugin' => $plugin['plugin']
+                );
+
+                $this->logAction('payment_plugin_delete', $log_params);
+
             } else {
                 throw new waException("Payment plugin {$plugin_id} not found", 404);
             }

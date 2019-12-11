@@ -2,6 +2,9 @@
     {if empty($rule_type)}
         [`Please specify a tool type.`]
 
+    {elseif $rule_type === "banner"}
+        {include file="./rules/banner.html" inline}
+
     {elseif $rule_type === "custom_price"}
         {include file="./rules/custom_price.html" inline}
 

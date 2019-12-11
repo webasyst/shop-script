@@ -576,7 +576,7 @@ class shopFrontendProductAction extends shopFrontendAction
         $config = wa('shop')->getConfig();
 
         $res['og'] = array(
-            'og:type'                => 'og:product',
+            'og:type'                => 'website',
             'og:title'               => $res['meta_title'],
             'og:description'         => $res['meta_description'],
             'og:image'               => $image_url,

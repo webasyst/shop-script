@@ -21,7 +21,8 @@ $request_file = $app_config->getRequestUrl(true, true);
 $request_file = preg_replace("@^thumb\.php/?@", '', $request_file);
 
 // /wa-data/public/shop/promos/194.96x96.jpg
-$image_pattern = '#^(\d+)\.((\d+)(?:x(\d+))?)(@2x)?\.([a-z]{3,4})$#i';
+// /wa-data/public/shop/promos/01/00/1/promo_5ddd20618dc48316776691.96x96.jpg
+$image_pattern = '~^([0-9a-zа-яё\/\-\_\%]+)\.((\d+)(?:x(\d+))?)(@2x)?\.([a-z]{3,4})$~ui';
 
 if (preg_match($image_pattern, $request_file, $matches)) {
 

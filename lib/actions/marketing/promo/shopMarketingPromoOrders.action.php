@@ -26,10 +26,14 @@ class shopMarketingPromoOrdersAction extends shopMarketingViewAction
         ]));
 
         $this->view->assign(array(
-            'orders'          => $orders,
-            'page'            => $this->getPage(),
-            'pages_count'     => $this->getPagesCount(),
-            'additional_html' => $additional_html,
+            'orders'             => $orders,
+            'orders_total_count' => $this->getCollection()->count(),
+            'orders_total_sum'   => $this->getCollection()->getSum(),
+            'orders_paid_count'  => $this->getCollection()->getTotalPaidNum(),
+            'orders_paid_sum'    => $this->getCollection()->getTotalPaidSum(),
+            'page'               => $this->getPage(),
+            'pages_count'        => $this->getPagesCount(),
+            'additional_html'    => $additional_html,
         ));
     }
 
@@ -40,7 +44,7 @@ class shopMarketingPromoOrdersAction extends shopMarketingViewAction
     protected function getOrders()
     {
         if ($this->orders === null) {
-            $this->orders = array();
+            $this->orders = [];
             try {
                 $this->orders = $this->obtainOrders();
             } catch (waException $e) {

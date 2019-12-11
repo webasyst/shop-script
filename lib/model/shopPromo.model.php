@@ -13,8 +13,6 @@ class shopPromoModel extends waModel
         $promo = $this->getById($id);
 
         if (!empty($promo)) {
-            $promo['image_url'] = shopHelper::getPromoImageUrl($promo['id'], $promo['ext']);
-
             $promo_routes_model = new shopPromoRoutesModel();
             $routes = $promo_routes_model->getByField('promo_id', $promo['id'], 'storefront');
             $promo['routes'] = $routes;
@@ -40,13 +38,42 @@ class shopPromoModel extends waModel
         (new shopPromoRulesModel())->deleteByField(['promo_id' => $promo_id]);
         (new shopPromoOrdersModel())->deleteByField(['promo_id' => $promo_id]);
 
-        if (!empty($promo['ext']) && !empty($promo['image_url'])) {
-            $promo_image_path = wa('shop')->getDataPath('promos/'.$promo['id'].'.'.$promo['ext'], true, 'shop', false);
-            if (file_exists($promo_image_path)) {
-                try {
-                    waFiles::delete($promo_image_path);
-                } catch (Exception $e) {
+        // Remove promo banners from disk
+        if (empty($promo['rules'])) {
+            return;
+        }
 
+        $banners = [];
+        foreach ($promo['rules'] as $rule) {
+            if ($rule['rule_type'] == 'banner' && !empty($rule['rule_params']['banners'])) {
+                foreach ($rule['rule_params']['banners'] as $banner) {
+                    $banners[] = $banner;
+                }
+            }
+        }
+
+        if (empty($banners)) {
+            return;
+        }
+
+        $flat_images_dir = wa('shop')->getDataPath('promos/', true);
+        $flat_dir_files = waFiles::listdir($flat_images_dir);
+        $promo_banners_folder = shopHelper::getFolderById($promo['id']);
+
+        try {
+            // Remove promo banner images dir
+            waFiles::delete($flat_images_dir.$promo_banners_folder, true);
+        } catch (waException $e) { }
+
+        // Remove promo banners for flat dir
+        foreach ($banners as $banner) {
+            $banner_image_path = shopPromoBannerHelper::getPromoBannerFolder($promo['id'], $banner['image_filename']);
+            if (empty($banner_image_path)) {
+                $filename_regexp = shopPromoBannerHelper::getFilenameRegexp($banner['image_filename']);
+                foreach ($flat_dir_files as $file) {
+                    if (preg_match($filename_regexp, $file)) {
+                        waFiles::delete($flat_images_dir.$file, true);
+                    }
                 }
             }
         }
@@ -63,6 +90,13 @@ class shopPromoModel extends waModel
 
         $joins = $cond = $vars = [];
 
+        // Filter by id
+        if (!empty($params['id'])) {
+            $cond[] = 'p.id IN (:id)';
+            $vars['id'] = (array)$params['id'];
+        }
+
+        // Filter by storefront
         if (!empty($params['storefront']) && is_scalar($params['storefront'])) {
             $storefront = $params['storefront'];
             $storefronts = [
@@ -75,6 +109,7 @@ class shopPromoModel extends waModel
             $cond[] = "r.storefront IN (:storefronts)";
         }
 
+        // Filter by rule type
         if (!empty($params['rule_type'])) {
             $rule_types = (array)$params['rule_type'];
             $vars['rule_types'] = $rule_types;
@@ -84,8 +119,8 @@ class shopPromoModel extends waModel
 
         $vars['datetime'] = date('Y-m-d H:i:s');
 
+        // Status and order
         $order_by = 'ORDER BY p.id ASC';
-
         $status = ifempty($params, 'status', null);
         if ($status === self::STATUS_ACTIVE) {
             $cond[] = "(p.start_datetime IS NULL OR p.start_datetime <= :datetime)";
@@ -102,13 +137,14 @@ class shopPromoModel extends waModel
             $order_by = "ORDER BY p.finish_datetime DESC";
         }
 
+        // Paused
         if (!empty($params['ignore_paused'])) {
             $cond[] = "(p.enabled != 0)";
         }
 
         // Order completed promos
         if ($status === self::STATUS_COMPLETED && !empty($params['sort']['field'])) {
-            $fields_for_sort = ['title', 'start_datetime', 'finish_datetime', 'orders_count'];
+            $fields_for_sort = ['name', 'start_datetime', 'finish_datetime', 'orders_count'];
             if (in_array($params['sort']['field'], $fields_for_sort)) {
                 $sort_field = $params['sort']['field'];
             }
@@ -199,24 +235,48 @@ class shopPromoModel extends waModel
             }
         }
 
+        $promo_rules_model = new shopPromoRulesModel();
+        $promo_rules = null;
+        $promo_rules_fields = ['promo_id'  => $promo_ids];
+        if (!empty($params['rule_type'])) {
+            $promo_rules_fields['rule_type'] = $params['rule_type'];
+        }
+
         if (!empty($params['with_rules'])) {
-            $promo_rules_model = new shopPromoRulesModel();
-            $promo_rules = $promo_rules_model->getByField('promo_id', $promo_ids, 'id');
+            $promo_rules = $promo_rules_model->getByField($promo_rules_fields, 'id');
             foreach ($promo_rules as $rule) {
                 $promos[$rule['promo_id']]['rules'][$rule['id']] = $rule;
             }
+        }
+
+        if (!empty($params['with_images']) && $promo_rules === null) {
+            $promo_rules_fields['rule_type'] = 'banner';
+            $promo_rules = $promo_rules_model->getByField($promo_rules_fields, 'id');
         }
 
         foreach ($promos as &$promo) {
             $promo['id'] = (int)$promo['id'];
 
             if (!empty($params['with_images'])) {
-                $promo['image_url'] = shopHelper::getPromoImageUrl($promo['id'], $promo['ext']);
+                foreach(['image', 'color', 'background_color'] as $k) {
+                    $promo[$k] = null;
+                }
+                foreach ($promo_rules as $promo_rule) {
+                    if ($promo_rule['promo_id'] == $promo['id'] && $promo_rule['rule_type'] == 'banner' && !empty($promo_rule['rule_params']['banners'][0]['image'])) {
+                        foreach(['image', 'color', 'background_color'] as $k) {
+                            $promo[$k] = $promo_rule['rule_params']['banners'][0][$k];
+                        }
+                        continue 2;
+                    }
+                }
             }
         }
         unset($promo);
     }
 
+    /**
+     * @deprecated use getList() instead
+     */
     public function getByStorefront($storefront, $type='link', $enable_status = null)
     {
         if (!$storefront) {
@@ -237,9 +297,9 @@ class shopPromoModel extends waModel
         if ($enable_status === null) {
             $sql = str_replace(':enable', '', $sql);
         } else if ($enable_status) {
-            $sql = str_replace(':enable', 'AND p.enabled > 0', $sql);
+            $sql = str_replace(':enable', 'AND p.enabled != 0', $sql);
         } else {
-            $sql = str_replace(':enable', 'AND p.enabled <= 0', $sql);
+            $sql = str_replace(':enable', 'AND p.enabled = 0', $sql);
         }
 
         $storefronts = array(

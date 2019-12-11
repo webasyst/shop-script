@@ -2,6 +2,8 @@
 
 class shopMarketingPromoSaveController extends waJsonController
 {
+    const DATETIME_FORMAT = 'Y-m-d H:i:s';
+
     /**
      * @var shopPromoModel
      */
@@ -38,11 +40,6 @@ class shopMarketingPromoSaveController extends waJsonController
     protected $storefronts_data;
 
     /**
-     * @var waRequestFileIterator
-     */
-    protected $file;
-
-    /**
      * Array of rules that the user edited
      * @var array
      */
@@ -72,6 +69,8 @@ class shopMarketingPromoSaveController extends waJsonController
 
     protected $utm_fields = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
 
+    private $dir_files;
+
     public function preExecute()
     {
         // Models
@@ -95,9 +94,6 @@ class shopMarketingPromoSaveController extends waJsonController
 
         // Routes
         $this->storefronts_data = waRequest::post('storefronts', [], waRequest::TYPE_ARRAY_TRIM);
-
-        // Banner
-        $this->file = waRequest::file('image');
     }
 
     public function execute()
@@ -117,7 +113,6 @@ class shopMarketingPromoSaveController extends waJsonController
         }
 
         $this->savePromo();
-        $this->saveImage();
         $this->saveRules();
         $this->saveRoutes();
 
@@ -136,13 +131,12 @@ class shopMarketingPromoSaveController extends waJsonController
     {
         $this->validatePromo();
         $this->validateStorefronts();
-        $this->validateImage();
         $this->validateRules();
     }
 
     protected function validatePromo()
     {
-        $required_fields = ['link'];
+        $required_fields = ['name'];
 
         foreach ($required_fields as $field) {
             if (empty($this->promo_data[$field]) || (is_scalar($this->promo_data[$field]) && empty(trim($this->promo_data[$field])))) {
@@ -188,31 +182,45 @@ class shopMarketingPromoSaveController extends waJsonController
     {
         $parse_rule_errors = function ($errors, $type = 'edit') {
             foreach ($errors as $rule_id => $rule_errors) {
-                foreach ($rule_errors as $error) {
-                    if (!empty($error['field'])) {
-                        $error_field = (stripos($error['field'], '[') === 0) ? $error['field'] : "[{$error['field']}]";
-
+                foreach ($rule_errors as $rule_error) {
+                    if (!empty($rule_error['field'])) {
+                        $error_field = (stripos($rule_error['field'], '[') === 0) ? $rule_error['field'] : "[{$rule_error['field']}]";
                         $field_name = "rules[{$rule_id}][rule_params]{$error_field}";
                         if ($type == 'new') {
                             $field_name = "rules[new][{$rule_id}][rule_params]{$error_field}";
                         }
 
-                        $this->errors[] = [
+                        $error = [
                             'name' => $field_name,
-                            'text' => $error['text'],
+                            'text' => $rule_error['text'],
                         ];
+
+                        if (!empty($rule_error['data'])) {
+                            $error['data'] = $rule_error['data'];
+                        }
+
+                        $this->errors[] = $error;
                     }
-                    if (!empty($error['id'])) {
+
+                    if (!empty($rule_error['id'])) {
                         $error_rule_name = "rules[{$rule_id}]";
                         if ($type == 'new') {
                             $error_rule_name = "rules[new][{$rule_id}]";
                         }
 
-                        $this->errors[] = [
-                            'id'   => (string)$error['id'],
+                        $error = [
+                            'id'   => (string)$rule_error['id'],
                             'rule' => $error_rule_name,
-                            'text' => $error['text'],
+                            'text' => $rule_error['text'],
                         ];
+
+                        if (!empty($rule_error['rule_data'])) {
+                            $error['rule_data'] = $rule_error['rule_data'];
+                            $error['rule_data']['rule_id'] = $rule_id;
+                            $error['rule_data']['rule_id_type'] = $type;
+                        }
+
+                        $this->errors[] = $error;
                     }
                 }
             }
@@ -227,7 +235,7 @@ class shopMarketingPromoSaveController extends waJsonController
         $parse_rule_errors($new_rules_errors, 'new');
     }
 
-    protected function validateRulesList($rules)
+    protected function validateRulesList(&$rules)
     {
         $validate_rule = function ($rule_type) {
             // Validate type
@@ -255,17 +263,20 @@ class shopMarketingPromoSaveController extends waJsonController
         };
 
         $validate_method = function ($rule_type) {
-            $part_of_name = '';
-            foreach (explode('_', $rule_type) as $part) {
-                $part_of_name .= ucfirst($part);
-            }
+            $part_of_name = $this->getRuleMethodPart($rule_type);
 
+            /**
+             * @uses shopMarketingPromoSaveController::validateBannerRule()
+             * @uses shopMarketingPromoSaveController::validateCustomPriceRule()
+             * @uses shopMarketingPromoSaveController::validateUtmRule()
+             * @uses shopMarketingPromoSaveController::validateCouponRule()
+             */
             $method_name = "validate{$part_of_name}Rule";
             return $method_name;
         };
 
         $errors = [];
-        foreach ($rules as $rule_id => $rule) {
+        foreach ($rules as $rule_id => &$rule) {
             $rule_errors = [];
             $rule_type_error = $validate_rule($rule['rule_type']);
             if (!empty($rule_type_error)) {
@@ -285,31 +296,96 @@ class shopMarketingPromoSaveController extends waJsonController
 
             $errors[$rule_id] = $rule_errors;
         }
+        unset($rule);
 
         return $errors;
+    }
+
+    protected function validateBannerRule(&$rule)
+    {
+        $cache_dir = $this->getPromoBannerCacheDir();
+        $rule_errors = [];
+
+        if (empty($rule['rule_params']['banners']) || !is_array($rule['rule_params']['banners'])) {
+            $rule_errors[] = [
+                'id'    => 'rule_error',
+                'text'  => _w('Add at least one banner'),
+            ];
+            return $rule_errors;
+        }
+
+        // Validate countdown datetime
+        foreach ($rule['rule_params']['banners'] as $i => &$banner) {
+            if (empty($banner['image_filename']) && empty($banner['old_image_filename'])) {
+                $rule_errors[] = [
+                    'id'        => 'rule_error',
+                    'text'      => _w('Upload a banner'),
+                    'rule_data' => [
+                        'banner_id'  => $i,
+                        'error_code' => 'invalid_banner_file'
+                    ],
+                ];
+            }
+
+            if (!empty($banner['image_filename']) && !file_exists($cache_dir.$banner['image_filename'])) {
+                $rule_errors[] = [
+                    'id'        => 'rule_error',
+                    'text'      => _w('Banner has not been uploaded.'),
+                    'rule_data' => [
+                        'banner_id'  => $i,
+                        'error_code' => 'banner_file_invalid'
+                    ],
+                ];
+            }
+
+            if (!empty($banner['countdown_datetime'])) {
+                $d = ifempty($banner, 'countdown_datetime', 'date', '0000-00-00');
+                $h = ifempty($banner, 'countdown_datetime', 'hour', '23');
+                $m = ifempty($banner, 'countdown_datetime', 'minute', '59');
+                $countdown_datetime = "{$d} {$h}:{$m}:00";
+                $countdown_time = strtotime($countdown_datetime);
+                $current_time = time();
+                if ($countdown_time && $countdown_time > $current_time) {
+                    $banner['countdown_datetime'] = waDateTime::parse(self::DATETIME_FORMAT, date(self::DATETIME_FORMAT, $countdown_time));
+                } else {
+                    $rule_errors[] = [
+                        'id'        => 'rule_error',
+                        'text'      => _w('Invalid date or time'),
+                        'rule_data' => [
+                            'banner_id'  => $i,
+                            'error_code' => 'countdown_invalid'
+                        ],
+                    ];
+                }
+            } else {
+                $banner['countdown_datetime'] = null;
+            }
+        }
+        unset($banner);
+
+        return $rule_errors;
     }
 
     protected function validateCustomPriceRule($rule)
     {
         $rule_errors = [];
 
-        $custom_prices_is_empty = true;
-        if (!empty($rule['rule_params'])) {
-            foreach ($rule['rule_params'] as $product_id => $product_data) {
-                $product_skus = ifempty($product_data, 'skus', []);
-                foreach ($product_skus as $sku_id => $prices) {
-                    if (!empty($prices['price']) || !empty($prices['compare_price'])) {
-                        $custom_prices_is_empty = false;
-                    }
-                }
-            }
-        }
-
-        if ($custom_prices_is_empty) {
+        if (empty($rule['rule_params']) || !is_array($rule['rule_params'])) {
             $rule_errors[] = array(
                 'id'    => 'rule_error',
-                'text'  => _w('Override the price of at least one product.'),
+                'text'  => _w('Add at least one product to participate in the promo.'),
             );
+
+            return $rule_errors;
+        }
+
+        foreach ($rule['rule_params'] as $product_id => $product_data) {
+            if (empty($product_data['skus'])) {
+                $rule_errors[] = array(
+                    'id'    => 'rule_error',
+                    'text'  => _w('Add at least one product SKU to participate in the promo.'),
+                );
+            }
         }
 
         return $rule_errors;
@@ -360,60 +436,19 @@ class shopMarketingPromoSaveController extends waJsonController
         return $rule_errors;
     }
 
-    protected function validateImage()
-    {
-        if (!$this->promo_id && !$this->file->count()) {
-            $this->errors[] = [
-                'name' => 'image',
-                'text' => _w('An image must be uploaded.'),
-            ];
-            return;
-        }
-
-        if (!$this->file->count()) {
-            return;
-        }
-
-        // Make sure the file has correct extension
-        $valid_extension = ['jpg', 'jpeg', 'png', 'gif'];
-        $ext = strtolower($this->file->extension);
-
-        if (!in_array($ext, $valid_extension)) {
-            $this->errors[] = [
-                'name' => 'image',
-                'text' => _w('Files with extensions *.gif, *.jpg, *.jpeg, *.png are allowed only.'),
-            ];
-
-            return;
-        }
-
-        // Make sure it's an image
-        try {
-            $this->file->waImage();
-        } catch (Exception $e) {
-            $this->errors[] = [
-                'name' => 'image',
-                'text' =>_ws('Not an image or invalid image:').' '.$this->file->name.': '.$e->getMessage(),
-            ];
-
-            return;
-        }
-    }
-
     //
     // Prepare
     //
 
     protected function prepareDateTimes()
     {
-        $datetime_format = 'Y-m-d H:i:s';
         if (!empty($this->promo_data['start_date'])) {
             $d = $this->promo_data['start_date'];
             $t = ifempty($this->promo_data, 'start_time', '00:00');
             $start_datetime = "{$d} {$t}:00";
             $start_time = strtotime($start_datetime);
             if ($start_time && $start_time > 0) {
-                $this->promo_data['start_datetime'] = waDateTime::parse($datetime_format, date($datetime_format, $start_time));
+                $this->promo_data['start_datetime'] = waDateTime::parse(self::DATETIME_FORMAT, date(self::DATETIME_FORMAT, $start_time));
             } else {
                 $this->errors[] = [
                     'name' =>  'promo[start_time]',
@@ -428,32 +463,13 @@ class shopMarketingPromoSaveController extends waJsonController
             $finish_datetime = "{$d} {$t}:00";
             $finish_time = strtotime($finish_datetime);
             if ($finish_time && $finish_time > 0) {
-                $this->promo_data['finish_datetime'] = waDateTime::parse($datetime_format, date($datetime_format, $finish_time));
+                $this->promo_data['finish_datetime'] = waDateTime::parse(self::DATETIME_FORMAT, date(self::DATETIME_FORMAT, $finish_time));
             } else {
                 $this->errors[] = [
                     'name' => 'promo[finish_time]',
                     'text' => _w('Invalid date or time'),
                 ];
             }
-        }
-
-        if (!empty($this->promo_data['countdown_datetime'])) {
-            $d = ifempty($this->promo_data, 'countdown_datetime', 'date', '0000-00-00');
-            $h = ifempty($this->promo_data, 'countdown_datetime', 'hour', '23');
-            $m = ifempty($this->promo_data, 'countdown_datetime', 'minute', '59');
-            $countdown_datetime = "{$d} {$h}:{$m}:00";
-            $countdown_time = strtotime($countdown_datetime);
-            $current_time = time();
-            if ($countdown_time && $countdown_time > $current_time) {
-                $this->promo_data['countdown_datetime'] = waDateTime::parse($datetime_format, date($datetime_format, $countdown_time));
-            } else {
-                $this->errors[] = [
-                    'name' => 'promo[countdown_datetime][date]',
-                    'text' => _w('Invalid date or time'),
-                ];
-            }
-        } else {
-            $this->promo_data['countdown_datetime'] = null;
         }
     }
 
@@ -469,12 +485,6 @@ class shopMarketingPromoSaveController extends waJsonController
     {
         $this->promo_data['enabled'] = (int)ifset($this->promo_data, 'enabled', 0);
 
-        $this->promo_data['type'] = 'link'; // TODO !!!
-
-        if ($this->file->count()) {
-            $this->promo_data['ext'] = $this->file->extension;
-        }
-
         $this->promo_data['start_datetime'] = ifempty($this->promo_data, 'start_datetime', null);
         $this->promo_data['finish_datetime'] = ifempty($this->promo_data, 'finish_datetime', null);
     }
@@ -484,7 +494,20 @@ class shopMarketingPromoSaveController extends waJsonController
         // Get rid of the rules in memory that the user decided to delete.
         if (!empty($this->delete_rule_ids)) {
             foreach ($this->delete_rule_ids as $delete_rule_id) {
-                unset($this->old_rules[$delete_rule_id]);
+                if (!empty($this->old_rules[$delete_rule_id])) {
+                    $delete_rule = $this->old_rules[$delete_rule_id];
+                    $part_of_name = $this->getRuleMethodPart($delete_rule['rule_type']);
+                    $method_name = "delete{$part_of_name}Rule";
+
+                    /**
+                     * @uses shopMarketingPromoSaveController::deleteBannerRule();
+                     */
+                    if (method_exists($this, $method_name)) {
+                        $this->$method_name($delete_rule);
+                    }
+
+                    unset($this->old_rules[$delete_rule_id]);
+                }
             }
         }
 
@@ -501,6 +524,7 @@ class shopMarketingPromoSaveController extends waJsonController
 
         // Clear ids from old rules.
         foreach ($this->old_rules as &$old_rule) {
+            $old_rule['is_old'] = true;
             unset($old_rule['id']);
         }
         unset($old_rule);
@@ -511,10 +535,12 @@ class shopMarketingPromoSaveController extends waJsonController
         $rules = array_merge($this->old_rules, $this->edited_rules, $this->new_rules);
 
         foreach ($rules as &$rule) {
-            $part_of_name = '';
-            foreach (explode('_', $rule['rule_type']) as $part) {
-                $part_of_name .= ucfirst($part);
-            }
+            $part_of_name = $this->getRuleMethodPart($rule['rule_type']);
+
+            /**
+             * @uses shopMarketingPromoSaveController::prepareCustomPriceRule();
+             * @uses shopMarketingPromoSaveController::prepareUtmRule();
+             */
             $method_name = "prepare{$part_of_name}Rule";
             if (method_exists($this, $method_name)) {
                 $this->$method_name($rule);
@@ -534,13 +560,14 @@ class shopMarketingPromoSaveController extends waJsonController
                     (!isset($prices['price']) || !strlen($prices['price'])) &&
                     (!isset($prices['compare_price']) || !strlen($prices['compare_price']))
                 ) {
-                    unset($rule['rule_params'][$product_id]['skus'][$sku_id]);
+                    // Just save empty sku, with out prices;
+                    $rule['rule_params'][$product_id]['skus'][$sku_id] = [];
                     continue;
                 }
 
                 $rule['rule_params'][$product_id]['skus'][$sku_id] = [
-                    'price'         => isset($prices['price']) ? (string)(float)$prices['price'] : null,
-                    'compare_price' => isset($prices['compare_price']) ? (string)(float)$prices['compare_price'] : null,
+                    'price'         => isset($prices['price']) ? (string)(float)str_replace(',', '.', $prices['price']) : null,
+                    'compare_price' => isset($prices['compare_price']) ? (string)(float)str_replace(',', '.', $prices['compare_price']) : null,
                 ];
             }
 
@@ -580,26 +607,6 @@ class shopMarketingPromoSaveController extends waJsonController
         }
     }
 
-    protected function saveImage()
-    {
-        if (!$this->file->count()) {
-            return;
-        }
-
-        $path = wa('shop')->getDataPath('promos/', true);
-        $filepath = $path.sprintf('%s.%s', $this->promo_id, $this->file->extension);
-
-        $files = waFiles::listdir($path);
-        $pattern = sprintf('~^%d\.~', $this->promo_id);
-        foreach ($files as $file) {
-            if (preg_match($pattern, $file)) {
-                waFiles::delete($path.$file);
-            }
-        }
-
-        $this->file->moveTo($filepath);
-    }
-
     protected function saveRules()
     {
         // Delete old promo rules
@@ -608,7 +615,17 @@ class shopMarketingPromoSaveController extends waJsonController
         // Save promo rules
         if (!empty($this->promo_rules)) {
             $promo_rules = [];
-            foreach ($this->promo_rules as $promo_rule) {
+            foreach ($this->promo_rules as $i => $promo_rule) {
+                $part_of_name = $this->getRuleMethodPart($promo_rule['rule_type']);
+
+                /**
+                 * @uses shopMarketingPromoSaveController::saveBannerRule();
+                 */
+                $method_name = "save{$part_of_name}Rule";
+                if (method_exists($this, $method_name)) {
+                    $this->$method_name($promo_rule);
+                }
+
                 $promo_rule = [
                     'promo_id'    => $this->promo_id,
                     'rule_type'   => $promo_rule['rule_type'],
@@ -623,6 +640,46 @@ class shopMarketingPromoSaveController extends waJsonController
             }
 
             $this->promo_rules_model->multipleInsert($promo_rules);
+        }
+    }
+
+    protected function saveBannerRule(&$rule)
+    {
+        // Executable only if the tool was created or edited.
+        if (!empty($rule['is_old'])) {
+            return;
+        }
+
+        $cache_dir = $this->getPromoBannerCacheDir();
+
+        foreach ($rule['rule_params']['banners'] as $i => &$banner) {
+            $banner['type'] = 'link'; // TODO !!!
+            // Once we’ve uploaded the image, we’ll move it to the directory for the current promo
+            if (!empty($banner['image_filename'])) {
+                $new_filename = $banner['image_filename'];
+                $new_image_path = shopPromoBannerHelper::getPromoBannerPath($this->promo_id, $new_filename);
+                waFiles::move($cache_dir.$new_filename, $new_image_path);
+
+                // If earlier there was a different image for the banner - delete it and all its resizes.
+                if (!empty($banner['old_image_filename'])) {
+                    $this->removeBannerImage($banner['old_image_filename']);
+                }
+            } elseif (!empty($banner['old_image_filename'])) {
+                // If there is no new image for this banner, just keep it up to date.
+                $banner['image_filename'] = $banner['old_image_filename'];
+            }
+
+            unset($banner['old_image_filename']);
+        }
+        unset($banner);
+
+        //
+        // Remove unused images from disk
+        //
+        if (!empty($rule['rule_params']['remove_images'])) {
+            foreach ($rule['rule_params']['remove_images'] as $filename) {
+                $this->removeBannerImage($filename);
+            }
         }
     }
 
@@ -643,8 +700,64 @@ class shopMarketingPromoSaveController extends waJsonController
     }
 
     //
+    // Delete
+    //
+
+    protected function deleteBannerRule($rule)
+    {
+        if (!empty($rule['rule_params']['banners'])) {
+            foreach ($rule['rule_params']['banners'] as $banner) {
+                $this->removeBannerImage($banner['image_filename']);
+            }
+        }
+    }
+
+    //
     // Helpers
     //
+
+    private function getPromoBannerCacheDir()
+    {
+        return wa()->getAppCachePath('promo/', 'shop');
+    }
+
+    private function getDirFiles($dir_path)
+    {
+        if (empty($this->dir_files[$dir_path])) {
+            $this->dir_files[$dir_path] = waFiles::listdir($dir_path);
+        }
+
+        return $this->dir_files[$dir_path];
+    }
+
+    private function removeBannerImage($filename)
+    {
+        $filename_regexp = shopPromoBannerHelper::getFilenameRegexp($filename);
+
+        $promo_folder = shopHelper::getFolderById($this->promo_id);
+        $flat_images_dir = wa('shop')->getDataPath('promos/', true);
+        $promo_images_dir = $flat_images_dir.$promo_folder;
+
+        $file_folder = shopPromoBannerHelper::getPromoBannerFolder($this->promo_id, $filename);
+
+        $image_dir = !empty($file_folder) ? $promo_images_dir : $flat_images_dir;
+        $image_dir_files = $this->getDirFiles($image_dir);
+
+        foreach ($image_dir_files as $file) {
+            if (preg_match($filename_regexp, $file)) {
+                waFiles::delete($image_dir.$file, true);
+            }
+        }
+    }
+
+    private function getRuleMethodPart($rule_type)
+    {
+        $part_of_name = '';
+        foreach (explode('_', $rule_type) as $part) {
+            $part_of_name .= ucfirst($part);
+        }
+        return $part_of_name;
+    }
 
     protected function getStorefronts($promo_id = null)
     {

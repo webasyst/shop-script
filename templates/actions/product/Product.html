@@ -118,7 +118,7 @@
                     <ul class="s-product-promos-list menu-v compact with-icons">
                         {foreach $product_promos as $_promo}
                             <li class="s-product-promo js-product-promo" {if $_promo@iteration > $_limit}style="display: none;"{/if}>
-                                <a href="{$wa_app_url}marketing/promo/{$_promo.id|escape}/"><i class="icon16 ss promo"></i>{$_promo.title|default:"Promo"|escape}</a>
+                                <a href="{$wa_app_url}marketing/promo/{$_promo.id|escape}/"><i class="icon16 ss promo"></i>{$_promo.name|default:"Promo"|escape}</a>
                             </li>
                         {/foreach}
                     </ul>
@@ -144,7 +144,7 @@
                 </div>
             {/if}
 
-            {if $edit_rights > 1 || $product.contact_id == $wa->userId()}
+            {if $can_delete}
                 <div id="s-product-delete" style="margin-top: 20px;">
                     <ul class="menu-h with-icons">
                         <li><a href="#/product/{$product.id}/edit/main/product/delete/" class="inline-link js-action"><i class="icon16 delete"></i>[`Delete product`]</a></li>
@@ -155,7 +155,6 @@
             <!-- plugin hook: 'backend_product.toolbar_section' -->
             {* @event backend_product.%plugin_id%.toolbar_section *}
             {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.toolbar_section)}{/foreach}{/if}
-
 
 
         </div>

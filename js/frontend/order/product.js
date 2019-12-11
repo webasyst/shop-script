@@ -399,9 +399,9 @@
 
             // Render Compare
             if (compare_price > 0) {
-                $compare.removeClass(hidden_class);
+                $compare.show();
             } else {
-                $compare.addClass(hidden_class);
+                $compare.hide();
             }
 
             //

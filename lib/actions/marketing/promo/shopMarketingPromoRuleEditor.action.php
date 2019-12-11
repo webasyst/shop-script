@@ -44,6 +44,11 @@ class shopMarketingPromoRuleEditorAction extends waViewAction
         foreach (explode('_', $this->rule_type) as $part) {
             $part_of_name .= ucfirst($part);
         }
+
+        /**
+         * @uses shopMarketingPromoRuleEditorAction::workupCustomPriceRule();
+         * @uses shopMarketingPromoRuleEditorAction::workupCouponRule();
+         */
         $method_name = "workup{$part_of_name}Rule";
         if (method_exists($this, $method_name)) {
             $this->$method_name();
@@ -64,7 +69,7 @@ class shopMarketingPromoRuleEditorAction extends waViewAction
         if (!empty($this->options['products_hash'])) {
             $collection = new shopProductsCollection($this->options['products_hash']);
             $new_products = $collection->getProducts('id,name,images,currency,skus', 0, 10000, false);
-            $products_data = array_merge($new_products, $products_data);
+            $products_data += $new_products;
         }
 
         $lambda_body = 'return strcasecmp(mb_strtolower($a["name"]), mb_strtolower($b["name"]));';

@@ -16,6 +16,9 @@ class shopMarketingPromosAction extends shopMarketingViewAction
         if ($storefront_filter && (empty($storefronts) || !in_array($storefront_filter, $storefronts))) {
             $storefront_filter = null;
         }
+        if (!$storefront_filter && count($storefronts) === 1) {
+            $storefront_filter = current($storefronts);
+        }
 
         $promo_model = new shopPromoModel();
 

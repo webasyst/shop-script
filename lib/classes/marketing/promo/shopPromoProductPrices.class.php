@@ -67,20 +67,21 @@ class shopPromoProductPrices
         foreach ($rules as $rule) {
             foreach ($rule['rule_params'] as $product_id => $product_data) {
                 if (empty($product_currencies[$product_id])) {
-                    continue 2;
+                    continue;
                 }
                 foreach ($product_data['skus'] as $sku_id => $sku) {
                     $promo_sku = ifempty($promo_skus, $product_id, $sku_id, null);
-                    if ($sku['price'] && (empty($promo_sku) || $promo_sku['price'] > $sku['price'])) {
+                    if ((!empty($sku['price']) || !empty($sku['compare_price'])) && (empty($promo_sku) || $promo_sku['price'] > $sku['price'])) {
+
                         $promo_skus[$product_id][$sku_id] = [
                             'promo_id'              => $rule['promo_id'],
                             'storefront'            => $this->storefront,
                             'product_id'            => $product_id,
                             'sku_id'                => $sku_id,
-                            'price'                 => (float)shop_currency($sku['price'], $product_data['currency'], $product_currencies[$product_id]['currency'], null),
-                            'primary_price'         => (float)shop_currency($sku['price'], $product_data['currency'], $this->shop_currency, null),
-                            'compare_price'         => (float)shop_currency($sku['compare_price'], $product_data['currency'], $product_currencies[$product_id]['currency'], null),
-                            'primary_compare_price' => (float)shop_currency($sku['compare_price'], $product_data['currency'], $this->shop_currency, null),
+                            'price'                 => empty($sku['price']) ? null : (float)shop_currency($sku['price'], $product_data['currency'], $product_currencies[$product_id]['currency'], null),
+                            'primary_price'         => empty($sku['price']) ? null : (float)shop_currency($sku['price'], $product_data['currency'], $this->shop_currency, null),
+                            'compare_price'         => empty($sku['compare_price']) ? null : (float)shop_currency($sku['compare_price'], $product_data['currency'], $product_currencies[$product_id]['currency'], null),
+                            'primary_compare_price' => empty($sku['compare_price']) ? null : (float)shop_currency($sku['compare_price'], $product_data['currency'], $this->shop_currency, null),
                         ];
                     }
                 }
@@ -164,29 +165,33 @@ class shopPromoProductPrices
                 }
                 // Main product price
                 if ($p['sku_id'] == $promo_sku_price['sku_id']) {
-                    if (isset($p['price'])) {
+                    if (isset($p['price']) && $promo_sku_price['primary_price'] !== null) {
                         $p['price'] = $promo_sku_price['primary_price'];
                     }
-                    if (isset($p['compare_price'])) {
+                    if (isset($p['compare_price']) && $promo_sku_price['primary_compare_price'] !== null) {
                         $p['compare_price'] = $promo_sku_price['primary_compare_price'];
                     }
                 }
-                // Min product price
-                if (isset($p['min_price']) && (float)$p['min_price'] > (float)$promo_sku_price['primary_price']) {
-                    $p['min_price'] = $promo_sku_price['primary_price'];
 
-                    // If the product has only one sku, then the maximum price will be the same
-                    if (isset($p['sku_count'])) {
-                        $p['max_price'] = $p['min_price'];
+                // Setup min/max price
+                if ($promo_sku_price['primary_price'] !== null ) {
+                    // Min product price
+                    if (isset($p['min_price']) && (float)$p['min_price'] > (float)$promo_sku_price['primary_price']) {
+                        $p['min_price'] = $promo_sku_price['primary_price'];
+
+                        // If the product has only one sku, then the maximum price will be the same
+                        if (isset($p['sku_count'])) {
+                            $p['max_price'] = $p['min_price'];
+                        }
                     }
-                }
-                // Max product price
-                if (isset($p['max_price']) && (float)$promo_sku_price['primary_price'] > (float)$p['max_price']) {
-                    $p['max_price'] = $promo_sku_price['primary_price'];
+                    // Max product price
+                    if (isset($p['max_price']) && (float)$promo_sku_price['primary_price'] > (float)$p['max_price']) {
+                        $p['max_price'] = $promo_sku_price['primary_price'];
 
-                    // If the product has only one sku, then the minimum price will be the same
-                    if (isset($p['sku_count']) && $p['sku_count'] == 1) {
-                        $p['min_price'] = $p['max_price'];
+                        // If the product has only one sku, then the minimum price will be the same
+                        if (isset($p['sku_count']) && $p['sku_count'] == 1) {
+                            $p['min_price'] = $p['max_price'];
+                        }
                     }
                 }
             }
@@ -216,12 +221,19 @@ class shopPromoProductPrices
                     $sku['is_promo'] = true;
                     $sku['used_promo_id'] = $promo_sku_price['promo_id'];
                     foreach ($price_fields as $k) {
-                        if (isset($sku[$k])) {
+                        if (isset($sku[$k]) && $promo_sku_price[$k] !== null) {
                             $sku['raw_'.$k] = $sku[$k];
                             $sku[$k] = $promo_sku_price[$k];
                         }
                     }
+                    break;
                 }
+            }
+
+            // Compare price should be greater than price.
+            // TODO: Do it everywhere before rounding prices!
+            if ($sku['compare_price'] && ($sku['price'] >= $sku['compare_price'])) {
+                $sku['compare_price'] = 0.0;
             }
         }
         unset($sku);

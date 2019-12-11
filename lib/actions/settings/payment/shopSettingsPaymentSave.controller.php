@@ -12,6 +12,21 @@ class shopSettingsPaymentSaveController extends waJsonController
                     $plugin['settings'] = array();
                 }
                 shopPayment::savePlugin($plugin);
+
+                $is_edit = $plugin['id'] > 0;
+
+                $log_params = array(
+                    'id' => $plugin['id'],
+                    'status' => $plugin['status'],
+                    'plugin' => $plugin['plugin']
+                );
+
+                if ($is_edit) {
+                    $this->logAction('payment_plugin_edit', $log_params);
+                } else {
+                    $this->logAction('payment_plugin_add', $log_params);
+                }
+
                 $this->response['message'] = _w('Saved');
             } catch (waException $ex) {
                 $this->setError($ex->getMessage());

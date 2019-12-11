@@ -157,6 +157,8 @@ class shopTutorialActions extends waViewActions
 
         $welcome = $app_settings_model->get('shop', 'welcome');
 
+        $wa_log_model = new waLogModel();
+
         foreach ($actions as $id => &$action) {
             if ($id == 'welcome') {
                 if ($welcome) {
@@ -208,11 +210,17 @@ class shopTutorialActions extends waViewActions
             }
 
             if ($id == 'payment') {
-                $action['complete'] = count($shop_plugin_model->getByField('type', 'payment', true)) > 0;
+                $action['complete'] = $wa_log_model->countByField(array(
+                    'app_id' => 'shop',
+                    'action' => array('payment_plugin_add', 'payment_plugin_edit')
+                )) > 0;
             }
 
             if ($id == 'shipping') {
-                $action['complete'] = count($shop_plugin_model->getByField('type', 'shipping', true)) > 0;
+                $action['complete'] = $wa_log_model->countByField(array(
+                    'app_id' => 'shop',
+                    'action' => array('shipping_plugin_add', 'shipping_plugin_edit')
+                )) > 0;
             }
         }
         unset($action);

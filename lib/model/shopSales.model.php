@@ -473,7 +473,12 @@ class shopSalesModel extends waModel
 
         $storefront_sql = '';
         if (!empty($options['storefront'])) {
-            $storefront_sql = "AND storefront='".$this->escape($options['storefront'])."'";
+            $options['storefront'] = (array)$options['storefront'];
+            $storefronts = [];
+            foreach($options['storefront'] as $storefront) {
+                $storefronts[] = "'".$this->escape($storefront)."'";
+            }
+            $storefront_sql = 'AND storefront IN ('.join(',', $storefronts).')';
         }
 
         $name_sql = '';
@@ -1025,7 +1030,12 @@ class shopSalesModel extends waModel
 
             $storefront_sql = '';
             if (!empty($options['storefront'])) {
-                $storefront_sql = "AND storefront='".$this->escape($options['storefront'])."'";
+                $options['storefront'] = (array)$options['storefront'];
+                $storefronts = [];
+                foreach($options['storefront'] as $storefront) {
+                    $storefronts[] = "'".$this->escape($storefront)."'";
+                }
+                $storefront_sql = 'AND storefront IN ('.join(',', $storefronts).')';
             }
             $sql = "SELECT name, start, end, amount, DATEDIFF(end, start) + 1 AS days_count
                     FROM shop_expense
@@ -1266,10 +1276,16 @@ class shopSalesModel extends waModel
         $storefront_join = '';
         $storefront_where = '';
         if (!empty($options['storefront'])) {
+            $options['storefront'] = (array)$options['storefront'];
+            $storefronts = [];
+            foreach($options['storefront'] as $storefront) {
+                $storefronts[] = "'".$this->escape($storefront)."'";
+            }
+
             $storefront_join = "JOIN shop_order_params AS opst
                                     ON opst.order_id=o.id
                                         AND opst.name='storefront' ";
-            $storefront_where = "AND opst.value='".$this->escape($options['storefront'])."' ";
+            $storefront_where = "AND opst.value IN (".join(',', $storefronts).") ";
         }
         if (!empty($options['sales_channel'])) {
             $storefront_join .= "JOIN shop_order_params AS opst2

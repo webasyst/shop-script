@@ -404,18 +404,42 @@ class shopCheckoutShipping extends shopCheckout
 
             #attempt to sort address fields
             if (!empty($address['fields']) && !empty($config_address['fields'])) {
-                $sort = array_flip(array_keys($config_address['fields']));
-                $code = ' $map = '.var_export($sort, true).';';
-                $code .= ' return ifset($map[$a],0)-ifset($map[$b],0);';
-
-                $compare = wa_lambda('$a, $b', $code);
-                uksort($address['fields'], $compare);
+                $sort = array_keys($config_address['fields']);
+                $address['fields'] = $this->ksortAsSuggested($address['fields'], $sort);
             }
 
             return waContactForm::loadConfig(array('address.shipping' => $address), array('namespace' => 'customer_'.$method_id));
         } else {
             return null;
         }
+    }
+
+    /**
+     * uksort and etc is not stable, so it is bummer
+     *
+     * Read documentation here
+     * https://www.php.net/manual/ru/function.uksort.php
+     *
+     * This method has stability property
+     * Key that are not found in order array will be set in the end of result array with saving original sorting (stability)
+     * 
+     * @param $array
+     * @param array $order
+     * @return array
+     */
+    function ksortAsSuggested($array, $order = array())
+    {
+        $result = array();
+        foreach ($order as $key) {
+            if (isset($array[$key])) {
+                $result[$key] = $array[$key];
+                unset($array[$key]);
+            }
+        }
+        foreach ($array as $key => $value) {
+            $result[$key] = $value;
+        }
+        return $result;
     }
 
     private $items = null;

@@ -1225,15 +1225,21 @@ class shopProduct implements ArrayAccess
     /**
      * Verifies current user's access rights to product by its type id.
      *
-     * @return boolean
+     * @param array $options extra options
+     *  - int|string $options['level'] [optional]
+     *      If numeric, that min level to check
+     *      If string 'delete' - check can contact delete product
+     *      If skipped just return rights level as it (shopRightConfig::RIGHT_*)
+     *
+     * @return boolean|int
      * @throws waException
      */
-    public function checkRights()
+    public function checkRights($options = array())
     {
         if (isset($this->data['type_id'])) {
-            return $this->model->checkRights($this->data);
+            return $this->model->checkRights($this->data, $options);
         } else {
-            return $this->model->checkRights($this->getId());
+            return $this->model->checkRights($this->getId(), $options);
         }
     }
 

@@ -366,7 +366,7 @@
                 }
                 if (!params) {
                     // default params
-                    params = "state_id=new|processing|paid";
+                    params = "state_id=new|processing|auth|paid";
                 } else if (params === 'all') {
                     params = '';
                 }

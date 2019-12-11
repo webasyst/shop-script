@@ -198,10 +198,16 @@ class shopMarketingCostsAction extends shopMarketingViewAction
     {
         $result = [];
         $promo_model = new shopPromoModel();
-        foreach($promo_model->getAll() as $p) {
+        $promos = $promo_model->getList([
+            'with_images' => true,
+        ]);
+        usort($promos, function($a, $b) {
+            return strcmp(mb_strtolower($a['name']), mb_strtolower($b['name']));
+        });
+        foreach($promos as $p) {
             $result[$p['id']] = [
                 'name' => $p['id'],
-                'label' => $p['title'],
+                'label' => $p['name'],
                 'color' => $p['color'],
                 'sales' => 0,
             ];

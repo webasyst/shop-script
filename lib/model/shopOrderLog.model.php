@@ -210,9 +210,11 @@ class shopOrderLogModel extends waModel implements shopOrderStorageInterface
                 }
             }
 
-            if ($l['action_id'] === 'refund') {
-                if (!empty($l['params']['refund_items'])) {
+            if (!empty($l['params']['refund_items'])) {
+                try {
                     $l['params']['refund_items'] = waUtils::jsonDecode($l['params']['refund_items'], true);
+                } catch (waException $ex) {
+
                 }
             }
 

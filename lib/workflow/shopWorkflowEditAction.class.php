@@ -138,9 +138,10 @@ class shopWorkflowEditAction extends shopWorkflowAction
         // for logging changes in stocks
         shopProductStocksLogModel::setContext(
             shopProductStocksLogModel::TYPE_ORDER,
-            /*_w*/('Order %s was edited'),
+            /*_w*/ ('Order %s was edited'),
             array(
-                'order_id' => $data['id']
+                'order_id' => $data['id'],
+                'return_stock_id' => ifset($data, 'params', 'return_stock', null),
             )
         );
 
@@ -151,7 +152,7 @@ class shopWorkflowEditAction extends shopWorkflowAction
                     $data['params']['shipping_currency'] = $shipping_currency;
                     $rate_model = new shopCurrencyModel();
                     if ($row = $rate_model->getById($shipping_currency)) {
-                        $data['params']['shipping_currency_rate'] = str_replace(',', '.',$row['rate'] );
+                        $data['params']['shipping_currency_rate'] = str_replace(',', '.', $row['rate']);
                     }
                 }
 

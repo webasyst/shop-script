@@ -12,29 +12,39 @@ class shopOrdersAction extends shopOrderListAction
 
         $orders = $this->getOrders(0, $this->getCount());
 
-        $forbidden = array_fill_keys(array('edit', 'message', 'comment'), true);
+        $forbidden = array_fill_keys(array('edit', 'message', 'comment', 'editshippingdetails'), true);
 
         $workflow = new shopWorkflow();
+
         $actions = array();
         foreach ($workflow->getAvailableActions() as $action_id => $action) {
             if (!isset($forbidden[$action_id]) && empty($action['internal'])) {
                 $actions[$action_id] = array(
                     'name'  => ifset($action['name'], ''),
                     'style' => ifset($action['options']['style']),
+                    'available_for_states' => array()       // for what states action is available
                 );
             }
         }
+
         $state_names = array();
         foreach ($workflow->getAvailableStates() as $state_id => $state) {
             $state_names[$state_id] = $state['name'];
+            if (isset($state['available_actions']) && is_array($state['available_actions'])) {
+                foreach ($state['available_actions'] as $action_id) {
+                    if (isset($actions[$action_id])) {
+                        $actions[$action_id]['available_for_states'][] = $state_id; // for this state this action is available
+                    }
+                }
+            }
+
         }
-        
+
         $counters = array(
             'state_counters' => array(
                 'new' => $this->model->getStateCounters('new'),
             ),
         );
-
 
         $filter_params = $this->getFilterParams();
         if (isset($filter_params['state_id'])) {
@@ -59,6 +69,14 @@ class shopOrdersAction extends shopOrderListAction
             );
         }
 
+        // for define which actions available for whole order list
+        // need for apply action on order list in table view (see $.order_list)
+        // if not used, not query it and must be NULL (not empty array) for distinguish cases
+        $all_order_state_ids = null;
+        if ($view === 'table') {
+            $all_order_state_ids = $this->getDistinctOrderFieldValues('state_id');
+        }
+
         $this->assign(array(
             'orders'      => array_values($orders),
             'total_count' => $this->getTotalCount(),
@@ -73,6 +91,7 @@ class shopOrdersAction extends shopOrderListAction
             'actions'     => $actions,
             'counters'    => $counters,
             'sort'        => $this->getSort(),
+            'all_order_state_ids' => $all_order_state_ids,
         ));
     }
 

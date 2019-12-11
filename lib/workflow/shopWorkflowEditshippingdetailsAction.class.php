@@ -11,6 +11,8 @@ class shopWorkflowEditshippingdetailsAction extends shopWorkflowAction
 
     public function execute($params = null)
     {
+        $order_id = $params;
+
         $text = array();
         $params = array();
         $update = array();
@@ -30,9 +32,14 @@ class shopWorkflowEditshippingdetailsAction extends shopWorkflowAction
         }
 
         // Tracking number
-        if (($tracking = waRequest::post('tracking_number', '', 'string'))) {
-            $text[] = _w('Tracking number').': '.htmlspecialchars($tracking);
-            $params['tracking_number'] = $tracking;
+        $tracking = waRequest::post('tracking_number', null, waRequest::TYPE_STRING_TRIM);
+        if ($tracking !== null) {
+            if (strlen($tracking) > 0) {
+                $text[] = _w('Tracking number').': '.htmlspecialchars($tracking);
+                $params['tracking_number'] = $tracking;
+            } elseif (wa_is_int($order_id) && $order_id > 0) {
+                $params['tracking_number'] = null;
+            }
         }
 
         // Courier

@@ -281,7 +281,7 @@
             var xAxis = d3.svg.axis()
                 .scale(x)
                 .orient("bottom")
-                .ticks(10);
+                .ticks(5);
 
             var yAxis = d3.svg.axis()
                 .scale(y)
@@ -370,6 +370,575 @@
 
     })($);
 
+    var DateTimer = ( function($) {
+
+        DateTimer = function(options) {
+            var that = this;
+
+            // DOM
+            that.$wrapper = options["$wrapper"];
+
+            // CONST
+            that.locales = options["locales"];
+
+            // DYNAMIC VARS
+            that.date = that.$wrapper.data("date");
+
+            // INIT
+            that.init();
+        };
+
+        DateTimer.prototype.init = function() {
+            var that = this;
+
+            var timeout = 0;
+
+            run();
+
+            function runner() {
+                timeout = setTimeout(run, 1000 * 60);
+            }
+
+            function run() {
+                var is_exits = $.contains(document, that.$wrapper[0]);
+                if (is_exits) {
+                    var result = that.setTime();
+                    if (result !== false) { runner(); }
+                }
+            }
+
+            that.$wrapper.data("timer", that);
+        };
+
+        DateTimer.prototype.setTime = function() {
+            var that = this;
+
+            var date_string = that.date;
+            if (date_string) {
+                var target_date = getDate(date_string);
+                var current_date = new Date();
+
+                var delta = target_date - current_date;
+
+                var time = formatTime( Math.abs(delta)),
+                    time_array = [];
+
+                if (time.days) {
+                    time_array.push(time.days + "&nbsp;" + that.locales["days"]);
+                }
+
+                if (time.hours) {
+                    time_array.push(time.hours + "&nbsp;" + that.locales["hours"]);
+                }
+
+                if (time.minutes) {
+                    time_array.push(time.minutes + "&nbsp;" + that.locales["minutes"]);
+                }
+
+                // if (time.seconds) {
+                //     time_array.push(time.seconds + "&nbsp;" + that.locales["seconds"]);
+                // }
+
+                var pattern = that.$wrapper.data("pattern");
+                if (!pattern) {
+                    pattern = that.locales[ (delta > 0 ? "before" : "after" )];
+                }
+
+                var result = pattern.replace("%s", time_array.join(" "));
+
+                that.render(result);
+            }
+
+            function getDate(date_string) {
+                var date_array = date_string.replace(":", "-").replace(" ", "-").split("-");
+
+                var year = date_array[0],
+                    mount = Math.floor(date_array[1]) - 1,
+                    day = date_array[2],
+                    hour = date_array[3],
+                    minute = date_array[4];
+
+                return new Date(year, mount, day, hour, minute);
+            }
+
+            function formatTime(time) {
+                var second = 1000,
+                    minute = second * 60,
+                    hour = minute * 60,
+                    day = hour * 24,
+                    tail;
+
+                var days = Math.floor(time/day);
+                tail = ( time - days * day );
+                var hours = Math.floor(tail/hour);
+                tail = ( tail - hours * hour );
+                var minutes = Math.floor(tail/minute);
+                tail = ( tail - minutes * minute );
+                var seconds = Math.floor(tail/second);
+
+                return {
+                    days: days,
+                    hours: hours,
+                    minutes: minutes,
+                    seconds: seconds
+                };
+            }
+        };
+
+        DateTimer.prototype.setDate = function(date_string) {
+            var that = this;
+
+            that.date = date_string;
+
+            that.setTime();
+        };
+
+        DateTimer.prototype.render = function(time_string) {
+            var that = this;
+
+            that.$wrapper.html(time_string);
+        };
+
+        return DateTimer;
+
+    })($);
+
+    var BannerRulesSection = ( function($) {
+
+        BannerRulesSection = function(options) {
+            var that = this;
+
+            // DOM
+            that.$wrapper = options["$wrapper"];
+            that.$banners_wrapper = that.$wrapper.find(".js-banners-wrapper");
+            that.$banners_list = that.$banners_wrapper.find(".js-banners-list");
+
+            // CONST
+            that.scope = options["scope"];
+            that.rule_name = options["rule_name"];
+            that.templates = options["templates"];
+            that.urls = options["urls"];
+
+            // DYNAMIC VARS
+
+            // INIT
+            that.init();
+        };
+
+        BannerRulesSection.prototype.init = function() {
+            var that = this;
+
+            // Add banner
+            that.$wrapper.on("click", ".js-banner-add", function(event) {
+                event.preventDefault();
+
+                var $banner_template = $(that.templates['banner_item_template']).clone();
+                that.$banners_list.prepend($banner_template);
+
+                $banner_template.find(".s-countdown-section").each( function() {
+                    initCountdownSection( $(this) );
+                });
+
+                bannersToggle(true);
+            });
+
+            // Delete banner
+            that.$banners_wrapper.on("click", ".js-banner-delete", function(event) {
+                event.preventDefault();
+                var $self = $(this),
+                    $banner = $self.closest(".js-banner-wrapper"),
+                    image_filename = $self.data('filename');
+
+                if (image_filename) {
+                    addRemoveImage(image_filename);
+                }
+                $banner.remove();
+                bannersToggle();
+            });
+
+            // Remove preview of old image when user wants to upload new image
+            that.$wrapper.on('change', '.js-image-field', function (e) {
+                var $image_field = $(this),
+                    $banner_wrapper = $image_field.parents('.js-banner-wrapper'),
+                    $image_preview = $banner_wrapper.find('.js-image-preview');
+
+                $image_preview.hide().removeAttr('src');
+            });
+
+            setNamesAndFields();
+
+            that.$wrapper.find(".s-countdown-section").each( function() {
+                initCountdownSection( $(this) );
+            });
+
+            // Auto Init
+            var banners_count = that.$banners_list.find(".js-banner-wrapper").length;
+            if (!banners_count) {
+                that.$wrapper.find(".js-banner-add:first").trigger("click");
+            }
+
+            function bannersToggle(show) {
+                var empty_class = "is-empty";
+
+                show = ( typeof show === "boolean" ? show : null);
+
+                if (show === null) {
+                    show = !!getBanners().length;
+                }
+
+                if (show) {
+                    that.$banners_wrapper.removeClass(empty_class);
+                } else {
+                    that.$banners_wrapper.addClass(empty_class);
+                }
+
+                setNamesAndFields();
+                ruleRemoveConfirm();
+            }
+
+            function setNamesAndFields() {
+                var $banners = getBanners();
+
+                $.each($banners, function(i, banner) {
+                    var $banner = $(banner),
+                        $banner_fields = $banner.find('[data-name]');
+
+                    $.each($banner_fields, function () {
+                        var $banner_field = $(this),
+                            name = $banner_field.data('name');
+
+                        $banner_field.attr('name', that. rule_name + '[rule_params][banners]['+ i +']' + name);
+                    });
+
+                    initColorPickers($banner);
+                    // TODO: Init datepickers for countdown
+                });
+            }
+
+            function addRemoveImage(filename) {
+                that.$wrapper.append('<input type="hidden" name="'+ that.rule_name +'[rule_params][remove_images][]" value="'+ filename +'" />');
+            }
+
+            function initColorPickers($banner) {
+                if ($banner.data('colorpicker')) {
+                    return false;
+                }
+
+                $banner.find('.js-colorpicker').each(function () {
+                    var $colorpicker_wrapper = $(this).hide(),
+                        $icon = $colorpicker_wrapper.closest('.value').find('i.icon16.color'),
+                        $input = $colorpicker_wrapper.closest('.value').find(':input');
+
+                    var farbtastic = $.farbtastic($colorpicker_wrapper, setColor);
+                    farbtastic.widgetCoords = function (event) {
+                        var offset = $(farbtastic.wheel).offset();
+                        return { x: (event.pageX - offset.left) - farbtastic.width / 2, y: (event.pageY - offset.top) - farbtastic.width / 2 };
+                    };
+
+                    $icon.css('cursor', 'pointer').click(function() {
+                        $colorpicker_wrapper.slideToggle();
+                    });
+
+                    setColor($input.val() || '#ffffff');
+
+                    $input.on('change keyup', function() {
+                        $icon.css('background', $input.val());
+                        farbtastic.setColor($input.val());
+                    });
+
+                    function setColor(color) {
+                        $icon.css('background', color);
+                        farbtastic.setColor(color);
+                        $input.val(color);
+                    }
+                });
+
+                $banner.data('colorpicker', 1);
+            }
+
+            function ruleRemoveConfirm() {
+                var $section = that.scope.$wrapper.find(".js-rules-section");
+
+                var banners_count = that.$banners_list.find(".js-banner-wrapper").length;
+                if (banners_count > 0) {
+                    return false;
+                }
+
+                var $confirm_template = $(that.templates["banner_confirm_dialog"]).clone();
+                $confirm_template.waDialog({
+                    onLoad: function () {
+                        var $dialog_wrapper = $(this);
+
+                        // Submit confirm
+                        $dialog_wrapper.on('click', '.js-submit', function () {
+                            var $rule = that.$banners_wrapper.closest(".s-rule-section"),
+                                rule_id = $rule.data('id');
+
+                            if (rule_id) {
+                                $rule.find(".js-delete-rule").trigger("click", [{
+                                    force: true
+                                }]);
+                            } else {
+                                $rule.find(".js-cancel-edit-rule").trigger("click", [{
+                                    force: true
+                                }]);
+                            }
+
+                            $dialog_wrapper.trigger('close');
+                        });
+
+                        // Close
+                        $dialog_wrapper.on('click', '.js-cancel', function () {
+                            $dialog_wrapper.trigger('close');
+                        });
+                    }
+                });
+            }
+
+            function getBanners() {
+                return that.$banners_wrapper.find(".js-banner-wrapper");
+            }
+
+            function renderErrors() {
+
+            }
+
+            function initCountdownSection($countdown_section) {
+                var $timer = $countdown_section.find(".js-date-timer"),
+                    $inputs = $countdown_section.find(".s-hidden input"),
+                    $enable_field = $countdown_section.find(".js-countdown-toggle");
+
+                var $countdown_datepicker = $countdown_section.find(".js-datepicker"),
+                    $countdown_hours = $countdown_section.find(".js-hours"),
+                    $countdown_minutes = $countdown_section.find(".js-minutes"),
+                    $start_datepicker_section = that.scope.$wrapper.find('input[name="promo[start_date]"]').closest(".s-datetime-section"),
+                    $start_datepicker = $start_datepicker_section.find(".js-datepicker"),
+                    $start_time = that.scope.$wrapper.find('input[name="promo[start_time]"]');
+
+                var active_class = "is-extended";
+
+                // Toggle
+                $enable_field.on("change", function(event) {
+                    var is_active = $enable_field.is(":checked");
+                    if (is_active) {
+                        $inputs.removeAttr("disabled");
+                        $countdown_section.addClass(active_class);
+                        setDatepicker();
+                    } else {
+                        $inputs.attr("disabled", true);
+                        $countdown_section.removeClass(active_class);
+                    }
+                });
+
+                // init Timer
+                if ($timer.length) {
+                    var date_timer = new DateTimer({
+                        $wrapper: $timer,
+                        locales: that.scope.locales
+                    });
+
+                    var $date_field = $countdown_section.find(".js-date"),
+                        $hour_field = $countdown_section.find(".js-hours"),
+                        $minute_field = $countdown_section.find(".js-minutes");
+
+                    $countdown_section.on("change", function() {
+                        var date = $date_field.val(),
+                            hour = $hour_field.val(),
+                            minute = $minute_field.val();
+
+                        if (!date) { return; }
+                        if (!hour) { hour = "00"; }
+                        if (!minute) { minute = "00"; }
+
+                        var date_time = date + "-" + hour + "-" + minute;
+
+                        date_timer.setDate(date_time);
+                    });
+                }
+
+                // init DatePickers
+                that.$wrapper.find(".s-datepicker-wrapper").each( function() {
+                    initDatePicker( $(this) );
+                });
+
+                function setDatepicker() {
+                    var is_countdown_set = $countdown_datepicker.val();
+                    if (!is_countdown_set) {
+                        var start_date = $start_datepicker.val();
+                        if (start_date) {
+                            $countdown_datepicker.datepicker("setDate", start_date).trigger("change");
+                        }
+                    }
+
+                    var start_time = $start_time.val(),
+                        hours = "",
+                        minutes = "";
+
+                    if (start_time) {
+                        var time = start_time.split(":");
+                        hours = time[0];
+                        minutes = time[1];
+                    }
+
+                    var is_hours_set = $countdown_hours.val();
+                    if (!is_hours_set && hours) {
+                        $countdown_hours.val(hours);
+                    }
+
+                    var is_minutes_set = $countdown_minutes.val();
+                    if (!is_minutes_set && minutes) {
+                        $countdown_minutes.val(minutes);
+                    }
+                }
+            }
+        };
+
+        BannerRulesSection.prototype.onSubmit = function() {
+            var that = this;
+
+            var deferred = $.Deferred();
+
+            var image_count = 0,
+                image_failed = 0;
+
+            that.$wrapper.find(".js-image-field").each( function() {
+                var $field = $(this),
+                    $banner = $field.closest(".js-banner-wrapper");
+
+                var file = (this.files ? this.files[0] : null);
+                if (file) {
+                    image_count += 1;
+
+                    var data = new FormData();
+                    data.append("image", file);
+
+                    sendImage(data).then( function(response) {
+                        if (response.status === "ok") {
+                            $banner.find('.js-image-filename-field').val(response.data["file_name"]);
+                        } else {
+                            renderErrors("error", response);
+                            image_failed += 1;
+                        }
+                        image_count -= 1;
+                        watcher();
+                    }, function(state) {
+                        renderErrors(state);
+                        image_failed += 1;
+                        image_count -= 1;
+                        watcher();
+                    });
+                }
+            });
+
+            if (!image_count) {
+                deferred.resolve();
+            }
+
+            return deferred.promise();
+
+            function watcher() {
+                if (image_count === 0) {
+                    if (image_failed > 0) {
+                        deferred.reject();
+                    } else {
+                        deferred.resolve();
+                    }
+                }
+            }
+
+            function sendImage(data) {
+                return $.ajax({
+                    url: that.urls["image_upload_controller"],
+                    data: data,
+                    type: "post",
+                    iframe: true,
+                    dataType: 'json',
+                    cache: false,
+                    contentType: false,
+                    processData: false
+                });
+            }
+
+            function renderErrors(state, errors) {
+                console.log( state, errors );
+            }
+        };
+
+        BannerRulesSection.prototype.renderErrors = function(errors) {
+            var that = this;
+
+            var $rule = that.$wrapper.closest(".s-rule-section"),
+                $banners = that.$wrapper.find(".js-banners-list .js-banner-wrapper"),
+                $field = null;
+
+            var focus_top_array = [];
+
+            $.each(errors, function(i, error) {
+                var $banner = $($banners[error.rule_data.banner_id]);
+                if (!$banner.length) {
+                    focus_top_array.push($rule.offset().top);
+                    renderError(error.text, $rule, $rule.find("> .js-section-footer"));
+
+                } else {
+                    switch (error.rule_data.error_code) {
+                        case "invalid_banner_file":
+                            $field = $banner.find(".s-fields-wrapper .js-image-field");
+                            focus_top_array.push($field.offset().top);
+                            renderError(error.text, $field, $field.closest(".value"));
+                            break;
+                        case "countdown_invalid":
+                            $field = $banner.find(".s-countdown-section .js-date");
+                            var $wrapper = $field.parent().find(".js-datepicker");
+
+                            focus_top_array.push($wrapper.offset().top);
+
+                            renderError(error.text, $wrapper, $field.closest(".s-hidden"));
+                            break;
+                        default:
+                            focus_top_array.push($rule.offset().top);
+                            renderError(error.text, $rule, $rule.find("> .js-section-footer"));
+                            break;
+                    }
+                }
+            });
+
+            return {
+                focus_top: Math.min.apply(null, focus_top_array)
+            };
+
+            function renderError(error_text, $field, $error_wrapper) {
+                var $error = $("<div class=\"s-error-message errormsg\" />").text(error_text);
+                var error_class = "error";
+
+                if ($field) {
+                    if (!$field.hasClass(error_class)) {
+                        $field.addClass(error_class);
+
+                        if ($error_wrapper) {
+                            $error_wrapper.append($error);
+                        } else {
+                            $error.insertAfter($field);
+                        }
+
+                        $field
+                            .trigger("error")
+                            .on("change keyup", removeFieldError);
+                    }
+                }
+
+                function removeFieldError() {
+                    $field.removeClass(error_class);
+                    $error.remove();
+
+                    $field.off("change keyup", removeFieldError);
+                }
+            }
+        };
+
+        return BannerRulesSection;
+
+    })(jQuery);
+
     var Promo = ( function($) {
 
         Promo = function(options) {
@@ -388,13 +957,19 @@
             that.promo_id = options["promo_id"];
             that.promo_options = options["promo_options"];
             that.rule_types = options["rule_types"];
+            that.event_names = {
+                rule_cancel: "wa-promo-rule-cancel",
+                rule_delete: "wa-promo-rule-delete"
+            };
 
             that.templates = options["templates"];
             that.locales = options["locales"];
             that.urls = options["urls"];
 
             // DYNAMIC VARS
+            that.rule_sections = {};
             that.chart_data = options["chart_data"];
+            that.is_changed = false;
 
             // INIT
             that.init();
@@ -412,8 +987,10 @@
             that.initSubmit();
             that.initFixedSubmitWrapper();
             that.initEditName();
+            that.initClose();
 
             that.$wrapper.on("change", function() {
+                that.is_changed = true;
                 that.$submit_button.removeClass("green").addClass("yellow");
             });
 
@@ -791,13 +1368,10 @@
 
             // INIT
 
-            initBannerSection();
-            initColorPickers();
             initDateTimers();
             initDatePickers();
             initStorefrontsSection();
             initStatusSection();
-            initCountdownSection();
 
             // FUNCTIONS
 
@@ -863,67 +1437,8 @@
             function initDatePickers() {
                 var $section = $root_section.find(".s-datepicker-wrapper");
 
-                $section.find(".js-datepicker").each( function() {
-                    var $input = $(this),
-                        $alt_field = null,
-                        alt_field_selector = $input.data("alt");
-
-                    var error_class = "error";
-
-                    var options = {
-                        changeMonth: true,
-                        changeYear: true
-                    };
-
-                    if (alt_field_selector) {
-                        $alt_field = $section.find(alt_field_selector);
-                        if ($alt_field.length) {
-                            options = $.extend(options, {
-                                altField: $alt_field,
-                                altFormat: "yy-mm-dd"
-                            });
-                        }
-                    }
-
-                    $input.on("blur change", function() {
-                        var $field = $(this),
-                            value = $.trim( $field.val() );
-
-                        if (value.length) {
-                            if (!checkDate(value)) {
-                                $field.val("").addClass(error_class);
-                                if ($alt_field && $alt_field.length) {
-                                    $alt_field.val("");
-                                }
-                            }
-                        } else {
-                            if ($alt_field && $alt_field.length) {
-                                $alt_field.val("");
-                            }
-                        }
-                    });
-
-                    $input.on("focus keydown", function(event) {
-                        var $field = $(this),
-                            has_error = $field.hasClass(error_class);
-
-                        if (has_error) {
-                            $field.removeClass(error_class);
-                        }
-                    });
-
-                    $input.on("keydown", function(event) {
-                        var key = event.keyCode,
-                            is_enter = ( key === 13 );
-
-                        if (is_enter) {
-                            event.preventDefault();
-                            $(this).trigger("change");
-                        }
-                    });
-
-                    $input.datepicker(options);
-
+                $section.each( function() {
+                    initDatePicker($(this));
                 });
 
                 validateStartFinish();
@@ -965,270 +1480,9 @@
                     $start_field.trigger("change");
                     $finish_field.trigger("change");
                 }
-
-                function checkDate(date) {
-                    var format = $.datepicker._defaults.dateFormat,
-                        is_valid = null;
-
-                    try {
-                        $.datepicker.parseDate(format, date);
-                        is_valid = true;
-                    } catch(e) {
-                        is_valid = false
-                    }
-
-                    return is_valid;
-                }
-            }
-
-            function initCountdownSection() {
-                var $countdown_section = $root_section.find(".s-countdown-section"),
-                    $timer = $countdown_section.find(".js-date-timer"),
-                    $inputs = $countdown_section.find(".s-hidden input"),
-                    $enable_field = $countdown_section.find(".js-countdown-toggle");
-
-                var $countdown_datepicker = $countdown_section.find(".js-datepicker"),
-                    $countdown_hours = $countdown_section.find(".js-hours"),
-                    $countdown_minutes = $countdown_section.find(".js-minutes"),
-                    $start_datepicker_section = that.$wrapper.find('input[name="promo[start_date]"]').closest(".s-datetime-section"),
-                    $start_datepicker = $start_datepicker_section.find(".js-datepicker"),
-                    $start_time = that.$wrapper.find('input[name="promo[start_time]"]');
-
-                var active_class = "is-extended";
-
-                $enable_field.on("change", function(event) {
-                    var is_active = $enable_field.is(":checked");
-                    if (is_active) {
-                        $inputs.removeAttr("disabled");
-                        $countdown_section.addClass(active_class);
-                        setDatepicker();
-                    } else {
-                        $inputs.attr("disabled", true);
-                        $countdown_section.removeClass(active_class);
-                    }
-                });
-
-                that.$wrapper.on("promo_countdown_error", function() {
-                    $countdown_section.addClass(active_class);
-                });
-
-                if ($timer.length) {
-                    var $date_field = $countdown_section.find("[name='promo[countdown_datetime][date]']"),
-                        $hour_field = $countdown_section.find("[name='promo[countdown_datetime][hour]']"),
-                        $minute_field = $countdown_section.find("[name='promo[countdown_datetime][minute]']");
-
-                    $countdown_section.on("change", function() {
-                        var date = $date_field.val(),
-                            hour = $hour_field.val(),
-                            minute = $minute_field.val();
-
-                        if (!date) { return; }
-                        if (!hour) { hour = "00"; }
-                        if (!minute) { minute = "00"; }
-
-                        var date_time = date + "-" + hour + "-" + minute;
-
-                        var timer = $timer.data("timer");
-                        timer.setDate(date_time);
-                    });
-                }
-
-                function setDatepicker() {
-                    var is_countdown_set = $countdown_datepicker.val();
-                    if (!is_countdown_set) {
-                        var start_date = $start_datepicker.val();
-                        if (start_date) {
-                            $countdown_datepicker.datepicker("setDate", start_date).trigger("change");
-                        }
-                    }
-
-                    var start_time = $start_time.val(),
-                        hours = "",
-                        minutes = "";
-
-                    if (start_time) {
-                        var time = start_time.split(":");
-                        hours = time[0];
-                        minutes = time[1];
-                    }
-
-                    var is_hours_set = $countdown_hours.val();
-                    if (!is_hours_set && hours) {
-                        $countdown_hours.val(hours);
-                    }
-
-                    var is_minutes_set = $countdown_minutes.val();
-                    if (!is_minutes_set && minutes) {
-                        $countdown_minutes.val(minutes);
-                    }
-                }
-            }
-
-            function initColorPickers() {
-                $root_section.find('.js-colorpicker').each(function () {
-                    var $colorpicker_wrapper = $(this).hide(),
-                        $icon = $colorpicker_wrapper.closest('.value').find('i.icon16.color'),
-                        $input = $colorpicker_wrapper.closest('.value').find(':input');
-
-                    var farbtastic = $.farbtastic($colorpicker_wrapper, setColor);
-                    farbtastic.widgetCoords = function (event) {
-                        var offset = $(farbtastic.wheel).offset();
-                        return { x: (event.pageX - offset.left) - farbtastic.width / 2, y: (event.pageY - offset.top) - farbtastic.width / 2 };
-                    };
-
-                    $icon.css('cursor', 'pointer').click(function() {
-                        $colorpicker_wrapper.slideToggle();
-                    });
-
-                    setColor($input.val() || '#ffffff');
-
-                    $input.on('change keyup', function() {
-                        $icon.css('background', $input.val());
-                        farbtastic.setColor($input.val());
-                    });
-
-                    function setColor(color) {
-                        $icon.css('background', color);
-                        farbtastic.setColor(color);
-                        $input.val(color);
-                    }
-                });
             }
 
             function initDateTimers() {
-                var DateTimer = ( function($) {
-
-                    DateTimer = function(options) {
-                        var that = this;
-
-                        // DOM
-                        that.$wrapper = options["$wrapper"];
-
-                        // CONST
-                        that.locales = options["locales"];
-
-                        // DYNAMIC VARS
-                        that.date = that.$wrapper.data("date");
-
-                        // INIT
-                        that.init();
-                    };
-
-                    DateTimer.prototype.init = function() {
-                        var that = this;
-
-                        var timeout = 0;
-
-                        run();
-
-                        function runner() {
-                            timeout = setTimeout(run, 1000 * 60);
-                        }
-
-                        function run() {
-                            var is_exits = $.contains(document, that.$wrapper[0]);
-                            if (is_exits) {
-                                var result = that.setTime();
-                                if (result !== false) { runner(); }
-                            }
-                        }
-
-                        that.$wrapper.data("timer", that);
-                    };
-
-                    DateTimer.prototype.setTime = function() {
-                        var that = this;
-
-                        var date_string = that.date;
-                        if (date_string) {
-                            var target_date = getDate(date_string);
-                            var current_date = new Date();
-
-                            var delta = target_date - current_date;
-
-                            var time = formatTime( Math.abs(delta)),
-                                time_array = [];
-
-                            if (time.days) {
-                                time_array.push(time.days + "&nbsp;" + that.locales["days"]);
-                            }
-
-                            if (time.hours) {
-                                time_array.push(time.hours + "&nbsp;" + that.locales["hours"]);
-                            }
-
-                            if (time.minutes) {
-                                time_array.push(time.minutes + "&nbsp;" + that.locales["minutes"]);
-                            }
-
-                            // if (time.seconds) {
-                            //     time_array.push(time.seconds + "&nbsp;" + that.locales["seconds"]);
-                            // }
-
-                            var pattern = that.$wrapper.data("pattern");
-                            if (!pattern) {
-                                pattern = that.locales[ (delta > 0 ? "before" : "after" )];
-                            }
-
-                            var result = pattern.replace("%s", time_array.join(" "));
-
-                            that.render(result);
-                        }
-
-                        function getDate(date_string) {
-                            var date_array = date_string.replace(":", "-").replace(" ", "-").split("-");
-
-                            var year = date_array[0],
-                                mount = Math.floor(date_array[1]) - 1,
-                                day = date_array[2],
-                                hour = date_array[3],
-                                minute = date_array[4];
-
-                            return new Date(year, mount, day, hour, minute);
-                        }
-
-                        function formatTime(time) {
-                            var second = 1000,
-                                minute = second * 60,
-                                hour = minute * 60,
-                                day = hour * 24,
-                                tail;
-
-                            var days = Math.floor(time/day);
-                            tail = ( time - days * day );
-                            var hours = Math.floor(tail/hour);
-                            tail = ( tail - hours * hour );
-                            var minutes = Math.floor(tail/minute);
-                            tail = ( tail - minutes * minute );
-                            var seconds = Math.floor(tail/second);
-
-                            return {
-                                days: days,
-                                hours: hours,
-                                minutes: minutes,
-                                seconds: seconds
-                            };
-                        }
-                    };
-
-                    DateTimer.prototype.setDate = function(date_string) {
-                        var that = this;
-
-                        that.date = date_string;
-
-                        that.setTime();
-                    };
-
-                    DateTimer.prototype.render = function(time_string) {
-                        var that = this;
-
-                        that.$wrapper.html(time_string);
-                    };
-
-                    return DateTimer;
-
-                })($);
-
                 $root_section.find(".js-date-timer").each( function() {
                    var $timer = $(this);
 
@@ -1236,21 +1490,6 @@
                        $wrapper: $timer,
                        locales: that.locales
                    });
-                });
-            }
-
-            function initBannerSection() {
-                var $_banner_section = $root_section.find(".s-banner-section"),
-                    active_class = "is-extended";
-
-                $_banner_section.on("error", function(event) {
-                    event.preventDefault();
-                    $_banner_section.addClass(active_class);
-                });
-
-                $_banner_section.on("click", ".js-section-toggle", function(event) {
-                    event.preventDefault();
-                    $_banner_section.toggleClass(active_class);
                 });
             }
         };
@@ -1297,6 +1536,8 @@
 
             // VARS
             var create_iterator = 0;
+
+            $section.on("rule_count_watch", ruleCountWatch);
 
             ruleCountWatch();
 
@@ -1348,7 +1589,7 @@
             });
 
             // REMOVE
-            $section.on("click", ".js-delete-rule", function(event) {
+            $section.on("click", ".js-delete-rule", function(event, options) {
                 event.preventDefault();
 
                 var $rule = $(this).closest(".s-rule-section"),
@@ -1358,8 +1599,8 @@
                 $rule.addClass(edit_class);
 
                 if (!is_locked) {
-                    if (confirm(that.locales["rule_delete_confirm"])) {
-                        $rule.data("is-locked", true).remove();
+                    if ( (options && options.force) || confirm(that.locales["rule_delete_confirm"])) {
+                        $rule.data("is-locked", true).trigger(that.event_names["rule_delete"], [$rule]).remove();
                         var $input = $('<input type="hidden" name="delete_rules[]">').val(id);
                         $section.append($input);
                         ruleCountWatch();
@@ -1378,7 +1619,7 @@
                     .removeClass(extended_class)
                     .removeClass(edit_class);
 
-                var rule_id = $rule.data("id");
+                var rule_id = $rule.trigger(that.event_names["rule_cancel"], [$rule]).data("id");
                 if (rule_id) {
                     $body.html("");
                 } else {
@@ -1509,72 +1750,124 @@
             $form.on("submit", function(event) {
                 event.preventDefault();
 
-                var form_data = getData();
+                var $prepare_message = null;
 
-                if (form_data.errors.length) {
-                    renderErrors(form_data.errors);
+                if (!is_locked) {
+                    var counter = Object.keys(that.rule_sections).length;
+                    if (counter) {
+                        var reject_count = 0,
+                            promises = [];
 
-                } else if (!is_locked) {
-                    is_locked = true;
+                        is_locked = true;
 
-                    var $promise = $.ajax({
-                        url: that.urls["submit"],
-                        data: form_data.data,
-                        type: "post",
-                        iframe: true,
-                        dataType: 'json',
-                        cache: false,
-                        contentType: false,
-                        processData: false
-                    });
+                        $prepare_message = $(that.templates["prepare"]);
+                        that.$submit_button.attr("disabled", true);
+                        $prepare_message.insertAfter(that.$submit_button);
 
-                    var $message = $(that.templates["saving"]);
-                    that.$submit_button.attr("disabled", true);
-                    $message.insertAfter(that.$submit_button);
+                        $.each(that.rule_sections, function(i, rule_section) {
+                            if (typeof rule_section.onSubmit === "function") {
+                                rule_section.onSubmit().then(onSuccess, onReject);
+                            }
+                        });
 
-                    $promise
-                        .always( function() {
-                            is_locked = false;
-                        })
-                        .done( function(response) {
-                            if (response.status === "ok") {
-                                var href = that.urls["edit_promo"].replace("%id%", response.data.id);
-                                $.shop.marketing.content.load(href).done( function() {
-                                    var $new_button = $("#js-promo-page .js-submit-button");
-                                    if ($new_button.length) {
-                                        var $message = $(that.templates["saved"]);
-                                        $new_button.after($message);
-                                        setTimeout( function() {
-                                            $message.remove();
-                                        }, 2000);
-                                    }
-                                });
+                    } else {
+                        onSubmit();
+                    }
+                }
 
-                                $.shop.marketing.sidebar.reload();
-                            } else if (response.errors) {
-                                renderErrors(response.errors);
+                function onSuccess() {
+                    counter -= 1;
+                    watcher();
+                }
+
+                function onReject() {
+                    reject_count += 1;
+                    counter -= 1;
+                    watcher();
+                }
+
+                function watcher() {
+                    if (counter === 0) {
+                        that.$submit_button.attr("disabled", false);
+                        $prepare_message.remove();
+                        is_locked = false;
+
+                        if (!reject_count) {
+                            onSubmit();
+                        } else {
+                            console.log( "REJECT", reject_count );
+                        }
+                    }
+                }
+
+                function onSubmit() {
+                    var form_data = getData();
+
+                    if (form_data.errors.length) {
+                        renderErrors(form_data.errors);
+
+                    } else {
+                        is_locked = true;
+
+                        var $promise = $.ajax({
+                            url: that.urls["submit"],
+                            data: form_data.data,
+                            type: "post",
+                            iframe: true,
+                            dataType: 'json',
+                            cache: false,
+                            contentType: false,
+                            processData: false
+                        });
+
+                        var $message = $(that.templates["saving"]);
+                        that.$submit_button.attr("disabled", true);
+                        $message.insertAfter(that.$submit_button);
+
+                        $promise
+                            .always( function() {
+                                is_locked = false;
+                            })
+                            .done( function(response) {
+                                if (response.status === "ok") {
+                                    var href = that.urls["edit_promo"].replace("%id%", response.data.id);
+                                    $.shop.marketing.content.load(href).done( function() {
+                                        var $new_button = $("#js-promo-page .js-submit-button");
+                                        if ($new_button.length) {
+                                            var $message = $(that.templates["saved"]);
+                                            $new_button.after($message);
+                                            setTimeout( function() {
+                                                $message.remove();
+                                            }, 2000);
+                                        }
+                                    });
+
+                                    $.shop.marketing.sidebar.reload();
+                                } else if (response.errors) {
+                                    renderErrors(response.errors);
+                                    that.$submit_button.attr("disabled", false);
+                                    $message.remove();
+                                }
+                            })
+                            .fail( function(state, errors) {
+                                try {
+                                    renderErrors(errors);
+                                } catch(error) {
+
+                                    alert( that.locales["server_error"] );
+
+                                    renderErrors([{
+                                        id: "server_error",
+                                        text: that.locales["server_error"]
+                                    }]);
+
+                                    $(window).scrollTop( that.$wrapper.find(".js-page-errors-wrapper").offset().top );
+                                }
+
                                 that.$submit_button.attr("disabled", false);
                                 $message.remove();
-                            }
-                        })
-                        .fail( function(state, errors) {
-                            try {
-                                renderErrors(errors);
-                            } catch(error) {
-
-                                alert( that.locales["server_error"] );
-
-                                renderErrors([{
-                                    id: "server_error",
-                                    text: that.locales["server_error"]
-                                }]);
-
-                                $(window).scrollTop( that.$wrapper.find(".js-page-errors-wrapper").offset().top );
-                            }
-
-                            that.$submit_button.attr("disabled", false);
-                            $message.remove();
-                        });
+                            });
+                    }
                 }
             });
 
@@ -1589,22 +1882,13 @@
                     result.data.append(item.name, item.value);
                 });
 
-                var $file_controls = $form.find('input[type="file"]');
-                $file_controls.each( function(i, input) {
-                    var $input = $(this);
-
-                    if (input["files"].length) {
-                        $.each(input["files"], function(i, file) {
-                            result.data.append($input.attr('name'), file);
-                        });
-                    }
-                });
-
                 return result;
             }
 
             function renderErrors(errors) {
                 var result = [];
+
+                var focus_top_array = [];
 
                 $.each(errors, function(i, error) {
                     var $field = [],
@@ -1615,41 +1899,55 @@
                         return true;
                     }
 
-                    if (error.name) {
-                        // open hidden part
-                        if (error.name.substr(0,25) === "promo[countdown_datetime]") {
-                            that.$wrapper.trigger("promo_countdown_error", [error]);
+                    if (error.id) {
+                        switch (error.id) {
+                            case "storefronts":
+                                $field = $error_wrapper = that.$wrapper.find(".s-storefronts-section");
+                                focus_top_array.push($error_wrapper.offset().top);
+                                break;
+                            case "server_error":
+                                $error_wrapper = that.$wrapper.find(".js-page-errors-wrapper");
+                                $field = that.$wrapper;
+                                focus_top_array.push($error_wrapper.offset().top);
+                                break;
+                            case "rule_error":
+                                if (error.rule) {
+                                    var rule_section = (that.rule_sections[error.rule] ? that.rule_sections[error.rule] : null);
+                                    if (rule_section && rule_section.renderErrors && error.rule_data) {
+                                        var response = rule_section.renderErrors([error]);
+                                        if (response && response.focus_top) {
+                                            focus_top_array.push(response.focus_top);
+                                        }
+                                    } else {
+                                        var field_name = error.rule + "[rule_type]";
+                                        var $rule_field = that.$wrapper.find('[name="' + field_name + '"]');
+                                        if ($rule_field.length) {
+                                            var $rule = $rule_field.closest(".s-rule-section");
+                                            $field = $rule;
+                                            $error_wrapper = $rule.find("> .js-section-footer");
+                                            focus_top_array.push($error_wrapper.offset().top);
+                                        } else {
+                                            alert("Rule Error");
+                                        }
+                                    }
+                                } else {
+                                    alert("Rule Error");
+                                }
+                                break;
+                            default:
+                                break;
                         }
 
+                    } else if (error.name) {
                         $field = that.$wrapper.find("[name=\"" + error.name + "\"]").first();
 
                         if ($field.is(":checkbox") || $field.is(":radio")) {
                             var $_rule = $field.closest(".s-rule-section");
                             $field = $_rule;
                             $error_wrapper = $_rule.find("> .js-section-footer");
-                        }
-
-                        if (error.name === "promo[countdown_datetime][date]") {
-                            $error_wrapper = $field.closest(".s-hidden");
-                            $field = $field.parent().find(".js-datepicker");
-                        }
-
-                    } else if (error.id) {
-                        if (error.id === "storefronts") {
-                            $field = $error_wrapper = that.$wrapper.find(".s-storefronts-section");
-
-                        } else if (error.id === "server_error") {
-                            $error_wrapper = that.$wrapper.find(".js-page-errors-wrapper");
-                            $field = that.$wrapper;
-
-                        } else if (error.id === "rule_error") {
-                            var field_name = error.rule + "[rule_type]";
-                            var $rule_field = that.$wrapper.find('[name="' + field_name + '"]');
-                            if ($rule_field.length) {
-                                var $rule = $rule_field.closest(".s-rule-section");
-                                $field = $rule;
-                                $error_wrapper = $rule.find("> .js-section-footer");
-                            }
+                            focus_top_array.push($error_wrapper.offset().top);
+                        } else {
+                            focus_top_array.push($field.offset().top);
                         }
                     }
 
@@ -1660,6 +1958,10 @@
 
                     result.push(error);
                 });
+
+                if (focus_top_array.length) {
+                    $("html, body").animate({ scrollTop: Math.min.apply(null, focus_top_array) - 100 }, 500);
+                }
 
                 return result;
 
@@ -1977,14 +2279,19 @@
         };
 
         Promo.prototype.initPriceRulesSection = function(options) {
-            var that = this;
+            var that = this,
+                $section = that.$wrapper.find(".js-rules-section");
 
             var $wrapper = options["$wrapper"],
                 $products_wrapper = $wrapper.find(".s-products-wrapper"),
-                $list = $products_wrapper.find(".s-products-list");
+                $list = $products_wrapper.find(".s-products-list"),
+                $templates = options['templates'];
 
             var urls = options["urls"],
+                locales = options["locales"],
                 rule_name = options["rule_name"];
+
+            var disabled_class = "is-disabled";
 
             var product_ids = getProductIds();
 
@@ -1993,7 +2300,9 @@
                 initAutocomplete($field);
             }
 
-            $products_wrapper.on("click", ".js-delete-sku", function(event) {
+            initIButtons();
+
+            $products_wrapper.on("click", ".js-delete-product", function(event) {
                 event.preventDefault();
                 var $product = $(this).closest(".s-product-wrapper"),
                     product_id = $product.data("id");
@@ -2004,6 +2313,46 @@
                 });
 
                 productsToggle();
+
+                ruleRemoveConfirm();
+            });
+
+            $products_wrapper.on("change", ".js-sku-toggle-checkbox", function(event) {
+                var $checkbox = $(this),
+                    $product = $checkbox.closest(".s-product-wrapper"),
+                    product_id = $product.data("id");
+
+                var is_last = !$products_wrapper.find(".s-product-wrapper[data-id='" + product_id + "'] .js-sku-toggle-checkbox:checked").length;
+                if (is_last) {
+
+                    $checkbox.attr("checked", true).trigger("change");
+
+                    skuRemoveConfirm().then( function() {
+                        var product_id = $product.data("id");
+                        $products_wrapper.find(".s-product-wrapper[data-id=\"" + product_id + "\"] .js-delete-product").first().trigger("click");
+                    });
+
+                } else {
+                    var is_active = $checkbox.is(":checked");
+
+                    $product.find(".s-toggle-wrapper").attr("title", (is_active ? "" : locales["disabled_product"]) );
+
+                    $product.find("input").each( function() {
+                        var $input = $(this);
+
+                        if ($input[0] === $checkbox[0]) {
+                            return true;
+                        }
+
+                        $input.attr("disabled", !is_active);
+
+                        if (is_active) {
+                            $product.removeClass(disabled_class);
+                        } else {
+                            $product.addClass(disabled_class);
+                        }
+                    });
+                }
             });
 
             function deleteProduct($product) {
@@ -2029,20 +2378,41 @@
                         return false;
                     },
                     select: function(event, ui) {
-                        addProduct(ui.item);
+                        var product_ids = getProductIds(),
+                            product_id = ui.item.id;
+
+                        if (product_id) {
+                            if (!product_ids[product_id]) {
+                                addProduct(product_id);
+
+                            } else {
+                                var $product = $products_wrapper.find(".s-product-wrapper[data-id='" + product_id + "']");
+                                if ($product.length) {
+                                    var highlighted_class = "highlighted";
+                                    $product.addClass(highlighted_class);
+                                    $("html, body").animate( {
+                                        scrollTop: $product.offset().top
+                                    }, 300, function() {
+                                        setTimeout(function() {
+                                            $product.removeClass(highlighted_class);
+                                        }, 2000);
+                                    });
+                                }
+                            }
+                        }
+
                         $field.val("");
                         return false;
                     }
                 });
 
-                function addProduct(product_data) {
-                    var product_id = product_data.id;
-
+                function addProduct(product_id) {
                     getProductData(product_id).then( function(response) {
                         if (response.status === "ok") {
-                            $list.prepend( formatProducts(response.data.html) );
+                            $list.prepend(response.data.html);
                             product_ids = getProductIds();
                             productsToggle(true);
+                            initIButtons();
                         }
                     });
                 }
@@ -2063,21 +2433,6 @@
                     });
 
                     return product_xhr;
-                }
-
-                function formatProducts(html) {
-                    var $div = $("<div />").html(html);
-
-                    $div.find(".s-product-wrapper").each( function() {
-                        var $product = $(this),
-                            product_id = $product.data("id"),
-                            sku_id = $product.data("sku-id"),
-                            is_exist = (product_ids[product_id] && product_ids[product_id][sku_id]);
-
-                        if (is_exist)  { $product.remove(); }
-                    });
-
-                    return $div.html();
                 }
             }
 
@@ -2113,6 +2468,164 @@
                     $products_wrapper.addClass(empty_class);
                 }
             }
+
+            function ruleRemoveConfirm() {
+                var products_count = $products_wrapper.find('.s-product-wrapper').length;
+                if (products_count > 0) {
+                    return false;
+                }
+
+                var $confirm_template = $($templates["custom_price_delete_dialog"]).clone();
+                $confirm_template.waDialog({
+                    onLoad: function () {
+                        var $dialog_wrapper = $(this);
+
+                        // Submit confirm
+                        $dialog_wrapper.on('click', '.js-submit', function () {
+                            var $rule = $products_wrapper.parents(".s-rule-section"),
+                                rule_id = $rule.data('id');
+
+                            $rule.data("is-locked", true).remove();
+
+                            if (rule_id) {
+                                var $input = $('<input type="hidden" name="delete_rules[]">').val(rule_id);
+                                $section.append($input);
+                            }
+
+                            $section.trigger("rule_count_watch");
+                            that.$window.trigger('resize');
+                            $dialog_wrapper.trigger('close');
+                        });
+
+                        // Close
+                        $dialog_wrapper.on('click', '.js-cancel', function () {
+                            $dialog_wrapper.trigger('close');
+                        });
+                    }
+                });
+            }
+
+            function skuRemoveConfirm() {
+                var deferred = $.Deferred();
+
+                var $confirm_template = $($templates["custom_price_confirm_dialog"]).clone();
+                $confirm_template.waDialog({
+                    onLoad: function () {
+                        var $dialog_wrapper = $(this);
+
+                        // Submit confirm
+                        $dialog_wrapper.on('click', '.js-confirm-action', function () {
+                            deferred.resolve();
+                            $dialog_wrapper.trigger('close');
+                        });
+
+                        // Close
+                        $dialog_wrapper.on('click', '.js-cancel', function () {
+                            deferred.reject();
+                            $dialog_wrapper.trigger('close');
+                        });
+                    }
+                });
+
+                return deferred.promise();
+            }
+
+            function initIButtons() {
+                var $iButtons = $wrapper.find(".js-ibutton");
+                if ($iButtons.length) {
+                    var init_class = "is-initialized";
+
+                    $iButtons.each( function() {
+                        var $field = $(this),
+                            is_init = $field.hasClass(init_class);
+
+                        if (!is_init) {
+                            $field.addClass(init_class).iButton({
+                                labelOn : "",
+                                labelOff : "",
+                                classContainer: "c-ibutton ibutton-container mini"
+                            });
+                        }
+                    });
+                }
+            }
+        };
+
+        Promo.prototype.initBannerRulesSection = function(options) {
+            options["scope"] = this;
+            return new BannerRulesSection(options);
+        };
+
+        /**
+         * @param {Object} options
+         * @description Used to register the tools required to save
+         * */
+        Promo.prototype.initRuleSection = function(options) {
+            var that = this;
+
+            var rule_id = (options["rule_id"] || null),
+                rule_ident = (options["rule_ident"] || null);
+
+            if (!rule_id && !rule_ident) {
+                var message_1 = "Error registering tool. Rule Identifier is missing or already used before.";
+                console.log(message_1);
+                alert(message_1);
+                return false;
+            }
+
+            var onSubmit = ( typeof options["onSubmit"] === "function" ? options["onSubmit"] : null);
+            if (!onSubmit) {
+                var message_2 = "Error registering tool. Promise (onSubmit) is required to register a rule.";
+                console.log(message_2);
+                alert(message_2);
+                return false;
+            }
+
+            var $rule = null;
+
+            that.$wrapper.find(".s-rule-section").each( function() {
+                var $_rule = $(this),
+                    _rule_id = $_rule.data("id"),
+                    _rule_ident = $_rule.data("ident");
+
+                _rule_id = (typeof _rule_id !== "undefined" ? "" + _rule_id : null);
+                _rule_ident = (typeof _rule_ident !== "undefined" ? "" + _rule_ident : null);
+
+                if (rule_id && rule_id === _rule_id) {
+                    $rule = $_rule;
+                    return false;
+                } else if (rule_ident && rule_ident === _rule_ident) {
+                    $rule = $_rule;
+                    return false;
+                }
+            });
+
+            if (!$rule) {
+                var message_3 = "Error registering tool. Rule is missing.";
+                console.log(message_3);
+                alert(message_3);
+                return false;
+            }
+
+            var rule_section_name = (rule_id ? "rules[" + rule_id + "]" : "rules[new][" + rule_ident + "]");
+
+            that.rule_sections[rule_section_name] = {
+                $wrapper: $rule,
+                onSubmit: onSubmit,
+                renderErrors: (typeof options.renderErrors === "function" ? options.renderErrors : null)
+            };
+
+            that.$wrapper
+                .on(that.event_names["rule_cancel"], removeWatcher)
+                .on(that.event_names["rule_delete"], removeWatcher);
+
+            function removeWatcher(event, $deleted_rule) {
+                if ($rule[0] === $deleted_rule[0]) {
+                    delete that.rule_sections[rule_section_name];
+                    that.$wrapper.off(that.event_names["rule_cancel"], removeWatcher);
+                    that.$wrapper.off(that.event_names["rule_delete"], removeWatcher);
+                }
+            }
         };
 
         Promo.prototype.initEditName = function() {
@@ -2121,7 +2634,7 @@
             var $wrapper = that.$wrapper.find(".s-page-header .s-title"),
                 $promo_name = $wrapper.find(".js-name-editable"),
                 $field = $wrapper.find(".js-title-field"),
-                $form_title_field = that.$wrapper.find('input[name="promo[title]"]');
+                $form_title_field = that.$wrapper.find('input[name="promo[name]"]');
 
             var edit_class = "is-edit";
 
@@ -2135,32 +2648,172 @@
                 $wrapper.removeClass(edit_class);
             });
 
-            $field.on("change", function() {
+            $field.on("input", function() {
                 var value = $(this).val();
                 $promo_name.text(value);
                 $form_title_field.val(value);
             });
 
-            $form_title_field.on("keyup change", function() {
+            $form_title_field.on("input", function() {
                 var value = $(this).val();
                 $promo_name.text(value);
                 $field.val(value);
             });
         };
 
+        Promo.prototype.initClose = function() {
+            var that = this,
+                $wa = $("#wa"),
+                $header = $("#wa-header");
+
+            $wa.on("click", "a", clickWatcher);
+            $header.on("click", "a", clickWatcher); // hack for content router
+
+            function clickWatcher(event, force) {
+                var is_exist = $.contains(document, that.$wrapper[0]);
+                if (is_exist) {
+                    var is_redirect = (this.href.indexOf(that.urls["backend_url"]) >= 0);
+                    if (is_redirect && !force && that.is_changed) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        var $link = $(this);
+                        showConfirm().then( function() {
+                            $link.trigger("click", true);
+                        });
+                    }
+                } else {
+                    $wa.off("click", "a", clickWatcher);
+                    $header.off("click", "a", clickWatcher);
+                }
+            }
+
+            function showConfirm() {
+                var deferred = $.Deferred(),
+                    is_confirm = false;
+
+                var $confirm_template = $(that.templates["unsaved_data_dialog"]).clone();
+                $confirm_template.waDialog({
+                    onLoad: function () {
+                        var $dialog_wrapper = $(this);
+
+                        // Submit confirm
+                        $dialog_wrapper.on('click', '.js-submit', function () {
+                            is_confirm = true;
+                            $dialog_wrapper.trigger('close');
+                        });
+
+                        // Close
+                        $dialog_wrapper.on('click', '.js-cancel', function () {
+                            $dialog_wrapper.trigger('close');
+                        });
+                    },
+                    onClose: function () {
+                        if (is_confirm) {
+                            deferred.resolve();
+                        } else {
+                            deferred.reject();
+                        }
+                        $(this).remove();
+                    }
+                });
+
+                return deferred.promise();
+            }
+        };
+
         return Promo;
 
-        function getDate(date_string) {
-            var date_array = date_string.split("-");
+    })($);
 
-            var year = date_array[0],
-                mount = Math.floor(date_array[1]) - 1,
-                day = date_array[2];
+    //
 
-            return new Date(year, mount, day);
+    function getDate(date_string) {
+        var date_array = date_string.split("-");
+
+        var year = date_array[0],
+            mount = Math.floor(date_array[1]) - 1,
+            day = date_array[2];
+
+        return new Date(year, mount, day);
+    }
+
+    function checkDate(date) {
+        var format = $.datepicker._defaults.dateFormat,
+            is_valid = null;
+
+        try {
+            $.datepicker.parseDate(format, date);
+            is_valid = true;
+        } catch(e) {
+            is_valid = false
         }
 
-    })($);
+        return is_valid;
+    }
+
+    function initDatePicker($section) {
+        var $input = $section.find(".js-datepicker"),
+            $alt_field = null,
+            alt_field_selector = $input.data("alt");
+
+        var error_class = "error";
+
+        var options = {
+            changeMonth: true,
+            changeYear: true
+        };
+
+        if (alt_field_selector) {
+            $alt_field = $section.find(alt_field_selector);
+            if ($alt_field.length) {
+                options = $.extend(options, {
+                    altField: $alt_field,
+                    altFormat: "yy-mm-dd"
+                });
+            }
+        }
+
+        $input.on("blur change", function() {
+            var $field = $(this),
+                value = $.trim( $field.val() );
+
+            if (value.length) {
+                if (!checkDate(value)) {
+                    $field.val("").addClass(error_class);
+                    if ($alt_field && $alt_field.length) {
+                        $alt_field.val("");
+                    }
+                }
+            } else {
+                if ($alt_field && $alt_field.length) {
+                    $alt_field.val("");
+                }
+            }
+        });
+
+        $input.on("focus keydown", function(event) {
+            var $field = $(this),
+                has_error = $field.hasClass(error_class);
+
+            if (has_error) {
+                $field.removeClass(error_class);
+            }
+        });
+
+        $input.on("keydown", function(event) {
+            var key = event.keyCode,
+                is_enter = ( key === 13 );
+
+            if (is_enter) {
+                event.preventDefault();
+                $(this).trigger("change");
+            }
+        });
+
+        $input.datepicker(options);
+    }
+
+    //
 
     $.shop.marketing.init.promoPage = function(options) {
         return new Promo(options);

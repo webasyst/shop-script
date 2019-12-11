@@ -63,10 +63,15 @@
                                 <a class="inline-link nowrap" style="display:inline;">
                                     <b><i><strong>[`With selected`]</strong></i></b>
                                     <i class="icon10 darr"></i>
+                                    <i class="icon16 loading js-selection-menu-loading" style="display: none"></i>
                                 </a>
                                 <ul class="menu-v wf-actions">
                                     {foreach $actions as $a_id => $a}
-                                        <li>
+
+                                        {$_available_for_states = $a.available_for_states|default:[]}
+                                        {$_available_for_states_str = $a.available_for_states|join:','}
+
+                                        <li class="s-disabled s-wf-action-item js-wf-action-item" data-action-id="{$a_id}" data-available-for-states="{$_available_for_states_str|escape}">
                                             <a href="javascript:void(0);" data-action-id="{$a_id}">{$a['name']}</a>
                                         </li>
                                     {/foreach}
@@ -146,6 +151,7 @@
         filter_params_str: '{$params_str}',
         orders: {json_encode($orders)},
         total_count: {$total_count},
+        all_order_state_ids: {$all_order_state_ids|json_encode},
         count: {$count},
         lazy_loading: {
             auto: true

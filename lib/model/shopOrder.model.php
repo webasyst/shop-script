@@ -513,33 +513,25 @@ SQL;
 
     /**
      * @param int   $order_id
-     * @param array $items    since shop 8.5
-     * @param int   $stock_id since shop 8.5
      * @return int|null
      * @throws waDbException
      * @throws waException
      */
-    public function returnProductsToStocks($order_id, $items = null, $stock_id = null)
+    public function returnProductsToStocks($order_id)
     {
         $app_settings_model = new waAppSettingsModel();
         if (!$app_settings_model->get('shop', 'disable_stock_count')) {
             $order_params_model = new shopOrderParamsModel();
             $reduced = $order_params_model->isReduced($order_id);
-            $full = $items === null;
-            if ($full && !$reduced) {
+            if (!$reduced) {
                 return null;
             }
 
             $items_model = new shopOrderItemsModel();
-            if ($items === null) {
-                $items = $items_model->select('*')->where("type='product' AND order_id = ".(int)$order_id)->fetchAll();
-            } else {
-                foreach ($items as $id => $item) {
-                    if (ifset($item['type']) !== 'product') {
-                        unset($items[$id]);
-                    }
-                }
-            }
+            $items = $items_model->select('*')->where("type='product' AND order_id = ".(int)$order_id)->fetchAll();
+
+            $context = shopProductStocksLogModel::getContext();
+            $stock_id = ifset($context, 'params', 'return_stock_id', null);
 
             if ($stock_id !== null) {
                 foreach ($items as &$item) {
@@ -552,9 +544,7 @@ SQL;
 
             $items_model->updateStockCount($items_stocks);
 
-            if ($full) {
-                $order_params_model->unsetReduced($order_id);
-            }
+            $order_params_model->unsetReduced($order_id);
             $order_params_model->incReturnTimes($order_id);
             return $stock_id;
         }

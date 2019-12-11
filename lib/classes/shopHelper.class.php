@@ -1352,6 +1352,14 @@ class shopHelper
         return mb_strtolower($url);
     }
 
+    /**
+     * @param $id
+     * @param $ext
+     * @param null $size
+     * @return string
+     * @throws waException
+     * @deprecated Use shopPromoBannerHelper::getPromoBannerUrl();
+     */
     public static function getPromoImageUrl($id, $ext, $size = null)
     {
         $v = @filemtime(wa('shop')->getDataPath('promos/'.$id.'.'.$ext, true));
@@ -1369,6 +1377,17 @@ class shopHelper
         }
 
         return wa('shop')->getDataUrl('promos/'.$name, true).$params;
+    }
+
+    /**
+     * @param int $id
+     * @return string
+     */
+    public static function getFolderById($id)
+    {
+        $id = (int)$id;
+        $str = str_pad($id, 4, '0', STR_PAD_LEFT);
+        return substr($str, -2).'/'.substr($str, -4, 2).'/'.$id.'/';
     }
 
     public static function getWritableTypes($contact = null)

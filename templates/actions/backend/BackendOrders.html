@@ -45,7 +45,7 @@
             </li>
             <li id="s-pending-orders" class="list">
                 <span class="count">{if !empty($pending_count)}{$pending_count}{/if}</span>
-                <a href="#/orders/state_id=new|processing|paid">
+                <a href="#/orders/state_id=new|processing|auth|paid">
                     <i class="icon16 ss orders-processing"></i>[`Processing`]
                     <strong class="highlighted small">{if !empty($state_counters['new'])}+{$state_counters['new']}{/if}</strong>
                 </a>

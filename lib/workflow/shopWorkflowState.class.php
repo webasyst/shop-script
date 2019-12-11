@@ -55,6 +55,16 @@ class shopWorkflowState extends waWorkflowState
             }
         }
 
+        // add internal actions related to authorized orders
+        if ($this->id === 'auth') {
+            $action_ids = array('cancel', 'capture');
+            foreach ($action_ids as $action_id) {
+                if (empty($actions[$action_id]) && ($action = $this->workflow->getActionById($action_id))) {
+                    $actions[$action->getId()] = $action;
+                }
+            }
+        }
+
         // Filter out unavailable actions
         foreach ($actions as $a_id => $a) {
             if ($a instanceof shopWorkflowAction) {
@@ -104,6 +114,7 @@ class shopWorkflowState extends waWorkflowState
     public function paymentAllowed()
     {
         $disabled_states = array(
+            'auth',
             'deleted',
             'refunded',
             'completed',

@@ -105,6 +105,7 @@ class shopOrder implements ArrayAccess
         'product_fields'        => '*',
         'sku_fields'            => '*',
         'ignore_count_validate' => false,
+        'return_stock'          => null,
     );
     protected $data = array();
     protected $original_data = array();
@@ -882,6 +883,7 @@ class shopOrder implements ArrayAccess
         if ($this->id) {
             $data['id'] = $this->id;
         }
+
         $workflow = new shopWorkflow();
         $result = $workflow->getActionById($action_id)->run($data + $params);
 
@@ -1001,6 +1003,9 @@ class shopOrder implements ArrayAccess
 
         } else {
             $action_id = 'edit';
+            if ($this->options['return_stock'] !== null) {
+                $data['params']['return_stock'] = $this->options['return_stock'];
+            }
         }
 
         //Save order
@@ -3628,12 +3633,15 @@ class shopOrder implements ArrayAccess
     protected function getMap($adapter = null)
     {
         try {
-            $map = wa()->getMap($adapter)->getHTML($this->shipping_address_text, array(
+            $env = ifset($this->options, 'environment', wa()->getEnv());
+            $map_options = array(
                 'width'  => '200px',
                 'height' => '200px',
                 'zoom'   => 13,
                 'static' => true,
-            ));
+                'on_error' => $env === 'backend' ? 'show' : ''
+            );
+            $map = wa()->getMap($adapter)->getHTML($this->shipping_address_text, $map_options);
         } catch (waException $e) {
             $map = '';
         }

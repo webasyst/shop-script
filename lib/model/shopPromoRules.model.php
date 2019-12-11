@@ -7,6 +7,12 @@ class shopPromoRulesModel extends waModel
     public function getAvailableShopTypes()
     {
         $shop_types = [
+            'banner'       => [
+                'type'      => 'banner',
+                'name'      => _w('Banner'),
+                'css_class' => 'image',
+                'max_count' => 1,
+            ],
             'custom_price' => [
                 'type'      => 'custom_price',
                 'name'      => _w('Products & prices'),
@@ -158,12 +164,14 @@ class shopPromoRulesModel extends waModel
                 if ($this->stringIsJson($rule['rule_params'])) {
                     $rule['rule_params'] = waUtils::jsonDecode($rule['rule_params'], true);
                 }
+                $this->prepareRule($rule);
             }
             unset($rule);
         } else {
             if ($this->stringIsJson($rules['rule_params'])) {
                 $rules['rule_params'] = waUtils::jsonDecode($rules['rule_params'], true);
             }
+            $this->prepareRule($rules);
         }
 
         return $rules;
@@ -186,5 +194,43 @@ class shopPromoRulesModel extends waModel
     {
         json_decode($string);
         return (json_last_error() == JSON_ERROR_NONE);
+    }
+
+    protected function prepareRule(&$rule)
+    {
+        $prepare_method = function ($rule_type) {
+            $part_of_name = '';
+            foreach (explode('_', $rule_type) as $part) {
+                $part_of_name .= ucfirst($part);
+            }
+
+            /**
+             * @uses shopPromoRulesModel::prepareBannerRule()
+             */
+            $method_name = "prepare{$part_of_name}Rule";
+            return $method_name;
+        };
+
+        $method_name = $prepare_method($rule['rule_type']);
+
+        if (method_exists($this, $method_name)) {
+            $this->$method_name($rule);
+        }
+    }
+
+    protected function prepareBannerRule(&$rule)
+    {
+        if (empty($rule['rule_params']['banners'])) {
+            return;
+        }
+        $promo_id = $rule['promo_id'];
+        foreach ($rule['rule_params']['banners'] as &$banner) {
+            if (empty($banner['image_filename'])) {
+                continue;
+            }
+            $banner_url = shopPromoBannerHelper::getPromoBannerUrl($promo_id, $banner['image_filename']);
+            $banner['image'] = $banner_url;
+        }
+        unset($banner);
     }
 }

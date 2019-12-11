@@ -1115,36 +1115,66 @@ SQL;
     }
 
     /**
-     * @param string $type_or_ids
-     * @param string $size
+     * @param string|array $type_or_ids
+     * @param null|string $size
      * @return array
      */
     public function promos($type_or_ids = 'link', $size = null)
     {
+        $list_params = [
+            'status'        => shopPromoModel::STATUS_ACTIVE,
+            'ignore_paused' => true,
+            'with_rules'    => true,
+            'rule_type'     => 'banner',
+        ];
+
         $promo_model = new shopPromoModel();
         if (is_array($type_or_ids)) {
-            $prs = $promo_model->getById($type_or_ids);
-            $promos = array();
-            foreach ($type_or_ids as $id) {
-                if (!empty($prs[$id])) {
-                    $promos[$id] = $prs[$id];
-                }
-            }
+            $list_params['id'] = $type_or_ids;
         } else {
-            $storefront = '%all%';
+            $storefront = shopPromoRoutesModel::FLAG_ALL;
             $domain = wa()->getRouting()->getDomain();
             if ($domain) {
                 $routing_url = wa()->getRouting()->getRootUrl();
                 $storefront = $domain.($routing_url ? '/'.$routing_url : '');
             }
-            $promos = $promo_model->getByStorefront($storefront, $type_or_ids, true);
+            $list_params['storefront'] = $storefront;
         }
 
-        foreach ($promos as &$p) {
-            $p['image'] = $this->cdn.shopHelper::getPromoImageUrl($p['id'], $p['ext'], $size);
-        }
-        unset($p);
+        $promos = $promo_model->getList($list_params);
+        foreach ($promos as $promo) {
+            $promo_banner = null;
+            unset($promo['name']);
 
+            foreach ($promo['rules'] as $rule_id => $rule) {
+                if ($rule['rule_type'] !== 'banner') {
+                    unset($promo['rules'][$rule_id]);
+                    continue;
+                }
+
+                foreach ($rule['rule_params']['banners'] as $i => $banner) {
+                    if (!is_array($type_or_ids) && $banner['type'] != $type_or_ids) {
+                        unset($rule['rule_params']['banners'][$i]);
+                    }
+                }
+
+                if (empty($rule['rule_params']['banners'])) {
+                    unset($promo['rules'][$rule_id]);
+                    continue;
+                }
+
+                $promo_banner = array_shift($rule['rule_params']['banners']);
+                break;
+            }
+
+            if (empty($promo['rules']) || empty($promo_banner)) {
+                unset($promos[$promo['id']]);
+                continue;
+            }
+
+            $promo_banner['image'] = $this->cdn.shopPromoBannerHelper::getPromoBannerUrl($promo['id'], $promo_banner['image_filename'], $size);
+            $promos[$promo['id']] = array_merge($promo_banner, $promo);
+        }
 
         /**
          * Output promo in the smarty template

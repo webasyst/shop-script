@@ -303,11 +303,11 @@
                             <div class="wa-coupon-section {if !empty($_is_active)}is-active{/if}" data-enabled="{if !empty($_is_active)}1{else}0{/if}">
                                 <div class="wa-inactive-state">
                                     <input class="wa-input js-coupon-code" type="text" name="coupon_code" value="{$coupon_code|escape}" placeholder="[`Coupon code`]" autocomplete="false">
-                                    <button class="wa-button gray js-use-coupon">[`Activate`]</button>
+                                    <button class="wa-button gray js-use-coupon" type="button">[`Activate`]</button>
                                 </div>
                                 <div class="wa-active-state">
                                     <span class="wa-text"><i class="wa-icon yes size-13"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#yes"></use></svg></i>&nbsp;[`Coupon applied`]</span>
-                                    <button class="wa-button transparent js-cancel-coupon">[`Undo`]</button>
+                                    <button class="wa-button transparent js-cancel-coupon" type="button">[`Undo`]</button>
                                 </div>
 
                                 {if $_is_bad_code}
@@ -328,11 +328,11 @@
                                     <div class="wa-bonus-details">
                                         <div class="wa-inactive-state">
                                             <div class="wa-details">{sprintf('[`Your current affiliate bonus of %s points allows you to get an additonal discount of up to %s`]', "<strong>{$affiliate.affiliate_bonus}</strong>", "<strong id=\"wa-affiliate-order-discount\">{shop_currency_html($affiliate.affiliate_discount, true)}</strong>")}</div>
-                                            <button class="wa-button gray js-use-bonus">[`Use bonus`]</button>
+                                            <button class="wa-button gray js-use-bonus" type="button">[`Use bonus`]</button>
                                         </div>
                                         <div class="wa-active-state">
                                             <span class="wa-text"><i class="wa-icon yes size-13"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#yes"></use></svg></i>&nbsp;[`Bonus used`]</span>
-                                            <button class="wa-button transparent js-cancel-bonus">[`Undo`]</button>
+                                            <button class="wa-button transparent js-cancel-bonus" type="button">[`Undo`]</button>
                                         </div>
                                     </div>
                                     {/strip}

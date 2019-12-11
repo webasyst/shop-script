@@ -61,6 +61,8 @@ class shopProductAction extends waViewAction
             $counters['stocks_log'] = $product_stocks_log_model->countByField('product_id', $product->id);
 
             $this->view->assign('edit_rights', $product->checkRights());
+            $this->view->assign('can_delete',  $product->checkRights(array('level' => 'delete')));
+
         } else {
             $counters += array_fill_keys(array('images', 'services', 'pages', 'reviews'), 0);
             $product['images'] = array();
@@ -77,7 +79,9 @@ class shopProductAction extends waViewAction
             } elseif (!$product->checkRights()) {
                 throw new waRightsException(_w("Access denied"));
             }
+
             $this->view->assign('edit_rights', true);
+            $this->view->assign('can_delete', true);
 
             $product['skus'] = array(
                 '-1' => array(
@@ -170,6 +174,7 @@ class shopProductAction extends waViewAction
         foreach ($frontend_urls as &$frontend_url) {
             $pos = strrpos($frontend_url['url'], $stuff);
             $frontend_url['base'] = $pos !== false ? rtrim(substr($frontend_url['url'], 0, $pos), '/').'/' : $frontend_url['url'];
+            $frontend_url['base'] = waIdna::dec($frontend_url['base']);
             $frontend_url['url'] = waIdna::dec($frontend_url['url']);
         }
         unset($frontend_url);

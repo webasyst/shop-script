@@ -72,14 +72,14 @@
         <div class="wa-dialog-footer">
             {if !empty($type)}
                 <div class="js-send-line">
-                    <button class="wa-button is-large js-send-code">[`Send code`]</button>
+                    <button class="wa-button is-large js-send-code" type="button">[`Send code`]</button>
                 </div>
 
                 <div class="js-submit-line" style="display: none;">
-                    <button class="wa-button is-large js-submit-confirm">{$_locales["submit_button"]|escape}</button>
+                    <button class="wa-button is-large js-submit-confirm" type="button">{$_locales["submit_button"]|escape}</button>
                 </div>
             {else}
-                <button class="js-close-dialog">[`Close`]</button>
+                <button class="js-close-dialog" type="button">[`Close`]</button>
             {/if}
         </div>
     </div>

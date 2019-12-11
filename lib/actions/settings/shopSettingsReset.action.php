@@ -117,6 +117,16 @@ class shopSettingsResetAction extends waViewAction
             waFiles::delete($path, true);
         }
 
+        // clear old shop wa_log events
+        $wa_log_model = new waLogModel();
+        $wa_log_model->deleteByField(array(
+            'app_id' => 'shop'
+        ));
+
+        // and log about reset
+        $this->logAction('reset');
+
+
          /**
          * @event reset_complete
          *

@@ -31,9 +31,15 @@ class shopMarketingPromoAction extends shopMarketingViewAction
                     'name' => $promo_id,
                 ],
             ]);
-            $raw_data_sales = $sales_model->getPeriodByDate('sources', $start_date, $end_date, [
+
+            $period_options = [
                 'date_group' => $group_by,
-            ]);
+            ];
+            $promo_routes = array_keys($promo['routes']);
+            if (!empty($promo_routes) && !in_array(shopPromoRoutesModel::FLAG_ALL, $promo_routes)) {
+                $period_options['storefront'] = $promo_routes;
+            }
+            $raw_data_sales = $sales_model->getPeriodByDate('sources', $start_date, $end_date, $period_options);
             list($chart_data, $promo_totals, $overall_totals) = self::getChartData($raw_data_promo, $raw_data_sales);
 
             $expense_model = new shopExpenseModel();

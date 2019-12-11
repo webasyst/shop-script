@@ -379,10 +379,10 @@ class shopImportexportHelper
                 $promo = array(
                     'type'           => self::PROMO_TYPE_FLASH_DISCOUNT,
                     'name'           => _w('Products & prices'),
-                    'description'    => sprintf('%s: %s', _w('Products & prices'), $shop_promo['title']),
+                    'description'    => sprintf('%s: %s', _w('Products & prices'), $shop_promo['name']),
                     'settings'       => sprintf('./marketing/promo/%d/', $id),
                     'source'         => _w('Products & prices'),
-                    'hint'           => $shop_promo['body'],
+                    'hint'           => '',
                     'hash'           => 'id/'.implode(',', $products),
                     'end_datetime'   => strtotime($shop_promo['finish_datetime']),
                     'start_datetime' => strtotime($shop_promo['start_datetime']),

@@ -47,6 +47,11 @@
             return;
         }
 
+        if (options === 'get') {
+            var settings = this.data('lazyLoadSettings');
+            return settings[ext];
+        }
+
         this.data('lazyLoadSettings', $.extend({
             distance: 50,
             load: function() {},

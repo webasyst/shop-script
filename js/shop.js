@@ -945,7 +945,91 @@
             return sourceLoader(options);
         },
 
-        formatPrice: formatPrice
+        formatPrice: formatPrice,
+
+        /**
+         * Intersect arrays
+         * Function with polymorphic signature
+         *
+         * Function can be in variadic form or form of collected array (array of arrays)
+         *
+         * @param {...Array} input
+         * @param {Boolean} [collected] - form of function, if TRUE means on collected array form (not variadic), if skipped - variadic form
+         *
+         * @example
+         *
+         * $.shop.intersectArrays([1,2,3], [1,2,4]) => [1,2]                // variadic form
+         * $.shop.intersectArrays([ [1,2,3], [1,2,4] ], true) => [1,2]      // collected form
+         *
+         * $.shop.intersectArrays([1,2,3], [1,2,4], [2,5,6]) => [2]                 // variadic form
+         * $.shop.intersectArrays([ [1,2,3], [1,2,4], [2,5,6] ], true) => [1,2]     // collected form
+         */
+        intersectArrays: function (input, collected) {
+
+            // variadic form
+            if (typeof collected !== 'boolean') {
+                input = Array.prototype.slice.call(arguments, 0);
+            }
+
+            // otherwise collected form
+
+
+            // clone first array
+            var result = [].concat(input[0]);
+
+            // intersect loop
+            for (var argI = 1; argI < input.length; argI++) {
+                var ar = input[argI];
+
+                // if element in result not in current array throw it from result (intersect definition)
+                result = $.grep(result, function (el) {
+                    return $.inArray(el, ar) > -1;
+                });
+            }
+
+            return result;
+        },
+
+        /**
+         * Get values of object
+         * Like array_values in php
+         * @param {Object} object
+         */
+        getValues: function (object) {
+            return $.map(object, function (value) {
+                // map automatically flatten inner array, so check for array and wrap into array
+                return $.isArray(value) ? [value] : value;
+            });
+        },
+
+        /**
+         * Get keys of object
+         * Like array_keys in php
+         * @param object
+         */
+        getKeys: function (object) {
+            return $.map(object, function (_, key) {
+                return key;
+            });
+        },
+
+        /**
+         * Get unique values of plain object or array
+         * Like array_unique in php
+         * @param {Object|Array} collection
+         */
+        getUniqueValues: function (collection) {
+            if ($.isPlainObject(collection)) {
+                return this.getUniqueValues(this.getValues(collection));
+            } else if ($.isArray(collection)) {
+                return $.grep(collection, function (el, index) {
+                    return index === $.inArray(el, collection);
+                });
+            } else {
+                // not applicable
+                return collection;
+            }
+        },
 
     };
 })(jQuery);

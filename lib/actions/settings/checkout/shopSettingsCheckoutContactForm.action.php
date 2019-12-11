@@ -16,7 +16,7 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
             $config = array();
         }
 
-        $fields_unsorted = waContactFields::getAll();
+        $fields_unsorted = $this->getContactFields();
 
         // Allow to disable name field in form, despite that it is normally required.
         $fields_unsorted['name'] = clone $fields_unsorted['name'];
@@ -166,5 +166,19 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
             'setting' => ifset($config['service_agreement'], ''),
             'text' => ifset($config['service_agreement_hint'], ''),
         ));
+    }
+
+    protected function getContactFields()
+    {
+        $fields = waContactFields::getAll();
+
+        // Ignore hidden fields. Pretend they don't even exist.
+        foreach ($fields as $field_id => $field) {
+            if ($field instanceof waContactHiddenField) {
+                unset($fields[$field_id]);
+            }
+        }
+        
+        return $fields;
     }
 }

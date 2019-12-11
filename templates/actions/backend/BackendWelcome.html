@@ -96,7 +96,7 @@
                                 {capture append="_sources_html"}
                                     <div class="s-source-wrapper">
                                         <label>
-                                            <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if}>
+                                            <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if} {if $_source@first}checked="checked"{/if}>
                                             {$_source.name|default:''|escape}
                                         </label>
                                     </div>

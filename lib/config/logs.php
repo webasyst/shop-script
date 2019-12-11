@@ -1,6 +1,7 @@
 <?php
 
 return array(
+
     'product_add' => array(
         'name' => /*_w*/('added a product')
     ),
@@ -91,4 +92,29 @@ return array(
     'affiliate_payout' => array(
         'name' => /*_w*/('registered an affiliate payout')
     ),
+
+    'payment_plugin_add' => array(
+        'name' => /*_w*/('added a payment method')
+    ),
+    'payment_plugin_edit' => array(
+        'name' => /*_w*/('edited a payment method')
+    ),
+    'payment_plugin_delete' => array(
+        'name' => /*_w*/('deleted a payment method')
+    ),
+
+    'shipping_plugin_add' => array(
+        'name' => /*_w*/('added a shipping method')
+    ),
+    'shipping_plugin_edit' => array(
+        'name' => /*_w*/('edited a shipping method')
+    ),
+    'shipping_plugin_delete' => array(
+        'name' => /*_w*/('deleted a shipping method')
+    ),
+
+    'reset' => array(
+        'name' =>  /*_w*/('reset the store')
+    ),
+
 );

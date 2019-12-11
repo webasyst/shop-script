@@ -159,31 +159,57 @@ class shopBackendWelcomeAction extends waViewAction
     protected function setupBasicPromos()
     {
         $promo_model = new shopPromoModel();
+        $promo_rules_model = new shopPromoRulesModel();
         $promo_routes_model = new shopPromoRoutesModel();
 
         if ($promo_model->countAll() <= 0) {
-            $promo_routes = array();
+            $promo_routes = [];
             $promo_stubs_path = wa()->getAppPath('lib/config/data/promos.php', 'shop');
 
             if (file_exists($promo_stubs_path)) {
                 $promo_stubs = include($promo_stubs_path);
 
                 foreach ($promo_stubs as $stub) {
-                    $file = $stub['image'];
-                    $ext = explode('.', $file);
-                    $ext = array_pop($ext);
-                    unset($stub['image']);
-                    $id = $promo_model->insert($stub + array(
-                            'type' => 'link',
-                            'ext'  => $ext,
-                        ));
-                    waFiles::copy(wa()->getAppPath($file, 'shop'), wa('shop')->getDataPath('promos/'.$id.'.'.$ext, true));
-                    $promo_routes[] = array(
-                        'promo_id'   => $id,
-                        'storefront' => '%all%',
+                    $promo = $stub;
+                    $promo_rules = ifempty($promo, 'rules', []);
+                    unset($promo['rules']);
+
+                    // Create promo
+                    $promo_id = $promo_model->insert($promo);
+
+                    // Create promo rules
+                    if (!empty($promo_rules)) {
+                        foreach ($promo_rules as &$promo_rule) {
+                            $promo_rule['promo_id'] = $promo_id;
+
+                            // Prepare banner tools
+                            if ($promo_rule['rule_type'] == 'banner') {
+                                foreach ($promo_rule['rule_params']['banners'] as &$banner) {
+                                    $banner['image_filename'] = shopPromoBannerHelper::generateImageName().'.'.pathinfo($banner['image'], PATHINFO_EXTENSION);
+                                    $banner_path = shopPromoBannerHelper::getPromoBannerPath($promo_id, $banner['image_filename']);
+                                    waFiles::copy(wa()->getAppPath($banner['image'], 'shop'), $banner_path);
+                                    unset($banner['image']);
+                                }
+                                unset($banner);
+                            }
+
+                            if (is_array($promo_rule['rule_params'])) {
+                                $promo_rule['rule_params'] = waUtils::jsonEncode($promo_rule['rule_params']);
+                            }
+                        }
+                        unset($promo_rule);
+                        $promo_rules_model->multipleInsert($promo_rules);
+                    }
+
+                    // Prepare promo routes
+                    $promo_routes[] = [
+                        'promo_id'   => $promo_id,
+                        'storefront' => shopPromoRoutesModel::FLAG_ALL,
                         'sort'       => count($promo_routes) + 1,
-                    );
+                    ];
                 }
+
+                // Crate promo routes
                 $promo_routes_model->multipleInsert($promo_routes);
             }
 

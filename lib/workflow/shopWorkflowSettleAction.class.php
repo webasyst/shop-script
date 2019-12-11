@@ -163,7 +163,7 @@ class shopWorkflowSettleAction extends shopWorkflowAction
         $order_id = intval($order_id);
 
         $filter = array(
-            'state_id!=completed||deleted||refunded||paid',
+            'state_id!=completed||deleted||refunded||auth||paid',
             'id!='.$order_id,
             'unsettled=0',
             'params.workflow.settle_target_id=NULL',

@@ -43,7 +43,7 @@ class shopWebPushNotifications
             $data = array(
                 'title'   => $notification_text,
                 'message' => wa_currency($data['order']['total'], $data['order']['currency']),
-                'url'     => $shop_orders_app_url.'#/orders/state_id=new|processing|paid&id='.$data['order']['id'].'/',
+                'url'     => $shop_orders_app_url.'#/orders/state_id=new|processing|auth|paid&id='.$data['order']['id'].'/',
             );
 
             $contact_rights_model = new waContactRightsModel();

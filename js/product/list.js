@@ -1662,7 +1662,9 @@
             if (!d.length) {
                 p = $('<div></div>').appendTo('body');
             }
-            p.load('?module=dialog&action=productsDelete&count=' + products.count, showDialog);
+            if (products.count > 0) {
+                p.load('?module=dialog&action=productsDelete', products, showDialog);
+            }
         },
 
         exportProducts: function (products, plugin) {
