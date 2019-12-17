@@ -2090,13 +2090,13 @@ SQL;
                         case 'price':
                             $_rule_id = null;
                             if (!empty($product['used_promo_id']) && !empty($product['raw_price'])) {
-                                $_rule_id = sprintf('shop.promos.%d', $product['used_promo_id']);
+                                $_rule_id = sprintf('shop.promos.%s', trim($product['used_promo_id']));
                             }
 
                             if ($_rule_id && !empty($this->data['export']['promo_rules'][$_rule_id])) {
                                 $value = array(
-                                    'value' => isset($product[$param]) ? $product[$param] : null,
-                                    'raw_price'   => isset($product['raw_price']) ? $product['raw_price'] : null,
+                                    'value'     => isset($product[$param]) ? $product[$param] : null,
+                                    'raw_price' => isset($product['raw_price']) ? $product['raw_price'] : null,
                                 );
                             } else {
                                 $value = isset($product[$param]) ? $product[$param] : null;
@@ -2139,7 +2139,7 @@ SQL;
                         case 'price':
                             $_rule_id = null;
                             if (!empty($sku['used_promo_id']) && !empty($sku['raw_price'])) {
-                                $_rule_id = sprintf('shop.promos.%d', $sku['used_promo_id']);
+                                $_rule_id = sprintf('shop.promos.%s', trim($sku['used_promo_id']));
                             }
 
                             if ($_rule_id && !empty($this->data['export']['promo_rules'][$_rule_id])) {
@@ -2358,7 +2358,9 @@ SQL;
         }
 
         if ($offer) {
-            return $this->addOfferDom($offer, $map);
+            $data = $this->addOfferDom($offer, $map);
+            $this->setOffer($data, $product, $sku);
+            return $data;
         }
         return null;
     }
@@ -2400,14 +2402,19 @@ SQL;
             }
         }
         $offers->appendChild($product_xml);
-        $this->setOffer($data);
 
         return $data;
     }
 
-    private function setOffer($offer)
+    private function setOffer($offer, $product, $sku)
     {
         if (isset($this->data['offers_map'])) {
+            $promo_id = null;
+            if (!empty($sku['used_promo_id'])) {
+                $promo_id = sprintf('shop.promos.%s', trim($sku['used_promo_id']));
+            } elseif (empty($sku) && !empty($product['used_promo_id'])) {
+                $promo_id = sprintf('shop.promos.%s', trim($product['used_promo_id']));
+            }
             if (strpos($offer['id'], 's')) {
                 list($id, $sku_id) = explode('s', $offer['id'], 2);
             } else {
@@ -2427,13 +2434,17 @@ SQL;
             }
             if (!isset($this->data['offers_map'][$id])) {
                 $this->data['offers_map'][$id] = array(
-                    'currency' => $offer['currencyId'],
-                    'price'    => array(
+                    'currency'      => $offer['currencyId'],
+                    'used_promo_id' => array(
+                        $sku_id => $promo_id,
+                    ),
+                    'price'         => array(
                         $sku_id => $price,
                     ),
                 );
             } elseif ($sku_id) {
                 $this->data['offers_map'][$id]['price'][$sku_id] = $price;
+                $this->data['offers_map'][$id]['used_promo_id'][$sku_id] = $promo_id;
             }
         }
     }
@@ -2608,8 +2619,11 @@ SQL;
         }
 
         if ($promo && $promo_rule['valid']) {
-            $this->addPromoDom($promo, $map);
-            return true;
+            $dom_xml = $this->addPromoDom($promo, $map);
+            if (empty($dom_xml)) {
+                $promo_rule['errors'][] = "There no applicable products";
+            }
+            return !!$dom_xml;
         }
         return null;
     }
@@ -2622,12 +2636,6 @@ SQL;
     private function addPromoDom($promo, $map)
     {
         static $promos;
-        if (empty($promos)) {
-            $nodes = $this->dom->getElementsByTagName('promos');
-            $promos = $nodes->item(0);
-        }
-        $promo_xml = $this->dom->createElement("promo");
-
         $data = array();
         foreach ($promo as $field_id => &$value) {
             $field = preg_replace('/\\..*$/', '', $field_id);
@@ -2638,8 +2646,20 @@ SQL;
             }
             unset($value);
         }
+
+        if (isset($promo['product']) && empty($promo['product'])) {
+            return null;
+        }
+
+        if (empty($promos)) {
+            $nodes = $this->dom->getElementsByTagName('promos');
+            $promos = $nodes->item(0);
+        }
+
+        $promo_xml = $this->dom->createElement("promo");
         $this->addDomNode($promo_xml, $promo, $map);
         $promos->appendChild($promo_xml);
+
         return $promo_xml;
     }
 
@@ -2914,7 +2934,7 @@ SQL;
                         if (is_array($data['price'])) {
                             $_price = isset($data['price']['raw_price']) ? $data['price']['raw_price'] : reset($data['price']);
                         } else {
-                            $_price = $data['price'] / $value;
+                            $_price = $data['price'];
                         }
                         $rate = $_price / $value;
                         if (($rate < 0.05) || ($rate > 0.95)) {
@@ -3478,7 +3498,7 @@ SQL;
             # XXX use map.php for configure this fields
             # implode values for non multiple and non complex fields
             if (!in_array($field,
-                array('email', 'picture', 'url', 'dataTour', 'additional', 'barcode', 'param', 'related_offer', 'local_delivery_cost', 'available', 'age', 'condition','price'))) {
+                array('email', 'picture', 'url', 'dataTour', 'additional', 'barcode', 'param', 'related_offer', 'local_delivery_cost', 'available', 'age', 'condition', 'price'))) {
                 $value = implode(', ', $value);
             }
         } elseif ($value !== null) {
@@ -3492,7 +3512,8 @@ SQL;
     {
         switch ($field) {
             case 'id':
-                $value = str_replace(array('shop.', 'plugins.'), array('s', 'p'), $value);
+                $value = preg_replace('@^shop\.@', 's', $value);
+                $value = preg_replace('@^plugins\.@', 'p', $value);
                 $value = preg_replace('@[^\da-zA-Z]@', '', $value);
                 break;
             case 'start-date':
@@ -3524,6 +3545,28 @@ SQL;
                     foreach ($products as $product) {
                         if (isset($product['&offer'])) {
                             $offer = $product['&offer'];
+
+                            if (preg_match('@^spromos(\d+)$@', $data['id'], $matches)) {
+                                if (empty($offer['used_promo_id'])) {
+                                    $promo_id = null;
+                                } else {
+                                    $promo_id = $this->formatPromo('id', $offer['used_promo_id']);
+                                }
+
+                                if (empty($promo_id) || ($promo_id !== $data['id'])) {
+                                    if (!empty($this->data['trace'])) {
+                                        $this->trace(
+                                            "Offer #%s at promo [%s] skipped because it's not applicable - used promo_id = [%s]\n\tOFFER:%s",
+                                            $product['offer-id'],
+                                            $data['id'],
+                                            var_export($promo_id, true),
+                                            var_export($product, true)
+                                        );
+                                    }
+                                    continue;
+                                }
+                            }
+
                             unset($product['&offer']);
                             $product['@discount-price'] = array(
                                 'currency' => $offer['currency'],
@@ -3555,8 +3598,9 @@ SQL;
                                 if ($offer = $this->getOffer($id)) {
                                     foreach ($offer['price'] as $sku_id => $price) {
                                         $_offer = $offer;
+                                        $_offer['raw_offer'] = $offer;
                                         $_offer['price'] = $price;
-
+                                        $_offer['used_promo_id'] = ifset($offer, 'used_promo_id', $sku_id, false);
                                         if ($sku_id) {
                                             $_offer['id'] .= 's'.$sku_id;
                                         }
