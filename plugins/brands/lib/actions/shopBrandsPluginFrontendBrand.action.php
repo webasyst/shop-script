@@ -16,6 +16,8 @@ class shopBrandsPluginFrontendBrandAction extends shopFrontendAction
             throw new waException('Brand not found', 404);
         }
 
+        $this->addCanonical();
+
         $c = new shopProductsCollection();
         $c->filters(array($feature['code'] => $value_id));
         $this->setCollection($c);
@@ -33,4 +35,29 @@ class shopBrandsPluginFrontendBrandAction extends shopFrontendAction
         waSystem::popActivePlugin();
     }
 
+    public function addCanonical()
+    {
+        $brand = waRequest::param('brand');
+
+        // If brand has spaces ..
+        $brand_has_spaces = preg_match("/\s+/", $brand);
+        if ($brand_has_spaces) {
+
+            $request_uri = wa()->getConfig()->getRequestUrl(false, true);
+
+            // and request uri has %20
+            // than mark canonical url with +, because plugin use urlencode everywhere when encode urls (urlencode convert spaces to '+'s)
+            if (strpos($request_uri, '%20') !== false) {
+                $request_uri = str_replace('%20', '+', $request_uri);
+                $this->view->assign('canonical', wa()->getConfig()->getHostUrl() . $request_uri);
+
+                // no need call parent method, cause parent doesn't know about spaces encoding
+                return;
+            }
+
+        }
+
+        parent::addCanonical();
+
+    }
 }
