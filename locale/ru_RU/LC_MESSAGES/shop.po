@@ -4309,8 +4309,8 @@ msgstr "Бекенд"
 msgid "Required fields"
 msgstr "Обязательные поля"
 
-msgid "When a new order is created via backend manually, contact info form will be validated according the Contact info form setup defined for the storefront (above). All required fields will be necessary to fill in."
-msgstr "При создании заказа вручную в бекенде заполнение контактных данных покупателя будет проверяться в соответствии с настройками для витрины (указанными выше). Все обязательные поля при этом должны быть заполнены."
+msgid "When a new order is created by an administrator on behalf of a customer, contact fields’ values will be validated according to <a href=\"?action=settings#/checkout/\">checkout settings for a selected storefront</a>. All fields marked as required must be completed. For “Manual order” mode, the settings saved in section “<a href=\"?action=settings#/orderEditor/\">Order editor</a>” will be used."
+msgstr "При создании заказа администратором от имени покупателя заполнение контактных данных покупателя будет проверяться в соответствии с <a href=\"?action=settings#/checkout/\">настройками оформления заказа для выбранной витрины</a>. Все обязательные поля при этом должны быть заполнены. Для режима «Добавлен вручную» будут использоваться настройки в разделе «<a href=\"?action=settings#/orderEditor/\">Редактирование заказов</a>»."
 
 msgid "When a new order is created via backend manually, contact info form will not be validated. Fields which are necessary to fill in when order is placed in the storefront, can be left blank when order is created via backend."
 msgstr "При создании заказа вручную в бекенде заполнение контактных данных покупателя проверяться не будет. Поля, отмеченные как обязательные для заполнения при оформлении заказа с витрины, могут не заполняться при создании заказа в бекенде."
@@ -9439,7 +9439,7 @@ msgid "Unknown SKU"
 msgstr "Неизвестный артикул"
 
 msgid "+1-222-333-4455"
-msgstr "+7 (111) 222-33-44"
+msgstr "+X 111 222-33-44"
 
 msgid "product name"
 msgstr "название товара"

@@ -1603,6 +1603,7 @@
                         $rule.data("is-locked", true).trigger(that.event_names["rule_delete"], [$rule]).remove();
                         var $input = $('<input type="hidden" name="delete_rules[]">').val(id);
                         $section.append($input);
+                        that.is_changed = true;
                         ruleCountWatch();
                     }
                 }
@@ -2669,22 +2670,27 @@
             $wa.on("click", "a", clickWatcher);
             $header.on("click", "a", clickWatcher); // hack for content router
 
-            function clickWatcher(event, force) {
+            function clickWatcher(event) {
                 var is_exist = $.contains(document, that.$wrapper[0]);
                 if (is_exist) {
                     var is_redirect = (this.href.indexOf(that.urls["backend_url"]) >= 0);
-                    if (is_redirect && !force && that.is_changed) {
+                    if (is_redirect && that.is_changed) {
                         event.preventDefault();
                         event.stopPropagation();
                         var $link = $(this);
-                        showConfirm().then( function() {
-                            $link.trigger("click", true);
+                        showConfirm().then(function() {
+                            off();
+                            $link[0].click();
                         });
                     }
                 } else {
-                    $wa.off("click", "a", clickWatcher);
-                    $header.off("click", "a", clickWatcher);
+                    off();
                 }
+            }
+
+            function off() {
+                $wa.off("click", "a", clickWatcher);
+                $header.off("click", "a", clickWatcher);
             }
 
             function showConfirm() {

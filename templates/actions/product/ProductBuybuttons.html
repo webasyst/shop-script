@@ -126,270 +126,270 @@
 </div>
 
 <script>
-( function($) {
+    ( function($) {
 
-    function BuyButtonsPage(options) {
-        var that = this;
+        function BuyButtonsPage(options) {
+            var that = this;
 
-        // DOM
-        that.$wrapper = options["$wrapper"];
-        that.$preview = that.$wrapper.find(".s-product-embed-preview");
+            // DOM
+            that.$wrapper = options["$wrapper"];
+            that.$preview = that.$wrapper.find(".s-product-embed-preview");
 
-        // VARS
-        that.button_id = options["button_id"];
-        that.product_name = options["product_name"];
-        that.product_image = options["product_image"];
-        that.change_time = 1100;
+            // VARS
+            that.button_id = options["button_id"];
+            that.product_name = options["product_name"];
+            that.product_image = options["product_image"];
+            that.change_time = 1100;
 
-        // CLASS NAMES
-        that.waiting_class = "is-waiting";
+            // CLASS NAMES
+            that.waiting_class = "is-waiting";
 
-        // DYNAMIC VARS
-        that.changeTimeout = 0;
+            // DYNAMIC VARS
+            that.changeTimeout = 0;
 
-        // INIT
-        that.initClass();
-    }
-
-    BuyButtonsPage.prototype.initClass = function() {
-        var that = this;
-
-        // Magic
-        that.$wrapper.closest('.s-product-form.buybuttons')
-            .addClass('ajax');
-
-        // Set default params
-        that.setDataFromStorage();
-
-        // Color picker
-        that.initColorPicker();
-
-        //
-        $.shop.changeListener(that.$wrapper, '.s-embed-param', function() {
-            that.generateEmbedHtml();
-        });
-
-        // Events
-        that.$wrapper.on("change", ".s-embed-param", function() {
-            that.generateEmbedHtml();
-        });
-
-        // First run
-        that.generateEmbedHtml();
-    };
-
-    BuyButtonsPage.prototype.initColorPicker = function() {
-        var that = this,
-            $colorBlocks = that.$wrapper.find(".s-color-block");
-
-        $colorBlocks.each( function() {
-            var $block = $(this),
-                $input = $block.find(".s-color"),
-                $picker = $block.find(".s-color-picker"),
-                $replacer = $block.find(".s-color-replacer"),
-                first = true;
-
-            // Init color picker
-            var farbtastic = $.farbtastic($picker, function(color) {
-
-                $replacer.find('i').css('background', color);
-
-                $input.val(color.slice(1));
-
-                !first && that.generateEmbedHtml();
-
-                first = false;
-            });
-
-            // Set data
-            var color = $input.val() || "";
-
-            farbtastic.setColor('#' + color);
-
-            // Event
-            $replacer.on("click", function() {
-                $picker.slideToggle(200);
-                return false;
-            });
-
-            $.shop.changeListener($input, function () {
-                var color = $input.val() || '';
-                farbtastic.setColor('#' + color);
-            });
-        });
-
-    };
-
-    BuyButtonsPage.prototype.setDataFromStorage = function() {
-        var that = this,
-            $embed = that.$wrapper.find('.s-embed-param'),
-            params = $.storage.get('shop/buybuttons/' + that.button_id);
-
-        if (!$.isPlainObject(params)) {
-            params = { };
+            // INIT
+            that.initClass();
         }
 
-        $embed.each(function () {
-            var $field = $(this),
-                name = $field.attr("name"),
-                val = $field.val(),
-                is_radio = ( $field.is(':radio') ),
-                is_checkbox = ( $field.is(':checkbox') );
+        BuyButtonsPage.prototype.initClass = function() {
+            var that = this;
 
-            if (params[name] !== undefined) {
-                if (is_radio) {
-                    $field.attr('checked', val == params[name]);
-                } else if (is_checkbox && val == params[name][0]) {
-                    $field.attr('checked', params[name][1]);
-                } else {
-                    $field.val(params[name]);
-                }
-            }
-        });
-    };
+            // Magic
+            that.$wrapper.closest('.s-product-form.buybuttons')
+                .addClass('ajax');
 
-    BuyButtonsPage.prototype.generateEmbedHtml = function() {
-        var that = this,
-            params = [],
-            product_url = '',
-            storefront = '',
-            params_in_storage = { },
-            show_image = false,
-            width = 200,
-            app_static_url = "",
-            time = that.change_time;
+            // Set default params
+            that.setDataFromStorage();
 
-        if (that.changeTimeout) {
-            clearTimeout(that.changeTimeout);
-        }
+            // Color picker
+            that.initColorPicker();
 
-        that.$preview.addClass( that.waiting_class );
-
-        that.changeTimeout = setTimeout( function() {
-
-            that.$wrapper.find('.s-embed-param').each(function () {
-                var el = $(this);
-                if (el.is(':radio') && !el.is(':checked')) {
-                    return;
-                }
-
-                var name = el.attr('name');
-                var val = el.val();
-
-                if (name === 'storefront') {
-                    var $selected = el.find('option:selected');
-                    product_url = $selected.data('url');
-                    app_static_url = $selected.data("static-url");
-                    storefront = $selected.val();
-                }
-
-                if (el.is(':checkbox')) {
-                    params_in_storage[name] = [val, el.is(':checked')];
-                    if (name === 'show_image' && el.is(':checked')) {
-                        show_image = true;
-                    }
-                    if (el.is(':checked')) {
-                        params.push("data-" + (name.replace('_', '-')) + "='" + val + "'");
-                    }
-                } else {
-                    params_in_storage[name] = val;
-                    if (name === 'storefront') {
-                        params.push("data-" + (name.replace('_', '-')) + "='" + ':storefront' + "'");
-                    } else {
-                        if (val) {
-                            params.push("data-" + (name.replace('_', '-')) + "='" + val + "'");
-                        }
-                    }
-                }
-
-                if ( name == "width" && val > 0 ) {
-                    width = val;
-                }
-
+            //
+            $.shop.changeListener(that.$wrapper, '.s-embed-param', function() {
+                that.generateEmbedHtml();
             });
 
-            app_static_url = app_static_url.replace(/http:/g, "").replace(/https:/g, "");
+            // Events
+            that.$wrapper.on("change", ".s-embed-param", function() {
+                that.generateEmbedHtml();
+            });
 
-            params.push("data-height=':height:'");
+            // First run
+            that.generateEmbedHtml();
+        };
 
-            $.storage.set('shop/buybuttons/' + that.button_id, params_in_storage);
+        BuyButtonsPage.prototype.initColorPicker = function() {
+            var that = this,
+                $colorBlocks = that.$wrapper.find(".s-color-block");
 
-            var html_tmpl =
-                '<div class="webasyst-shop-script-product" data-id="' + that.button_id + '" :params>' +
-                    '<a href=":product_url" target="_blank">' +
-                        '<span>:product_name</span><br />' +
-                        ':product_image' +
-                    '</a>' +
-                    '&lt;script&gt; ( function(d,s,h,c) { var script = d.createElement(s), wrapper = d.getElementsByClassName(c)[0]; h += "?v=" + parseInt((new Date().getTime())/(1000*60*60*24)); script.async = 1; script.src = h; wrapper.appendChild(script); })(document,"script",":app_static_url:js/buybuttons.js", "webasyst-shop-script-product"); &lt;/script&gt;' +
-                '</div>';
+            $colorBlocks.each( function() {
+                var $block = $(this),
+                    $input = $block.find(".s-color"),
+                    $picker = $block.find(".s-color-picker"),
+                    $replacer = $block.find(".s-color-replacer"),
+                    first = true;
 
-            html_tmpl = html_tmpl
-                .replace(':product_name', that.product_name)
-                .replace(':product_image', (show_image && that.product_image) ? '<img src="' + that.product_image + '" style="width: ' + width + 'px;">' : "")
-                .replace(':product_url', product_url);
+                // Init color picker
+                var farbtastic = $.farbtastic($picker, function(color) {
 
-            var html = html_tmpl
-                .replace(':params', params.join(' '))
-                .replace(':app_static_url:', app_static_url)
-                .replace(':storefront', storefront);
+                    $replacer.find('i').css('background', color);
 
-            // Preview html is special. Preview doesn't know height of content, so it make measuring and then resizing iframe itself
-            // For this purpose we use storefront of current domain if we can
-            params.push('data-url="{$preview_controller}"');
-            var preview_html = html_tmpl
-                .replace(':params', params.join(' '))
-                .replace(':app_static_url:', '{$app_static_url}')
-                .replace(':storefront', '{$app_storefront}');
+                    $input.val(color.slice(1));
 
-            var embed_block = that.$wrapper.find('.s-product-embed-code');
-            var prev_embed_code = embed_block.html();
-            if (prev_embed_code !== html) {
-                embed_block.html(html);
+                    !first && that.generateEmbedHtml();
 
-                that.$preview.html(
-                    preview_html
-                        .replace(/&lt;/g, '<')
-                        .replace(/&gt;/g, '>')
-                );
-
-                that.$preview.one("height-is-set", function(event, height) {
-                    embed_block.html(html.replace(":height:", height));
+                    first = false;
                 });
 
-                setFrameHeight();
+                // Set data
+                var color = $input.val() || "";
+
+                farbtastic.setColor('#' + color);
+
+                // Event
+                $replacer.on("click", function() {
+                    $picker.slideToggle(200);
+                    return false;
+                });
+
+                $.shop.changeListener($input, function () {
+                    var color = $input.val() || '';
+                    farbtastic.setColor('#' + color);
+                });
+            });
+
+        };
+
+        BuyButtonsPage.prototype.setDataFromStorage = function() {
+            var that = this,
+                $embed = that.$wrapper.find('.s-embed-param'),
+                params = $.storage.get('shop/buybuttons/' + that.button_id);
+
+            if (!$.isPlainObject(params)) {
+                params = { };
             }
 
-            that.$preview.removeClass( that.waiting_class );
-        }, time);
+            $embed.each(function () {
+                var $field = $(this),
+                    name = $field.attr("name"),
+                    val = $field.val(),
+                    is_radio = ( $field.is(':radio') ),
+                    is_checkbox = ( $field.is(':checkbox') );
 
-        function setFrameHeight() {
-            var $wrapper = that.$preview,
-                $container = $wrapper.closest(".s-preview-wrapper");
-
-            $container.css("height", "auto");
-
-            frameTimeout();
-
-            function frameTimeout() {
-                setTimeout( function() {
-                    var $frame = $wrapper.find("iframe");
-                    if (!$frame.length) {
-                        frameTimeout();
+                if (params[name] !== undefined) {
+                    if (is_radio) {
+                        $field.attr('checked', val == params[name]);
+                    } else if (is_checkbox && val == params[name][0]) {
+                        $field.attr('checked', params[name][1]);
                     } else {
-                        $container.height( $container.outerHeight() + $frame.outerHeight() );
-                        $wrapper.trigger("height-is-set", $frame.outerHeight());
+                        $field.val(params[name]);
                     }
-                }, 1000);
+                }
+            });
+        };
+
+        BuyButtonsPage.prototype.generateEmbedHtml = function() {
+            var that = this,
+                params = [],
+                product_url = '',
+                storefront = '',
+                params_in_storage = { },
+                show_image = false,
+                width = 200,
+                app_static_url = "",
+                time = that.change_time;
+
+            if (that.changeTimeout) {
+                clearTimeout(that.changeTimeout);
             }
-        }
-    };
 
-    new BuyButtonsPage({
-        $wrapper: $("#s-product-buybuttons"),
-        button_id: "{$id}",
-        product_name: "{$name|escape|escape}",
-        product_image: {if $img_url}"{$img_url}"{else}false{/if}
-    });
+            that.$preview.addClass( that.waiting_class );
 
-})(jQuery)
+            that.changeTimeout = setTimeout( function() {
+
+                that.$wrapper.find('.s-embed-param').each(function () {
+                    var el = $(this);
+                    if (el.is(':radio') && !el.is(':checked')) {
+                        return;
+                    }
+
+                    var name = el.attr('name');
+                    var val = el.val();
+
+                    if (name === 'storefront') {
+                        var $selected = el.find('option:selected');
+                        product_url = $selected.data('url');
+                        app_static_url = $selected.data("static-url");
+                        storefront = $selected.val();
+                    }
+
+                    if (el.is(':checkbox')) {
+                        params_in_storage[name] = [val, el.is(':checked')];
+                        if (name === 'show_image' && el.is(':checked')) {
+                            show_image = true;
+                        }
+                        if (el.is(':checked')) {
+                            params.push("data-" + (name.replace('_', '-')) + "='" + val + "'");
+                        }
+                    } else {
+                        params_in_storage[name] = val;
+                        if (name === 'storefront') {
+                            params.push("data-" + (name.replace('_', '-')) + "='" + ':storefront' + "'");
+                        } else {
+                            if (val) {
+                                params.push("data-" + (name.replace('_', '-')) + "='" + val + "'");
+                            }
+                        }
+                    }
+
+                    if ( name == "width" && val > 0 ) {
+                        width = val;
+                    }
+
+                });
+
+                app_static_url = app_static_url.replace(/http:/g, "").replace(/https:/g, "");
+
+                params.push("data-height=':height:'");
+
+                $.storage.set('shop/buybuttons/' + that.button_id, params_in_storage);
+
+                var html_tmpl =
+                    '<div class="webasyst-shop-script-product" data-id="' + that.button_id + '" :params>' +
+                    '<a href=":product_url" target="_blank">' +
+                    '<span>:product_name</span><br />' +
+                    ':product_image' +
+                    '</a>' +
+                    '&lt;script&gt; ( function(d,s,h,c) { var script = d.createElement(s), wrapper = d.getElementsByClassName(c)[0]; h += "?v=" + parseInt((new Date().getTime())/(1000*60*60*24)); script.async = 1; script.src = h; wrapper.appendChild(script); })(document,"script",":app_static_url:js/buybuttons.js", "webasyst-shop-script-product"); &lt;/script&gt;' +
+                    '</div>';
+
+                html_tmpl = html_tmpl
+                    .replace(':product_name', that.product_name)
+                    .replace(':product_image', (show_image && that.product_image) ? '<img src="' + that.product_image + '" style="width: ' + width + 'px;">' : "")
+                    .replace(':product_url', product_url);
+
+                var html = html_tmpl
+                    .replace(':params', params.join(' '))
+                    .replace(':app_static_url:', app_static_url)
+                    .replace(':storefront', storefront);
+
+                // Preview html is special. Preview doesn't know height of content, so it make measuring and then resizing iframe itself
+                // For this purpose we use storefront of current domain if we can
+                params.push('data-url="{$preview_controller}"');
+                var preview_html = html_tmpl
+                    .replace(':params', params.join(' '))
+                    .replace(':app_static_url:', '{$app_static_url}')
+                    .replace(':storefront', '{$app_storefront}');
+
+                var embed_block = that.$wrapper.find('.s-product-embed-code');
+                var prev_embed_code = embed_block.html();
+                if (prev_embed_code !== html) {
+                    embed_block.html(html);
+
+                    that.$preview.html(
+                        preview_html
+                            .replace(/&lt;/g, '<')
+                            .replace(/&gt;/g, '>')
+                    );
+
+                    that.$preview.one("height-is-set", function(event, height) {
+                        embed_block.html(html.replace(":height:", height));
+                    });
+
+                    setFrameHeight();
+                }
+
+                that.$preview.removeClass( that.waiting_class );
+            }, time);
+
+            function setFrameHeight() {
+                var $wrapper = that.$preview,
+                    $container = $wrapper.closest(".s-preview-wrapper");
+
+                $container.css("height", "auto");
+
+                frameTimeout();
+
+                function frameTimeout() {
+                    setTimeout( function() {
+                        var $frame = $wrapper.find("iframe");
+                        if (!$frame.length) {
+                            frameTimeout();
+                        } else {
+                            $container.height( $container.outerHeight() + $frame.outerHeight() );
+                            $wrapper.trigger("height-is-set", $frame.outerHeight());
+                        }
+                    }, 1000);
+                }
+            }
+        };
+
+        new BuyButtonsPage({
+            $wrapper: $("#s-product-buybuttons"),
+            button_id: "{$id}",
+            product_name: "{$name|escape|escape}",
+            product_image: {if $img_url}"{$img_url}"{else}false{/if}
+        });
+
+    })(jQuery)
 </script>

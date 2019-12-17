@@ -1,5 +1,7 @@
 {strip}
 
+    {$categories_rights = $wa->userRights('setscategories')}
+
     {* id of a set or category *}
     {if $collection_hash !== null}
         {$id = ifset($collection_hash[1])}
@@ -104,11 +106,15 @@
             </li>
 
             {if $info && $info.hash == 'set' && $info.type == shopSetModel::TYPE_STATIC && $info.count > 0}
-                <li data-action="delete-from-set"><a href="#"><i class="icon10 no-bw"></i>[`Remove from set`]</a></li>
+                {if $categories_rights}
+                    <li data-action="delete-from-set"><a href="#"><i class="icon10 no-bw"></i>[`Remove from set`]</a></li>
+                {/if}
             {/if}
 
             {if $info && $info.hash == 'category' && $info.type == shopCategoryModel::TYPE_STATIC && $info.count > 0}
-                <li data-action="delete-from-category"><a href="#"><i class="icon10 no-bw"></i>[`Remove from category`]</a></li>
+                {if $categories_rights}
+                    <li data-action="delete-from-category"><a href="#"><i class="icon10 no-bw"></i>[`Remove from category`]</a></li>
+                {/if}
             {/if}
 
             {if $products_rights}

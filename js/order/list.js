@@ -290,8 +290,8 @@
                     var $win = $(window),
                         def = $.Deferred();
 
-                    // make sense only for all selected orders and lazy loading not yet loaded all list of orders
-                    if (!selected_orders.all || $win.lazyLoad('get', 'stopped')) {
+                    // make sense only for all selected orders and lazy loading initialized and not yet loaded all list of orders
+                    if (!selected_orders.all || !that.options.lazy_loading || $win.lazyLoad('get', 'stopped')) {
                         def.resolve();
                         return def;
                     }

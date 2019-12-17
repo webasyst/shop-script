@@ -21,32 +21,44 @@
         };
 
         Sidebar.prototype.init = function() {
-            var that = this;
+            var that = this,
+                $document = $(document);
 
             that.setActive();
 
-            $(document).on("wa_loaded", onLoadWatcher);
+            $document.on("wa_loaded", onLoadWatcher);
             function onLoadWatcher() {
                 var is_exist = $.contains(document, that.$wrapper[0]);
                 if (is_exist) {
                     that.setActive();
                 } else {
-                    $(document).off("wa_loaded", onLoadWatcher);
+                    $document.off("wa_loaded", onLoadWatcher);
                 }
             }
 
             that.initAutoReload();
 
-            that.$wrapper.on("click", "li > a", function () {
-                var $link = $(this);
+            /**
+             * @description So it is necessary for compatibility with the promo page
+             *  */
+            $document.on("click", "li > a", clickWatcher);
+            function clickWatcher() {
+                var is_exist = $.contains(document, that.$wrapper[0]),
+                    is_sidebar = $.contains(that.$wrapper[0], this);
 
-                that.setItem($link.closest("li"));
-
-                var $name = $link.find(".s-name");
-                if ($name.length) {
-                    $.shop.marketing.setTitle($name.text());
+                if (is_exist) {
+                    if (is_sidebar) {
+                        var $link = $(this);
+                        that.setItem($link.closest("li"));
+                        var $name = $link.find(".s-name");
+                        if ($name.length) {
+                            $.shop.marketing.setTitle($name.text());
+                        }
+                    }
+                } else {
+                    $document.off("click", "li > a", clickWatcher);
                 }
-            });
+            }
         };
 
         /**

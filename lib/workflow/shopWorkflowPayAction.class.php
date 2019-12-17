@@ -62,6 +62,9 @@ class shopWorkflowPayAction extends shopWorkflowAction
             } else {
                 $time = time();
             }
+            if (!isset($result['update'])) {
+                $result['update'] = array();
+            }
             $result['update'] = array_merge(array(
                 'paid_year'    => date('Y', $time),
                 'paid_quarter' => floor((date('n', $time) - 1) / 3) + 1,

@@ -45,9 +45,14 @@
                 }
             });
 
+            var $tab_field = null;
+
             that.$wrapper.on("change", "select, textarea, input", function(event) {
                 var $field = $(this),
                     reload = !!$field.data("affects-rate") || !!$field.data("reload");
+
+                var set_focus = !!($tab_field && $tab_field[0] === $field[0]);
+                $tab_field = null;
 
                 var $field_wrapper = $field.closest(".wa-field-wrapper");
                 if (!$field_wrapper.length) {
@@ -57,17 +62,23 @@
                 var error = that.scope.validate($field_wrapper, true);
                 if (!error.length) {
                     if (reload) {
-                        that.update({reload: true});
+                        var promise = that.update({
+                            reload: true
+                        });
+
+                        if (set_focus) {
+                            promise.done( function() {
+                                focusField(that.scope.sections["auth"].$wrapper);
+                            });
+                        }
                     }
-
-                    // } else {
-                    //     var errors = that.scope.validate(that.$wrapper);
-                    //     if (!errors.length) {
-                    //         that.update({ reload: true });
-                    //     }
-                    // }
                 }
+            });
 
+            that.$wrapper.on("keydown", "select, textarea, input", function(event) {
+                if (event.keyCode === 9) {
+                    $tab_field = $(this);
+                }
             });
 
             that.initType();
@@ -2788,7 +2799,7 @@
                                 }
                             }
                         }).fail( function(state, errors) {
-                            if (errors.length) {
+                            if (errors && errors.length) {
                                 focus(errors[0]);
                             }
                         });
@@ -3582,15 +3593,7 @@
                 }
             }
 
-            that.$wrapper.find("input:visible").each( function() {
-                var $field = $(this),
-                    value = $.trim($field.val());
-
-                if (!value.length) {
-                    $field.trigger("focus");
-                    return false;
-                }
-            });
+            focusField(that.$wrapper);
 
             that.$wrapper.on("focus", "select, textarea, input", function(event) {
                 if (that.is_updating) {
@@ -4300,6 +4303,18 @@
 
     function isMobile() {
         return ( $(document).width() <= 760 );
+    }
+
+    function focusField($wrapper) {
+        $wrapper.find("input:visible").each( function() {
+            var $field = $(this),
+                value = $.trim($field.val());
+
+            if (!value.length) {
+                $field.trigger("focus");
+                return false;
+            }
+        });
     }
 
 })(jQuery);

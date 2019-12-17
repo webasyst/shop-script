@@ -753,7 +753,6 @@ return array(
         'name'                => array('text'),
         'enabled'             => array('tinyint', 1, 'null' => 0, 'default' => '1'),
         'consider_end_orders' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
-        'countdown_datetime'  => array('datetime'),
         'text_id'             => array('varchar', 64),
         'note'                => array('text'),
         'start_datetime'      => array('datetime'),

@@ -1609,9 +1609,6 @@ msgstr ""
 msgid "Required fields validation"
 msgstr ""
 
-msgid "When a new order is created via backend manually, contact info form will be validated according the Contact info form setup defined for the storefront (above). All required fields will be necessary to fill in."
-msgstr ""
-
 msgid "When a new order is created via backend manually, contact info form will not be validated. Fields which are necessary to fill in when order is placed in the storefront, can be left blank when order is created via backend."
 msgstr ""
 
@@ -9845,4 +9842,74 @@ msgid "Banner"
 msgstr ""
 
 msgid "UTM tags"
+msgstr ""
+
+msgid "Last paid order: today"
+msgstr ""
+
+msgid "Last paid order: %d day ago"
+msgid_plural "Last paid order: %d days ago"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Preparing"
+msgstr ""
+
+msgid "This page contains unsaved changes."
+msgstr ""
+
+msgid "You are about to leave this page without saving your changes. Are you sure?"
+msgstr ""
+
+msgid "OK"
+msgstr ""
+
+msgid "Promos cannot be sorted"
+msgstr ""
+
+msgid "Total orders:"
+msgstr ""
+
+msgid "%d paid order"
+msgid_plural "%d paid orders"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Not included in the promo"
+msgstr ""
+
+msgid "A banner is a promo image displayed in the storefront home page. To change the sort order of banners, change the sort order of promos for a selected storefront."
+msgstr ""
+
+msgid "Add at least one banner."
+msgstr ""
+
+msgid "Select shipping"
+msgstr ""
+
+msgid "Banner has not been uploaded"
+msgstr ""
+
+msgid "added a payment method"
+msgstr ""
+
+msgid "edited a payment method"
+msgstr ""
+
+msgid "deleted a payment method"
+msgstr ""
+
+msgid "added a shipping method"
+msgstr ""
+
+msgid "edited a shipping method"
+msgstr ""
+
+msgid "deleted a shipping method"
+msgstr ""
+
+msgid "reset the store"
+msgstr ""
+
+msgid "An error occurred during the image uploading:"
 msgstr ""

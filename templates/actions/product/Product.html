@@ -1,3 +1,5 @@
+{$categories_rights = $wa->userRights('setscategories')}
+
 <div class="block double-padded" id="shop-productprofile" data-product-id="{$product.id}">
     <h1>
         <a href="#/" class="back">&larr; [`Back`]</a>
@@ -529,7 +531,11 @@
                                 <option class="separator" value="---" disabled="disabled" style="display:none;">---</option>
                             {/if}
                         </select>
-                        <a href="#" class="s-product-delete-from-category" title="[`Remove product from this category`]" {if !$category_id}style="display:none;"{/if}><i class="icon10 delete-bw no-overhanging"></i></a>
+
+                        {if $categories_rights}
+                            <a href="#" class="s-product-delete-from-category" title="[`Remove product from this category`]" {if !$category_id}style="display:none;"{/if}><i class="icon10 delete-bw no-overhanging"></i></a>
+                        {/if}
+
                     {/function}
 
                     {$_show_selects=(count($product.categories)*count($categories) < 200)}
@@ -552,7 +558,10 @@
                                 {/strip}
                                 {implode(' » ',$_path)|escape}
 
-                                <a href="#" class="s-product-delete-from-category" title="[`Remove product from this category`]" {if !$c.id}style="display:none;"{/if}><i class="icon10 delete-bw no-overhanging"></i></a>
+                                {if $categories_rights}
+                                    <a href="#" class="s-product-delete-from-category" title="[`Remove product from this category`]" {if !$c.id}style="display:none;"{/if}><i class="icon10 delete-bw no-overhanging"></i></a>
+                                {/if}
+
                             {/if}
                             <span class="s-new-category" style="display:none;">
                                 <input type="text" name="new_category" class="new-category" class="js-ignore-change" placeholder="[`Category name`]">
@@ -572,7 +581,9 @@
                     </div>
                     <div class="value s-product-categories">
                         <ul class="menu-v s-category-action s-inline-links">
-                            <li><a href="#/product/{$product.id}/edit/main/categories/add/" class="small inline-link js-action"><i class="icon10 add"></i> <b><i>[`Additional category`]</i></b></a></li>
+                            {if $categories_rights}
+                                <li><a href="#/product/{$product.id}/edit/main/categories/add/" class="small inline-link js-action"><i class="icon10 add"></i> <b><i>[`Additional category`]</i></b></a></li>
+                            {/if}
                             {* @event backend_product.%plugin_id%.category_action_li *}
                             {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.category_action_li)}{/foreach}{/if}
                         </ul>
@@ -591,7 +602,9 @@
                                     <option value="{$set.id}"{if $set_id && $set_id == $set.id} selected="selected"{/if}>{$set.name|escape} ({$set.id|escape})</option>
                                 {/foreach}
                             </select>
-                            <a href="javascript:void(0)" class="s-product-delete-from-set" title="[`Remove product from this set`]"><i class="icon10 delete-bw no-overhanging"></i></a>
+                            {if $categories_rights}
+                                <a href="javascript:void(0)" class="s-product-delete-from-set" title="[`Remove product from this set`]"><i class="icon10 delete-bw no-overhanging"></i></a>
+                            {/if}
                         {/function}
 
                         {foreach $product_sets as $set}
@@ -606,7 +619,9 @@
 
                         <div class="value">
                             <ul class="menu-v s-inline-links compact">
-                                <li><a href="javascript:void(0)" class="small inline-link add-set-button"><i class="icon10 add"></i> <b><i>[`Additional set`]</i></b></a></li>
+                                {if $categories_rights}
+                                    <li><a href="javascript:void(0)" class="small inline-link add-set-button"><i class="icon10 add"></i> <b><i>[`Additional set`]</i></b></a></li>
+                                {/if}
                             </ul>
                         </div>
 

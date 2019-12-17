@@ -29,7 +29,7 @@ class shopOrdersAction extends shopOrderListAction
 
         $state_names = array();
         foreach ($workflow->getAvailableStates() as $state_id => $state) {
-            $state_names[$state_id] = $state['name'];
+            $state_names[$state_id] = waLocale::fromArray($state['name']);
             if (isset($state['available_actions']) && is_array($state['available_actions'])) {
                 foreach ($state['available_actions'] as $action_id) {
                     if (isset($actions[$action_id])) {

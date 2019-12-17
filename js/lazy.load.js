@@ -48,7 +48,7 @@
         }
 
         if (options === 'get') {
-            var settings = this.data('lazyLoadSettings');
+            var settings = this.data('lazyLoadSettings') || {};
             return settings[ext];
         }
 
