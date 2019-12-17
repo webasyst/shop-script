@@ -113,6 +113,7 @@ function Product(form, options) {
         return false;
     });
 
+    this.compare_price = null;
 }
 
 Product.prototype.currencyFormat = function (number, no_html) {
@@ -216,7 +217,7 @@ Product.prototype.updatePrice = function (price, compare_price) {
         }
         this.add2cart.find(".compare-at-price").html(this.currencyFormat(compare_price)).show();
     } else {
-        this.add2cart.find(".compare-at-price").hide();
+        this.add2cart.find(".compare-at-price").hide().html("");
     }
     var self = this;
     this.form.find(".services input:checked").each(function () {
@@ -228,12 +229,16 @@ Product.prototype.updatePrice = function (price, compare_price) {
         }
     });
     this.add2cart.find(".price").html(this.currencyFormat(price));
-}
+
+    this.compare_price = (compare_price ? compare_price : 0);
+};
 
 Product.prototype.cartButtonVisibility = function (visible) {
     //toggles "Add to cart" / "%s is now in your shopping cart" visibility status
     if (visible) {
-        this.add2cart.find('.compare-at-price').show();
+        if (this.compare_price > 0) {
+            this.add2cart.find('.compare-at-price').show();
+        }
         this.add2cart.find('input[type="submit"]').show();
         this.add2cart.find('.price').show();
         this.add2cart.find('.qty').show();
@@ -245,7 +250,7 @@ Product.prototype.cartButtonVisibility = function (visible) {
         this.add2cart.find('.qty').hide();
         this.add2cart.find('span.added2cart').show();
     }
-}
+};
 
 $(function () {
 
