@@ -436,16 +436,18 @@
             that.$wrapper.on("click", ".js-clean-address-fields", function(event) {
                 event.preventDefault();
 
-                if (isRendered($city_field)) {
+                if ($city_field.length) {
                     $city_field.val("");
                 }
 
-                if (isRendered($zip_field)) {
+                if ($zip_field.length) {
                     $zip_field.val("");
                 }
 
                 that.scope.update({
                     render_errors: false
+                }).then( function() {
+                    focusField(that.scope.sections["region"].$wrapper);
                 });
             });
 

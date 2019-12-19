@@ -10373,3 +10373,6 @@ msgstr "Подготовка"
 
 msgid "An error occurred during the image uploading:"
 msgstr "При загрузке изображения произошла ошибка:"
+
+msgid "This name is not visible to website visitors."
+msgstr "Это название не видно посетителям сайта."
