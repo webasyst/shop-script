@@ -50,6 +50,8 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
             $order_id = $params;
         }
 
+        $order = $this->order_model->getById($order_id);
+
         if (!$callback) {
             $plugin = $this->getPaymentPlugin($order_id);
             if ($plugin
@@ -59,7 +61,8 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
             ) {
                 $transaction = $transactions[waPayment::TRANSACTION_CAPTURE];
                 try {
-                    $response = $plugin->capture(compact('transaction'));
+                    $order_data = $order;
+                    $response = $plugin->capture(compact('transaction', 'order_data'));
                 } catch (waException $ex) {
                     $message = sprintf(
                         "Error during capture order #%d: %s\nDATA:%s",
@@ -95,8 +98,6 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
 
             }
         }
-
-        $order = $this->order_model->getById($order_id);
 
         if ($callback) {
             $this->waLog('order_capture_callback', $order_id, $order['contact_id']);
