@@ -18,25 +18,28 @@ class shopConfig extends waAppConfig
         static $event_done = false;
         if (!$event_done) {
             $event_done = true;
-            /**
-             * Modify current backend user rights.
-             * E.g. plugin can return [ 'orders' => 1 ] to grant current user access to Orders tab.
-             *
-             * @event backend_rights
-             * @param string $module
-             * @param string $action
-             * @return array[string]array $return[%plugin_id%] rights to set for current user; array of key => value pairs
-             */
-            $result = wa()->event(array($this->application, 'backend_rights'), ref([
-                'module' => $module,
-                'action' => $action,
-            ]));
-            if ($result) {
-                $contact_id = wa()->getUser()->getId();
-                $rights_model = new waContactRightsModel();
-                foreach ($result as $rights) {
-                    if ($rights && is_array($rights)) {
-                        $rights_model->saveOnce($contact_id, $this->application, $rights);
+
+            if (wa()->getEnv() === 'backend') {
+                /**
+                 * Modify current backend user rights.
+                 * E.g. plugin can return [ 'orders' => 1 ] to grant current user access to Orders tab.
+                 *
+                 * @event backend_rights
+                 * @param string $module
+                 * @param string $action
+                 * @return array[string]array $return[%plugin_id%] rights to set for current user; array of key => value pairs
+                 */
+                $result = wa()->event(array($this->application, 'backend_rights'), ref([
+                    'module' => $module,
+                    'action' => $action,
+                ]));
+                if ($result) {
+                    $contact_id = wa()->getUser()->getId();
+                    $rights_model = new waContactRightsModel();
+                    foreach ($result as $rights) {
+                        if ($rights && is_array($rights)) {
+                            $rights_model->saveOnce($contact_id, $this->application, $rights);
+                        }
                     }
                 }
             }
@@ -295,6 +298,7 @@ class shopConfig extends waAppConfig
                          'review_service_agreement'      => '',
                          'review_service_agreement_hint' => '',
                          'sort_order_items'              => 'user_cart',
+                         'merge_carts'                   => 0,
                      ) as $k => $value) {
                 $settings[$k] = isset($all_settings[$k]) ? $all_settings[$k] : $value;
             }

@@ -855,7 +855,7 @@ class shopProductModel extends waModel
 
         // get product info
         if (is_numeric($product)) {
-            $product = $this->select('type_id, contact_id')->where('id=' . (int)$product)->fetchField('type_id');
+            $product = $this->select('type_id, contact_id')->where('id=' . (int)$product)->fetchAssoc();
         }
 
         // fill vars for check rights

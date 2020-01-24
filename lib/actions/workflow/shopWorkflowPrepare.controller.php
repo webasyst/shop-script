@@ -18,6 +18,11 @@ class shopWorkflowPrepareController extends waController
             throw new waException('No action id given.');
         }
 
+        $user = wa()->getUser();
+        if (!$user->isAdmin('shop') && !$user->getRights('shop', sprintf('workflow_actions.%s', $action_id))) {
+            throw new waRightsException('Action not available for user');
+        }
+
         $workflow = new shopWorkflow();
         // @todo: check action availability in state
         /** @var shopWorkflowAction $action */

@@ -2296,6 +2296,9 @@ msgstr "Шаг доставки предлагает покупателю выб
 msgid "Can manage orders"
 msgstr "Управление заказами"
 
+msgid "Can perform order actions"
+msgstr "Может выполнять действия с заказами"
+
 msgid "Can manage settings"
 msgstr "Управление общими настройками"
 
@@ -6538,8 +6541,8 @@ msgstr "Импорт и экспорт данных"
 msgid "Read only"
 msgstr "Только чтение"
 
-msgid "Edit and add new products only"
-msgstr "Добавление новых товаров и их редактирование"
+msgid "Edit products and add new products"
+msgstr "Редактирование товаров и добавление новых товаров"
 
 msgid "Full access"
 msgstr "Полный доступ"
@@ -10368,6 +10371,12 @@ msgstr "удалил способ доставки"
 msgid "reset the store"
 msgstr "выполнил сброс магазина"
 
+msgid "Create @2x image thumbnails"
+msgstr "Создать эскизы @2x"
+
+msgid "@2x thumbnails require more disk space than orginary thumbnails. Ensure that you have sufficient space to store all image files."
+msgstr "Для хранения эскизов @2x требуется больше дискового пространства, чем для обычных эскизов. Проверьте, чтобы на сервере было достаточно места для хранения изображений."
+
 msgid "Preparing"
 msgstr "Подготовка"
 
@@ -10376,3 +10385,12 @@ msgstr "При загрузке изображения произошла оши
 
 msgid "This name is not visible to website visitors."
 msgstr "Это название не видно посетителям сайта."
+
+msgid "Settings cannot be saved because of too large data size."
+msgstr "Невозможно сохранить настройки — слишком большой размер данных."
+
+msgid "Shopping cart contents"
+msgstr "Содержимое корзины покупателя"
+
+msgid "Sync shopping cart items on all devices for authorized customers."
+msgstr "Синхронизировать товары в корзине авторизованного покупателя на всех устройствах."

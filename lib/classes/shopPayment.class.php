@@ -450,7 +450,11 @@ class shopPayment extends waAppPayment
 
     public function setSettings($plugin_id, $key, $name, $value)
     {
-        $this->model()->set($key, $name, $value);
+        $m = $this->model();
+        if ($m->isValueOverflow($value)) {
+            throw new waException(_w('Settings cannot be saved because of too large data size.'));
+        }
+        $m->set($key, $name, $value);
     }
 
     public function cancel()
@@ -776,15 +780,12 @@ class shopPayment extends waAppPayment
                 $transaction_data['order_id'] = $result['order_id'];
             }
 
-            $result['result'] = true;
-
             $error = null;
             if ($this->isOrderAmountInvalid($transaction_data, $error)) {
                 $result['result'] = false;
                 $result['error'] = $error;
             } else {
-                $workflow = new shopWorkflow();
-                $workflow->getActionById('process')->run($transaction_data['order_id']);
+                $result['result'] = true;
             }
         }
 

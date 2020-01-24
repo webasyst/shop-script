@@ -19,6 +19,7 @@ class shopFrontendProductReviewsAction extends shopFrontendProductAction
         }
 
         $product = new shopProduct($product, true);
+        $this->ensureCanonicalUrl($product);
         $this->prepareProduct($product);
         $this->assignFeaturesSelectable($product);
 
@@ -79,6 +80,23 @@ class shopFrontendProductReviewsAction extends shopFrontendProductAction
         $this->view->assign('frontend_product', wa()->event('frontend_product', $product, array('menu','cart','block_aux','block')));
 
         $this->setThemeTemplate('reviews.html');
+    }
+
+    /** @param shopProduct $product */
+    protected function ensureCanonicalUrl($product)
+    {
+        $root_url = ltrim(wa()->getRootUrl(false, true), '/');
+
+        $canonical_url = $product->getProductUrl(true, true, false);
+        $canonical_url = rtrim($canonical_url, '/') . '/reviews/';  // not very good approach to build url
+        $canonical_url = ltrim(substr($canonical_url, strlen($root_url)), '/');
+        $actual_url = explode('?', wa()->getConfig()->getRequestUrl(), 2);
+        $actual_url = ltrim(urldecode($actual_url[0]), '/');
+
+        if ($canonical_url != $actual_url) {
+            $q = waRequest::server('QUERY_STRING');
+            $this->redirect('/'.$canonical_url.($q ? '?'.$q : ''), 301);
+        }
     }
 
 }

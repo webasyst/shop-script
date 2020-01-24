@@ -114,6 +114,7 @@ class shopSettingsGeneralAction extends waViewAction
             'review_service_agreement'      => waRequest::post('review_service_agreement', '', waRequest::TYPE_STRING),
             'review_service_agreement_hint' => waRequest::post('review_service_agreement_hint', '', waRequest::TYPE_STRING),
             'sort_order_items'              => waRequest::post('sort_order_items', 'user_cart', waRequest::TYPE_STRING),
+            'merge_carts'                   => waRequest::post('merge_carts', 0, waRequest::TYPE_INT)
         );
         if (waRequest::post('map')) {
             $data['map'] = waRequest::post('map', '', waRequest::TYPE_STRING_TRIM);

@@ -10,7 +10,7 @@
                     <div class="value no-shift">
                         <select name="storefront" class="s-embed-param">
                             {foreach $storefronts as $storefront}
-                                <option value="{$storefront.controller_url}" data-url="{$storefront.product_url}" data-static-url="{$storefront.static_url}">{$storefront.root_url_decoded}</option>
+                                <option value="{$storefront.controller_url}" data-domain="{$storefront.domain}" data-url="{$storefront.product_url}" data-static-url="{$storefront.static_url}">{$storefront.root_url_decoded}</option>
                             {/foreach}
                         </select>
                     </div>
@@ -251,6 +251,7 @@
         BuyButtonsPage.prototype.generateEmbedHtml = function() {
             var that = this,
                 params = [],
+                domain = '',
                 product_url = '',
                 storefront = '',
                 params_in_storage = { },
@@ -278,6 +279,7 @@
 
                     if (name === 'storefront') {
                         var $selected = el.find('option:selected');
+                        domain = $selected.data('domain');
                         product_url = $selected.data('url');
                         app_static_url = $selected.data("static-url");
                         storefront = $selected.val();
@@ -325,7 +327,7 @@
 
                 html_tmpl = html_tmpl
                     .replace(':product_name', that.product_name)
-                    .replace(':product_image', (show_image && that.product_image) ? '<img src="' + that.product_image + '" style="width: ' + width + 'px;">' : "")
+                    .replace(':product_image', (show_image && that.product_image) ? '<img src="//' + domain + that.product_image + '" style="width: ' + width + 'px;">' : "")
                     .replace(':product_url', product_url);
 
                 var html = html_tmpl

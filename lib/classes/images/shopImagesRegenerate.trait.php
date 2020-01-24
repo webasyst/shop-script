@@ -33,6 +33,7 @@ trait shopImagesRegenerateTrait
      * Changes the name of images
      *
      * @return array
+     * @throws waException
      */
     public function regenerate()
     {
@@ -86,7 +87,8 @@ trait shopImagesRegenerateTrait
 
         // Create thumbnails, if asked to
         if (waRequest::post('create_thumbnails')) {
-            shopImage::generateThumbs($image, $this->data['sizes']);
+            $with_2x = waRequest::post('with_2x');
+            shopImage::generateThumbs($image, $this->data['sizes'], true, !empty($with_2x));
         }
     }
 
@@ -228,6 +230,7 @@ trait shopImagesRegenerateTrait
 
     /**
      * @return array|mixed
+     * @throws waException
      */
     public function getSizes()
     {

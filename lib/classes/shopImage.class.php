@@ -108,13 +108,13 @@ class shopImage
      * @param array $image Key-value image data object
      * @param array $sizes Array of image size values; e.g., '200x0', '96x96', etc.
      * @param bool $force Whether missing image thumbnail files must be created
+     * @param bool $with_2x
      * @throws waException
      */
-    public static function generateThumbs($image, $sizes = array(), $force = true)
+    public static function generateThumbs($image, $sizes = array(), $force = true, $with_2x = false)
     {
         $sizes = (array)$sizes;
         $product_id = $image['product_id'];
-        $config = wa('shop')->getConfig();
         /**
          * @var shopConfig $config
          */
@@ -123,20 +123,42 @@ class shopImage
             if (!file_exists($thumbs_path) && !waFiles::create($thumbs_path)) {
                 throw new waException("Insufficient write permissions for the $thumbs_path dir.");
             }
-            $image_path = self::getPath($image);
             foreach ($sizes as $size) {
-
-                $thumb_path = self::getThumbsPath($image, $size);
-                if ($force || !file_exists($thumb_path)) {
-                    /**
-                     * @var waImage
-                     */
-                    if ($thumb_img = self::generateThumb($image_path, $size)) {
-                        $thumb_img->save($thumb_path, $config->getSaveQuality());
-                    }
-                }
+                self::generateThumbSize($image, $size, $force, $with_2x);
             }
             clearstatcache();
+        }
+    }
+
+    private static function generateThumbSize($image, $size, $force = true, $with_2x = false)
+    {
+        $save_thumb = function ($force, $image_path, $thumb_path, $size, $is_2x) {
+            $config = wa('shop')->getConfig();
+            if ($force || !file_exists($thumb_path)) {
+                /**
+                 * @var waImage
+                 */
+                if ($thumb_img = self::generateThumb($image_path, $size)) {
+                    $thumb_img->save($thumb_path, $config->getSaveQuality($is_2x));
+                }
+            }
+        };
+        $image_path = self::getPath($image);
+
+        $thumb_path = self::getThumbsPath($image, $size);
+        $save_thumb($force, $image_path, $thumb_path, $size, false);
+
+        if ($with_2x) {
+            $thumb_path = self::getThumbsPath($image, $size.'@2x');
+
+            $size = explode('x', $size);
+            foreach ($size as &$s) {
+                $s *= 2;
+            }
+            unset($s);
+            $size = implode('x', $size);
+
+            $save_thumb($force, $image_path, $thumb_path, $size, true);
         }
     }
 

@@ -831,13 +831,14 @@ class shopOrdersCollection
 
         if (isset($postprocess_fields['state'])) {
             $workflow = new shopWorkflow();
+            $locale = wa()->getLocale();
             $states = $workflow->getAvailableStates();
             foreach ($data as &$o) {
                 if (isset($states[$o['state_id']])) {
                     $s = $states[$o['state_id']];
                     $o['state'] = array(
                         'id'    => $o['state_id'],
-                        'name'  => $s['name'],
+                        'name'  => waLocale::fromArray($s['name'], $locale),
                         'style' => ifset($s['options']['style'], array()),
                         'icon'  => ifset($s['options']['icon'], ''),
                     );

@@ -58,6 +58,13 @@
             <h5 class="heading">[`Orders & Customers`]</h5>
             <div class="field-group">
                 <div class="field">
+                    <div class="name">[`Shopping cart contents`]</div>
+                    <div class="value no-shift"">
+                        <label><input type="checkbox" name="merge_carts" value="1" {if !empty($merge_carts)}checked="checked"{/if}>
+                            [`Sync shopping cart items on all devices for authorized customers.`]</label>
+                    </div>
+                </div>
+                <div class="field">
                     <div class="name">[`Order ID format`]</div>
                     <div class="value">
                         <input type="text" name="order_format" value="{$order_format}">

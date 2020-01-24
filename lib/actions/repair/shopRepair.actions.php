@@ -639,4 +639,60 @@ if (file_exists($file)) {
         }
         return $empty;
     }
+
+    /** When several storefronts point to the same copy of checkout2 settings, split the settings */
+    public function checkout2duplicateAction()
+    {
+        $checkout_config_path = wa('shop')->getConfig()->getConfigPath('checkout2.php', true, 'shop');
+        if (!file_exists($checkout_config_path) || !is_writable($checkout_config_path)) {
+            echo 'unable to read or write '.$checkout_config_path;
+            return false;
+        }
+        $checkout_config = include($checkout_config_path);
+
+        $routing_config_path = wa()->getConfig()->getPath('config', 'routing');
+        if (!file_exists($routing_config_path) || !is_writable($routing_config_path)) {
+            echo 'unable to read or write '.$routing_config_path;
+            return false;
+        }
+        $all_domains_routes = include($routing_config_path);
+
+        $shop_checkout_config_ids = [];
+        $something_changed = false;
+        foreach($all_domains_routes as $domain => $domain_routes) {
+            if (!is_array($domain_routes)) {
+                continue;
+            }
+            foreach($domain_routes as $route_index => $route) {
+                $app = ifset($route, 'app', null);
+                $checkout_version = ifset($route, 'checkout_version', null);
+                $checkout_storefront_id = ifset($route, 'checkout_storefront_id', null);
+
+                if ($app != 'shop' || $checkout_version != 2 || !$checkout_storefront_id || !isset($checkout_config[$checkout_storefront_id])) {
+                    continue;
+                }
+
+                if (empty($shop_checkout_config_ids[$checkout_storefront_id])) {
+                    $shop_checkout_config_ids[$checkout_storefront_id] = true;
+                    continue;
+                }
+
+                $something_changed = true;
+                $new_checkout_storefront_id = shopCheckoutConfig::generateStorefrontId($domain, ifset($route, 'url', ''));
+
+                $checkout_config[$new_checkout_storefront_id] = $checkout_config[$checkout_storefront_id];
+                $all_domains_routes[$domain][$route_index]['checkout_storefront_id'] = $new_checkout_storefront_id;
+            }
+        }
+
+        if ($something_changed) {
+            waUtils::varExportToFile($all_domains_routes, $routing_config_path);
+            waUtils::varExportToFile($checkout_config, $checkout_config_path);
+            echo 'done';
+        } else {
+            echo 'nothing changed';
+        }
+
+        return $something_changed;
+    }
 }

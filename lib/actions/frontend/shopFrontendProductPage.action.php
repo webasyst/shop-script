@@ -45,6 +45,8 @@ class shopFrontendProductPageAction extends shopFrontendProductAction
             $page['title'] = $page['name'];
         }
 
+        $this->ensurePageCanonicalUrl($product, waRequest::param('page_url'));
+
         // interpret smarty code
         $page['content'] = $this->view->fetch('string:'.$page['content']);
 
@@ -73,5 +75,24 @@ class shopFrontendProductPageAction extends shopFrontendProductAction
     protected function pageNotFound()
     {
         throw new waException('Page not found', 404);
+    }
+
+    /** @param shopProduct $product */
+    protected function ensurePageCanonicalUrl($product, $page_url)
+    {
+        $root_url = ltrim(wa()->getRootUrl(false, true), '/');
+
+        $canonical_url = $product->getProductUrl(true, true, false);
+        // not very good approach to build url
+        $canonical_url = rtrim($canonical_url, '/') . '/' . $page_url . '/';
+        $canonical_url = ltrim(substr($canonical_url, strlen($root_url)), '/');
+
+        $actual_url = explode('?', wa()->getConfig()->getRequestUrl(), 2);
+        $actual_url = ltrim(urldecode($actual_url[0]), '/');
+
+        if ($canonical_url != $actual_url) {
+            $q = waRequest::server('QUERY_STRING');
+            $this->redirect('/'.$canonical_url.($q ? '?'.$q : ''), 301);
+        }
     }
 }

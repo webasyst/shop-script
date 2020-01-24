@@ -1,4 +1,5 @@
 <?php
+
 class shopSettingsResetAction extends waViewAction
 {
     public function execute()
@@ -21,14 +22,6 @@ class shopSettingsResetAction extends waViewAction
                 $this->makeConfirm();
             }
         }
-    }
-
-    private function makeConfirm()
-    {
-
-        $confirm = 'YES '.substr(md5(time()), 0, 3);
-        $this->getStorage()->write('reset_confirm', $confirm);
-        $this->view->assign('confirm', $confirm);
     }
 
     private function reset()
@@ -83,6 +76,17 @@ class shopSettingsResetAction extends waViewAction
 
         // Delete contact access rights that contain type_id
         $model->exec("DELETE FROM wa_contact_rights WHERE app_id='shop' AND name LIKE 'type.%' AND name<>'type.all'");
+        // Delete contact access rights that contain action id except default
+        $workflow_actions = array('workflow_actions.all');
+
+        $file = wa()->getConfig()->getAppsPath('shop', 'lib/config/data/workflow.php');
+        if (file_exists($file)) {
+            $original_config = include($file);
+            if (!empty($original_config['actions']) && is_array($original_config['actions'])) {
+                $workflow_actions = array_merge($workflow_actions, array_keys($original_config['actions']));
+            }
+        }
+        $model->query("DELETE FROM wa_contact_rights WHERE app_id='shop' AND name LIKE 'workflow_actions.%' AND name NOT IN (?)", [$workflow_actions]);
 
         // Delete settings from wa_app_settings and wa_contact_settings.
         // It's OK to do direct queries because we'll clear the cache afterwards.
@@ -120,14 +124,14 @@ class shopSettingsResetAction extends waViewAction
         // clear old shop wa_log events
         $wa_log_model = new waLogModel();
         $wa_log_model->deleteByField(array(
-            'app_id' => 'shop'
+            'app_id' => 'shop',
         ));
 
         // and log about reset
         $this->logAction('reset');
 
 
-         /**
+        /**
          * @event reset_complete
          *
          * All application settings has just been reset, and all shop tables truncated.
@@ -143,6 +147,14 @@ class shopSettingsResetAction extends waViewAction
 
         echo json_encode(array('result' => 'ok', 'redirect' => '?action=welcome'));
         exit;
+    }
+
+    private function makeConfirm()
+    {
+
+        $confirm = 'YES '.substr(md5(time()), 0, 3);
+        $this->getStorage()->write('reset_confirm', $confirm);
+        $this->view->assign('confirm', $confirm);
     }
 }
 

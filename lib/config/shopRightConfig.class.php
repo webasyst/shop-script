@@ -23,14 +23,37 @@ class shopRightConfig extends waRightConfig
         $type_model = new shopTypeModel();
         $types = $type_model->getNames();
         $this->addItem('type', _w('Can manage products'), 'selectlist', array(
-            'items' => $types,
-            'position'	 => 'right',
-            'options'	 => array(
+            'items'    => $types,
+            'position' => 'right',
+            'options'  => array(
                 self::RIGHT_READ => _w('Read only'),
-                self::RIGHT_EDIT => _w('Edit and add new products only'),
+                self::RIGHT_EDIT => _w('Edit products and add new products'),
                 self::RIGHT_FULL => _w('Full access'),
             ),
-            'hint1' => 'all_select'
+            'hint1'    => 'all_select',
+        ));
+
+        $workflow = new shopWorkflow();
+        $actions = $workflow->getAvailableActions();
+        $items = array();
+        $internal_actions = array(
+            'settle',
+            'capture',
+            'cancel',
+        );
+        foreach ($actions as $action_id => $action) {
+            if (empty($action['internal'])
+                || !empty($action['rights'])
+                || in_array($action_id, $internal_actions)
+            ) {
+                $items[$action_id] = $action['name'];
+            }
+        }
+
+        $this->addItem('workflow_actions', _w('Can perform order actions'), 'list', array(
+            'items'    => $items,
+            'position' => 'right',
+            'hint1'    => 'all_checkbox',
         ));
 
         /**

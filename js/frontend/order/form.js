@@ -418,43 +418,16 @@
                 event.preventDefault();
             });
 
-            that.$wrapper.on("click", ".js-calculate-form", function(event) {
-                event.preventDefault();
-
-                var errors = that.scope.validate(that.$wrapper, true);
-                if (!errors.length) {
-                    that.scope.update();
-                }
-            });
-
             var $location_field = that.$form.find(".js-location-field"),
                 $country_field = that.$form.find(".js-country-field"),
                 $region_field = that.$form.find(".js-region-field"),
                 $city_field = that.$form.find(".js-city-field"),
                 $zip_field = that.$form.find(".js-zip-field");
 
-            that.$wrapper.on("click", ".js-clean-address-fields", function(event) {
-                event.preventDefault();
-
-                if ($city_field.length) {
-                    $city_field.val("");
-                }
-
-                if ($zip_field.length) {
-                    $zip_field.val("");
-                }
-
-                that.scope.update({
-                    render_errors: false
-                }).then( function() {
-                    focusField(that.scope.sections["region"].$wrapper);
-                });
-            });
-
             fieldWatcher($location_field, [$country_field, $region_field, $city_field, $zip_field]);
             fieldWatcher($country_field, [$region_field, $city_field, $zip_field]);
             fieldWatcher($region_field, [$city_field, $zip_field]);
-            staticFieldsWatcher($zip_field, $city_field);
+            fieldWatcher($zip_field);
 
             checkPreviousFields([$zip_field, $city_field, $region_field, $country_field, $location_field]);
 
@@ -465,7 +438,7 @@
                 }, 100);
 
             } else {
-                staticFieldsWatcher($city_field, $zip_field);
+                fieldWatcher($city_field, [$zip_field]);
             }
 
             //
@@ -499,63 +472,17 @@
                 }
             }
 
-            /**
-             * @param {Object} $field
-             * @param {Object} $dependent_field
-             * */
-            function staticFieldsWatcher($field, $dependent_field) {
-                if (isRendered($field)) {
-                    var is_depends = isRendered($dependent_field);
-                    if (!is_depends) {
-                        fieldWatcher($field);
-                        return false;
-                    }
-
-                    $field.on("timeout_change", function() {
-                        var dependent_value = $.trim($dependent_field.val());
-                        if (dependent_value) {
-                            validate($field);
-                            $field.trigger("blur");
-                        }
-                    });
-
-                    $field.on("keydown", function(event) {
-                        var code = event.keyCode,
-                            is_enter = (code === 13);
-
-                        if (is_enter) {
-                            validate($field);
-                            $field.trigger("blur");
-                        } else {
-                            onKeyDown($field);
-                        }
-                    });
-
-                    $field.on("focus blur", function() {
-                        clearTimeout(key_timer);
-                    });
-                }
-
-                function validate() {
-                    var errors = that.scope.validate(that.$wrapper, true);
-                    if (!errors.length) {
-                        onChange($field);
-                    }
-                }
-            }
-
             function initAutocomplete($city_field) {
-                var is_depends = isRendered($zip_field);
+                // var is_depends = isRendered($zip_field);
+                var is_depends = false;
 
                 var xhr = null,
-                    is_blur_enabled = true;
+                    change_timer = 0;
 
                 $city_field.autocomplete({
                     source: function(field_data, resolve) {
-                        is_blur_enabled = true;
                         getData().then( function(data) {
                             resolve(data);
-                            is_blur_enabled = !data.length;
                             if (data.length) {
                                 onKeyDown($city_field);
                             }
@@ -566,6 +493,7 @@
                         return false;
                     },
                     select: function(event, ui) {
+                        clearTimeout(change_timer);
                         $city_field.val(ui.item.value);
                         validate($city_field, true);
                         return false;
@@ -594,14 +522,11 @@
                     clearTimeout(key_timer);
                 });
 
-                $city_field.on("blur", function() {
-                    if (!is_blur_enabled) {
-                        clearTimeout(key_timer);
-                    } else {
-                        if (!is_depends) {
-                            validate($city_field, false);
-                        }
-                    }
+                $city_field.on("change", function() {
+                    change_timer = setTimeout(function() {
+                        $city_field.trigger("focus");
+                        validate($city_field, true);
+                    }, 100);
                 });
 
                 function getData() {
@@ -1632,11 +1557,13 @@
                         that.update({
                             reload: true
                         }).then( function() {
-                            var $section = $("#js-delivery-variants-section");
-                            if ($section.length) {
-                                var items_count = $section.find(".wa-dropdown-item").length;
-                                if (items_count !== 1) {
-                                    $section.find(".wa-dropdown-toggle").trigger("click");
+                            var updated_shipping = that.scope.sections["shipping"];
+                            if (updated_shipping) {
+                                if (updated_shipping.variants_count > 1) {
+                                    var $section = updated_shipping.$wrapper.find("#js-delivery-variants-section");
+                                    if ($section.length) {
+                                        $section.find(".wa-dropdown-toggle").trigger("click");
+                                    }
                                 }
                             }
                         });
@@ -1689,8 +1616,7 @@
                     }
                 });
 
-                var items_count = $variants_section.find(".wa-dropdown-item").length;
-                if (items_count === 1) {
+                if (that.variants_count === 1) {
                     dropdown.lock(true);
                 }
 
@@ -1763,10 +1689,11 @@
             }
 
             function scrollContent($wrapper) {
-                var lift = ( isMobile() ? 55 : 10 ),
+                var is_mobile = isMobile(),
+                    lift = ( is_mobile ? 55 : 10 ),
                     top = $wrapper.offset().top;
 
-                if ($(window).height() >= 600) {
+                if (!is_mobile) {
                     try {
                         top = that.scope.sections["region"].$wrapper.offset().top;
                     } catch(error) {
@@ -1987,7 +1914,7 @@
 
             return that.scope
                 .update({
-                    sections: ["auth", "region", "shipping", "confirm"]
+                    sections: ["auth", "region", "shipping", "details", "confirm"]
                 })
                 .always( function() {
                     that.reload = true;
@@ -2792,7 +2719,6 @@
                         })
                         .done( function(api) {
                             if (api.order_id) {
-                                that.buttonAnimation(true);
                                 that.is_locked = true;
                             } else {
                                 if (!api.errors) {
@@ -3402,52 +3328,23 @@
             new ChannelConfirmDialog(options);
         };
 
-        Confirm.prototype.buttonAnimation = function(show) {
-            var that = this;
-
-            var $button = that.$submit_button;
-
-            var loading_html = that.templates["loading_html"],
-                loading_class = "is-loading",
-                html_before = "";
-
-            if (show) {
-                var width_w = $button.width();
-                html_before = $button.html();
-
-                $button
-                    .data("html_before", html_before)
-                    .width(width_w)
-                    .addClass(loading_class)
-                    .html(loading_html);
-
-            } else {
-                html_before = $button.data("html_before");
-
-                $button
-                    .removeAttr("style")
-                    .removeClass(loading_class)
-                    .html(html_before);
-            }
-        };
-
         return Confirm;
 
         function focus(error) {
             var scroll_top = 0,
-                lift = 40;
+                is_mobile = isMobile(),
+                lift = ( is_mobile ? 70 : 40 );
 
             if (error["$field"] && error["$field"].length) {
-                var top = getTop(error["$field"]);
-                scroll_top = top - lift;
+                scroll_top = getTop(error["$field"]);
                 error["$field"].focus();
             }
 
             if (error["$wrapper"] && error["$wrapper"].length) {
-                scroll_top = error["$wrapper"].offset().top - lift;
+                scroll_top = error["$wrapper"].offset().top;
             }
 
-            $("html, body").scrollTop(scroll_top);
+            $("html, body").scrollTop(scroll_top - lift);
 
             function getTop($wrapper) {
                 var result = 0,
@@ -3502,6 +3399,7 @@
 
             // CONST
             that.options = options["outer_options"];
+            that.templates = options["templates"];
             that.locales = options["locales"];
             that.urls = options["urls"];
             that.ui = window.waOrder.ui;
@@ -3544,7 +3442,7 @@
             that.$wrapper.on("region_change", onRegionChange);
             function onRegionChange() {
                 var data = that.getFormData({
-                    sections: ["auth", "region", "confirm"]
+                    sections: ["auth", "region", "details", "confirm"]
                 });
 
                 that.update({
@@ -3595,7 +3493,18 @@
                 }
             }
 
-            focusField(that.$wrapper);
+            var use_focus = true;
+
+            var $cart = $("#wa-order-cart-wrapper");
+            if ($cart.length) {
+                var wrapper_top = that.$wrapper.offset().top,
+                    cart_top = $cart.offset().top;
+                use_focus = (wrapper_top - cart_top < 10);
+            }
+
+            if (use_focus) {
+                focusField(that.$wrapper);
+            }
 
             that.$wrapper.on("focus", "select, textarea, input", function(event) {
                 if (that.is_updating) {
@@ -3995,15 +3904,9 @@
                     }
 
                     section.$wrapper.addClass(locked_class);
-                    if (section_id === "confirm") {
-                        section.buttonAnimation(true);
-                    }
 
                     promise
                         .always( function() {
-                            if (section_id === "confirm") {
-                                section.buttonAnimation(false);
-                            }
                             section.$wrapper.removeClass(locked_class);
                         })
                         .then( function(api) {
@@ -4021,9 +3924,14 @@
                         });
                 });
 
+                var $loading = showAnimation();
+                that.lock(true);
+
                 promise
                     .always( function() {
                         that.is_updating = false;
+                        $loading.remove();
+                        that.lock(false);
                     })
                     .then( function(api) {
                         if (is_changed) {
@@ -4033,6 +3941,29 @@
             }
 
             return promise;
+
+            function showAnimation() {
+                var $loading = $(that.templates["loading"]).appendTo(that.$wrapper),
+                    $window = $(window);
+
+                var window_top = $window.scrollTop(),
+                    display_h = $window.height(),
+                    wrapper_h = that.$wrapper.outerHeight(),
+                    offset = that.$wrapper.offset(),
+                    loading_h = $loading.outerHeight();
+
+                var visible_h = offset.top + wrapper_h - window_top;
+                if (visible_h > display_h) { visible_h = display_h; }
+
+                var top = window_top + (visible_h/2) - offset.top;
+
+                if (top < loading_h/2) { top = loading_h/2; }
+                if (top > wrapper_h - loading_h) { top = wrapper_h - loading_h; }
+
+                $loading.css({ top: top });
+
+                return $loading;
+            }
         };
 
         /**

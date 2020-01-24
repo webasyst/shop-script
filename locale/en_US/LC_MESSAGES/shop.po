@@ -5701,7 +5701,7 @@ msgstr ""
 msgid "Read only"
 msgstr ""
 
-msgid "Edit and add new products only"
+msgid "Edit products and add new products"
 msgstr ""
 
 msgid "Full access"

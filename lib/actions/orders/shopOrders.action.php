@@ -17,27 +17,45 @@ class shopOrdersAction extends shopOrderListAction
         $workflow = new shopWorkflow();
 
         $actions = array();
-        foreach ($workflow->getAvailableActions() as $action_id => $action) {
-            if (!isset($forbidden[$action_id]) && empty($action['internal'])) {
-                $actions[$action_id] = array(
-                    'name'  => ifset($action['name'], ''),
-                    'style' => ifset($action['options']['style']),
-                    'available_for_states' => array()       // for what states action is available
-                );
+
+        // get user rights
+        $user = wa()->getUser();
+
+        if ($user->isAdmin('shop')) {
+            $rights = true;
+        } else {
+            $rights = $user->getRights('shop', 'workflow_actions.%');
+            if (!empty($rights['all'])) {
+                $rights = true;
             }
         }
-
         $state_names = array();
-        foreach ($workflow->getAvailableStates() as $state_id => $state) {
-            $state_names[$state_id] = waLocale::fromArray($state['name']);
-            if (isset($state['available_actions']) && is_array($state['available_actions'])) {
-                foreach ($state['available_actions'] as $action_id) {
-                    if (isset($actions[$action_id])) {
-                        $actions[$action_id]['available_for_states'][] = $state_id; // for this state this action is available
-                    }
+        if (!empty($rights)) {
+            foreach ($workflow->getAvailableActions() as $action_id => $action) {
+                if (!isset($forbidden[$action_id])
+                    && empty($action['internal'])
+                    && (($rights === true) || !empty($rights[$action_id]))
+                ) {
+                    $actions[$action_id] = array(
+                        'name'                 => ifset($action['name'], ''),
+                        'style'                => ifset($action['options']['style']),
+                        'available_for_states' => array()       // for what states action is available
+                    );
                 }
             }
 
+
+            foreach ($workflow->getAvailableStates() as $state_id => $state) {
+                $state_names[$state_id] = waLocale::fromArray($state['name']);
+                if (isset($state['available_actions']) && is_array($state['available_actions'])) {
+                    foreach ($state['available_actions'] as $action_id) {
+                        if (isset($actions[$action_id])) {
+                            $actions[$action_id]['available_for_states'][] = $state_id; // for this state this action is available
+                        }
+                    }
+                }
+
+            }
         }
 
         $counters = array(

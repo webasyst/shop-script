@@ -6,7 +6,7 @@ class shopProductBuybuttonsAction extends waViewAction
     {
         $id = (int) $this->getRequest()->get('id');
         $product = new shopProduct($id);
-        $images = $product->getImages('thumb', true);
+        $images = $product->getImages('thumb', false);
         $image = reset($images);
         $image_url = $image ? $image['url_thumb'] : '';
         $this->view->assign(array(
@@ -38,8 +38,7 @@ class shopProductBuybuttonsAction extends waViewAction
 
             foreach ($domain_routes as $route) {
                 $controller_url = wa()->getRouteUrl("shop/frontend/buybuttons", array(), true, $domain, $route['url']);
-                $product_url = wa()->getRouteUrl("shop/frontend/product", array('product_url' => $product['url']), true,
-                    $domain, $route['url']);
+                $product_url = wa()->getRouteUrl("shop/frontend/product", array('product_url' => $product['url']), true, $domain, $route['url']);
                 $root_url = rtrim($domain.'/'.$route['url'], '/*').'/';
                 $static_url = '/wa-apps/shop/';
                 if ($cdn) {
@@ -52,11 +51,12 @@ class shopProductBuybuttonsAction extends waViewAction
                     $static_url = $protocol . trim($domain, '/') . $static_url;
                 }
                 $storefronts[] = array(
-                    'static_url' => $static_url,
-                    'root_url' => $root_url,
+                    'static_url'       => $static_url,
+                    'root_url'         => $root_url,
                     'root_url_decoded' => waIdna::dec($root_url),
-                    'product_url' => $product_url,
-                    'controller_url' => $controller_url
+                    'domain'           => $domain,
+                    'product_url'      => $product_url,
+                    'controller_url'   => $controller_url
                 );
             }
         }

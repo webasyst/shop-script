@@ -111,6 +111,7 @@ class shopShipping extends waAppShipping
             $plugin['type'] = shopPluginModel::TYPE_SHIPPING;
             $plugin['id'] = $model->insert($plugin);
         }
+
         if (!empty($plugin['id']) && isset($plugin['settings']) && ($plugin['plugin'] != self::DUMMY)) {
             $instance = waShipping::factory($plugin['plugin'], $plugin['id'], self::getInstance());
             $instance->saveSettings($plugin['settings']);
@@ -158,7 +159,11 @@ class shopShipping extends waAppShipping
     public function setSettings($plugin_id, $key, $name, $value)
     {
         if (!empty($key)) {
-            $this->model()->set($key, $name, $value);
+            $m = $this->model();
+            if ($m->isValueOverflow($value)) {
+                throw new waException(_w('Settings cannot be saved because of too large data size.'));
+            }
+            $m->set($key, $name, $value);
         }
     }
 

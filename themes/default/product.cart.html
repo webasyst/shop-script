@@ -223,6 +223,7 @@
                 new Product('#cart-form{if $wa->get('cart')}-dialog{/if}', {
                     is_dialog: {$_is_dialog|json_encode},
                     images: {if !empty($_is_dialog)}{$_images|json_encode}{else}[]{/if},
+                    compare_price: {if !empty($product.compare_price)}{shop_currency($product.compare_price, null, null, 0)}{else}0{/if},
                     currency: {json_encode($currency_info)}
                     {if count($product.skus) > 1 or $product.sku_type}
                         ,services: {json_encode($sku_services)}

@@ -146,7 +146,7 @@
                             [`@2x image thumbnail generation`]
                         </div>
                         <div class="value no-shift">
-                            <label><input type="checkbox" name="enable_2x" value="1" {if !empty($settings.enable_2x)}checked{/if}> [`Automatic @2x image thumbnail generation (recommended)`]</label>
+                            <label><input type="checkbox" name="enable_2x" value="1"{if !empty($settings.enable_2x)} checked{/if}> [`Automatic @2x image thumbnail generation (recommended)`]</label>
                             <br>
                             <span class="hint">[`Enabling this option will allow automatic creation of image thumbnails on-fly for devices with high pixel density displays, e.g. Retina displays. Generating bigger images require more memory resources for image generation, requires more disk space for storing images, but significantly improves user experience on devices with high-end displays`]</span>
                         </div>
@@ -239,6 +239,12 @@
                     <br>
                     <span class="hint">[`Enable to get thumbnails of all available sizes created at once. It is recommended if automatic image thumbnail generation is disabled in image settings.`]<br>
                         [`If you leave this option disabled, thumbnails will be automatically created later, at the first request of an image on the website, if automatic image thumbnail generation is enabled.`]</span>
+                </div>
+
+                <div style="padding-left: 24px;margin-top: 14px;">
+                    <label><input type="checkbox" name="with_2x" value="1" disabled> [`Create @2x image thumbnails`]</label>
+                    <br>
+                    <span class="hint">[`@2x thumbnails require more disk space than orginary thumbnails. Ensure that you have sufficient space to store all image files.`]</span>
                 </div>
 
                 <br>

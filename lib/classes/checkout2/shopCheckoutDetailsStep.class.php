@@ -8,6 +8,39 @@
  */
 class shopCheckoutDetailsStep extends shopCheckoutStep
 {
+    // Called before process() no matter if there was an error on previous checkout step
+    public function prepare($data)
+    {
+        $result = [];
+
+        // When error occured in previous step, process() will not run.
+        // But we still need to do certain stuff.
+        if (!empty($data['error_step_id'])) {
+            // Render template
+            $result = $this->addRenderedHtml([], $data, []);
+
+        }
+
+        // Remember user address in case they wrote it for different shipping type before
+        $storage = $this->getCheckoutConfig()->getStorage();
+        $stored_address = $storage->get('details_address');
+        $stored_address = ifempty($stored_address, []);
+        $input_values = ifset($data, 'input', 'details', 'shipping_address', []);
+        $new_stored_address = array_filter($input_values) + $stored_address;
+        if ($new_stored_address) {
+            $storage->set('details_address', $new_stored_address);
+        }
+
+        return array(
+            'result' => $result,
+            'errors' => [],
+            'can_continue' => true,
+            'stored_address' => $stored_address,
+            'new_stored_address' => $new_stored_address,
+        );
+    }
+
+    // Called after prepare() only if there are no errors on previous checkout steps
     public function process($data, $prepare_result)
     {
         // Is shipping step disabled altogether?
@@ -89,6 +122,9 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
         if ($base_values && $user_id_from_input != $contact['id']) {
             $input_values = array_filter($input_values);
         }
+
+        // If user previously supplied their address for a different shipping type, load it into empty fields, too
+        $base_values = $prepare_result['stored_address'] + $base_values;
 
         // Format shipping address fields for template
         $address_fields = $config->formatContactFields($address_fields_config, $input_values, $base_values);

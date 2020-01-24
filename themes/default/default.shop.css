@@ -390,6 +390,10 @@ input.error, textarea.error { border: 2px solid red; }
 .filters .ui-slider-horizontal .ui-widget-header { background: #0a0; height: 4px; position: relative; top: -1px; z-index: 0; }
 .filters .ui-widget-content .ui-state-default { border: 1px solid #ccc; background: #f7f7f7; }
 
+@media (max-width: 760px) {
+    .filters .filter-slider { display: none; }
+}
+
 /* Cart items
 ------------- */
 

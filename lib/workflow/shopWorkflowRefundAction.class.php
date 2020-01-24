@@ -203,9 +203,23 @@ class shopWorkflowRefundAction extends shopWorkflowAction
                     throw new waException('Specified amount exceeds transaction amount');
                 }
 
-                if (!empty($transaction['refunded_amount']) && empty($refund_items)) {
+                if (empty($refund_items)
+                    &&
+                    (!empty($transaction['refunded_amount']) || ($transaction['state'] == waPayment::STATE_PARTIAL_REFUNDED))
+                ) {
                     $order = new shopOrder($order_id);
-                    $refund_items = $this->workupOrderItems($order, $plugin, $order->items);
+                    $refund_items = $order->items;
+                    if ($order->shipping > 0) {
+                        $refund_items['%shipping%'] = array(
+                            'name'         => $order->shipping_name,
+                            'type'         => 'shipping',
+                            'quantity'     => 1,
+                            'price'        => $order->shipping,
+                            'tax_percent'  => $order->params['shipping_tax_percent'],
+                            'tax_included' => $order->params['shipping_tax_included'],
+                        );
+                    }
+                    $refund_items = $this->workupOrderItems($order, $plugin, $refund_items);
                 }
 
                 $response = $plugin->refund(compact('transaction', 'refund_amount', 'refund_items'));
@@ -225,6 +239,7 @@ class shopWorkflowRefundAction extends shopWorkflowAction
                         $refund_amount_html = shop_currency_html($refund_amount, $transaction['currency_id']);
                     }
 
+                    unset($refund_items['%shipping%']);
                     $result = array(
                         'params' => array(
                             'refund_amount' => $refund_amount,

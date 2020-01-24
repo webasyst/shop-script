@@ -150,26 +150,66 @@ class shopMarketingPromoSaveController extends waJsonController
 
     protected function validateStorefronts()
     {
+        //
+        // Before validateStorefronts(), $this->storefronts_data contains `storefront` => anything non-empty.
+        // As came from POST.
+        // `storefront` key in this array may or may not contain slash at the end, no guarantee.
+        //
+        // After validateStorefronts(), $this->storefronts_data contains `storefront` => `sort` as int >= 0.
+        // Note that `sort` can be zero.
+        // `storefront` key will or will contain slash at the end depending on canonic form:
+        // how shopStorefrontList::getAllStorefronts() returns it.
+        //
+
         $storefronts = $this->getStorefronts(ifempty($this->promo_data, 'id', null));
 
+        // Make sure all keys in storefronts_data are in canonic form of storefront URLs.
+        // Also make sure storefront exists
+        $new_storefronts_data = [];
         if (!empty($this->storefronts_data[shopPromoRoutesModel::FLAG_ALL])) {
-            foreach ($storefronts as $s) {
-                if ($s['active'] && empty($this->storefronts_data[$s['storefront']])) {
-                    $this->storefronts_data[$s['storefront']] = $s['sort'];
+            $new_storefronts_data[shopPromoRoutesModel::FLAG_ALL] = 1;
+        }
+        foreach($this->storefronts_data as $input_url => $enabled) {
+            if ($enabled && $input_url != shopPromoRoutesModel::FLAG_ALL) {
+                $url = rtrim($input_url, '/').'/';
+                if (isset($storefronts[$url]['canonic_url'])) {
+                    $new_storefronts_data[$storefronts[$url]['canonic_url']] = 1;
                 }
+            }
+        }
+        $this->storefronts_data = $new_storefronts_data;
+
+        // Add all storefront records to $this->storefronts_data if FLAG_ALL is set.
+        // Keep `sort` ordering intact for all storefronts this promo has previously been enabled on.
+        // Mark new storefronts as `sort`=-1 to determine it later below.
+        foreach ($storefronts as $s) {
+            $enabled_after = !empty($this->storefronts_data[shopPromoRoutesModel::FLAG_ALL])
+                            || !empty($this->storefronts_data[$s['canonic_url']]);
+            if ($enabled_after) {
+                $enabled_before = !empty($s['active']);
+                if ($enabled_before) {
+                    $this->storefronts_data[$s['canonic_url']] = (int) $s['sort'];
+                } else {
+                    $this->storefronts_data[$s['canonic_url']] = -1;
+                }
+            } else {
+                unset($this->storefronts_data[$s['canonic_url']]);
             }
         }
 
-        $max_sorts = $this->promo_routes_model->getMaxSorts();
-        foreach ($this->storefronts_data as $route => $sort) {
+        $max_sorts = $this->getMaxSorts();
+
+        foreach ($this->storefronts_data as $canonic_url => $sort) {
+            // If storefront has just been enabled, determine proper `sort` ordering
             if ($sort < 0) {
-                if (empty($max_sorts[$route])) {
-                    $max_sorts[$route] = 0;
+                if (empty($max_sorts[$canonic_url])) {
+                    $max_sorts[$canonic_url] = -1;
                 }
-                $max_sorts[$route]++;
-                $this->storefronts_data[$route] = $max_sorts[$route];
+                $max_sorts[$canonic_url]++;
+                $this->storefronts_data[$canonic_url] = $max_sorts[$canonic_url];
             }
         }
+
         if (empty($this->storefronts_data)) {
             $this->errors[] = [
                 'id'   => 'storefronts',
@@ -762,13 +802,14 @@ class shopMarketingPromoSaveController extends waJsonController
     protected function getStorefronts($promo_id = null)
     {
         $storefronts = [];
-        foreach (shopStorefrontList::getAllStorefronts() as $url) {
-            $url = rtrim($url, '/').'/';
+        foreach (shopStorefrontList::getAllStorefronts() as $canonic_url) {
+            $url = rtrim($canonic_url, '/').'/';
             $storefronts[$url] = [
-                'storefront' => $url,
-                'name'       => $url,
-                'active'     => true,
-                'sort'       => -1,
+                'storefront'  => $url,
+                'canonic_url' => $canonic_url,
+                'name'        => $url,
+                'active'      => true,
+                'sort'        => -1,
             ];
         }
 
@@ -778,9 +819,10 @@ class shopMarketingPromoSaveController extends waJsonController
                 $url = rtrim($url, '/').'/';
                 if (empty($storefronts[$url])) {
                     $storefronts[$url] = [
-                        'storefront' => $url,
-                        'name'       => $url,
-                        'active'     => false,
+                        'storefront'  => $url,
+                        'canonic_url' => $url,
+                        'name'        => $url,
+                        'active'      => false,
                     ];
                 }
                 $storefronts[$url]['sort'] = $row['sort'];
@@ -788,6 +830,17 @@ class shopMarketingPromoSaveController extends waJsonController
         }
 
         return $storefronts;
+    }
+
+    protected function getMaxSorts()
+    {
+        $max_sorts = $this->promo_routes_model->getMaxSorts();
+        $result = [];
+        foreach($max_sorts as $url => $sort) {
+            $url = rtrim($url, '/').'/';
+            $result[$url] = max($sort, ifset($result, $url, $sort));
+        }
+        return $result;
     }
 
     //

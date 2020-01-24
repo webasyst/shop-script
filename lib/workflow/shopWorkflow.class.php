@@ -153,13 +153,18 @@ class shopWorkflow extends waWorkflow
         $id = $id_prefix;
         $config = self::getConfig();
         $count = 1;
-        while (isset($config[$type][$id])) {
-            $count = '' . $count;
+
+        $reserved = array(
+            'all',
+        );
+
+        while (in_array($id, $reserved, true) || isset($config[$type][$id])) {
+            $count = ''.$count;
             $len = strlen($count);
             if (strlen($id_prefix) + $len > $length) {
-                $id = substr($id_prefix, 0, $length - $len) . $count;
+                $id = substr($id_prefix, 0, $length - $len).$count;
             } else {
-                $id = $id_prefix . $count;
+                $id = $id_prefix.$count;
             }
             $count += 1;
         }

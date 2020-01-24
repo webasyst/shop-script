@@ -136,7 +136,15 @@ if (typeof($) != 'undefined') {
                         d.find('#s-regenerate-progressbar').hide();
                         d.find("#s-regenerate-report").hide();
                         d.find('.dialog-buttons').show();
-                        dialog.find('input[name=create_thumbnails]').prop('disabled', disabled);
+
+                        var $create_thumbnails_checkbox = dialog.find('input[name=create_thumbnails]'),
+                            $with_2x_checkbox = dialog.find('input[name=with_2x]');
+
+                        $create_thumbnails_checkbox.prop('disabled', disabled);
+
+                        $create_thumbnails_checkbox.on('change', function () {
+                            $with_2x_checkbox.prop('disabled', !$create_thumbnails_checkbox.is(':checked'));
+                        });
                     },
                     onSubmit: function (d) {
                         d.find('.dialog-buttons').hide();

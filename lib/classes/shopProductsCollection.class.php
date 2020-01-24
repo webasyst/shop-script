@@ -16,7 +16,7 @@ class shopProductsCollection
     protected $where;
     protected $having = [];
     protected $count;
-    protected $order_by = 'p.create_datetime DESC';
+    protected $order_by = 'p.create_datetime DESC, p.id';
     protected $group_by;
     protected $joins;
     protected $join_index = [];
@@ -156,7 +156,7 @@ class shopProductsCollection
 
             if ($sort == 'price') {
                 if (!isset($this->join_index['ps'])) {
-                    $this->order_by = "p.price $order";
+                    $this->order_by = "p.price $order, p.id";
                     $this->addPromoPriceSort('price', $order);
                 } else {
                     // Build the condition for regular prices:
@@ -167,7 +167,7 @@ class shopProductsCollection
                     // otherwise min of all remaining SKU prices.
                     $price_sort = "IF($main_sku_exists, $main_sku_price, $sku_price)";
 
-                    $this->order_by = "$price_sort $order";
+                    $this->order_by = "$price_sort $order, p.id";
 
                     // Check promo prices
                     $this->loadPromoPrices();
@@ -191,13 +191,13 @@ class shopProductsCollection
                         $promo_price_exists = '-1 < '.$promo_price; // In SQL, we first make sure that we have promo-prices
 
                         // Build one big sort condition:
-                        $this->order_by = "IF($promo_price_exists, $promo_price, $price_sort) $order";
+                        $this->order_by = "IF($promo_price_exists, $promo_price, $price_sort) $order, p.id";
                     }
                 }
             } elseif ($sort == 'stock_worth') {
 
                 $this->fields['order_by'] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
-                $this->order_by = 'stock_worth '.$order;
+                $this->order_by = 'stock_worth '.$order.', p.id';
             } elseif ($sort === 'sku' || $sort === 'purchase_price') {
                 $actual_joins = $this->getJoinsByTableName('shop_product_skus');
                 if ($actual_joins) {
@@ -205,7 +205,7 @@ class shopProductsCollection
                 } else {
                     $skus_alias = $this->addJoin('shop_product_skus', ':table.product_id = p.id');
                 }
-                $this->order_by = "{$skus_alias}.{$sort} {$order}";
+                $this->order_by = "{$skus_alias}.{$sort} {$order}, p.id";
             } else {
                 $order_by = array();
                 $fields = array();
@@ -221,6 +221,9 @@ class shopProductsCollection
                     }
                 }
                 if ($order_by) {
+                    if (!in_array('id', (array)$sort)) {
+                        $order_by[] = 'p.id';
+                    }
                     $this->order_by = implode(', ', $order_by);
                 }
                 if ($fields) {
@@ -307,7 +310,7 @@ class shopProductsCollection
         }
 
         $this->fields['order_by'] = $alias.'.orders_count';
-        $this->order_by = $alias.'.orders_count DESC';
+        $this->order_by = $alias.'.orders_count DESC, p.id';
     }
 
     protected function toFloat($value)
@@ -548,13 +551,13 @@ SQL;
                 if ($tmp[0] == 'count') {
 
                     $this->fields['order_by'] = 'IF(p.count IS NULL, 1, 0) count_null';
-                    $this->order_by = 'count_null '.$tmp[1].', p.count '.$tmp[1];
+                    $this->order_by = 'count_null '.$tmp[1].', p.count '.$tmp[1].', p.id';
                 } elseif ($tmp[0] == 'stock_worth') {
 
                     $this->fields['order_by'] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
-                    $this->order_by = 'stock_worth '.$tmp[1];
+                    $this->order_by = 'stock_worth '.$tmp[1].', p.id';
                 } else {
-                    $this->order_by = 'p.'.$this->info['sort_products'];
+                    $this->order_by = 'p.'.$this->info['sort_products'].', p.id';
                 }
             }
         }
@@ -575,7 +578,7 @@ SQL;
                 $this->where[] = $alias.".category_id = ".(int)$id;
             }
             if ((empty($this->info['sort_products']) && !waRequest::get('sort')) || waRequest::get('sort') == 'sort') {
-                $this->order_by = $alias.'.sort ASC';
+                $this->order_by = $alias.'.sort ASC, p.id';
             }
         } else {
             $hash = $this->hash;
@@ -636,7 +639,7 @@ SQL;
         if ($set['type'] == shopSetModel::TYPE_STATIC) {
             $alias = $this->addJoin('shop_set_products', null, ":table.set_id = '".$set_model->escape($id)."'");
             if (wa()->getEnv() == 'frontend' || !waRequest::get('sort') || waRequest::get('sort') == 'sort') {
-                $this->order_by = $alias.'.sort ASC';
+                $this->order_by = $alias.'.sort ASC, p.id';
             }
         } else {
             $rule = ifset($set, 'rule', false);
@@ -665,15 +668,16 @@ SQL;
             if ($rule === shopSetModel::BESTSELLERS_RULE) {
                 $this->fields['sales'] = "{$alias_items}.price * {$alias_order}.rate * {$alias_items}.quantity AS sales";
                 $this->groupBy('p.id');
-                $this->orderBy('sales DESC');
+                $this->order_by = 'sales DESC, p.id';
             } elseif ($rule === shopSetModel::TOTAL_COUNT_RULE) {
                 $this->groupBy('p.id');
                 // If you call the function - there will be infinite recursion :[
-                $this->order_by = "sum($alias_items.quantity) DESC";
+                $this->order_by = "sum($alias_items.quantity) DESC, p.id";
             } elseif ($rule == 'compare_price DESC') {
                 $this->setByComparePrice();
             } else {
                 $this->order_by = !empty($set['rule']) ? $set['rule'] : 'p.create_datetime DESC';
+                $this->order_by .= ', p.id';
 
                 if (!isset($this->join_index['ps']) && preg_match('~^(price)\s(asc|desc)$~ui', $set['rule'], $matches)) {
                     $order = $matches[2];
@@ -700,7 +704,7 @@ SQL;
         }
 
         $where = "{$set_alias}.compare_price > {$set_alias}.price";
-        $order_by = "{$set_alias}.compare_price DESC";
+        $order_by = "{$set_alias}.compare_price DESC, p.id";
 
         // Check promo prices
         $this->loadPromoPrices();
@@ -722,7 +726,7 @@ SQL;
             }
 
             $where = "IFNULL({$promo_prices_tmp_alias}.compare_price, {$set_alias}.compare_price) > IFNULL({$promo_prices_tmp_alias}.price, {$set_alias}.price)";
-            $order_by = "IFNULL({$promo_prices_tmp_alias}.compare_price, {$set_alias}.compare_price) DESC";
+            $order_by = "IFNULL({$promo_prices_tmp_alias}.compare_price, {$set_alias}.compare_price) DESC, p.id";
         }
 
         $this->where[] = $where;
@@ -979,7 +983,7 @@ SQL;
 
         if ($sum) {
             $this->fields['order_by'] = '('.implode(' + ', $sum).') AS upselling_deviation';
-            $this->order_by = 'upselling_deviation';
+            $this->order_by = 'upselling_deviation, p.id';
         }
     }
 
@@ -1011,7 +1015,7 @@ SQL;
         $this->fields['sales'] = "{$alias_items}.price * {$alias_order}.rate * {$alias_items}.quantity AS sales";
         $this->groupBy('p.id');
 
-        $this->orderBy('sales DESC');
+        $this->order_by = 'sales DESC, p.id';
     }
 
     protected function searchPrepare($query, $auto_title = true)
@@ -1092,11 +1096,11 @@ SQL;
                                 if (count($word_ids) > 1) {
                                     $this->fields['order_by'] = "SUM(si.weight) AS weight";
                                     $this->fields['order_by_2'] = "COUNT(*) AS weight_count";
-                                    $this->order_by = 'weight_count DESC, weight DESC';
+                                    $this->order_by = 'weight_count DESC, weight DESC, p.id';
                                     $this->group_by = 'p.id';
                                 } else {
                                     $this->fields['order_by'] = "si.weight";
-                                    $this->order_by = 'si.weight DESC';
+                                    $this->order_by = 'si.weight DESC, p.id';
                                 }
                             } elseif (count($word_ids) > 1) {
                                 $this->group_by = 'p.id';
@@ -1117,7 +1121,7 @@ SQL;
                                 $this->frontendConditions();
                             }
                             if (waRequest::request('sort', 'weight', 'string') == 'weight') {
-                                $this->order_by = 'p.create_datetime DESC';
+                                $this->order_by = 'p.create_datetime DESC, p.id';
                             } else {
                                 $this->order_by = $auto_order_by;
                             }
@@ -1538,12 +1542,12 @@ SQL;
                     $this->getSQL();
                     if ($field == 'count') {
                         $this->fields['order_by'] = 'IF(p.count IS NULL, 1, 0) count_null';
-                        return $this->order_by = 'count_null '.$order.', p.count '.$order;
+                        return $this->order_by = 'count_null '.$order.', p.count '.$order.', p.id';
                     } elseif ($field == 'stock_worth') {
                         $this->fields['order_by'] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
-                        $this->order_by = 'stock_worth '.$order;
+                        $this->order_by = 'stock_worth '.$order.', p.id';
                     } else {
-                        return $this->order_by = 'p.'.$field." ".$order;
+                        return $this->order_by = 'p.'.$field." ".$order.', p.id';
                     }
                 } elseif ($field == 'sort') {
                     $this->getSQL();
@@ -1574,8 +1578,14 @@ SQL;
                 1 => null,
             ];
         } else {
-            $order = explode(',', $this->order_by);
-            $order = explode(' ', trim(end($order)));
+            $order_all = explode(',', $this->order_by);
+            $order = explode(' ', trim(end($order_all)));
+            if ($order[0] == 'p.id' && count($order_all) > 1) {
+                // Ignore last part of order by id
+                // It is simply a technical way to make the ordering stable.
+                array_pop($order_all);
+                $order = explode(' ', trim(end($order_all)));
+            }
             if (!isset($order[1])) {
                 $order[1] = 'ASC';
             }
@@ -3049,7 +3059,7 @@ SQL;
                 ]);
             }
 
-            $this->order_by = "IFNULL({$promo_prices_tmp_alias}.primary_{$field}, p.{$field}) $order";
+            $this->order_by = "IFNULL({$promo_prices_tmp_alias}.primary_{$field}, p.{$field}) $order, p.id";
         }
     }
 
@@ -3133,7 +3143,7 @@ SQL;
                 $this->where = null;
                 $this->having = array();
                 $this->count = null;
-                $this->order_by = 'p.create_datetime DESC';
+                $this->order_by = 'p.create_datetime DESC, p.id';
                 $this->group_by = null;
                 $this->joins = null;
                 $this->join_index = array();

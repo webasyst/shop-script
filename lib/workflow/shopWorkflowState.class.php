@@ -18,9 +18,9 @@ class shopWorkflowState extends waWorkflowState
     public $original = false;
 
     /**
-     * @param string $id id as stored in database
+     * @param string     $id      id as stored in database
      * @param waWorkflow $workflow
-     * @param array $options option => value
+     * @param array      $options option => value
      */
     public function __construct($id, waWorkflow $workflow, $options = array())
     {
@@ -41,11 +41,26 @@ class shopWorkflowState extends waWorkflowState
 
     /**
      * @param array $params array with order data
-     * @param bool $name_only
+     * @param bool  $name_only
      * @return array
      */
     public function getActions($params = null, $name_only = false)
     {
+        // get user rights
+        $user = wa()->getUser();
+
+        if ($user->isAdmin('shop')) {
+            $rights = true;
+        } else {
+            $rights = $user->getRights('shop', 'workflow_actions.%');
+            if (!empty($rights['all'])) {
+                $rights = true;
+            }
+        }
+        if (empty($rights)) {
+            return array();
+        }
+
         $actions = parent::getActions($params, false);
 
         // add internal actions related to merging unsettled orders
@@ -67,12 +82,19 @@ class shopWorkflowState extends waWorkflowState
 
         // Filter out unavailable actions
         foreach ($actions as $a_id => $a) {
-            if ($a instanceof shopWorkflowAction) {
+            if (is_array($rights) && empty($rights[$a_id])) {
+                unset($actions[$a_id]);
+            } elseif ($a instanceof shopWorkflowAction) {
                 if (!$a->isAvailable($params)) {
                     unset($actions[$a_id]);
-                } elseif ($name_only) {
-                    $actions[$a_id] = $a->getName();
                 }
+            }
+        }
+
+        // Format actions
+        if ($name_only) {
+            foreach ($actions as $a_id => $a) {
+                $actions[$a_id] = $a->getName();
             }
         }
 

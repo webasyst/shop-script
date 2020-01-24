@@ -68,6 +68,9 @@ class shopWorkflowCancelAction extends shopWorkflowDeleteAction
         } else {
             $order_id = $params['order_id'];
             if (isset($params['plugin'])) {
+                if (!is_array($result)) {
+                    $result = array();
+                }
                 $result['text'] = $params['plugin'].' (';
                 if (!empty($params['view_data'])) {
                     $result['text'] .= $params['view_data'].' - ';
@@ -81,9 +84,15 @@ class shopWorkflowCancelAction extends shopWorkflowDeleteAction
                 );
             } else {
                 if (isset($params['text'])) {
+                    if (!is_array($result)) {
+                        $result = array();
+                    }
                     $result['text'] = $params['text'];
                 }
                 if (isset($params['update'])) {
+                    if (!is_array($result)) {
+                        $result = array();
+                    }
                     $result['update'] = $params['update'];
                 }
             }

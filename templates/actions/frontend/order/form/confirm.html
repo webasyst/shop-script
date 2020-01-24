@@ -6,7 +6,7 @@
 {$_errors = []}
 {if !empty($error_step_id) && $error_step_id === "confirm"}{$_errors = $errors}{/if}
 {$_button_text = _w("Confirm order")}
-{if $error_step_id === "region"}
+{if $error_step_id === "region" || $error_step_id === "shipping"}
     {$_button_text = _w("Select shipping")}
 {/if}
 

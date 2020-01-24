@@ -3,8 +3,54 @@ class shopPluginSettingsModel extends waModel implements waiPluginSettings
 {
     protected $table = 'shop_plugin_settings';
     protected $id = array('id', 'name');
+    protected $value_size;
 
     protected static $settings = array();
+
+    /**
+     * Is value that would be saved into db overflow size of field?
+     * @param $value
+     * @return bool
+     * @throws waDbException
+     * @throws waException
+     */
+    public function isValueOverflow($value)
+    {
+        if ($value === null) {
+            return false;
+        }
+        if (is_array($value)) {
+            $value = json_encode($value);
+        }
+        if (!is_scalar($value)) {
+            return true;
+        }
+        $value = (string)$value;
+        $value_size = $this->getValueSize();
+        return strlen($value) > $value_size;
+    }
+
+    /**
+     * Get size of field 'value'
+     * @return int
+     * @throws waDbException
+     * @throws waException
+     */
+    public function getValueSize()
+    {
+        if ($this->value_size === null) {
+            $meta = $this->getMetadata();
+            $type = strtolower($meta['value']['type']);
+            switch ($type) {
+                case 'mediumtext':
+                    $this->value_size = 16777215;
+                    break;
+                default:
+                    $this->value_size = 65535;
+            }
+        }
+        return $this->value_size;
+    }
 
     public function set($key, $name, $value)
     {

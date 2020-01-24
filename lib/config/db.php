@@ -495,7 +495,7 @@ return array(
     'shop_plugin_settings' => array(
         'id' => array('int', 11, 'null' => 0),
         'name' => array('varchar', 64, 'null' => 0),
-        'value' => array('text', 'null' => 0),
+        'value' => array('mediumtext', 'null' => 0),
         ':keys' => array(
             'PRIMARY' => array('id', 'name'),
         ),

@@ -435,4 +435,8 @@ html.is-order-page .container {
     line-height: 14px;
     text-align: right;
   }
+  .s-order-page .wa-dropdown.is-opened > .wa-dropdown-area {
+    max-height: 300px;
+    z-index: 998;
+  }
 }

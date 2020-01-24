@@ -6,11 +6,6 @@
 {$_errors = []}
 {if !empty($error_step_id) && $error_step_id === "region"}{$_errors = $errors}{/if}
 
-{$_lock_city_fields = false}
-{if empty($_errors) && !empty($_config.ask_zip)}
-    {$_lock_city_fields = true}
-{/if}
-
 {$_countries = []}
 {if !empty($region.countries)}{$_countries = $region.countries}{/if}
 
@@ -75,15 +70,7 @@
     {if !empty($_config.ask_zip)}
         <div class="wa-field-wrapper wa-zip-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MINI}">
             <label class="wa-label">{_render_label _label=$_system_address_field_names.zip _required=!empty($_is_zip_required)}</label>
-            {if !empty($_lock_city_fields)}
-                {$_hint = _w("Specify another locality name or ZIP code")}
-                <div class="wa-tooltip bottom" data-title="{$_hint|escape}" style="display: block;">
-                    <input class="wa-input js-clean-address-fields" type="text" value="{$region.selected_values.zip|default:""|escape}" style="cursor: pointer;" readonly>
-                </div>
-                <input class="js-zip-field" name="region[zip]" type="hidden" value="{$region.selected_values.zip|default:""|escape}">
-            {else}
-                <input class="wa-input js-zip-field" autocomplete="false" name="region[zip]" type="text" value="{$region.selected_values.zip|default:""|escape}" {if !empty($_is_zip_required)}required{/if}>
-            {/if}
+            <input class="wa-input js-zip-field" autocomplete="false" name="region[zip]" type="text" value="{$region.selected_values.zip|default:""|escape}" {if !empty($_is_zip_required)}required{/if}>
         </div>
     {/if}
 {/capture}
@@ -251,15 +238,7 @@
                                         {$_city_value = $region.selected_values.city}
                                     {/if}
 
-                                    {if !empty($_lock_city_fields)}
-                                        {$_hint = _w("Specify another locality name or ZIP code")}
-                                        <div class="wa-tooltip bottom" data-title="{$_hint|escape}" style="display: block;">
-                                            <input class="wa-input js-clean-address-fields" type="text" value="{$_city_value|default:""|escape}" style="cursor: pointer;" readonly>
-                                        </div>
-                                        <input class="js-city-field" name="region[city]" type="hidden" value="{$_city_value|default:""|escape}">
-                                    {else}
-                                        <input class="wa-input js-city-field js-city-autocomplete" autocomplete="false" name="region[city]" type="text" value="{$_city_value|default:""|escape}" {if !empty($_is_city_required)}required{/if}>
-                                    {/if}
+                                    <input class="wa-input js-city-field js-city-autocomplete" autocomplete="false" name="region[city]" type="text" value="{$_city_value|default:""|escape}" {if !empty($_is_city_required)}required{/if}>
                                 {/if}
                             {else}
                                 {$_active_city_id = $_active_location.city_id}
@@ -444,33 +423,13 @@
                                         {$_city_value = $region.selected_values.city}
                                     {/if}
 
-                                    {if !empty($_lock_city_fields)}
-                                        {$_hint = _w("Specify another locality name or ZIP code")}
-                                        <div class="wa-tooltip bottom" data-title="{$_hint|escape}" style="display: block;">
-                                            <input class="wa-input js-clean-address-fields" type="text" value="{$_city_value|default:""|escape}" style="cursor: pointer;" readonly>
-                                        </div>
-                                        <input class="js-city-field" name="region[city]" type="hidden" value="{$_city_value|default:""|escape}">
-                                    {else}
-                                        <input class="wa-input js-city-field js-city-autocomplete" autocomplete="false" name="region[city]" type="text" value="{$_city_value|default:""|escape}" {if !empty($_is_city_required)}required{/if}>
-                                    {/if}
+                                    <input class="wa-input js-city-field js-city-autocomplete" autocomplete="false" name="region[city]" type="text" value="{$_city_value|default:""|escape}" {if !empty($_is_city_required)}required{/if}>
                                 {/if}
                             </div>
                         {/if}
 
                         {* ZIP *}
                         {$_zip_field}
-                    </div>
-                {/if}
-
-                {if !empty($_config.ask_zip)}
-                    <div class="wa-line wa-actions-wrapper">
-                        {if empty($_lock_city_fields)}
-                            {$_hint = _w("Pre-calculate shipping options for specified locality and ZIP code")}
-                            <a class="js-calculate-form wa-tooltip bottom" href="javascript:void(0);" data-title="{$_hint|escape}">[`View shipping options`]</a>
-                        {else}
-                            {$_hint = _w("Specify another locality name or ZIP code")}
-                            <a class="js-clean-address-fields wa-tooltip bottom" href="javascript:void(0);" data-title="{$_hint|escape}">[`Change locality or ZIP code`]</a>
-                        {/if}
                     </div>
                 {/if}
 
