@@ -38,15 +38,22 @@ class shopDemoDataImporter
 
         $extract_path = $this->unpack($zip_path);
 
-        // IMPORT TABLES
+        $table_data = array();
         $tables_dir = $extract_path . 'tables/';
+
+        // IMPORT TABLES (straightforwardly, exclude 'site_page', 'site_page_params')
         if (file_exists($tables_dir)) {
-            $this->importTablesData($tables_dir);
+            $table_data = $this->getTablesData($tables_dir);
+
+            $import_table_data = $table_data;
+            unset($import_table_data['site_page'], $import_table_data['site_page_params']);
+
+            $this->importTablesData($import_table_data);
         } else {
             self::printLog("Couldn't find tables dir after unpacking source zip of source data");
         }
 
-
+        //
         $this->importDataFiles($extract_path);
 
         $tmp_config_files_dir = $extract_path . 'wa-config/';
@@ -56,6 +63,26 @@ class shopDemoDataImporter
 
         // IMPORT wa-config/apps/shop
         $this->importShopConfigs($tmp_config_files_dir, $import_routing_result);
+
+        // Import site routing settings
+        $import_routing_result = $this->importSiteRoutingSettings($tmp_config_files_dir);
+
+        // IMPORT site "The array defining core website navigation menu" setting
+        $this->importSiteNavigationMenuSettings($tmp_config_files_dir, $import_routing_result);
+
+        // Import site_page and site_page_params tables
+        $site_pages_table_data = array();
+        foreach (array('site_page', 'site_page_params') as $table_name) {
+            if (isset($table_data[$table_name])) {
+                $site_pages_table_data[$table_name] = $table_data[$table_name];
+            }
+        }
+
+        if ($site_pages_table_data) {
+            $import_options = $import_routing_result;
+            $import_options['current_domain_id'] = $this->getCurrentDomainId();
+            $this->importSitePagesTableData($site_pages_table_data, $import_options);
+        }
 
         if (wa()->appExists('installer')) {
             try {
@@ -119,22 +146,34 @@ class shopDemoDataImporter
     }
 
     /**
+     * Read tables data from dir
      * @param $tables_dir
-     * @throws waDbException
+     * @return array
      */
-    protected function importTablesData($tables_dir)
+    protected function getTablesData($tables_dir)
     {
+        $tables_data = array();
         foreach (waFiles::listdir($tables_dir) as $file) {
-
             $filepath = "{$tables_dir}{$file}";
-
             if (!file_exists($filepath)) {
                 continue;
             }
-
             $table_name = str_replace('.php', '', $file);
             $data = include($filepath);
+            $tables_data[$table_name] = $data;
+        }
 
+        return $tables_data;
+    }
+
+    /**
+     * Straightforward import data
+     * @param array $tables_data
+     * @throws waDbException
+     */
+    protected function importTablesData($tables_data)
+    {
+        foreach ($tables_data as $table_name => $data) {
             try {
                 $table = $this->newShopDemoDataTable($table_name);
                 foreach ($data as $item) {
@@ -142,10 +181,125 @@ class shopDemoDataImporter
                 }
             } catch (waDbException $e) {
                 // ignore or maybe log
+                self::printLog($e);
                 throw $e;
+            }
+        }
+    }
+
+    /**
+     * Import site pages data
+     * @param array $tables_data
+     * @param array options
+     *      - bool options['changed']
+     *      - null|string options['current_site_url'] - current url of first site settlement on current domain
+     *      - null|int $options['current_domain_id'] - current domain id
+     * @throws waDbException
+     * @throws waException
+     */
+    protected function importSitePagesTableData($tables_data, $options = array())
+    {
+        if (empty($tables_data) || empty($tables_data['site_page'])) {
+            return;
+        }
+
+        // just in case
+        $white_list = array_fill_keys(array('site_page', 'site_page_params'), true);
+        foreach ($tables_data as $table_name => $data) {
+            if (empty($white_list[$table_name])) {
+                unset($tables_data[$table_name]);
+            }
+        }
+
+        // mapping from exported page ID to current page ID
+        $page_id_map = array();
+
+        // first export site_page data (cause we need fill $page_id_map)
+        $site_page_data = $tables_data['site_page'];
+
+        // change domain_id and route of site page data
+        if (!empty($options['changed'])) {
+            $site_page_data = $this->prepareSitePageData($site_page_data, $options);
+        }
+
+        $table = $this->newShopDemoDataTable('site_page');
+
+        foreach ($site_page_data as $item) {
+            try {
+
+                $exported_id = $item['id'];
+                unset($item['id']);
+
+                $existed_item = $table->getByField(array(
+                    'domain_id' => $item['domain_id'],
+                    'route' => $item['route'],
+                    'full_url' => $item['full_url']
+                ));
+
+                if ($existed_item) {
+                    $table->updateById($existed_item['id'], $item);
+                    $page_id_map[$exported_id] = $existed_item['id'];
+                } else {
+                    $new_id = $table->insert($item, 1);
+                    $page_id_map[$exported_id] = $new_id;
+                }
+
+            } catch (waDbException $e) {
+                // ignore or maybe log
+                self::printLog($e);
+                throw $e;
+            }
+        }
+
+        // that try export site_page_params data if they exist
+        $site_page_params_data = isset($tables_data['site_page_params']) ? $tables_data['site_page_params'] : array();
+        if (empty($site_page_params_data)) {
+            return;
+        }
+
+        $table = $this->newShopDemoDataTable('site_page_params');
+        foreach ($site_page_params_data as $item) {
+            try {
+                if (empty($page_id_map[$item['page_id']])) {
+                    continue;
+                }
+
+                // remap page_id
+                $item['page_id'] = $page_id_map[$item['page_id']];
+
+                $table->insert($item, 1);
+            } catch (waDbException $e) {
+                // ignore or maybe log
+                self::printLog($e);
+                throw $e;
+            }
+        }
+    }
+
+    /**
+     * Import site pages data
+     * @param array $data
+     * @param array options
+     *      - null|string $options['current_domain_id'] - current domain id
+     *      - null|string options['current_site_url']   - current url of first site settlement on current domain
+     * @return array
+     * @throws waDbException
+     * @throws waException
+     */
+    protected function prepareSitePageData($data, $options = array())
+    {
+        foreach ($data as &$item) {
+            if (isset($options['current_domain_id'])) {
+                $item['domain_id'] = $options['current_domain_id'];
+            }
+            if (isset($options['current_site_url'])) {
+                $item['route'] = $options['current_site_url'];
             }
 
         }
+        unset($item);
+
+        return $data;
     }
 
     protected function newShopDemoDataTable($table_name)
@@ -281,6 +435,102 @@ class shopDemoDataImporter
 
     }
 
+    /**
+     * @param $config_files_dir
+     * @return array $result
+     *      - bool $result['changed']
+     *      - null|string $result['exported_site_url']  - url of first site settlement of exported shop data
+     *      - null|string $result['current_site_url']   - current url of first site settlement on current domain
+     *
+     * @throws waException
+     */
+    protected function importSiteRoutingSettings($config_files_dir)
+    {
+        $result = array(
+            'changed' => false,
+            'exported_site_url' => null,
+            'current_site_url' => null
+        );
+
+        // distribute all settings of site routing of exporter throughout all shop-settlements of importer
+
+        $config_routing_file = $config_files_dir . 'routing.php';
+
+        if (!file_exists($config_routing_file)) {
+            return $result;
+        }
+
+        $exported_routing_config = include($config_routing_file);
+
+        // get first site settlement
+        $exporter_site_settlement_config = null;
+        foreach ($exported_routing_config as $domain => $domain_routing_config) {
+            // may be 'mirror' - 'mirror' is scalar value, not array
+            if (is_array($domain_routing_config)) {
+                foreach ($domain_routing_config as $settlement_config) {
+                    if (is_array($settlement_config) && isset($settlement_config['app']) && $settlement_config['app'] == 'site') {
+                        $exporter_site_settlement_config = $settlement_config;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!$exporter_site_settlement_config) {
+            return $result;
+        }
+
+        $current_routing_config = array();
+        $current_config_files_dir = wa()->getConfigPath();
+        $current_config_routing_file = $current_config_files_dir . '/routing.php';
+        if (file_exists($current_config_routing_file)) {
+            $current_routing_config = include($current_config_routing_file);
+        }
+
+        $changed = false;
+
+        // get first site settlement of current domain
+        $imported_site_settlement_config = null;
+        $domain = $this->getCurrentDomain();
+
+        foreach ($current_routing_config as $current_domain => &$current_domain_routing_config) {
+            // may be 'mirror' - 'mirror' is scalar value, not array
+            if (is_array($current_domain_routing_config)) {
+                foreach ($current_domain_routing_config as &$current_settlement_config) {
+                    if (is_array($current_settlement_config) && isset($current_settlement_config['app']) && $current_settlement_config['app'] == 'site') {
+
+                        // url will not be changed
+                        $url = $current_settlement_config['url'];
+
+                        $current_settlement_config = $exporter_site_settlement_config;
+                        $current_settlement_config['url'] = $url;
+
+                        // get first site settlement of current domain
+                        if ($current_domain === $domain && !$imported_site_settlement_config) {
+                            $imported_site_settlement_config = $current_settlement_config;
+                        }
+
+                        $changed = true;
+                    }
+                }
+                unset($current_settlement_config);
+            }
+        }
+        unset($current_domain_routing_config);
+
+        if ($changed) {
+            waUtils::varExportToFile($current_routing_config, $current_config_routing_file);
+        }
+
+        $result['changed'] = $changed;
+        $result['exported_site_url'] = $exporter_site_settlement_config['url'];
+        if ($imported_site_settlement_config) {
+            $result['current_site_url'] = $imported_site_settlement_config['url'];
+        }
+
+        return $result;
+    }
+
     protected function importShopConfigs($config_files_dir, $options = array())
     {
         $options = is_array($options) ? $options : array();
@@ -362,10 +612,184 @@ class shopDemoDataImporter
 
     }
 
-    protected function startWith($string, $substr)
+    /**
+     * @param $config_files_dir
+     * @param $options
+     *      - bool $options['changed']
+     *      - null|string $options['exported_site_url']  - url of first site settlement of exported shop data
+     *      - null|string $options['current_site_url']   - current url of first site settlement on current domain
+     * @throws waException
+     */
+    protected function importSiteNavigationMenuSettings($config_files_dir, $options = array())
     {
-        $len = strlen($substr);
-        return substr($string, 0, $len) === $substr;
+        $navigation_menu_settings = $this->readSiteNavigationMenuSettings($config_files_dir, $options);
+
+        if (!$navigation_menu_settings) {
+            return;
+        }
+
+        // change urls in site menu items from exported_site_url to current_site_url
+        if (!empty($options['changed']) && !empty($options['exported_site_url']) && !empty($options['current_site_url']) && $options['exported_site_url'] != $options['current_site_url']) {
+
+            // remove * at the end of route urls
+            $from = preg_replace('!\*$!', '', $options['exported_site_url']);
+            $to = preg_replace('!\*$!', '', $options['current_site_url']);
+
+            $navigation_menu_settings = $this->changeUrlPrefixOfSiteNavigationMenuSettings($navigation_menu_settings, array(
+                $from => $to
+            ));
+        }
+
+        list($navigation_menu_settings, $changed) = $this->mergeSiteNavigationMenuSettings($navigation_menu_settings);
+        if (!$changed) {
+            return;
+        }
+
+        // get current domain
+        $current_domain = $this->getCurrentDomain();
+
+        $current_configs_path = wa()->getConfigPath() . '/apps/site/domains/';
+        $current_configs_path_filepath = $current_configs_path . $current_domain . '.php';
+
+        if (file_exists($current_configs_path_filepath)) {
+            $domain_settings = include($current_configs_path_filepath);
+        } else {
+            $domain_settings = array();
+        }
+
+        $domain_settings['apps'] = $navigation_menu_settings;
+
+        waFiles::create($current_configs_path);
+        waUtils::varExportToFile($domain_settings, $current_configs_path_filepath);
+
+    }
+
+    /**
+     * Read site navigation menu settings from path $config_files_dir
+     * Find first .php file in $config_files_dir that has key 'apps' and value is array
+     *
+     * @param string $config_files_dir
+     * @return array|mixed
+     */
+    protected function readSiteNavigationMenuSettings($config_files_dir)
+    {
+        $navigation_menu_settings = array();
+        $tmp_configs_path = $config_files_dir . 'apps/site/domains/';
+        foreach (waFiles::listdir($tmp_configs_path) as $filepath) {
+            if (substr($filepath, -4) !== '.php') {
+                continue;
+            }
+            $domain_settings = include($tmp_configs_path . $filepath);
+            if (isset($domain_settings['apps']) && is_array($domain_settings['apps'])) {
+                $navigation_menu_settings = $domain_settings['apps'];
+            }
+        }
+        return $navigation_menu_settings;
+    }
+
+    /**
+     * Merge input settings with those that exist
+     * Don't lose existed menu settings
+     * @param array $navigation_menu_settings
+     * @return array $result
+     *      - array $result[0] - result navigation_menu_settings
+     *      - bool $result[1] - has be actually merged or nothing changed
+     * @throws waException
+     */
+    protected function mergeSiteNavigationMenuSettings($navigation_menu_settings)
+    {
+        // get current domain
+        $current_domain = $this->getCurrentDomain();
+
+        $current_configs_path = wa()->getConfigPath() . '/apps/site/domains/';
+        $current_configs_path_filepath = $current_configs_path . $current_domain . '.php';
+
+        if (file_exists($current_configs_path_filepath)) {
+            $domain_settings = include($current_configs_path_filepath);
+        } else {
+            $domain_settings = array();
+        }
+
+        $existed_navigation_menu_settings = array();
+        if (isset($domain_settings['apps'])) {
+            $existed_navigation_menu_settings = $domain_settings['apps'];
+        }
+
+        $url_existed = array();
+        foreach ($existed_navigation_menu_settings as $menu_setting) {
+            $url_existed[$menu_setting['url']] = true;
+        }
+
+        $changed = false;
+
+        // add menu_setting items but don't lose existed urls
+        foreach ($navigation_menu_settings as $menu_setting) {
+            if (empty($url_existed[$menu_setting['url']])) {
+                $existed_navigation_menu_settings[] = $menu_setting;
+                $changed = true;
+            }
+        }
+
+        return array($existed_navigation_menu_settings, $changed);
+    }
+
+    /**
+     * @param $navigation_menu_settings
+     * @param array $replace , key => value
+     * @return mixed
+     */
+    protected function changeUrlPrefixOfSiteNavigationMenuSettings($navigation_menu_settings, $replace)
+    {
+        if (empty($replace)) {
+            return $navigation_menu_settings;
+        }
+
+        // add menu_setting items but don't lose existed urls
+        foreach ($navigation_menu_settings as &$menu_setting) {
+            foreach ($replace as $from => $to) {
+                $from_len = strlen($from);
+
+                $url = $menu_setting['url'];
+                $slash = substr($url, 0, 1) === '/';
+
+                if ($slash) {
+                    $url = substr($url, 1);
+                }
+
+                // change prefix from $from to $to
+                if (substr($url, 0, $from_len) === $from) {
+                    $url = $to . substr($url, $from_len);
+                }
+
+                if ($slash) {
+                    $url = '/' . ltrim($url, '/');  // if happen several slashes at the beginning leave only one
+                } else {
+                    $url = ltrim($url, '/');        // no slashes
+                }
+
+                $menu_setting['url'] = $url;
+            }
+        }
+        unset($menu_setting);
+
+        return $navigation_menu_settings;
+    }
+
+    protected function getCurrentDomain()
+    {
+        return wa()->getConfig()->getDomain();
+    }
+
+    protected function getCurrentDomainId()
+    {
+        $domain = $this->getCurrentDomain();
+        wa('site');
+        $dm = new siteDomainModel();
+        $domain_info = $dm->getByName($domain);
+        if ($domain_info) {
+            return $domain_info['id'];
+        }
+        return null;
     }
 
     protected function markToDelete($path)
@@ -431,6 +855,12 @@ class shopDemoDataImporter
 
     protected static function printLog($message)
     {
+        if ($message instanceof Exception) {
+            $str = $message->getMessage();
+            $code = $message->getCode();
+            $trace = $message->getTraceAsString();
+            $message = "{$code}: {$str}\n{$trace}";
+        }
         if (!is_scalar($message)) {
             $message = var_export($message, true);
         }

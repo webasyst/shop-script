@@ -473,7 +473,7 @@ return array(
             '$action_data'                                             => _w('An array containing information about performed order action (action-dependent)'),
             '$action_data.text'                                        => _w('Performed action text comment (action-dependent)'),
             '$action_data.params'                                      => _w('An array of action-dependent parameters, e.g. $action_data.params.tracking_number for Ship’s action tracking number'),
-            '$action_data.callback_transaction_data'                   => _w('TODO: Массив с данными транзакции уведомления от плагина оплаты для действия `callback`'),
+            '$action_data.callback_transaction_data'                   => _w('Array of notification callback data received by a payment plugin from a payment gateway.'),
             /** OTHER **/
             '$signup_url'                                              => _w('Signup page URL. Will not be provided if either the order was placed by a registered customer, or <a href="?action=settings#/checkout/">Guest checkout setting</a> is not enabled.'),
             /** AFILIATE **/

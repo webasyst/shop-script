@@ -606,7 +606,7 @@
                 }
 
                 function validate($field, blur) {
-                    var errors = that.scope.validate(that.$wrapper, true);
+                    var errors = that.scope.validate(that.$wrapper, true, true);
                     if (!errors.length) {
                         onChange($field);
                     }
@@ -3627,9 +3627,10 @@
         /**
          * @param {Object} $wrapper
          * @param {Boolean?} render_errors
+         * @param {Boolean?} focus
          * @return {Array} with errors
          * */
-        Form.prototype.validate = function($wrapper, render_errors) {
+        Form.prototype.validate = function($wrapper, render_errors, focus) {
             var that = this,
                 errors = [];
 
@@ -3747,6 +3748,11 @@
                     $.each(errors, function(i, error) {
                         renderError(error);
                     });
+
+                    var first_error = errors[0];
+                    if (focus && first_error.$field) {
+                        focusField(first_error.$field.parent());
+                    }
                 }
             }
 

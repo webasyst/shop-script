@@ -10394,3 +10394,6 @@ msgstr "Содержимое корзины покупателя"
 
 msgid "Sync shopping cart items on all devices for authorized customers."
 msgstr "Синхронизировать товары в корзине авторизованного покупателя на всех устройствах."
+
+msgid "Array of notification callback data received by a payment plugin from a payment gateway."
+msgstr "Массив с данными вызова-уведомления (callback), полученными плагином оплаты от платежной системы."
