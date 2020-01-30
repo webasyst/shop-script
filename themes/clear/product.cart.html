@@ -170,7 +170,8 @@
         $.getScript("{$wa_theme_url}product.js?v{$wa_theme_version}", function() {
             if (typeof Product === "function") {
                 new Product('#cart-form{if $wa->get('cart')}-dialog{/if}', {
-                    currency: {json_encode($currency_info)}
+                    currency: {json_encode($currency_info)},
+                    compare_price: {if !empty($product.compare_price)}{shop_currency($product.compare_price, null, null, 0)}{else}0{/if}
                     {if count($product.skus) > 1 or $product.sku_type}
                     ,services: {json_encode($sku_services)}
                     {/if}

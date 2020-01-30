@@ -110,7 +110,7 @@ function Product(form, options) {
         return false;
     });
 
-    this.compare_price = null;
+    this.compare_price = options["compare_price"];
 }
 
 Product.prototype.currencyFormat = function (number, no_html) {
@@ -199,33 +199,40 @@ Product.prototype.updateSkuServices = function (sku_id) {
     }
 };
 Product.prototype.updatePrice = function (price, compare_price) {
+    var self = this;
+
     if (price === undefined) {
         var input_checked = this.form.find(".skus input:radio:checked");
         if (input_checked.length) {
-            var price = parseFloat(input_checked.data('price'));
-            var compare_price = parseFloat(input_checked.data('compare-price'));
+            price = parseFloat(input_checked.data('price'));
+            compare_price = parseFloat(input_checked.data('compare-price'));
         } else {
-            var price = parseFloat(this.add2cart.find(".price").data('price'));
+            price = parseFloat(this.add2cart.find(".price").data('price'));
+            compare_price = this.compare_price;
         }
     }
+
+    var service_price = 0;
+
+    this.form.find(".services input:checked").each(function () {
+        var s = $(this).val();
+        if (self.form.find('.service-' + s + '  .service-variants').length) {
+            service_price += parseFloat(self.form.find('.service-' + s + '  .service-variants :selected').data('price'));
+        } else {
+            service_price += parseFloat($(this).data('price'));
+        }
+    });
+
+    this.add2cart.find(".price").html(this.currencyFormat(price + service_price));
+
     if (compare_price) {
         if (!this.add2cart.find(".compare-at-price").length) {
             this.add2cart.prepend('<span class="compare-at-price nowrap"></span>');
         }
-        this.add2cart.find(".compare-at-price").html(this.currencyFormat(compare_price)).show();
+        this.add2cart.find(".compare-at-price").html(this.currencyFormat(compare_price + service_price)).show();
     } else {
         this.add2cart.find(".compare-at-price").hide().html("");
     }
-    var self = this;
-    this.form.find(".services input:checked").each(function () {
-        var s = $(this).val();
-        if (self.form.find('.service-' + s + '  .service-variants').length) {
-            price += parseFloat(self.form.find('.service-' + s + '  .service-variants :selected').data('price'));
-        } else {
-            price += parseFloat($(this).data('price'));
-        }
-    });
-    this.add2cart.find(".price").html(this.currencyFormat(price));
 
     this.compare_price = (compare_price ? compare_price : 0);
 };
