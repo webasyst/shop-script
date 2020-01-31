@@ -228,7 +228,7 @@
                 <div class="s-column align-right">
                     {capture assign="_total_price"}
                         {if !empty($transaction_data)}
-                            {wa_currency_html($transaction_data['amount']-ifset($transaction_data['refunded_amount'],0),$transaction_data['currency_id'])}
+                            {wa_currency_html($transaction_data['amount'],$transaction_data['currency_id'])}
                         {else}
                             {wa_currency_html($order['subtotal'],$order['currency'])}
                         {/if}

@@ -46,19 +46,24 @@ class shopWorkflowState extends waWorkflowState
      */
     public function getActions($params = null, $name_only = false)
     {
-        // get user rights
-        $user = wa()->getUser();
+        if (wa()->getEnv() === 'backend') {
+            // get user rights
+            $user = wa()->getUser();
 
-        if ($user->isAdmin('shop')) {
-            $rights = true;
-        } else {
-            $rights = $user->getRights('shop', 'workflow_actions.%');
-            if (!empty($rights['all'])) {
+            if ($user->isAdmin('shop')) {
                 $rights = true;
+            } else {
+                $rights = $user->getRights('shop', 'workflow_actions.%');
+                if (!empty($rights['all'])) {
+                    $rights = true;
+                }
             }
-        }
-        if (empty($rights)) {
-            return array();
+
+            if (empty($rights)) {
+                return array();
+            }
+        } else {
+            $rights = true;
         }
 
         $actions = parent::getActions($params, false);
