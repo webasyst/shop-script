@@ -239,7 +239,69 @@ return array(
                 'multiplier' => 31536000
             ),
         )
-    )
+    ),
+    'temperature' => array(
+        'name' => _w('Temperature'),
+        'base_unit' => '°C',
+        'units' => array(
+            '°C' => array(
+                'name' => '°C',
+                'multiplier' => 1
+            ),
+            'K' => array(
+                'name' => 'K',
+                'multiplier' => 1, // TODO: implement offset to convert properly
+            ),
+            '°F' => array(
+                'name' => '°F',
+                'multiplier' => 1,
+            )
+        )
+    ),
+    'amperage' => array(
+        'name' => _w('Amperage'),
+        'base_unit' => 'A',
+        'units' => array(
+            'mA' => array(
+                'name' => _w('mA'),
+                'multiplier' => 0.001,
+            ),
+            'A' => array(
+                'name' => _w('A'),
+                'multiplier' => 1
+            ),
+            'KA' => array(
+                'name' => _w('kA'),
+                'multiplier' => 1000,
+            ),
+            'MA' => array(
+                'name' => _w('MA'),
+                'multiplier' => 1000000,
+            )
+        )
+    ),
+    'electric_charge' => array(
+        'name' => _w('Electric charge'),
+        'base_unit' => 'Ah',
+        'units' => array(
+            'mAh' => array(
+                'name' => _w('mAh'),
+                'multiplier' => 0.001,
+            ),
+            'Ah' => array(
+                'name' => _w('Ah'),
+                'multiplier' => 1,
+            ),
+            'KAh' => array(
+                'name' => _w('kAh'),
+                'multiplier' => 1000,
+            ),
+            'MAh' => array(
+                'name' => _w('MAh'),
+                'multiplier' => 1000000,
+            )
+        )
+    ),
 
     //custom dimensions are added in a similar way
 

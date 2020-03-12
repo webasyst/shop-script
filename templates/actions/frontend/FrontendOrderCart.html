@@ -327,7 +327,11 @@
                                     {strip}
                                     <div class="wa-bonus-details">
                                         <div class="wa-inactive-state">
-                                            <div class="wa-details">{sprintf('[`Your current affiliate bonus of %s points allows you to get an additonal discount of up to %s`]', "<strong>{$affiliate.affiliate_bonus}</strong>", "<strong id=\"wa-affiliate-order-discount\">{shop_currency_html($affiliate.affiliate_discount, true)}</strong>")}</div>
+                                            <div class="wa-details">{sprintf(
+                                                _w('You have %s bonus point! You can use it to get an additonal discount of up to %s.', 'You have %s bonus points! You can use some of them to get an additonal discount of up to %s.', $affiliate.affiliate_bonus, false),
+                                                "<strong>{$affiliate.affiliate_bonus}</strong>",
+                                                "<strong id=\"wa-affiliate-order-discount\">{shop_currency_html($affiliate.affiliate_discount, true)}</strong>"
+                                            )}</div>
                                             <button class="wa-button gray js-use-bonus" type="button">[`Use bonus`]</button>
                                         </div>
                                         <div class="wa-active-state">

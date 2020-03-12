@@ -459,7 +459,7 @@ class shopFrontendOrderActions extends waJsonActions
             $session_data = wa()->getStorage()->get('shop/checkout', []);
         }
 
-        return new shopOrder([
+        $order = new shopOrder([
             'contact_id' => ifempty(ref(wa()->getUser()->getId()), null),
             'currency'   => wa('shop')->getConfig()->getCurrency(false),
             'items'      => $cart_items,
@@ -469,6 +469,11 @@ class shopFrontendOrderActions extends waJsonActions
             'items_format'       => 'cart',
             'items_extend_round' => true,
         ]);
+
+        // call indirectly whole total price calculation with applying all discounts
+        $order->total;
+
+        return $order;
     }
 
     public function addressAutocompleteAction()

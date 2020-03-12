@@ -28,7 +28,7 @@ return array(
     'orders_default_view'      => 'split',
     'orders_per_page'          => array('split' => 15, 'table' => 30),
     'product_orders_per_page'  => 30,
-    'types_per_page'           => 25,
+    'types_per_page'           => 25, // !!! TODO: obsolete?..
     'features_per_page'        => 200,
     'features_values_per_page' => 7,
     'statrows_per_page'        => 50,

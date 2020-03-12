@@ -143,7 +143,7 @@ class shopProductSaveController extends waJsonController
                 $this->response['categories'] = array_values($this->response['categories']);
 
                 $this->response = array_merge($this->response, $this->getMeta($product->getId()));
-                
+
                 $forecast = $product->getNextForecast();
                 if ($forecast['date'] !== null && $forecast['days'] < shopProduct::MAX_FORECAST_DAYS) {
                     $this->response['raw']['runout_str'] = sprintf(
@@ -261,7 +261,7 @@ class shopProductSaveController extends waJsonController
                         }
                     }
                     $frontend_url = $routing->getUrl('/frontend/product', $url_params, true);
-                    $pos = strrpos($frontend_url, $product->url);
+                    $pos = strrpos($frontend_url, (string)$product->url);
                     $frontend_urls[] = array(
                         'url'  => waIdna::dec($frontend_url),
                         'base' => $pos !== false ? rtrim(substr($frontend_url, 0, $pos), '/').'/' : $frontend_url

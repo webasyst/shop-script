@@ -12,7 +12,7 @@ class shopOrdersAction extends shopOrderListAction
 
         $orders = $this->getOrders(0, $this->getCount());
 
-        $forbidden = array_fill_keys(array('edit', 'message', 'comment', 'editshippingdetails'), true);
+        $forbidden = array_fill_keys(array('edit', 'message', 'comment', 'editshippingdetails', 'editcode'), true);
 
         $workflow = new shopWorkflow();
 

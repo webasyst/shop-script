@@ -101,7 +101,7 @@ class shopFrontendProductReviewsAddController extends waJsonController
                 'product'       => $product,
                 'ajax_append'   => true
             ),
-                'file:review.html'
+                'review.html'
             ),
             'review_count_str' => _w(
                     '%d review for ',
@@ -118,9 +118,21 @@ class shopFrontendProductReviewsAddController extends waJsonController
         if (!file_exists($theme_path) || !file_exists($theme_path.'/theme.xml')) {
             $theme_path = wa()->getAppPath().'/themes/'.$theme;
         }
-        $view = wa()->getView(array('template_dir' => $theme_path));
+
+        $template_path = $theme_path . '/' . $template;
+        if (!file_exists($template_path)) {
+            return '';
+        }
+
+        $view = wa()->getView();
+        $old_vars = $view->getVars();
+        $view->clearAllAssign();
         $view->assign($assign);
-        return $view->fetch($template);
+        $html = $view->fetch($template_path);
+        $view->clearAllAssign();
+        $view->assign($old_vars);
+
+        return $html;
     }
 
     private function getParentId()

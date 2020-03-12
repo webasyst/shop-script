@@ -396,6 +396,7 @@
             that.disabled = options["disabled"];
             that.errors = options["errors"];
             that.scope = options["scope"];
+            that.auto_use_timeout = options["auto_use_timeout"];
 
             // DYNAMIC VARS
             that.reload = true;
@@ -407,8 +408,7 @@
         Region.prototype.initClass = function() {
             var that = this;
 
-            var key_timer = 0,
-                key_timeout = 3000;
+            var key_timer = 0;
 
             if (typeof that.errors === "object" && Object.keys(that.errors).length ) {
                 that.scope.DEBUG("Errors:", "error", that.errors);
@@ -624,9 +624,11 @@
             function onKeyDown($field) {
                 clearTimeout(key_timer);
 
-                key_timer = setTimeout( function() {
-                    $field.trigger("change").trigger("timeout_change");
-                }, key_timeout);
+                if (that.auto_use_timeout > 0) {
+                    key_timer = setTimeout( function() {
+                        $field.trigger("change").trigger("timeout_change");
+                    }, that.auto_use_timeout);
+                }
             }
 
             /**
@@ -3398,6 +3400,7 @@
             that.$wrapper = options["$wrapper"];
 
             // CONST
+            that.use_storage = options["use_storage"];
             that.options = options["outer_options"];
             that.templates = options["templates"];
             that.locales = options["locales"];
@@ -3511,6 +3514,8 @@
                     $(this).trigger("blur");
                 }
             });
+
+            if (that.use_storage) { that.storage("load"); }
         };
 
         Form.prototype.DEBUG = function() {
@@ -3938,6 +3943,7 @@
                         that.is_updating = false;
                         $loading.remove();
                         that.lock(false);
+                        that.storage("save", form_data);
                     })
                     .then( function(api) {
                         if (is_changed) {
@@ -4106,6 +4112,7 @@
                             that.DEBUG(api);
 
                             result_deferred.resolve(api);
+                            that.storage("clear");
 
                         // validation error
                         } else {
@@ -4198,6 +4205,51 @@
 
             } else {
                 that.$wrapper.removeClass(locked_class);
+            }
+        };
+
+        Form.prototype.storage = function(mode, form_data) {
+            var that = this;
+
+            var storage_name = "webasyst/shop/order/form";
+
+            switch (mode) {
+                case "save":
+                    save(form_data);
+                    break;
+                case "load":
+                    load();
+                    break;
+                case "clear":
+                    clear();
+                    break;
+                default:
+                    break;
+            }
+
+            function save(form_data) {
+                try {
+                    var form_data_json = JSON.stringify(form_data);
+                    window.localStorage.setItem(storage_name, form_data_json);
+                } catch(error) {
+                    that.DEBUG("STORAGE ERROR:", "error", error.message);
+                }
+            }
+
+            function load() {
+                var form_data_json = window.localStorage.getItem(storage_name);
+                if (form_data_json) {
+                    var form_data = JSON.parse(form_data_json);
+                    if (form_data) {
+                        that.update({
+                            data: form_data
+                        }).then();
+                    }
+                }
+            }
+
+            function clear() {
+                window.localStorage.removeItem(storage_name);
             }
         };
 

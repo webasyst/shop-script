@@ -159,7 +159,7 @@ $.extend($.settings = $.settings || {}, {
                         } else {
                             var html = '<select name="data[' + data.feature + '][value]">';
                             for (var i = 0; i < f.values.length; i++) {
-                                html += '<option value="' + f.values[i][0] + '">' + f.values[i][1] + '</option>';
+                                html += '<option value="' + f.values[i][0] + '" ' + (data.value == f.values[i][0] ? 'selected' : '') + '>' + f.values[i][1] + '</option>';
                             }
                             html += '</select>';
                             elem_values.html(html);

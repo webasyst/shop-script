@@ -18,6 +18,7 @@ return array(
                 'complete',
                 'comment',
                 'edit',
+                'editcode',
                 'editshippingdetails',
                 'message',
                 'delete',
@@ -38,6 +39,7 @@ return array(
                 'complete',
                 'comment',
                 'edit',
+                'editcode',
                 'editshippingdetails',
                 'message',
                 'delete',
@@ -71,6 +73,7 @@ return array(
             ),
             'available_actions' => array(
                 'ship',
+                'editcode',
                 'editshippingdetails',
                 'complete',
                 'refund',
@@ -88,6 +91,7 @@ return array(
                 ),
             ),
             'available_actions' => array(
+                'editcode',
                 'editshippingdetails',
                 'complete',
                 'comment',
@@ -104,6 +108,7 @@ return array(
                 ),
             ),
             'available_actions' => array(
+                'editcode',
                 'comment',
                 'refund',
                 'message',
@@ -202,6 +207,15 @@ return array(
                 'position'   => 'top',
                 'icon'       => 'edit',
                 'log_record' => _w('Order was edited'),
+            ),
+        ),
+        'editcode' => array(
+            'classname' => 'shopWorkflowEditcodeAction',
+            'name' => _w('Edit product codes'),
+            'options' => array(
+                'position' => 'top',
+                'icon' => 'ss parameter',
+                'log_record' => _w('Product codes were changed'),
             ),
         ),
         'editshippingdetails' => array(

@@ -819,6 +819,10 @@ SQL;
         return null;
     }
 
+    /**
+     * @param $id
+     * @return array|null
+     */
     public function category($id)
     {
         $category_model = new shopCategoryModel();
@@ -843,6 +847,17 @@ SQL;
                 $category['description'] = wa()->getView()->fetch('string:'.$category['description']);
             }
         }
+        /**
+         * Output single category in the smarty template.
+         *
+         * @param array $category
+         *
+         * @event view_category
+         */
+        $is_from_template = waConfig::get('is_template');
+        waConfig::set('is_template', null);
+        wa('shop')->event('view_category', $category);
+        waConfig::set('is_template', $is_from_template);
         return $category;
     }
 

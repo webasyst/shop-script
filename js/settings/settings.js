@@ -99,6 +99,9 @@ $.extend($.settings = $.settings || {}, {
 
     /** Change location hash without triggering dispatch */
     forceHash: function (hash) {
+        if (hash && hash.length && hash[0] == '/') {
+            hash = '#' + hash;
+        }
         if (location.hash != hash) {
             this.skipDispatch++;
             $.wa.setHash(hash);
@@ -134,7 +137,7 @@ $.extend($.settings = $.settings || {}, {
             window.location.hash = hash;
         }
         var path = this.parsePath(hash.replace(/^[^#]*#\/*/, ''));
-        
+
         // Redirect to Marketing tab
         if (path.section === "discounts") {
             window.location.href = this.options["shop_marketing_url"] + path.raw;
@@ -367,6 +370,11 @@ $.extend($.settings = $.settings || {}, {
 
     couriersPreLoad: function (id) {
         this.$container.load('?module=settings&action=couriers&id=' + (id || ''));
+        return true;
+    },
+
+    typefeatPreLoad: function (id) {
+        this.$container.load('?module=settings&action=typefeatList&type=' + (id || ''));
         return true;
     },
 

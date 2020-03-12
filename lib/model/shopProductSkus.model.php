@@ -337,7 +337,7 @@ SQL;
      * @param shopProduct $product
      * @return array
      */
-    protected function updateSku($id = 0, $data, $correct = true, shopProduct $product = null)
+    protected function updateSku($id, $data, $correct = true, shopProduct $product = null)
     {
         /**
          * @var shopProductStocksModel $stocks_model
@@ -347,14 +347,6 @@ SQL;
          * @var bool $multi_stock
          */
         static $multi_stock = null;
-        /**
-         * @var shopFeatureModel $feature_model
-         */
-        static $feature_model;
-        /**
-         * @var shopProductFeaturesModel $product_features_model
-         */
-        static $product_features_model;
 
         if (isset($data['price'])) {
             $data['price'] = $this->castValue('double', $data['price']);
@@ -508,11 +500,82 @@ SQL;
             $this->updateById($id, array('count' => $sku_count));
         }
 
+        $this->setFeaturesData($id, $data);
+
+        if ($correct) {
+            $product_model = new shopProductModel();
+            $product_model->correct($data['product_id']);
+        }
+
+        return $data;
+    }
+
+    private static $features_map = array();
+    private static $fetched_features = array();
+
+    protected function prefetchFeatures($features)
+    {
+        /** @var shopFeatureModel $feature_model */
+        static $feature_model;
+        if (!$feature_model) {
+            $feature_model = new shopFeatureModel();
+        }
+
+        $search = array(
+            'code'              => array_diff(array_keys($features), array_keys(self::$fetched_features)),
+            'available_for_sku' => 1,
+        );
+
+        if ($search['code']) {
+            $fetched_features = $feature_model->getByField($search, 'code');
+            foreach ($fetched_features as $code => $feature) {
+                self::$fetched_features[$code] = $feature;
+                self::$features_map[(int)$feature['id']] = $code;
+            }
+
+
+            $search['id'] = array();
+            foreach ($search['code'] as $code) {
+                if (is_numeric($code) && is_numeric($features[$code])) {
+                    if (empty(self::$features_map[$code])) {
+                        $search['id'][$code] = (int)$code;
+                    }
+                }
+            }
+
+            if ($search['id']) {
+                unset($search['code']);
+                if ($numeric_features = $feature_model->getByField($search, 'code')) {
+                    foreach ($numeric_features as $code => $feature) {
+                        self::$features_map[(int)$feature['id']] = $code;
+                    }
+                    self::$fetched_features += $numeric_features;
+                }
+                unset($numeric_features);
+            }
+        }
+    }
+
+    protected function getFeature($code, $value = null)
+    {
+        $feature = ifset(self::$fetched_features, $code, false);
+        if (empty($feature) && is_numeric($code) && is_numeric($value)) {
+            $code = ifset(self::$features_map, $code, false);
+            if ($code !== false) {
+                $feature = ifset(self::$fetched_features, $code, false);
+            }
+        }
+
+        return $feature;
+    }
+
+    protected function setFeaturesData($id, &$data)
+    {
+        /** @var shopProductFeaturesModel $product_features_model */
+        static $product_features_model;
+
         if (isset($data['features'])) {
 
-            if (!$feature_model) {
-                $feature_model = new shopFeatureModel();
-            }
             if (!$product_features_model) {
                 $product_features_model = new shopProductFeaturesModel();
             }
@@ -522,20 +585,55 @@ SQL;
 
             $skip_values = array('', false, null);
 
+            #preload features
+            $this->prefetchFeatures($features);
+
+            $composite_codes = array();
             foreach ($features as $code => $value) {
-                if ($feature = $feature_model->getByField('code', $code)) {
+                if (!in_array($value, $skip_values, true) && ($feature = $this->getFeature($code))) {
+                    $composite_value = shopCompositeValue::parse($feature, $value);
+                    if ($composite_value) {
+                        $composite_codes += $composite_value;
+                        unset($features[$code]);
+                        $features += $composite_value;
+                    }
+                }
+            }
+
+            if ($composite_codes) {
+                $this->prefetchFeatures($composite_codes);
+            }
+
+            foreach ($features as $code => $value) {
+                if ($feature = $this->getFeature($code)) {
+
                     $model = shopFeatureModel::getValuesModel($feature['type']);
+
                     $field = array(
                         'product_id' => $data['product_id'],
                         'sku_id'     => $id,
                         'feature_id' => $feature['id'],
                     );
+
+                    #delete old values
                     $product_features_model->deleteByField($field);
+
+                    #prepare new value
                     if (is_array($value)) {
                         if (!empty($value['id'])) {
                             $field['feature_value_id'] = $value['id'];
-                        } elseif (isset($value['value']) && !in_array($value['value'], $skip_values, true) && $model) {
-                            $field['feature_value_id'] = $model->getId($feature['id'], ($code == 'weight') ? $value : $value['value'], $feature['type']);
+                        } elseif (isset($value['value'])) {
+                            if (!in_array($value['value'], $skip_values, true) && $model) {
+                                //fix composite values
+                                if (preg_match('@^(.+)\.[12]$@', $code, $code_matches)) {
+                                    if (isset($features[$code_matches[1].'.0'])) {
+                                        $value += $features[$code_matches[1].'.0'];
+                                    }
+                                }
+                                $field['feature_value_id'] = $model->getId($feature['id'], $value, $feature['type']);
+                            }
+                        } else {
+                            //it's multiple values - checkboxes, not supported yet
                         }
                     } elseif (!in_array($value, $skip_values, true) && $model) {
                         $field['feature_value_id'] = $model->getId($feature['id'], $value, $feature['type']);
@@ -544,36 +642,46 @@ SQL;
                             'id'    => $field['feature_value_id'],
                         );
                     }
-                    if (!empty($field['feature_value_id'])) {
+
+                    unset($model);
+
+                    #insert new value
+                    if (isset($field['feature_value_id'])) {
                         $product_features_model->insert($field);
                         $data['features'][$code] = $value;
                     }
                 } elseif (is_numeric($code) && is_numeric($value)) {
-                    if ($feature = $feature_model->getById($code)) {
+                    if ($feature = $this->getFeature($code, $value)) {
+                        $value = array(
+                            'id' => $value,
+                            'value'=>null,
+                        );
+
                         $field = array(
                             'product_id' => $data['product_id'],
                             'sku_id'     => $id,
-                            'feature_id' => $code,
+                            'feature_id' => $feature['id'],
                         );
-                        $product_features_model->deleteByField($field);
-                        if (empty($value)) {
-                            continue;
-                        }
-                        $field['feature_value_id'] = $value;
-                        $product_features_model->insert($field);
 
-                        $data['features'][$feature['code']] = $feature_model->getValuesModel($feature['type'])->getFeatureValue($value);
+                        #delete old values
+                        $product_features_model->deleteByField($field);
+
+                        #prepare new value
+                        if (!empty($value['id'])) {
+                            $value['value'] = shopFeatureModel::getValuesModel($feature['type'])->getFeatureValue($value['id']);
+                        }
+
+                        #insert new value
+                        if ($value['value'] !== null) {
+                            $field['feature_value_id'] = $value['id'];
+                            $product_features_model->insert($field);
+                            $data['features'][$code] = $value;
+                        }
+
                     }
                 }
             }
         }
-
-        if ($correct) {
-            $product_model = new shopProductModel();
-            $product_model->correct($data['product_id']);
-        }
-
-        return $data;
     }
 
     /**

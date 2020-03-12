@@ -65,6 +65,7 @@ return [
         'service_agreement'      => false,
         'service_agreement_hint' => _wd('shop', 'By placing an order you confirm that you are of adult age and agree to our <a href="">personal data processing terms</a>'),
         'plugin_timeout'         => 10, // In seconds
+        'auto_use_timeout'       => 3,  // In seconds, if there is empty or <= 0 timeout will not be applied
     ],
     'payment'         => [
         'used'       => false,

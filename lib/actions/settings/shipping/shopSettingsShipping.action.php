@@ -107,7 +107,7 @@ class shopSettingsShippingAction extends waViewAction
                         ' '.
                         sprintf(
                             _w('Add it in “<a href="%s">Product types &amp; Features</a>” screen.'),
-                            '?action=settings#/features/'
+                            '?action=settings#/typefeat/'
                         ),
                 ),
                 'state'       => $weight ? 'valid' : 'invalid',

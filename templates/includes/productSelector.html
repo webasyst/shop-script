@@ -70,15 +70,21 @@
         <div class="value js-hash-values js-hash-type" style="width: 400px;">
             <div class="bordered-left" style="padding-left: 20px; min-height: 130px;">
                 <ul class="menu-v with-icons">
+                    {strip}
                     {foreach $types as $type}{if $type.count}
                         <li>
                             <label>
                                 <span class="count">{$type.count}</span>
-                                {shopHelper::getIcon($type.icon)}
+                                {if !empty($type.icon)}
+                                    {shopHelper::getIcon($type.icon)}
+                                {else}
+                                    <i class="icon16" style="visibility: hidden;"></i>
+                                {/if}
                                 <input type="radio" name="type_id" value="{$type.id}" {if ($type@first && empty($hash.type_id))||($hash.type_id eq $type.id)} checked="checked"{/if}> {$type.name|escape}
                             </label>
                         </li>
                     {/if}{/foreach}
+                    {/strip}
                 </ul>
                 {if !empty($hints.type)}<br/><span class="small">{$hints.type}</span>{/if}
             </div>

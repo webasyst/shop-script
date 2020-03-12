@@ -114,15 +114,19 @@
 
                             {if empty($_active_location.country_locked)}
                                 <select class="wa-select js-country-field" name="region[country]" {if !empty($_is_country_required)}required{/if}>
+                                    <option value="" disabled {if empty($region.selected_values.country_id)}selected{/if}>[`Select a country`]</option>
+
+                                    {$_is_active_set = false}
                                     {foreach $_countries as $_country}
                                         {$_is_active = false}
-                                        {if empty($_country.is_copy) && $region.selected_values.country_id == $_country.id}
+                                        {if empty($_is_active_set) && $region.selected_values.country_id == $_country.id}
                                             {$_is_active = true}
+                                            {$_is_active_set = true}
                                             {$_active_county = $_country}
                                         {/if}
 
-                                        {if empty($_country.id) && $_is_active}
-                                            <option value="" selected disabled>[`Select a country`]</option>
+                                        {if empty($_country.id)}
+                                            <option value="" disabled></option>
                                         {else}
                                             <option value="{$_country.id|escape}" {if !empty($_is_active)}selected{/if}>{$_country.name|escape}</option>
                                         {/if}
@@ -133,8 +137,9 @@
                                 {if !empty($region.selected_values.country_id)}
                                     {$_active_country_id = $region.selected_values.country_id}
                                     {foreach $_countries as $_country}
-                                        {if empty($_country.is_copy) && $region.selected_values.country_id == $_country.id}
+                                        {if $region.selected_values.country_id == $_country.id}
                                             {$_active_county = $_country}
+                                            {break}
                                         {/if}
                                     {/foreach}
                                 {/if}
@@ -156,16 +161,20 @@
                                     {/if}
 
                                     <select class="wa-select js-region-field" name="region[region]" {if !empty($_is_region_required)}required{/if}>
+                                        <option value="" disabled {if empty($_active_region_id)}selected{/if}>[`Select a region`]</option>
+
+                                        {$_is_active_set = false}
                                         {foreach $_active_county.regions as $_region}
                                             {$_is_active = false}
 
-                                            {if $_active_region_id == $_region.id}
+                                            {if empty($_is_active_set) && $_active_region_id == $_region.id}
                                                 {$_is_active = true}
+                                                {$_is_active_set = true}
                                                 {$_active_region = $_region}
                                             {/if}
 
-                                            {if empty($_region.id) && $_is_active}
-                                                <option value="" selected disabled>[`Select a region`]</option>
+                                            {if empty($_region.id)}
+                                                <option value="" disabled></option>
                                             {else}
                                                 <option value="{$_region.id|escape}" {if !empty($_is_active)}selected{/if}>{$_region.name|escape}</option>
                                             {/if}
@@ -221,12 +230,18 @@
                                     {/if}
 
                                     <select class="wa-select js-city-field" name="region[city_id]" {if !empty($_is_city_required)}required{/if}>
+                                        <option value="" disabled {if empty($_active_city_id)}selected{/if}>[`Select a locality`]</option>
+
+                                        {$_is_active_set = false}
                                         {foreach $_active_region.cities as $_city}
                                             {$_is_active = false}
-                                            {if $_active_city_id == $_city.id}{$_is_active = true}{/if}
+                                            {if empty($_is_active_set) && $_active_city_id == $_city.id}
+                                                {$_is_active = true}
+                                                {$_is_active_set = true}
+                                            {/if}
 
-                                            {if empty($_city.id) && $_is_active}
-                                                <option value="" selected disabled>[`Select a locality`]</option>
+                                            {if empty($_city.id)}
+                                                <option value="" disabled></option>
                                             {else}
                                                 <option value="{$_city.id|escape}" {if !empty($_is_active)}selected{/if}>{$_city.name|escape}</option>
                                             {/if}
@@ -310,7 +325,7 @@
                             <input class="js-country-field" name="region[country]" type="hidden" value="{$_active_country_id|default:""|escape}">
 
                             {foreach $_countries as $_country}
-                                {if empty($_country.is_copy) && $region.selected_values.country_id == $_country.id}
+                                {if $region.selected_values.country_id == $_country.id}
                                     {$_active_county = $_country}
                                     {break}
                                 {/if}
@@ -322,15 +337,19 @@
                                 <label class="wa-label">{_render_label _label=$_system_address_field_names.country _required=!empty($_is_country_required)}</label>
 
                                 <select class="wa-select js-country-field" name="region[country]" {if !empty($_is_country_required)}required{/if}>
+                                    <option value="" disabled {if empty($region.selected_values.country_id)}selected{/if}>[`Select a country`]</option>
+
+                                    {$_is_active_set = false}
                                     {foreach $_countries as $_country}
                                         {$_is_active = false}
-                                        {if empty($_country.is_copy) && $region.selected_values.country_id == $_country.id}
+                                        {if !empty($_is_active_set) && $region.selected_values.country_id == $_country.id}
                                             {$_is_active = true}
+                                            {$_is_active_set = true}
                                             {$_active_county = $_country}
                                         {/if}
 
-                                        {if empty($_country.id) && $_is_active}
-                                            <option value="" selected disabled>[`Select a country`]</option>
+                                        {if empty($_country.id)}
+                                            <option value="" disabled></option>
                                         {else}
                                             <option value="{$_country.id|escape}" {if !empty($_is_active)}selected{/if}>{$_country.name|escape}</option>
                                         {/if}
@@ -359,16 +378,20 @@
                                     {/if}
 
                                     <select class="wa-select js-region-field" name="region[region]" {if !empty($_is_region_required)}required{/if}>
+                                        <option value="" disabled {if empty($_active_region_id)}selected{/if}>[`Select a region`]</option>
+
+                                        {$_is_active_set = false}
                                         {foreach $_active_county.regions as $_region}
                                             {$_is_active = false}
 
-                                            {if $_active_region_id == $_region.id}
+                                            {if empty($_is_active_set) && $_active_region_id == $_region.id}
                                                 {$_is_active = true}
+                                                {$_is_active_set = true}
                                                 {$_active_region = $_region}
                                             {/if}
 
-                                            {if empty($_region.id) && $_is_active}
-                                                <option value="" selected disabled>[`Select a region`]</option>
+                                            {if empty($_region.id)}
+                                                <option value="" disabled></option>
                                             {else}
                                                 <option value="{$_region.id|escape}" {if !empty($_is_active)}selected{/if}>{$_region.name|escape}</option>
                                             {/if}
@@ -406,12 +429,18 @@
                                     {/if}
 
                                     <select class="wa-select js-city-field" name="region[city_id]" {if !empty($_is_city_required)}required{/if}>
+                                        <option value="" disabled {if empty($_active_city_id)}selected{/if}>[`Select a locality`]</option>
+
+                                        {$_is_active_set = false}
                                         {foreach $_active_region.cities as $_city}
                                             {$_is_active = false}
-                                            {if $_active_city_id == $_city.id}{$_is_active = true}{/if}
+                                            {if empty($_is_active_set) && $_active_city_id == $_city.id}
+                                                {$_is_active = true}
+                                                {$_is_active_set = false}
+                                            {/if}
 
-                                            {if empty($_city.id) && $_is_active}
-                                                <option value="" selected disabled>[`Select a locality`]</option>
+                                            {if empty($_city.id)}
+                                                <option value="" disabled></option>
                                             {else}
                                                 <option value="{$_city.id|escape}" {if !empty($_is_active)}selected{/if}>{$_city.name|escape}</option>
                                             {/if}
@@ -451,6 +480,7 @@
                 controller.initRegion({
                     $wrapper: $section,
                     disabled: {if !empty($region.disabled)}true{else}false{/if},
+                    auto_use_timeout: {if !empty($_config.auto_use_timeout) && ($_config.auto_use_timeout > 0)}{$_config.auto_use_timeout * 1000}{else}0{/if},
                     errors: {$_errors|json_encode}
                 });
             });

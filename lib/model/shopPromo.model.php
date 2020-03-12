@@ -264,7 +264,11 @@ class shopPromoModel extends waModel
                 foreach ($promo_rules as $promo_rule) {
                     if ($promo_rule['promo_id'] == $promo['id'] && $promo_rule['rule_type'] == 'banner' && !empty($promo_rule['rule_params']['banners'][0]['image'])) {
                         foreach(['image', 'color', 'background_color'] as $k) {
-                            $promo[$k] = $promo_rule['rule_params']['banners'][0][$k];
+                            if (isset($promo_rule['rule_params']['banners'][0][$k])) {
+                                $promo[$k] = $promo_rule['rule_params']['banners'][0][$k];
+                            } else {
+                                $promo[$k] = null;
+                            }
                         }
                         continue 2;
                     }

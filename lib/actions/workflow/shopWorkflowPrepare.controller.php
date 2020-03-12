@@ -18,15 +18,21 @@ class shopWorkflowPrepareController extends waController
             throw new waException('No action id given.');
         }
 
-        $user = wa()->getUser();
-        if (!$user->isAdmin('shop') && !$user->getRights('shop', sprintf('workflow_actions.%s', $action_id))) {
-            throw new waRightsException('Action not available for user');
-        }
-
         $workflow = new shopWorkflow();
         // @todo: check action availability in state
         /** @var shopWorkflowAction $action */
         $action = $workflow->getActionById($action_id);
+        if (!$action) {
+            throw new waRightsException('Action not available for user');
+        }
+
+        // Check access rights unless action allows form to be viewed even without access rights
+        if (!$action->getOption('allow_form_no_rights')) {
+            $user = wa()->getUser();
+            if (!$user->isAdmin('shop') && !$user->getRights('shop', sprintf('workflow_actions.%s', $action_id))) {
+                throw new waRightsException('Action not available for user');
+            }
+        }
 
         try {
             $html = $action->getHTML($order_id);

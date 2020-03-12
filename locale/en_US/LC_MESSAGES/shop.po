@@ -2809,8 +2809,10 @@ msgstr ""
 msgid "Apply"
 msgstr ""
 
-msgid "Your current affiliate bonus of %s points allows you to get an additonal discount of up to %s"
-msgstr ""
+msgid "You have %s bonus point! You can use it to get an additonal discount of up to %s."
+msgid_plural "You have %s bonus points! You can use your points to get an additonal discount of up to %s."
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Use bonus"
 msgstr ""
@@ -4249,7 +4251,7 @@ msgstr ""
 msgid "Divider"
 msgstr ""
 
-msgid "Not unique value"
+msgid "Values must be unique"
 msgstr ""
 
 msgid "Error while insert"
@@ -8515,9 +8517,6 @@ msgid "Additional order picking time"
 msgstr ""
 
 msgid "Specify a period of time expressed in hours. It will be added to order ready time calculated by storefront business hours."
-msgstr ""
-
-msgid "This setting is used only with in-cart checkout option."
 msgstr ""
 
 msgid "Is used to calculate estimated order shipping time only with in-cart checkout option. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later. Additional order picking time can be specified in individual shipping methods’ settings."

@@ -109,6 +109,16 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         return $this->getValues($product->getId(), null, $product->type_id, $product->sku_type, $public_only);
     }
 
+    /**
+     * @param int  $product_id
+     * @param int  $sku_id positive value will return SKU either Product feature values, negative value only SKU feature values
+     * @param int  $type_id
+     * @param int  $sku_type
+     * @param bool $public_only
+     * @return array
+     * @throws waDbException
+     * @throws waException
+     */
     public function getValues($product_id, $sku_id = null, $type_id = null, $sku_type = 0, $public_only = false)
     {
         $result = array();
@@ -312,6 +322,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
         /**
          * composite fields workaround
+         * @todo use shopCompositeValue::parse
          */
 
         $value_pattern = '(\d+|[\.,]\d+|\d+[\.,]\d+)';
@@ -470,5 +481,25 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
     public function countProductsByFeature($feature_id)
     {
         return (int)$this->select('COUNT(DISTINCT product_id)')->where('feature_id IN (i:feature_id)', compact('feature_id'))->fetchField();
+    }
+
+    /**
+     * @param int|int[] $feature_id
+     * @return int
+     */
+    public function countSkusByFeature($feature_id)
+    {
+        return (int)$this->select('COUNT(DISTINCT sku_id)')->where('feature_id IN (?) AND sku_id IS NOT NULL', [$feature_id])->fetchField();
+    }
+
+    public function deleteSkuValuesByFeature($feature_id)
+    {
+        if (!$feature_id) {
+            return;
+        }
+        $sql = "DELETE FROM {$this->table}
+                WHERE feature_id IN (?)
+                    AND sku_id IS NOT NULL";
+        $this->exec($sql, [$feature_id]);
     }
 }

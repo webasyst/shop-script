@@ -238,6 +238,7 @@ return array(
         'selectable' => array('int', 11, 'null' => 0),
         'multiple' => array('int', 11, 'null' => 0),
         'count' => array('int', 10, 'unsigned' => 1, 'null' => 0, 'default' => '0'),
+        'available_for_sku' => array('int', 11),
         ':keys' => array(
             'PRIMARY' => 'id',
             'code' => array('code', 'unique' => 1),
@@ -388,6 +389,18 @@ return array(
             'state_id' => 'state_id',
             'contact_id' => 'contact_id',
             'shipping_datetime' => 'shipping_datetime',
+        ),
+    ),
+    'shop_order_item_codes' => array(
+        'order_id' => array('int', 11, 'null' => 0),
+        'order_item_id' => array('int', 11, 'null' => 0),
+        'code_id' => array('int', 11),
+        'code' => array('varchar', 64, 'null' => 0),
+        'value' => array('text', 'null' => 0),
+        'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
+        ':keys' => array(
+            'order_id' => 'order_id',
+            'order_item_id' => 'order_item_id',
         ),
     ),
     'shop_order_items' => array(
@@ -542,6 +555,14 @@ return array(
             'PRIMARY' => 'id',
             'url' => 'url',
             'total_sales' => 'total_sales',
+        ),
+    ),
+    'shop_product_code' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'code' => array('varchar', 64, 'null' => 0),
+        'name' => array('varchar', 255, 'null' => 0),
+        ':keys' => array(
+            'PRIMARY' => 'id',
         ),
     ),
     'shop_product_features' => array(
@@ -869,6 +890,7 @@ return array(
         'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         'create_datetime' => array('datetime', 'null' => 0),
         'edit_datetime' => array('datetime'),
+        'json_params' => array('text'),
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
@@ -951,6 +973,13 @@ return array(
         'count' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => 'id',
+        ),
+    ),
+    'shop_type_codes' => array(
+        'type_id' => array('int', 11, 'null' => 0),
+        'code_id' => array('int', 11, 'null' => 0),
+        ':keys' => array(
+            'type_code' => array('type_id', 'code_id', 'unique' => 1),
         ),
     ),
     'shop_type_features' => array(

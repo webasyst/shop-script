@@ -397,6 +397,26 @@ ORDER BY `sort`,`{$id}`";
         }
     }
 
+    /** Remove unused items from `shop_type_features` to fix counters in Settings -> Types and Features sidebar. */
+    public function cleanupTypeFeatureTypeLinksAction()
+    {
+        $type_features_model = new shopTypeFeaturesModel();
+
+        $sql = <<<SQL
+            DELETE tf
+            FROM shop_type_features AS tf
+             LEFT JOIN shop_feature AS f
+              ON f.id=tf.feature_id
+             LEFT JOIN shop_type AS t
+              ON t.id=tf.type_id
+            WHERE f.id IS NULL OR (t.id IS NULL AND tf.type_id > 0)
+SQL;
+
+        $res = $type_features_model->query($sql);
+
+        echo "ok (".$res->affectedRows().")";
+    }
+
     public function skuAction()
     {
         $repaired = false;

@@ -267,22 +267,45 @@ $(document).ready(function () {
                 step = parseFloat(slider.data('step'));
             } else {
                 var diff = max_value - min_value;
-                if (Math.round(min_value) != min_value || Math.round(max_value) != max_value) {
-                    step = diff / 10;
-                    var tmp = 0;
-                    while (step < 1) {
-                        step *= 10;
-                        tmp += 1;
+                if (Math.round(min_value) !== min_value || Math.round(max_value) !== max_value) {
+                    var tail_length = 0;
+                    try {
+                        if (min_value > 0) {
+                            var min_tail = (min_value + "").split(".")[1];
+                            if (min_tail && min_tail.length) {
+                                tail_length = min_tail.length;
+                            }
+                        }
+
+                        if (max_value > 0) {
+                            var max_tail = (max_value + "").split(".")[1];
+                            if (max_tail && max_tail.length && max_tail.length > tail_length) {
+                                tail_length = max_tail.length;
+                            }
+                        }
+                    } catch(error) {
+                        (console && console.log(error.message));
                     }
-                    step = Math.pow(10, -tmp);
-                    tmp = Math.round(100000 * Math.abs(Math.round(min_value) - min_value)) / 100000;
-                    if (tmp && tmp < step) {
-                        step = tmp;
+
+                    if (tail_length > 0) {
+                        step = 1 / Math.pow(10, tail_length);
                     }
-                    tmp = Math.round(100000 * Math.abs(Math.round(max_value) - max_value)) / 100000;
-                    if (tmp && tmp < step) {
-                        step = tmp;
-                    }
+
+                //     step = diff / 10;
+                //     var tmp = 0;
+                //     while (step < 1) {
+                //         step *= 10;
+                //         tmp += 1;
+                //     }
+                //     step = Math.pow(10, -tmp);
+                //     tmp = Math.round(100000 * Math.abs(Math.round(min_value) - min_value)) / 100000;
+                //     if (tmp && tmp < step) {
+                //         step = tmp;
+                //     }
+                //     tmp = Math.round(100000 * Math.abs(Math.round(max_value) - max_value)) / 100000;
+                //     if (tmp && tmp < step) {
+                //         step = tmp;
+                //     }
                 }
             }
             slider.slider({

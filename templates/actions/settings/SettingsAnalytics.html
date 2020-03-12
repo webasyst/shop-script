@@ -30,6 +30,8 @@
 
 <script>(function() { "use strict";
 
+    document.title = {_w('Analytics')|json_encode} + ' — ' + {$wa->accountName()|json_encode};
+
     var $form = $('#s-analytics-settings-form');
     $form.submit(function() {
         $.post($form.attr('action'), $form.serialize(), function(r) {

@@ -242,7 +242,7 @@ SQL;
                 case '1062':
                     $id = $this->getId($feature_id, $value, $type);
                     $row['error'] = array(
-                        'message'        => _w('Not unique value'),
+                        'message'        => _w('Values must be unique'),
                         'original_id'    => $id,
                         'original_value' => (string)$this->getValue($data),
                     );

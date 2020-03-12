@@ -1,6 +1,259 @@
 ( function($) {
 
+    var MarkingDialog = ( function($) {
+
+        function Dialog(options) {
+            var that = this;
+
+            // DOM
+            that.$wrapper = options["$wrapper"];
+            that.$form = that.$wrapper.find("form:first");
+
+            // CONST
+            that.user_has_rights = options["user_has_rights"];
+            that.dialog = that.$wrapper.data("dialog");
+            that.locales = options["locales"];
+            that.scope = options["scope"];
+            that.urls = options["urls"];
+
+            that.item_id = (that.dialog.options && that.dialog.options.item_id ? that.dialog.options.item_id : null);
+            that.code_id = (that.dialog.options && that.dialog.options.code_id ? that.dialog.options.code_id : null);
+
+            that.is_changed = false;
+
+            // INIT
+            that.init();
+        }
+
+        Dialog.prototype.init = function() {
+            var that = this;
+
+            if (!that.user_has_rights) {
+                that.$wrapper.find('.s-field').prop('disabled', true);
+                return;
+            }
+
+            that.$form.on("change", function() {
+                that.is_changed = true;
+            });
+
+            that.dialog.onClose = function() {
+                var result = true;
+
+                if (that.is_changed) {
+                    result = confirm(that.locales["unsaved"]);
+                }
+
+                return result;
+            };
+
+            initFocusActions();
+
+            that.initSubmit();
+
+            function initFocusActions() {
+                var $products = that.$wrapper.find(".s-product-wrapper");
+
+                that.$form.on("keydown", "input", function(event) {
+                    var $field = $(this),
+                        key = event.keyCode,
+                        is_enter = ( key === 13 );
+
+                    if (is_enter) {
+                        event.preventDefault();
+
+                        var use_focus = null;
+
+                        var $fields = $products.find(".s-field");
+                        $fields.each( function(i) {
+                            var $_field = $(this),
+                                is_last = ($fields.length === i + 1);
+
+                            // is next, use focus
+                            if (use_focus) {
+                                $_field.trigger("focus");
+                                use_focus = false;
+                                return false;
+
+                                // is current, set flag
+                            } else {
+
+                                if ($_field[0] === $field[0]) {
+                                    use_focus = !is_last;
+                                }
+                            }
+                        });
+
+                        // next is not exist, blur
+                        if (use_focus === false) {
+                            $field.trigger("blur");
+                        }
+                    }
+                });
+
+                var $active_product = $products.first();
+
+                if (that.item_id) {
+                    // When user opens dialog by clicking under a particular order item, jump right to it
+                    $products.each( function() {
+                        var $_product = $(this),
+                            item_id = $_product.data("item-id");
+
+                        if (that.item_id === item_id) {
+                            $active_product = $_product;
+                            return false;
+                        }
+                    });
+                }
+
+                setTimeout( function() {
+                    var $focus_field = getFocusField($active_product, that.code_id);
+                    if ($focus_field) {
+                        $focus_field.trigger("focus");
+                    }
+                }, 100);
+
+                function getFocusField($product, focus_code_id) {
+                    var $codes = $product.find(".s-code-wrapper"),
+                        $focus_field = null;
+
+                    $codes.each(function() {
+                        var $code = $(this),
+                            $field = $code.find(".s-field"),
+                            code_id = $code.data("code-id"),
+                            is_empty = !$.trim($field.val()).length;
+
+                        if (is_empty) {
+                            if (code_id === focus_code_id) {
+                                $focus_field = $field;
+                                return false;
+
+                            } else {
+                                if (!$focus_field) {
+                                    $focus_field = $field;
+                                }
+                            }
+                        }
+                    });
+
+                    return $focus_field;
+                }
+            }
+        };
+
+        Dialog.prototype.initSubmit = function() {
+            var that = this,
+                $form = that.$form,
+                $submit_button = that.$wrapper.find(".js-submit-button"),
+                $errorsPlace = that.$wrapper.find(".js-errors-place"),
+                is_locked = false;
+
+            $form.on("submit", onSubmit);
+
+            function onSubmit(event) {
+                event.preventDefault();
+
+                if (!is_locked) {
+                    is_locked = true;
+
+                    $submit_button.attr("disabled", true);
+                    var $loading = $("<i class=\"icon16 loading\" />").css("margin-left", "4px").appendTo($submit_button);
+
+                    var formData = getData();
+                    if (formData.errors.length) {
+                        showErrors(formData.errors);
+
+                    } else {
+                        request(formData.data)
+                            .always( function() {
+                                $submit_button.attr("disabled", false);
+                                $loading.remove();
+                                is_locked = false;
+                            })
+                            .done( function() {
+                                that.is_changed = false;
+                                that.dialog.close();
+                                that.scope.reload();
+                            });
+                    }
+                }
+            }
+
+            function getData() {
+                var result = {
+                        data: [],
+                        errors: []
+                    },
+                    data = $form.serializeArray();
+
+                $.each(data, function(index, item) {
+                    result.data.push(item);
+                });
+
+                return result;
+            }
+
+            function showErrors(errors) {
+                var error_class = "error";
+
+                if (!errors || !errors[0]) {
+                    errors = [];
+                }
+
+                $.each(errors, function(index, item) {
+                    var name = item.name,
+                        text = item.value;
+
+                    var $field = that.$wrapper.find("[name=\"" + name + "\"]"),
+                        $text = $("<span class='s-error errormsg' />").text(text);
+
+                    if ($field.length && !$field.hasClass(error_class)) {
+                        $field.parent().append($text);
+
+                        $field
+                            .addClass(error_class)
+                            .one("focus click change", function() {
+                                $field.removeClass(error_class);
+                                $text.remove();
+                            });
+                    } else {
+                        $errorsPlace.append($text);
+
+                        $form.one("submit", function() {
+                            $text.remove();
+                        });
+                    }
+                });
+            }
+
+            function request(data) {
+                var deferred = $.Deferred();
+
+                $.post(that.urls["submit"], data, "json")
+                    .done( function(response) {
+                        if (response.status === "ok") {
+                            deferred.resolve();
+                        } else {
+                            showErrors(response.errors);
+                            deferred.reject();
+                        }
+                    })
+                    .fail( function() {
+                        deferred.reject();
+                    });
+
+
+                return deferred.promise();
+            }
+        };
+
+        return Dialog;
+
+    })(jQuery);
+
     $.order = {
+
+        $wrapper: null,
 
         /**
          * {Number}
@@ -23,6 +276,10 @@
         options: {},
 
         init: function (options) {
+            var that = this;
+
+            that.$wrapper = options["$wrapper"];
+
             this.options = options || {};
             if (options.order) {
                 this.id = parseInt(options.order.id, 10) || 0;
@@ -51,32 +308,46 @@
             // action buttons click handler
             $('.wf-action').click(function () {
                 var self = $(this);
-                if (!self.data('confirm') || confirm(self.data('confirm'))) {
-                    if (!self.data('running')) {
-                        self.data('running', true);
-                        self.after('<i class="icon16 loading"></i>');
-                        $.post('?module=workflow&action=prepare', {
-                            action_id: self.attr('data-action-id'),
-                            id: $.order.id
-                        }, function (response) {
-                            self.data('running', false);
-                            var el;
-                            self.parent().find('.loading').remove();
-                            if (self.data('container')) {
-                                el = $(self.data('container'));
-                                el.prev('.workflow-actions').hide();
-                            } else {
-                                self.closest('.workflow-actions').hide();
-                                el = self.closest('.workflow-actions').next();
-                            }
-                            el.empty().html(response).show();
-                            // set focus on comment field(textarea)
-                            if (self.attr('data-action-id') == 'comment') {
-                                el.find('textarea').focus();
+                if (self.data('running')) {
+                    return false;
+                }
+                if (self.data('confirm') && !confirm(self.data('confirm'))) {
+                    return false;
+                }
+                self.data('running', true);
+                self.after('<i class="icon16 loading"></i>');
+                $.post('?module=workflow&action=prepare', {
+                    action_id: self.attr('data-action-id'),
+                    id: $.order.id
+                }, function (response) {
+                    self.data('running', false);
+                    var el;
+                    self.parent().find('.loading').remove();
+
+                    if (self.data('form-in-dialog')) {
+                        $.waDialog({
+                            html: response,
+                            debug_output: true,
+                            options: {
+                                item_id: self.data("item-id"),
+                                code_id: self.data("code-id")
                             }
                         });
+                    } else {
+                        if (self.data('container')) {
+                            el = $(self.data('container'));
+                            el.prev('.workflow-actions').hide();
+                        } else {
+                            self.closest('.workflow-actions').hide();
+                            el = self.closest('.workflow-actions').next();
+                        }
+                        el.empty().html(response).show();
                     }
-                }
+                    // set focus on comment field(textarea)
+                    if (self.attr('data-action-id') == 'comment') {
+                        el.find('textarea').focus();
+                    }
+                });
                 return false;
             });
 
@@ -475,6 +746,12 @@
                 setDefault();
                 $window.trigger("scroll");
             }
+
+        },
+
+        initMarkingDialog: function(options) {
+            options["scope"] = this;
+            return new MarkingDialog(options);
 
         }
     };

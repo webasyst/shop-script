@@ -1,4 +1,5 @@
 <?php
+
 class shopProductSkuSettingsAction extends waViewAction
 {
     public function execute()
@@ -20,16 +21,21 @@ class shopProductSkuSettingsAction extends waViewAction
             throw new waException("SKU not found", 404);
         }
 
+        if ($product->id <= 0) {
+            $product->type_id = waRequest::get('type_id', 0, waRequest::TYPE_INT);
+        }
+
         $this->view->assign('sku', $sku);
-        //$this->view->assign('features', $features_model->getByType($product->type_id, 'code', true));
-        $this->view->assign('features', $this->getFeatures($product));
+
         $this->view->assign('sku_features', $product_features_model->getValues($product_id, -$sku_id));
+        $this->view->assign('features', $this->getFeatures($product));
 
         $event_params = array(
             'product' => $product,
-            'sku' => $sku,
-            'sku_id' => $sku_id
+            'sku'     => $sku,
+            'sku_id'  => $sku_id,
         );
+
         /**
          * Plugin hook for handling product entry saving event
          * @event backend_product_sku_settings
@@ -49,7 +55,11 @@ class shopProductSkuSettingsAction extends waViewAction
         $features = array();
         $selectable_features = array();
         foreach ($features_model->getByType($product->type_id, 'code', true) as $f) {
-            if ($f['multiple'] || $f['code'] == 'weight') {
+            $f['available_for_sku'] = !empty($f['available_for_sku']);
+            $f['internal'] = 1;
+            if (($f['code'] == 'weight')
+                || !empty($f['available_for_sku'])
+            ) {
                 if (!empty($f['selectable'])) {
                     $selectable_features[$f['code']] = $f;
                 }

@@ -1,0 +1,25 @@
+<div class="wa-dialog s-settings-code-delete-dialog">
+    <div class="wa-dialog-background"></div>
+    <div class="wa-dialog-body">
+        <header class="wa-dialog-header">
+            <h1 class="s-title">{sprintf('[`Deletion of product code “%s”`]', $code.name|escape)}</h1>
+        </header>
+        <div class="wa-dialog-content">
+            {if !empty($order_usage_count)}
+                {_w(
+                    'You have <strong>%d order</strong> with this product code’s values specified.',
+                    'You have <strong>%d orders</strong> with this product code’s values specified.',
+                    $order_usage_count
+                )}
+                [`Deleting a product code will keep its existing values in your store’s orders, but you will not be able to save this code’s values for new orders any more.`]
+            {else}
+                [`This product code’s values have not been saved for any of your orders, so you can safely delete it.`]
+            {/if}
+        </div>
+        <div class="wa-dialog-footer">
+            <button class="s-button button red js-submit-button" type="submit">[`Delete`]</button>
+            <span class="s-divider">[`or`]</span>
+            <a href="javascript:void(0);" class="js-close-dialog">[`cancel`]</a>
+        </div>
+    </div>
+</div>

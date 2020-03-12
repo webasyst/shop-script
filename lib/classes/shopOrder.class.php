@@ -248,10 +248,11 @@ class shopOrder implements ArrayAccess
     );
 
     private static $product_fields = array(
-        'sku_code' => 'string',
-        'price'    => 'float',
-        'quantity' => 'int',
-        'name'     => 'string',
+        'sku_code'       => 'string',
+        'price'          => 'float',
+        'total_discount' => 'float',
+        'quantity'       => 'int',
+        'name'           => 'string',
     );
 
     private static $service_fields = array(
@@ -339,6 +340,9 @@ class shopOrder implements ArrayAccess
                     $data[$field] = $this->castPrice($data[$field], $data['currency']);
                 }
             }
+
+            uksort($data, array($this, 'sortDataFields'));
+
             foreach ($data as $name => $value) {
                 $this->setData($name, $value);
             }
@@ -358,6 +362,29 @@ class shopOrder implements ArrayAccess
         } else {
             throw new waException('Empty order id', 404);
         }
+    }
+
+    private function sortDataFields($a, $b)
+    {
+        $sort = array(
+            'id',
+            'params',
+            'is_first',
+            'currency',
+            'rate',
+            'items',
+            'customer',
+            'customer_id',
+            'discount_description',
+            'discount',
+            'tax',
+        );
+        $sort = array_flip($sort);
+
+        $a = ifset($sort, $a, 42);
+        $b = ifset($sort, $b, 42);
+
+        return max(-1, min(1, $a - $b));
     }
 
     /**
@@ -466,9 +493,30 @@ class shopOrder implements ArrayAccess
 
             $is_changed = null;
 
+            /**
+             * @uses shopOrder::parseBillingAddress()
+             * @uses shopOrder::parseContact()
+             * @uses shopOrder::parseCustomer()
+             * @uses shopOrder::parseDiscount()
+             * @uses shopOrder::parseItems()
+             * @uses shopOrder::parseParams()
+             * @uses shopOrder::parsePaymentParams()
+             * @uses shopOrder::parseShipping()
+             * @uses shopOrder::parseShippingParams()
+             * @uses shopOrder::parseShippingAddress()
+             * @uses shopOrder::parseTax()
+             *
+             */
             if (method_exists($this, $parse_method)) {
                 $this->data[$name] = $this->{$parse_method}($value);
 
+                /**
+                 * @uses shopOrder::compareDiscount()
+                 * @uses shopOrder::compareItems()
+                 * @uses shopOrder::compareParams()
+                 * @uses shopOrder::compareShipping()
+                 * @uses shopOrder::compareTax()
+                 */
                 $compare_method = self::camelMethod('compare%s', $name);
                 if (method_exists($this, $compare_method)) {
                     $is_changed = $this->{$compare_method}($value);
@@ -486,40 +534,49 @@ class shopOrder implements ArrayAccess
             }
 
             if (!empty($this->is_changed[$name])) {
+                /**
+                 * @uses shopOrder::dependenciesDiscount()
+                 * @uses shopOrder::dependenciesParams()
+                 */
                 $dependencies_method = self::camelMethod('dependencies%s', $name);
                 if (method_exists($this, $dependencies_method)) {
                     $this->{$dependencies_method}($value);
                 } else {
-                    if (isset(self::$dependencies[$name])) {
-                        foreach (self::$dependencies[$name] as $field => $strict) {
-                            if (is_array($strict)) {
-                                if (isset($this->data[$field])) {
-                                    $fields = $strict;
-                                    unset($strict);
-                                    foreach ($fields as $subfield => $sub_strict) {
-                                        if ($sub_strict || !empty($this->is_changed[$field])) {
-                                            unset($this->data[$field][$subfield]);
-                                        }
-                                    }
-                                }
-                            } elseif ($strict) {
-                                # The field dependency is strict
-                                unset($this->data[$field]);
-                                unset($this->is_changed[$field]);
-                            } elseif (!isset($this->is_changed[$field]) || in_array($this->is_changed, array(true, false), true)) {
-                                # The field (re)calculate automatically
-                                # if it was calculate by request via getMethod (field not is set at is_changed array)
-                                # or if was changed without extra logic (`manual`,`hold` and etc) detected via compare%Field% method
-                                unset($this->data[$field]);
-                            }
-                        }
-                    }
+                    $this->handleDependencies($name);
                 }
             }
         } else {
             $value = $this->getData($name);
         }
         return $value;
+    }
+
+    protected function handleDependencies($name)
+    {
+        if (isset(self::$dependencies[$name])) {
+            foreach (self::$dependencies[$name] as $field => $strict) {
+                if (is_array($strict)) {
+                    if (isset($this->data[$field])) {
+                        $fields = $strict;
+                        unset($strict);
+                        foreach ($fields as $subfield => $sub_strict) {
+                            if ($sub_strict || !empty($this->is_changed[$field])) {
+                                unset($this->data[$field][$subfield]);
+                            }
+                        }
+                    }
+                } elseif ($strict) {
+                    # The field dependency is strict
+                    unset($this->data[$field]);
+                    unset($this->is_changed[$field]);
+                } elseif (!isset($this->is_changed[$field]) || in_array($this->is_changed, array(true, false), true)) {
+                    # The field (re)calculate automatically
+                    # if it was calculate by request via getMethod (field not is set at is_changed array)
+                    # or if was changed without extra logic (`manual`,`hold` and etc) detected via compare%Field% method
+                    unset($this->data[$field]);
+                }
+            }
+        }
     }
 
     /**
@@ -692,26 +749,6 @@ class shopOrder implements ArrayAccess
         return max(0, $total);
     }
 
-    protected function getNotIncludedTax()
-    {
-        $not_included = 0;
-
-        //Add to the total cost tax not included in the price of goods
-        foreach ($this->items as $item) {
-            if (ifset($item, 'tax_included', '1') == 0) {
-                $not_included += ifset($item, 'tax', 0);
-            }
-        }
-
-        $shipping_tax_included = ifset($this->data,'params', 'shipping_tax_included', true);
-
-        if ($shipping_tax_included == 0) {
-            $not_included += ifset($this->data,'params', 'shipping_tax', true);
-        }
-
-        return $not_included;
-    }
-
     protected function getPrintforms()
     {
         $this->items;
@@ -729,63 +766,11 @@ class shopOrder implements ArrayAccess
         }
     }
 
-    protected function getItemsExtended()
+    protected function getItemsProductCodes()
     {
-        $order_items_model = new shopOrderItemsModel();
-        return $order_items_model->getItems($this->dataArray(), true);
+        $order_item_codes_model = new shopOrderItemCodesModel();
+        return $order_item_codes_model->extendOrderItems($this['items']);
     }
-
-    private function escape($data, $field)
-    {
-        $escape = false;
-        if ($escape) {
-            switch ($field) {
-                case 'items':
-                    foreach ($data as &$product) {
-
-                        if (!empty($product['name'])) {
-                            $product['name'] = htmlspecialchars($product['name']);
-                        }
-                        if (!empty($product['item']['name'])) {
-                            $product['item']['name'] = htmlspecialchars($product['item']['name']);
-                        }
-                        if (!empty($product['skus'])) {
-                            foreach ($product['skus'] as &$sku) {
-                                if (!empty($sku['name'])) {
-                                    $sku['name'] = htmlspecialchars($sku['name']);
-                                }
-                                unset($sku);
-                            }
-                        }
-                        if (!empty($product['services'])) {
-                            foreach ($product['services'] as &$service) {
-                                if (!empty($service['name'])) {
-                                    $service['name'] = htmlspecialchars($service['name']);
-                                }
-                                if (!empty($service['item']['name'])) {
-                                    $service['item']['name'] = htmlspecialchars($service['item']['name']);
-                                }
-                                if (!empty($service['variants'])) {
-                                    foreach ($service['variants'] as &$variant) {
-                                        $variant['name'] = htmlspecialchars($variant['name']);
-                                        unset($variant);
-                                    }
-                                }
-                                unset($service);
-                            }
-                        }
-                        unset($product);
-                    }
-                    break;
-                case 'contact':
-                    $data['name'] = htmlspecialchars($data['name']);
-                    break;
-            }
-
-        }
-        return $data;
-    }
-
 
     ###############################
     # Payment & billing section
@@ -2068,12 +2053,14 @@ class shopOrder implements ArrayAccess
                 'contact'  => $this->contact,
                 'params'   => $this->params,
                 'items'    => $this->items,
-                'total'    => $this->subtotal,
+                'total'    => $this->subtotal,//XXX subtotal or total should be???
             );
         }
 
         $order['discount_rounding'] = true;
+
         $discount = shopDiscounts::calculate($order, $apply, $discount_description);
+        unset($order['total']);
 
         $this->calculated_discounts = $order;
 
@@ -2099,6 +2086,8 @@ class shopOrder implements ArrayAccess
 
         if ($apply) {
             $this->data = $order;
+            unset($this->data['total']);
+            unset($this->data['subtotal']);
         }
 
         return $this->calculated_discounts;
@@ -2294,6 +2283,19 @@ class shopOrder implements ArrayAccess
         }
     }
 
+    private function dependenciesDiscount()
+    {
+        $name = 'discount';
+        if ($this->is_changed[$name] === 'manual') {
+            $this->items;
+            $order = array(
+                'items' => &$this->data['items'],
+            );
+            shopDiscounts::correctOrderDiscount($order, $this->data['discount_description'], $this->data['discount'], $this->currency);
+        }
+        $this->handleDependencies($name);
+    }
+
     /**
      * @param shopOrder $order
      */
@@ -2437,6 +2439,26 @@ class shopOrder implements ArrayAccess
         return $this->data['items_tax'];
     }
 
+    protected function getNotIncludedTax()
+    {
+        $not_included = 0;
+
+        //Add to the total cost tax not included in the price of goods
+        foreach ($this->items as $item) {
+            if (ifset($item, 'tax_included', '1') == 0) {
+                $not_included += ifset($item, 'tax', 0);
+            }
+        }
+
+        $shipping_tax_included = ifset($this->data,'params', 'shipping_tax_included', true);
+
+        if ($shipping_tax_included == 0) {
+            $not_included += ifset($this->data,'params', 'shipping_tax', true);
+        }
+
+        return $not_included;
+    }
+
     protected function parseTax($value)
     {
         if ($value === null) {
@@ -2567,6 +2589,12 @@ class shopOrder implements ArrayAccess
         return $items;
     }
 
+    protected function getItemsExtended()
+    {
+        $order_items_model = new shopOrderItemsModel();
+        return $order_items_model->getItems($this->dataArray(), true);
+    }
+
     /**
      * @param null $items
      * @return bool
@@ -2621,6 +2649,7 @@ class shopOrder implements ArrayAccess
             'name'            => 'string',
             'sku_code'        => 'string',
             'price'           => 'float',
+            'total_discount'  => 'float',
             'purchase_price'  => 'float',
             'quantity'        => 'int',
             'stock_id'        => 'int|null',
@@ -3987,6 +4016,57 @@ HTML;
     ###############################
     # Internal utils section
     ###############################
+
+    private function escape($data, $field)
+    {
+        $escape = false;
+        if ($escape) {
+            switch ($field) {
+                case 'items':
+                    foreach ($data as &$product) {
+
+                        if (!empty($product['name'])) {
+                            $product['name'] = htmlspecialchars($product['name']);
+                        }
+                        if (!empty($product['item']['name'])) {
+                            $product['item']['name'] = htmlspecialchars($product['item']['name']);
+                        }
+                        if (!empty($product['skus'])) {
+                            foreach ($product['skus'] as &$sku) {
+                                if (!empty($sku['name'])) {
+                                    $sku['name'] = htmlspecialchars($sku['name']);
+                                }
+                                unset($sku);
+                            }
+                        }
+                        if (!empty($product['services'])) {
+                            foreach ($product['services'] as &$service) {
+                                if (!empty($service['name'])) {
+                                    $service['name'] = htmlspecialchars($service['name']);
+                                }
+                                if (!empty($service['item']['name'])) {
+                                    $service['item']['name'] = htmlspecialchars($service['item']['name']);
+                                }
+                                if (!empty($service['variants'])) {
+                                    foreach ($service['variants'] as &$variant) {
+                                        $variant['name'] = htmlspecialchars($variant['name']);
+                                        unset($variant);
+                                    }
+                                }
+                                unset($service);
+                            }
+                        }
+                        unset($product);
+                    }
+                    break;
+                case 'contact':
+                    $data['name'] = htmlspecialchars($data['name']);
+                    break;
+            }
+
+        }
+        return $data;
+    }
 
     private static function camelCase($m)
     {

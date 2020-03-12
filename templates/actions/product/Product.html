@@ -489,7 +489,7 @@
                             {/foreach}
                             </select>
 
-                            <a href="{$wa_app_url}?action=settings#/features/" target="_blank" style="display: inline-block; margin-left: 20px; font-size: 12px;">
+                            <a href="{$wa_app_url}?action=settings#/typefeat/" target="_blank" style="display: inline-block; margin-left: 20px; font-size: 12px;">
                                 <i class="icon16 settings" style="margin: 0 4px 0 0;"></i>[`Set up types &amp; features`]
                             </a>
                         </div>
@@ -510,6 +510,9 @@
                         </div>
                     </div>
                 {/if}
+
+                {$_show_categories_block = !empty($categories) || $categories_rights}
+                {if $_show_categories_block}
                 <div class="field">
                     <input type="text" name="product[categories.deleted]" value="" style="display:none;">
                     <div class="name">[`Categories`] {shopHinter::hint('product_categories')}</div>
@@ -520,19 +523,24 @@
                                 <option value="select" {if !$category_id}selected="selected"{/if}>
                                     [`Please select a category`]
                                 </option>
-                                <option value="create">[`Create new category...`]</option>
+
+                                {if $categories_rights}
+                                    <option value="create">[`Create new category...`]</option>
+                                {/if}
+
                                 <option class="separator" value="---" disabled="disabled">---</option>
+
                                 {foreach $categories as $category}
                                     <option class="category" value="{$category.id}" {if $category_id == $category.id} selected="selected"{/if}>{"-"|str_repeat:$category.depth}{$category.name|escape}</option>
                                 {/foreach}
-                            {else}
+                            {elseif $categories_rights}
                                 <option value=""></option>
                                 <option value="create">[`Create new category...`]</option>
                                 <option class="separator" value="---" disabled="disabled" style="display:none;">---</option>
                             {/if}
                         </select>
 
-                        {if $categories_rights}
+                        {if $edit_rights}
                             <a href="#" class="s-product-delete-from-category" title="[`Remove product from this category`]" {if !$category_id}style="display:none;"{/if}><i class="icon10 delete-bw no-overhanging"></i></a>
                         {/if}
 
@@ -558,16 +566,18 @@
                                 {/strip}
                                 {implode(' » ',$_path)|escape}
 
-                                {if $categories_rights}
+                                {if $edit_rights}
                                     <a href="#" class="s-product-delete-from-category" title="[`Remove product from this category`]" {if !$c.id}style="display:none;"{/if}><i class="icon10 delete-bw no-overhanging"></i></a>
                                 {/if}
 
                             {/if}
-                            <span class="s-new-category" style="display:none;">
-                                <input type="text" name="new_category" class="new-category" class="js-ignore-change" placeholder="[`Category name`]">
-                                <input type="hidden" name="product[categories][]" class="val" value="{$category_id}" disabled="disabled">
-                                <input type="button" value="[`Create`]">
-                            </span>
+                            {if $categories_rights}
+                                <span class="s-new-category" style="display:none;">
+                                    <input type="text" name="new_category" class="new-category" class="js-ignore-change" placeholder="[`Category name`]">
+                                    <input type="hidden" name="product[categories][]" class="val" value="{$category_id}" disabled="disabled">
+                                    <input type="button" value="[`Create`]">
+                                </span>
+                            {/if}
                         </div>
                     {/foreach}
 
@@ -581,7 +591,7 @@
                     </div>
                     <div class="value s-product-categories">
                         <ul class="menu-v s-category-action s-inline-links">
-                            {if $categories_rights}
+                            {if $edit_rights}
                                 <li><a href="#/product/{$product.id}/edit/main/categories/add/" class="small inline-link js-action"><i class="icon10 add"></i> <b><i>[`Additional category`]</i></b></a></li>
                             {/if}
                             {* @event backend_product.%plugin_id%.category_action_li *}
@@ -589,6 +599,7 @@
                         </ul>
                     </div>
                 </div>
+                {/if}
 
                 {if !empty($sets)}
                     <div class="field s-product-sets">
@@ -602,7 +613,7 @@
                                     <option value="{$set.id}"{if $set_id && $set_id == $set.id} selected="selected"{/if}>{$set.name|escape} ({$set.id|escape})</option>
                                 {/foreach}
                             </select>
-                            {if $categories_rights}
+                            {if $edit_rights}
                                 <a href="javascript:void(0)" class="s-product-delete-from-set" title="[`Remove product from this set`]"><i class="icon10 delete-bw no-overhanging"></i></a>
                             {/if}
                         {/function}
@@ -619,7 +630,7 @@
 
                         <div class="value">
                             <ul class="menu-v s-inline-links compact">
-                                {if $categories_rights}
+                                {if $edit_rights}
                                     <li><a href="javascript:void(0)" class="small inline-link add-set-button"><i class="icon10 add"></i> <b><i>[`Additional set`]</i></b></a></li>
                                 {/if}
                             </ul>

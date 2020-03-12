@@ -108,7 +108,7 @@ class shopCheckoutViewHelper
                 'unit'            => $weight_info['base_unit'],
             ] + $feature_values_dimension->getEmptyRow());
 
-        return $dimension->format(false);
+        return $dimension->format('@locale');
     }
 
     /**
@@ -321,163 +321,8 @@ class shopCheckoutViewHelper
         }
         unset($item);
 
-        // Gather all the ids
-        $product_ids = $sku_ids = $service_ids = $type_ids = array();
-        foreach ($items as $item) {
-            $product_ids[$item['product_id']] = $item['product_id'];
-            $sku_ids[$item['sku_id']] = $item['sku_id'];
-            if ($item['type'] == 'product') {
-                $type_ids[$item['product']['type_id']] = $item['product']['type_id'];
-            }
-        }
-
-        $type_ids = array_values($type_ids);
-        $product_ids = array_values($product_ids);
-        $sku_ids = array_values($sku_ids);
-
-        // get available services for all types of products
-        $type_services_model = new shopTypeServicesModel();
-        $rows = $type_services_model->getByField('type_id', $type_ids, true);
-        $type_services = array();
-        foreach ($rows as $row) {
-            $service_ids[$row['service_id']] = $row['service_id'];
-            $type_services[$row['type_id']][$row['service_id']] = true;
-        }
-
-        // get services for products and skus, part 1: gather service ids
-        $product_services_model = new shopProductServicesModel();
-        $rows = $product_services_model->getByProducts($product_ids);
-        foreach ($rows as $i => $row) {
-            if ($row['sku_id'] && !in_array($row['sku_id'], $sku_ids)) {
-                unset($rows[$i]);
-                continue;
-            }
-            $service_ids[$row['service_id']] = $row['service_id'];
-        }
-
-        $service_ids = array_values($service_ids);
-
-        // Get services
         $service_model = new shopServiceModel();
-        $services = $service_model->getByField('id', $service_ids, 'id');
-        shopRounding::roundServices($services);
-
-        // get services for products and skus, part 2
-        $product_services = $sku_services = array();
-        shopRounding::roundServiceVariants($rows, $services);
-        foreach ($rows as $row) {
-            if (!$row['sku_id']) {
-                $product_services[$row['product_id']][$row['service_id']]['variants'][$row['service_variant_id']] = $row;
-            }
-            if ($row['sku_id']) {
-                $sku_services[$row['sku_id']][$row['service_id']]['variants'][$row['service_variant_id']] = $row;
-            }
-        }
-
-        // Get service variants
-        $variant_model = new shopServiceVariantsModel();
-        $rows = $variant_model->getByField('service_id', $service_ids, true);
-        shopRounding::roundServiceVariants($rows, $services);
-        foreach ($rows as $row) {
-            $services[$row['service_id']]['variants'][$row['id']] = $row;
-            unset($services[$row['service_id']]['variants'][$row['id']]['id']);
-        }
-
-        // When assigning services into cart items, we don't want service ids there
-        foreach ($services as &$s) {
-            unset($s['id']);
-        }
-        unset($s);
-
-        // Assign service and product data into cart items
-        foreach ($items as $item_id => $item) {
-            if ($item['type'] == 'product') {
-                $p = $item['product'];
-                $item_services = array();
-                // services from type settings
-                if (isset($type_services[$p['type_id']])) {
-                    foreach ($type_services[$p['type_id']] as $service_id => &$s) {
-                        $item_services[$service_id] = $services[$service_id];
-                    }
-                }
-                // services from product settings
-                if (isset($product_services[$item['product_id']])) {
-                    foreach ($product_services[$item['product_id']] as $service_id => $s) {
-                        if (!isset($s['status']) || $s['status']) {
-                            if (!isset($item_services[$service_id])) {
-                                $item_services[$service_id] = $services[$service_id];
-                            }
-                            // update variants
-                            foreach ($s['variants'] as $variant_id => $v) {
-                                if ($v['status']) {
-                                    if ($v['price'] !== null) {
-                                        $item_services[$service_id]['variants'][$variant_id]['price'] = $v['price'];
-                                    }
-                                } else {
-                                    unset($item_services[$service_id]['variants'][$variant_id]);
-                                }
-                                // default variant is different for this product
-                                if ($v['status'] == shopProductServicesModel::STATUS_DEFAULT) {
-                                    $item_services[$service_id]['variant_id'] = $variant_id;
-                                }
-                            }
-                        } elseif (isset($item_services[$service_id])) {
-                            // remove disabled service
-                            unset($item_services[$service_id]);
-                        }
-                    }
-                }
-                // services from sku settings
-                if (isset($sku_services[$item['sku_id']])) {
-                    foreach ($sku_services[$item['sku_id']] as $service_id => $s) {
-                        if (!isset($s['status']) || $s['status']) {
-                            // update variants
-                            foreach ($s['variants'] as $variant_id => $v) {
-                                if ($v['status']) {
-                                    if ($v['price'] !== null) {
-                                        $item_services[$service_id]['variants'][$variant_id]['price'] = $v['price'];
-                                    }
-                                } else {
-                                    unset($item_services[$service_id]['variants'][$variant_id]);
-                                }
-                            }
-                        } elseif (isset($item_services[$service_id])) {
-                            // remove disabled service
-                            unset($item_services[$service_id]);
-                        }
-                    }
-                }
-                foreach ($item_services as $s_id => &$s) {
-                    if (!$s['variants']) {
-                        unset($item_services[$s_id]);
-                        continue;
-                    }
-
-                    if ($s['currency'] == '%') {
-                        shopProductServicesModel::workupItemServices($s, $item);
-                    }
-
-                    if (count($s['variants']) == 1) {
-                        reset($s['variants']);
-                        $v_id = key($s['variants']);
-                        $v = $s['variants'][$v_id];
-                        $s['variant_id'] = $v_id;
-                        $s['price'] = $v['price'];
-                        unset($s['variants']);
-                    }
-                }
-                unset($s);
-                uasort($item_services, array('shopServiceModel', 'sortServices'));
-
-                $items[$item_id]['services'] = $item_services;
-            } else {
-                $items[$item['parent_id']]['services'][$item['service_id']]['id'] = $item['id'];
-                if (isset($item['service_variant_id'])) {
-                    $items[$item['parent_id']]['services'][$item['service_id']]['variant_id'] = $item['service_variant_id'];
-                }
-                unset($items[$item_id]);
-            }
-        }
+        $items = $service_model->applyServicesInfoToCartItems($items);
 
         // Full price and compare (strike-out) price for each item, with services
         foreach ($items as $item_id => $item) {
@@ -507,11 +352,11 @@ class shopCheckoutViewHelper
             if ($item['product']['weight'] instanceof shopDimensionValue) {
                 /** @var shopDimensionValue $weight */
                 $weight = $item['product']['weight'];
-                $item['product']['weight_html'] = $weight->format(false);
+                $item['product']['weight_html'] = $weight->format('@locale');
                 $item['product']['weight'] = $weight->value_base_unit;
                 $weight['value'] *= $item['quantity'];
                 $weight['value_base_unit'] *= $item['quantity'];
-                $item['total_weight_html'] = $weight->format(false);
+                $item['total_weight_html'] = $weight->format('@locale');
                 $item['total_weight'] = $weight->value_base_unit;
             } elseif (is_numeric($item['product']['weight'])) {
                 $item['total_weight'] = $item['product']['weight'] * $item['quantity'];
@@ -566,6 +411,7 @@ class shopCheckoutViewHelper
             $process_data = shopCheckoutStep::processAll('form', $order, $session_input);
 
             $result = $this->prepareFormVars($process_data);
+            $result['session_is_alive'] = !empty($session_checkout['order']);
             waConfig::set('is_template', $old_is_template);
         }
         return $result;

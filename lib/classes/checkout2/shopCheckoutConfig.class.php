@@ -9,6 +9,7 @@ class shopCheckoutConfig implements ArrayAccess
 
     const SETTING_TYPE_BOOL = 'bool';
     const SETTING_TYPE_SCALAR = 'scalar';
+    const SETTING_TYPE_INT = 'int';
     const SETTING_TYPE_ARRAY = 'array';
     const SETTING_TYPE_VARIANT = 'variant';
 
@@ -711,7 +712,8 @@ class shopCheckoutConfig implements ArrayAccess
         if (!$address || !$address instanceof waContactAddressField) {
             $fields = [];
         } else {
-            $fields = $address->getParameter('fields');
+            // use getFields, because getParameters('fields') somehow could has fields with numeric indexes not field_id
+            $fields = $address->getFields();
         }
 
         // Address subfield settings for current storefront
@@ -1146,6 +1148,29 @@ class shopCheckoutConfig implements ArrayAccess
         $this->config[$element][$key] = $value;
     }
 
+    protected function getIntValue($element, $key)
+    {
+        $value_exists = isset($this->config[$element][$key]) && is_scalar($this->config[$element][$key]);
+
+        if ($value_exists && wa_is_int(trim($this->config[$element][$key]))) {
+            $value = intval(trim($this->config[$element][$key]));
+        } else {
+            $value = $this->getDefaultValue($element, $key, 'int');
+        }
+
+        return $value;
+    }
+
+    protected function setIntValue($element, $key, $value)
+    {
+        $value = is_scalar($value) ? (string)$value : '';
+        $value = trim($value);
+        if (!wa_is_int($value)) {
+            $value = 0;
+        }
+        $this->config[$element][$key] = intval($value);
+    }
+
     protected function getVariantValue($element, $key)
     {
         $variants = $this->getVariantsByKey($element, $key);
@@ -1305,6 +1330,7 @@ class shopCheckoutConfig implements ArrayAccess
                 'service_agreement'      => self::SETTING_TYPE_BOOL,
                 'service_agreement_hint' => self::SETTING_TYPE_SCALAR,
                 'plugin_timeout'         => self::SETTING_TYPE_SCALAR,
+                'auto_use_timeout'       => self::SETTING_TYPE_INT,
             ],
             'payment'         => [
                 'used'       => self::SETTING_TYPE_BOOL,

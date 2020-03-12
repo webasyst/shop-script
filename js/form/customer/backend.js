@@ -27,6 +27,8 @@ var ShopBackendCustomerForm = ( function($) {
         that.dom_ns = that.$wrapper.attr('id');
         that.namespace = options.namespace || null;
         that.locales = options["locales"];
+        that.fields_config = options.fields_config || {};
+        that.address_additional_subfields_display_type = options.address_additional_subfields_display_type;
 
         // bind with this DOM current instance of FORM
         that.$wrapper.data('ShopBackendCustomerForm', that);
@@ -55,6 +57,10 @@ var ShopBackendCustomerForm = ( function($) {
         that.initShippingAddress();
 
         that.initBillingAddress();
+
+        if (that.address_additional_subfields_display_type === 'folded') {
+            that.initAdditionalAddressSubfields();
+        }
 
         that.fixStyles();
     };
@@ -114,6 +120,62 @@ var ShopBackendCustomerForm = ( function($) {
                 }
             });
         })
+    };
+
+    /**
+     * This method must be called after initShippingAddress and initBillingAddress
+     */
+    ShopBackendCustomerForm.prototype.initAdditionalAddressSubfields = function() {
+        var that = this,
+            fields_config = that.fields_config,
+            $wrapper = that.$wrapper;
+
+        var getControlSelector = function () {
+            return '.s-customer-more-address-subfields-control';
+        };
+
+        var getControl = function () {
+            return $wrapper.find(getControlSelector());
+        };
+
+        var getAddressBlockSelector = function () {
+            return '.s-address-block';
+        };
+
+        var getAddressBlocks = function () {
+            return $wrapper.find(getAddressBlockSelector());
+        };
+
+        getAddressBlocks().each(function () {
+            var $address_block = $(this),
+                $address_field = $address_block.closest('.field-address'),
+                address_ext = '';
+
+            if ($address_field.hasClass('field-address-shipping')) {
+                address_ext = 'shipping';
+            } else if ($address_field.hasClass('field-address-billing')) {
+                address_ext = 'billing';
+            }
+
+            if (!address_ext) {
+                return;
+            }
+
+            var $subfields = $address_block.find('.field').hide();
+            var $last_field = $();
+            $.each(fields_config['address.' + address_ext]['fields'] || {}, function (field_id) {
+                $last_field = $subfields.filter('.field-address-' + field_id).show();
+            });
+
+            // after last shown field put control link to unfold (show) other (additional) fields
+            $last_field.after(getControl().clone());
+        });
+
+        $wrapper.on('click', getControlSelector(), function () {
+            var $link = $(this);
+            $link.closest(getAddressBlockSelector()).find('.field').show();
+            $link.remove();
+        });
     };
 
     ShopBackendCustomerForm.prototype.initShippingAddress = function() {
@@ -210,7 +272,7 @@ var ShopBackendCustomerForm = ( function($) {
             namespace = that.namespace,
             $wrapper = that.$wrapper;
         // reset inline system styles
-        console.log($wrapper.find('.field-birthday input[name="' + namespace + '[birthday][year]"]').get(0));
+        
         $wrapper.find('.field-birthday input[name="' + namespace + '[birthday][year]"]').css({
             width: '',
             minWidth: ''

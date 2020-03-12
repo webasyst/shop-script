@@ -239,6 +239,7 @@
                 window.waOrder.form = new window.waOrder.Form({
                     $wrapper: $("#wa-order-form-wrapper"),
                     outer_options: {$options|json_encode},
+                    use_storage: {if $session_is_alive}false{else}true{/if},
                     templates: {
                         loading: {$_loading_template|json_encode}
                     },

@@ -22,7 +22,7 @@ class shopFeatureValuesDimensionModel extends shopFeatureValuesModel
             if (!is_array($value) || (count($value) == 1)) {
                 $matches = null;
                 $value = trim(is_array($value) ? reset($value) : $value);
-                if (preg_match('/^(\-?\d+([\.,]\d+)?)\s+(.+)$/', $value, $matches)) {
+                if (preg_match('/^(\-?\d+([\.,]\d+)?)\s*([^\d\.,]+.*)$/', $value, $matches)) {
                     $value = array(
                         'value' => $this->castValue('double', $matches[1]),
                         'unit'  => shopDimension::castUnit($type, trim($matches[3])),

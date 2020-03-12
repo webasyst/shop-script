@@ -281,16 +281,17 @@ class shopOrderAction extends waViewAction
 
             }
 
-
             $current_product_name = ifset($product_ids, $item['product_id'], 'name', null);
-
             if (!empty($skus[$item['sku_id']]['name'])) {
                 $current_product_name .= ' ('.$skus[$item['sku_id']]['name'].')';
             }
-
             $item['current_product_name'] = $current_product_name;
         }
         unset($item);
+
+        // Product codes applicable for this order, along with their values if set
+        $order_item_codes_model = new shopOrderItemCodesModel();
+        $order_items = $order_item_codes_model->extendOrderItems($order_items, $product_ids);
 
         return $order_items;
     }

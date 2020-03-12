@@ -37,10 +37,8 @@ var shopDialogProductsSet = (function ($) {
         var that = this;
 
         that.$wrapper.find('.js-datepicker').each( function() {
-            var $field = $(this),
-                options = {};
-
-            $field.datepicker(options);
+            var $field = $(this);
+            $field.datepicker({});
         });
 
         validateStartFinish();
@@ -168,6 +166,7 @@ var shopDialogProductsSet = (function ($) {
             }, delay);
         });
     };
+
     shopDialogProductsSet.staticDialog = function (set_id, status) {
         var $wrapperDialog = $('#s-product-set-dialog');
 
@@ -256,6 +255,15 @@ var shopDialogProductsSet = (function ($) {
                         $.shop.jsonPost(form.attr('action'), form.serialize(), success, error);
                         return false;
                     }
+                },
+                onClose: function () {
+                    $wrapperDialog.find('.js-datepicker').each(function () {
+                        var $datepicker = $(this),
+                            dp = $datepicker.data('datepicker'),
+                            dpDiv = dp && dp.dpDiv ? dp && dp.dpDiv : $();
+                        $datepicker.datepicker('destroy');
+                        dpDiv.remove();
+                    });
                 }
             });
         };

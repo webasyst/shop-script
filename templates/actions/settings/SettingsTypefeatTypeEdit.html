@@ -1,0 +1,126 @@
+{strip}
+
+{$_title = _w("New product type")}
+{if !empty($type.id)}
+    {$_title = _w("Product type settings")}
+{/if}
+
+{*array(
+    'id' => '4',
+    'sort' => '3',
+    'name' => 'FFF',
+    'icon' => 'ZZZ',
+    'cross_selling' => 'alsobought',
+    'upselling' => '0',
+    'count' => '0',
+)*}
+
+{$_active_icon = $type.icon_class}
+{$_icon_uri = $type.icon_url}
+
+{/strip}
+
+<div class="wa-dialog s-settings-type-add-dialog">
+    <div class="wa-dialog-background"></div>
+    <div class="wa-dialog-body">
+        {* HEADER *}
+        <header class="wa-dialog-header">
+            <h1 class="s-title">{$_title|escape}</h1>
+        </header>
+
+        {* CONTENT *}
+        <form action="" method="post">
+            <div class="wa-dialog-content">
+
+                {* TOGGLE *}
+                {strip}
+                {if !empty($type_templates)}
+                    <div class="s-type-toggle-section js-type-toggle-section">
+                        <ul class="s-toggle-list">
+                            <li class="s-toggle-wrapper selected">
+                                <label class="s-label">
+                                    <input class="s-field" type="radio" name="source" value="custom" checked>
+                                    <span class="s-name">[`Custom product type`]</span>
+                                </label>
+                            </li>
+                            <li class="s-toggle-wrapper">
+                                <label class="s-label">
+                                    <input class="s-field" type="radio" name="source" value="template">
+                                    <span class="s-name">[`Select from templates`]</span>
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+                {/if}
+                {/strip}
+
+                <div class="s-fields-wrapper">
+                    <div class="field-group" data-content-id="custom">
+                        <div class="field">
+                            <div class="name">[`Product type name`]</div>
+                            <div class="value">
+                                <input type="text" name="name" class="large" value="{$type.name|default:""|escape}">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="name">[`Product type icon`]</div>
+                            <div class="value">
+                                <ul class="s-type-icons-list js-type-icons-list">
+                                    {foreach $icons as $_icon_class}
+                                        <li class="s-toggle-wrapper">
+                                            <label class="s-label">
+                                                <input class="s-field" type="radio" name="icon" value="{$_icon_class}" {if !empty($_active_icon) && $_active_icon === $_icon_class}checked{/if}>
+                                                <span class="s-name"><i class="icon16 {$_icon_class}"></i></span>
+                                            </label>
+                                        </li>
+                                    {/foreach}
+                                </ul>
+
+                                <div class="s-custom-icon-wrapper">
+                                    <div class="s-description small">[`Or enter icon URL (should be a 16x16 px image)`]:</div>
+                                    <input class="s-field" type="text" name="icon_url" value="{$_icon_uri|default:""|escape}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {if !empty($type_templates)}
+                        <div class="field-group" data-content-id="template" style="display: none;">
+                            <div class="field">
+                                <div class="name">[`Product type template`]</div>
+                                <div class="value">
+                                    <ul class="s-templates-list">
+                                        {foreach $type_templates as $template_id => $info}
+                                            <li class="s-template-wrapper">
+                                                <label class="s-label">
+                                                    <input class="s-field" type="radio" name="template" value="{$template_id|escape}">
+                                                    <i class="icon16 {$info.icon|escape}"></i>
+                                                    <span class="s-name">{$info.name|escape}</span>
+                                                    {if !empty($info.description)}
+                                                        <span class="s-description hint">{$info.description}</span>
+                                                    {/if}
+                                                </label>
+                                            </li>
+                                        {/foreach}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    {/if}
+                </div>
+
+                <div class="s-errors-place js-errors-place"></div>
+            </div>
+
+            {* FOOTER *}
+            <footer class="wa-dialog-footer">
+                <button class="s-button button green js-submit-button" type="submit">[`Save`]</button>
+                <span class="s-divider">[`or`]</span>
+                <a href="javascript:void(0);" class="js-close-dialog">[`cancel`]</a>
+            </footer>
+
+            <input type="hidden" name="id" value="{$type.id|default:""|escape}">
+            {$wa->csrf()}
+        </form>
+    </div>
+</div>

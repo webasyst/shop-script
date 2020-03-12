@@ -50,30 +50,42 @@ class shopWorkflowRefundAction extends shopWorkflowAction
             }
 
             if ($quantity !== false) {
-                $order_items[$item['id']] = $item;
                 $item['quantity'] = intval($item['quantity']);
                 if ($item['quantity']) {
-                    if ($quantity || $extra_total_discount) {
-                        $item['price'] = floatval($item['price']);
-                        if ($item['price']) {
-                            $item_discount = $extra_total_discount + $item['total_discount'] / ($item['price'] * $item['quantity']);
-                        } else {
-                            $item_discount = 0;
+                    $item['price'] = floatval($item['price']);
+
+                    if ($item['price'] && $item['quantity']) {
+
+                        $item['discount'] = $item['total_discount'] / $item['quantity'];
+
+                        if ($extra_total_discount) {
+                            $item['discount'] += $item['price'] * $extra_total_discount / $item['quantity'];
                         }
 
-                        if ($quantity) {
-                            if ($quantity === true) {
-                                $quantity = $item['quantity'];
-                            }
-                            $order_items[$item['id']]['total_discount'] = $item['price'] * $item_discount * $quantity;
-                            $order_items[$item['id']]['quantity'] = $quantity;
-
-                            $refund_discount += $order_items[$item['id']]['total_discount'];
-                        }
-
-                        $item['total_discount'] = $item_discount * ($item['quantity'] - $quantity) / $item['quantity'];
-                        $item['quantity'] -= $quantity;
+                    } else {
+                        $item['discount'] = 0;
                     }
+
+                    if ($quantity) {
+                        if ($quantity === true) {
+                            $quantity = $item['quantity'];
+                        } else {
+                            $quantity = max(0, min($quantity, $item['quantity']));
+                        }
+
+                        $refund_item = $item;
+                        $refund_item['total_discount'] = $item['discount'] * $quantity;
+                        $refund_item['quantity'] = $quantity;
+
+                        $refund_discount += $refund_item['total_discount'];
+
+                        $order_items[$item['id']] = $refund_item;
+
+                        unset($refund_item);
+                    }
+
+                    $item['total_discount'] = $item['discount'] * ($item['quantity'] - $quantity);
+                    $item['quantity'] -= $quantity;
                 }
             }
             unset($item);

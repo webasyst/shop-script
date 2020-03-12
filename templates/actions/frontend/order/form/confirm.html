@@ -32,7 +32,7 @@
 
                 <div class="wa-total-section">
                     {* SUBTOTAL *}
-                    <div class="wa-item">
+                    <div class="wa-item wa-item-price">
                         <div class="wa-name">[`Items cost`]</div>
                         <div class="wa-value">
                             <span class="wa-price">{shop_currency($confirm.subtotal, ['in_currency' => true, 'format' => 'h'])}</span>
@@ -41,7 +41,7 @@
 
                     {* DISCOUNT *}
                     {if !empty($confirm.discount)}
-                        <div class="wa-item">
+                        <div class="wa-item wa-item-discount">
                             <div class="wa-name">[`Discount`]</div>
                             <div class="wa-value">
                                 {capture assign="_discout_html"}
@@ -60,7 +60,7 @@
 
                     {* TAX *}
                     {if !empty($confirm.tax)}
-                        <div class="wa-item">
+                        <div class="wa-item wa-item-tax">
                             <div class="wa-name">[`Tax`]</div>
                             <div class="wa-value">
                                 <span class="wa-price">{shop_currency($confirm.tax, ['in_currency' => true, 'format' => 'h'])}</span>
@@ -69,7 +69,7 @@
                     {/if}
 
                     {* DELIVERY *}
-                    <div class="wa-item" {if empty($config["shipping"]["used"])}style="display: none;"{/if}>
+                    <div class="wa-item wa-item-shipping" {if empty($config["shipping"]["used"])}style="display: none;"{/if}>
                         <div class="wa-name">[`Shipping cost`]</div>
                         <div class="wa-value">
                             {if $confirm.shipping !== null}

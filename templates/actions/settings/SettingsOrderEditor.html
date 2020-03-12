@@ -51,7 +51,7 @@
 {/function}
 
 
-{$_title = "[`Checkout`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}
+{$_title = _w('Order editor')|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}
 {$_class = 's-settings-order-editor'}
 {$_id = uniqid($_class)}
 <div class="{$_class} content blank" id="{$_id}">

@@ -82,4 +82,40 @@ class shopCompositeValue implements ArrayAccess
         }
         return implode(' × ', $this->values);
     }
+
+    public static function parse($feature, $value, $as_string = false)
+    {
+        $value_pattern = '(\d+|[\.,]\d+|\d+[\.,]\d+)';
+        $multi_pattern = '[XxХх×✕✖\*\s]+';
+        $unit_pattern = '(\s+.+)?';
+
+        $parsed_value = false;
+
+        if (!preg_match('/\.[0-3]$/', $feature['code'])
+            && preg_match('/^([23])d\\./', $feature['type'], $matches)
+        ) {
+            $n = $matches[1];
+            $pattern = '/^'.implode($multi_pattern, array_fill(0, $n, $value_pattern)).$unit_pattern.'$/ui';
+            if (preg_match($pattern, trim($value), $matches)) {
+                $unit = trim(ifset($matches[$n + 1]));
+                $parsed_value = array();
+                for ($i = 0; $i < $n; $i++) {
+                    $c_code = $feature['code'].'.'.$i;
+                    $_value = str_replace(',', '.', $matches[$i + 1]);
+                    if ($as_string) {
+                        $parsed_value[$c_code] = trim($_value.' '.$unit);
+                    } else {
+                        $parsed_value[$c_code] = array(
+                            'value' => $_value,
+                            'unit'  => $unit,
+                        );
+                    }
+                }
+            } else {
+                waLog::log(sprintf('Error during parse %dD feature value [%s]', $n, $value), 'shop/features.error.log');
+
+            }
+        }
+        return $parsed_value;
+    }
 }

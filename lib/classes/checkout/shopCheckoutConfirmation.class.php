@@ -61,7 +61,7 @@ class shopCheckoutConfirmation extends shopCheckout
                 $params['shipping_name'] = $shipping['name'];
                 $params['shipping_description'] = $plugin_info['description'];
 
-                $order['shipping'] = ifset($shipping, 'rate', 0);
+                $order['shipping'] = isset($shipping['rate']) ? (float)$shipping['rate'] : 0;
             }
         }
 

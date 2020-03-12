@@ -113,6 +113,17 @@
             </a>
         </div>
 
+        <div class="s-customer-more-address-subfields-control">
+            <a class="inline-link js-toggle-button" href="javascript:void(0);">
+                <i class="svg-icon size-10 arrow-toggle" style="padding: 0 7px 0 5px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 5">
+                        <polyline style="fill:none; stroke: currentColor; stroke-linecap:round; stroke-linejoin:round;" points="0.5 0.5 4.5 4.5 8.5 0.5"/>
+                    </svg>
+                </i>
+                <b><i>[`All address fields`]</i></b>
+            </a>
+        </div>
+
     </div>
 
 {/capture}
@@ -126,6 +137,8 @@
             new ShopBackendCustomerForm($('#{$wrapper_id}'), {
                 contact: {$contact_info|json_encode},
                 namespace: {$namespace|json_encode},
+                fields_config: {$fields_config|json_encode},
+                address_additional_subfields_display_type: {$address_additional_subfields_display_type|json_encode},
                 locales: {
                     "main_shipping_address":  {_w("Order shipping address")|json_encode},
                     "main_billing_address":   {_w("Billing address")|json_encode},

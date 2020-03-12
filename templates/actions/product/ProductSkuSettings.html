@@ -122,31 +122,38 @@
         </div>
     </div>
 
-    {if count($features)}
+    {if count($features)>1}
         <h5 class="heading">[`SKU features`]</h5>
         <p class="hint">
             [`Defining feature values for SKUs is great for dynamic product filtering customer experience. When customer finds a product using by-feature filters, product’s default SKU will be selected according to the filter conditions.`]
-            <a href="{$wa_app_url}?action=settings#/features/" target="_blank" style="display: inline-block;"><i class="icon16 settings" style="display: inline-block; margin: 0 4px 0 0; position: static; float: none;"></i>[`Set up types &amp; features`]</a>
+            <a href="{$wa_app_url}?action=settings#/typefeat/" target="_blank" style="display: inline-block;"><i class="icon16 settings" style="display: inline-block; margin: 0 4px 0 0; position: static; float: none;"></i>[`Set up types &amp; features`]</a>
         </p>
     {/if}
     {foreach $features as $code => $feature}
-        <div class="field">
-            {if ($code == 'weight') && empty($feature.multiple) && (strpos($feature.type,'dimension.') === 0)}
-                {* Weight is already shown above *}
+        {if ($code !== 'weight')}
+            {* Weight is already shown above *}
+            {if empty($feature.multiple)}
+                {include file="./include.feature.html"
+                    namespace="skus[{$sku_id}]"
+                    item_features=$sku_features
+                inline}
             {else}
-                <div class="name">{$feature.name|escape}<br><span class="hint">{$code|escape}</span></div>
-                <div class="value">
-                    <select name="skus[{$sku_id}][features][{$code}]">
-                        <option value=""></option>
-                        {foreach $feature.values as $value}
-                            <option value="{(string)$value|escape}" {if isset($sku_features[$code]) && ($value == (string)$sku_features[$code])}selected="selected"{/if}>
-                                {$value|escape}
-                            </option>
-                        {/foreach}
-                    </select>
+                <div class="field" title="{$code|escape}">
+                    <div class="name">{$feature.name|escape}<br><span class="hint">{$code|escape}</span></div>
+                    <div class="value">
+                        <select name="skus[{$sku_id}][features][{$code}]">
+                            <option value=""></option>
+                            {foreach $feature.values as $value}
+                                <option value="{(string)$value|escape}" {if isset($sku_features[$code]) && ($value == (string)$sku_features[$code])}selected="selected"{/if}>
+                                    {$value|escape}
+                                </option>
+                            {/foreach}
+                        </select>
+
+                    </div>
                 </div>
             {/if}
-        </div>
+        {/if}
     {/foreach}
 
 </div>

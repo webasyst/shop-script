@@ -31,7 +31,7 @@ class shopTypeFeaturesModel extends shopSortableModel
         $sql = "SELECT * FROM ".$this->table." tf JOIN
                 shop_feature f ON tf.feature_id = f.id
                 WHERE tf.type_id = i:id
-                ORDER BY tf.sort";
+                ORDER BY tf.sort, f.id";
         return $this->query($sql, array('id' => $type_id))->fetchAll();
     }
 
@@ -162,5 +162,61 @@ SQL;
             }
         }
 
+    }
+
+    public function setSortOrder($type_id, array $feature_ids)
+    {
+        $sort = 1;
+        foreach($feature_ids as $feature_id) {
+            $this->updateByField([
+                'feature_id' => $feature_id,
+                'type_id' => $type_id,
+            ], [
+                'sort' => $sort,
+            ]);
+            $sort++;
+        }
+    }
+
+    /**
+     * Add existing features to existing product type at the begining of the list.
+     */
+    public function addFeaturesToType($type_id, array $feature_ids)
+    {
+        $type_id = (int) $type_id;
+        $sort = 0;
+
+        // Make sure not to add features that are already present in type
+        $sql = "SELECT feature_id FROM {$this->table} WHERE type_id=?";
+        $exists = $this->query($sql, [$type_id])->fetchAll('feature_id', true);
+
+        $values = [];
+        foreach($feature_ids as $feature_id) {
+            $feature_id = (int) $feature_id;
+            if ($feature_id <= 0 || isset($exists[$feature_id])) {
+                continue;
+            }
+            $sort--;
+            $values[] = [
+                'type_id' => $type_id,
+                'feature_id' => $feature_id,
+                'sort' => $sort,
+            ];
+        }
+
+        if ($values) {
+            $this->multipleInsert($values);
+        }
+    }
+
+    public function countUnassignedFeatures()
+    {
+        $sql = "SELECT count(*)
+                FROM shop_feature AS f
+                    LEFT JOIN shop_type_features AS tf
+                        ON f.id=tf.feature_id
+                WHERE tf.feature_id IS NULL
+                    AND f.parent_id IS NULL";
+        return $this->query($sql)->fetchField();
     }
 }

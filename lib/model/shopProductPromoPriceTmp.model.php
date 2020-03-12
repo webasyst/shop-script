@@ -46,6 +46,18 @@ class shopProductPromoPriceTmpModel extends waModel
 
     public function destroyTable()
     {
-        $this->exec("DROP TEMPORARY TABLE IF EXISTS {$this->table}");
+        $disable_exception_log = waConfig::get('disable_exception_log');
+        waConfig::set('disable_exception_log', true);
+
+        try {
+            $this->exec("DROP TEMPORARY TABLE IF EXISTS {$this->table}");
+        } catch (waDbException $e) {
+            // ignore error, because it is destructor - script already done work (with high probability)
+            // the most annoying error is 2014: commands out of sync, it could be because db resources already is destroyed but we try execute sql query
+            // if you want log error, at least not log 2014 error
+            // but for now ignore all errors and not print in log
+        }
+
+        waConfig::set('disable_exception_log', $disable_exception_log);
     }
 }

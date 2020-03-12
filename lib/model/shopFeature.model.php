@@ -82,9 +82,10 @@ class shopFeatureModel extends waModel
                 foreach ($child_features as $child_feature) {
                     $n = preg_replace('/^.*(\.\d)$/', '$1', $child_feature['code']);
                     $data = array(
-                        'code'   => $feature['code'].$n,
-                        'name'   => $feature['name'].$n,
-                        'status' => $feature['status'],
+                        'code'              => $feature['code'].$n,
+                        'name'              => $feature['name'].$n,
+                        'status'            => $feature['status'],
+                        'available_for_sku' => $feature['available_for_sku'],
                     );
                     $this->updateById($child_feature['id'], $data);
                 }
@@ -117,6 +118,7 @@ class shopFeatureModel extends waModel
             if (!self::isCodeAllowed($code)) {
                 $code = ($code === '_' ? 'f' : 'f_').$code;
             }
+            $code = substr($code, 0, 64);
 
             $sql = <<<SQL
             SELECT `id`, LOWER(`code`) AS `code`
@@ -132,7 +134,8 @@ SQL;
                 $count = 0;
                 $unique_code = $code;
                 while (in_array(strtolower($unique_code), $codes)) {
-                    $unique_code = $code.(++$count);
+                    $count++;
+                    $unique_code = substr($code, 0, 64 - strlen($count)).$count;
                 }
             } else {
                 $unique_code = $code;
@@ -199,13 +202,14 @@ SQL;
         FROM `{$this->table}` `f`
         JOIN `shop_type_features` `t` ON (`t`.`feature_id`=`f`.`id`)
         WHERE `t`.`type_id` = i:type_id AND `f`.`parent_id` IS NULL
-        ORDER BY `t`.`sort`";
+        ORDER BY `t`.`sort`, `t`.`feature_id`";
         } else {
             $sql = "
         SELECT f.*
         FROM `{$this->table}` `f`
         LEFT JOIN `shop_type_features` `t` ON (`t`.`feature_id`=`f`.`id`)
-        WHERE `t`.`type_id` IS NULL  AND `f`.`parent_id` IS NULL";
+        WHERE `t`.`type_id` IS NULL  AND `f`.`parent_id` IS NULL
+        ORDER BY f.name";
         }
 
         $features = $this->query($sql, array('type_id' => $type_id))->fetchAll($key);

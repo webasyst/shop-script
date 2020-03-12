@@ -1874,16 +1874,24 @@ editClick:(function ($) {
             }
         },
 
-        multiSkus: function (count) {
+        /**
+         * @param {Number} count
+         * @param {Boolean?} use_focus
+         * */
+        multiSkus: function (count, use_focus) {
+            use_focus = (typeof use_focus === "boolean" ? use_focus : true);
+
             var table = $('#s-product-edit-forms .s-product-form.main table.s-product-skus:first');
             if (count > 1) {
                 table.find('thead tr th.s-sku-sort').show();
                 table.find('.s-name,.s-sku-sort').show('slow');
                 table.find('.delete').parent('a').show();
-                if (count == 2) {
-                    table.find('> tbody:first > tr:first .s-name :input').focus();
-                } else {
-                    table.find('> tbody:first > tr:last .s-name :input').focus();
+                if (use_focus) {
+                    if (count === 2) {
+                        table.find('> tbody:first > tr:first .s-name :input').focus();
+                    } else {
+                        table.find('> tbody:first > tr:last .s-name :input').focus();
+                    }
                 }
             } else {
                 table.find('thead tr th.s-sku-sort').hide();
@@ -2044,7 +2052,7 @@ editClick:(function ($) {
                                 $sku.hide('normal', function () {
                                     $sku.remove();
                                     $('#s-product-view table.s-product-skus > tbody > tr[data-id="' + sku_id + '"]').remove();
-                                    $.product.multiSkus($skus.find('tr:not(.js-sku-settings)').length);
+                                    $.product.multiSkus($skus.find('tr:not(.js-sku-settings)').length, false);
                                 });
                                 $('#s-product-edit-forms .s-product-form.main').find('input[name=product\\[sku_id\\]][value=' + response.data.sku_id + ']')
                                     .attr('checked', true);
@@ -2059,7 +2067,7 @@ editClick:(function ($) {
                     $sku.hide('normal', function () {
                         $sku.remove();
                         $('#s-product-view table.s-product-skus > tbody >tr[data-id="' + sku_id + '"]').remove();
-                        $.product.multiSkus($skus.find('tr:not(.js-sku-settings)').length);
+                        $.product.multiSkus($skus.find('tr:not(.js-sku-settings)').length, false);
                     });
                 } else {
                     self.refresh('error', $_('A product must have at least one SKU.'));
@@ -2069,7 +2077,7 @@ editClick:(function ($) {
                 $sku.hide('normal', function () {
                     $sku.remove();
                     $('#s-product-view table.s-product-skus > tbody >tr[data-id="' + sku_id + '"]').remove();
-                    $.product.multiSkus($skus.find('tr:not(.js-sku-settings)').length);
+                    $.product.multiSkus($skus.find('tr:not(.js-sku-settings)').length, false);
                 });
             }
         },
@@ -2106,6 +2114,7 @@ editClick:(function ($) {
                 var url = '?module=product&action=skuSettings';
                 url += '&product_id=' + self.path.id;
                 url += '&sku_id=' + sku_id;
+                url += '&type_id=' + self.helper.type();
                 var $target = $('#s-product-edit-forms .s-product-form.main tr.js-sku-settings[data-id="' + sku_id + '"] > td:first');
                 $target.load(url, function () {
                     $sku.find(':input[name$="\[available\]"]').remove();

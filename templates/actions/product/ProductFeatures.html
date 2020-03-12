@@ -26,7 +26,7 @@
             <strong>{$product_types[$type_id]['name']}</strong>{/if}
         <a href="#/product/{$product.id}/edit/main/type/select/" class="inline-link js-action"><b><i>[`Change type`]</i></b></a>
 
-        <a href="{$wa_app_url}?action=settings#/features/" target="_blank" style="display: inline-block; font-size: 12px; margin-left: 20px;">
+        <a href="{$wa_app_url}?action=settings#/typefeat/" target="_blank" style="display: inline-block; font-size: 12px; margin-left: 20px;">
             <i class="icon16 settings" style="display: inline-block; margin: 0 4px 0 0;"></i>[`Set up types &amp; features`]
         </a>
     </div>
@@ -34,197 +34,12 @@
 
 
 {foreach $features as $code => $feature}
-    {if strpos($code,'.') == false}
-        <div class="field{if $feature.type eq 'divider'} divider{/if}" data-type="{$feature.type}" data-multiple="{$feature.multiple}"
-             data-selectable="{$feature.selectable}" data-code="{$code|escape}">
-            <div class="name"><label for="product-features-{$code}">
-                    {if empty($feature.internal)}<i class="icon10 exclamation"
-                                                    title="[`This feature is not listed for the product type this product belongs to`]"></i> {/if}{$feature.name|escape}
-                                                    {if $feature.status != 'public'}<i class="icon16 ss visibility" title="[`Only visible in backend`]"></i>{/if}
-                </label></div>
-
-
-                {if $feature.selectable}
-                    {$feature_selectable=($feature.multiple && !empty($features_selectable[$code]) && !empty($features_selectable[$code]['selected']))}
-                    {$feature_selectable_disabled = 0}
-                    {if $feature.multiple}
-                        <input type="hidden" name="product[features][{$code}][]" value="">
-                        {foreach $feature.values as $value_id => $value}
-                            {$value_checked = !empty($product_features[$code][$value_id])}
-
-                            <div class="value"
-                                 data-value="{$value|escape}"
-                                 data-value-id="{$value_id}"
-                                    {if $feature_selectable && !$value_checked} style="display: none;"{/if}>
-                            <label>
-                                <input type="checkbox"
-                                       name="product[features][{$code}][]"
-                                       value="{$value|escape}"
-                                        {if $value_checked} checked="checked"{/if}
-                                        {if $feature_selectable} disabled="disabled"{/if}
-                                >
-                                {if is_object($value) && isset($value.icon)}{$value.icon}{/if}{$value|escape}
-                            </label>
-                            </div>
-
-                        {/foreach}
-
-                        {if empty($smarty.capture) || empty($smarty.capture['feature-value-multiple-template-js'])}
-                                <!-- {capture name="feature-value-multiple-template-js"}{literal} edit feature jquery template -->
-                            <div class="value">
-                            <label>
-                            <input type="checkbox" checked="checked" disabled="disabled"
-                                   name="product[features][{%=o.feature.input%}]" value="">
-                            {% include (o.feature.value_template, {'feature': o.feature}); %}
-                            <a href="#/product/{/literal}{$product.id}{literal}/edit/features/value/delete/" class="inline-link js-action" title="[`Cancel`]">
-                            <i class="icon10 delete"></i>
-                            </a>
-                            </label>
-                            </div>
-                            <!-- {/literal}{/capture} -->
-                        {/if}
-
-                    {else}{* $feature.multiple*}
-                        <div class="value">
-
-                        <select name="product[features][{$code}]">
-                            <option value=""{if empty($product_features[$code])} selected="selected"{/if}>&nbsp;</option>
-                            {foreach $feature.values as $value_id => $value}
-                                {$selected_ =  (!empty($product_features[$code]) && ((string)$product_features[$code] == $value))}
-                                <option value="{$value|escape}"{if $selected_} selected="selected"{/if}{if is_object($value)} style="{$value.style|default:''}"{/if}>{$value|escape}</option>
-                            {/foreach}
-                            {if empty($smarty.capture) && empty($smarty.capture['feature-value-template-js'])}
-                                    <!-- {capture name="feature-value-template-js"}{literal} edit feature jquery template -->
-                                <option value="{%=o.value%}">{%=o.value%}</option>
-                                <!-- {/literal}{/capture} -->
-                            {/if}
-                        </select>
-                        </div>
-                    {/if}
-                    <div class="value js-value-add" {if $feature_selectable} style="display: none;"{/if}>
-                        <a href="#/product/{$product.id}/edit/features/value/add/" class="inline-link hint js-action"><b><i>[`other`]</i></b></a>
-                    </div>
-                {else}
-                    <div class="value">
-                {*$feature.selectable*}
-                    {if (strpos($feature.type,'2d') === 0) || (strpos($feature.type,'3d') === 0)}
-                        {$type = substr($feature.type,3)}
-                        {if strpos($type,'dimension') === 0}
-                            {$units = shopDimension::getUnits($type)}
-                            {$d=intval($feature.type)}
-                            {$feature_unit = null}
-                            {if !$feature_unit && isset($product_features[$code][$d-1])}
-                                {$feature_unit=$product_features[$code][$d-1]->unit}
-                            {/if}
-                            {for $i=0;$i<$d;$i++}
-                                {$code_="`$code`.`$i`"}
-                                {if !$feature_unit && isset($product_features[$code][$i])}
-                                    {$feature_unit=$product_features[$code][$i]->unit}
-                                {/if}
-                                {if $i}×{/if}
-                                <input id="product-features-{$code_}" type="text"
-                                       value="{if isset($product_features[$code][$i])}{$product_features[$code][$i]->convert($feature_unit,false)|escape}{/if}"
-                                       name="product[features][{$code_}][value]" class="numerical short">
-                            {/for}
-                            <select name="product[features][{$code}.0][unit]">
-                                {foreach $units as $unit}
-                                    {$selected_ = (!$feature_unit && $unit@first)||(($feature_unit == $unit.value))}
-                                    <option value="{$unit.value|escape}"
-                                            title="{$unit.title|escape}"{if $selected_} selected="selected"{/if}>{$unit.title|escape}</option>
-                                {/foreach}
-                            </select>
-                        {else}
-                            {for $i=0;$i<intval($feature.type);$i++}
-                                {$code_="`$code`.`$i`"}
-                                {if $i}×{/if}
-                                <input id="product-features-{$code_}" type="text"
-                                       value="{if isset($product_features[$code][$i])}{$product_features[$code][$i]|escape}{/if}"
-                                       name="product[features][{$code_}]" class="numerical short">
-                            {/for}
-                        {/if}
-                    {elseif strpos($feature.type,'dimension') === 0}
-                        {$units = shopDimension::getUnits($feature.type)}
-                        <input id="product-features-{$code}" type="text"
-                               value="{if isset($product_features[$code])}{$product_features[$code]->value|escape}{/if}"
-                               name="product[features][{$code}][value]">
-                        <select name="product[features][{$code}][unit]">
-                            {foreach $units as $unit}
-                                {$selected_ = (!isset($product_features[$code]) && $unit@first)||(isset($product_features[$code]) && ($product_features[$code]->unit == $unit.value))}
-                                <option value="{$unit.value|escape}"
-                                        title="{$unit.title|escape}"{if $selected_} selected="selected"{/if}>{$unit.title|escape}</option>
-                            {/foreach}
-                        </select>
-                    {elseif strpos($feature.type,'range') === 0}
-                        <input id="product-features-{$code}" type="text"
-                               value="{if isset($product_features[$code]) && !$product_features[$code]->begin->is_null()}{$product_features[$code]->begin->value|escape}{/if}"
-                               name="product[features][{$code}][value][begin]" class="numerical short">
-                        —
-                        <input id="product-features-{$code}" type="text"
-                               value="{if isset($product_features[$code]) && !$product_features[$code]->end->is_null()}{$product_features[$code]->end->value|escape}{/if}"
-                               name="product[features][{$code}][value][end]" class="numerical short">
-                        {$units = shopDimension::getUnits($feature.type)}
-                        {if $units}
-                            <select name="product[features][{$code}][unit]">
-                                {foreach $units as $unit}
-                                    {$selected_ = (!isset($product_features[$code]) && $unit@first)||(isset($product_features[$code]) && ($product_features[$code]->unit == $unit.value))}
-                                    <option value="{$unit.value|escape}"
-                                            title="{$unit.title|escape}"{if $selected_} selected="selected"{/if}>{$unit.title|escape}</option>
-                                {/foreach}
-                            </select>
-                        {/if}
-                    {elseif strpos($feature.type,'text') === 0}
-                        <textarea id="product-features-{$code}"
-                                  name="product[features][{$code}]">{if isset($product_features[$code])}{$product_features[$code]|escape}{/if}</textarea>
-
-                    {elseif strpos($feature.type,'color') === 0}
-                        <input name="product[features][{$code}][value]" type="text" value="{$product_features[$code]['value']|default:''|escape}" placeholder="[`color name`]">
-                        <a href="#/product/{$product.id}/edit/features/value/color/" class="inline-link js-action" style="display: inline;">
-                            <i class="icon16 color" style="background: {$product_features[$code]['hex']|default:'#FFFFFF'};"></i>
-                        </a>
-                        #<input name="product[features][{$code}][code]" type="text" value="{$product_features[$code]['hex']|default:''|replace:'#':''|escape}" placeholder="[`000000`]" class="small">
-
-
-                    {elseif strpos($feature.type,'boolean') === 0}
-                        {if isset($product_features[$code])}
-                            {$value = $product_features[$code]->value}
-                        {else}
-                            {$value = false}
-                        {/if}
-                        <label>
-                            <input type="radio" name="product[features][{$code}]"
-                                   value="1"{if $value===1} checked="checked"{/if}>
-                            [`Yes`]
-                        </label>
-                        </div>
-                        <div class="value">
-                        <label>
-                            <input type="radio" name="product[features][{$code}]"
-                                   value="0"{if $value === 0} checked="checked"{/if}>
-                            [`No`]
-                        </label>
-                        </div>
-                        <div class="value">
-                        <label>
-                            <input type="radio" name="product[features][{$code}]"
-                                   value=""{if $value === false} checked="checked"{/if}>
-                            [`Not defined`]
-                        </label>
-                    {elseif strpos($feature.type,'divider') === 0}
-                        <input type="hidden" value="-" name="product[features][{$code}]">
-                    {else}
-                        <input id="product-features-{$code}" type="text" name="product[features][{$code}]" data-type="{$feature.type}"
-                               value="{if isset($product_features[$code])}{$product_features[$code]|escape}{/if}">
-                    {/if}
-                    </div>
-                {/if}
-            {if $feature.type eq 'divider' && empty($feature.internal)}
-                <a class="inline-link js-delete-divider" style="float:right;" href="javascript:void(0);">
-                <i class="icon10 delete"></i>
-                <b><i>[`delete`]</i></b>
-            </a>{/if}
-        </div>
-    {/if}
-    {foreachelse}
+    {include file="./include.feature.html"
+    namespace='product'
+    item_features=$product_features
+    inline_edit=1
+    inline}
+{foreachelse}
     [`Product features undefined`]
 {/foreach}
 
@@ -362,11 +177,6 @@
 
 </div>
 <div class="clear"></div>
-{*
-<p><pre>{var_export($product_features,true)|escape}</pre></p>
-<p><pre>{var_export($changed_features,true)|escape}</pre></p>
-<p><pre>{var_export($features,true)|escape}</pre></p>
-*}
 
 <script src="{$wa_app_static_url}js/product/features.js?{$wa->version()}" type="text/javascript"></script>
 <script src="{$wa_url}wa-content/js/farbtastic/farbtastic.js" type="text/javascript"></script>

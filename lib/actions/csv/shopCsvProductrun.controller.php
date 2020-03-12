@@ -425,6 +425,9 @@ class shopCsvProductrunController extends waLongActionController
                             $this->data['composite_features'][$feature['code']] = true;
                         }
                     }
+                    if (!empty($feature['available_for_sku'])) {
+                        $this->data['sku_features'][$feature['code']] = true;
+                    }
                 }
             }
         }
@@ -1589,6 +1592,9 @@ SQL;
                             if (!$features) {
                                 $features = array();
                             }
+
+                            $features += $model->getByField('available_for_sku', 1, 'code');
+
                             $features['weight'] = true;
                             foreach (array_keys($features) as $code) {
                                 if (isset($data['features'][$code])) {
@@ -2396,10 +2402,14 @@ SQL;
                         break;
 
                     default:
+                        $sku_values = is_array($sku['features'][$code]) ? $sku['features'][$code] : array($sku['features'][$code]);
+                        $product_values = is_array($values) ? $values : array($values);
                         $values = array_merge(
-                            is_array($values) ? $values : array($values),
-                            is_array($sku['features'][$code]) ? $sku['features'][$code] : array($sku['features'][$code])
+                            $product_values,
+                            $sku_values
                         );
+
+                        //XXX available_for_sku?
 
                         $values = array_unique($values);
                         break;

@@ -719,6 +719,10 @@
                 // loop over state_ids and define available actions for each state
                 for (var i = 0; i < state_ids.length; i++) {
                     var current_state_id = state_ids[i];
+
+                    // ensure that state is string (cause state could be possible integer and indexOf will not works)
+                    current_state_id = '' + current_state_id;
+
                     if (available_for_states.indexOf(current_state_id) !== -1) {
                         enabled_states_actions[current_state_id] = enabled_states_actions[current_state_id] || [];
                         enabled_states_actions[current_state_id].push(action_id);
@@ -728,7 +732,7 @@
 
             // now calculate intersection for all states we has
             var enable_actions = $.shop.intersectArrays($.shop.getValues(enabled_states_actions), true);
-            
+
             // and UI enable actions itself
             if (enable_actions.length > 0) {
                 var $enabled_items = $action_items.filter(function () {
@@ -865,7 +869,7 @@
                     });
                     return;
                 }
-                
+
                 that.xhrs.printforms = $.shop.getJSON(
                     '?module=orders&action=printforms',
                     that.getSelectedOrders(),
@@ -1292,8 +1296,7 @@
 
         /**
          * Finiting inited process
-         *
-         * @param {Boolean} destruct If true destructing object (delete)
+         * @param {Boolean?} destruct If true destructing object (delete)
          */
         finit: function(destruct) {
             var xhrs = this.xhrs, win = this.lazy_load_win;

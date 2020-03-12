@@ -230,7 +230,7 @@
                         {if !empty($transaction_data)}
                             {wa_currency_html($transaction_data['amount'],$transaction_data['currency_id'])}
                         {else}
-                            {wa_currency_html($order['subtotal'],$order['currency'])}
+                            {wa_currency_html($order['total'],$order['currency'])}
                         {/if}
                     {/capture}
 

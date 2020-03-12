@@ -1605,23 +1605,17 @@ SQL;
                     break;
                 case 'currencies':
                     $config = wa('shop')->getConfig();
-                    /**
-                     * @var shopConfig $config
-                     */
+                    /** @var shopConfig $config */
                     $env[$name] = $config->getCurrencies();
                     break;
                 case 'currency':
                     $config = wa('shop')->getConfig();
-                    /**
-                     * @var shopConfig $config
-                     */
+                    /** @var shopConfig $config */
                     $env[$name] = $config->getCurrency(false);
                     break;
                 case 'default_currency':
                     $config = wa('shop')->getConfig();
-                    /**
-                     * @var shopConfig $config
-                     */
+                    /** @var shopConfig $config */
                     $env[$name] = $config->getCurrency(true);
                     break;
             }
@@ -1631,11 +1625,11 @@ SQL;
     }
 
     /**
-     * @param mixed $value
-     * @param string $type One of price, weight or length
-     * @param $target
-     * @param string $from
-     * @return mixed
+     * @param float $value
+     * @param string $type One of `price`, `weight` or `length`/`width`/`height`
+     * @param string $target
+     * @param string $from original unit
+     * @return float
      * @throws waException
      */
     public static function workupValue($value, $type, $target, $from = null)
@@ -1697,6 +1691,19 @@ SQL;
         return $value;
     }
 
+    /**
+     * @param array[] $order_items
+     * @param mixed[string] $options <ul>
+     *             <li>$options['dimensions']
+     *             <li>$options['weight']
+     *             <li>$options['tax']
+     *             <li>$options['currency']
+     *             <li>$options['order_currency']
+     *             <li>$options['discount']
+     *             </ul>
+     * @return array[]
+     * @throws waException
+     */
     public static function workupOrderItems($order_items, $options)
     {
         $length = self::getEnv('length');
@@ -1717,8 +1724,18 @@ SQL;
             $item['price'] = ifempty($item['price'], 0.0);
             $item['price'] = shopHelper::workupValue($item['price'], 'price', $options['currency'], $options['order_currency']);
 
+            //Convert discount per item
             $item['total_discount'] = ifempty($item['total_discount'], 0.0);
-            $item['total_discount'] = shopHelper::workupValue($item['total_discount'], 'price', $options['currency'], $options['order_currency']);
+            $item_discount = $item['total_discount'] / $item['quantity'];
+            $item_discount = shopHelper::workupValue($item_discount, 'price', $options['currency'], $options['order_currency']);
+
+
+            if (isset($options['discount']) && empty($options['discount'])) {
+                $item['price'] -= $item_discount * $item['quantity'];
+                $item['total_discount'] = 0;
+            } else {
+                $item['total_discount'] = $item_discount * $item['quantity'];
+            }
 
             foreach ($features as $feature => $type) {
                 if (!isset($item[$feature])) {
@@ -1727,6 +1744,7 @@ SQL;
                 $unit = ifset($item, $type.'_unit', null);
                 $item[$feature] = shopHelper::workupValue($item[$feature], $feature, $options[$type], $unit);
             }
+
 
             $items[] = array(
                 'id'              => ifset($item['id']),
@@ -1759,7 +1777,12 @@ SQL;
 
     /**
      * @param mixed[] $order
-     * @param mixed [string] $options
+     * @param mixed [string] $options <ul>
+     *              <li>$options['currency']
+     *              <li>$options['discount']
+     *              <li>$options['weight']
+     *              <li>$options['dimensions']
+     *              </ul>
      * @return waOrder
      * @throws waException
      */
@@ -1824,72 +1847,7 @@ SQL;
 
             $order['original_currency'] = $order['currency'];
             $order['currency'] = $target_currency;
-        }
 
-        if (isset($options['discount'])) {
-
-            $items_total_discount = 0.0;
-            $items_total = 0.0;
-
-            $map = array();
-
-            foreach ($order['items'] as $item_id => &$item) {
-                if (isset($item['total_discount'])) {
-                    $items_total_discount += self::workupValue($item['total_discount'], 'price', $order['currency'], $order['currency']);
-                }
-                $map[$item_id] = $item['price'];
-                $items_total += $item['price'] * $item['quantity'];
-                unset($item);
-            }
-
-            asort($map, SORT_NUMERIC);
-
-            #correct items prices & discount
-            $order['discount'] = self::workupValue($order['discount'], 'price', $order['currency'], $order['currency']);
-            $items_total_discount = self::workupValue($items_total_discount, 'price', $order['currency'], $order['currency']);
-            if ($order['discount'] != $items_total_discount) {
-                $discount = $order['discount'];// - $items_total_discount;
-                $discount_rate = ($items_total > 0) ? min(1.0, ($discount / $items_total)) : 0;
-                $n = count($order['items']);
-
-                $_delta = $order['discount'] - $items_total_discount;
-                if (waSystemConfig::isDebug()) {
-                    $order_discount = $order['discount'];
-                    $id = ifset($order['id'], '-');
-                    $_debug = compact('id', 'items_total_discount', 'order_discount', '_delta');
-                    waLog::log(var_export($_debug, true), 'shop/round_discount.error.log');
-                }
-
-                foreach ($map as $item_id => $_price) {
-                    $item = &$order['items'][$item_id];
-                    --$n;
-                    $item_discount = self::workupValue($item['price'] * $discount_rate, 'price', $order['currency'], $order['currency']);
-                    $item_total_discount = ($item_discount * $item['quantity']);
-                    if (!$n && (($item_total_discount > $discount) || ($item_total_discount < $discount))) {
-                        $item_discount = self::workupValue($discount / $item['quantity'], 'price', $order['currency'], $order['currency']);
-
-                        $_error = abs($item_total_discount - $discount);
-                        if (($_error > 1) || waSystemConfig::isDebug()) {
-                            $id = ifset($order['id'], '-');
-                            $_debug = compact('id', 'item_total_discount', 'discount', 'item_discount', '_error');
-                            waLog::log(var_export($_debug, true), 'shop/round_discount.error.log');
-                        }
-                        $discount = 0;
-                    } else {
-                        $discount -= ($item_discount * $item['quantity']);
-                    }
-                    if (empty($options['discount'])) {
-                        $item['price'] -= $item_discount;
-                        $item['total_discount'] = 0;
-                    } else {
-                        $item['total_discount'] = $item_discount * $item['quantity'];
-                    }
-
-                    unset($item);
-                }
-
-                $order['discount'] = $discount;
-            }
         }
 
         $tax_included = null;
@@ -1909,6 +1867,7 @@ SQL;
             'order_currency'   => ifset($order['currency'], $default_currency),
             'shipping_address' => $shipping_address,
             'billing_address'  => $billing_address,
+            'discount'=>true,
         );
 
         $units = array();
@@ -1938,7 +1897,7 @@ SQL;
 
             #finance data
             'currency'              => $options['currency'],
-            'total'                 => self::workupValue($order['total'], 'price', $options['currency'], $order['currency']),
+            //'total'                 => self::workupValue($order['total'], 'price', $options['currency'], $order['currency']),
             'discount'              => self::workupValue($order['discount'], 'price', $options['currency'], $order['currency']),
             'tax'                   => self::workupValue($order['tax'], 'price', $options['currency'], $order['currency']),
             'shipping'              => self::workupValue($order['shipping'], 'price', $options['currency'], $order['currency']),
@@ -1982,21 +1941,37 @@ SQL;
             $order_data['shipping_tax_rate'] = $order['params']['shipping_tax_percent'];
         }
 
-        $total = $order_data['shipping'];
-        $total -= $order_data['discount'];
-        foreach ($order_data['items'] as $item) {
-            $total += ($item['price'] * $item['quantity']);
+        $description = null;
+        shopDiscounts::correctOrderDiscount($order_data, $description);
+
+        if (isset($options['discount']) && empty($options['discount'])) {
+            foreach ($order_data['items'] as &$item) {
+                if ($item['quantity']) {
+                    $item['price'] -= $item['total_discount'] / $item['quantity'];
+                }
+                $item['total'] = $item['price'] * $item['quantity'];
+                $item['total_discount'] = 0;
+                $item['discount'] = 0;
+                unset($item);
+            }
+            $order_data['discount'] = 0;
         }
 
+        $order_data['total'] = $order_data['shipping'];
+        foreach ($order_data['items'] as $item) {
+            $order_data['total'] += $item['price'] * $item['quantity'];
+        }
+
+        $order_data['total'] -= $order_data['discount'];
+
+        $total = self::workupValue($order['total'], 'price', $options['currency'], $order['currency']);
+
         if ($total !== $order_data['total']) {
-            if ($options['currency'] != ifset($order['original_currency'], $order['currency'])) {
-                $_error = abs($order_data['total'] - $total);
-                if (($_error > 0.005) || waSystemConfig::isDebug()) {
-                    $id = ifset($order['id'], '-');
-                    $_debug = compact('id', 'order_data', '_error');
-                    waLog::log(var_export($_debug, true), 'shop/round_total.error.log');
-                }
-                $order_data['total'] = $total;
+            $_error = abs($order_data['total'] - $total);
+            if (($_error > 0.005) || waSystemConfig::isDebug()) {
+                $id = ifset($order['id'], '-');
+                $_debug = compact('id', 'order_data', '_error');
+                waLog::log(var_export($_debug, true), 'shop/round_total.error.log');
             }
         }
 

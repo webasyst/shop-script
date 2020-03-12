@@ -102,6 +102,11 @@ class shopTypeModel extends shopSortableModel
         return $res;
     }
 
+    public function getAll($key = null, $normalize = false)
+    {
+        return $this->query("SELECT * FROM `{$this->table}` ORDER BY `name`")->fetchAll($key, $normalize);
+    }
+
     public function insert($data, $type = 0)
     {
         $id = parent::insert($data, $type);

@@ -5,7 +5,7 @@
         <div class="clear-left"></div>
     </div>
 {else}
-    <div class="s-order">
+    <div class="s-order" id="s-order-block" style="visibility: hidden;">
         {if !empty($actions_html)}
             {foreach $actions_html as $h}
                 {$h}
@@ -205,7 +205,7 @@
 
                     <!-- order content -->
 
-                    <table id="s-order-items" class="light s-order-readable">
+                    <table id="s-order-items" class="light s-order-items-table s-order-readable">
                         {if $order.items}
                             <tr>
                                 <th colspan="2"></th>
@@ -215,7 +215,7 @@
 
                             {$subtotal = 0}
                             {foreach $order.items as $item}
-                                <tr data-id="{$item.id}" {if $item.type == 'service'} class="small"{/if}>
+                                <tr class="s-product-wrapper {if $item.type == 'service'}is-product small{/if}" data-id="{$item.id}" >
                                     <td class="min-width valign-top">
                                         {if $item.type != 'service'}
                                             {if !empty($item.image_id)}
@@ -252,6 +252,35 @@
                                         {/if}
                                         {if !empty($item.stock_icon)}
                                             <br>{$item.stock_icon}
+                                        {/if}
+
+                                        {if $item.product_codes}
+                                            <div class="s-marking-section">
+                                                <div class="s-section-icon">
+                                                    <i class="icon16 ss parameter"></i>
+                                                </div>
+                                                <div class="s-marking-list">
+                                                    {foreach $item.product_codes as $_code}
+                                                        <div class="s-mark-wrapper">
+                                                            <a class="s-name inline-link wf-action" href="javascript:void(0);" title="{$_code.code|escape}" data-action-id="editcode" data-form-in-dialog="1" data-item-id="{$item.id|escape}" data-code-id="{$_code.id|escape}">
+                                                                <b><i>{$_code.name|escape}</i></b>
+                                                            </a>
+                                                            <span class="s-count-text">{strip}
+                                                                {if count($_code.values) >= $item.quantity}
+                                                                    <i class="icon16 yes"></i>
+                                                                {else}
+                                                                    <i class="icon16 exclamation"></i>
+                                                                {/if}
+                                                                {if $item.quantity > 1}
+                                                                    {sprintf_wp("%s out of %s", count($_code.values), $item.quantity)}
+                                                                {else}
+                                                                    {count($_code.values)}
+                                                                {/if}
+                                                            {/strip}</span>
+                                                        </div>
+                                                    {/foreach}
+                                                </div>
+                                            </div>
                                         {/if}
                                     </td>
                                     <td class="align-right nowrap"><span class="gray">{wa_currency_html($item.price, $order.currency)} &times;</span> {$item.quantity}</td>
@@ -481,16 +510,36 @@
 
     </div>
     <div class="clear-both"></div>
+
     <script>
         ( function($) {
-            $.ajax({
-                dataType: "script",
-                url: "{$wa_app_static_url}js/order/order.js?v{$wa->version()}",
-                cache: true
-            }).done(function() {
-                var view      = "{$wa->get('view')}";
+            var sources = [{
+                id: "wa-dialog-css",
+                type: "css",
+                uri: "{$wa_url}wa-content/js/dialog/dialog.css?v={$wa->version(true)}"
+            }, {
+                id: "wa-dialog-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/dialog/dialog.js?v={$wa->version(true)}"
+            }, {
+                id: "wa-shop-backend-order-css",
+                type: "css",
+                uri: "{$wa_app_static_url}css/backend/orders/order.css?v={$wa->version()}"
+            }, {
+                id: "wa-shop-backend-order-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/order/order.js?v{$wa->version()}"
+            }];
+
+            $.shop.loadSources(sources).then(init);
+
+            function init() {
+                var $wrapper = $("#s-order-block").removeAttr("style");
+
+                var view = "{$wa->get('view')}";
                 var count_new = {if !empty($count_new)}{$count_new}{else}0{/if};
                 var options = {
+                    $wrapper: $wrapper,
                     order: {json_encode($order)},
                     currency: '{$currency}',
                     view: view,
@@ -498,18 +547,18 @@
                 };
 
                 // title has to be overridden in this cases
-                if (view == 'table') {
+                if (view === 'table') {
                     options.title = '{$wa->shop->orderId($order.id)|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
                     if (count_new) {
                         options.title = '(' + count_new + ') ' + options.title;
                     }
                 }
 
-                if (!$.order_list || view == 'table') {
+                if (!$.order_list || view === 'table') {
                     if ($.order_list) {
                         $.order_list.finit();   // destructor
                     }
-                    options.dependencies = options.dependencies || {};
+                    options.dependencies = options.dependencies || { };
                     options.dependencies.order_list = {
                         view: view,
                         update_process: {
@@ -521,12 +570,20 @@
                         filter_params_str: '{$filter_params_str}'
                     };
                 }
+
+                options.templates = {
+                };
+
+                options.urls = {
+                    "marking_dialog": "todo:"
+                };
+
                 $.order.init(options);
 
                 {if $wa->shop->config('enable_2x')}
-                $.fn.retina && $('#s-order-items img').retina();
+                    $.fn.retina && $('#s-order-items img').retina();
                 {/if}
-            });
+            }
         })(jQuery);
     </script>
 {/if}

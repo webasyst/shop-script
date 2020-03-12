@@ -76,7 +76,8 @@ class shopBackendLocAction extends waViewAction
             'Select parameters to be available to customers for ordering this product in the storefront.',
             'Nothing selected',
             'Matching features were not found or are already selected.',
-            'Confirmed'
+            'Confirmed',
+            'Product type adding error'
         ) as $s) {
             $strings[$s] = _w($s);
         }

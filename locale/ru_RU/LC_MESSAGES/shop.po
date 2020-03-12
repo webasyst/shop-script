@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 1.8.7.1\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -990,6 +990,9 @@ msgstr "Добавить значение характеристики"
 
 msgid "Deleting this feature will ENTIRELY ERASE its defined values for all of your products. Are you sure?"
 msgstr "Удаление этой характеристики ОЧИСТИТ ВСЕ ее значения для всех товаров. Удалить?"
+
+msgid "This feature is special and cannot be deleted. You can only remove it from certain product types where you don’t need it."
+msgstr "Эта характеристика — особенная, ее нельзя удалить. Ее можно только отключить для отдельных типов товаров, где она вам не нужна."
 
 msgid "Product types & Features"
 msgstr "Типы и характеристики товаров"
@@ -2290,6 +2293,54 @@ msgstr "дн."
 msgid "weeks"
 msgstr "нед."
 
+msgid "Voltage"
+msgstr "Напряжение"
+
+msgid "mV"
+msgstr "мВ"
+
+msgid "V"
+msgstr "В"
+
+msgid "KV"
+msgstr "кВ"
+
+msgid "MV"
+msgstr "МВ"
+
+msgid "Temperature"
+msgstr "Температура"
+
+msgid "Amperage"
+msgstr "Сила тока"
+
+msgid "mA"
+msgstr "мА"
+
+msgid "A"
+msgstr "А"
+
+msgid "КA"
+msgstr "КА"
+
+msgid "МA"
+msgstr "МА"
+
+msgid "Electric charge"
+msgstr "Электрический заряд"
+
+msgid "mAh"
+msgstr "мАч"
+
+msgid "Ah"
+msgstr "Ач"
+
+msgid "КAh"
+msgstr "КАч"
+
+msgid "МAh"
+msgstr "МАч"
+
 msgid "The shipping checkout step prompts user to select the shipping type."
 msgstr "Шаг доставки предлагает покупателю выбрать способ доставки."
 
@@ -2356,7 +2407,7 @@ msgstr "Введите текст отзыва"
 msgid "Review length should not exceed 4096 symbols"
 msgstr "Текст отзыва не должен быть длиннее 4096 символов"
 
-msgid "Not unique value"
+msgid "Values must be unique"
 msgstr "Введите уникальное значение"
 
 msgid "Error while insert"
@@ -3286,8 +3337,11 @@ msgstr "Максимальное количество товаров, котор
 msgid "Ordering is not limited by stock levels"
 msgstr "Покупатель может оформить заказ, даже если товара нет в наличии"
 
-msgid "Your current affiliate bonus of %s points allows you to get an additonal discount of up to %s"
-msgstr "Вы можете использовать свой партнерский бонус в %s баллов для получения дополнительной скидки в размере %s"
+msgid "You have %s bonus point! You can use it to get an additonal discount of up to %s."
+msgid_plural "You have %s bonus points! You can use your points to get an additonal discount of up to %s."
+msgstr[0] "У вас есть %s бонусный балл! Вы можете использовать свои баллы, чтобы получить скидку %s."
+msgstr[1] "У вас есть %s бонусных балла! Вы можете использовать свои баллы, чтобы получить скидку %s."
+msgstr[2] "У вас есть %s бонусных баллов! Вы можете использовать свои баллы, чтобы получить скидку %s."
 
 msgid "Use bonus"
 msgstr "Использовать бонусные баллы"
@@ -5077,6 +5131,9 @@ msgstr[2] "%d дней"
 msgid "Welcome to your new online store!"
 msgstr "Добро пожаловать в ваш новый интернет-магазин!"
 
+msgid "Welcome to your online store!"
+msgstr "Добро пожаловать в ваш интернет-магазин!"
+
 msgid "Start by creating a product or importing products in bulk."
 msgstr "Начните с создания нового товара или импорта списка товаров."
 
@@ -5527,8 +5584,8 @@ msgstr "Установите приложение «Фото», чтобы в с
 msgid "Buy now"
 msgstr "Купить"
 
-msgid "Start by <a href=\"%s\">creating a product</a> in your store backend."
-msgstr "Начните с <a href=\"%s\">создания товара</a> в бекенде интернет-магазина."
+msgid "To display useful content on the home page, add some <a href=\"%s\">products</a> to product sets listed in the <a href=\"%s\">design&nbsp;settings</a>, or set up banners for your <a href=\"%s\">marketing&nbsp;promos</a>."
+msgstr "Чтобы показать полезное содержимое на главной странице, добавьте <a href=\"%s\">товары</a> в списки, указанные в <a href=\"%s\">настройках&nbsp;дизайна</a>, или включите баннеры для <a href=\"%s\">маркетинговых&nbsp;промоакций</a>."
 
 msgid "Compare %s"
 msgstr "Сравнить %s"
@@ -9186,9 +9243,6 @@ msgstr "Дополнительное время на комплектацию"
 msgid "Specify a period of time expressed in hours. It will be added to order ready time calculated by storefront business hours."
 msgstr "Укажите период времени в часах. Он будет добавлен ко времени готовности заказа с учетом режима работы витрины."
 
-msgid "This setting is used only with in-cart checkout option."
-msgstr "Эта настройка используется только в режиме оформления заказа в корзине."
-
 msgid "Existing customer’s data will be updated by the data from a new order."
 msgstr "Данные существующего покупателя будут обновлены данными из нового заказа."
 
@@ -10397,3 +10451,282 @@ msgstr "Синхронизировать товары в корзине авто
 
 msgid "Array of notification callback data received by a payment plugin from a payment gateway."
 msgstr "Массив с данными вызова-уведомления (callback), полученными плагином оплаты от платежной системы."
+
+msgid "All address fields"
+msgstr "Все поля адреса"
+
+msgid "Shipping options update timeout after locality or ZIP code update"
+msgstr "Время ожидания обновления способов доставки после ввода населенного пункта или индекса"
+
+msgid "The update of available shipping options will be started automatically after the specified timeout once a customer has finished to enter a locality name or a ZIP code. It is advisable to use a value of 3 seconds or greater to ensure smooth checkout process.<br>If 0 is specified, then the update of shipping options will be started only once a customer interacts with other page elements; e.g., clicks anywhere else on the checkout page."
+msgstr "Подбор вариантов доставки будет запускаться автоматически спустя указанное время, после того как покупатель закончит вводить название населенного пункта или индекса. Рекомендуемое значение для комфортного оформления заказа — не меньше 3 секунд.<br>Если указать 0, то подбор вариантов доставки будет запускаться только после взаимодействия покупателя с другими элементами страницы, например, после щелчка в любом другом месте страницы оформления заказа."
+
+msgid "To display a slider, set up promos with the “Banner” tool in “<a href=\"%s\">Marketing</a>“ section."
+msgstr "Чтобы включить показ слайдера, настройте промоакции с инструментом «Баннер» в разделе «<a href=\"%s\">Маркетинг</a>»."
+
+msgid "To display promo cards, set up promos with the “Banner” tool in “<a href=\"%s\">Marketing</a>“ section."
+msgstr "Чтобы включить показ промокарточек, настройте промоакции с инструментом «Баннер» в разделе «<a href=\"%s\">Маркетинг</a>»."
+
+msgid "total discount value was adjusted:"
+msgstr "общая сумма скидки скорректирована:"
+
+msgid "Drag&amp;drop some products to set with id “%s” in your online store’s backend."
+msgstr "Перетащите несколько товаров в список с идентификатором «%s» в панели управления вашего интернет-магазина."
+
+msgid "Product set with id “%s” is empty. Add some products to that set in your online store’s backend."
+msgstr "Список товаров с идентификатором «%s» пуст. Добавьте несколько товаров в этот список в панели управления вашего интернет-магазина."
+
+msgid "Start by <a href=\"%s\">creating a product</a> in your store backend."
+msgstr "Начните с <a href=\"%s\">создания товара</a> в бекенде интернет-магазина."
+
+msgid "Product type adding error"
+msgstr "Ошибка создания типа товара"
+
+msgid "Yes/No toggle"
+msgstr "Переключатель «да/нет»"
+
+msgid "Text"
+msgstr "Текст"
+
+msgid "Unknown feature type"
+msgstr "Неизвестный тип характеристики"
+
+msgid "One line of text"
+msgstr "Строка текста"
+
+msgid "Multi-line text"
+msgstr "Многострочный текст"
+
+msgid "Number × number"
+msgstr "Число × число"
+
+msgid "Number × number × number"
+msgstr "Число × число × число"
+
+msgid "Single value selection from a list"
+msgstr "Выбор одного значения из списка"
+
+msgid "Multiple values selection from a list"
+msgstr "Выбор нескольких значений из списка"
+
+msgid "Unknown format"
+msgstr "Неизвестный формат"
+
+msgid "Product codes"
+msgstr "Товарные коды"
+
+msgid "This dialog contains unsaved data. Close the dialog and cancel all changes?"
+msgstr "В этом диалоге есть несохраненные данные. Закрыть диалог и отменить все изменения?"
+
+msgid "Product codes were changed"
+msgstr "Изменены товарные коды"
+
+msgid "Edit product codes"
+msgstr "Изменить товарные коды"
+
+msgid "Deletion of product code “%s”"
+msgstr "Удаление товарного кода «%s»"
+
+msgid "New product code"
+msgstr "Новый товарный код"
+
+msgid "Product code “%s”"
+msgstr "Товарный код «%s»"
+
+msgid "Subtitle"
+msgstr "Подзаголовок"
+
+msgid "Unique ID"
+msgstr "Уникальный код"
+
+msgid "Use for all product types"
+msgstr "Использовать для всех типов товаров"
+
+msgid "Use only for selected types"
+msgstr "Использовать только для выбранных типов"
+
+msgid "Select all"
+msgstr "Выбрать все"
+
+msgid "Product features available for type “%s”"
+msgstr "Характеристики товаров, доступные для типа «%s»"
+
+msgid "feature search"
+msgstr "поиск характеристики"
+
+msgid "Nothing found"
+msgstr "Ничего не найдено"
+
+msgid "Deletion of feature “%s”"
+msgstr "Удаление характеристики «%s»"
+
+msgid "Are you sure to delete this feature?"
+msgstr "Вы уверены, что хотите удалить характеристику?"
+
+msgid "Feature “%s”"
+msgstr "Характеристика «%s»"
+
+msgid "Subtitle “%s”"
+msgstr "Подзаголовок «%s»"
+
+msgid "Show on website"
+msgstr "Показывать на сайте"
+
+msgid "Disable to make the feature visible only to the store administrator and not visible to visitors in the storefront."
+msgstr "Отключите, чтобы характеристика была видна только администратору магазина и не была видна покупателям на витрине."
+
+msgid "Available in product SKUs’ properties"
+msgstr "Доступна в свойствах артикулов товаров"
+
+msgid "Use for product type “<strong>%s</strong>”"
+msgstr "Использовать для типа товаров «<strong>%s</strong>»"
+
+msgid "Format"
+msgstr "Формат"
+
+msgid "Choose how you want to edit the values of this feature"
+msgstr "Выберите, как должны заполняться значения для этой характеристики"
+
+msgid "When the feature type is changed, its values for all products are automatically converted to the new type."
+msgstr "При изменении типа характеристики ее значения для всех товаров будут автоматически приведены к новому типу."
+
+msgid "In cases when a feature value cannot be correctly converted to a new data type, such a value may be lost. For instance, when you change the feature type from text to numbers, then text values containing only numbers, such as “100” or “200”, will be conveted to corresponding numbers 100 and 200, and all values which have no numerical representation, such as “yes”, “no”, “red”, etc., will be lost and converted to number 0. There will be no option to restore such lost values."
+msgstr "В случаях, когда приведение значения характеристики к новому типу данных невозможно, такое значение может быть потеряно. Например, при смене типа характеристики с текстового на числовой текстовые значения, содержащие только числа, например, «100» или «200», будут конвертированы в соответствующие числа 100 и 200, а все значения, не имеющие числового представления, например, «да», «нет», «красный», будут потеряны и пробразованы в число 0. Восстановить такие потерянные значения невозможно."
+
+msgid "Feature search"
+msgstr "Поиск характеристик"
+
+msgid "Features are displayed on storefront product pages in the order set up for this product type."
+msgstr "На страницах товаров на витрине характеристики показаны в том порядке, который настроен для этого типа товаров."
+
+msgid "To change features’ sort order, drag &amp; drop them to desired locations within the list."
+msgstr "Чтобы изменить сортировку характеристик, перетащите их в нужное место в списке."
+
+msgid "Existing feature"
+msgstr "Существующая характеристика"
+
+msgid "Product code"
+msgstr "Товарный код"
+
+msgid "To be completed in ordered item’s properties on the order page. Can be used to store trade item numbers, software license numbers or unique serial numbers."
+msgstr "Заполняется в свойствах товаров на странице заказа. Может использоваться для маркировки товаров, продажи лицензий программного обеспечения или заполнения серийных номеров."
+
+msgid "Product codes are completed on the order page for each ordered item. They can be used to store trade item numbers, software license numbers or unique serial numbers."
+msgstr "Товарные коды заполняются в заказе для каждой единицы товара. Могут использоваться для маркировки товаров, продажи лицензий программного обеспечения или заполнения серийных номеров."
+
+msgid "No product codes."
+msgstr "Товарные коды не добавлены."
+
+msgid "No features."
+msgstr "Характеристики не добавлены."
+
+msgid "Drag to change features’ sort order"
+msgstr "Перетащите, чтобы изменить порядок характеристик"
+
+msgid "Each product type; e.g., “TVs”, “Phones”, or “Clocks”, can have its own set of features. You can select for the storefront which product types should be visible to customers. Separate access rights to product types can be set up for store backend users and user groups."
+msgstr "У каждого типа товаров — например, «Телевизоры», «Телефоны» или «Часы» — может быть собственный набор характеристик. Для витрины можно выбрать те типы товаров, которые нужно показывать на ней. Для пользователей панели управления можно настраивать индивидуальные уровни доступа к разным типам товаров."
+
+msgid "Type a product type name"
+msgstr "Введите название типа товаров"
+
+msgid "Deletion of product type “%s”"
+msgstr "Удаление типа товаров «%s»"
+
+msgid "Available for all product types"
+msgstr "Доступные для всех типов товаров"
+
+msgid "Not available for any product type"
+msgstr "Недоступные ни для одного типа товаров"
+
+msgid "Deleting a product code will keep its existing values in your store’s orders, but you will not be able to save this code’s values for new orders any more."
+msgstr "После удаления товарного кода все его значения в ваших заказах сохранятся, но вы больше не сможете сохранять значения этого товарного кода в новых заказах."
+
+msgid "This product code’s values have not been saved for any of your orders, so you can safely delete it."
+msgstr "Значения этого товарного кода не сохранялись ни в одном из заказов, поэтому его можно удалить."
+
+msgid "You have <strong>%d order</strong> with this product code’s values specified."
+msgid_plural "You have <strong>%d orders</strong> with this product code’s values specified."
+msgstr[0] "У вас есть <strong>%d заказ</strong> с сохраненными значениями этого товарного кода."
+msgstr[1] "У вас есть <strong>%d заказа</strong> с сохраненными значениями этого товарного кода."
+msgstr[2] "У вас есть <strong>%d заказов</strong> с сохраненными значениями этого товарного кода."
+
+msgid "Feature type change is not supported for the selected types."
+msgstr "Смена типа характеристики недоступна для выбранных типов."
+
+msgid "Feature type change has failed because of an error."
+msgstr "Смена типа характеристики не выполнена из-за сбоя."
+
+msgid "kA"
+msgstr "кА"
+
+msgid "MA"
+msgstr "МА"
+
+msgid "kAh"
+msgstr "кА·ч"
+
+msgid "MAh"
+msgstr "МА·ч"
+
+msgid "changed product codes in an order"
+msgstr "изменил товарные коды в заказе"
+
+msgid "%s out of %s"
+msgstr "%s из %s"
+
+msgid "This product type cannot be deleted because <a href=\"%s\" target=\"_blank\" class=\"nowrap\">%d product</a> belongs to this type."
+msgid_plural "This product type cannot be deleted because <a href=\"%s\" target=\"_blank\" class=\"nowrap\">%d products</a> belong to this type."
+msgstr[0] "Этот тип товара не может быть удален, потому что в магазине есть <a href=\"%s\" target=\"_blank\" class=\"nowrap\">%d товар</a> этого типа."
+msgstr[1] "Этот тип товара не может быть удален, потому что в магазине есть <a href=\"%s\" target=\"_blank\" class=\"nowrap\">%d товара</a> этого типа."
+msgstr[2] "Этот тип товара не может быть удален, потому что в магазине есть <a href=\"%s\" target=\"_blank\" class=\"nowrap\">%d товаров</a> этого типа."
+
+msgid "To delete this product type, first either assign another type to all its products or delete them."
+msgstr "Чтобы удалить этот тип товаров, сначала смените тип для всех его товаров или удалите товары."
+
+msgid "Are you sure you want to delete this product type?"
+msgstr "Вы уверены, что хотите удалить этот тип товаров?"
+
+msgid "“Weight” is a special feature which must always be available for editing in product SKUs’ properties."
+msgstr "«Вес» — это особенная характеристика, которая всегда должна должна быть доступна для редактирования в свойствах артикулов товаров."
+
+msgid "You cannot disable the editing of this feature’s values in product SKUs’ properties, because some products in your store have SKUs generated from this feature’s values in “Selectable parameters” mode."
+msgstr "Нельзя отключить доступность редактирования этой характеристики в свойствах артикулов товаров, потому что в вашем магазине есть товары, артикулы которых сформированы из значений этой характеристики в режиме «Выбор параметров»."
+
+msgid "You cannot delete this feature, because some products in your store have SKUs generated from this feature’s values in “Selectable parameters” mode."
+msgstr "Нельзя удалить эту характеристику, потому что в вашем магазине есть товары, артикулы которых сформированы из значений этой характеристики в режиме «Выбор параметров»."
+
+msgid "If you disable the availability of this feature in product SKUs’ properties, this will delete all its values from %d SKU."
+msgid_plural "If you disable the availability of this feature in product SKUs’ properties, this will delete all its values from %d SKUs."
+msgstr[0] "Если вы отключите доступность этой характеристики в свойствах артикулов товаров, то будут удалены все ее значения для %d артикула."
+msgstr[1] "Если вы отключите доступность этой характеристики в свойствах артикулов товаров, то будут удалены все ее значения для %d артикулов."
+msgstr[2] "Если вы отключите доступность этой характеристики в свойствах артикулов товаров, то будут удалены все ее значения для %d артикулов."
+
+msgid "Deleted will be only feature values stored in <strong>SKUs’</strong> properties. Values stored in <strong>products’</strong> properties will not be affected."
+msgstr "Будут удалены только значения характеристики в свойствах <strong>артикулов</strong>. Значения характеристики в свойствах <strong>товаров</strong> сохранятся."
+
+msgid "This feature’s name visible both in the storefront and in the store backend."
+msgstr "Название характеристики, его видно на витрине и в панели управления магазина."
+
+msgid "This code is used to uniquely identify a feature within the system. For instance, you may use it to show some feature-related information in a design template."
+msgstr "Этот код используется для идентификации характеристики в системе. Например, его можно использовать, чтобы показать информацию о характеристике в шаблоне дизайна."
+
+msgid "Select the kind of values which you need to be stored in this feature."
+msgstr "Выберите тип значений, которые необходимо хранить в этой характеристике."
+
+msgid "You will be able to select measurement units for feature values when completing them in products’ properties."
+msgstr "Вы сможете выбирать единицы измерения для значений характеристики во время их заполнения в свойствах товаров."
+
+msgid "There are too many features to show in this list. Please select a product type on the left to view its features."
+msgstr "В этом списке слишком много характеристик, чтобы показать их все сразу. Выберите тип товаров слева, чтобы просмотреть его характеристики."
+
+msgid "There are no product codes that are not available for any product type."
+msgstr "В вашем магазине нет товарных кодов, недоступных ни для какого типа товаров."
+
+msgid "There are no product codes available for all product types."
+msgstr "В вашем магазине нет товарных кодов, доступных для всех типов товаров."
+
+msgid "There are no features that are not available for any product type."
+msgstr "В вашем магазине нет характеристик, недоступных ни для какого типа товаров."
+
+msgid "There are no features available for all product types."
+msgstr "В вашем магазине нет характеристик, доступных для всех типов товаров."

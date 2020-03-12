@@ -96,15 +96,28 @@ class shopFeatureValuesConverter
         }
 
         // check for ban
+        if (!self::isConvertible($feature, $this->to)) {
+            return false;
+        }
+
+        $this->_convert($feature, $this->to);
+        return true;
+    }
+
+    public static function isConvertible($feature_from, $feature_to)
+    {
+        if ($feature_from['multiple'] && !$feature_to['multiple']) {
+            return false;
+        }
 
         $ban_rule = '';
         foreach (self::$ban_map as $type_from => $list) {
-            if ($type_from === $feature['type']) {
+            if ($type_from === $feature_from['type']) {
                 $ban_rule = $list;
                 break;
             } elseif (substr($type_from, -1) === '*') {
                 $type_from = substr($type_from, 0, -2);
-                $f_type = explode('.', $feature['type']);
+                $f_type = explode('.', $feature_from['type']);
                 if ($type_from === $f_type[0]) {
                     $ban_rule = $list;
                     break;
@@ -117,21 +130,21 @@ class shopFeatureValuesConverter
             $not_banned = substr($ban_rule, 1);
             if (substr($not_banned, -1) === '*') {
                 $not_banned = substr($not_banned, 0, -2);
-                $type_to = explode('.', $this->to['type']);
+                $type_to = explode('.', $feature_to['type']);
                 if ($not_banned !== $type_to[0]) {
                     return false;
                 }
-            } elseif ($not_banned !== $this->to['type']) {
+            } elseif ($not_banned !== $feature_to['type']) {
                 return false;
             }
         } else {
             $ban_list = explode(',', $ban_rule);
             foreach ($ban_list as $ban_type) {
-                if ($ban_type === $this->to['type']) {
+                if ($ban_type === $feature_to['type']) {
                     return false;   // ban this conversion
                 } elseif (substr($ban_type, -1) === '*') {
                     $ban_type = substr($ban_type, 0, -2);
-                    $type_to = explode('.', $this->to['type']);
+                    $type_to = explode('.', $feature_to['type']);
                     if ($ban_type === $type_to[0]) {
                         return false;   // ban this conversion
                     }
@@ -139,7 +152,6 @@ class shopFeatureValuesConverter
             }
         }
 
-        $this->_convert($feature, $this->to);
         return true;
     }
 

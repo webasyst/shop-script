@@ -9,6 +9,9 @@
  *
  * @property-read string $unit_name
  * @property-read string $units
+ *
+ * @property-read string $html
+ * @property-read string $compare
  */
 class shopDimensionValue implements ArrayAccess
 {
@@ -98,16 +101,32 @@ class shopDimensionValue implements ArrayAccess
 
     public function __toString()
     {
-        return ($this->value === null) ? '' : ($this->format ? sprintf($this->format, $this->value, $this->unit_name) : $this->value.' '.$this->unit_name);
+        return $this->format(false);
     }
 
+    /**
+     * @param string $format See formats for sprintf. `@locale` suffix will apply waLocale::format method
+     * @return string
+     * @throws waException
+     */
     public function format($format)
     {
         if ($this->value === null) {
             return '';
         } else {
-            $value = waLocale::format($this->value, false);
-            return ($format === false) ? ($value.' '.$this->unit_name) : sprintf($format, $value, $this->unit_name);
+            if (preg_match('/^(.*)@locale$/', $format, $matches)) {
+                $value = waLocale::format($this->value, false);
+                $format = strlen($matches[1]) ? $matches[1] : false;
+            } else {
+                $value = $this->value;
+            }
+
+            if ($format === false) {
+                $value = $value.' '.$this->unit_name;
+            } else {
+                $value = sprintf($format, $value, $this->unit_name);
+            }
+            return trim($value);
         }
     }
 
@@ -117,7 +136,7 @@ class shopDimensionValue implements ArrayAccess
             $format = $this->format;
         }
         $value = shopDimension::getInstance()->convert($this->value, $this->type, $unit, $this->unit);
-        return ($format === false) ? $value : sprintf($format, $value, $this->getUnitName($unit));
+        return ($format === false) ? $value : trim(sprintf($format, $value, $this->getUnitName($unit)));
     }
 
     public function is_null()

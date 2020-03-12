@@ -68,7 +68,9 @@ class shopBackendCustomerForm {
         $options = array_merge($options, array(
             'contact_type'    => shopCustomer::TYPE_PERSON,
             'contact'         => null,
-            'storefront'      => null
+            'storefront'      => null,
+            'address_display_type' => 'all',                        // 'first', 'all', 'none'
+            'address_additional_subfields_display_type' => 'hide',      // 'folded', 'hide'
         ));
 
         $this->options = $options;
@@ -83,6 +85,11 @@ class shopBackendCustomerForm {
     public function setContactType($contact_type, $const = false)
     {
         if (!empty($this->is_const['contact_type'])) {
+            return $this;
+        }
+
+        // nothing to change, set same contact type
+        if (isset($this->options['contact_type']) && $this->options['contact_type'] === $contact_type) {
             return $this;
         }
 
@@ -107,12 +114,23 @@ class shopBackendCustomerForm {
     }
 
     /**
-     * Show all shipping and billing addresses or only first shipping and billing addresses
-     * @param string $type 'all', 'first'
+     * Show all shipping and billing addresses OR only first shipping and billing addresses OR none
+     * @param string $type 'all', 'first', 'none'
      */
     public function setAddressDisplayType($type)
     {
         $this->options['address_display_type'] = $type;
+    }
+
+    /**
+     * Type of showing additional subfields of address
+     * @param $type 'folded', 'hide'
+     *  - 'folded': show additional subfields inputs but all they hidden (folded), and on link will be shown
+     *  - 'hide': not showing additional subfields at all
+     */
+    public function setAddressAdditionalSubfieldsDisplayType($type)
+    {
+        $this->options['address_additional_subfields_display_type'] = $type;
     }
 
     /**
@@ -135,6 +153,11 @@ class shopBackendCustomerForm {
             $this->options['storefront'] = $url;
         } else {
             $this->options['storefront'] = null;
+        }
+
+        // nothing to change, set same storefront
+        if (isset($this->options['storefront']) && $this->options['storefront'] === $url) {
+            return $this;
         }
 
         // new storefront, new waContactForm - reset cache
@@ -192,6 +215,11 @@ class shopBackendCustomerForm {
             }
         } elseif ($contact !== null) {
             $contact = null;
+        }
+
+        // nothing to change, set same contact (check by link address, not deep equal)
+        if (isset($this->options['contact']) && $this->options['contact'] === $contact) {
+            return $this;
         }
 
         $this->options['contact'] = $contact;
@@ -840,6 +868,21 @@ class shopBackendCustomerForm {
     {
         $fields_config = $this->getFieldsConfig();
 
+        if ($this->options['address_additional_subfields_display_type'] === 'folded') {
+            foreach (array('address.shipping', 'address.billing') as $address_key) {
+                if (!isset($fields_config[$address_key]['fields'])) {
+                    continue;
+                }
+                $subfields = $this->getAddressSubfields();
+                foreach ($subfields as $field_id => $field_options) {
+                    if (!isset($fields_config[$address_key]['fields'][$field_id])) {
+                        $field_options['required'] = false;
+                        $fields_config[$address_key]['fields'][$field_id] = $field_options;
+                    }
+                }
+            }
+        }
+
         $form = waContactForm::loadConfig(
             $fields_config,
             array(
@@ -868,7 +911,14 @@ class shopBackendCustomerForm {
                 }
             }
 
-            $form->setValue($contact);
+            if ($address_display_type !== 'none') {
+                $form->setValue($contact);
+            } else {
+                // unset address, not touch original waContact link, so do clone
+                $clone = clone $contact;
+                unset($clone['address.shipping'], $clone['address.billing']);
+                $form->setValue($clone);
+            }
         }
 
         return $form;
@@ -947,7 +997,9 @@ class shopBackendCustomerForm {
             'storefront'   => $storefront_info,
             'post'         => $this->post(),
             'form_options' => $this->getContactForm()->opt(),
-            'contact_type_selector_info' => $contact_type_selector_info
+            'contact_type_selector_info' => $contact_type_selector_info,
+            'fields_config' => $this->getFieldsConfig(),
+            'address_additional_subfields_display_type' => $this->options['address_additional_subfields_display_type']
         ));
 
         return $html;

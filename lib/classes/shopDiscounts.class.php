@@ -5,10 +5,11 @@ class shopDiscounts
     /**
      * Returns aggregate discount amount applicable to order.
      *
-     * @param array $order Order data array
-     * @param bool $apply Whether discount-related information must be added to order parameters (where appropriate)
+     * @param array  $order       Order data array
+     * @param bool   $apply       Whether discount-related information must be added to order parameters (where appropriate)
      * @param string $description will be set to human-readable description of discount calculation
      * @return float Total discount value expressed in order currency
+     * @throws waException
      */
     public static function calculate(&$order, $apply = false, &$description = null)
     {
@@ -65,9 +66,9 @@ class shopDiscounts
 
         // Process discounts of individual order items.
         $items_description = '';
-        $total_item_discount = 0.0;
+        $total_items_discount = 0.0;
         foreach ($order['items'] as $item_id => $item) {
-            $items_description .= self::formatItemDiscount($order, $item_id, $discounts, $total_item_discount);
+            $items_description .= self::formatItemDiscount($order, $item_id, $discounts, $total_items_discount);
         }
 
         // Process general order discounts, not tied to any item.
@@ -76,7 +77,7 @@ class shopDiscounts
 
         // Total discount and description
         $description = '';
-        $discount = $total_item_discount + $order_discount;
+        $discount = $total_items_discount + $order_discount;
         if ($discount || strlen($order_discount_description)) {
             if (wa('shop')->getConfig()->getOption('discount_description') && strlen($items_description)) {
                 $description .= sprintf('<h5>%s</h5>', _wp('applicable to individual items:'));
@@ -127,6 +128,7 @@ HTML;
 
         // Round to currency precision
         $discount = shop_currency($discount, $currency, $currency, false);
+
         // Round the discount if set up to do so
         if ($discount
             && (wa()->getEnv() == 'frontend' || !empty($order['discount_rounding']))
@@ -141,11 +143,15 @@ HTML;
             }
         }
 
+
+        static::correctOrderDiscount($order, $description, $discount, $currency);
+
         return min(max(0, $discount), ifset($order['total'], 0));
     }
 
     /**
      * @return string
+     * @throws waException
      */
     protected static function getDiscountCombineType()
     {
@@ -185,6 +191,7 @@ HTML;
      * @param array $order Order data array
      * @param array $description
      * @return float Total discount value expressed in order currency
+     * @throws waException
      */
     public static function apply(&$order, &$description = null)
     {
@@ -196,6 +203,7 @@ HTML;
      * @param array $order Order data array
      * @param array $description
      * @return float
+     * @throws waException
      */
     public static function reapply(&$order, &$description = null)
     {
@@ -207,6 +215,7 @@ HTML;
      *
      * @param string $discount_type Discount type id
      * @return bool
+     * @throws waDbException
      */
     public static function isEnabled($discount_type)
     {
@@ -239,26 +248,26 @@ HTML;
 
     /**
      * Discounts by amount of money previously spent by this customer.
-     * @param array $order
+     * @param array     $order
      * @param waContact $contact
-     * @param boolean $apply
+     * @param boolean   $apply
      * @return mixed
+     * @throws waDbException
+     * @throws waException
      */
     protected static function byCustomerTotal($order, $contact, $apply)
     {
         if (!$contact || !$contact->getId()) {
             return 0;
         }
-        $cm = new shopCustomerModel();
-        $customer = $cm->getById($contact->getId());
+        $customer_model = new shopCustomerModel();
+        $customer = $customer_model->getById($contact->getId());
         if ($customer && ($customer['total_spent'] > 0)) {
-            $dbsm = new shopDiscountBySumModel();
-            $percent = (float)$dbsm->getDiscount('customer_total', $customer['total_spent']);
+            $discount_by_sum_model = new shopDiscountBySumModel();
+            $percent = (float)$discount_by_sum_model->getDiscount('customer_total', $customer['total_spent']);
 
             $shop_config = wa('shop')->getConfig();
-            /**
-             * @var shopConfig $shop_config
-             */
+            /** @var shopConfig $shop_config */
             $currency = $shop_config->getCurrency(true);
             $total_spent = shop_currency_html($customer['total_spent'], null, $currency);
 
@@ -274,21 +283,21 @@ HTML;
      * Discounts by amount current order
      * @param array $order
      * @return mixed
+     * @throws waDbException
+     * @throws waException
      */
     protected static function byOrderTotal($order)
     {
         // Order total in default currency
         $shop_config = wa('shop')->getConfig();
-        /**
-         * @var shopConfig $shop_config
-         */
+        /** @var shopConfig $shop_config */
         $shop_currency = $shop_config->getCurrency(true);
         $currency = $order['currency'];
 
         $order_total = (float)shop_currency($order['total'], $currency, $shop_currency, false);
 
-        $dbsm = new shopDiscountBySumModel();
-        $percent = (float)$dbsm->getDiscount('order_total', $order_total);
+        $discount_by_sum_model = new shopDiscountBySumModel();
+        $percent = (float)$discount_by_sum_model->getDiscount('order_total', $order_total);
 
         $description = sprintf_wp('By order total, %s%%', $percent);
 
@@ -296,18 +305,20 @@ HTML;
     }
 
     /**
-     * Discounts by category implementation.
-     * @param array $order
+     * Discounts by contact category implementation.
+     * @param array     $order
      * @param waContact $contact
      * @return array
+     * @throws waDbException
+     * @throws waException
      */
     protected static function byCategory($order, $contact)
     {
         if (!$contact) {
             return null;
         }
-        $ccdm = new shopContactCategoryDiscountModel();
-        $percent = $ccdm->getByContact($contact->getId());
+        $contact_category_discount_model = new shopContactCategoryDiscountModel();
+        $percent = $contact_category_discount_model->getByContact($contact->getId());
         if ($percent != 0) {
             $format = 'By customer category, %s%%';
             $description = sprintf_wp($format, $percent);
@@ -347,6 +358,9 @@ HTML;
                     $result = $coupon;
                 }
             }
+        } elseif (!empty($order['params']['coupon_id'])) {
+            // Work for test cases
+            $result = $cm->getById((int)$order['params']['coupon_id']);
         }
 
         return $result;
@@ -608,9 +622,7 @@ HTML;
         $order['total'] = ifset($order['total'], 0);
         if (!isset($order['currency'])) {
             $shop_config = wa('shop')->getConfig();
-            /**
-             * @var shopConfig $shop_config
-             */
+            /** @var shopConfig $shop_config */
             $order['currency'] = $shop_config->getCurrency(false);
         }
 
@@ -645,7 +657,142 @@ HTML;
                 }
             }
         }
+
         return $order_discount_description;
+    }
+
+    /**
+     * Distributes order discount between items.
+     * @param array  $order
+     * @param string $description
+     * @param float  $discount
+     * @param string $currency
+     */
+    public static function correctOrderDiscount(&$order, &$description, &$discount = null, $currency = null)
+    {
+        if (empty($currency)) {
+            $currency = $order['currency'];
+        }
+        $currency_precision = 100;
+        if (($info = waCurrency::getInfo($currency)) && isset($info['precision'])) {
+            $currency_precision = pow(10, max(0, $info['precision']));
+        }
+
+        if ($discount === null) {
+            $discount =& $order['discount'];
+        }
+
+        // Vars with `_cents` postfix are cents, always round()'ed or floor()'ed to integers.
+        // We calculate using integer math to avoid rounding errors.
+        // (They still have PHP type float though.)
+
+        // Order subtotal: simple sum(price*quantity) for all items
+        $subtotal = 0;
+
+        // This is total discount already distributed among order items
+        $total_items_discount_cents = 0;
+
+        foreach ($order['items'] as &$item) {
+            if ($item['quantity']) {
+                $total_item_discount_cents = round(ifset($item['total_discount'], 0) * $currency_precision);
+
+                $item['total_discount'] = $total_item_discount_cents / $currency_precision;
+
+                $total_items_discount_cents += $total_item_discount_cents;
+                $item['_total'] = ($item['price'] * $item['quantity']) - $item['total_discount'];
+                $subtotal += $item['_total'];
+            }
+            unset($item);
+        }
+        if (!$subtotal) {
+            // Unable to distribute discount among zero-priced items
+            return;
+        }
+
+        // This is order discount we have to distribute among order items
+        $order_discount_cents = round($discount * $currency_precision) - $total_items_discount_cents;
+
+        // Need to distribute something?
+        if ($order_discount_cents) {
+
+            $order_discount_percent = $order_discount_cents/$subtotal;
+
+            foreach ($order['items'] as $item_id => &$item) {
+                if (!empty($item['quantity'])) {
+                    // paranoid
+
+
+                    // Discount we want to add to this item proportional to its value in whole order
+                    $delta_cents = floor($order_discount_percent * $item['_total']);
+
+                    // Calculate new item discount, then adjust according to item quantity:
+                    // total item discount (in cents) must always be divisible by item quantity.
+                    $total_item_discount_cents = round($item['total_discount'] * $currency_precision) + $delta_cents;
+                    $total_item_discount_cents = $item['quantity'] * round($total_item_discount_cents / $item['quantity']);
+
+                    // Modify item data
+                    $delta_cents = $total_item_discount_cents - round($item['total_discount'] * $currency_precision);
+                    $item['total_discount'] = $total_item_discount_cents / $currency_precision;
+                    $item['smashed_discount_cents'] = $delta_cents;
+
+                    // Modify vars that store totals
+                    $order_discount_cents -= $delta_cents;
+                    $total_items_discount_cents += $delta_cents;
+
+                }
+                unset($total_item_discount_cents, $delta_cents, $item['_total'], $item);
+
+                // TODO: update item discount description?..
+            }
+
+            // Still have leftovers to distribute?
+            if ($order_discount_cents != 0) {
+
+                // item_id => minimal step (in cents) we can add or remove discount from this item
+                // minimal step depends on item quantity.
+                // We'll loop over them in order greater to smaller.
+                $discount_map_cents = waUtils::getFieldValues($order['items'], 'quantity', true);
+                krsort($discount_map_cents, SORT_NUMERIC);
+
+                $min_quantity_item_id = array_keys($discount_map_cents)[count($discount_map_cents) - 1];
+                $min_item_discount_cents = $discount_map_cents[$min_quantity_item_id];
+
+                do {
+                    foreach ($discount_map_cents as $item_id => $item_discount_cents) {
+                        if ($item_discount_cents > abs($order_discount_cents)) {
+                            if ($min_quantity_item_id != $item_id || $order_discount_cents < 0) {
+                                // Only change discount of an item if the change (i.e. $item_discount_cents)
+                                // is less than discount left to distribute (i.e. $order_discount_cents).
+                                // BUT the overall discount can not decrease, so we still want
+                                // $order_discount_cents to become <0 at last step.
+                                continue;
+                            }
+                        }
+                        if ($order_discount_cents < 0) {
+                            $item_discount_cents *= -1;
+                        }
+
+                        $order_discount_cents -= $item_discount_cents;
+                        $total_items_discount_cents += $item_discount_cents;
+                        $order['items'][$item_id]['total_discount'] += $item_discount_cents / $currency_precision;
+                        $order['items'][$item_id]['smashed_discount_cents'] += $item_discount_cents;
+                    }
+                } while ($min_item_discount_cents < abs($order_discount_cents));
+            }
+        }
+
+        // This modifies $discount and $order in outer function scope by link
+        // by dropping $order_discount_cents part and only keeping $total_items_discount_cents part.
+        $discount = $total_items_discount_cents / $currency_precision;
+
+        if ($order_discount_cents != 0) {
+            // This modifies $description in outer function scope by link
+            $description .= sprintf(
+                '<h5>%s</h5><b>%s</b>',
+                _w('total discount value was adjusted:'),
+                shop_currency($discount, $currency, $currency, 'h')
+            );
+        }
     }
 
     protected static function formatItemDiscount(&$order, $item_id, $discounts, &$total_items_discount)
@@ -725,9 +872,9 @@ HTML;
     }
 
     /**
-     * @param $component_discount
-     * @param $plugin_id
-     * @param $currency
+     * @param        $component_discount
+     * @param string $plugin_id
+     * @param string $currency
      * @return array
      */
     protected static function castComponentDiscount($component_discount, $currency, $plugin_id = null)

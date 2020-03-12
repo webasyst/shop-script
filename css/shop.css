@@ -1686,6 +1686,7 @@ table.zebra p.hint { margin-bottom: 0; }
 
 .icon16.ss.email-confirmed { width: 20px; background-image: url('../img/email-confirmed.png'); background-position: center; }
 .icon16.ss.phone-confirmed { width: 20px; background-image: url('../img/phone-confirmed.png'); background-position: center; }
+.icon16.ss.parameter { background-image: url("../img/backend/orders/ss-parameter.svg"); background-position: center; background-size: 100% 100%; }
 
 /* SVG ICONS */
 .svg-icon { display: inline-block; vertical-align: baseline; width: 1em; height: 1em; line-height: 0; background: transparent 50% no-repeat; background-size: contain; }
@@ -1763,10 +1764,13 @@ table.zebra p.hint { margin-bottom: 0; }
 
 .s-customer-form-wrapper .s-customer-more-shipping-addresses-control,
 .s-customer-form-wrapper .s-customer-more-billing-addresses-control { margin: 20px 0; }
+
 .s-customer-form-wrapper .s-address-block { margin-top: 30px; }
 .s-customer-form-wrapper .s-address-block > .s-block-header { display: block; margin: 0 0 4px; color: #000 !important; }
 #order-edit-form .s-customer-form-wrapper .s-address-block > .s-block-header { margin-left: -10px; }
-/*.s-customer-form-wrapper .s-address-block:not(:first-child) { border-top: 1px solid #ccc; margin-top: 15px; padding-top: 10px; }*/
+
+.s-customer-more-address-subfields-control { margin: 2px 0; }
+.s-customer-more-address-subfields-control .inline-link { font-size: 0.8em; }
 
 /* Plugins
 ---------- */

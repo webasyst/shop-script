@@ -70,6 +70,9 @@ return array(
     'order_edit' => array(
         'name' => /*_w*/('edited an order')
     ),
+    'order_editcode' => array(
+        'name' => /*_w*/('changed product codes in an order')
+    ),
     'order_delete' => array(
         'name' => /*_w*/('deleted an order')
     ),

@@ -42,27 +42,51 @@ class shopOrderEditAction extends waViewAction
      */
     protected function initShopOrderInfo()
     {
-        $form = new shopBackendCustomerForm();
-        $form->setAddressDisplayType('first'); // Use only first contact address
-
         $order_id = waRequest::get('id', null, waRequest::TYPE_INT);
-
         if ($order_id) {
-            $this->new_order_customer_contact_id = null;
-            $this->order = new shopOrder($order_id, array(
-                'customer_form' => $form
-            ));
-            $this->order_data = $this->getOrderData($this->order);
+            $this->initShopOrderInfoByOrderId($order_id);
         } else {
-            $this->order_data = array();
-            $this->new_order_customer_contact_id = waRequest::get('customer_id', null, waRequest::TYPE_INT);
-            $this->order = new shopOrder(array(
-                'contact_id' => $this->new_order_customer_contact_id,
-            ), array(
-                'customer_form' => $form
-            ));
+            $this->initEmptyShopOrderInfo();
         }
+
+        // get initialized by shopOrder backend customer form (shopBackendCustomerForm)
+        $form = $this->order->customerForm();
+
+        // By default get first address from contact to fill form address
+        $form->setAddressDisplayType('first');
+
+        // But if there is shipping address attached to order, set this specific address to fill form address
+        if ($this->order->shipping_address) {
+            // not get address from contact to fill form address
+            $form->setAddressDisplayType('none');
+            // set specific address
+            $form->setValue('address.shipping', ['data' => $this->order->shipping_address]);
+        }
+
+        // How show additional subfields of address field(s)
+        $form->setAddressAdditionalSubfieldsDisplayType('folded');
     }
+
+    protected function initShopOrderInfoByOrderId($order_id)
+    {
+        $this->new_order_customer_contact_id = null;
+        $this->order = new shopOrder($order_id, [
+            'customer_form' => new shopBackendCustomerForm()
+        ]);
+        $this->order_data = $this->getOrderData($this->order);
+    }
+
+    protected function initEmptyShopOrderInfo()
+    {
+        $this->order_data = [];
+        $this->new_order_customer_contact_id = waRequest::get('customer_id', null, waRequest::TYPE_INT);
+        $this->order = new shopOrder([
+            'contact_id' => $this->new_order_customer_contact_id,
+        ], [
+            'customer_form' => new shopBackendCustomerForm()
+        ]);
+    }
+
 
     public function execute()
     {

@@ -50,17 +50,28 @@ class shopOrderTotalController extends waJsonController
         $data['params']['coupon_id'] = ifset($data, 'params', 'coupon_id', 0);
         unset($data['order_id']);
 
-        $form = new shopBackendCustomerForm();
-        $form->setAddressDisplayType('first'); // Use only first contact address
+        $order = new shopOrder($data, array(
+            'items_format'   => 'tree',
+            'shipping_round' => true,
+            'customer_form'  => new shopBackendCustomerForm()
+        ));
+
+        // get initialized by shopOrder backend customer form (shopBackendCustomerForm)
+        $form = $order->customerForm();
 
         $storefront = waRequest::post('storefront', null, waRequest::TYPE_STRING_TRIM);
         $form->setStorefront($storefront, true);
 
-        $order = new shopOrder($data, array(
-            'items_format'   => 'tree',
-            'shipping_round' => true,
-            'customer_form'  => $form
-        ));
+        // By default get first address from contact to fill form address
+        $form->setAddressDisplayType('first');
+
+        // But if there is shipping address attached to order, set this specific address to fill form address
+        if ($order->shipping_address) {
+            // not get address from contact to fill form address
+            $form->setAddressDisplayType('none');
+            // set specific address
+            $form->setValue('address.shipping', ['data' => $order->shipping_address]);
+        }
 
 
         return $order;
