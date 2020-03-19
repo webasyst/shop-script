@@ -1795,6 +1795,15 @@ class shopOrder implements ArrayAccess
             }
         }
 
+        // Coupon
+        if (empty($params['coupon_id']) && !empty($params['coupon_code'])) {
+            $coupon_model = new shopCouponModel();
+            $coupon = $coupon_model->getByField('code', $params['coupon_code']);
+            if ($coupon) {
+                $params['coupon_id'] = $coupon['id'];
+            }
+        }
+
         $params += $original_params;
 
         #optimized params
@@ -2053,12 +2062,11 @@ class shopOrder implements ArrayAccess
                 'contact'  => $this->contact,
                 'params'   => $this->params,
                 'items'    => $this->items,
-                'total'    => $this->subtotal,//XXX subtotal or total should be???
+                'total'    => $this->subtotal,
             );
         }
 
         $order['discount_rounding'] = true;
-
         $discount = shopDiscounts::calculate($order, $apply, $discount_description);
         unset($order['total']);
 

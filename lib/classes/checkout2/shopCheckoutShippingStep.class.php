@@ -145,10 +145,17 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         $currencies = $config->getCurrencies();
 
         $proper_variant_is_selected = false;
+        $is_free_shipping = ifempty($data, 'order', 'coupon', 'type', '') === '$FS';
         foreach ($services_flat as $s_id => $s) {
             if (!isset($s['type']) || !isset($shipping_types[$s['type']])) {
                 continue;
             }
+
+            // Apply free shipping coupon if set
+            if ($is_free_shipping) {
+                $s['rate'] = 0;
+            }
+
             $type =& $shipping_types[$s['type']];
             $s = self::prepareShippingVariant($s, $currencies);
 

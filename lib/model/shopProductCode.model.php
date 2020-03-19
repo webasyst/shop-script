@@ -70,4 +70,10 @@ class shopProductCodeModel extends waModel
         }
         return $code;
     }
+
+    public function getAll($key = null, $normalize = false)
+    {
+        $sql = "SELECT * FROM {$this->table} ORDER BY name";
+        return $this->query($sql)->fetchAll($key, $normalize);
+    }
 }

@@ -96,6 +96,11 @@ class shopFeatureModel extends waModel
             } elseif ($feature['type'] == self::TYPE_DIMENSION.'.'.self::TYPE_DOUBLE) {
                 $feature['type'] = self::TYPE_DOUBLE;
             }
+
+            if (!isset($feature['available_for_sku']) && $feature['multiple']) {
+                $feature['available_for_sku'] = 1;
+            }
+
             $id = $this->insert($feature);
             if ($id && preg_match('/^(\d)d\.(.+)$/', $feature['type'], $matches)) {
                 for ($i = 0; $i < $matches[1]; $i++) {
@@ -237,7 +242,7 @@ SQL;
     {
         $features = array();
         foreach ($this->getByType($type_id, $key, $fill_values) as $f) {
-            if ($f['multiple'] && $f['selectable']) {
+            if ($f['multiple'] && $f['selectable'] && $f['available_for_sku']) {
                 $features[$f['code']] = $f;
             }
         }

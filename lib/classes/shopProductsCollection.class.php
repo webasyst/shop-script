@@ -1675,7 +1675,6 @@ SQL;
                 $this->getModel('set')->updateById($this->hash[1], array('count' => $count));
             }
         }
-
         return $this->count = $count;
     }
 

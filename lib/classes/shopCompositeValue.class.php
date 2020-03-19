@@ -112,8 +112,7 @@ class shopCompositeValue implements ArrayAccess
                     }
                 }
             } else {
-                waLog::log(sprintf('Error during parse %dD feature value [%s]', $n, $value), 'shop/features.error.log');
-
+                //waLog::log(sprintf('Error during parse %dD feature value [%s]', $n, $value), 'shop/features.error.log');
             }
         }
         return $parsed_value;

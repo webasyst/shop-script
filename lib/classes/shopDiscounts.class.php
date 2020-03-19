@@ -721,7 +721,6 @@ HTML;
                 if (!empty($item['quantity'])) {
                     // paranoid
 
-
                     // Discount we want to add to this item proportional to its value in whole order
                     $delta_cents = floor($order_discount_percent * $item['_total']);
 
@@ -741,8 +740,6 @@ HTML;
 
                 }
                 unset($total_item_discount_cents, $delta_cents, $item['_total'], $item);
-
-                // TODO: update item discount description?..
             }
 
             // Still have leftovers to distribute?

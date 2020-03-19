@@ -260,10 +260,10 @@ SQL;
 
     protected static function castStock($count)
     {
-        if ($count === null || $count === '' || !preg_match('@^\-?\d*(\.(\d+)?)?$@', $count)) {
+        if ($count === null || $count === '' || !preg_match('@^\-?\d*(\.(\d+)?)?$@', trim($count))) {
             $count = null;
         } else {
-            $count = floatval($count);
+            $count = floatval(trim($count));
         }
 
         return $count;

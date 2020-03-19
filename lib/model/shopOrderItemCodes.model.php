@@ -103,12 +103,6 @@ class shopOrderItemCodesModel extends waModel
         return $order_items;
     }
 
-    public function getAll($key = null, $normalize = false)
-    {
-        $sql = "SELECT * FROM {$this->table} ORDER BY name";
-        return $this->query($sql)->fetchAll($key, $normalize);
-    }
-
     public function getByItemId($item_ids)
     {
         if (!$item_ids) {

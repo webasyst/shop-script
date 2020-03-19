@@ -465,6 +465,9 @@ class shopFrontendOrderActions extends waJsonActions
             'items'      => $cart_items,
             'discount'   => 'calculate',
             'tax'        => 'calculate',
+            'params'     => [
+                'coupon_code' => ifset($session_data, 'coupon_code', null),
+            ],
         ], [
             'items_format'       => 'cart',
             'items_extend_round' => true,

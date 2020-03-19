@@ -222,6 +222,10 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
                 }
 
                 if (is_numeric($updated_selected_variant['rate'])) {
+                    $is_free_shipping = ifempty($data, 'order', 'coupon', 'type', '') === '$FS';
+                    if ($is_free_shipping) {
+                        $updated_selected_variant['rate'] = 0;
+                    }
                     $data['order']['shipping'] = shop_currency($updated_selected_variant['rate'], $selected_variant['currency'], $data['order']['currency'], false);
                 } else {
                     // Shipping plugin didn't return a single final rate.

@@ -213,6 +213,7 @@ class shopCsvProductrunController extends waLongActionController
                             /** @var shopTypeFeaturesModel $type_features_model */
                             $type_features_model = $this->model('type_features');
                         }
+
                         $feature['id'] = $feature_model->save($feature);
                         if ($this->data['type_id']) {
                             $type_features_model->updateByFeature($feature['id'], array($this->data['type_id']), false);
@@ -1588,12 +1589,12 @@ SQL;
                         if (isset($data['features'])) {
                             /** @var shopFeatureModel $model */
                             $model = $this->model('feature');
-                            $features = $model->getMultipleSelectableFeaturesByType($data['type_id'], 'code');
+
+                            $features = $model->getByField('available_for_sku', 1, 'code');
+
                             if (!$features) {
                                 $features = array();
                             }
-
-                            $features += $model->getByField('available_for_sku', 1, 'code');
 
                             $features['weight'] = true;
                             foreach (array_keys($features) as $code) {
@@ -2408,8 +2409,6 @@ SQL;
                             $product_values,
                             $sku_values
                         );
-
-                        //XXX available_for_sku?
 
                         $values = array_unique($values);
                         break;

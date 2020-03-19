@@ -39,6 +39,7 @@ var shopDialogProductsSet = (function ($) {
         that.$wrapper.find('.js-datepicker').each( function() {
             var $field = $(this);
             $field.datepicker({});
+            $field.datepicker('widget').hide();
         });
 
         validateStartFinish();
@@ -176,6 +177,11 @@ var shopDialogProductsSet = (function ($) {
                 esc: false,
                 disableButtonsOnSubmit: true,
                 onLoad: function () {
+                    new shopDialogProductsSet({
+                        $wrapper: $wrapperDialog,
+                        is_new: status === 'new'
+                    });
+
                     setTimeout(function () {
                         $('.js-product-list-name').focus();
                     }, 50);
@@ -258,30 +264,24 @@ var shopDialogProductsSet = (function ($) {
                 },
                 onClose: function () {
                     $wrapperDialog.find('.js-datepicker').each(function () {
-                        var $datepicker = $(this),
-                            dp = $datepicker.data('datepicker'),
-                            dpDiv = dp && dp.dpDiv ? dp && dp.dpDiv : $();
-                        $datepicker.datepicker('destroy');
-                        dpDiv.remove();
+                        $(this).datepicker('widget').hide();
                     });
                 }
             });
         };
 
 
-        var p;
+        var $p;
         if (!$wrapperDialog.length) {
-            p = $('<div></div>').appendTo('body');
+            $p = $('<div class="s-products-set-dialog-wrapper"></div>').appendTo('body');
         } else {
-            p = $wrapperDialog.parent();
+            $p = $wrapperDialog.closest('.s-products-set-dialog-wrapper').empty();
         }
 
         if (status === 'new') {
-            p.load('?module=set&action=Create', showDialog);
-        }
-
-        if (status === 'edit') {
-            p.load('?module=set&action=Edit&set_id=' + set_id, showDialog);
+            $p.load('?module=set&action=Create', showDialog);
+        } else if (status === 'edit') {
+            $p.load('?module=set&action=Edit&set_id=' + set_id, showDialog);
         }
     };
     return shopDialogProductsSet;

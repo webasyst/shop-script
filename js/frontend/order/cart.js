@@ -911,7 +911,7 @@
                 var $affiliate_text = $("#wa-affiliate-order-bonus");
                 if ($affiliate_text.length) {
                     if (api.affiliate && api.affiliate.add_affiliate_bonus > 0) {
-                        $affiliate_text.html( that.locales["affiliate_bonus"].replace("%s", that.formatPrice(api.affiliate.add_affiliate_bonus))).show();
+                        $affiliate_text.html( that.locales["affiliate_bonus"].replace("%s", api.affiliate.add_affiliate_bonus)).show();
                     } else {
                         $affiliate_text.hide().html("");
                     }

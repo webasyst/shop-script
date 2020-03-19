@@ -22,18 +22,18 @@
                             <h1 class="s-title">{$title|escape}</h1>
                         </div>
                         <div class="s-column align-right">
-                            {strip}
-                            <div class="s-type-actions">
-                                <a class="s-action inline-link js-type-edit" href="javascript:void(0);">
-                                    <i class="icon16 edit"></i>
-                                    <b><i>[`Edit`]</i></b>
-                                </a>
-                                <a class="s-action inline-link js-type-delete" href="javascript:void(0);">
-                                    <i class="icon16 delete"></i>
-                                    <b><i>[`Delete`]</i></b>
-                                </a>
-                            </div>
-                            {/strip}
+                            {if empty($is_filter_page)}{strip}
+                                <div class="s-type-actions">
+                                    <a class="s-action inline-link js-type-edit" href="javascript:void(0);">
+                                        <i class="icon16 edit"></i>
+                                        <b><i>[`Edit`]</i></b>
+                                    </a>
+                                    <a class="s-action inline-link js-type-delete" href="javascript:void(0);">
+                                        <i class="icon16 delete"></i>
+                                        <b><i>[`Delete`]</i></b>
+                                    </a>
+                                </div>
+                            {/if}{/strip}
                         </div>
                     </div>
 
@@ -178,7 +178,7 @@
                                                         {if !empty($_feature.always_available_for_sku)}
                                                             <a class="s-action js-feature-sku-toggle-always" href="javascript:void(0);" title="[`“Weight” is a special feature which must always be available for editing in product SKUs’ properties.`]"><i class="icon16 hierarchical"></i></a>
                                                         {else}
-                                                            <a class="s-action js-feature-sku-toggle" href="javascript:void(0);" title="[`Available in product SKUs’ properties`]"><i class="icon16 {if $_sku_enabled}hierarchical{else}hierarchical-off{/if}"></i></a>
+                                                            <a class="s-action js-feature-sku-toggle" href="javascript:void(0);" title="[`Enables editing of feature values for product SKUs`]"><i class="icon16 {if $_sku_enabled}hierarchical{else}hierarchical-off{/if}"></i></a>
                                                         {/if}
                                                     {/if}
                                                 </div>

@@ -98,7 +98,7 @@
                             </div>
 
                             <div class="s-field-section">
-                                <label class="s-label">[`Unique ID`] <span class="shop-tooltip"><i class="icon10 info"></i><span>[`This code is used to uniquely identify a feature within the system. For instance, you may use it to show some feature-related information in a design template.`]</span></span></label>
+                                <label class="s-label">[`Identifier`] <span class="shop-tooltip"><i class="icon10 info"></i><span>[`It is used to uniquely identify a feature within the system. For instance, you may use it to show some feature-related information in a design template.`]</span></span></label>
                                 {if $feature.code == 'weight'}
                                     <input type="hidden" name="feature[code]" value="{$feature.code|default:""|escape}">
                                     <input class="s-field js-code-field" type="text" value="{$feature.code|default:""|escape}" disabled>
@@ -126,7 +126,7 @@
                                                 <input class="s-checkbox" type="checkbox" checked disabled>
                                             {/if}
                                             <i class="s-icon icon16 {if !empty($feature.available_for_sku)}hierarchical{else}hierarchical-off{/if}"></i>
-                                            <span class="s-text">[`Available in product SKUs’ properties`]</span>&nbsp;
+                                            <span class="s-text">[`Enables editing of feature values for product SKUs`]</span>&nbsp;
                                             {if !$can_disable_sku}
                                                 {if $feature.code == 'weight'}
                                                     <span class="shop-tooltip"><i class="icon10 info"></i><span>[`“Weight” is a special feature which must always be available for editing in product SKUs’ properties.`]</span></span>

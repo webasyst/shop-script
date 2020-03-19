@@ -1,7 +1,7 @@
 {$new = false}
 {if !$settings.id}{$new = true}{/if}
 
-<div class="dialog width650px height500px" id="s-product-set-dialog">
+<div class="dialog width650px height500px s-product-set-dialog" id="s-product-set-dialog">
     <div class="dialog-background"></div>
     <form id="s-product-set-form" method="post"
           action="?module=set&action=save&set_id={$settings.id|default:0}"
@@ -157,11 +157,6 @@
     </form>
 
     <script>
-        ( function($) {
-            new shopDialogProductsSet({
-                $wrapper: $('#s-product-set-dialog'),
-                is_new: {$new|json_encode}
-            });
-        })(jQuery);
+        // see js/set/products.set.js
     </script>
 </div>

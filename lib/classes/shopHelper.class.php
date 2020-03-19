@@ -1726,9 +1726,12 @@ SQL;
 
             //Convert discount per item
             $item['total_discount'] = ifempty($item['total_discount'], 0.0);
-            $item_discount = $item['total_discount'] / $item['quantity'];
-            $item_discount = shopHelper::workupValue($item_discount, 'price', $options['currency'], $options['order_currency']);
-
+            if ($item['quantity']) {
+                $item_discount = $item['total_discount'] / $item['quantity'];
+                $item_discount = shopHelper::workupValue($item_discount, 'price', $options['currency'], $options['order_currency']);
+            } else {
+                $item_discount = 0;
+            }
 
             if (isset($options['discount']) && empty($options['discount'])) {
                 $item['price'] -= $item_discount * $item['quantity'];
@@ -1867,7 +1870,7 @@ SQL;
             'order_currency'   => ifset($order['currency'], $default_currency),
             'shipping_address' => $shipping_address,
             'billing_address'  => $billing_address,
-            'discount'=>true,
+            'discount'         => true,
         );
 
         $units = array();
@@ -1897,10 +1900,10 @@ SQL;
 
             #finance data
             'currency'              => $options['currency'],
-            //'total'                 => self::workupValue($order['total'], 'price', $options['currency'], $order['currency']),
             'discount'              => self::workupValue($order['discount'], 'price', $options['currency'], $order['currency']),
             'tax'                   => self::workupValue($order['tax'], 'price', $options['currency'], $order['currency']),
             'shipping'              => self::workupValue($order['shipping'], 'price', $options['currency'], $order['currency']),
+            //'total'               => see below
 
             #billing data
             'payment_name'          => ifset($order['params']['payment_name'], ''),
