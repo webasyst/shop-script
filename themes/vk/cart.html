@@ -14,29 +14,29 @@
 -->
 
     <div class="content">
-    
+
         <form method="post">
-        
+
             <div class="float-right mobile-only block">
                 <input name="checkout" type="submit" value="[`Proceed to checkout`]" class="button large">
             </div>
-            
+
             <h1>[`Shopping cart`]</h1>
-        
+
             <!-- sixteen-column cart layout -->
             <div class="cart">
-                
+
                 {foreach $cart.items as $item}
-                
+
                     <!-- cart item -->
-                    <div class="row" data-id="{$item.id}">                  
+                    <div class="row" data-id="{$item.id}">
                         <div class="col w1 item-thumb"><a href="{$wa->shop->productUrl($item.product)}" title="{$item.product.name|escape}">{$wa->shop->productImgHtml($item.product, '48x48', ['default' => "`$wa_theme_url`img/dummy48.png"])}</a>&nbsp;</div>
                         <div class="col w9 item-name">
                             <a href="{$wa->shop->productUrl($item.product)}" class="bold">{$item.product.name|escape}</a>
                             {if isset($item.sku_name) && strlen($item.sku_name) && $item.sku_name != $item.product.name}{$item.sku_name|escape}{/if}
                         </div>
                         <div class="col w2 item-qty align-center nowrap"><span class="gray">&times;</span> <input type="text" name="quantity[{$item.id}]" value="{$item.quantity}" class="qty{if !empty($item.error)} error{/if}"></div>
-                        <div class="col w1 item-remove"><a class="delete" href="#" title="[`Remove from cart`]"><i class="icon16 remove"></i></a></div>                        
+                        <div class="col w1 item-remove"><a class="delete" href="#" title="[`Remove from cart`]"><i class="icon16 remove"></i></a></div>
                         <div class="col w3 align-center item-total nowrap">{shop_currency_html($item.full_price, true)}</div>
 
                         {if !empty($item.services)}
@@ -66,7 +66,7 @@
                     </div>
                     {if !empty($item.error)}<script>alert({json_encode($item.error)});</script>{/if}
                 {/foreach}
-                
+
                 <!-- discount coupon -->
                 <div class="row no-border" {if !shopDiscounts::isEnabled('coupons') && !$discount}style="display:none"{/if}>
                     <div class="col w10 cart-coupon no-border">
@@ -83,7 +83,11 @@
                 <!-- affiliate bonus -->
                 <div class="row no-border">
                     <div class="col w12 no-border">
-                        {sprintf('[`Your current affiliate bonus of %s points allows you to get an additonal discount of up to %s`]', $affiliate_bonus, "<span class=\"affiliate-discount-available\">{shop_currency_html($potential_affiliate_discount, $wa->shop->currency())}</span>")}
+                        {sprintf(
+                            _w('You have %s bonus point! You can use it to get an additonal discount of up to %s.', 'You have %s bonus points! You can use some of them to get an additonal discount of up to %s.', $affiliate_bonus, false),
+                            "<strong>{$affiliate_bonus}</strong>",
+                            "<span class=\"affiliate-discount-available\">{shop_currency_html($potential_affiliate_discount, $wa->shop->currency())}</span>"
+                        )}
                         {if $use_affiliate}
                         <a id="cancel-affiliate" href="#">[`Cancel`]</a>
                         {else}
@@ -94,7 +98,7 @@
                     <div class="col w1">&nbsp;</div>
                 </div>
                 {/if}
-                
+
                 <!-- TOTAL -->
                 <div class="row large no-border">
                     <div class="col w12 no-border non-mobile-only">[`Total`]</div>
@@ -120,26 +124,26 @@
                     </div>
                     <div class="col w1">&nbsp;</div>
                 </div>
-                
+
                 {if $related = $wa->shop->crossSelling($cart.items, 'product_id')}
                     <div class="row no-border">
                         <div class="col w16 related">
-    
+
                             <h4><strong>[`Recommended!`]</strong> {sprintf('[`Customers who bought %s also bought`]', $item.product.name|escape)}:</h4>
                             {include file="list-thumbs-mini.html" products=$related without_form=true}
                             <div class="clear-both"></div>
                         </div>
                     </div>
                 {/if}
-                
+
             </div>
 
             <!-- plugin hook: 'frontend_cart' -->
             {* @event frontend_cart.%plugin_id% *}
-            {foreach $frontend_cart as $_}{$_}{/foreach}                    
+            {foreach $frontend_cart as $_}{$_}{/foreach}
 
         </form>
-        
+
     </div>
 
 {/if}
