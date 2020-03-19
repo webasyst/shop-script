@@ -125,7 +125,7 @@
                             <td
                                 class="reportSmallFont docNameLabels b_top b_right b_bottom docNameValues"
                                 align=center>
-                                <b class="inline_edit js-editable">{time()|wa_date:'date':null:'ru_RU'}</b>
+                                <b class="inline_edit js-editable">{$order.datetime|default:time()|date_format:'d.m.Y'}</b>
                             </td>
                         </tr>
 
@@ -206,7 +206,7 @@
                         align=right>дата</td>
                     <td style="width: 20mm"
                         class="item_cell b_left b_bottom b_right reportSmallFont inline_edit js-editable"
-                        align=center>{$order.paid_date|default:time()|date_format:'d.m.Y'}</td>
+                        align=center>{$order.datetime|default:time()|date_format:'d.m.Y'}</td>
                 </tr>
                 <tr>
                     <td class="reportSmallFont name_cell nobr" rowspan="2" valign="top">Транспортная
@@ -522,7 +522,7 @@
                 class="mainTable">
                 <tr>
                     <td width="90">М.П.</td>
-                    <td style="padding-left:100px;" class="inline_edit js-editable">{$order.paid_date|default:time()|date_format:'d.m.Y'}</td>
+                    <td style="padding-left:100px;" class="inline_edit js-editable">{$order.datetime|default:time()|date_format:'d.m.Y'}</td>
                 </tr>
             </table>
 
@@ -584,7 +584,7 @@
                 </tr>
                 <tr>
                     <td width="90">М.П.</td>
-                    <td style="padding-left:100px;" class="inline_edit js-editable">{$order.paid_date|default:"&nbsp;"}</td>
+                    <td style="padding-left:100px;" class="inline_edit js-editable">{if !empty($order.paid_datetime)}{$order.paid_datetime|date_format:'d.m.Y'}{/if}</td>
                 </tr>
             </table>
 
