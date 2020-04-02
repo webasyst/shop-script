@@ -2255,8 +2255,17 @@ class shopOrder implements ArrayAccess
                 $this->data['discount_description'] = null;
             }
         } elseif ($value === 'calculate') {
-            $value = null;
             // Recalculate discount
+            $value = null;
+            $this->calculated_discounts = null;
+            unset($this->data['discount_description']);
+            if (!empty($this->data['items']) && is_array($this->data['items'])) {
+                foreach ($this->data['items'] as &$item) {
+                    $item['total_discount'] = 0;
+                    $item['discount_description'] = null;
+                }
+                unset($item);
+            }
         } else {
             // Setup manually
             $this->data['discount_description'] = null;

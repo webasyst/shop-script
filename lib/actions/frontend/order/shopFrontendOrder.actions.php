@@ -473,9 +473,6 @@ class shopFrontendOrderActions extends waJsonActions
             'items_extend_round' => true,
         ]);
 
-        // call indirectly whole total price calculation with applying all discounts
-        $order->total;
-
         return $order;
     }
 

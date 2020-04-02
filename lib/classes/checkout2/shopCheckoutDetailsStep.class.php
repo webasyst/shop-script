@@ -222,7 +222,7 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
                 }
 
                 if (is_numeric($updated_selected_variant['rate'])) {
-                    $is_free_shipping = ifempty($data, 'order', 'coupon', 'type', '') === '$FS';
+                    $is_free_shipping = ifempty($data, 'shipping', 'is_free_shipping', false);
                     if ($is_free_shipping) {
                         $updated_selected_variant['rate'] = 0;
                     }

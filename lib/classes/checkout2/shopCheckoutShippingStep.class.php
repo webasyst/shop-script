@@ -55,7 +55,28 @@ class shopCheckoutShippingStep extends shopCheckoutStep
 
         /** @var shopOrder $order we take cart items from there */
         $order = $data['order'];
+
+        // Before fetching order items, we need to apply discounts.
+        // We ask shopOrder to do that. This has a side effect of gathering data
+        // into $order->items, which is what we use.
+        $order->discount;
+
+        // Discount calculation above may also have had another side effect.
+        // Discount plugins are allowed to reset shipping cost to 0. We have to take note of that.
+        // Alternatively, client may have endered a free shipping coupon.
+        $is_free_shipping = ifempty($data, 'order', 'coupon', 'type', '') === '$FS';
+        if ($order->shipping !== null) {
+            if (!$is_free_shipping && $order->shipping == 0) {
+                $is_free_shipping = true;
+            }
+        }
+
+        // Order items to pass to shipping plugins to calculate rates
         $items = $order->items;
+
+        // Reset discount inside shopOrder back to null
+        // so as not to mess with order creation logic later.
+        $order->discount = 'calculate';
 
         /** @var waContact $contact */
         $contact = $data['contact'];
@@ -145,7 +166,6 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         $currencies = $config->getCurrencies();
 
         $proper_variant_is_selected = false;
-        $is_free_shipping = ifempty($data, 'order', 'coupon', 'type', '') === '$FS';
         foreach ($services_flat as $s_id => $s) {
             if (!isset($s['type']) || !isset($shipping_types[$s['type']])) {
                 continue;
@@ -259,12 +279,13 @@ class shopCheckoutShippingStep extends shopCheckoutStep
                 'section' => $this->getId(),
             ];
         } else {
-            // This is used by Details step
+            // This is used by Details step later
             $data['shipping']['address'] = $address;
             $data['shipping']['selected_variant'] = $shipping_types[$selected_type_id]['variants'][$selected_variant_id];
+            $data['shipping']['is_free_shipping'] = $is_free_shipping;
         }
 
-
+        // These are used by map that shows pickpoint locations
         $adapter = null;
         $apikey = null;
         try{
@@ -283,7 +304,6 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             'adapter' => $adapter,
             'api_key' => $apikey
         ];
-
 
         $result = $this->addRenderedHtml([
             'selected_type_id'    => $selected_type_id,

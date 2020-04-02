@@ -28,6 +28,9 @@ class shopProductCodeModel extends waModel
                     ORDER BY pc.name";
             return $this->query($sql)->fetchAll('id');
         }
+        if (!$type_id) {
+            $type_id = 0;
+        }
 
         $sql = "SELECT pc.*, GROUP_CONCAT(tc.type_id SEPARATOR ',') AS type_ids
                 FROM {$this->table} AS pc
