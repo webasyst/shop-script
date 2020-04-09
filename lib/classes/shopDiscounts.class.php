@@ -773,9 +773,11 @@ HTML;
                         $total_items_discount_cents += $item_discount_cents;
                         $order['items'][$item_id]['total_discount'] += $item_discount_cents / $currency_precision;
                         $order['items'][$item_id]['smashed_discount_cents'] += $item_discount_cents;
-                    }
-                    if(!$order_discount_cents) {
-                        break;
+                        
+                        
+                        if(!$order_discount_cents) {
+                            break;
+                        }
                     }
                 } while ($min_item_discount_cents < abs($order_discount_cents));
             }
