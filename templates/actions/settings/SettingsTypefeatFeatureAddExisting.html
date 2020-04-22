@@ -4,7 +4,10 @@
         <form action="" method="post">
             {* HEADER *}
             <header class="wa-dialog-header">
-                <h1 class="s-title">{sprintf("[`Product features available for type “%s”`]", $type.name|escape)}</h1>
+                <h1 class="s-title">{sprintf("[`Adding of features from other product types to “%s” type`]", $type.name|escape)}</h1>
+                <div class="s-header-description">
+                    <p>[`Start typing the name or identifier of a feature which you need to add to the selected product type.`]</p>
+                </div>
 
                 <div class="s-search-section">
                     <div class="s-search-wrapper">
@@ -63,8 +66,8 @@
                 $wrapper: $wrapper,
                 features: {$features|json_encode},
                 locales: {
-                    "already_exist": {_w("Уже добавлена")|json_encode},
-                    "already_added": {_w("Уже в списке")|json_encode}
+                    "already_exist": {_w("Already added")|json_encode},
+                    "already_added": {_w("Already found")|json_encode}
                 },
                 urls: {
                     "submit": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=typeAddFeatures"

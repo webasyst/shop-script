@@ -21,6 +21,7 @@
  * @property double $shipping               Total order shipping cost in order currency.
  * @property double $discount               Total order discount in order currency. Set it into `null` or empty to hold previous calculated discount or set into 'calculate' to recalculate.
  * @property string $discount_description   Human-readable text description of how discounts were calculated. Intended for store admin, not customer. If you call without calculating a discount, then you will calculate the discount yourself and return the value without affecting the rest of the order.
+ * @property-read string $auth_date         Date when order payment was auth, or NULL if it wasn't
  * @property-read string $paid_date         Date when order was paid, or NULL if it wasn't.
  * @property-read string $paid_year         Part of paid_date used for stats.
  * @property-read string $paid_quarter      Part of paid_date used for stats.
@@ -646,7 +647,6 @@ class shopOrder implements ArrayAccess
         return $this->data;
     }
 
-
     ###############################
     # Common section
     ###############################
@@ -807,6 +807,155 @@ class shopOrder implements ArrayAccess
         return $name;
     }
 
+    /**
+     * Change items of this order according to refund or capture operation (possibly partial refund or partial capture).
+     * Changes $this->items, and may change $this->discount.
+     *
+     * Does not save the order. Have to call $this->save() afterwards.
+     *
+     * $change_items can be `true` which means "everything", or an array [item_id => [ quantity => int ]].
+     *
+     * There are two possible operations:
+     * $mode == waPayment::OPERATION_REFUND means "remove $change_items from this order"
+     * $mode == waPayment::OPERATION_CAPTURE means "remove from this order everything except $change_items"
+     *
+     * @param array|bool $change_items
+     * @param string     $mode         waPayment::OPERATION_REFUND or waPayment::OPERATION_CAPTURE
+     * @param array      $transaction_data
+     * @return array
+     * @throws waException
+     */
+    public function edit($change_items, $mode = waPayment::OPERATION_REFUND, $transaction_data = null)
+    {
+        $return_items = array();
+
+        $items = $this->items;
+
+        $discount = 0.0;
+        foreach ($this->items as $item) {
+            $discount += $item['total_discount'];
+        }
+
+        $extra_total_discount = 0;
+        if ($this->subtotal) {
+            $extra_total_discount = max(0, $this->discount - $discount) / $this->subtotal;
+        }
+
+        $refund_discount = 0.0;
+
+        foreach ($items as $item_id => &$item) {
+
+            if (!empty($item['parent_id'])) {
+                $item_id = $item['parent_id'];
+            } else {
+                $item_id = $item['id'];
+            }
+
+            if ($change_items === true) {
+                $quantity = true;
+            } elseif (is_array($change_items) && isset($change_items[$item_id]['quantity'])) {
+                $quantity = max(0, $change_items[$item_id]['quantity']);
+                switch ($mode) {
+                    case waPayment::OPERATION_CAPTURE:
+                        $quantity = intval(max(0, $item['quantity'] - $quantity));
+                        break;
+                    case waPayment::OPERATION_REFUND:
+                        $quantity = intval(max(0, min($quantity, $item['quantity'])));
+                        break;
+                    default:
+                        throw new waException('Unknown edit payment mode');
+                }
+
+                if (!$quantity) {
+                    $quantity = false;
+                }
+            } else {
+                $quantity = false;
+            }
+
+            if ($quantity !== false) {
+                $item['quantity'] = intval($item['quantity']);
+                if ($item['quantity']) {
+
+                    //correct item price and discount
+                    $item['price'] = floatval($item['price']);
+
+                    if ($item['price'] && $item['quantity']) {
+
+                        $item['discount'] = $item['total_discount'] / $item['quantity'];
+
+                        if ($extra_total_discount) {
+                            $item['discount'] += $item['price'] * $extra_total_discount / $item['quantity'];
+                        }
+
+                    } else {
+                        $item['discount'] = 0;
+                    }
+
+                    // update item quantity
+                    if ($quantity) {
+                        if ($quantity === true) {
+                            $quantity = $item['quantity'];
+                        } else {
+                            $quantity = max(0, min($quantity, $item['quantity']));
+                        }
+
+                        $receipt_item = $item;
+                        $receipt_item['total_discount'] = $item['discount'] * $quantity;
+                        $receipt_item['quantity'] = $quantity;
+
+                        $refund_discount += $receipt_item['total_discount'];
+
+                        $return_items[$item['id']] = $receipt_item;
+
+                        unset($receipt_item);
+                    }
+
+                    $item['total_discount'] = $item['discount'] * ($item['quantity'] - $quantity);
+                    $item['quantity'] -= $quantity;
+                }
+            }
+            unset($item);
+        }
+
+        // Is it partial operation?
+        if ($change_items !== true) {
+
+            $shipping = $this->shipping;
+            $discount = $this->discount;
+            $this->items = $items;
+            if ($refund_discount > 0) {
+                $this->discount = max(0, $discount - $refund_discount);
+            } else {
+                $this->discount = $discount;
+            }
+
+            // Shipping is currently non-refundable in partial mode
+            $this->shipping = $shipping;
+        }
+
+        // Make sure params are loaded, then remember what we are returning to stock.
+        // 'refund_items' param is written to order log by workflow edit action,
+        // then rendered via template at view time.
+        $this->params;
+        $this->data['params']['refund_items'] = $return_items;
+
+        if ($transaction_data && $this->payment_plugin) {
+            $payment_options = array(
+                'currency'       => $this->payment_plugin->allowedCurrency(),
+                'order_currency' => $this->currency,
+            );
+            foreach ($return_items as $id => $item) {
+                if (empty($item['quantity'])) {
+                    unset($return_items[$id]);
+                }
+            }
+            $return_items = shopHelper::workupOrderItems($return_items, $payment_options);
+        }
+
+        return $return_items;
+    }
+
     protected function getBillingAddress()
     {
         $billing_address = shopHelper::getOrderAddress($this->params, 'billing');
@@ -955,10 +1104,11 @@ class shopOrder implements ArrayAccess
     }
 
     /**
+     * @param string $text will be written to order log as comment
      * @return shopOrder
      * @throws waException
      */
-    public function save()
+    public function save($text = null)
     {
         $this->options['mode'] = 'write';
         $this->validate();
@@ -991,6 +1141,9 @@ class shopOrder implements ArrayAccess
             if ($this->options['return_stock'] !== null) {
                 $data['params']['return_stock'] = $this->options['return_stock'];
             }
+        }
+        if ($text !== null) {
+            $data['text'] = $text;
         }
 
         //Save order
@@ -1410,7 +1563,7 @@ class shopOrder implements ArrayAccess
         $parsed = array();
         if ($data) {
             foreach ($data as $k => $v) {
-                if ($k && $k{0} !== '_') {
+                if ($k && $k[0] !== '_') {
                     $parsed['payment_params_'.$k] = $v;
                     $this->data['params']['payment_params_'.$k] = $v;
                 }
@@ -1464,7 +1617,8 @@ class shopOrder implements ArrayAccess
             foreach ((array)$data as $f_id => $value) {
                 if (isset($fields[$f_id])) {
                     $multiple = is_array($value) && array_filter(array_keys($value), 'is_int');
-                    if ($multiple || is_string($value)) {
+                    // birthday data is not string and not array indexed by integer, birthday data presented as associative array with 3 keys: 'year', 'month', 'day'
+                    if ($multiple || is_string($value) || $f_id === 'birthday') {
                         $post[$f_id] = $value;
                     } else {
                         $post[$f_id][0] = $value;
@@ -2085,6 +2239,7 @@ class shopOrder implements ArrayAccess
                 $item['discount_description'] = sprintf($template[$item['type']], $html_value);
             }
         }
+        unset($item);
 
         $this->calculated_discounts['discount_description'] = $discount_description;
         $this->calculated_discounts['discount'] = $discount;
@@ -3829,7 +3984,7 @@ HTML;
         $parsed = array();
         if ($data) {
             foreach ($data as $k => $v) {
-                if ($k && $k{0} !== '_') {
+                if ($k && $k[0] !== '_') {
                     $parsed['shipping_params_'.$k] = $v;
                     $this->data['params']['shipping_params_'.$k] = $v;
                 }

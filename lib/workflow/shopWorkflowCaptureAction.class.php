@@ -12,8 +12,13 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
     public function isAvailable($order)
     {
         if (!empty($order['id'])) {
-            $plugin = null;
+            $plugin = $this->getPaymentPlugin($order['id']);
             $transactions = $this->getPaymentTransactions($plugin, $order['id']);
+
+            if ($plugin->getProperties('partial_capture')) {
+                $this->setOption('html', true);
+            }
+
             if (isset($transactions[waPayment::TRANSACTION_CANCEL])) {
                 return parent::isAvailable($order);
             }
@@ -58,14 +63,42 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
                 && (isset($transactions[waPayment::TRANSACTION_CAPTURE]))
             ) {
                 $transaction = $transactions[waPayment::TRANSACTION_CAPTURE];
+                $partial_capture = $plugin->getProperties('partial_capture') && (waRequest::post('capture_mode') === 'partial');
+                if ($partial_capture) {
+
+                    $return_stock = intval(ifset($options, 'action_options', 'return_stock', waRequest::post('return_stock')));
+
+                    $change_items = ifset($options, 'action_options', 'capture_items', waRequest::post('capture_items'));
+
+                    $order_options = array(
+                        'ignore_stock_validate' => true,
+                        'return_stock'          => $return_stock,
+                    );
+                    $order = new shopOrder($order_id, $order_options);
+
+                    $order->edit($change_items, waPayment::OPERATION_CAPTURE);
+
+                    $text = nl2br(htmlspecialchars(trim(waRequest::post('text', '')), ENT_QUOTES, 'utf-8'));
+                    if (!strlen($text)) {
+                        $text = null;
+                    }
+
+                    $order->save($text);
+                    $order_data = shopPayment::getOrderData($order_id, $plugin);
+                } elseif (!empty($this->order_params_model->getOne($order_id, 'auth_edit'))) {
+                    $partial_capture = true;
+                    //order was edited before
+                    $order_data = shopPayment::getOrderData($order_id, $plugin);
+                }
+
                 try {
-                    $response = $plugin->capture(compact('transaction'));
+                    $response = $plugin->capture(compact('transaction', 'order_data'));
                 } catch (waException $ex) {
                     $message = sprintf(
                         "Error during capture order #%d: %s\nDATA:%s",
                         $order_id,
                         $ex->getMessage(),
-                        var_export(compact('transaction'), true)
+                        var_export(compact('transaction', 'order_data'), true)
                     );
                     waLog::log($message, 'shop/workflow/capture.error.log');
                     throw new waException(_w('An error occurred during the order capture. See error log for details.'));
@@ -80,7 +113,11 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
 
                         $capture_amount_html = shop_currency_html($amount, $currency_id);
 
-                        $template = _w('Capture %s via payment gateway %s.');
+                        if ($partial_capture) {
+                            $template = _w('Partial capture %s via payment gateway %s.');
+                        } else {
+                            $template = _w('Capture %s via payment gateway %s.');
+                        }
 
                         $result = array(
                             'params' => array(
@@ -88,6 +125,8 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
                             ),
                             'text'   => sprintf($template, $capture_amount_html, $plugin->getName()),
                         );
+
+
                     } else {
                         throw new waException(sprintf(_w('Transaction error: %s'), $response['description']));
                     }
@@ -109,6 +148,85 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
         return $result;
     }
 
+    public function getHTML($order_id)
+    {
+        $order_id = intval($order_id);
+
+        /** @var waPayment|null $plugin */
+        $plugin = $this->getPaymentPlugin($order_id);
+        if ($plugin
+            && ($plugin instanceof waIPaymentCapture)
+            && ($transactions = $this->getPaymentTransactions($plugin, ($order_id)))
+            && (isset($transactions[waPayment::TRANSACTION_CAPTURE]))
+        ) {
+            $transaction_data = $transactions[waPayment::TRANSACTION_CAPTURE];
+        } else {
+            $transaction_data = null;
+        }
+
+        $shipping_controls = $this->getShippingFields($order_id, waShipping::STATE_DRAFT);
+
+        $partial_capture = $transaction_data ? $plugin->getProperties('partial_capture') : false;
+
+        $order = new shopOrder($order_id);
+
+        $button_class = $this->getOption('button_class');
+
+        $currency_id = ($transaction_data && $plugin) ? $plugin->allowedCurrency() : $order->currency;
+        $currency = $this->getConfig()->getCurrencies($currency_id);
+        $currency = reset($currency);
+
+        $locale_info = waLocale::getInfo(wa()->getLocale());
+
+        $currency_info = array(
+            'code'             => $currency['code'],
+            'fraction_divider' => ifset($locale_info, 'decimal_point', '.'),
+            'fraction_size'    => ifset($currency, 'precision', 2),
+            'group_divider'    => ifset($locale_info, 'thousands_sep', ''),
+            'group_size'       => 3,
+
+            'pattern_html' => str_replace('0', '%s', waCurrency::format('%{h}', 0, $currency_id)),
+            'pattern_text' => str_replace('0', '%s', waCurrency::format('%{s}', 0, $currency_id)),
+        );
+
+        $app_settings_model = new waAppSettingsModel();
+        if (!$app_settings_model->get('shop', 'disable_stock_count')) {
+            $model = new shopStockModel();
+            $stocks = $model->getAll();
+            if (count($stocks) <= 1) {
+                $stocks = array();
+            }
+        } else {
+            $stocks = array();
+        }
+
+
+        $order->edit(true, waPayment::OPERATION_CAPTURE);
+        $order_items = $this->workupOrderItems($order, $plugin);
+        foreach ($order_items as &$item) {
+            if ($item['quantity']) {
+                $item['price_with_discount'] = $item['price'] - $item['total_discount'] / $item['quantity'];
+            } else {
+                $item['price_with_discount'] = $item['price'];
+            }
+        }
+
+        $this->getView()->assign(
+            compact(
+                'partial_capture',
+                'shipping_controls',
+                'button_class',
+                'order_items',
+                'order',
+                'currency_info',
+                'stocks'
+            )
+        );
+
+        $this->setOption('html', true);
+        return parent::getHTML($order_id);
+    }
+
     public function postExecute($order_id = null, $result = null)
     {
         if (!$result) {
@@ -120,5 +238,28 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
         }
 
         return parent::postExecute($order_id, $result);
+    }
+
+    protected function workupOrderItems(shopOrder $order, waPayment $plugin = null, $items = null)
+    {
+        if (!$items) {
+            $items = $order->items;
+        }
+
+        if ($plugin) {
+            $refund_options = array(
+                'currency'       => $plugin->allowedCurrency(),
+                'order_currency' => $order->currency,
+            );
+            foreach ($items as $id => $item) {
+                if (empty($item['quantity'])) {
+                    unset($items[$id]);
+                }
+            }
+            $items = shopHelper::workupOrderItems($items, $refund_options);
+        }
+
+        return $items;
+
     }
 }

@@ -61,6 +61,8 @@ class shopFrontendCheckoutAction extends waViewAction
                             $this->redirect(wa()->getRouteUrl('/frontend/checkout', array('step' => shopCheckout::STEP_SUCCESS)));
                         } else {
                             $current_step = shopCheckout::STEP_ERROR;
+                            $errors[] = '&larr; <a href="'.wa()->getRouteUrl('/frontend/cart').'">'._w('Go to shopping cart').'</a>';
+                            $this->view->assign('error', implode('<br><br>', $errors));
                         }
                     }
 

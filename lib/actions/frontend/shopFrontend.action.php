@@ -47,8 +47,12 @@ class shopFrontendAction extends waViewAction
         $collection->filters(waRequest::get());
         $limit = (int)waRequest::cookie('products_per_page');
         if (!$limit || $limit < 0 || $limit > 500) {
-            $limit = $this->getConfig()->getOption('products_per_page');
+            $limit = (int)waRequest::param('products_per_page');
+            if (!$limit || $limit < 0 || $limit > 500) {
+                $limit = $this->getConfig()->getOption('products_per_page');
+            }
         }
+
         $page = waRequest::get('page', 1, 'int');
         if ($page < 1) {
             $page = 1;

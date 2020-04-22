@@ -82,6 +82,69 @@
                                 </div>
                             </div>
                         </div>
+{*
+                        <div class="field" style="margin-top: 15px;">
+                            <div class="name">[`Select storefront`]</div>
+                            <div class="value">
+
+                                {$selected_storefront = null}
+                                {$all_storefronts_is_checked = true}
+
+                                {$storefronts = []}
+                                {for $i = 1 to 10}
+                                    {$storefronts[] = [
+                                        "id" => "`$i`",
+                                        "name" => "Название `$i`",
+                                        "icon" => "edit",
+                                        "is_checked" => rand(0, 1)
+                                    ]}
+                                {/for}
+
+                                <div class="s-field-section js-storefront-field-section">
+                                    <div class="s-radio-list">
+                                        <div class="s-radio-wrapper {if !$selected_storefront && !empty($all_storefronts_is_checked)}is-active{/if}">
+                                            <label class="s-radio-label">
+                                                <input class="s-radio js-storefront-group-field" type="radio" name="type[all_storefronts_is_checked]" value="all" {if !$selected_storefront && !empty($all_storefronts_is_checked)}checked{/if}>
+                                                <span class="s-text{if !$selected_storefront} bold{/if}">[`Use for all storefronts`]</span>
+                                            </label>
+                                        </div>
+                                        <div class="s-radio-wrapper {if !$selected_storefront && empty($all_storefronts_is_checked)}is-active{/if}">
+                                            <label class="s-radio-label">
+                                                <input class="s-radio js-storefront-group-field" type="radio" name="type[all_storefronts_is_checked]" value="0" {if !$selected_storefront && empty($all_storefronts_is_checked)}checked{/if}>
+                                                <span class="s-text">[`Use only for selected storefronts`]</span>
+                                            </label>
+
+                                            {strip}
+                                                <div class="s-checkbox-list">
+                                                    {$_all_is_checked = true}
+                                                    {foreach $storefronts as $_storefront}
+                                                        {if empty($_storefront.is_checked)}
+                                                            {$_all_is_checked = false}
+                                                            {break}
+                                                        {/if}
+                                                    {/foreach}
+
+                                                    <label class="s-checkbox-wrapper s-all-checkbox-wrapper">
+                                                        <input class="s-checkbox js-all-storefronts-field" type="checkbox" {if !empty($_all_is_checked)}checked{/if}>
+                                                        <span class="s-text">[`Select all`]</span>
+                                                    </label>
+
+                                                    {foreach $storefronts as $_storefront}
+                                                        <label class="s-checkbox-wrapper">
+                                                            <input class="s-checkbox js-storefront-field" type="checkbox" name="storefronts[{$_storefront.id}]" value="{$_storefront.id}" {if !empty($_storefront.is_checked)}checked{/if}>
+                                                            {shopHelper::getIcon($_storefront.icon)}
+                                                            <span class="s-text">{$_storefront.name|escape}</span>
+                                                        </label>
+                                                    {/foreach}
+                                                </div>
+                                            {/strip}
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+*}
                     </div>
 
                     {if !empty($type_templates)}

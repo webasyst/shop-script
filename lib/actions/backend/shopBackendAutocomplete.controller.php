@@ -315,7 +315,8 @@ class shopBackendAutocompleteController extends waController
             $this->pluginMethodsAutocomplete($q, 'payment', $limit),
             $this->cityAutocomplete($q, $limit),
             $this->regionAutocomplete($q, $limit),
-            $this->countryAutocomplete($q, $limit)
+            $this->countryAutocomplete($q, $limit),
+            $this->itemCodesAutocomplete($q, $limit)
         );
 
     }
@@ -1016,6 +1017,30 @@ SQL;
                     }
                 }
             }
+        }
+        return $result;
+    }
+
+    public function itemCodesAutocomplete($q, $limit = 5)
+    {
+        $oicm = new shopOrderItemCodesModel();
+        $q = $oicm->escape($q, 'like');
+        $term_safe = htmlspecialchars($q, ENT_QUOTES, 'utf-8');
+        $limit = $this->limit($limit);
+        $result = array();
+        $sql = "SELECT DISTINCT oic.code_id, oic.value, oic.code, pc.name
+                FROM shop_order_item_codes AS oic
+                    LEFT JOIN shop_product_code AS pc
+                        ON pc.id=oic.code_id
+                WHERE oic.value LIKE '%{$q}%'
+                LIMIT {$limit}";
+        foreach ($oicm->query($sql) as $item) {
+            $result[] = array(
+                'id'                     => $item['code_id'],
+                'value'                  => $item['value'],
+                'label'                  => $this->prepare(ifset($item, 'name', $item['code']).': '.$item['value'], $term_safe),
+                'autocomplete_item_type' => 'item_code'
+            );
         }
         return $result;
     }

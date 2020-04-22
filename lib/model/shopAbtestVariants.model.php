@@ -41,7 +41,7 @@ class shopAbtestVariantsModel extends waModel
         $l = strlen($prev_code);
         $n = 0;
         for($i = 0; $i < $l; $i++)
-            $n = $n*26 + ord($prev_code{$i}) - 0x40;
+            $n = $n*26 + ord($prev_code[$i]) - 0x40;
 
         // integer to code
         for($r = ""; $n >= 0; $n = intval($n / 26) - 1)

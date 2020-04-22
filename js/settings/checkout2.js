@@ -582,6 +582,14 @@ var ShopSettingsCheckout2 = ( function($) {
 
                 $shipping_mode_wrapper.find('.js-variant-params').hide(); // Close all
                 $current_variant.find('.js-variant-params').show();    // Show current
+
+                var value = $(this).val();
+                if (value === "minimum") {
+                    var locations_count = $locations_table.find('.js-location').length;
+                    if (!locations_count) {
+                        $current_variant.find(".js-add-location").trigger("click");
+                    }
+                }
             });
 
             // Edit fixed location item
@@ -595,9 +603,12 @@ var ShopSettingsCheckout2 = ( function($) {
 
             // Delete fixed location item
             $locations_table.on('click', '.js-delete-location', function () {
+                var locations_count = $locations_table.find('.js-location').length;
+                if (locations_count <= 1) { return false; }
+
                 $(this).parents('tr.js-location').remove();
 
-                if (!$locations_table.find('.js-location').length) {
+                if (!locations_count) {
                     var $no_locations = $(that.shipping_no_locations_template).clone();
                     $locations_table.append($no_locations);
                 }

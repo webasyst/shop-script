@@ -147,10 +147,10 @@ class shopSettingsTaxesAction extends waViewAction
 
     public function sortHelper($a, $b)
     {
-        if ($a['iso3']{0} === '%' && $b['iso3']{0} !== '%') {
+        if ($a['iso3'][0] === '%' && $b['iso3'][0] !== '%') {
             return 1;
         }
-        if ($a['iso3']{0} !== '%' && $b['iso3']{0} === '%') {
+        if ($a['iso3'][0] !== '%' && $b['iso3'][0] === '%') {
             return -1;
         }
         return strcmp($a['name'], $b['name']);

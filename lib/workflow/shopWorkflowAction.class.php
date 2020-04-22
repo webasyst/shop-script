@@ -112,12 +112,42 @@ HTML;
         }
     }
 
+    protected function checkRefundFixInPlugins()
+    {
+        $plugins = array(
+            'komtetkassa' => '999',
+            'komtetdelivery' => '999',
+            'initprokassa' => '999',
+            'fiscalizationlifepay' => '999',
+            'atolonline' => '999',
+            'courierlite' => '999',
+            'ekamru' => '999',
+            'modul' => '999',
+            'orangedata' => '999',
+            'cloudpayment' => '999',
+            'nanokassa' => '999',
+            'mobika' => '999'
+        );
+        $active_plugins = wa('shop')->getConfig()->getPlugins();
+        $convergence = array_intersect_key($active_plugins, $plugins);
+        $uncorrected_plugins = array();
+
+        foreach ($convergence as $plugin_name => $plugin_config) {
+            if ($plugin_config['version'] <= $plugins[$plugin_name]) {
+                $uncorrected_plugins[] = $plugin_config['name'];
+            }
+        }
+
+        return $uncorrected_plugins;
+    }
+
     public function getHTML($order_id)
     {
         $action_id = $this->getId();
         $data = array();
         $data['order_id'] = $order_id;
         $data['action_id'] = $this->getId();
+        $uncorrected_refund_plugins = self::checkRefundFixInPlugins();
         /**
          * @event order_action_form.callback
          * @event order_action_form.pay
@@ -145,6 +175,7 @@ HTML;
             'order_id'     => $order_id,
             'action_id'    => $action_id,
             'plugins_html' => $html,
+            'uncorrected_refund_plugins' => $uncorrected_refund_plugins,
         ));
 
         return $this->display();

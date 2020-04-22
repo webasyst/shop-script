@@ -160,6 +160,9 @@
                     case 'country':
                         $.wa.setHash('#/orders/country=' + autocomplete_item.value + '/');
                         break;
+                    case 'item_code':
+                        $.wa.setHash('#/orders/item_code=' + autocomplete_item.value + '/');
+                        break;
                     default:
                         // search
                         break;

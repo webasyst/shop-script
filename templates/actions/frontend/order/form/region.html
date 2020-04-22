@@ -223,7 +223,7 @@
                             <label class="wa-label">{_render_label _label=$_system_address_field_names.city _required=!empty($_is_city_required)}</label>
 
                             {if empty($_active_location.city_locked)}
-                                {if $_active_region.has_cities}
+                                {if !empty($_active_region.has_cities)}
                                     {$_active_city_id = $_active_location.city_id}
                                     {if !empty($region.selected_values.city_id)}
                                         {$_active_city_id = $region.selected_values.city_id}
@@ -248,7 +248,7 @@
                                         {/foreach}
                                     </select>
                                 {else}
-                                    {$_city_value = $_active_location.city}
+                                    {$_city_value = ifset($_active_location, 'city', null)}
                                     {if !empty($region.selected_values.city)}
                                         {$_city_value = $region.selected_values.city}
                                     {/if}

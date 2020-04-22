@@ -67,7 +67,7 @@ class shopTypeModel extends shopSortableModel
         foreach ($data as $id => $inc) {
             if ($id = intval($id)) {
                 $inc = $this->escape(trim($inc));
-                if ($inc{0} != '+' && $inc{0} != '-') {
+                if ($inc[0] != '+' && $inc[0] != '-') {
                     $inc = '+'.$inc;
                 }
                 $this->exec("UPDATE `{$this->table}` SET `count`=`count`{$inc} WHERE `id` = {$id}");

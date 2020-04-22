@@ -1,20 +1,23 @@
-var OrderRefundSection = ( function($) {
+var OrderCaptureSection = (function ($) {
 
-    OrderRefundSection = function(options) {
+    OrderCaptureSection = function (options) {
         var that = this;
 
         // DOM
         that.$wrapper = options["$wrapper"];
         that.$form = that.$wrapper.find("form");
         that.$products = that.$wrapper.find(".s-products-table");
+        that.$stocks = that.$wrapper.find(':input[name=return_stock]').parents('div.field');
         that.$submit_button = that.$form.find(".js-submit-button");
         that.$messages_place = that.$form.find(".s-messages-place");
 
         // CONST
         that.templates = options["templates"];
         that.currency_info = options["currency_info"];
-        that.total_price = options["total_price"];
         that.locales = options["locales"];
+
+        that.shipping_price = options["shipping_price"];
+        that.total_price_html = options["total_price_html"];
 
         // DYNAMIC VARS
 
@@ -22,7 +25,7 @@ var OrderRefundSection = ( function($) {
         that.init();
     };
 
-    OrderRefundSection.prototype.init = function() {
+    OrderCaptureSection.prototype.init = function () {
         var that = this;
 
         that.initSubmit();
@@ -31,16 +34,16 @@ var OrderRefundSection = ( function($) {
             that.initModeToggle();
         }
 
-        that.initRefundToggle();
+        that.initCaptureToggle();
 
-        that.$wrapper.on("click", ".js-close-section", function(event) {
+        that.$wrapper.on("click", ".js-close-section", function (event) {
             event.preventDefault();
             $('#workflow-content').empty().hide();
             $('.workflow-actions').show();
         });
     };
 
-    OrderRefundSection.prototype.initModeToggle = function() {
+    OrderCaptureSection.prototype.initModeToggle = function () {
         var that = this;
 
         var $check_all = that.$products.find(".js-check-all"),
@@ -48,8 +51,6 @@ var OrderRefundSection = ( function($) {
             $amount_fields = that.$products.find(".js-quantity-field:not(.is-disabled)");
 
         var disabled_class = "is-disabled";
-
-        var $refund_plugins_message = null;
 
         // EVENTS
 
@@ -63,40 +64,26 @@ var OrderRefundSection = ( function($) {
                     that.$products.hide()
                         .find("input:not(.is-disabled)").attr("disabled", true);
 
-                    $total_price.html(that.total_price);
-                    that.$submit_button.attr("disabled", false);
+                    that.$stocks.hide();
 
-                    checkPlugins(true);
+                    $total_price.html(that.total_price_html);
+                    that.$submit_button.attr("disabled", false);
 
                 } else {
                     that.$products.show()
                         .find("input:not(.is-disabled)").attr("disabled", false);
 
+                    that.$stocks.show();
                     $amount_fields.val(0).trigger("change");
-
-                    checkPlugins(false);
                 }
             }
 
             that.$wrapper.trigger("refresh");
-
-            function checkPlugins(full_refund) {
-                if (full_refund) {
-                    if ($refund_plugins_message) {
-                        $refund_plugins_message.remove();
-                        $refund_plugins_message = null;
-                    }
-                } else {
-                    if (that.templates["uncorrected_refund_plugins_message"]) {
-                        $refund_plugins_message = $(that.templates["uncorrected_refund_plugins_message"]).appendTo(that.$messages_place);
-                    }
-                }
-            }
         });
 
-        that.$products.on("keydown", ".js-quantity-field", function(event) {
+        that.$products.on("keydown", ".js-quantity-field", function (event) {
             var key = event.keyCode,
-                is_enter = ( key === 13 );
+                is_enter = (key === 13);
 
             if (is_enter) {
                 event.preventDefault();
@@ -104,7 +91,7 @@ var OrderRefundSection = ( function($) {
             }
         });
 
-        that.$products.on("change", ".js-quantity-field", function(event, force) {
+        that.$products.on("change", ".js-quantity-field", function (event, force) {
             var $field = $(this),
                 $product = $field.closest(".s-product-wrapper"),
                 value = validate($field);
@@ -128,11 +115,17 @@ var OrderRefundSection = ( function($) {
 
             function validate($field) {
                 var value = $field.val(),
-                    max = parseFloat( $field.attr("max") );
+                    max = parseFloat($field.attr("max"));
 
-                if (!parseFloat(value)) { value = 0; }
-                if (value < 0 ) { value = 0; }
-                if (max > 0 && value > max) { value = max; }
+                if (!parseFloat(value)) {
+                    value = 0;
+                }
+                if (value < 0) {
+                    value = 0;
+                }
+                if (max > 0 && value > max) {
+                    value = max;
+                }
 
                 value = Math.ceil(value);
 
@@ -140,7 +133,7 @@ var OrderRefundSection = ( function($) {
             }
         });
 
-        that.$products.on("change", ".js-product-checkbox", function(event, force) {
+        that.$products.on("change", ".js-product-checkbox", function (event, force) {
             var $field = $(this),
                 $product = $field.closest(".s-product-wrapper"),
                 $quantity = $product.find(".js-quantity-field");
@@ -153,7 +146,7 @@ var OrderRefundSection = ( function($) {
             }
 
             if (!force) {
-                var max = ( is_active ? ( parseFloat($quantity.attr("max")) || 1 ) : 0 );
+                var max = (is_active ? (parseFloat($quantity.attr("max")) || 1) : 0);
                 $quantity.val(max).trigger("change", true);
             }
 
@@ -164,13 +157,13 @@ var OrderRefundSection = ( function($) {
             $check_all.attr("checked", (active_count === count));
         });
 
-        $check_all.on("change", function() {
+        $check_all.on("change", function () {
             var is_active = $(this).is(":checked");
 
             if (is_active) {
-                $amount_fields.each( function() {
+                $amount_fields.each(function () {
                     var $field = $(this),
-                        max = ( parseFloat($field.attr("max")) || 1 );
+                        max = (parseFloat($field.attr("max")) || 1);
 
                     $field.val(max);
                 });
@@ -186,7 +179,7 @@ var OrderRefundSection = ( function($) {
         function updatePrices() {
             var total_price = 0;
 
-            that.$products.find(".s-product-wrapper").each( function() {
+            that.$products.find(".s-product-wrapper").each(function () {
                 var $product = $(this),
                     $product_total = $product.find(".js-product-total-price"),
                     is_disabled = $product.hasClass(disabled_class),
@@ -199,14 +192,16 @@ var OrderRefundSection = ( function($) {
 
                 var product_price = price * quantity;
 
-                $product_total.html( formatPrice(product_price) );
+                $product_total.html(formatPrice(product_price));
 
                 total_price += product_price;
             });
 
             that.$submit_button.attr("disabled", !(total_price > 0));
 
-            $total_price.html( formatPrice(total_price) );
+            total_price += that.shipping_price;
+
+            $total_price.html(formatPrice(total_price));
         }
 
         /**
@@ -217,7 +212,7 @@ var OrderRefundSection = ( function($) {
             var product_ident = $product.data("product-ident");
 
             var $product_services = findProducts(product_ident).filter(".is-service");
-            $product_services.each( function() {
+            $product_services.each(function () {
                 var $service = $(this),
                     $amount = $service.find(".js-quantity-text"),
                     $total = $service.find(".js-product-total-price");
@@ -236,7 +231,7 @@ var OrderRefundSection = ( function($) {
                 }
 
                 $amount.html(amount);
-                $total.html( formatPrice(service_price, that.currency_info) );
+                $total.html(formatPrice(service_price, that.currency_info));
             });
         }
 
@@ -263,20 +258,22 @@ var OrderRefundSection = ( function($) {
         function formatPriceCurrency(price, format, text) {
             var result = price;
 
-            if (!format) { return result; }
+            if (!format) {
+                return result;
+            }
 
             try {
                 price = parseFloat(price).toFixed(format.fraction_size);
 
-                if ( (price >= 0) && format) {
+                if ((price >= 0) && format) {
                     var price_floor = Math.floor(price),
                         price_string = getGroupedString("" + price_floor, format.group_size, format.group_divider),
                         fraction_string = getFractionString(price - price_floor);
 
-                    result = ( text ? format.pattern_text : format.pattern_html ).replace("%s", price_string + fraction_string );
+                    result = (text ? format.pattern_text : format.pattern_html).replace("%s", price_string + fraction_string);
                 }
 
-            } catch(e) {
+            } catch (e) {
                 if (console && console.log) {
                     console.log(e.message, price);
                 }
@@ -318,7 +315,7 @@ var OrderRefundSection = ( function($) {
                     var is_last_group = (i === groups.length - 1),
                         _group = groups[i].join("");
 
-                    result += _group + ( is_last_group ? "" : divider );
+                    result += _group + (is_last_group ? "" : divider);
                 }
 
                 return result;
@@ -329,7 +326,7 @@ var OrderRefundSection = ( function($) {
 
                 if (number > 0) {
                     number = number.toFixed(format.fraction_size + 1);
-                    number = Math.round(number * Math.pow(10, format.fraction_size))/Math.pow(10, format.fraction_size);
+                    number = Math.round(number * Math.pow(10, format.fraction_size)) / Math.pow(10, format.fraction_size);
                     var string = number.toFixed(format.fraction_size);
                     result = string.replace("0.", format.fraction_divider);
                 }
@@ -339,11 +336,11 @@ var OrderRefundSection = ( function($) {
         }
     };
 
-    OrderRefundSection.prototype.initSubmit = function() {
+    OrderCaptureSection.prototype.initSubmit = function () {
         var that = this,
             is_locked = false;
 
-        that.$form.on("submit", function(event) {
+        that.$form.on("submit", function (event) {
             event.preventDefault();
 
             if (!is_locked) {
@@ -353,38 +350,33 @@ var OrderRefundSection = ( function($) {
                 var href = that.$form.attr('action'),
                     data = that.$form.serializeArray();
 
-                $.post(href, data,"json")
-                    .always( function() {
+                $.post(href, data, "json")
+                    .always(function () {
                         that.$submit_button.attr("disabled", false);
                         is_locked = false;
-                    }).done( function() {
-                        // this event is used in CRM app
-                        that.$form.trigger("formSend");
+                    }).done(function () {
+                    // this event is used in CRM app
+                    that.$form.trigger("formSend");
 
-                        if ($.order && $.order.reload) {
-                            $.order.reload();
-                        }
-                    });
+                    if ($.order && $.order.reload) {
+                        $.order.reload();
+                    }
+                });
             }
         });
     };
 
-    OrderRefundSection.prototype.initRefundToggle = function() {
+    OrderCaptureSection.prototype.initCaptureToggle = function () {
         var that = this;
 
         var $total_label = that.$wrapper.find(".js-total-label");
 
-        that.$wrapper.on("change", ".js-refund-checkbox", function() {
-            if (this.checked) {
-                that.$messages_place.append(that.templates["warning_message"]);
-                $total_label.html(that.locales["auto_refund"]);
-            } else {
-                that.$messages_place.html("");
-                $total_label.html(that.locales["manual_refund"]);
-            }
+        that.$wrapper.on("change", ".js-capture-checkbox", function () {
+            that.$messages_place.append(that.templates["warning_message"]);
+            $total_label.html(that.locales["auto_capture"]);
         });
     };
 
-    return OrderRefundSection;
+    return OrderCaptureSection;
 
 })(jQuery);

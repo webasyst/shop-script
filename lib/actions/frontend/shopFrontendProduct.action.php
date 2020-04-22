@@ -323,7 +323,11 @@ class shopFrontendProductAction extends shopFrontendAction
         $services = array_unique($services);
 
         $services = $service_model->getById($services);
-        shopRounding::roundServices($services);
+
+        $need_round_services = wa()->getSetting('round_services');
+        if ($need_round_services) {
+            shopRounding::roundServices($services);
+        }
 
         // Convert service.price from default currency to service.currency
         foreach ($services as &$s) {
@@ -336,7 +340,11 @@ class shopFrontendProductAction extends shopFrontendAction
         // Fetch service variants
         $variants_model = new shopServiceVariantsModel();
         $rows = $variants_model->getByField('service_id', array_keys($services), true);
-        shopRounding::roundServiceVariants($rows, $services);
+
+        if ($need_round_services) {
+            shopRounding::roundServiceVariants($rows, $services);
+        }
+
         foreach ($rows as $row) {
             if (!$row['price']) {
                 $row['price'] = $services[$row['service_id']]['price'];
@@ -349,7 +357,10 @@ class shopFrontendProductAction extends shopFrontendAction
 
         // Fetch service prices for specific products and skus
         $rows = $product_services_model->getByField('product_id', $product['id'], true);
-        shopRounding::roundServiceVariants($rows, $services);
+
+        if ($need_round_services) {
+            shopRounding::roundServiceVariants($rows, $services);
+        }
 
         // re-define statuses of service variants for that product
         foreach ($rows as $row) {

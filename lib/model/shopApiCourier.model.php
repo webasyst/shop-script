@@ -54,7 +54,7 @@ class shopApiCourierModel extends waModel
         $hash = 0;
         $result = '';
         while(strlen($result) < 7) {
-            $digit = intval($alphabet{mt_rand(0, strlen($alphabet)-1)});
+            $digit = intval($alphabet[mt_rand(0, strlen($alphabet)-1)]);
             $hash = (($hash << 1) - $hash + $digit) & 0xff;
             $result .= $digit;
         }

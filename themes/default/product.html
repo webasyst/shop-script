@@ -9,10 +9,12 @@
     <h1>
         <span itemprop="name">{$product.name|escape}</span>
         {if !empty($product.rating) && $product.rating > 0}
-            <span class="rating nowrap" itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating" title="{sprintf('[`Average user rating: %s / 5`]', $product.rating)}">
+            <span class="rating nowrap" title="{sprintf('[`Average user rating: %s / 5`]', $product.rating)}" {if !empty($reviews_total_count)}itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating"{/if}>
                 {$wa->shop->ratingHtml($product.rating, 16)}
-                <span itemprop="ratingValue" style="display: none;">{$product.rating}</span>
-                <span itemprop="reviewCount" style="display: none;">{$reviews_total_count}</span>
+                {if !empty($reviews_total_count)}
+                    <meta itemprop="ratingValue" content = "{$product.rating}">
+                    <meta itemprop="reviewCount" content = "{$reviews_total_count}">
+                {/if}
             </span>
         {/if}
     </h1>

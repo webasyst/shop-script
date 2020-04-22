@@ -3,6 +3,7 @@
 class shopWorkflowEditAction extends shopWorkflowAction
 {
     private $order_item;
+
     protected function price($value, $currency = null)
     {
         if (strpos($value, ',') !== false) {
@@ -16,14 +17,38 @@ class shopWorkflowEditAction extends shopWorkflowAction
 
     public function isAvailable($order)
     {
+        $available = true;
         if (is_array($order)) {
             $this->order_item = $order;
         }
-        return parent::isAvailable($order);
+
+        if ($order) {
+            if (!($order instanceof shopOrder)) {
+                $order = new shopOrder($order);
+            }
+
+            // For now we explicitly prohibit to edit orders in 'auth' state -
+            // that is, when client's money are on hold. User has to capture
+            // or cancel the payment first.
+            // There's no fundamental reason why we can't edit the order. It just makes
+            // interaction with payment plugins way more complicated, when it is already
+            // a total mess. Nobody bothered.
+            if ($order->auth_date && !$order->paid_date) {
+                if ($order->payment_plugin && !$order->payment_plugin->getProperties('partial_capture')) {
+                    $available = false;
+                } else {
+                    //TODO: turn it onto true, when partial edit will be realized
+                    $available = false;
+                }
+            }
+        }
+
+        return $available && parent::isAvailable($order);
     }
 
     public function execute($data = null)
     {
+        $return = true;
         $order = $this->order_model->getById($data['id']);
 
         # after editing every unsettled order became simple order
@@ -140,7 +165,7 @@ class shopWorkflowEditAction extends shopWorkflowAction
             shopProductStocksLogModel::TYPE_ORDER,
             /*_w*/ ('Order %s was edited'),
             array(
-                'order_id' => $data['id'],
+                'order_id'        => $data['id'],
                 'return_stock_id' => ifset($data, 'params', 'return_stock', null),
             )
         );
@@ -159,6 +184,27 @@ class shopWorkflowEditAction extends shopWorkflowAction
             } catch (waException $ex) {
 
             }
+        }
+
+        if (!empty($data['params']['refund_items'])) {
+            // Write refund items as JSON into order log params.
+            // This later becomes human-readable text during template rendering.
+            $return = array(
+                'params' => array(
+                    'refund_items' => $data['params']['refund_items'],
+                ),
+            );
+            unset($data['params']['refund_items']);
+            //TODO use it, when edit order in `auth` state
+            $data['params']['auth_edit'] = date('Y-m-d H:i:s');
+        }
+
+        if (!empty($data['text'])) {
+            if (!is_array($return)) {
+                $return = array();
+            }
+            $return['text'] = $data['text'];
+            unset($data['text']);
         }
 
         // SAVE ORDER ITEMS
@@ -185,7 +231,7 @@ class shopWorkflowEditAction extends shopWorkflowAction
 
         $this->marketingPromoWorkflowRun($data['id']);
 
-        return true;
+        return $return;
     }
 
     public function postExecute($order = null, $result = null)

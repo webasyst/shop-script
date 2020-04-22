@@ -683,6 +683,40 @@ class shopMarketingPromoSaveController extends waJsonController
         }
     }
 
+    /**
+     * Saving promo coupon
+     *
+     * @param int $rule
+     * @throws waDbException
+     * @throws waException
+     */
+    private function saveCouponRule($rule)
+    {
+        $coupon_ids = ifempty($rule, 'rule_params', []);
+        $shop_sales_model = new shopSalesModel();
+        $model_promo_order_model = new shopPromoOrdersModel();
+        $model_promo_order_model->refreshPromoOrders($this->promo_id, $coupon_ids);
+        $shop_promo_model = new shopPromoModel();
+        $shop_promo = $shop_promo_model->getPromo($this->promo_id);
+
+        /** Deleting the statistics cache */
+        if ($shop_promo['start_datetime'] === null || $shop_promo['finish_datetime'] === null) {
+            $shop_order_model = new shopOrderModel();
+            $shop_order = $shop_order_model->getMinMaxDateByCoupon($coupon_ids);
+            if (empty($shop_order['mindate'])) {
+                // no need to clear cache when there are no orders with coupons
+                return;
+            }
+            if ($shop_promo['start_datetime'] === null) {
+                $shop_promo['start_datetime'] = $shop_order['mindate'];
+            }
+            if ($shop_promo['finish_datetime'] === null) {
+                $shop_promo['finish_datetime'] = $shop_order['maxdate'];
+            }
+        }
+        $shop_sales_model->deletePeriod($shop_promo['start_datetime'], $shop_promo['finish_datetime']);
+    }
+
     protected function saveBannerRule(&$rule)
     {
         // Executable only if the tool was created or edited.

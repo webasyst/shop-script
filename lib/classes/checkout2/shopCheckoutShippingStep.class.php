@@ -35,6 +35,26 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         $errors = [];
         if (!$config['shipping']['ask_zip']) {
             unset($address['zip']);
+
+            //
+            // When checkout is set up not to ask ZIP code at Region step,
+            // but user already entered it at Details step,
+            // use that ZIP code to calculate list of shipping variants.
+            //
+
+            // Try to get ZIP code from Details step data
+            $zip_from_future = ifset($data, 'input', 'details', 'shipping_address', 'zip', null);
+
+            // Try to get ZIP code from session storage
+            if (!$zip_from_future) {
+                $storage = $this->getCheckoutConfig()->getStorage();
+                $stored_address = $storage->get('details_address');
+                $zip_from_future = ifset($stored_address, 'zip', null);
+            }
+
+            if ($zip_from_future) {
+                $address['zip'] = $zip_from_future;
+            }
         }
 
         if (empty($address['country']) || empty($address['region']) || empty($address['city'])) {
@@ -279,6 +299,10 @@ class shopCheckoutShippingStep extends shopCheckoutStep
                 'section' => $this->getId(),
             ];
         } else {
+            if (!$config['shipping']['ask_zip']) {
+                unset($address['zip']);
+            }
+
             // This is used by Details step later
             $data['shipping']['address'] = $address;
             $data['shipping']['selected_variant'] = $shipping_types[$selected_type_id]['variants'][$selected_variant_id];
@@ -414,7 +438,7 @@ class shopCheckoutShippingStep extends shopCheckoutStep
                 if (strlen($time_start) == 8) {
                     $time_start = substr($time_start, 0, -3);
                 }
-                if ($time_start{0} === '0') {
+                if ($time_start[0] === '0') {
                     $time_start = substr($time_start, 1);
                 }
             }
@@ -422,7 +446,7 @@ class shopCheckoutShippingStep extends shopCheckoutStep
                 if (strlen($time_end) == 8) {
                     $time_end = substr($time_end, 0, -3);
                 }
-                if ($time_end{0} === '0') {
+                if ($time_end[0] === '0') {
                     $time_end = substr($time_end, 1);
                 }
             }

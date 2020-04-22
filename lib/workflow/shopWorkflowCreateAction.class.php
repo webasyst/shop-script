@@ -491,7 +491,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             $stock_id = waRequest::param('stock_id');
         }
         if (!wa_is_int($stock_id)) {
-            if ($stock_id && empty($virtualstock_id) && is_string($stock_id) && $stock_id{0} == 'v') {
+            if ($stock_id && empty($virtualstock_id) && is_string($stock_id) && $stock_id[0] == 'v') {
                 $virtualstock_id = (int)substr($stock_id, 1);
                 $virtualstock_id = ifempty($virtualstock_id);
             }

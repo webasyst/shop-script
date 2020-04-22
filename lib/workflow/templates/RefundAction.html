@@ -22,15 +22,15 @@
             <div class="s-fields-wrapper">
 
                 <div class="field">
-                    <div class="name">[`Refund`]</div>
+                    <div class="name">[`Refund type`]</div>
                     <div class="value">
                         <label>
                             <input class="js-mode-toggle" type="radio" name="refund_mode" value="full" checked>
-                            <span class="bold">[`Full`]</span>
+                            <span class="bold">[`full refund`]</span>
                         </label>
                         <label>
                             <input class="js-mode-toggle" type="radio" name="refund_mode" value="partial" {if empty($order_items_count) ||(!empty($transaction_data) && empty($partial_refund))}disabled{/if}>
-                            <span class="bold">[`Partial`]</span>
+                            <span class="bold">[`partial refund`]</span>
                         </label>
                     </div>
                 </div>
@@ -252,6 +252,25 @@
         <input type="hidden" name="action_id" value="{$action_id}">
     </form>
 
+    {if !empty($uncorrected_refund_plugins)}
+        {capture assign="_uncorrected_refund_plugins_message"}
+            <div class="s-message red">
+                <i class="icon16 exclamation-red"></i>Проверьте, поддерживается ли это действие плагином, который используется в вашем магазине для фискализации чеков.
+                <br><br>
+                Если действие не поддерживается, выполните его также вручную в личном кабинете сервиса фискализации. Если вы не знаете, как это сделать, то не выполняйте это действие с заказом.
+                <br><br>
+                Список плагинов, которые нужно проверить:<br>
+                <ul>
+                    {foreach $uncorrected_refund_plugins as $name_plugin}
+                        <li>{$name_plugin|escape}</li>
+                    {/foreach}
+                </ul>
+            </div>
+        {/capture}
+    {else}
+        {$_uncorrected_refund_plugins_message = null}
+    {/if}
+
     <script>
         ( function($) {
             (function(init) { "use strict";
@@ -285,7 +304,8 @@
                     currency_info: {$currency_info|json_encode},
                     total_price: {$_total_price|json_encode},
                     templates: {
-                        warning_message: {$_warning_message|json_encode}
+                        warning_message: {$_warning_message|json_encode},
+                        uncorrected_refund_plugins_message: {if !empty($_uncorrected_refund_plugins_message)}{$_uncorrected_refund_plugins_message|json_encode}{else}null{/if}
                     },
                     locales: {$_locales|json_encode}
                 });

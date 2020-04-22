@@ -236,6 +236,11 @@ class shopImage
             }
         }
 
+        $image_thumb_delay = intval(wa('shop')->getConfig()->getOption('image_thumb_delay'));
+        if ($image_thumb_delay !== 0) {
+            usleep($image_thumb_delay);
+        }
+
         /**
          * Extend thumbs for product images
          * Make extra workup

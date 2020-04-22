@@ -103,4 +103,20 @@ class shopPromoOrdersModel extends waModel
 
         return $result;
     }
+
+    /**
+     * Updating orders placed with a coupon
+     *
+     * @param $promo_id
+     * @param $orders_ids
+     */
+    public function refreshPromoOrders($promo_id, $orders_ids)
+    {
+        if (!$orders_ids) {
+            return;
+        }
+        $sql = "INSERT IGNORE INTO {$this->table}
+        (SELECT order_id, ? AS promo_id FROM shop_order_params WHERE name = 'coupon_id' AND value IN (?))";
+        $this->query($sql, [$promo_id, $orders_ids]);
+    }
 }

@@ -788,6 +788,27 @@ SQL;
         }
     }
 
+    /**
+     * Getting the minimum and maximum dates of orders
+     * placed with the corresponding coupons
+     *
+     * @param array $couponIds
+     * @return array
+     */
+    public function getMinMaxDateByCoupon($couponIds)
+    {
+        if (!$couponIds) {
+            return [];
+        }
+        $sql = "SELECT MIN(o.create_datetime) AS mindate, MAX(o.create_datetime) AS maxdate
+                FROM {$this->table} AS o
+                    JOIN shop_order_params AS op
+                        ON op.order_id=o.id
+                WHERE op.name='coupon_id'
+                    AND op.value IN (?)";
+        return $this->query($sql, [$couponIds])->fetchAssoc();
+    }
+
     public function getTotalSalesByContact($contact_id, $paid_only = true)
     {
         $sql = "SELECT SUM(total*rate)

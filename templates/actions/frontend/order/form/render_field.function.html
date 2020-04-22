@@ -38,6 +38,7 @@
             <input class="wa-input wa-date js-datepicker" type="text"
                 autocomplete="false"
                 data-alt=".js-alt-date"
+                {if $_field.id === "birthday"}data-type="birthday"{/if}
                 {*placeholder="{$_field.label|escape}"*}
                 value="{if !empty($_field.value)}{$_field.value|wa_date}{/if}"
                 {if !empty($_field.required)}required{/if}
@@ -95,11 +96,19 @@
     {elseif $_field.type == "radio"}
         <div class="wa-field-wrapper size-large">
             <div class="wa-label">{$_label}</div>
+
+            {if empty($_field.value) && !empty($_field.required)}
+                {if !empty($_field.options)}
+                    {$_first = reset($_field.options)}
+                    {$_field.value = $_first.value}
+                {/if}
+            {/if}
+
             {foreach $_field.options as $_option}
                 {$_is_active = ($_option.value == $_field.value)}
                 <div class="wa-radio-wrapper">
                     <label>
-                        <input class="wa-radio" type="radio" name="{$_field.name|escape}" value="{$_option.value|escape}" {if !empty($_is_active)}checked{/if}>
+                        <input class="wa-radio" type="radio" name="{$_field.name|escape}" value="{$_option.value|escape}" {if !empty($_is_active)}checked{/if} {if !empty($_field.required)}required{/if}>
                         <span class="wa-text">{$_option.label|escape}</span>
                     </label>
                 </div>

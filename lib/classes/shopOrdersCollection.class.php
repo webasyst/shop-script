@@ -1036,14 +1036,20 @@ class shopOrdersCollection
                 $op = ifset($parts[1], '');
                 $val = ifset($parts[2], '');
 
-                if ($field = $this->dropPrefix($param, 'params.')) {
+                if ($field = $this->dropPrefix($param, 'item_code.')) {
+                    $where = ":table.value".$this->getExpression($op, $val);
+                    if ($field != 'any') {
+                        $where = "($where AND :table.code_id=".((int)$field).")";
+                    }
+                    $this->addJoin('shop_order_item_codes', "o.id = :table.order_id", $where);
+                } elseif ($field = $this->dropPrefix($param, 'params.')) {
 
                     #search by order params
                     $join = array(
                         'table' => 'shop_order_params',
                         'type'  => $val === 'NULL' || $val === 'EMPTY' ? 'LEFT' : '',
                     );
-                    $on = "o.id = :table.order_id AND :table.name = '".$model->escape($field)."'";
+                    $on = "o.id = :table.order_id AND :table.name = '" . $model->escape($field) . "'";
                     if ($val === 'EMPTY') {
                         $where = "(:table.value IS NULL OR :table.value = '')";
                     } else {

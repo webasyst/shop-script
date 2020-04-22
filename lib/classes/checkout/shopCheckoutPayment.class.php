@@ -22,7 +22,7 @@ class shopCheckoutPayment extends shopCheckout
                 try {
                     $plugin = shopPayment::getPlugin($m['plugin'], $m['id']);
                     $plugin_info = $plugin->info($m['plugin']);
-                    $methods[$key]['icon'] = $plugin_info['icon'];
+                    $methods[$key]['icon'] = ifset($plugin_info, 'icon', null);
                     $custom_fields = $this->getCustomFields($method_id, $plugin);
                     $custom_html = '';
                     foreach ($custom_fields as $c) {

@@ -63,21 +63,19 @@
                 initDialog();
             }
 
-            if (!that.cron_enabled) {
-                // Dialog with info how to set up cron
-                $('#cron-message-link').on("click", function() {
-                    var $dialog_w = $(that.templates["cron_dialog"]);
+            // Dialog with info how to set up cron
+            $('#cron-message-link').on("click", function() {
+                var $dialog_w = $(that.templates["cron_dialog"]);
 
-                    $dialog_w.waDialog({
-                        'height': '200px',
-                        'width': '400px',
-                        'buttons': $('<button class="button"></button>').text(that.locales["locale_3"]).on("click", function(event) {
-                            event.preventDefault();
-                            $(this).closest(".dialog ").remove();
-                        })
-                    });
+                $dialog_w.waDialog({
+                    'height': '200px',
+                    'width': '400px',
+                    'buttons': $('<button class="button"></button>').text(that.locales["locale_3"]).on("click", function(event) {
+                        event.preventDefault();
+                        $(this).closest(".dialog ").remove();
+                    })
                 });
-            }
+            });
 
             $form
                 .on("keyup", formModified)

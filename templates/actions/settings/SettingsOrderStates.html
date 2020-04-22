@@ -230,9 +230,8 @@
                                             <label><input name="new_action_extends[0]" type="radio" value="" checked>&nbsp;[`default`]</label>
                                         </div>
                                         {foreach shopWorkflow::getExtendsActions() as $pattern_id => $pattern_info}
-
                                             <div class="value no-shift">
-                                                <label><input name="new_action_extends[0]" type="radio" value="{$pattern_id|escape}">&nbsp;{$pattern_info.name|default:$pattern_id|escape}</label>
+                                                <label title="{$pattern_info.description|default:''|escape}"><input name="new_action_extends[0]" type="radio" value="{$pattern_id|escape}">&nbsp;{$pattern_info.name|default:$pattern_id|escape}</label>
                                                 <span class="hint">{$pattern_id|upper}</span>
                                                 {if !empty($pattern_info.options.description)}
                                                     <span class="hint">{$pattern_info.options.description|escape}</span>

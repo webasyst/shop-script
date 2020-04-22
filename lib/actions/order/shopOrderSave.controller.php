@@ -53,6 +53,16 @@ class shopOrderSaveController extends waJsonController
 
         $order = new shopOrder($data, $options);
 
+        // Make sure order can be edited
+        if (!empty($data['id'])) {
+            $workflow = new shopWorkflow();
+            $edit_action = $workflow->getActionById('edit');
+            if (!$edit_action->isAvailable($order)) {
+                $this->errors['order']['common'] = _w('Access denied');
+                return;
+            }
+        }
+
         try {
             $saved_order = $order->save();
             $this->response['order'] = $saved_order->getData();

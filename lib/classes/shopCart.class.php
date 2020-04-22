@@ -389,9 +389,8 @@ class shopCart
             }
         }
 
-        $rounding_enabled = shopRounding::isEnabled();
+        $rounding_enabled = shopRounding::isEnabled('services');
         $frontend_currency = wa('shop')->getConfig()->getCurrency(false);
-        $round_services = wa()->getSetting('round_services');
 
         foreach ($items as $s) {
             if (!isset($prices[$s['service_variant_id']])) {
@@ -404,7 +403,7 @@ class shopCart
             }
 
             $service_price = shop_currency($v['price'], $v['currency'], $frontend_currency, false);
-            if ($rounding_enabled && (($v['currency'] != $frontend_currency) || ($round_services))) {
+            if ($rounding_enabled && $v['currency'] != $frontend_currency) {
                 $service_price = shopRounding::roundCurrency($service_price, $frontend_currency);
             }
 

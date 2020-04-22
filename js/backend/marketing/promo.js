@@ -444,7 +444,7 @@
                     pattern = that.locales[ (delta > 0 ? "before" : "after" )];
                 }
 
-                var result = pattern.replace("%s", time_array.join(" "));
+                var result = (delta > 0 ? pattern.replace("%s", time_array.join(" ")) : "");
 
                 that.render(result);
             }

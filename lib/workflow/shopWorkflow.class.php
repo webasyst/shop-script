@@ -176,7 +176,7 @@ class shopWorkflow extends waWorkflow
      */
     public static function getExtendsActions()
     {
-        return array(
+        $result = array(
             'process'       =>  array(
                 'name' => sprintf(_w('“%s” action'), _w('Process')),
             ),
@@ -199,5 +199,14 @@ class shopWorkflow extends waWorkflow
                 'name' => sprintf(_w('“%s” action'), _w('Mark as Completed')),
             ),
         );
+
+        $original_actions = (new shopWorkflow())->getOriginalConfig()['actions'];
+        foreach($result as $id => &$data) {
+            $data['id'] = $id;
+            $data['description'] = ifset($original_actions, $id, 'options', 'description', '');
+        }
+        unset($data);
+
+        return $result;
     }
 }

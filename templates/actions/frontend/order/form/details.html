@@ -102,11 +102,11 @@
                         <div class="wa-details-required-fields-section">
 
                             {if !empty($_required_inline_fields)}
-                                <div class="wa-line wa-fields-group line">{$_required_inline_fields|join:""}</div>
+                                <div class="wa-line wa-fields-group line">{""|join:$_required_inline_fields}</div>
                             {/if}
 
                             {if !empty($_required_custom_fields)}
-                                {$_required_custom_fields|join:""}
+                                {""|join:$_required_custom_fields}
                             {/if}
                         </div>
                     {/if}
@@ -302,11 +302,11 @@
                     {if !empty($_inline_fields) || !empty($_custom_fields)}
                         <div class="wa-details-fields-section">
                             {if !empty($_inline_fields)}
-                                <div class="wa-line wa-fields-group line">{$_inline_fields|join:""}</div>
+                                <div class="wa-line wa-fields-group line">{""|join:$_inline_fields}</div>
                             {/if}
 
                             {if !empty($_custom_fields)}
-                                {$_custom_fields|join:""}
+                                {""|join:$_custom_fields}
                             {/if}
                         </div>
                     {/if}

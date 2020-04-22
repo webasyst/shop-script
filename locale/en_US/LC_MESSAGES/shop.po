@@ -3858,7 +3858,7 @@ msgstr ""
 msgid "oz"
 msgstr ""
 
-msgid "Volume"
+msgid "Volume, dimensions"
 msgstr ""
 
 msgid "l"
@@ -6790,7 +6790,7 @@ msgstr ""
 msgid "Original order that did not accept the callback request: %s"
 msgstr ""
 
-msgid "Callback request was received but not applied to this order the following reason: <strong>%s</strong>"
+msgid "Callback request was received but not applied to this order for the following reason: <strong>%s</strong>"
 msgstr ""
 
 msgid "This unsettled order was created because its initiating callback request was rejected by the original order it was addressed to. We thought you should resolve this case manually. The reason was: <strong>%s</strong>"

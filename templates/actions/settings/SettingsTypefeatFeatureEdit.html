@@ -12,9 +12,9 @@
 {/if}
 {if !empty($_is_divider)}
     {if !empty($feature.name)}
-        {$_title = sprintf("[`Subtitle “%s”`]", $feature.name|default:"")}
+        {$_title = sprintf("[`Feature group heading “%s”`]", $feature.name|default:"")}
     {else}
-        {$_title = _w("Subtitle")}
+        {$_title = _w("Feature group heading")}
     {/if}
 {/if}
 
@@ -83,6 +83,11 @@
             {* HEADER *}
             <header class="wa-dialog-header">
                 <h1 class="s-title">{$_title|escape}</h1>
+                {if $_is_divider}
+                <div class="s-header-description">
+                    <p>[`Headings help organize a long list of features into smaller groups. Examples of headings: “Main&nbsp;features”, “Extra&nbsp;features“, “Manufacturer&nbsp;details”.`]</p>
+                </div>
+                {/if}
             </header>
 
             {* CONTENT *}
@@ -126,7 +131,7 @@
                                                 <input class="s-checkbox" type="checkbox" checked disabled>
                                             {/if}
                                             <i class="s-icon icon16 {if !empty($feature.available_for_sku)}hierarchical{else}hierarchical-off{/if}"></i>
-                                            <span class="s-text">[`Enables editing of feature values for product SKUs`]</span>&nbsp;
+                                            <span class="s-text">[`Allow editing of feature values for product SKUs`]</span>&nbsp;
                                             {if !$can_disable_sku}
                                                 {if $feature.code == 'weight'}
                                                     <span class="shop-tooltip"><i class="icon10 info"></i><span>[`“Weight” is a special feature which must always be available for editing in product SKUs’ properties.`]</span></span>

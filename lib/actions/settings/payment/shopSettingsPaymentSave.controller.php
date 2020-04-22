@@ -11,6 +11,9 @@ class shopSettingsPaymentSaveController extends waJsonController
                 if (!isset($plugin['settings'])) {
                     $plugin['settings'] = array();
                 }
+                foreach ($plugin['settings'] as $key => $value) {
+                    $plugin['settings'][$key] = trim($value);
+                }
                 shopPayment::savePlugin($plugin);
 
                 $is_edit = $plugin['id'] > 0;

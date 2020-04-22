@@ -90,13 +90,12 @@ class shopCartItemsModel extends waModel
          */
 
         // get variant settings
-        $rounding_enabled = shopRounding::isEnabled();
+        $rounding_enabled = shopRounding::isEnabled('services');
         $variants_model = new shopServiceVariantsModel();
         $variants = $variants_model->getWithPrice($variant_ids);
         if ($rounding_enabled) {
             shopRounding::roundServiceVariants($variants, $service_stubs);
         }
-        $round_services = wa()->getSetting('round_services');
 
         // get products/skus settings
         $product_services_model = new shopProductServicesModel();
@@ -147,7 +146,7 @@ class shopCartItemsModel extends waModel
                 $s['price'] = shop_currency($s['price'], $variants[$v_id]['currency'], $frontend_currency, false);
             }
 
-            if (!empty($round_services)) {
+            if ($rounding_enabled) {
                 $s['price'] = shopRounding::roundCurrency($s['price'], $frontend_currency);
             }
 
@@ -249,7 +248,10 @@ SQL;
         $obsolete = array();
 
         if ($full_info) {
-            $rounding_enabled = shopRounding::isEnabled();
+
+            $product_rounding_enabled = shopRounding::isEnabled();
+            $service_rounding_enabled = shopRounding::isEnabled('services');
+
             $round_services = wa()->getSetting('round_services');
 
             $product_ids = $sku_ids = $service_ids = $variant_ids = array();
@@ -293,20 +295,20 @@ SQL;
             );
             wa('shop')->event('frontend_products', $event_params);
 
-            $rounding_enabled && shopRounding::roundProducts($products);
-            $rounding_enabled && shopRounding::roundSkus($skus, $products);
+            $product_rounding_enabled && shopRounding::roundProducts($products);
+            $product_rounding_enabled && shopRounding::roundSkus($skus, $products);
 
             $service_model = new shopServiceModel();
             $services = $service_model->getByField('id', $service_ids, 'id');
-            $rounding_enabled && shopRounding::roundServices($services);
+            $service_rounding_enabled && shopRounding::roundServices($services);
 
             $service_variants_model = new shopServiceVariantsModel();
             $variants = $service_variants_model->getByField('id', $variant_ids, 'id');
-            $rounding_enabled && shopRounding::roundServiceVariants($variants, $services);
+            $service_rounding_enabled && shopRounding::roundServiceVariants($variants, $services);
 
             $product_services_model = new shopProductServicesModel();
             $rows = $product_services_model->getByProducts($product_ids);
-            $rounding_enabled && shopRounding::roundServiceVariants($rows, $services);
+            $service_rounding_enabled && shopRounding::roundServiceVariants($rows, $services);
 
             $product_services = $sku_services = array();
             foreach ($rows as $row) {
@@ -520,7 +522,7 @@ SQL;
         $count_field = 'NULL';
         $can_be_ordered_field = 's.available > 0';
         if ($check_count) {
-            if (is_string($check_count) && $check_count{0} == 'v') {
+            if (is_string($check_count) && $check_count[0] == 'v') {
                 // Virtual stock id: check against sum of several stock counts
                 $virtualsku_id = substr($check_count, 1);
                 if (wa_is_int($virtualsku_id)) {

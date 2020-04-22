@@ -396,15 +396,24 @@ class shopServiceModel extends waModel
 
         $service_ids = array_values($service_ids);
 
+        $services_rounding_enabled = shopRounding::isEnabled('services');
+
         // Get services
         $service_model = new shopServiceModel();
         $services = $service_model->getByField('id', $service_ids, 'id');
-        shopRounding::roundServices($services);
+
+        if ($services_rounding_enabled) {
+            shopRounding::roundServices($services);
+        }
 
         // get services for products and skus, part 2
         $product_services = [];
         $sku_services = [];
-        shopRounding::roundServiceVariants($rows, $services);
+
+        if ($services_rounding_enabled) {
+            shopRounding::roundServiceVariants($rows, $services);
+        }
+
         foreach ($rows as $row) {
             // just in case, drop off inconsistency rows
             if (!isset($services[$row['service_id']])) {
@@ -421,7 +430,11 @@ class shopServiceModel extends waModel
         // Get service variants
         $variant_model = new shopServiceVariantsModel();
         $variants = $variant_model->getByField('service_id', $service_ids, true);
-        shopRounding::roundServiceVariants($variants, $services);
+
+        if ($services_rounding_enabled) {
+            shopRounding::roundServiceVariants($variants, $services);
+        }
+
         foreach ($variants as $variant) {
             $services[$variant['service_id']]['variants'][$variant['id']] = $variant;
             unset($services[$variant['service_id']]['variants'][$variant['id']]['id']);

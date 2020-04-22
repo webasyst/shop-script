@@ -351,6 +351,8 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
             // DOM
             that.$wrapper = options["$wrapper"];
             that.$features_list = that.$wrapper.find(".js-features-list");
+            that.$codes_list = that.$wrapper.find(".js-codes-list");
+            that.$search_area = that.$wrapper.find(".js-features-list, .js-codes-list");
             that.$body = that.$wrapper.find("> .s-section-body");
 
             // CONST
@@ -431,7 +433,9 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
             });
 
             function search() {
-                var $items = that.$features_list.find(".js-feature-wrapper"),
+                var $items = that.$search_area.find(".js-feature-wrapper, .js-code-wrapper"),
+                    $features_empty_search = that.$features_list.find('.js-empty-search'),
+                    $codes_empty_search = that.$codes_list.find('.js-empty-search'),
                     value = $.trim($field.val()),
                     filtered_class = "is-filtered";
 
@@ -443,7 +447,6 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                     $items.each( function() {
                         var $item = $(this),
                             text = "" + $.trim($item.find(".js-search-place").text());
-
                         text = text
                             .replace(/[\s]{2,}/g, "")
                             .replace(/[\n\r ]{2,}/g, "")
@@ -456,7 +459,24 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                         }
                     });
 
+                    var finds_features = that.$features_list.children().filter(':not(.js-empty-search):visible').length,
+                        finds_codes = that.$codes_list.children().filter(':not(.js-empty-search):visible').length;
+
+                    if (finds_features === 0) {
+                        $features_empty_search.show();
+                    } else {
+                        $features_empty_search.hide();
+                    }
+
+                    if (finds_codes === 0) {
+                        $codes_empty_search.show();
+                    } else {
+                        $codes_empty_search.hide();
+                    }
+
                 } else {
+                    $features_empty_search.hide();
+                    $codes_empty_search.hide();
                     that.$wrapper.removeClass(filtered_class);
                     $items.show();
                 }
@@ -1159,8 +1179,68 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
         Dialog.prototype.init = function() {
             var that = this;
 
+            that.initFrontList();
             that.initToggle();
             that.initSubmit();
+        };
+
+        Dialog.prototype.initFrontList = function() {
+            var that = this;
+
+            var active_class = "is-active";
+
+            // storefront group field
+            var $active_storefront_group = null;
+            var $active_storefront_group_field = that.$wrapper.find(".js-storefront-group-field:checked");
+            if ($active_storefront_group_field.length) {
+                $active_storefront_group = $active_storefront_group_field.closest(".s-radio-wrapper");
+            }
+            that.$wrapper.on("change", ".js-storefront-group-field", function() {
+                var $group = $(this).closest(".s-radio-wrapper");
+                if ($active_storefront_group) {
+                    $active_storefront_group.removeClass(active_class);
+                }
+                $active_storefront_group = $group.toggleClass(active_class);
+                that.dialog.resize();
+            });
+
+            initCheckAllTypes();
+
+            function initCheckAllTypes() {
+                var $all_storefronts_field = that.$wrapper.find(".js-all-storefronts-field"),
+                    $storefront_fields = that.$wrapper.find(".js-storefront-field");
+
+                var checked_storefronts = getCheckedTypesCount(),
+                    storefronts_count = $storefront_fields.length;
+
+                $all_storefronts_field.on("change", function() {
+                    var $input = $(this),
+                        is_active = $input.is(":checked");
+
+                    checked_storefronts = (is_active ? storefronts_count : 0);
+                    $storefront_fields.attr("checked", is_active);
+                });
+
+                that.$wrapper.on("change", ".js-storefront-field", function() {
+                    var $input = $(this),
+                        is_active = $input.is(":checked");
+
+                    checked_storefronts += (is_active ? 1 : -1);
+                    $all_storefronts_field.attr("checked", (checked_storefronts >= storefronts_count));
+                });
+
+                function getCheckedTypesCount() {
+                    var result = 0;
+
+                    $storefront_fields.each( function() {
+                        var $input = $(this),
+                            is_active = $input.is(":checked");
+                        if (is_active) { result += 1; }
+                    });
+
+                    return result;
+                }
+            }
         };
 
         Dialog.prototype.initToggle = function() {
@@ -1639,14 +1719,15 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
             valueSectionToggle(!!that.feature.selectable);
 
             if (that.feature.selectable && that.feature.values && that.feature.values.length) {
-                $.each(that.feature.values, function(i, value) {
+                // reverse list of values because addFeatureValue() add them on top instead of on bottom
+                $.each(that.feature.values.reverse(), function(i, value) {
                     var $feature_value = addFeatureValue(value);
                     // ID
                     if (value.id) { $feature_value.find(".js-field-id").val(value.id).trigger("change"); }
                     // VALUE
                     if (value.value) { $feature_value.find(".js-field-value").val(value.value).trigger("change"); }
                     // COLOR
-                    if (value.code) { $feature_value.find(".js-field-code").val(value.code).trigger("change"); }
+                    if (value.code) { $feature_value.find(".js-field-code").val(value.code.toLowerCase()).trigger("change"); }
                     // UNIT
                     if (value.unit) { $feature_value.find(".js-field-unit").val(value.unit).trigger("change"); }
                 });
@@ -1741,29 +1822,38 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 var farbtastic = $.farbtastic($colorpicker_w, setColor);
                 farbtastic.widgetCoords = function (event) {
                     var offset = $(farbtastic.wheel).offset();
-                    return { x: (event.pageX - offset.left) - farbtastic.width / 2, y: (event.pageY - offset.top) - farbtastic.width / 2 };
+                    return {
+                        x: (event.pageX - offset.left) - farbtastic.width / 2,
+                        y: (event.pageY - offset.top) - farbtastic.width / 2
+                    };
                 };
 
-                $icon.on("click", function(event) {
+                $icon.on("click", function (event) {
                     event.preventDefault();
-                    if (!is_opened) { $document.trigger(event_name, [$wrapper]); }
+                    if (!is_opened) {
+                        $document.trigger(event_name, [$wrapper]);
+                    }
                     $colorpicker_w.fadeToggle(200);
                     is_opened = !is_opened;
                 });
 
                 $document.on(event_name, openWatcher);
+
                 function openWatcher() {
                     var is_exist = $.contains(document, $wrapper[0]);
                     if (is_exist) {
-                        if (is_opened) { $icon.trigger("click"); }
+                        if (is_opened) {
+                            $icon.trigger("click");
+                        }
                     } else {
                         $document.off(event_name, openWatcher);
                     }
                 }
 
-                setColor($input.val() || '#ffffff');
+                var color = $input.val();
+                if (color) { setColor(color); }
 
-                $input.on('change keyup', function() {
+                $input.on('change keyup', function () {
                     $icon.css('background', $input.val());
                     farbtastic.setColor($input.val());
                 });
@@ -1771,7 +1861,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 function setColor(color) {
                     $icon.css('background', color);
                     farbtastic.setColor(color);
-                    $input.val(color);
+                    $input.val(color).trigger("color_set");
                 }
 
                 $wrapper.data("farbtastic", farbtastic);
@@ -1782,6 +1872,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                     $dialog_w = that.dialog.$wrapper;
 
                 $body.on("keyup", escapeWatcher);
+
                 function escapeWatcher(event) {
                     var is_exist = $.contains($body[0], $wrapper[0]);
                     if (is_exist) {
@@ -1800,6 +1891,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 }
 
                 $dialog_w.on("click", clickWatcher);
+
                 function clickWatcher(event) {
                     var is_exist = $.contains($dialog_w[0], $wrapper[0]);
                     if (is_exist) {
@@ -1811,6 +1903,123 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                         }
                     } else {
                         $dialog_w.off("click", clickWatcher);
+                    }
+                }
+
+                initTransliterate($wrapper.closest(".s-feature-value-wrapper"));
+
+                /**
+                 * @param {Object} $wrapper
+                 * */
+                function initTransliterate($wrapper) {
+                    var that = this;
+
+                    var $name_field = $wrapper.find(".js-field-value"),
+                        $code_field = $input;
+
+                    var keyup_timer = 0,
+                        time = 500,
+                        xhr = null,
+                        timer = 0;
+
+                    var active_class = "transliterate-enabled";
+
+                    $name_field.on("keydown", function() {
+                        clearTimeout(timer);
+                        timer = setTimeout( function () {
+                            onNameChange();
+                        }, 500);
+
+                        $name_field.removeClass(active_class);
+                    });
+
+                    $code_field.on("keydown color_set", function() {
+                        clearTimeout(timer);
+                        timer = setTimeout( function () {
+                            onColorChange();
+                        }, 500);
+
+                        $code_field.removeClass(active_class);
+                    });
+
+                    function onNameChange() {
+                        var color_is_empty = !$code_field.val().length;
+                        if (color_is_empty || $code_field.hasClass(active_class)) {
+                            var name = $name_field.val();
+                            if (name) {
+                                getColorData(name, null).then( function(data) {
+                                    color_is_empty = !$code_field.val().length;
+                                    if (color_is_empty || $code_field.hasClass(active_class)) {
+                                        if (data.color) {
+                                            setColor(data.color);
+                                            $code_field.addClass(active_class);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                    function onColorChange() {
+                        var name_is_empty = !$name_field.val().length;
+                        if (name_is_empty || $name_field.hasClass(active_class)) {
+                            var color = $code_field.val();
+                            if (color) {
+                                getColorData(null, color).then( function(data) {
+                                    var name_is_empty = !$name_field.val().length;
+                                    if (name_is_empty || $name_field.hasClass(active_class)) {
+                                        if (data.name) {
+                                            $name_field.val(data.name).addClass(active_class);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                    /**
+                     * @param {String?} name
+                     * @param {String?} color
+                     * */
+                    function getColorData(name, color) {
+                        var href = "?module=settings&action=featuresHelper",
+                            data = {};
+
+                        if (color) { data.code = color2magic(color); }
+                        if (name) { data.name = name; }
+
+                        var deferred = $.Deferred();
+
+                        if (xhr) { xhr.abort(); }
+
+                        xhr = $.get(href, data, "json")
+                            .always( function() {
+                                xhr = null;
+                            })
+                            .done( function(response) {
+                                if (response.status === "ok") {
+                                    deferred.resolve({
+                                        name: response.data.name,
+                                        color: magic2color(response.data.code)
+                                    });
+                                } else {
+                                    deferred.reject();
+                                }
+                            })
+                            .fail( function() {
+                                deferred.reject();
+                            });
+
+                        return deferred.promise();
+
+                        function color2magic(color) {
+                            return 0xFFFFFF & parseInt(('' + color + '000000').replace(/[^0-9A-F]+/gi, '').substr(0, 6), 16);
+                        }
+
+                        function magic2color(magic) {
+                            return (0xF000000 | magic).toString(16).toLowerCase().replace(/^f/, "#");
+                        }
+
                     }
                 }
             }
@@ -2902,7 +3111,15 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
         var height = display_h - wrapper_top - lift;
 
-        if (height < 300) { height = 300; }
+        var min_height = 800,
+            indent = 20,
+            sidebar_h = $(".sidebar .s-inner-sidebar").first().outerHeight();
+
+        min_height = ( sidebar_h > min_height ? sidebar_h : min_height);
+
+        if (height < min_height) {
+            height = min_height - indent;
+        }
 
         that.$wrapper.height(height);
 

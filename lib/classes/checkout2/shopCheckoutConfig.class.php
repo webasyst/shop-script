@@ -554,8 +554,7 @@ class shopCheckoutConfig implements ArrayAccess
             try {
                 /** @var waPayment $plugin */
                 $plugin = $m['__instance'];
-                $plugin_info = $m['__plugin_info'];
-                $m['icon'] = $plugin_info['icon'];
+                $m['icon'] = ifset($m, '__plugin_info', 'icon', null);
 
                 $allowed_currencies = $plugin->allowedCurrency();
                 if ($allowed_currencies !== true) {

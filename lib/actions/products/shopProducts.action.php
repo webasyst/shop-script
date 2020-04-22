@@ -30,7 +30,8 @@ class shopProductsAction extends shopProductListAction
         /*
          * @event backend_products
          */
-        $event_params = array('type' => $this->hash[0], 'info' => $this->collection->getInfo());
+        $first_hash = isset($this->hash[0]) ? $this->hash[0] : null;
+        $event_params = array('type' => $first_hash, 'info' => $this->collection->getInfo());
         $this->view->assign('backend_products', wa()->event('backend_products', $event_params));
 
         $this->view->assign('products_rights', $this->getUser()->isAdmin('shop') || $this->getUser()->getRights('shop', 'type.%'));
@@ -71,7 +72,7 @@ class shopProductsAction extends shopProductListAction
             'sort'                            => $sort,
             'order'                           => $order,
             'text'                            => $this->text,
-            'title'                           => $this->hash[0] != 'search' ? $this->collection->getTitle() : $this->text,
+            'title'                           => $first_hash != 'search' ? $this->collection->getTitle() : $this->text,
             'info'                            => $this->collection->getInfo(),
             'view'                            => $view,
             'stocks'                          => array_values($stocks),

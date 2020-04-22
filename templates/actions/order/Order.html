@@ -178,7 +178,7 @@
                             {if !empty($params.tracking_number)}
                                 <h3>
                                     <span class="gray">[`Shipment tracking number`] —</span> <strong class="highlighted">{$params.tracking_number|escape}</strong>
-                                    <a href="javascript:void(0)"  class="wf-action hint" data-action-id="ship" data-container="#workflow-content"><i class="icon10 edit"></i></a>
+                                    <a href="javascript:void(0)"  class="wf-action hint" data-action-id="editshippingdetails" data-container="#workflow-content"><i class="icon10 edit"></i></a>
                                 </h3>
                             {/if}
                             {if !empty($tracking) && $order.state_id != 'completed'}
@@ -371,7 +371,10 @@
                                         {/if}
                                     </div>
                                     {if !empty($row.params.refund_items)}
-                                        <div class="value">
+                                        <div class="value refund-items-caption">
+                                            [`Items removed from the order:`]
+                                        </div>
+                                        <div class="value refund-items-list">
                                             {strip}
                                             <ul class="menu-v compact" style="margin: 0 0 20px 24px;">
                                                 {foreach $row.params.refund_items as $_product}

@@ -11,6 +11,12 @@ class shopWorkflowRefundAction extends shopWorkflowAction
         return parent::isAvailable($order);
     }
 
+    /**
+     * @deprecated use shopOrder::edit
+     * @param shopOrder $order
+     * @param $refund_items
+     * @return array
+     */
     protected function partialRefund(shopOrder &$order, $refund_items)
     {
         $order_items = array();
@@ -104,10 +110,6 @@ class shopWorkflowRefundAction extends shopWorkflowAction
 
             //XXX refund shipping delta?
             $order->shipping = $shipping;
-
-
-            #Don't change state after action execute
-            $this->state_id = null;
         }
 
         return $order_items;
@@ -139,7 +141,6 @@ class shopWorkflowRefundAction extends shopWorkflowAction
             $plugin = null;
         }
 
-
         if ($refund_mode === 'partial') {
             $order_options = array(
                 'ignore_stock_validate' => true,
@@ -147,7 +148,12 @@ class shopWorkflowRefundAction extends shopWorkflowAction
             );
             $order = new shopOrder($order_id, $order_options);
 
+            if ($refund_items !== true) {
+                #Don't change state after action execute
+                $this->state_id = null;
+            }
             $refund_items = $this->partialRefund($order, $refund_items);
+
 
             $refund_items = $this->workupOrderItems($order, $plugin, $refund_items);
             $refund_amount = 0.0;
@@ -193,6 +199,13 @@ class shopWorkflowRefundAction extends shopWorkflowAction
                     $result = array();
                 }
                 $result['text'] = $text;
+            }
+
+            if ($refund_mode !== 'partial') {
+                if (!is_array($result)) {
+                    $result = array();
+                }
+                $result['params']['auth_edit'] = null;
             }
         }
 
@@ -364,6 +377,9 @@ class shopWorkflowRefundAction extends shopWorkflowAction
         $button_class = $this->getOption('button_class');
 
         $currency_id = ($transaction_data && $plugin) ? $plugin->allowedCurrency() : $order->currency;
+        if (is_array($currency_id) && in_array($order->currency, $currency_id)) {
+            $currency_id = $order->currency;
+        }
         $currency = $this->getConfig()->getCurrencies($currency_id);
         $currency = reset($currency);
 
@@ -376,8 +392,8 @@ class shopWorkflowRefundAction extends shopWorkflowAction
             'group_divider'    => ifset($locale_info, 'thousands_sep', ''),
             'group_size'       => 3,
 
-            'pattern_html' => str_replace('0', '%s', waCurrency::format('%{h}', 0, $currency_id)),
-            'pattern_text' => str_replace('0', '%s', waCurrency::format('%{s}', 0, $currency_id)),
+            'pattern_html' => str_replace('0', '%s', waCurrency::format('%{h}', 0, $currency['code'])),
+            'pattern_text' => str_replace('0', '%s', waCurrency::format('%{s}', 0, $currency['code'])),
         );
 
         $app_settings_model = new waAppSettingsModel();
@@ -392,6 +408,7 @@ class shopWorkflowRefundAction extends shopWorkflowAction
         }
 
         $order_items = $this->partialRefund($order, true);
+
         $order_items_count = 0;
 
         $order_items = $this->workupOrderItems($order, $transaction_data ? $plugin : null, $order_items);
@@ -429,8 +446,18 @@ class shopWorkflowRefundAction extends shopWorkflowAction
         }
 
         if ($plugin) {
+
+            $currency_id = $plugin->allowedCurrency();
+            if (is_array($currency_id)) {
+                if (in_array($order->currency, $currency_id)) {
+                    $currency_id = $order->currency;
+                } else {
+                    $currency_id = reset($currency_id);
+                }
+            }
+
             $refund_options = array(
-                'currency'       => $plugin->allowedCurrency(),
+                'currency'       => $currency_id,
                 'order_currency' => $order->currency,
             );
             foreach ($items as $id => $item) {

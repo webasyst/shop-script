@@ -32,7 +32,7 @@ HTML;
 
                 $result['text'] .= sprintf($format, $this->getOrderLink($params['unsettled_order_id']));
             } else {
-                $string = _w('Callback request was received but not applied to this order the following reason: <strong>%s</strong>');
+                $string = _w('Callback request was received but not applied to this order for the following reason: <strong>%s</strong>');
                 $format = <<<HTML
 <br><em><i class="icon16 icon16 ss flag-purple"></i>{$string}</em>
 HTML;

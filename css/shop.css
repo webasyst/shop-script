@@ -1252,6 +1252,12 @@ table.s-country-list i.icon16.country { margin-top: 1px; }
 .s-settings-checkout-content input:disabled { border: 1px solid #d2d2d2; background-color: rgba(249, 249, 249, 0.5) !important; }
 
 .s-settings-checkout-content .s-locations-table .icon16 { cursor: pointer; }
+.s-settings-checkout-content .s-locations-table .js-location:first-child:last-child .js-delete-location { display: none; }
+
+@media screen and (max-width: 1650px) {
+    .s-settings-checkout-content .s-locations-table input[type="text"],
+    .s-settings-checkout-content .s-locations-table select { width: 100px !important; max-width: none !important; min-width: 0 !important; }
+}
 
 @media screen and (max-width:1360px) {
     .s-settings-checkout-content .s-locations-table .s-editor { min-width: 130px !important; max-width: 130px !important; }

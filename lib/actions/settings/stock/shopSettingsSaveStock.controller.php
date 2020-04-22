@@ -15,7 +15,7 @@ class shopSettingsSaveStockController extends waJsonController
         if ($stocks_order) {
             $sort = $iadd = $ivadd = 0;
             foreach (explode(',', $stocks_order) as $id) {
-                if ($id && $id{0} == 'v') {
+                if ($id && $id[0] == 'v') {
                     $id = substr($id, 1);
                     if ($id) {
                         if (!isset($virtualstocks_edit[$id])) {

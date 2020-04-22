@@ -37,49 +37,10 @@
                         </div>
                     </div>
 
-                    {if empty($is_filter_page)}
-                        <div class="s-header-description">
-                            <p>[`Features are displayed on storefront product pages in the order set up for this product type.`]<br>[`To change features’ sort order, drag &amp; drop them to desired locations within the list.`]</p>
-                        </div>
-                    {/if}
-
-                    <ul class="menu-h dropdown">
-                        <li>
-                            <a class="inline-link s-visible-link" href="javascript:void(0);">
-                                <i class="icon16 add"></i><b><i>[`Add`]</i></b>&nbsp;<i class="icon10 darr"></i>
-                            </a>
-                            <ul class="menu-v without-icons" style="max-width: none; width: 250px;">
-                                <li>
-                                    <a class="js-feature-add-new" href="javascript:void(0);">
-                                        <span class="s-name">[`New feature`]</span>
-                                    </a>
-                                </li>
-                                {if empty($is_filter_page)}
-                                    <li>
-                                        <a class="js-feature-add-existing" href="javascript:void(0);">
-                                            <span class="s-name">[`Existing feature`]</span>
-                                        </a>
-                                    </li>
-                                {/if}
-                                <li>
-                                    <a class="js-feature-add-divider" href="javascript:void(0);">
-                                        <span class="s-name">[`Subtitle`]</span>
-                                    </a>
-                                </li>
-                                <li class="with-border">
-                                    <a class="js-code-add" href="javascript:void(0);">
-                                        <span class="s-name">[`Product code`]</span>
-                                        <span class="s-description hint" style="display: block;">[`To be completed in ordered item’s properties on the order page. Can be used to store trade item numbers, software license numbers or unique serial numbers.`]</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-
                     {* SEARCH *}
                     <div class="s-search-section">
                         <i class="s-icon icon16 ss search-bw"></i>
-                        <input class="s-field js-search-field" type="search" name="search" placeholder="{_w('Feature search')|escape}" autocomplete="off">
+                        <input class="s-field js-search-field" type="text" name="search" placeholder="{_w('Feature search')|escape}" autocomplete="off">
                     </div>
                 </div>
 
@@ -90,9 +51,11 @@
                         <h5 class="s-section-title heading">
                             <span class="s-title">[`Product codes`]</span>
                             <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Product codes are completed on the order page for each ordered item. They can be used to store trade item numbers, software license numbers or unique serial numbers.`]</span></span>
+                            <span class="s-icon js-code-add"><i class="icon16 add"></i></span>
                         </h5>
                         {if !empty($codes)}
                             <div class="s-features-list s-codes-list js-codes-list">
+                                <div class="s-empty-search js-empty-search">[`No product codes matching the search criteria`]</div>
                                 {foreach $codes as $_code}
                                     <div class="s-feature-wrapper js-code-wrapper" data-id="{$_code.id|escape}" data-code="{$_code.code|escape}">
                                         <div class="s-feature-block">
@@ -135,10 +98,38 @@
                     <section class="s-features-section">
                         <h5 class="s-section-title heading">
                             <span class="s-title">[`Features`]</span>
+                            <span class="shop-tooltip"><i class="icon10 info"></i><span>{if wa_is_int($type_url_id)}[`Features are displayed on storefront product pages in the order set up for this product type.`]<br><br>[`To change features’ sort order, drag &amp; drop them to desired locations within the list.`]{else}[`To change features’ sort order, select a product type.`]{/if}</span></span>
+                            <ul class="menu-h dropdown">
+                                <li>
+                                    <a class="inline-link s-visible-link" href="javascript:void(0);">
+                                        <i class="icon16 add"></i>
+                                    </a>
+                                    <ul class="menu-v without-icons" style="max-width: none; width: 250px;">
+                                        <li>
+                                            <a class="js-feature-add-new" href="javascript:void(0);">
+                                                <span class="s-name">[`New feature`]</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="js-feature-add-divider" href="javascript:void(0);">
+                                                <span class="s-name">[`Feature group heading`]</span>
+                                            </a>
+                                        </li>
+                                        {if empty($is_filter_page)}
+                                        <li class="with-border">
+                                            <a class="js-feature-add-existing" href="javascript:void(0);">
+                                                <span class="s-name">[`Feature or heading from&nbsp;other product types`]</span>
+                                            </a>
+                                        </li>
+                                        {/if}
+                                    </ul>
+                                </li>
+                            </ul>
                         </h5>
 
                         {if !empty($features)}
                             <div class="s-features-list js-features-list">
+                                <div class="s-empty-search js-empty-search">[`No features matching the search criteria`]</div>
                                 {foreach $features as $_feature}
                                     {$_classes = []}
                                     {$_is_visible = true}
@@ -192,7 +183,7 @@
                                                     <div class="s-name-wrapper">
                                                         <span class="s-name">{$_feature.name|escape}</span>
                                                         {if !empty($_is_divider)}
-                                                            <span class="s-description">[`Subtitle`]</span>
+                                                            <span class="s-description">[`Feature group heading`]</span>
                                                         {/if}
                                                     </div>
                                                     <div class="s-code">{$_feature.code|escape}</div>

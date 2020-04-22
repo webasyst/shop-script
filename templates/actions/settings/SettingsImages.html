@@ -207,6 +207,9 @@
                         <div></div>
                         <div class="value">
                             <a class="inline-link" href="#" id="s-regenerate-thumbs">[`Re-generate all product image thumbnails`]</a><br>
+                            {if $has_required_files === false}
+                                <div class="errormsg">[`Image thumbnails cannot be generated because required system files are missing in <em>wa-data/public/shop/products/</em> directory.`]</div>
+                            {/if}
                             <span class="hint">[`Re-generating all public product image thumbnails allows you to save some disk space on server and to optimize images after thumbnail generation settings such as sharpening and JPEG compression quality were changed. Depending on the number of products, the entire process may take from few seconds to few minutes or even hours for very large product databases.`]</span>
                         </div>
                     </div>

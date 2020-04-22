@@ -148,6 +148,8 @@ class shopSettingsTypefeatFeatureEditAction extends waViewAction
                 return ['numeric', 'number'];
             case 'boolean':
                 return ['boolean', 'none'];
+            case 'color':
+                return ['color', 'value'];
             case '3d.length':
             case '3d.dimension.length':
                 return ['volume', '3d'];
@@ -212,7 +214,7 @@ class shopSettingsTypefeatFeatureEditAction extends waViewAction
             ],
             'color' => [
                 'title' => _w('Color'),
-                'formats' => ['selector', 'checklist'],
+                'formats' => ['value', 'selector', 'checklist'],
             ],
             'text' => [
                 'title' => _w('Text'),
@@ -315,6 +317,9 @@ class shopSettingsTypefeatFeatureEditAction extends waViewAction
         $result = [
             'input' => [
                 'title' => _w('One line of text'),
+            ],
+            'value' => [
+                'title' => _w('Value'),
             ],
             'textarea' => [
                 'title' => _w('Multi-line text'),

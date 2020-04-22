@@ -324,8 +324,10 @@ class shopConfig extends waAppConfig
      * If the developer of design theme reads this, we advise him to use the smarty-helper $wa->shop->schedule()
      * Setting $wa->shop->settings('workhours') is deprecated.
      * @return array
+     * @throws waException
      * @deprecated
-     * */
+     *
+     */
     protected function prepareWorkHours()
     {
         $workhours = array(
@@ -362,12 +364,18 @@ class shopConfig extends waAppConfig
             }
         }
 
-        $workhours['days_from_to'] = self::getDaysFromTo($workhours['days'], $strings);
+        $workhours['days_from_to'] = self::getDaysFromTo(array_keys($workhours['days']), $strings);
 
         return $workhours;
     }
 
-    /** Helper for getGeneralSettings(). Builds a human-readable string describing work days of a shop. */
+    /**
+     * Helper for getGeneralSettings(). Builds a human-readable string describing work days of a shop.
+     * @param int[] $work_days                - array of work days, where day is day number of week (0..6, where 0 is Sunday and 6 is Saturday)
+     * @param array<int, string> $day_names   - name of week days, where key is day number of week (0..6) and value is week day name
+     * @return string
+     * @throws waException
+     */
     public static function getDaysFromTo($work_days, $day_names)
     {
         if (count($work_days) < 1) {
@@ -390,7 +398,8 @@ class shopConfig extends waAppConfig
         $days_from_to = array();
         $first_day_to_add = null;
         $last_day_to_add = null;
-        $i = $first_day_of_week;
+        $i = $first_day_of_week;    // $i is day number of week
+
         while (true) {
             if (in_array($i, $work_days)) {
                 $last_day_to_add = $i;

@@ -14,11 +14,13 @@
     <div class="name">[`Send to`]</div>
     <div class="value no-shift">
         <select class="notification-to" name="params[to]">
+            {if empty($params.to)}<option selected value="unknown"></option>{/if}
+            {if !empty($params.to) && $params.to == 'unknown'}<option selected value="unknown"></option>{/if}
             <option {if !empty($params.to) && $params.to == 'customer'}selected{/if} value="customer">[`Customer`]</option>
             <option {if !empty($params.to) && $params.to == 'admin'}selected{/if} value="admin">[`Store admin`]</option>
-            <option {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin'}selected{/if} value="">[`Other...`]</option>
+            <option {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin' && $params.to != 'unknown'}selected{/if} value="">[`Other...`]</option>
         </select>
-        {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin'}
+        {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin' && $params.to != 'unknown'}
             <input type="text" name="params[to]" value="{$params.to}" placeholder="[`Enter email address`]">
         {/if}
     </div>

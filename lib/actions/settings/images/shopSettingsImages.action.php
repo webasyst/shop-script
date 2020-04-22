@@ -18,7 +18,11 @@ class shopSettingsImagesAction extends waViewAction
             'system' => $this->formatSizes($this->getConfig()->getImageSizes('system')),
             'custom' => $this->formatSizes((array)$this->settings['image_sizes'])
         );
-        $this->view->assign('settings', $this->settings);
+        $has_required_files = self::createRequiredFilesForGeneration();
+        $this->view->assign(array(
+            'settings' => $this->settings,
+            'has_required_files' => $has_required_files
+        ));
     }
 
     protected function formatSizes($sizes)
@@ -134,5 +138,46 @@ class shopSettingsImagesAction extends waViewAction
         }
         
         waUtils::varExportToFile($settings, $config_file);
+    }
+
+    public function createRequiredFilesForGeneration()
+    {
+        $app_id = 'shop';
+
+        $target_path = wa()->getDataPath('products/', true, $app_id);
+        $source_path = wa()->getAppPath('lib/config/data/', $app_id);
+
+        $thumb_path = $target_path.'thumb.php';
+        if (!file_exists($thumb_path)) {
+            $php_file = '<?php
+            $file = dirname(__FILE__)."/../../../../"."/wa-apps/shop/lib/config/data/thumb.php";
+            
+            if (file_exists($file)) {
+                include($file);
+            } else {
+                header("HTTP/1.0 404 Not Found");
+            }
+            ';
+            try {
+                waFiles::write($thumb_path, $php_file);
+            } catch (Exception $e) {
+                return false;
+            }
+        }
+
+        $htaccess_path = $target_path.'.htaccess';
+        if (!file_exists($htaccess_path)) {
+            try {
+                waFiles::copy($source_path.'.htaccess', $htaccess_path);
+            } catch (Exception $e) {
+                return false;
+            }
+        }
+
+        if (file_exists($thumb_path) && file_exists($htaccess_path)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

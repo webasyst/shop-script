@@ -117,6 +117,8 @@ class shopOrderListAction extends waViewAction
                         }
                     } elseif ($k == 'sales_channel') {
                         $k = 'params.'.$k;
+                    } elseif ($k == 'item_code') {
+                        $k = 'item_code.any';
                     } elseif ($k == 'product_id') {
                         $k = 'items.'.$k;
                     } elseif ($k == 'city' || $k == 'country' || $k == 'region') {
@@ -192,6 +194,10 @@ class shopOrderListAction extends waViewAction
             $country = waRequest::get('country', null, waRequest::TYPE_STRING_TRIM);
             if ($country) {
                 $params['country'] = $country;
+            }
+            $item_code = waRequest::get('item_code', null, waRequest::TYPE_STRING_TRIM);
+            if ($item_code) {
+                $params['item_code'] = $item_code;
             }
 
             $unsettled = waRequest::get('unsettled', null, waRequest::TYPE_INT);

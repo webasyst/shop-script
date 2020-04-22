@@ -93,11 +93,13 @@ class shopFrontendCartAction extends shopFrontendAction
                         $row['name']);
                 }
             }
-            foreach ($items as $row) {
+            foreach ($items as &$row) {
                 if (!$row['quantity'] && !isset($errors[$row['id']])) {
                     $errors[$row['id']] = null;
                 }
+                $row['error'] = (isset($errors[$row['id']]) ? $errors[$row['id']] : null);
             }
+            unset($row);
             if (!$errors) {
                 $this->redirect(wa()->getRouteUrl('/frontend/checkout'));
             }

@@ -21,12 +21,21 @@
 
             that.is_changed = false;
 
+            // VARS
+            that.plugins = {};
+
             // INIT
             that.init();
         }
 
         Dialog.prototype.init = function() {
             var that = this;
+
+            var ready_promise = that.$wrapper.data("ready");
+            ready_promise.resolve(that);
+            that.$wrapper
+                .data("controller", that)
+                .trigger("ready", that);
 
             if (!that.user_has_rights) {
                 that.$wrapper.find('.s-field').prop('disabled', true);
@@ -153,7 +162,51 @@
             function onSubmit(event) {
                 event.preventDefault();
 
+                var $prepare_message = null;
+
                 if (!is_locked) {
+                    var counter = Object.keys(that.plugins).length;
+                    if (counter) {
+                        var reject_count = 0,
+                            promises = [];
+
+                        is_locked = true;
+
+                        $.each(that.plugins, function(i, plugin) {
+                            if (typeof plugin.onSubmit === "function") {
+                                plugin.onSubmit().then(onSuccess, onReject);
+                            }
+                        });
+
+                    } else {
+                        onSubmit();
+                    }
+                }
+
+                function onSuccess() {
+                    counter -= 1;
+                    watcher();
+                }
+
+                function onReject() {
+                    reject_count += 1;
+                    counter -= 1;
+                    watcher();
+                }
+
+                function watcher() {
+                    if (counter === 0) {
+                        is_locked = false;
+
+                        if (!reject_count) {
+                            onSubmit();
+                        } else {
+                            //console.log("REJECT");
+                        }
+                    }
+                }
+
+                function onSubmit() {
                     is_locked = true;
 
                     $submit_button.attr("disabled", true);
@@ -245,6 +298,30 @@
 
                 return deferred.promise();
             }
+        };
+
+        Dialog.prototype.initPlugin = function(options) {
+            var that = this;
+
+            //console.log("PLUGIN INIT", options);
+
+            if (!options.plugin_id) {
+                var message_1 = "Error registering plugin. Plugin Identifier is missing.";
+                console.log(message_1);
+                return false;
+            }
+
+            var onSubmit = ( typeof options["onSubmit"] === "function" ? options["onSubmit"] : null);
+            if (!onSubmit) {
+                var message_2 = "Error registering plugin. Promise (onSubmit) is required to register a rule.";
+                console.log(message_2);
+                return false;
+            }
+
+            that.plugins[options.plugin_id] = {
+                onSubmit: onSubmit,
+                onErrors: (typeof options.onErrors === "function" ? options.onErrors : null)
+            };
         };
 
         return Dialog;

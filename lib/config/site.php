@@ -116,6 +116,11 @@ return array(
 
             )
         ),
+        'products_per_page' => array(
+            'name'        => _w('Number of products per page'),
+            'type'        => 'input',
+            'description' => _w('If this value is empty, then the default value from the Shop-Script configuration is used.'),
+        ),
         'type_id'           => array(
             'name'  => _w('Published products'),
             'type'  => 'radio_checkbox',

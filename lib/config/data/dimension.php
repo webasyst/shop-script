@@ -61,7 +61,7 @@ return array(
         ),
     ),
     'volume' => array(
-        'name'      => _w('Volume'),
+        'name'      => _w('Volume, dimensions'),
         'base_unit' => 'l',
         'units'     => array(
             'l'  => array(

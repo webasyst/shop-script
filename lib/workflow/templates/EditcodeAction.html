@@ -1,4 +1,10 @@
 <div class="wa-dialog s-order-marking-dialog" id="js-order-marking-dialog">
+    <script>
+        ( function($) {
+            $("#js-order-marking-dialog").data("ready", $.Deferred());
+        })(jQuery);
+    </script>
+
     <div class="wa-dialog-background"></div>
     <div class="wa-dialog-body">
         <form>
@@ -66,7 +72,7 @@
             <script>(function($) { "use strict";
                 $.order.initMarkingDialog({
                     user_has_rights: {json_encode(!empty($user_has_rights))},
-                    $wrapper: $("#js-order-marking-dialog").removeAttr("id"),
+                    $wrapper: $("#js-order-marking-dialog"),
                     locales: {
                         "unsaved": {_w("This dialog contains unsaved data. Close the dialog and cancel all changes?")|json_encode}
                     },

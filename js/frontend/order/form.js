@@ -237,6 +237,26 @@
                     }
                 }
 
+                var type = $input.data("type");
+                if (type && type === "birthday") {
+                    options["maxDate"] = 0;
+
+                    $input.on("change", function() {
+                        var is_valid = checkDate( $(this).val() );
+                        if (!is_valid) {
+                            $input.datepicker("setDate", "today");
+
+                        } else {
+                            var date = $input.datepicker("getDate"),
+                                today = new Date();
+
+                            if (date && date > today) {
+                                $input.datepicker("setDate", "today");
+                            }
+                        }
+                    });
+                }
+
                 $input.datepicker(options);
 
                 $input.on("keydown keypress keyup", function(event) {
@@ -3697,6 +3717,24 @@
                             $field: $input,
                             name: name,
                             value: that.locales["invalid"]
+                        });
+                    }
+                }
+            });
+
+            $wrapper.find(".wa-field-date input.hasDatepicker").each(function () {
+                var $input = $(this);
+                var name = $input.attr("name");
+                var value = $input.val().trim();
+
+                if (value.length > 0) {
+                    var start_date = new Date($input.data("start_date") + ' 00:00:00');
+                    var delivery_date = $input.datepicker("getDate");
+                    if (delivery_date - start_date < 0) {
+                        errors.push({
+                            $field: $input,
+                            name: name,
+                            value: that.locales["incorrect_date"]
                         });
                     }
                 }

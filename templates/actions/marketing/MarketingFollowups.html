@@ -40,7 +40,10 @@
                         {if $cron_ok}
                             <p class="hint">
                                 <i class="icon10 yes"></i> {$last_cron|wa_datetime:'humandatetime'|string_format:"[`Follow-ups are configured properly. Latest cron execution time: <strong>%s</strong>.`]"}
+                                <br>
+                                <a id="cron-message-link" href="javascript:void(0)">[`Cron setup instructions`]</a>
                             </p>
+
                         {else}
                             <p class="red bold small s-cron-error">
                                 <i class="icon10 no"></i>
@@ -318,16 +321,14 @@
 
                     {strip}
                     {capture assign="_cron_dialog"}
-                        {if !$cron_ok}
-                            <div id="cron-message-dialog" style="display:none">
-                                <p>[`Follow-ups require CRON to be properly setup for the Shop-Script app, which is currently not the case.`]
-                                    {sprintf(
-                                    '[`Setup cron with the following command (<a href="%s" target="_blank">cron setup instructions</a>):`]',
-                                    '[`http://www.webasyst.com/framework/docs/server/cron/`]'
-                                )}</p>
-                                <p><strong class="highlighted">{$cron_command}</strong></p>
-                            </div>
-                        {/if}
+                        <div id="cron-message-dialog" style="display:none">
+                            <p>[`Follow-ups require CRON to be properly setup for the Shop-Script app, which is currently not the case.`]
+                                {sprintf(
+                                '[`Set up cron with the following command (<a href="%s" target="_blank">cron setup instructions</a>):`]',
+                                '[`http://www.webasyst.com/framework/docs/server/cron/`]'
+                            )}</p>
+                            <p><strong class="highlighted">{$cron_command}</strong></p>
+                        </div>
                     {/capture}
                     {/strip}
 

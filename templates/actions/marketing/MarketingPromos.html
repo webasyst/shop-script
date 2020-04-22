@@ -67,7 +67,7 @@
         {$_promo_classes[] = "without-image"}
     {/if}
 
-    <div class="s-promo-wrapper {$_promo_classes|join:" "}" id="s-promo-{$_promo.id|escape}" data-id="{$_promo.id|escape}">
+    <div class="s-promo-wrapper {" "|implode:$_promo_classes}" id="s-promo-{$_promo.id|escape}" data-id="{$_promo.id|escape}">
         <div class="s-promo-block">
 
             <div class="s-promo-header">
