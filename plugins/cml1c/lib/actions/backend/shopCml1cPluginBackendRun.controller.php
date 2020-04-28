@@ -953,9 +953,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             if (empty($exists_stocks)) {
                 $exists_stocks = $stock_model->getAll('id');
             }
-            foreach ($exists_stocks as $id => $stock) {
-                $this->data['stock_complement'][] = $id;
-            }
+            $this->data['stock_complement'] = array_keys($exists_stocks);
         } else {
             $this->data['stock_complement'] = false;
         }
@@ -966,11 +964,17 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             if (empty($exists_stocks)) {
                 $exists_stocks = $stock_model->getAll('id');
             }
-            foreach ($exists_stocks as $id => $stock) {
-                $this->data['stock_setup'][] = $id;
-            }
+            $this->data['stock_setup'] = array_keys($exists_stocks);
         } else {
             $this->data['stock_setup'] = false;
+        }
+
+        if ($this->pluginSettings('stock_forced')) {
+            $this->data['stock_forced'] = array();
+            if (empty($exists_stocks)) {
+                $exists_stocks = $stock_model->getAll('id');
+            }
+            $this->data['stock_forced'] = array_keys($exists_stocks);
         }
     }
 
@@ -3367,6 +3371,10 @@ HTML;
                 }
             }
 
+            if (!empty($params['tracking_number'])) {
+                $data['Идентификатор отправления'] = $params['tracking_number'];
+            }
+
             /*ЗначенияРеквизитов*/
             $this->writeProperties($data);
 
@@ -5263,6 +5271,12 @@ SQL;
 
                 $total = self::field($element, 'Количество', 'intval');
 
+                if (($total === null) && !empty($this->data['stock_forced']) && !count($sku['stock']) && !$stock) {
+                    $sku['stock'] = array(
+                        0 => 0,
+                    );
+                }
+
                 if (!count($sku['stock']) && !$stock) {
 
                     $stock_map = isset($this->data['stock_map']) ? $this->data['stock_map'] : array();
@@ -6367,7 +6381,12 @@ SQL;
             $update_fields = (array)$this->pluginSettings('update_product_fields');
         }
 
-        $stock_setup = $this->data['stock_setup'];
+        $exists_stocks = array();
+        if (is_array($this->data['stock_setup'])) {
+            $exists_stocks = $this->data['stock_setup'];
+        } elseif (is_array($this->data['stock_forced'])) {
+            $exists_stocks = $this->data['stock_forced'];
+        }
 
         $sku_fields = array(
             'sku_name' => 'name',
@@ -6413,10 +6432,10 @@ SQL;
                 if (!empty($_sku['stock'])
                     && isset($sku['stock'][0])
                     && !isset($_sku['stock'][0])
-                    && !empty($stock_setup)
+                    && (!empty($this->data['stock_setup']) || !empty($this->data['stock_forced']))
                 ) {
                     // Создавать новые артикулы с нулевыми остатками
-                    $_sku['stock'] += array_fill_keys($stock_setup, 0);
+                    $_sku['stock'] += array_fill_keys($exists_stocks, 0);
                 }
                 $sku = array_merge($sku, $_sku);
                 $sku['virtual'] = 0;
