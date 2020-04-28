@@ -248,6 +248,24 @@
         <input type="hidden" name="action_id" value="{$action_id}">
     </form>
 
+    {$_uncorrected_capture_plugins_message = null}
+    {if !empty($uncorrected_capture_plugins)}
+        {capture assign="_uncorrected_capture_plugins_message"}
+            <div class="s-message red">
+                <i class="icon16 exclamation-red"></i>Проверьте, поддерживается ли это действие плагином, который используется в вашем магазине для фискализации чеков.
+                <br><br>
+                Если действие не поддерживается, выполните его также вручную в личном кабинете сервиса фискализации. Если вы не знаете, как это сделать, то не выполняйте это действие с заказом.
+                <br><br>
+                Список плагинов, которые нужно проверить:<br>
+                <ul>
+                    {foreach $uncorrected_capture_plugins as $name_plugin}
+                        <li>{$name_plugin|escape}</li>
+                    {/foreach}
+                </ul>
+            </div>
+        {/capture}
+    {/if}
+
     <script>
         (function ($) {
             (function (init) {
@@ -283,7 +301,8 @@
                     shipping_price: {if !empty($order.shipping)}{$order.shipping|floatval}{else}0{/if},
                     total_price_html: {$_total_price_html|json_encode},
                     templates: {
-                        warning_message: {$_warning_message|json_encode}
+                        warning_message: {$_warning_message|json_encode},
+                        uncorrected_capture_plugins_message: {if !empty($_uncorrected_capture_plugins_message)}{$_uncorrected_capture_plugins_message|json_encode}{else}null{/if}
                     },
                     locales: {$_locales|json_encode},
                 });

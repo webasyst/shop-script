@@ -52,6 +52,8 @@ var OrderCaptureSection = (function ($) {
 
         var disabled_class = "is-disabled";
 
+        var $unsupported_plugins_message = null;
+
         // EVENTS
 
         that.$wrapper.on("change", ".js-mode-toggle", function () {
@@ -69,16 +71,32 @@ var OrderCaptureSection = (function ($) {
                     $total_price.html(that.total_price_html);
                     that.$submit_button.attr("disabled", false);
 
+                    checkPlugins(true);
                 } else {
                     that.$products.show()
                         .find("input:not(.is-disabled)").attr("disabled", false);
 
                     that.$stocks.show();
                     $amount_fields.val(0).trigger("change");
+
+                    checkPlugins(false);
                 }
             }
 
             that.$wrapper.trigger("refresh");
+
+            function checkPlugins(full_capture) {
+                if (full_capture) {
+                    if ($unsupported_plugins_message) {
+                        $unsupported_plugins_message.remove();
+                        $unsupported_plugins_message = null;
+                    }
+                } else {
+                    if (that.templates["uncorrected_capture_plugins_message"]) {
+                        $unsupported_plugins_message = $(that.templates["uncorrected_capture_plugins_message"]).appendTo(that.$messages_place);
+                    }
+                }
+            }
         });
 
         that.$products.on("keydown", ".js-quantity-field", function (event) {

@@ -112,8 +112,16 @@ HTML;
         }
     }
 
-    protected function checkRefundFixInPlugins()
+    /**
+     * Check known fiscalization plugins for partial operation support.
+     *
+     * Used by Refund and Capture actions to warn user if he's
+     * about to do something dangerous with the order.
+     */
+    protected function checkSupportedFiscalizationPlugins()
     {
+        // Plan is to hardcode plugin versions known to properly support
+        // partial capture and partial refund operations.
         $plugins = array(
             'komtetkassa' => '999',
             'komtetdelivery' => '999',
@@ -126,14 +134,14 @@ HTML;
             'orangedata' => '999',
             'cloudpayment' => '999',
             'nanokassa' => '999',
-            'mobika' => '999'
+            'mobika' => '999',
         );
         $active_plugins = wa('shop')->getConfig()->getPlugins();
         $convergence = array_intersect_key($active_plugins, $plugins);
         $uncorrected_plugins = array();
 
         foreach ($convergence as $plugin_name => $plugin_config) {
-            if ($plugin_config['version'] <= $plugins[$plugin_name]) {
+            if (version_compare($plugin_config['version'], $plugins[$plugin_name]) < 0) {
                 $uncorrected_plugins[] = $plugin_config['name'];
             }
         }
@@ -147,7 +155,7 @@ HTML;
         $data = array();
         $data['order_id'] = $order_id;
         $data['action_id'] = $this->getId();
-        $uncorrected_refund_plugins = self::checkRefundFixInPlugins();
+
         /**
          * @event order_action_form.callback
          * @event order_action_form.pay
@@ -175,7 +183,6 @@ HTML;
             'order_id'     => $order_id,
             'action_id'    => $action_id,
             'plugins_html' => $html,
-            'uncorrected_refund_plugins' => $uncorrected_refund_plugins,
         ));
 
         return $this->display();

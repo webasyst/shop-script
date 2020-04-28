@@ -211,10 +211,13 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
             }
         }
 
+        $uncorrected_capture_plugins = $this->checkSupportedFiscalizationPlugins();
+
         $this->getView()->assign(
             compact(
                 'partial_capture',
                 'shipping_controls',
+                'uncorrected_capture_plugins',
                 'button_class',
                 'order_items',
                 'order',

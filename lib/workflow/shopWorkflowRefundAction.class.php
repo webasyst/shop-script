@@ -421,11 +421,14 @@ class shopWorkflowRefundAction extends shopWorkflowAction
             }
         }
 
+        $uncorrected_refund_plugins = $this->checkSupportedFiscalizationPlugins();
+
         $this->getView()->assign(
             compact(
                 'transaction_data',
                 'partial_refund',
                 'shipping_controls',
+                'uncorrected_refund_plugins',
                 'button_class',
                 'order_items',
                 'order_items_count',
