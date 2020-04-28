@@ -32,6 +32,8 @@
 
         <meta itemprop="itemReviewed" content="{$product.name|escape}">
         <meta itemprop="datePublished" content="{$review.datetime|date_format:'Y-m-d'}">
+        <meta itemprop="author" content="{$review.author.name|default:"author"}">
+
         <span class="date" title="{$review.datetime|wa_datetime}">{$review.datetime|wa_datetime:"humandatetime"}</span>
     </header>
     {if $review.text}

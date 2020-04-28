@@ -19,30 +19,32 @@
                         {if !empty($p.summary)}<meta itemprop="description" content="{strip_tags($p.summary)}">{/if}
                     </a>
                 </div>
-                <div class="desc-block" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                <div class="desc-block">
                     <h5 class="header-item">
                         <a href="{$p.frontend_url}" itemprop="name">{$p.name|truncate:25}</a>
                     </h5>
 
-                    <!-- OLD PRICE -->
-                    {if $p.compare_price > 0}
-                        <span class="compare-at-price nowrap">{shop_currency_html($p.compare_price)}</span>
-                    {/if}
+                    <div  itemprop="offers" itemscope itemtype="http://schema.org/Offer" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                        <!-- OLD PRICE -->
+                        {if $p.compare_price > 0}
+                            <span class="compare-at-price nowrap">{shop_currency_html($p.compare_price)}</span>
+                        {/if}
 
-                    <!-- PRICE -->
-                    <span class="price nowrap">{shop_currency_html($p.price)}</span>
+                        <!-- PRICE -->
+                        <span class="price nowrap">{shop_currency_html($p.price)}</span>
 
-                    <!-- META -->
-                    {if $available}
-                        <link itemprop="availability" href="http://schema.org/InStock" />
-                    {else}
-                        <div class="out-of-stock">
-                            {if $wa->shop->settings('ignore_stock_count')}[`Pre-order only`]{else}[`Out of stock`]{/if}
-                        </div>
-                        <link itemprop="availability" href="http://schema.org/OutOfStock" />
-                    {/if}
-                    <meta itemprop="price" content="{shop_currency($p.price, null, null, 0)}">
-                    <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
+                        <!-- META -->
+                        {if $available}
+                            <link itemprop="availability" href="http://schema.org/InStock" />
+                        {else}
+                            <div class="out-of-stock">
+                                {if $wa->shop->settings('ignore_stock_count')}[`Pre-order only`]{else}[`Out of stock`]{/if}
+                            </div>
+                            <link itemprop="availability" href="http://schema.org/OutOfStock" />
+                        {/if}
+                        <meta itemprop="price" content="{shop_currency($p.price, null, null, 0)}">
+                        <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
+                    </div>
 
                     <!-- LINK -->
                     <a class="item-link" href="{$p.frontend_url}" title="{$p.name}">{_wd('shop', 'Buy')}</a>
