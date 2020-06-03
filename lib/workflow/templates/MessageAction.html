@@ -29,22 +29,30 @@
             <div class="name"><label for="{if !empty($contact_email)}transport-email{elseif !empty($sms_from) && !empty($contact_phone)}transport-sms{/if}">[`Sender`]</label></div>
             <div class="value no-shift">
                 {if !empty($contact_email)}
-                <select id="transport-email" name="sender"{if $transport != 'email'} style="display:none" disabled{/if}>
-                    {foreach $email_from as $from => $value}
-                    <option value="{$from}">{$from}</option>
-                    {/foreach}
-                </select>
+                    {if $email_from}
+                        <select id="transport-email" name="sender"{if $transport != 'email'} style="display:none" disabled{/if}>
+                            {foreach $email_from as $from => $value}
+                                <option value="{$from}">{$from}</option>
+                            {/foreach}
+                        </select>
+                    {else}
+                        <div class="js-email-errors errormsg">
+                            <i class="icon16 exclamation"></i>
+                            <span>[`Primary email address is not specified in store settings.`]</span>
+                            <a href="{$wa_app_url}?action=settings" target="_blank">[`Edit settings`]</a>
+                        </div>
+                    {/if}
                 {/if}
                 {if !empty($sms_from) && !empty($contact_phone)}
-                <select id="transport-sms" name="sender"{if $transport != 'sms'} style="display:none" disabled{/if}>
-                    {$cnt = count($sms_from)}
-                    <option value="" selected>[`Default (as configured in SMS gateway)`]</option>
-                    {if $cnt >= 1 && !($cnt == 1 && isset($sms_from["*"]))}
-                    {foreach $sms_from as $from => $value}
-                        <option value="{$from}">{$from}</option>
-                    {/foreach}
-                    {/if}
-                </select>
+                    <select id="transport-sms" name="sender"{if $transport != 'sms'} style="display:none" disabled{/if}>
+                        {$cnt = count($sms_from)}
+                        <option value="" selected>[`Default (as configured in SMS gateway)`]</option>
+                        {if $cnt >= 1 && !($cnt == 1 && isset($sms_from["*"]))}
+                            {foreach $sms_from as $from => $value}
+                                <option value="{$from}">{$from}</option>
+                            {/foreach}
+                        {/if}
+                    </select>
                 {/if}
             </div>
         </div>
@@ -74,7 +82,9 @@
 
 <script>
     ( function($) {
-        var $form = $("#wf-message-form");
+        var $form = $("#wf-message-form"),
+            $error_place = $form.find('.js-email-errors'),
+            $submit_button = $form.find(':submit');
 
         // cancel link
         $('#wf-message-form .js-cancel-button').click(function() {
@@ -86,7 +96,7 @@
 
         $("#wf-message-form").submit(function () {
             var f = $(this);
-            f.find(':submit').attr('disabled', true);
+            $submit_button.attr('disabled', true);
             $.post(f.attr('action'), f.serialize(), function () {
                 $form.trigger("formSend"); // this event is used in CRM app
                 if ("order" in $) { $.order.reload(); }
@@ -96,12 +106,27 @@
 
         $('#wf-message-form .transport').change(function () {
             if ($('#wf-message-form .transport:checked').val() == 'sms') {
-                $('#transport-email').hide().attr('disabled', 'disabled');
                 $('#transport-sms').show().removeAttr('disabled');
+                if ($error_place.length) {
+                    $submit_button.removeAttr('disabled');
+                    $error_place.hide();
+                } else {
+                    $('#transport-email').hide().attr('disabled', true);
+                }
             } else {
-                $('#transport-sms').hide().attr('disabled', 'disabled');
-                $('#transport-email').show().removeAttr('disabled');
+                $('#transport-sms').hide().attr('disabled', true);
+                if ($error_place.length) {
+                    $submit_button.attr('disabled', true);
+                    $error_place.show();
+                } else {
+                    $('#transport-email').show().removeAttr('disabled');
+                }
             }
         });
+
+        if ($error_place.length) {
+            $submit_button.attr('disabled', true);
+        }
+
     })(jQuery);
 </script>

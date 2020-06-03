@@ -170,7 +170,11 @@ class shopFrontendOrderActions extends waJsonActions
             wa()->getStorage()->set('shop/success_order_id', $this->response['order_id']);
         } catch (waException $ex) {
             $this->errors['shop_order'] = $order->errors();
-            if (!$this->errors['shop_order']) {
+            if (!empty($this->errors['shop_order']['order']['common'])) {
+                $this->errors = [
+                    'general' => $this->errors['shop_order']['order']['common'],
+                ];
+            } elseif (!$this->errors['shop_order']) {
                 $this->errors = [
                     'general'   => _w('Unable to save order.'),
                     'exception' => $ex->getMessage(),

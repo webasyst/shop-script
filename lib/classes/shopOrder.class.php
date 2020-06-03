@@ -1146,6 +1146,10 @@ class shopOrder implements ArrayAccess
             $data['text'] = $text;
         }
 
+        // If discount distribution strategy is set up to split order items into two,
+        // apply the strategy here.
+        $data = $this->distributeDiscountSplitItem($data);
+
         //Save order
         $result = $this->runAction($action_id, $data);
         if ($action_id == 'create') {
@@ -1239,6 +1243,18 @@ class shopOrder implements ArrayAccess
 
             if (!wa('shop')->getSetting('ignore_stock_count') && !$this->options(null, 'ignore_count_validate')) {
                 $this->validateStockExceed();
+            }
+        }
+
+        if (!$this->calculated_discounts) {
+            $this->calculateDiscount();
+        }
+
+        if (!empty($this->calculated_discounts['discount_decreased_by'])) {
+            if (wa()->getEnv() == 'frontend') {
+                $this->errors['order']['common'] = _w('Unable to create an order with the specified discount. Please contact the store’s support team.');
+            } else {
+                $this->errors['order']['common'] = _w('Unable to create an order with the specified discount. Please either disable the rounding for discounts or change the currency rounding settings so that the discount becomes lower than the ordered item’s price, or enable splitting of order items in currencies settings.');
             }
         }
 
@@ -2186,6 +2202,199 @@ class shopOrder implements ArrayAccess
     ###############################
 
     /**
+     * Apply discount distribution strategy that requires splitting order item into two.
+     * This is first part of the strategy. Called right after discount calculation.
+     * This selects an item to be split later.
+     * @param array $order result of discount calculation or distribution.
+     */
+    protected function distributeDiscountPrepareSplitItem(&$order)
+    {
+        // When distribution did not change overall discount, nothing to do here
+        if (empty($order['discount_increased_by']) || empty($order['items'])) {
+            return false;
+        }
+        // If disabled in settings, do not split any items; allow to change overall discount
+        if (!wa('shop')->getSetting('discount_distrbution_split')) {
+            // this option is used in unit tests
+            if (empty($this->options['force_discount_distrbution_split'])) {
+                return false;
+            }
+        }
+
+        // Select the most expensive item. Sort items by price, desc.
+        // Items sorted by discount batch, desc
+        $order_items = array_map(function($item_index, $i) {
+            return [
+                'id' => $item_index,
+                'discounted_price' => $i['price'] - $i['total_discount'] / ifempty($i, 'quantity', 1),
+            ];
+        }, array_keys($order['items']), $order['items']);
+        array_multisort(array_column($order_items, 'discounted_price'), SORT_DESC, $order_items);
+
+        // Add discount to order items, most expensive first. This makes at most one item
+        // that will have its total_discount not divisible by quantity
+        $discount_undistributed = $order['discount_increased_by'];
+        foreach(array_column($order_items, 'id') as $item_index) {
+            $item =& $order['items'][$item_index];
+            if ($item['total_discount'] >= $discount_undistributed) {
+                // All undistributed discount fits into current item. We're done.
+                $item['total_discount'] -= $discount_undistributed;
+                $discount_undistributed = 0;
+                break;
+            } else {
+                // Fit in some undistributed discount, continue to next item.
+                $discount_undistributed -= $item['total_discount'];
+                $item['total_discount'] = 0;
+            }
+        }
+        unset($item);
+
+        // Pretend discount distributed normally
+        if (isset($order['total'])) {
+            $order['total'] += $order['discount_increased_by'] - $discount_undistributed;
+        }
+        if (isset($order['discount'])) {
+            $order['discount'] -= $order['discount_increased_by'] - $discount_undistributed;
+        }
+        unset($order['discount_increased_by']);
+
+        return true;
+    }
+
+    /**
+     * Apply discount distribution strategy that requires splitting order item into two.
+     * This is the second part. Called during order save logic, before passing data array to workflow actions.
+     * Splits previously selected order item into two.
+     *
+     * Algorithm implemented in 'DiscountPrepareSplit' should produce exactly one item (product or service) that
+     * has its total_discount not divisible by quantity. Still, algorithm here in 'DiscountPrepareSplit'
+     * does not imply that there's only one such item. It will work with any input, possibly splitting more than once.
+     * It will split all items where total_discount is not divisible by quantity, also respecting
+     * product-service relationship. Hard stuff.
+     *
+     * @param array
+     */
+    protected function distributeDiscountSplitItem($data_array)
+    {
+        //
+        // Each item with total_discount not divisible by quantity
+        // (taking currency precision into account)
+        // must be split into two items.
+        //
+
+        $currency_precision = 100;
+        if (!empty($data_array['__currency_precision']) && $data_array['__currency_precision'] % 10 == 0) {
+            // This is used in unit tests.
+            $currency_precision = $data_array['__currency_precision'];
+        } else if ( ( $info = waCurrency::getInfo($data_array['currency'])) && isset($info['precision'])) {
+            $currency_precision = pow(10, max(0, $info['precision']));
+        }
+
+        // Group items by products and services. Each group consists of an item followed
+        // by any number of services. Quantity of service items is determined by product.
+        $item_groups = [];
+        $current_group = [];
+        foreach($data_array['items'] as $item) {
+            if ($item['type'] == 'product') {
+                if ($current_group) {
+                    $item_groups[] = $current_group;
+                }
+                $current_group = [];
+            } else {
+                if (!$current_group) {
+                    // Malformed order: service may not be the first in item list.
+                    // This should never happen.
+                    return $data_array;
+                }
+            }
+            $current_group[] = $item;
+        }
+        if ($current_group) {
+            $item_groups[] = $current_group;
+        }
+
+        if (!$item_groups) {
+            // Malformed order: order may not be empty
+            // This should never happen.
+            return $data_array;
+        }
+
+        $result_items = [];
+
+        // Loop over groups one by one.
+        // For each group, determine if it should be split.
+        // If split is not needed for the group, the whole group goes to $result_items.
+        // If group splits, one part goes to $result_items, the other part back to $item_groups.
+        while ($item_groups) {
+            $current_group = array_shift($item_groups);
+            $product_item = reset($current_group);
+            $total_quantity = $product_item['quantity'];
+
+            // Determine quantity of new group we split out from $current_group.
+            if ($total_quantity <= 0) {
+                $safe_quantity = 0;
+            } else {
+                $safe_quantity = min(array_map(function($item) use ($currency_precision, $total_quantity) {
+                    $discount_cents = round($item['total_discount']*$currency_precision);
+                    $remainder = $discount_cents % $total_quantity;
+                    if ($remainder > 0) {
+                        // If we take this remainder as the quantity of new group,
+                        // we have at least one item less to worry about,
+                        // because both parts of a group we split
+                        // will have this item's total_discount divisible by its quantity.
+                        return $remainder;
+                    } else {
+                        return $total_quantity;
+                    }
+                }, $current_group));
+            }
+
+            // If the group does not have to be split, add the whole thing to $result_items.
+            if ($safe_quantity >= $total_quantity) {
+                foreach($current_group as $item) {
+                    $result_items[] = $item;
+                }
+                continue;
+            }
+
+            // Otherwise, split is required for $current_group.
+            // Split the group, one part having quantity = $safe_quantity and being safe:
+            // all items inside safe group have total_discount divisible by quantity.
+            $safe_group = [];
+            $unsafe_group = [];
+            foreach($current_group as $item) {
+                $total_discount_cents = round($item['total_discount']*$currency_precision);
+                $remainder = $total_discount_cents % $total_quantity;
+
+                $safe_item = $item;
+                $safe_item['quantity'] = $safe_quantity;
+                $safe_item_discount_cents = ($total_discount_cents - $remainder) / $total_quantity * $safe_quantity;
+                if ($remainder == $safe_quantity || ($remainder > $safe_quantity && $remainder + $safe_quantity > $total_quantity)) {
+                    $safe_item_discount_cents += $safe_quantity;
+                }
+                $safe_item['total_discount'] = $safe_item_discount_cents / $currency_precision;
+                $safe_group[] = $safe_item;
+
+                $item['quantity'] = $total_quantity - $safe_quantity;
+                $item_discount_cents = $total_discount_cents - $safe_item_discount_cents;
+                $item['total_discount'] = $item_discount_cents / $currency_precision;
+                $unsafe_group[] = $item;
+            }
+
+            // Append one part (guaranteed to be safe) to $result_items.
+            foreach($safe_group as $item) {
+                $result_items[] = $item;
+            }
+
+            // Put the other part back to $item_groups to process next.
+            array_unshift($item_groups, $unsafe_group);
+        }
+
+        $data_array['items'] = $result_items;
+        return $data_array;
+    }
+
+    /**
      * Calculate general discount, items discount, shipping discount and create discount description.
      * Saved info in $this->calculated_discounts.
      * Allows you to receive a discount, regardless of the conditions of the order.
@@ -2222,6 +2431,13 @@ class shopOrder implements ArrayAccess
 
         $order['discount_rounding'] = true;
         $discount = shopDiscounts::calculate($order, $apply, $discount_description);
+        if (!empty($order['discount_decreased_by'])) {
+            // This means shop is misconfigured. Do not change discount, do not allow to create an order (see validation elsewhere).
+            $discount += $order['discount_decreased_by'];
+        } else {
+            $order['discount'] = &$discount;
+            $this->distributeDiscountPrepareSplitItem($order);
+        }
         unset($order['total']);
 
         $this->calculated_discounts = $order;
@@ -2305,7 +2521,7 @@ class shopOrder implements ArrayAccess
                     }
                     $this->data['items_discount'][] = array(
                         'value'              => $item['total_discount'],
-                        'html'               => $item['discount_description'],
+                        'html'               => ifset($item, 'discount_description', ''),
                         'selector'           => $selector,
                         'cart_item_id'       => ifset($item, 'cart_item_id', null),
                         'type'               => ifset($item, 'type', isset($item['service_id']) ? 'service' : 'product'),
@@ -2331,8 +2547,10 @@ class shopOrder implements ArrayAccess
         if (isset($this->data['discount_description'])) {
             $discount_description = $this->data['discount_description'];
         } else {
-            $this->calculateDiscount();
-            $discount_description = $this->calculated_discounts['discount_description'];
+            if (!$this->calculated_discounts) {
+                $this->calculateDiscount();
+            }
+            $discount_description = ifset($this->calculated_discounts, 'discount_description', '');
         }
 
         return $discount_description;
@@ -2463,7 +2681,17 @@ class shopOrder implements ArrayAccess
             $order = array(
                 'items' => &$this->data['items'],
             );
+            $orig_discount_manually_set = $this->data['discount'];
             shopDiscounts::correctOrderDiscount($order, $this->data['discount_description'], $this->data['discount'], $this->currency);
+            if (!empty($order['discount_decreased_by'])) {
+                // This means shop is misconfigured. Do not change discount, do not allow to create an order (see validation elsewhere).
+                $this->data['discount'] = $order['discount'] = $orig_discount_manually_set;
+            } else {
+                $order['discount'] = &$this->data['discount'];
+                $this->distributeDiscountPrepareSplitItem($order);
+            }
+            $this->calculated_discounts = $order;
+            $this->calculated_discounts['discount_description'] = ifset($this->data, 'discount_description', '');
         }
         $this->handleDependencies($name);
     }
@@ -3690,7 +3918,7 @@ class shopOrder implements ArrayAccess
                             'sku_id'             => $skus[$index],
                             'type'               => 'service',
                             'service_id'         => $service_id,
-                            'price'              => $this->formatValue($prices[$index]['service'][$service_id], 'float'),
+                            'price'              => $this->formatValue(ifset($prices, $index, 'service', $service_id, 0), 'float'),
                             'currency'           => '',
                             'quantity'           => $quantity,
                             'service_variant_id' => null,
@@ -4143,12 +4371,12 @@ HTML;
             $method_params['shipping_params'][$shipping_id]['%service_variant_id'] = reset($services);
         }
 
-        $shipping_methods = shopHelper::getShippingMethods($shipping_address, $this->shippingItems(), $method_params);
-
-        //Calculate all discount
+        // Calculate discounts because they may affect shipping price
         if (!$this->calculated_discounts) {
             $this->calculateDiscount();
         }
+
+        $shipping_methods = shopHelper::getShippingMethods($shipping_address, $this->shippingItems(), $method_params);
 
         // Round shipping cost
         if (wa()->getSetting('round_shipping')) {

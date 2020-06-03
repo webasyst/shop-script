@@ -38,11 +38,16 @@
                         {/if}
                     >
                     <select name="skus[{$sku_id}][features][{$code}][unit]">
+                        {$default_unit = isset($feature['default_unit']) && isset($units[$feature['default_unit']])}
                         {foreach $units as $unit}
-                            {if !isset($sku_features[$code]) && isset($product.features[$code])}
-                                {$selected_ = ($product.features[$code]->unit == $unit.value)}
+                            {if isset($sku_features[$code])}
+                                {$selected_ = $sku_features[$code]->unit == $unit.value}
                             {else}
-                                {$selected_ = (!isset($sku_features[$code]) && $unit@first)||(isset($sku_features[$code]) && ($sku_features[$code]->unit == $unit.value))}
+                                {if $default_unit}
+                                    {$selected_ = $feature['default_unit'] == $unit.value}
+                                {else}
+                                    {$selected_ = $unit@first}
+                                {/if}
                             {/if}
                             <option value="{$unit.value|escape}"
                                 title="{$unit.title|escape}"

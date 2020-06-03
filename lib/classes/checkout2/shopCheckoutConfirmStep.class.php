@@ -9,6 +9,14 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
     public function prepare($data)
     {
         $order = $data['order'];
+
+        // Make sure waOrder recalculates discount instead of using cached value.
+        // Discounts were calculated once in 'shipping' step code
+        // so that all shipping plugins get proper discounted prices.
+        // But it has to run again at this time so that discount plugins have a chance
+        // to see proper selected shipping plugin.
+        $order->discount = 'calculate';
+
         $result = [
             'subtotal'      => $order['subtotal'],
             'discount'      => $order['discount'],
@@ -39,18 +47,6 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
                         'section' => 'details',
                     ];
                 }
-            }
-
-            // Validate cart against stock counts
-            $cart_is_ok = !array_filter($this->getCartItems(), function ($item) {
-                return isset($item['error']);
-            });
-            if (!$cart_is_ok) {
-                $errors[] = [
-                    'id'      => 'cart_invalid',
-                    'text'    => _w('Some items in your order are not available. Please remove them from your cart.'),
-                    'section' => 'cart',
-                ];
             }
 
             $errors = array_merge($errors, $this->confirmationChannelErrors($data));
@@ -104,13 +100,6 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
             'rounding'      => $currency_info['rounding'],
             'round_up_only' => $currency_info['round_up_only'],
         ];
-    }
-
-    protected function getCartItems()
-    {
-        // This is global and should be overridden in subclasses
-        $cart_vars = (new shopCheckoutViewHelper())->cartVars();
-        return ifset($cart_vars, 'cart', 'items', []);
     }
 
     protected function confirmationChannelErrors($data)

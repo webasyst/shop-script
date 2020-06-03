@@ -664,13 +664,13 @@ $.order_edit = {
             $shipping_input = $('#shipping-rate'),
             $shipping_info = $('#shipping-info'),
             sid = $methods.val(),
-            prev_sid = $methods.data('_shipping_id');
+            prev_sid = $methods.data('_shipping_id'),
+            address_has_picked = $.order_edit.checkSelectedAddressFields();
 
         var delivery_info = [];
 
         if ($option.length) {
-
-            if ($option.data('error')) {
+            if ($option.data('error') && !address_has_picked) {
                 delivery_info.push('<span class="error">' + $option.data('error') + '</span>');
             }
             if ($option.data('est_delivery')) {
@@ -691,11 +691,12 @@ $.order_edit = {
             }
 
             if (delivery_info) {
-                if ($option.data('error')) {
+                if ($option.data('error') && !address_has_picked) {
                     $shipping_input.addClass('error');
                     $methods.addClass('error');
                 } else {
                     $shipping_input.removeClass('error');
+                    $methods.removeClass('error');
                 }
                 $shipping_info.html(delivery_info.join('<br>')).show();
             } else {
@@ -707,6 +708,32 @@ $.order_edit = {
         }
 
         $.shop.trace('check shipping_methods id', [prev_sid, sid, $option]);
+    },
+
+    checkSelectedAddressFields: function () {
+        var $shipping_city = $('[name="customer[address.shipping][city]"]'),
+            $shipping_region = $('[name="customer[address.shipping][region]"]'),
+            address_fields = [{
+                'exists': $shipping_city.length > 0,
+                'selected': $shipping_city.val() != ""
+            }, {
+                'exists': $shipping_region.length > 0,
+                'selected': $shipping_region.val() != ""
+            }];
+
+        var count_exists_address_fields = 0,
+            count_selected_address_fields = 0;
+        for (var key in address_fields) {
+            var address_field = address_fields[key];
+            if (address_field.exists) {
+                count_exists_address_fields++;
+            }
+            if (address_field.exists && address_field.selected) {
+                count_selected_address_fields++;
+            }
+        }
+
+        return count_exists_address_fields == count_selected_address_fields;
     },
 
     getOrderItems: function (container) {
@@ -822,6 +849,11 @@ $.order_edit = {
         if (!container.find('.s-order-item').length) {
             $subtotal.text(0);
             $total.text(0);
+            var address_has_picked = $.order_edit.checkSelectedAddressFields();
+            if (address_has_picked) {
+                $("#shipping_methods, #shipping-rate").removeClass('error');
+                $("#shipping-info").empty().hide();
+            }
             return;
         }
         var that = this;

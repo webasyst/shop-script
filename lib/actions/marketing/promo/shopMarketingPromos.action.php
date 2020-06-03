@@ -50,7 +50,7 @@ class shopMarketingPromosAction extends shopMarketingViewAction
         $total_completed_promos = 0;
         $completed_promos = [];
         if (empty($status) || $status == shopPromoModel::STATUS_COMPLETED) {
-            $list_params['limit'] = shopConfig::ROWS_PER_PAGE;
+            $list_params['limit'] = $this->getConfig()->getOption('promos_per_page');
             $list_params['offset'] = max(0, $page - 1) * $list_params['limit'];
             $list_params['status'] = shopPromoModel::STATUS_COMPLETED;
 

@@ -167,7 +167,7 @@
                 </div>
             {/foreach}
             {if $product.sku_type}
-                <div class="sku-no-stock">
+                <div class="sku-no-stock" style="display: none;">
                     <strong class="stock-none">[`Product with the selected option combination is not available for purchase`]</strong>
                 </div>
             {/if}
@@ -224,7 +224,8 @@
                     is_dialog: {$_is_dialog|json_encode},
                     images: {if !empty($_is_dialog)}{$_images|json_encode}{else}[]{/if},
                     compare_price: {if !empty($product.compare_price)}{shop_currency($product.compare_price, null, null, 0)}{else}0{/if},
-                    currency: {json_encode($currency_info)}
+                    currency: {json_encode($currency_info)},
+                    skus: {$product.skus|json_encode}
                     {if count($product.skus) > 1 or $product.sku_type}
                         ,services: {json_encode($sku_services)}
                     {/if}

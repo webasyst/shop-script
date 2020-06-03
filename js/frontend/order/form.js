@@ -2842,6 +2842,13 @@
                 $.each(errors, function(i, error) {
                     switch (error.id) {
                         case "cart_invalid":
+                            $.each(that.scope.sections, function(section_id, section) {
+                                if (section_id !== "confirm") {
+                                    section.$wrapper.hide();
+                                }
+                                that.$wrapper.addClass("is-single");
+                            });
+
                             that.$wrapper.trigger("wa_order_cart_invalid");
                             break;
 
@@ -3966,11 +3973,17 @@
                                     that.trigger(section_id + "_changed", api);
                                 }
                             }
-                        }, function(state, response) {
-                            if (response) {
-                                that.DEBUG("render errors:", "errors", response);
-                            }
                         });
+                });
+
+                // Crude way to show bad unexpected rare errors that happen upon order creation
+                promise.fail(function(state, response) {
+                    if (response) {
+                        that.DEBUG("render errors:", "errors", response);
+                        if (options.create && response.errors && response.errors.general) {
+                            alert(response.errors.general);
+                        }
+                    }
                 });
 
                 var $loading = showAnimation();

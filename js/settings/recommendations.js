@@ -71,7 +71,7 @@ $.extend($.settings = $.settings || {}, {
     },
 
     recommendationsRenderEditFeature: function (data, table, type_id) {
-
+        var locales = this.recommendations_options.locales;
         var f = this.recommendationsGetFeature(data);
         var tr = $('<tr></tr>');
         var checkbox = $('<input name="data[' + data.feature + '][feature]" id="checkbox-' + type_id + '-' + data.feature + '" value="' + data.feature + '" type="checkbox" ' + (data.cond ? 'checked' : '') +'>').click(function () {
@@ -147,7 +147,15 @@ $.extend($.settings = $.settings || {}, {
                     elem_values.html('&nbsp;');
                 } else {
                     if (!f.selectable) {
-                        elem_values.html($('<input type="text" name="data[' + data.feature + '][value]">').val(data.value || ''));
+                        if (f.type == "boolean") {
+                            elem_values.html(
+                                '<select name="data[' + data.feature + '][value]">' +
+                                    '<option value="1" ' + (data.value == 1? 'selected': '') + '>' + locales.yes + '</option>' +
+                                    '<option value="0" ' + (data.value == 0? 'selected': '') + '>' + locales.no + '</option>' +
+                                '</select>');
+                        } else {
+                            elem_values.html($('<input type="text" name="data[' + data.feature + '][value]">').val(data.value || ''));
+                        }
                     } else {
                         if (f.multiple) {
                             var vs = data.value ? data.value.split(',') : [];

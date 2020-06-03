@@ -1200,6 +1200,9 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 if ($active_storefront_group) {
                     $active_storefront_group.removeClass(active_class);
                 }
+                if ($(this).val() === 'all') {
+                    that.$wrapper.find(".js-storefront-field").attr("checked", ":checked");
+                }
                 $active_storefront_group = $group.toggleClass(active_class);
                 that.dialog.resize();
             });
@@ -1652,8 +1655,11 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
             var that = this;
 
             var $kind_section = that.$wrapper.find(".js-field-kind-section"),
+                $kind_section_select = $kind_section.find('.js-select'),
                 $format_section = that.$wrapper.find(".js-field-format-section"),
                 $format_select = $format_section.find(".js-select"),
+                $default_unit_section = that.$wrapper.find(".js-field-default-unit-section"),
+                $default_unit_select = $default_unit_section.find(".js-select"),
                 $value_section = that.$wrapper.find(".js-field-value-section"),
                 $value_block = $value_section.find(".s-feature-values-section"),
                 $value_list = $value_block.find(".s-feature-values-list");
@@ -1682,16 +1688,9 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 if (that.feature_id) {
                     showMessage(that.templates["kind_warning_message"]);
                     $value_section.find(".s-feature-value-wrapper").remove();
+                    defaultValueSectionToggle(false);
                 } else {
-                    // Message has to be shown when:
-                    // 1) format does not require values,
-                    // 2) kind does imply dimension units.
-                    // Check for that here.
-                    if (!that.active_format.values && that.active_kind.dimensions) {
-                        showMessage(that.templates["2d_info_message"]);
-                    } else {
-                        showMessage(null);
-                    }
+                    defaultValueSectionToggle(true);
                 }
 
                 if (that.active_format.values) {
@@ -1701,6 +1700,10 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 } else {
                     valueSectionToggle(false);
                 }
+            });
+
+            $default_unit_select.on("change", function() {
+                that.feature.default_unit = $(this).val()
             });
 
             $value_block.on("click", ".js-feature-value-remove", function(event) {
@@ -1735,6 +1738,46 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
             initSortable();
 
+            function defaultValueSectionToggle(show) {
+                show = (typeof show === "boolean" ? show : !!that.active_kind.dimensions);
+
+                var $section = $default_unit_section,
+                    $select = $default_unit_select;
+
+                $select.html("");
+
+                if (show && that.active_kind.dimensions) {
+                    var kind_dimensions = that.active_kind.dimensions;
+                    if (($kind_section_select.val() == 'volume' && $format_select.val() == '3d') ||
+                        ($kind_section_select.val() == 'area' && $format_select.val() == '2d')) {
+                        kind_dimensions = that.kinds['length'].dimensions;
+                    }
+                    setSelectOptions($select, kind_dimensions, that.feature.default_unit);
+                    $section.show();
+
+                } else {
+                    $section.hide();
+                }
+
+                /**
+                 * @param {Object} $select
+                 * @param {Object} dimensions
+                 * @param {String?} active_dimension_id
+                 * */
+                function setSelectOptions($select, dimensions, active_dimension_id) {
+                    active_dimension_id = ( typeof active_dimension_id === "string" ? active_dimension_id : null);
+
+                    $.each(dimensions, function(i, dimension) {
+                        var $option = $("<option />", {
+                            value: dimension.id,
+                            selected: !!(that.feature.default_unit && that.feature.default_unit === dimension.id)
+                        }).text(dimension.title);
+
+                        $select.append($option);
+                    });
+                }
+            }
+
             function onViewChange(kind) {
                 $format_select.html("");
 
@@ -1749,11 +1792,13 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
                     $format_section.show();
                     $format_select.trigger("change");
+
                 } else {
                     $format_section.hide();
-
                     valueSectionToggle(false);
                 }
+
+                defaultValueSectionToggle(!!formats);
             }
 
             /**
@@ -1796,7 +1841,8 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
                     $.each(dimensions, function(i, dimension) {
                         var $option = $("<option />", {
-                            value: dimension.id
+                            value: dimension.id,
+                            selected: !!(that.feature.default_unit && that.feature.default_unit === dimension.id)
                         }).text(dimension.title);
 
                         $select.append($option);
@@ -2036,14 +2082,16 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 });
             }
 
-            function showMessage(html) {
+            function showMessage(html, $append_wrapper) {
+                $append_wrapper = ($append_wrapper ? $append_wrapper : $format_section);
+
                 if ($kind_message) {
                     $kind_message.remove();
                     $kind_message = null;
                 }
 
                 if (html) {
-                    $kind_message = $(html).appendTo($format_section);
+                    $kind_message = $(html).appendTo($append_wrapper);
                     valueSectionToggle(false);
                 }
             }

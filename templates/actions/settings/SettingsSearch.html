@@ -57,10 +57,10 @@
                         </div>
 
                         <div class="field">
-                            <div class="name">[`Search on part of word`]</div>
+                            <div class="name">[`Search by beginning of word`]</div>
                             <div class="value no-shift">
                                 <label>
-                                    <input id="search_by_part" type="checkbox"{if $by_part} checked{/if}> [`Search on part of word`]
+                                    <input id="search_by_part" type="checkbox"{if $by_part} checked{/if}> [`Search by beginning of word`]
                                 </label>
                                 <p class="hint">[`Enabling this option will make words such as “transmitter” and “transformer” found by a search query such as “trans”. Recommended if most products in your online store come with long or complex names.`]</p>
                             </div>
@@ -100,7 +100,7 @@
         </div>
     </div>
 </div>
-        
+
 {* dialogs section *}
 
 <div class="dialog width600px height300px" id="s-reindex-dialog">
@@ -112,7 +112,7 @@
                 <h1>[`Re-index all products for search`]</h1>
                 <p>[`This will re-generate search index database table for all existing products of your online store.`] [`Depending on the number of products, this operation may take from few seconds to few minutes or even hours for very large databases.`]</p>
                 <div id="s-reindex-progressbar" style="display:none; margin-top: 20px;">
-                    
+
                     <div class="progressbar blue float-left" style="display: none; width: 70%;">
                         <div class="progressbar-outer">
                             <div class="progressbar-inner" style="width: 0%;"></div>
@@ -125,9 +125,9 @@
                     <br clear="left" />
                     <em class="errormsg"></em>
                 </div>
-                
+
                 <div id="s-reindex-report" style="display: none; margin-top: 20px;"></div>
-                
+
             </div>
         </div>
         <div class="dialog-buttons">
@@ -135,13 +135,13 @@
                 {$wa->csrf()}
                 <input class="button green" type="submit" value="[`Start re-indexing process`]">
                 [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
-                
+
             </div>
         </div>
     </div>
     </form>
 </div>
-                
+
 <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js"></script>
 <script type="text/javascript" src="{$wa_app_static_url}js/settings/search.js?{$wa->version()}"></script>
 <script type="text/javascript">

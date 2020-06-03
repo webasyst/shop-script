@@ -27,12 +27,18 @@ class shopSettingsTypefeatListAction extends waViewAction
             $features = $feature_model->getByType($type_id, 'id', $values_per_feature);
             $codes = $product_code_model->getByType($type_id);
             $title = $type_info['name'];
-        } else if ($type === 'empty') {
+        } elseif ($type === 'empty') {
             // Features not assigned to any type
             $features = $feature_model->getByType(null, 'id', $values_per_feature);
             $features = $this->sortByName($features);
             $codes = $product_code_model->getByType(null);
             $title = _w('Not available for any product type');
+        } elseif ($type === 'builtin') {
+            // System (undeletable) features
+            $features = $feature_model->getByField('code', array('gtin', 'weight'), true);
+            $features = $this->sortByName($features);
+            $codes = null;
+            $title = _w('System features');
         } elseif ($type === '') {
             // All features
             $count_all_features = $feature_model->countAll();
@@ -91,7 +97,7 @@ class shopSettingsTypefeatListAction extends waViewAction
     protected function markUndeletable($features)
     {
         foreach($features as &$f) {
-            if ($f['code'] == 'weight') {
+            if ($f['code'] == 'weight' || $f['code'] === 'gtin') {
                 $f['undeletable'] = true;
                 $f['always_available_for_sku'] = true;
             }

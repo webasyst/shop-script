@@ -239,6 +239,7 @@ return array(
         'multiple' => array('int', 11, 'null' => 0),
         'count' => array('int', 10, 'unsigned' => 1, 'null' => 0, 'default' => '0'),
         'available_for_sku' => array('int', 11),
+        'default_unit' => array('varchar', 255),
         ':keys' => array(
             'PRIMARY' => 'id',
             'code' => array('code', 'unique' => 1),
@@ -561,6 +562,8 @@ return array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
         'code' => array('varchar', 64, 'null' => 0),
         'name' => array('varchar', 255, 'null' => 0),
+        'icon' => array('varchar', 255),
+        'logo' => array('varchar', 255),
         ':keys' => array(
             'PRIMARY' => 'id',
         ),

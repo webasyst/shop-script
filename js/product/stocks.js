@@ -13,6 +13,7 @@
             this.options = options;
             this.stocks = options.stocks;
             this.container = $('#s-product-stocks');
+            this.products_ids = [];
 
             this.initView();
             if (options.stocks && options.stocks.length > 1) {
@@ -24,9 +25,11 @@
         },
 
         initLazyLoad: function(options) {
-            var count = options.count;
-            var offset = count;
-            var total_count = options.total_count;
+            var count = options.count,
+                offset = count,
+                total_count = options.total_count,
+                sort = options.sort;
+
             $(window).lazyLoad('stop');  // stop previous lazy-load implementation
             if (offset < total_count) {
                 var self = this;
@@ -51,33 +54,44 @@
                             }
                             $(window).lazyLoad('stop');
                         };
-                        $.get(
-                            '?module=stocksBalance&offset=' + offset +
-                                '&total_count=' + total_count +
-                                (self.options.order ? '&order=' + self.options.order : ''),
-                            function(r) {
-                                if (r && r.status == 'ok') {
-                                    offset += r.data.count;
 
-                                    if (!self.append({ product_stocks: r.data.product_stocks, stocks: self.stocks })) {
-                                        $(window).lazyLoad('stop');
-                                        return;
-                                    }
+                        var params = [
+                            "module=stocksBalance",
+                            "offset=" + offset,
+                            "total_count=" + total_count
+                        ]
 
-                                    $('.lazyloading-progress-string').text(r.data.progress.loaded + ' ' + r.data.progress.of);
-                                    $('.lazyloading-progress').hide();
-                                    $('.lazyloading-chunk').text(r.data.progress.chunk);
+                        if (self.options.order) {
+                            params.push('order=' + self.options.order);
+                        }
 
-                                    if (offset >= total_count) {
-                                        $(window).lazyLoad('stop');
-                                        $('.lazyloading-link').hide();
-                                    } else {
-                                        $('.lazyloading-link').show();
-                                        $(window).lazyLoad('wake');
-                                    }
-                                } else {
-                                    onError(r);
+                        if (sort) {
+                            params.push("sort=" + sort);
+                        }
+
+                        $.get("?" + params.join("&"), function(r) {
+                            if (r && r.status === 'ok') {
+                                offset += r.data.count;
+
+                                if (!self.append({ product_stocks: r.data.product_stocks, stocks: self.stocks })) {
+                                    $(window).lazyLoad('stop');
+                                    return;
                                 }
+
+                                $('.lazyloading-progress-string').text(r.data.progress.loaded + ' ' + r.data.progress.of);
+                                $('.lazyloading-progress').hide();
+                                $('.lazyloading-chunk').text(r.data.progress.chunk);
+
+                                if (offset >= total_count) {
+                                    $(window).lazyLoad('stop');
+                                    $('.lazyloading-link').hide();
+                                } else {
+                                    $('.lazyloading-link').show();
+                                    $(window).lazyLoad('wake');
+                                }
+                            } else {
+                                onError(r);
+                            }
                             },
                             'json'
                         ).error(onError);

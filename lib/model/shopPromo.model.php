@@ -85,7 +85,7 @@ class shopPromoModel extends waModel
         $offset = $limit = null;
         if (isset($params['offset']) || isset($params['limit'])) {
             $offset = (int)ifset($params['offset'], 0);
-            $limit = (int)ifset($params['limit'], shopConfig::ROWS_PER_PAGE);
+            $limit = (int)ifset($params['limit'], wa('shop')->getConfig()->getOption('promos_per_page'));
         }
 
         $joins = $cond = $vars = [];

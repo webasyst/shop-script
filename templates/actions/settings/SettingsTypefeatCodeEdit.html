@@ -28,6 +28,12 @@
                 <div class="s-fields-wrapper">
                     <div class="wa-table-box fixed space-10">
                         <div class="s-column">
+                            {if !empty($code.logo)}
+                                <div class="s-field-section-logo">
+                                    <img src="{$wa_url}{$code.logo}">
+                                </div>
+                            {/if}
+
                             <div class="s-field-section">
                                 <label class="s-label">[`Name`]</label>
                                 <input class="s-field js-name-field" type="text" name="code[name]" value="{$code.name|default:""|escape}" required>

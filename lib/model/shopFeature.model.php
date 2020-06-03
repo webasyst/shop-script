@@ -62,6 +62,7 @@ class shopFeatureModel extends waModel
             'selectable' => 0,
             'multiple'   => 0,
             'status'     => 'public',
+            'default_unit' => '',
         );
         $feature = array_merge($default, $feature);
         $feature['selectable'] = intval($feature['selectable']);
@@ -580,8 +581,8 @@ SQL;
                                 }
                             }
                         }
-
-                    } elseif (isset($keys[$feature_id])) {
+                    }
+                    elseif (isset($keys[$feature_id])) {
                         // avoid values with wrong types
                         $feature_key = $keys[$feature_id];
 
@@ -602,7 +603,7 @@ SQL;
     {
         $types = array();
         foreach ($items as $id => $item) {
-            $type = $type = preg_replace('/\..*$/', '', $item['type']);
+            $type = preg_replace('/\..*$/', '', $item['type']);
             if (!isset($types[$type])) {
                 $types[$type] = array();
             }
@@ -725,10 +726,12 @@ SQL;
     }
 
     /**
-     * @param array $feature
+     * @param $feature
      * @param $value
      * @param bool $update
-     * @return int|int[]
+     * @return array|int|null
+     * @throws waDbException
+     * @throws waException
      */
     public function getValueId($feature, $value, $update = false)
     {

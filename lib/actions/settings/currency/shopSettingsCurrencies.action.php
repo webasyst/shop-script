@@ -30,12 +30,35 @@ class shopSettingsCurrenciesAction extends waViewAction
             'use_product_currency' => $wa->getSetting('use_product_currency'),
             'system_currencies' => $system_currencies,
             'rest_system_currencies' => array_diff_key($system_currencies, $currencies),
+            'discount_distribution' => $this->getDiscountDistributionStrategy(),
             'rounding_options' => $config->getRoundingOptions(),
             'round_discounts' => $wa->getSetting('round_discounts', 0),
             'round_shipping' => $wa->getSetting('round_shipping', 0),
             'round_services' => $wa->getSetting('round_services', 0),
-            'product_count' => $this->getProductCount($primary)
+            'product_count' => $this->getProductCount($primary),
         ));
+    }
+
+    protected function getDiscountDistributionStrategy()
+    {
+        $wa = wa('shop');
+        $discount_distrbution_rounding = $wa->getSetting('discount_distrbution_rounding', 1);
+        $discount_distrbution_split = $wa->getSetting('discount_distrbution_split', 0);
+
+        // These are normal options
+        if ($discount_distrbution_rounding && !$discount_distrbution_split) {
+            return 'increase_discount';
+        } else if (!$discount_distrbution_rounding && $discount_distrbution_split) {
+            return 'split_order_item';
+        }
+
+        // These are hidden options
+        if (!$discount_distrbution_rounding && !$discount_distrbution_split) {
+            return 'increase_discount_no_rounding';
+        }
+
+        // $discount_distrbution_rounding && $discount_distrbution_split
+        return 'split_order_item_with_rounding';
     }
 
     public function formatFloat($float)

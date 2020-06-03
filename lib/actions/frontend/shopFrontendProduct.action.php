@@ -28,8 +28,11 @@ class shopFrontendProductAction extends shopFrontendAction
         }
         if ($selected_sku_id) {
             if (isset($product->skus[$selected_sku_id])) {
+                $s = $product->skus[$selected_sku_id];
                 $product['sku_id'] = $selected_sku_id;
-                $s = $product->skus[$product['sku_id']];
+                $product['price'] = $s['price'];
+                $product['compare_price'] = $s['compare_price'];
+
                 if ($s['image_id'] && isset($product->images[$s['image_id']])) {
                     $product['image_id'] = $s['image_id'];
                     $product['image_filename'] = $product->images[$s['image_id']]['filename'];
@@ -106,12 +109,10 @@ class shopFrontendProductAction extends shopFrontendAction
         }
         $product['original_price'] = $product['price'];
         $product['original_compare_price'] = $product['compare_price'];
-        $event_params = array(
-            'products' => array(
-                $product->id => &$product,
-            ),
-            'skus'     => &$skus,
-        );
+        $event_params = [
+            'products' => [$product->id => &$product],
+            'skus'     => &$skus
+        ];
         wa('shop')->event('frontend_products', $event_params);
         $product['skus'] = $skus;
 
@@ -124,6 +125,14 @@ class shopFrontendProductAction extends shopFrontendAction
             }
         }
 
+        /** Add array of 'features' to each SKU */
+        $sku_features = $product->getSkuFeatures();
+        $skus_with_features = array();
+        foreach ($product->skus as $sku_id => $sku) {
+            $sku['features'] = array_merge($product->features, ifempty($sku_features, $sku_id, []));
+            $skus_with_features[$sku_id] = $sku;
+        }
+        $product->skus = $skus_with_features;
         $product->tags = array_map('htmlspecialchars', $product->tags);
     }
 
@@ -195,9 +204,14 @@ class shopFrontendProductAction extends shopFrontendAction
         $this->ensureCanonicalUrl($product);
         $this->prepareProduct($product);
 
-        $this->view->assign('product', $product);
-        $this->assignFeaturesSelectable($product);
+        $_active_sku_id = waRequest::request("sku", null);
+        if (!empty($_active_sku_id) && !empty($product["skus"][$_active_sku_id])) {
+            $product["sku_id"] = $_active_sku_id;
+        }
 
+        $this->view->assign('product', $product);
+
+        $this->assignFeaturesSelectable($product);
         if (!$is_cart) {
             $this->getBreadcrumbs($product);
         }
@@ -218,12 +232,14 @@ class shopFrontendProductAction extends shopFrontendAction
             $this->view->assign('reviews_total_count', $this->getReviewsTotalCount($product['id']));
 
             $meta_fields = $this->getMetafields($product);
+
             wa()->getResponse()->setTitle($meta_fields['meta_title']);
             wa()->getResponse()->setMeta('keywords', $meta_fields['meta_keywords']);
             wa()->getResponse()->setMeta('description', $meta_fields['meta_description']);
             foreach ($meta_fields['og'] as $property => $content) {
                 $content && wa()->getResponse()->setOGMeta($property, $content);
             }
+
             // yes, override previous og:video url
             if ($product['video_url']) {
                 wa()->getResponse()->setOGMeta('og:video', $product['video_url']);
@@ -233,8 +249,12 @@ class shopFrontendProductAction extends shopFrontendAction
             $feature_model = new shopFeatureModel();
             $features = $feature_model->getByCode($feature_codes);
 
+            $sku_features = self::getСommonFeatures($product, $features);
+
             $this->view->assign('features', $features);
+            $this->view->assign('sku_features', $sku_features);
         }
+
 
         $this->view->assign('currency_info', $this->getCurrencyInfo());
         $this->view->assign('stocks', shopHelper::getStocks(true));
@@ -302,6 +322,41 @@ class shopFrontendProductAction extends shopFrontendAction
         }
 
         return $count;
+    }
+
+    protected function getСommonFeatures($product, $features)
+    {
+        if (isset($product) && is_array($features)) {
+            $feature_model = new shopFeatureModel();
+            $features_additional = $feature_model->getByType($product->type_id, 'code');
+            if ($features_additional) {
+                $features += $features_additional;
+            }
+
+            $common_features = array();
+            $product_skus = $product->skus;
+            if (isset(current($product_skus)['features'])) {
+                $first_element = current($product_skus)['features'];
+                $common_features = array_flip(array_keys($first_element));
+                foreach (array_slice($product_skus, 1) as $key => $item) {
+                    if (isset($item['features'])) {
+                        foreach ($item['features'] as $feature_key => $feature) {
+                            if (!isset($common_features[$feature_key])) {
+                                $common_features[$feature_key] = '';
+                            }
+                        }
+                    }
+                }
+
+                foreach ($features as $key => $feature) {
+                    if (!isset($common_features[$key])) {
+                        unset($features[$key]);
+                    }
+                }
+            }
+
+            return $features;
+        }
     }
 
     protected function getServiceVars($product)

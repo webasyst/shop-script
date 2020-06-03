@@ -12,9 +12,13 @@ class shopSettingsTypefeatToggleController extends waJsonController
 
         $feature_model = new shopFeatureModel();
 
+        // Make sure to update both feature itself, as well as its child sub-features (for 2d, 3d)
+        $ids = array_keys($feature_model->select('id')->where('parent_id='.intval($id))->fetchAll('id'));
+        $ids[] = $id;
+
         switch ($param) {
             case 'visibility':
-                $feature_model->updateById($id, [
+                $feature_model->updateById($ids, [
                     'status' => $value ? 'public' : 'private',
                 ]);
                 break;
@@ -60,8 +64,7 @@ class shopSettingsTypefeatToggleController extends waJsonController
                     $product_features_model->deleteSkuValuesByFeature($id);
                 }
 
-                $feature_model = new shopFeatureModel();
-                $feature_model->updateById($id, [
+                $feature_model->updateById($ids, [
                     'available_for_sku' => $value ? 1 : 0,
                 ]);
 

@@ -50,6 +50,9 @@ function Product(form, options) {
         self.updateSkuServices(sku_id);
         self.cartButtonVisibility(true);
         self.updatePrice();
+
+        var sku = (that.skus[sku_id] ? that.skus[sku_id] : null);
+        that.form.trigger("product_sku_changed", [sku_id, sku]);
     });
     var $initial_cb = this.form.find(".skus input[type=radio]:checked:not(:disabled)");
     if (!$initial_cb.length) {
@@ -57,13 +60,17 @@ function Product(form, options) {
     }
     $initial_cb.click();
 
-    this.form.find(".sku-feature").change(function () {
-        var key = "";
+    this.form.find(".sku-feature").on("change", function () {
+        var sku_id = null,
+            key = "";
+
         self.form.find(".sku-feature").each(function () {
             key += $(this).data('feature-id') + ':' + $(this).val() + ';';
         });
+
         var sku = self.features[key];
         if (sku) {
+            sku_id = sku.id;
             that.setImage(sku.image_id);
             self.updateSkuServices(sku.id);
             if (sku.available) {
@@ -83,6 +90,8 @@ function Product(form, options) {
             self.add2cart.find(".price").empty();
         }
         self.cartButtonVisibility(true);
+
+        that.form.trigger("product_sku_changed", [sku_id, sku]);
     });
     this.form.find(".sku-feature:first").change();
 
@@ -388,6 +397,9 @@ $(function () {
 
     // product images
     $("#product-gallery a").not('#product-image-video').click(function () {
+        var $small_image = $(this).find("img");
+
+
         $('#product-core-image').show();
         $('#video-container').hide();
         $('.product-gallery .image').removeClass('selected');
@@ -400,8 +412,12 @@ $(function () {
         var size = $("#product-image").attr('src').replace(/^.*\/[^\/]+\.(.*)\.[^\.]*$/, '$1');
         var src = img.attr('src').replace(/^(.*\/[^\/]+\.)(.*)(\.[^\.]*)$/, '$1' + size + '$3');
         $('<img>').attr('src', src).load(function () {
-            $("#product-image").attr('src', src);
-            $("#product-image").removeClass('blurred');
+            $("#product-image")
+                .attr('src', src)
+                .attr("title", $small_image.attr("title"))
+                .attr("alt", $small_image.attr("alt"))
+                .removeClass('blurred');
+
             $("#switching-image").hide();
         }).each(function() {
             //ensure image load is fired. Fixes opera loading bug

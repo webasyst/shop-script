@@ -42,6 +42,10 @@ class shopFrontendAction extends waViewAction
         return htmlspecialchars($title);
     }
 
+    /**
+     * @param shopProductsCollection $collection
+     * @throws waException
+     */
     protected function setCollection(shopProductsCollection $collection)
     {
         $collection->filters(waRequest::get());

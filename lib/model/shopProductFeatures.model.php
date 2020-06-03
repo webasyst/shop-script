@@ -146,11 +146,11 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                 'type_id' => $type_id,
             ));
             foreach ($data as $row) {
-                $features[$row['feature_id']] = array(
+                $features[$row['feature_id']] = [
                     'type'     => $row['type'],
                     'code'     => $row['code'],
                     'multiple' => $row['multiple'],
-                );
+                ];
 
                 if (preg_match('/^(.+)\.[0-2]$/', $row['code'], $matches)) {
                     $code = $matches[1];
@@ -263,6 +263,9 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
         // Fetch actual values from shop_feature_values_* tables
         foreach ($storages as $type => $value_ids) {
+            if ($type === shopFeatureModel::TYPE_2D || $type === shopFeatureModel::TYPE_3D) {
+                continue;
+            }
             if ($model = shopFeatureModel::getValuesModel($type)) {
                 $feature_values = $model->getValues('id', $value_ids);
                 foreach ($feature_values as $feature_id => $values) {
@@ -283,10 +286,9 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
             unset($result[$code]);
         }
 
-        /**
-         * composite fields workaround
-         */
-        $composite = array_filter(array_keys($result), wa_lambda('$a', 'return preg_match("/\.0$/",$a);'));
+        /** composite fields workaround */
+        $composite = array_filter(array_keys($result), wa_lambda('$a', 'return preg_match("/\.[0-2]$/",$a);'));
+        $composite = array_unique(preg_filter('#\.[0-3]#', '', $composite));
         foreach ($composite as $code) {
             $code = preg_replace('/\.0$/', '', $code);
             $result[$code] = new shopCompositeValue($code, $result);
@@ -296,14 +298,35 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
     }
 
     /**
+     * @param $features
+     * @param $data_form
+     * @return array
+     */
+    private function get2d3d($features, $data_form)
+    {
+        $param_2d_3d = [];
+        foreach ($features as $name => $param) {
+            if (null !== $param['parent_id']) {
+                $param_2d_3d[$param['parent_id']][] = $param['code'];
+                if (!isset($param_2d_3d[$param['parent_id']]['empty'])) {
+                    $param_2d_3d[$param['parent_id']]['empty'] = true;
+                }
+                $param_2d_3d[$param['parent_id']]['empty'] = ($param_2d_3d[$param['parent_id']]['empty'] && empty($data_form[$param['code']]));
+            }
+        }
+        return $param_2d_3d;
+    }
+
+    /**
      * @see shopProductStorageInterface::setData()
      * @param shopProduct $product current product object
-     * @param array [string] mixed $data new product feature values
+     * @param mixed $data $data new product feature values
+     * @throws waDbException
+     * @throws waException
      */
     public function setData(shopProduct $product, $data)
     {
         $product_id = $product->getId();
-
         $codes = array_keys($data);
 
         /**
@@ -314,9 +337,9 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                 $data[$code] = array();
             }
         }
+        unset($code);
 
         $codes = array_keys($data);
-
         $feature_model = new shopFeatureModel();
         $features = $feature_model->getByCode($codes);
 
@@ -327,11 +350,12 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
         $value_pattern = '(\d+|[\.,]\d+|\d+[\.,]\d+)';
         $multi_pattern = '[XxХх×✕✖\*\s]+';
-        $unit_pattern = '(\s+.+)?';
+        $unit_pattern  = '(\s+.+)?';
 
         $composite_codes = array();
         foreach ($data as $code => $value) {
-            if (!preg_match('/\.[0-3]$/', $code)
+            if (
+                !preg_match('/\.[0-3]$/', $code)
                 && isset($features[$code])
                 && preg_match('/^([23])d\\./', $features[$code]['type'], $matches)
             ) {
@@ -347,7 +371,6 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                     unset($features[$code]);
                 } else {
                     waLog::log(sprintf('Error during parse %dD feature value [%s]', $n, $value), 'shop/features.error.log');
-
                 }
                 unset($data[$code]);
             }
@@ -371,7 +394,8 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                 $code = $f['code'];
                 if (empty($f['multiple'])) {
                     $current[$code] = intval($row['feature_value_id']);
-                } else {
+                }
+                else {
                     if (!isset($current[$code])) {
                         $current[$code] = array();
                     }
@@ -379,14 +403,23 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                 }
             } else {
                 //obsolete data
-                ;
             }
         }
 
-        $add = $delete = array();
+        $add = [];
+        $delete = [];
+        $arr_2d_3d = $this->get2d3d($features, $data);
         foreach ($data as $code => $value) {
-
             if (isset($features[$code])) {
+
+                /** parent 2d and 3d operation */
+                if (null !== $features[$code]['parent_id']) {
+                    $delete[$features[$code]['parent_id']] = 0;
+                    if (!$arr_2d_3d[$features[$code]['parent_id']]['empty']) {
+                        $add[$features[$code]['parent_id']] = 0;
+                    }
+                }
+
                 $f =& $features[$code];
                 if (is_array($value)) {
                     $empty = isset($value['value']) && ($value['value'] === '');
@@ -410,7 +443,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                     $empty = ($value === '');
                 }
                 if ($empty) {
-                    //delete it
+                    /** delete it */
                     if (isset($current[$code])) {
                         $delete[$f['id']] = $current[$code];
                     }
@@ -442,7 +475,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                 }
                 unset($f);
             } elseif (!empty($value) && is_array($value)) {
-                //it's a new feature
+                /** it's a new feature */
                 if (!empty($value) && ((ifset($value['type']) == shopFeatureModel::TYPE_BOOLEAN) || !empty($value['value']))) {
                     $f = array(
                         'name'  => $value['name'],
@@ -466,11 +499,20 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
             }
         }
         foreach ($delete as $feature_id => $value_id) {
-            $this->deleteByField(array('product_id' => $product_id, 'sku_id' => null, 'feature_id' => $feature_id, 'feature_value_id' => $value_id));
+            $this->deleteByField([
+                'product_id'       => $product_id,
+                'sku_id'           => null,
+                'feature_id'       => $feature_id,
+                'feature_value_id' => $value_id
+            ]);
         }
 
         foreach ($add as $feature_id => $value_id) {
-            $this->multipleInsert(array('product_id' => $product_id, 'feature_id' => $feature_id, 'feature_value_id' => $value_id));
+            $this->multipleInsert([
+                'product_id'       => $product_id,
+                'feature_id'       => $feature_id,
+                'feature_value_id' => $value_id
+            ]);
         }
     }
 
@@ -501,5 +543,41 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                 WHERE feature_id IN (?)
                     AND sku_id IS NOT NULL";
         $this->exec($sql, [$feature_id]);
+    }
+
+    /**
+     * @param $value
+     * @param bool $ignore_empty_string
+     * @return bool
+     */
+    public function validateGtinFeatureValue($value, $ignore_empty_string = true)
+    {
+        if (!is_string($value)) {
+            return false;
+        }
+
+        $len = strlen($value);
+
+        if ($ignore_empty_string && $len == 0) {
+            return true;
+        }
+
+        if ($len != 8 && $len != 12 && $len != 13 && $len != 14) {
+            return false;
+        }
+
+        return $this->isAllDigits($value);
+    }
+
+    private function isAllDigits($str)
+    {
+        $len = strlen($str);
+        for ($i = 0; $i < $len; $i++) {
+            $val = ord($str[$i]) - ord('0');
+            if ($val < 0 || $val > 9) {
+                return false;
+            }
+        }
+        return true;
     }
 }

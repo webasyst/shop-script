@@ -77,7 +77,9 @@ class shopBackendLocAction extends waViewAction
             'Nothing selected',
             'Matching features were not found or are already selected.',
             'Confirmed',
-            'Product type adding error'
+            'Product type adding error',
+            'Save GTIN feature for product is fail',
+            'Save GTIN feature for SKU is fail'
         ) as $s) {
             $strings[$s] = _w($s);
         }

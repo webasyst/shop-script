@@ -51,6 +51,9 @@ class shopProductAddToListController extends waJsonController
                     $product_ids = array_keys($collection->getProducts('*', $offset, $count));
                     $model->add($product_ids, $id);
                     $offset += count($product_ids);
+                    if (!$product_ids) {
+                        break;
+                    }
                 }
             }
         }

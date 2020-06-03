@@ -2176,6 +2176,9 @@ msgstr "кг"
 msgid "g"
 msgstr "г"
 
+msgid "mg"
+msgstr "мг"
+
 msgid "lbs"
 msgstr "фунт"
 
@@ -4918,8 +4921,8 @@ msgstr "Стоп-символы"
 msgid "All ignored symbols will be automatically omitted from the user search query. Example: if product name contains “V-112”, and you wish users to be able to find this product using “v112” search criteria, add - (hyphen) to the list of ignored symbols."
 msgstr "Стоп-символы будут автоматически удалены из поискового запроса пользователя. Пример: если название одного из товаров содержит «V-112» и вы хотите, чтобы этот товар находился по поисковой фразе «v112», добавьте - (дефис) в список стоп-символов."
 
-msgid "Search on part of word"
-msgstr "Искать по части слова"
+msgid "Search by beginning of word"
+msgstr "Искать по началу слова"
 
 msgid "Enabling this option will make words such as “transmitter” and “transformer” found by a search query such as “trans”. Recommended if most products in your online store come with long or complex names."
 msgstr "Включение этой настройки позволит находить такие слова как «трансформер» и «трансформатор» с помощью поискового запроса «транс». Рекомендуется включить эту настройку, если большинство товаров вашего интернет-магазина содержат длинные или сложные в написании слова."
@@ -10701,8 +10704,8 @@ msgstr "Чтобы удалить этот тип товаров, сначала
 msgid "Are you sure you want to delete this product type?"
 msgstr "Вы уверены, что хотите удалить этот тип товаров?"
 
-msgid "“Weight” is a special feature which must always be available for editing in product SKUs’ properties."
-msgstr "«Вес» — это особенная характеристика, которая всегда должна должна быть доступна для редактирования в свойствах артикулов товаров."
+msgid "“Weight” is a special feature, which must always be available for editing in product SKUs’ properties."
+msgstr "«Вес» — это особенная характеристика, которая всегда должна быть доступна для редактирования в свойствах артикулов товаров."
 
 msgid "You cannot disable the editing of this feature’s values in product SKUs’ properties, because some products in your store have SKUs generated from this feature’s values in “Selectable parameters” mode."
 msgstr "Нельзя отключить доступность редактирования этой характеристики в свойствах артикулов товаров, потому что в вашем магазине есть товары, артикулы которых сформированы из значений этой характеристики в режиме «Выбор параметров»."
@@ -10823,3 +10826,90 @@ msgstr "Если не заполнено, то используется стан
 
 msgid "Items removed from the order:"
 msgstr "Товары, удаленные из заказа:"
+
+msgid "Select a CSV file or a ZIP archive with a CSV file.<br>ZIP archives enable faster uploading of large CSV files without exceeding server limitations on the uploaded data size."
+msgstr "Выберите CSV-файл или ZIP-архив с CSV-файлом.<br>ZIP-архив позволяет быстро загрузить большой CSV-файл, не превышая ограничения веб-сервера на размер загружаемых данных."
+
+msgid "To complete your order, please change the products in your shopping cart which are not available in stock:"
+msgstr "Чтобы оформить заказ, измените товары в своей корзине, которые отсутствуют на складе:"
+
+msgid "either delete them %s"
+msgstr "или удалите их %s"
+
+msgid "or reduce their quantity %s"
+msgstr "или уменьшите их количество %s"
+
+msgid "or select other SKUs %s"
+msgstr "или выберите другие артикулы %s"
+
+msgid "System features list"
+msgstr "Системные"
+
+msgid "System features"
+msgstr "Системные характеристики"
+
+msgid "“GTIN (Global Trade Item Number)” is a special feature, which must always be available for editing in product SKUs’ properties."
+msgstr "«GTIN (Global Trade Item Number)» — это особенная характеристика, которая всегда должна быть доступна для редактирования в свойствах артикулов товаров."
+
+msgid "Order discount adjustment"
+msgstr "Распределение скидки в заказе"
+
+msgid "When it is impossible to equally distribute the discount amount across all order items,"
+msgstr "В случаях, когда невозможно нацело разделить скидку по позициям заказа:"
+
+msgid "increase the discount"
+msgstr "увеличить скидку"
+
+msgid "The discount will be increased, and the order total will be reduced, by a minimum amount necessary for correct discount distribution across order items."
+msgstr "Скидка будет увеличена, а общая сумма заказа — уменьшена на минимальную сумму, необходимую для корректного распределения скидки по позициям заказа."
+
+msgid "Order currency rounding settings are taken into account if the discounts rounding is enabled."
+msgstr "Настройки округления валюты заказа применяются, если включено округление для скидок."
+
+msgid "Increase discount without rounding"
+msgstr "Увеличить скидку, не применяя округление"
+
+msgid "Order currency rounding settings are not applied as when rounding to 0.01 is selected."
+msgstr "Настройки округления валюты заказа не применяются, как если бы было установлено округление до 0,01."
+
+msgid "split one of order items into two"
+msgstr "разбить одну из позиций в заказе на две"
+
+msgid "One of order items will be split into two separate items."
+msgstr "Одна из позиций заказа будет разбита на две самостоятельные позиции."
+
+msgid "The price of a new order item will differ by one cent."
+msgstr "Цена новой позиции будет отличаться на одну копейку."
+
+msgid "Split one of order items into two with rounding applied"
+msgstr "Разбить одну из позиций в заказе на две, применяя округление"
+
+msgid "The price of a new order item will differ by a minimum amount, depending on the order currency rounding settings."
+msgstr "Цена новой позиции заказа будет отличаться на минимальную сумму, зависящую от настроек округления валюты заказа."
+
+msgid "Default measurement units"
+msgstr "Единицы измерения по умолчанию"
+
+msgid "This order cannot be edited while customer’s money are captured because the payment option’s plugin does not support partial captures."
+msgstr "Редактирование этого заказа недоступно, пока средства покупателя заблокированы, потому что плагин выбранного способа оплаты не поддерживает частичные списания."
+
+msgid "This order cannot be edited while customer’s money are captured."
+msgstr "Редактирование этого заказа недоступно, пока средства покупателя заблокированы."
+
+msgid "Primary email address is not specified in store settings."
+msgstr "Основной email-адрес не указан в настройках магазина."
+
+msgid "Edit settings"
+msgstr "Изменить настройки"
+
+msgid "The current product type is the only one selected for this storefront."
+msgstr "Текущий тип товара является единственным в этой витрине."
+
+msgid "Invalid GTIN code, it must have only 8, 12, 13, or 14 digits."
+msgstr "Неверный код GTIN: в нем должно быть только 8, 12, 13 или 14 цифр."
+
+msgid "Unable to create an order with the specified discount. Please contact the store’s support team."
+msgstr "Невозможно создать заказ с указанной скидкой. Пожалуйста, обратитесь в службу поддержки магазина."
+
+msgid "Unable to create an order with the specified discount. Please either disable the rounding for discounts or change the currency rounding settings so that the discount becomes lower than the ordered item’s price, or enable splitting of order items in currencies settings."
+msgstr "Невозможно сохранить заказ с указанной скидкой. Выключите округление для скидок или измените настройку округления валюты, чтобы скидка стала меньше цены заказанного товара, либо разрешите разбиение позиций заказа в настройках валют."

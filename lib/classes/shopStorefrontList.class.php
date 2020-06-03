@@ -19,6 +19,7 @@
 class shopStorefrontList
 {
     protected static $all_storefronts = null;
+    protected static $checkout_configs = [];
 
     protected $filters = array();
 
@@ -156,7 +157,7 @@ class shopStorefrontList
     protected function applyFilters($storefronts)
     {
         $filters = $this->filters;
-        
+
         if (isset($filters['contact_type'])) {
             $storefronts = $this->filterOffByContactType($storefronts, $filters['contact_type']);
             unset($filters['contact_type']);
@@ -347,18 +348,16 @@ class shopStorefrontList
             } else {
                 $storefront_id = $storefront['route']['checkout_storefront_id'];
                 $config = $this->newCheckoutConfig($storefront_id);
-                if (!$config) {
-                    continue;
-                }
+                $storefront['checkout_config'] = $config;
             }
 
-            $type = ifset($config, 'customer', 'type', false);
+            $type = ifset($config, 'customer', 'type', shopCheckoutConfig::CUSTOMER_TYPE_PERSON);
 
             $storefront['contact_type'][shopCustomer::TYPE_PERSON]['enabled'] = $type === shopCheckoutConfig::CUSTOMER_TYPE_PERSON ||
-                        $type === shopCheckoutConfig::CUSTOMER_TYPE_PERSON_AND_COMPANY;
+                $type === shopCheckoutConfig::CUSTOMER_TYPE_PERSON_AND_COMPANY;
 
             $storefront['contact_type'][shopCustomer::TYPE_COMPANY]['enabled'] = $type === shopCheckoutConfig::CUSTOMER_TYPE_COMPANY ||
-                        $type === shopCheckoutConfig::CUSTOMER_TYPE_PERSON_AND_COMPANY;
+                $type === shopCheckoutConfig::CUSTOMER_TYPE_PERSON_AND_COMPANY;
 
         }
         unset($storefront);
@@ -385,8 +384,8 @@ class shopStorefrontList
                 /**
                  * @var shopCheckoutConfig $config
                  */
-                if (isset($storefront['checkout_config']) && $checkout_version['checkout_config'] instanceof shopCheckoutConfig) {
-                    $config = $checkout_version;
+                if (isset($storefront['checkout_config']) && $storefront['checkout_config'] instanceof shopCheckoutConfig) {
+                    $config = $storefront['checkout_config'];
                 } else {
                     $storefront_id = $storefront['route']['checkout_storefront_id'];
                     $config = $this->newCheckoutConfig($storefront_id);
@@ -431,10 +430,16 @@ class shopStorefrontList
      */
     protected function newCheckoutConfig($storefront_id)
     {
-        try {
-            return new shopCheckoutConfig($storefront_id);
-        } catch (waException $e) {
-            return null;
+        if (array_key_exists($storefront_id, self::$checkout_configs)) {
+            return self::$checkout_configs[$storefront_id];
         }
+
+        try {
+            self::$checkout_configs[$storefront_id] = new shopCheckoutConfig($storefront_id);
+        } catch (waException $e) {
+            self::$checkout_configs[$storefront_id] = null;
+        }
+
+        return self::$checkout_configs[$storefront_id];
     }
 }

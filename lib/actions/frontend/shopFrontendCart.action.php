@@ -59,7 +59,20 @@ class shopFrontendCartAction extends shopFrontendAction
         $order['discount'] = $discount = shopDiscounts::calculate($order, false, $discount_description);
         $order['total'] = $total = $total - $order['discount'];
 
-        if (waRequest::post('checkout')) {
+        if (isset($order['discount_decreased_by'])) {
+
+            $discount += $order['discount_decreased_by'];
+            $total -= $order['discount_decreased_by'];
+            $order['discount'] = $discount;
+            $order['total'] = $total;
+
+            foreach ($items as &$row) {
+                $row['error'] = _w('Unable to create an order with the specified discount. Please contact the store’s support team.');
+                break;
+            }
+            unset($row);
+
+        } else if (waRequest::post('checkout')) {
             $saved_quantity = $cart_model->select('id,quantity')->where("type='product' AND code = s:code", array('code' => $code))->fetchAll('id');
             $quantity = waRequest::post('quantity');
             foreach ($quantity as $id => $q) {
@@ -77,22 +90,8 @@ class shopFrontendCartAction extends shopFrontendAction
                 }
             }
             $not_available_items = $cart_model->getNotAvailableProducts($code, $check_count);
-            foreach ($not_available_items as $row) {
-                if ($row['sku_name']) {
-                    $row['name'] .= ' ('.$row['sku_name'].')';
-                }
-                if ($row['available']) {
-                    if ($row['count'] > 0) {
-                        $errors[$row['id']] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $row['count'], $row['name']);
-                    } else {
-                        $errors[$row['id']] = sprintf(_w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience. Please remove this product from your shopping cart to proceed.'),
-                            $row['name']);
-                    }
-                } else {
-                    $errors[$row['id']] = sprintf(_w('Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed.'),
-                        $row['name']);
-                }
-            }
+            self::validateNotAvailableProducts($not_available_items, $errors);
+
             foreach ($items as &$row) {
                 if (!$row['quantity'] && !isset($errors[$row['id']])) {
                     $errors[$row['id']] = null;
@@ -194,6 +193,27 @@ class shopFrontendCartAction extends shopFrontendAction
             'description' => null /* TODO: Error message here if exists */
         ));
 
+    }
+
+    public static function validateNotAvailableProducts($not_available_items, &$errors)
+    {
+        foreach ($not_available_items as $row) {
+            if ($row['sku_name']) {
+                $row['name'] .= ' ('.$row['sku_name'].')';
+            }
+            if ($row['available']) {
+                if ($row['count'] > 0) {
+                    $message = _w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.');
+                    $errors[$row['id']] = sprintf($message, $row['count'], $row['name']);
+                } else {
+                    $message = _w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience. Please remove this product from your shopping cart to proceed.');
+                    $errors[$row['id']] = sprintf($message, $row['name']);
+                }
+            } elseif (!$row['available'] || !$row['status']) {
+                $message = _w('Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed.');
+                $errors[$row['id']] = sprintf($message, $row['name']);
+            }
+        }
     }
 
     public static function getAffiliateDiscount($affiliate_bonus, $order)

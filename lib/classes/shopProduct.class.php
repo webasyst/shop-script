@@ -157,6 +157,11 @@ class shopProduct implements ArrayAccess
         return $this->is_frontend;
     }
 
+    /**
+     * @param $key
+     * @return mixed|shopProductStorageInterface|null
+     * @throws waException
+     */
     private function getStorage($key)
     {
         if (!self::$data_storages) {
@@ -521,6 +526,11 @@ class shopProduct implements ArrayAccess
         return $data;
     }
 
+    /**
+     * @param null $status
+     * @return mixed
+     * @throws waException
+     */
     public function getFeatures($status = null)
     {
         switch ($status) {
@@ -705,18 +715,15 @@ class shopProduct implements ArrayAccess
         return $validate;
     }
 
+    /**
+     * @param array $errors
+     * @throws waException
+     */
     protected function saveData(&$errors = array())
     {
         #fix empty SKUs
         if (!$this->sku_count && empty($this->is_dirty) && empty($this->data['skus'])) {
-            $this->setData(
-                'skus',
-                array(
-                    -1 => array(
-                        'name' => '',
-                    )
-                )
-            );
+            $this->setData('skus', [-1 => ['name' => '']]);
         }
         if ($this->is_dirty) {
             $this->getStorage(null);
@@ -724,14 +731,7 @@ class shopProduct implements ArrayAccess
             foreach (array_keys(self::$data_storages) as $field) {
                 if (($field == 'skus') && !$this->sku_count && empty($this->is_dirty[$field]) && empty($this->data['skus'])) {
                     #fix empty SKUs on missed virtual SKUs
-                    $this->setData(
-                        'skus',
-                        array(
-                            -1 => array(
-                                'name' => '',
-                            )
-                        )
-                    );
+                    $this->setData('skus', [-1 => ['name' => '']]);
                 }
                 if (!empty($this->is_dirty[$field]) && ($storage = $this->getStorage($field))) {
                     $this->data[$field] = $storage->setData($this, $raw = $this->data[$field]);
@@ -758,7 +758,7 @@ class shopProduct implements ArrayAccess
         if (method_exists($this, $method)) {
             $this->data[$name] = $this->$method();
             return $this->data[$name];
-        } elseif (($storage = $this->getStorage($name))) {
+        } elseif ($storage = $this->getStorage($name)) {
             $this->data[$name] = $storage->getData($this);
             return $this->data[$name];
         }
@@ -1196,15 +1196,23 @@ class shopProduct implements ArrayAccess
                 }
                 $f = $features[$row['feature_id']];
                 $type = preg_replace('/\..*$/', '', $f['type']);
-                $type_values[$type][] = $row['feature_value_id'];
+                if ($type == shopFeatureModel::TYPE_BOOLEAN) {
+                    $type_values[$type][] = $row['feature_id'];
+                } else {
+                    $type_values[$type][] = $row['feature_value_id'];
+                }
             }
 
             foreach ($type_values as $type => $value_ids) {
                 $model = shopFeatureModel::getValuesModel($type);
-                $type_values[$type] = $model->getValues('id', $value_ids);
+                if ($type == shopFeatureModel::TYPE_BOOLEAN) {
+                    $type_values[$type] = $model->getValues('feature_id', array_unique($value_ids));
+                } else {
+                    $type_values[$type] = $model->getValues('id', $value_ids);
+                }
             }
 
-            $result = array();
+            $result = [];
             foreach ($rows as $row) {
                 if (empty($features[$row['feature_id']])) {
                     continue;
@@ -1214,7 +1222,16 @@ class shopProduct implements ArrayAccess
                 if (!$type_values[$type][$row['feature_id']][$row['feature_value_id']]) {
                     continue;
                 }
-                $result[$row['sku_id']][$f['code']] = $type_values[$type][$row['feature_id']][$row['feature_value_id']];
+                if (null === $features[$row['feature_id']]['parent_id']) {
+                    $result[$row['sku_id']][$f['code']] = $type_values[$type][$row['feature_id']][$row['feature_value_id']];
+                } else {
+                    $name_feature = preg_replace('#\.\d$#', '', $f['code']);
+                    if (isset($result[$row['sku_id']][$name_feature])) {
+                        $result[$row['sku_id']][$name_feature] .= '&times;'.$type_values[$type][$row['feature_id']][$row['feature_value_id']];
+                    } else {
+                        $result[$row['sku_id']][$name_feature] = $type_values[$type][$row['feature_id']][$row['feature_value_id']];
+                    }
+                }
             }
             return $result;
         } else {

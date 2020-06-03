@@ -3,8 +3,27 @@
 {$_config = $config["confirmation"]}
 {$_locked = !empty($_confirm_locked)}
 
+{$_cart_is_invalid = false}
+
 {$_errors = []}
-{if !empty($error_step_id) && $error_step_id === "confirm"}{$_errors = $errors}{/if}
+{if !empty($error_step_id) && $error_step_id === "confirm"}
+    {$_errors = $errors}
+{else}
+    {foreach $errors as $_error}
+        {if !empty($_error.id) && $_error.id === "cart_invalid"}
+            {$_errors[] = $_error}
+            {break}
+        {/if}
+    {/foreach}
+{/if}
+
+{foreach $errors as $_error}
+    {if !empty($_error.id) && $_error.id === "cart_invalid"}
+        {$_cart_is_invalid = true}
+        {break}
+    {/if}
+{/foreach}
+
 {$_button_text = _w("Confirm order")}
 {if $error_step_id === "region" || $error_step_id === "shipping"}
     {$_button_text = _w("Select shipping")}
@@ -13,7 +32,7 @@
 <section class="wa-step-section wa-step-confirm-section" id="wa-step-confirm-section">
     {* BODY *}
     <div class="wa-section-body">
-        <form>
+        <form style="{if !empty($_cart_is_invalid)}display: none;{/if}">
             <div class="wa-flex-wrapper">
                 {if empty($_locked) && !empty($_config["order_comment"])}
                     <div class="wa-comment-section {if !empty($confirm.comment)}is-opened{/if}">
@@ -134,6 +153,23 @@
                 <div class="wa-plugin-hook">{$_}</div>
             {/foreach}
         </form>
+
+        {if !empty($_cart_is_invalid)}
+            {capture name='delete_icon'}&nbsp;<span class="gray">(&nbsp;<i class="wa-icon delete size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#trash"></use></svg></i>&nbsp;)</span>&nbsp;{/capture}
+            {capture name='minus_icon'}&nbsp;<span class="gray">(&nbsp;<i class="wa-icon minus size-12"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#minus"></use></svg></i>&nbsp;)</span>&nbsp;{/capture}
+            {capture name='edit_icon'}&nbsp;<span class="gray">(&nbsp;<i class="wa-icon edit size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#edit"></use></svg></i>&nbsp;)</span>{/capture}
+
+            <div class="s-message is-cart-invalid">
+                <p>[`To complete your order, please change the products in your shopping cart which are not available in stock:`]</p>
+                <ul>
+                    <li>{sprintf(_w("either delete them %s"), $smarty.capture.delete_icon)}</li>
+                    <li>{sprintf(_w("or reduce their quantity %s"), $smarty.capture.minus_icon)}</li>
+                    {if !empty($config.cart.change_sku)}
+                        <li>{sprintf(_w("or select other SKUs %s"), $smarty.capture.edit_icon)}</li>
+                    {/if}
+                </ul>
+            </div>
+        {/if}
     </div>
 
     {capture assign="_loading_html"}

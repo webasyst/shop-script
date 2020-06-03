@@ -104,7 +104,7 @@
 
                             <div class="s-field-section">
                                 <label class="s-label">[`Identifier`] <span class="shop-tooltip"><i class="icon10 info"></i><span>[`It is used to uniquely identify a feature within the system. For instance, you may use it to show some feature-related information in a design template.`]</span></span></label>
-                                {if $feature.code == 'weight'}
+                                {if $feature.code == 'weight' || $feature.code === 'gtin'}
                                     <input type="hidden" name="feature[code]" value="{$feature.code|default:""|escape}">
                                     <input class="s-field js-code-field" type="text" value="{$feature.code|default:""|escape}" disabled>
                                 {else}
@@ -134,7 +134,9 @@
                                             <span class="s-text">[`Allow editing of feature values for product SKUs`]</span>&nbsp;
                                             {if !$can_disable_sku}
                                                 {if $feature.code == 'weight'}
-                                                    <span class="shop-tooltip"><i class="icon10 info"></i><span>[`“Weight” is a special feature which must always be available for editing in product SKUs’ properties.`]</span></span>
+                                                    <span class="shop-tooltip"><i class="icon10 info"></i><span>[`“Weight” is a special feature, which must always be available for editing in product SKUs’ properties.`]</span></span>
+                                                {elseif $feature.code === 'gtin'}
+                                                    <span class="shop-tooltip"><i class="icon10 info"></i><span>[`“GTIN (Global Trade Item Number)” is a special feature, which must always be available for editing in product SKUs’ properties.`]</span></span>
                                                 {else}
                                                     <span class="shop-tooltip"><i class="icon10 info"></i><span>[`You cannot disable the editing of this feature’s values in product SKUs’ properties, because some products in your store have SKUs generated from this feature’s values in “Selectable parameters” mode.`]</span></span>
                                                 {/if}
@@ -205,7 +207,8 @@
                                 {* VIEWS *}
                                 <div class="s-field-section js-field-kind-section">
                                     <label class="s-label">[`Type`] <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Select the kind of values which you need to be stored in this feature.`]</span></span></label>
-                                    <select class="s-select js-select" name="feature[kind]">
+                                    {$_is_disabled = $feature.code === 'gtin'}
+                                    <select class="s-select js-select" name="feature[kind]" {if $_is_disabled}disabled="disabled"{/if}>
                                         {foreach $kinds as $_kind}
                                             {$_is_active = false}
                                             {if !empty($_active_kind) && $_active_kind.id === $_kind.id}
@@ -217,12 +220,13 @@
                                 </div>
 
                                 {* FORMATS *}
-                                <div class="s-field-section js-field-format-section" style="{if empty($_active_kind.formats)}display: none;{/if}">
+                                <div class="s-field-section js-field-format-section" style="{if empty($_active_kind.formats)}display:none;{/if}">
                                     <label class="s-label">
                                         [`Format`] <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Choose how you want to edit the values of this feature`]</span></span>
                                     </label>
                                     {if !empty($_active_kind)}
-                                        <select class="s-select js-select" name="feature[format]">
+                                        {$_is_disabled = $feature.code == 'gtin'}
+                                        <select class="s-select js-select" name="feature[format]" {if $_is_disabled}disabled="disabled"{/if}>
                                             {foreach $_active_kind.formats as $_format_id}
                                                 {if !empty($formats[$_format_id])}
                                                     {$_format = $formats[$_format_id]}
@@ -235,6 +239,28 @@
                                             {/foreach}
                                         </select>
                                     {/if}
+                                </div>
+
+                                {* FORMAT DEFAULT VALUE *}
+                                <div class="s-field-section js-field-default-unit-section" style="{if empty($_active_kind.dimensions)}display:none;{/if}">
+                                    <label class="s-label">
+                                        [`Default measurement units`] <span class="shop-tooltip right"><i class="icon10 info"></i><span>[`You will be able to select measurement units for feature values when completing them in products’ properties.`]</span></span>
+                                    </label>
+                                    <select class="s-select js-select" name="feature[default_unit]">
+                                        {* JS GENERATION *}
+                                        {$active_dimensions = []}
+                                        {if isset($_active_kind.length_dimensions) && !empty($_active_format.is_multidimensional)}
+                                            {$active_dimensions = $_active_kind.length_dimensions}
+                                        {elseif isset($_active_kind.dimensions)}
+                                            {$active_dimensions = $_active_kind.dimensions}
+                                        {/if}
+                                        {if !empty($active_dimensions)}
+                                            {foreach $active_dimensions as $_dimension}
+                                                {$_is_active = (!empty($feature.default_unit) && $feature.default_unit === $_dimension.id)}
+                                                <option value="{$_dimension.id|escape}" {if !empty($_is_active)}selected{/if}>{$_dimension.title|escape}</option>
+                                            {/foreach}
+                                        {/if}
+                                    </select>
                                 </div>
 
                                 {* VALUES *}
@@ -278,12 +304,6 @@
     </div>
 
     {strip}
-    {capture assign="_2d_info_message"}
-        <div class="s-info-message">
-            <span class="s-text">[`You will be able to select measurement units for feature values when completing them in products’ properties.`]</span>
-        </div>
-    {/capture}
-
     {capture assign="_kind_warning_message"}
         <div class="s-warning-message">
             <i class="icon10 exclamation"></i>&nbsp;
@@ -322,7 +342,6 @@
                 active_format_id: {if !empty($_active_format)}{$_active_format.id|json_encode}{else}null{/if},
                 show_skus_warning: {if !empty($_skus_warning_message)}true{else}false{/if},
                 templates: {
-                    "2d_info_message": {$_2d_info_message|json_encode},
                     "kind_warning_message": {$_kind_warning_message|json_encode},
                     "skus_warning_message": {$_skus_warning_message|json_encode},
                     "feature_value_item": {$_feature_value_item|json_encode},

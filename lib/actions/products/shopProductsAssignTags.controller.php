@@ -55,6 +55,9 @@ class shopProductsAssignTagsController extends waJsonController
 
         while ($offset < $total_count) {
             $product_ids = array_keys($collection->getProducts('*', $offset, $count));
+            if (!$product_ids) {
+                break;
+            }
 
             // delete tags
             if ($delete_tags) {

@@ -388,6 +388,10 @@
                 if (self.data('running')) {
                     return false;
                 }
+                if (self.data('action-unavailable-reason')) {
+                    alert(self.data('action-unavailable-reason'));
+                    return false;
+                }
                 if (self.data('confirm') && !confirm(self.data('confirm'))) {
                     return false;
                 }
@@ -504,8 +508,13 @@
             var edit_order_link = this.container.find('.s-edit-order');
             edit_order_link.attr('href', '#/orders/edit/' + $.order.id + '/');
             edit_order_link.click(function () {
-                var confirm_text = $(this).data('confirm');
-                $.shop.trace('confirm',[!confirm_text,confirm_text]);
+                var $self = $(this);
+                var alert_text = $self.data('action-unavailable-reason');
+                if (alert_text) {
+                    alert(alert_text);
+                    return false;
+                }
+                var confirm_text = $self.data('confirm');
                 if (!confirm_text || confirm(confirm_text)) {
                     edit_order_link.find('.loading').show();
                 } else {

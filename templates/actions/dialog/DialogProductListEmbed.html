@@ -22,12 +22,12 @@
                 
                 <div id="s-product-list-embed-content-ace-1">{literal}{if $wa->shop}
 {$products = $wa->shop->productSet("{/literal}{$id}{literal}")}
-{include file="list-thumbs.html" products=$products}
+{$wa->shop->getListThumbsTemplate($products)}
 {/if}{/literal}</div>
                 
                 <div id="s-product-list-embed-content-ace-2" style="display:none;">{literal}{if $wa->shop}
 {$products = $wa->shop->productSet("{/literal}{$id}{literal}")}
-{include file="`$wa->shop->themePath('THEME_ID')`list-thumbs.html" products=$products}
+{$wa->shop->getListThumbsTemplate($products, 'THEME_ID')}
 {/if}{/literal}</div>
 
             </div>

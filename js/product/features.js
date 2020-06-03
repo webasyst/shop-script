@@ -340,6 +340,13 @@ $.product = $.extend(true, $.product, {
                     });
                     $el.hide();
                 }
+
+                $feature.find('[name*="' + feature.input + '"] > option').each(function() {
+                    if (feature.defaultUnit != "" && this.value == feature.defaultUnit) {
+                        this.selected = true;
+                    }
+                });
+
             } catch (e) {
                 $.shop.error('Exception ' + e.message, e);
             }

@@ -2,8 +2,6 @@
 
 class shopConfig extends waAppConfig
 {
-    const ROWS_PER_PAGE = 20;
-
     protected $_routes = array();
     protected $image_sizes = array(
         'big'        => '970',

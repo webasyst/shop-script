@@ -259,11 +259,12 @@ class shopCheckoutViewHelper
         return array_map(function ($item) use ($item_counts) {
             $item_data = ifset($item_counts, $item['id'], [
                 'count'          => 0,
+                'status'         => 0,
                 'available'      => false,
                 'can_be_ordered' => false,
             ]);
             $item['stock_count'] = $item_data['count'];
-            $item['sku_available'] = (bool)$item_data['available'];
+            $item['sku_available'] = (bool)$item_data['available'] && $item_data['status'] > 0;
             $item['can_be_ordered'] = (bool)$item_data['can_be_ordered'];
             if (!$item['can_be_ordered']) {
                 $name = $item['name'];

@@ -733,9 +733,18 @@ class shopProductModel extends waModel
     public static function badges()
     {
         return array(
-            'new'        => array('name' => _w('New!'), 'code' => '<div class="badge new"><span>'._w('New!').'</span></div>'),
-            'bestseller' => array('name' => _w('Bestseller!'), 'code' => '<div class="badge bestseller"><span>'._w('Bestseller!').'</span></div>'),
-            'lowprice'   => array('name' => _w('Low price!'), 'code' => '<div class="badge low-price"><span>'._w('Low price!').'</span></div>'),
+            'new' => array(
+                'name' => _wd('shop', 'New!'),
+                'code' => '<div class="badge new"><span>' . _wd('shop','New!') . '</span></div>'
+            ),
+            'bestseller' => array(
+                'name' => _wd('shop', 'Bestseller!'),
+                'code' => '<div class="badge bestseller"><span>' . _wd('shop','Bestseller!') . '</span></div>'
+            ),
+            'lowprice' => array(
+                'name' => _wd('shop', 'Low price!'),
+                'code' => '<div class="badge low-price"><span>' . _wd('shop','Low price!') . '</span></div>'
+            ),
         );
     }
 

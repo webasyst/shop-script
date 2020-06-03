@@ -90,6 +90,14 @@ class shopProductSaveController extends waJsonController
             $data['features_selectable'] = array();
         }
 
+        $this->ensureWeightForSkus($data);
+        $this->ensureGtinForSkus($data);
+
+        $errors = $this->validateFeatures($data);
+        if ($errors) {
+            $this->errors = $errors;
+            return;
+        }
 
         try {
             $product = new shopProduct($id);
@@ -300,4 +308,80 @@ class shopProductSaveController extends waJsonController
             'default_meta_description' => shopProduct::getDefaultMetaDescription($product),
         );
     }
+
+    /**
+     * Ensure catabase consistency by making sure
+     * shop_feature.available_for_sku is enabled for feature weight.
+     *
+     * This flag should always be enabled for weight and can not be disabled via settings.
+     * Saving weight via shop settings UI will fix it, too.
+     *
+     * Still this seems to be a good place to make that safeguard check.
+     */
+    protected function ensureWeightForSkus($data)
+    {
+        foreach(ifset($data, 'skus', []) as $sku) {
+            if (isset($sku['features']['weight'])) {
+                $feature_model = new shopFeatureModel();
+                $feature_model->updateByField('code', 'weight', [
+                    'available_for_sku' => 1,
+                ]);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Same as ensureWeightForSkus but for GTIN feature
+     * @param $data
+     * @throws waDbException
+     * @throws waException
+     */
+    protected function ensureGtinForSkus($data)
+    {
+        foreach(ifset($data, 'skus', []) as $sku) {
+            if (isset($sku['features']['weight'])) {
+                $feature_model = new shopFeatureModel();
+                $feature_model->updateByField('code', 'gtin', [
+                    'available_for_sku' => 1,
+                ]);
+                return;
+            }
+        }
+    }
+
+    protected function validateFeatures($data)
+    {
+        $errors = [];
+
+        $pfm = new shopProductFeaturesModel();
+        $gtin = isset($data['features']['gtin']) ? trim($data['features']['gtin']) : '';
+        $is_valid = $pfm->validateGtinFeatureValue($gtin);
+        if (!$is_valid) {
+            $errors['features']['gtin'] = _w('Invalid GTIN code, it must have only 8, 12, 13, or 14 digits.');
+        }
+
+        $sku_errors = $this->validateSkuFeatures($data);
+        if ($sku_errors) {
+            $errors['skus'] = $sku_errors;
+        }
+
+        return $errors;
+    }
+
+    protected function validateSkuFeatures($data)
+    {
+        $errors = [];
+        $pfm = new shopProductFeaturesModel();
+        foreach ($data['skus'] as $sku_id => $sku) {
+            $gtin = isset($sku['features']['gtin']) ? trim($sku['features']['gtin']) : '';
+            $is_valid = $pfm->validateGtinFeatureValue($gtin);
+            if (!$is_valid) {
+                $errors[$sku_id]['features']['gtin'] = _w('Invalid GTIN code, it must have only 8, 12, 13, or 14 digits.');
+            }
+        }
+        return $errors;
+    }
+
+
 }

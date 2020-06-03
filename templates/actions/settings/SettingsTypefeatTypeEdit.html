@@ -82,23 +82,12 @@
                                 </div>
                             </div>
                         </div>
-{*
+
                         <div class="field" style="margin-top: 15px;">
                             <div class="name">[`Select storefront`]</div>
                             <div class="value">
 
                                 {$selected_storefront = null}
-                                {$all_storefronts_is_checked = true}
-
-                                {$storefronts = []}
-                                {for $i = 1 to 10}
-                                    {$storefronts[] = [
-                                        "id" => "`$i`",
-                                        "name" => "Название `$i`",
-                                        "icon" => "edit",
-                                        "is_checked" => rand(0, 1)
-                                    ]}
-                                {/for}
 
                                 <div class="s-field-section js-storefront-field-section">
                                     <div class="s-radio-list">
@@ -131,9 +120,8 @@
 
                                                     {foreach $storefronts as $_storefront}
                                                         <label class="s-checkbox-wrapper">
-                                                            <input class="s-checkbox js-storefront-field" type="checkbox" name="storefronts[{$_storefront.id}]" value="{$_storefront.id}" {if !empty($_storefront.is_checked)}checked{/if}>
-                                                            {shopHelper::getIcon($_storefront.icon)}
-                                                            <span class="s-text">{$_storefront.name|escape}</span>
+                                                            <input class="s-checkbox js-storefront-field" type="checkbox" name="storefronts[{$_storefront.domain|escape}][{$_storefront.url|escape}]" value="{$_storefront.url|escape}" {if !empty($_storefront.is_checked)}checked{/if}>
+                                                            <span class="s-text">{$_storefront.domain|escape}/{$_storefront.url|escape}</span>
                                                         </label>
                                                     {/foreach}
                                                 </div>
@@ -144,7 +132,6 @@
 
                             </div>
                         </div>
-*}
                     </div>
 
                     {if !empty($type_templates)}

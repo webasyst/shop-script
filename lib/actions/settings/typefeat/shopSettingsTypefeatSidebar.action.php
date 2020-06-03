@@ -10,6 +10,7 @@ class shopSettingsTypefeatSidebarAction extends waViewAction
     public function execute()
     {
         $feature_model = new shopFeatureModel();
+        $type_features_model = new shopTypeFeaturesModel();
         $count_all_features = $feature_model->countAll();
 
         $this->types = $this->getTypes();
@@ -19,16 +20,18 @@ class shopSettingsTypefeatSidebarAction extends waViewAction
         if ($count_all_features < wa('shop')->getConfig()->getOption('features_per_page')) {
             // We only count unassigned when there are few features overall
             // because it's an expensive query
-            $type_features_model = new shopTypeFeaturesModel();
             $count_features_no_types = $type_features_model->countUnassignedFeatures();
         } else {
             $count_features_no_types = '';
         }
 
+        $count_features_builtin = count(array('gtin', 'weight'));
+
         $this->view->assign([
             'count_all_features' => $count_all_features,
             'count_features_all_types' => $count_features_all_types,
             'count_features_no_types' => $count_features_no_types,
+            'count_features_builtin' => $count_features_builtin,
             'types' => $this->types,
         ]);
     }

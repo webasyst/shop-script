@@ -35,6 +35,9 @@ class shopDialogAssignTagsAction extends waViewAction
             $ids  = array_keys($this->getProducts($offset, $count));
             $tags += $product_tags_model->getTags($ids);
             $offset += count($ids);
+            if (!$ids) {
+                break;
+            }
         }
 
         $tag_model = new shopTagModel();

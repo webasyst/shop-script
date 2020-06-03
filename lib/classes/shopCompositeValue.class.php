@@ -9,11 +9,15 @@ class shopCompositeValue implements ArrayAccess
 
     public function __construct($code, &$features = array())
     {
+        $flag = true;
         for ($i = 0; $i < 3; $i++) {
             $key = $code.'.'.$i;
             if (array_key_exists($key, $features)) {
+                $flag = false;
                 $this->values[$i] = $features[$key];
                 unset($features[$key]);
+            } elseif ($flag) {
+                $this->values[$i] = '';
             }
         }
     }

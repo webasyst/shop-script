@@ -272,6 +272,7 @@ class shopSettingsTypefeatFeatureSaveController extends waJsonController
           'multiple' => '',
           'selectable' => '',
           'available_for_sku' => '',
+          'default_unit' => '',
         ]);
 
         return $feature_data;
@@ -342,7 +343,7 @@ class shopSettingsTypefeatFeatureSaveController extends waJsonController
                         if (empty($old_feature['type']) || $feature_data['type'] != $old_feature['type']) {
                             if ($feature_data['type'] == '3d.dimension.volume') {
                                 $feature_data['type'] = '3d.dimension.length';
-                            } else if ($feature_data['type'] == '2d.dimension.volume') {
+                            } else if ($feature_data['type'] == '2d.dimension.area') {
                                 $feature_data['type'] = '2d.dimension.length';
                             }
                         }

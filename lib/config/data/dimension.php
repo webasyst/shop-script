@@ -50,6 +50,10 @@ return array(
                 'name'       => _w('g'), //gram
                 'multiplier' => 0.001,
             ),
+            'mg'  => array(
+                'name'       => _w('mg'), //milligram
+                'multiplier' => 0.000001,
+            ),
             'lbs' => array(
                 'name'       => _w('lbs'), //pound
                 'multiplier' => 0.4536,

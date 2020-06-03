@@ -172,6 +172,10 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
             } elseif (isset($custom_input_values[$field_id])) {
                 $custom_field_values[$field_id] = $custom_input_values[$field_id];
             }
+            if (isset($selected_variant['delivery_date'])) {
+                $row['delivery_date'] = strtotime($selected_variant['delivery_date']);
+            }
+
             $plugin_custom_fields[$field_id] = $this->renderWaHtmlControl($field_id, $row, $data['origin'] != 'create' ? 'details[custom]' : false);
             $plugin_custom_fields[$field_id]['affects_rate'] = !empty($row['data']['affects-rate']);
         }
@@ -185,7 +189,7 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
             }
             $rates = $config->getShippingRates(
                 $address,
-                $data['order']['items'],
+                $data['shipping']['items'],
                 $contact['is_company'] ? shopCheckoutConfig::CUSTOMER_TYPE_COMPANY : shopCheckoutConfig::CUSTOMER_TYPE_PERSON,
                 [
                     'shipping_params' => $custom_field_values,

@@ -307,22 +307,7 @@ class shopFrontendCheckoutAction extends waViewAction
             }
             $cart_model = new shopCartItemsModel();
             $not_available_items = $cart_model->getNotAvailableProducts($cart->getCode(), $check_count);
-            foreach ($not_available_items as $row) {
-                if ($row['sku_name']) {
-                    $row['name'] .= ' ('.$row['sku_name'].')';
-                }
-                if ($row['available']) {
-                    if ($row['count'] > 0) {
-                        $template = _w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.');
-                        $errors[] = sprintf($template, $row['count'], $row['name']);
-                    } else {
-                        $template = _w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience. Please remove this product from your shopping cart to proceed.');
-                        $errors[] = sprintf($template, $row['name']);
-                    }
-                } else {
-                    $errors[] = sprintf(_w('Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed.'), $row['name']);
-                }
-            }
+            shopFrontendCartAction::validateNotAvailableProducts($not_available_items, $errors);
             if ($errors) {
                 return false;
             }

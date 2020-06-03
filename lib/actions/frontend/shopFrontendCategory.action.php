@@ -89,6 +89,10 @@ class shopFrontendCategoryAction extends shopFrontendAction
         return $category;
     }
 
+    /**
+     * @throws waDbException
+     * @throws waException
+     */
     public function execute()
     {
         $category = $this->getCategory();
@@ -151,7 +155,8 @@ class shopFrontendCategoryAction extends shopFrontendAction
                             'max' => shop_currency($range['max'], null, null, false),
                         );
                     }
-                } elseif (isset($features[$fid]) && isset($category_value_ids[$fid])) {
+                }
+                elseif (isset($features[$fid]) && isset($category_value_ids[$fid])) {
                     //set existing feature code with saved filter id
                     $feature_map[$features[$fid]['code']] = $fid;
 

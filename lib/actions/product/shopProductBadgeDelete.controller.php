@@ -54,6 +54,9 @@ class shopProductBadgeDeleteController extends waJsonController
 
             $product_model->updateById($product_ids, array('badge' => null));
             $offset += count($product_ids);
+            if (!$product_ids) {
+                break;
+            }
         }
 
         /**

@@ -46,6 +46,12 @@ return array(
         'power_consumption' => array(
             'name' => 'Power consumption',
             'type' => shopFeatureModel::TYPE_DIMENSION.'.power',
-        )
+        ),
+        'gtin' => array(
+            'name' => 'GTIN',
+            'type' => shopFeatureModel::TYPE_VARCHAR,
+            'status' => shopFeatureModel::STATUS_PRIVATE,
+            'available_for_sku' => 1
+        ),
     ),
 );

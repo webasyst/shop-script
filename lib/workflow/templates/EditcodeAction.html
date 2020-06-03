@@ -40,8 +40,23 @@
                                             <div class="s-marking-block">
                                                 {foreach $_item.product_codes as $_code}
                                                     <div class="s-code-wrapper" data-code-id="{$_code.id|escape}">
-                                                        <div class="s-label" title="{$_code.code|escape}">{$_code.name|escape}:</div>
-                                                        <input class="s-field" type="text" name="code[{$_code.id}][{$_item.id}][]" value="{$_code.values[$i]|default:''|escape}">
+                                                        <div class="s-label-wrapper">
+                                                            <div class="s-image">
+                                                                {if !empty($_code.icon)}
+                                                                    <img src="{$wa_url}{$_code.icon}">
+                                                                {else}
+                                                                    <i class="icon16 ss parameter"></i>
+                                                                {/if}
+                                                            </div>
+                                                            <div class="s-label" title="{$_code.code|escape}">{$_code.name|escape}:</div>
+                                                        </div>
+
+                                                        <input class="s-field"
+                                                               type="text"
+                                                               name="code[{$_code.id}][{$_item.id}][]"
+                                                               value="{$_code.values[$i]|default:''|escape}"
+                                                               data-index="{$i}"  {* without this data-index working in JS in plugins is very hard :) *}
+                                                        >
                                                     </div>
                                                 {/foreach}
                                             </div>

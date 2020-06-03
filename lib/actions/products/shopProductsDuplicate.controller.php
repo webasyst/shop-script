@@ -37,6 +37,9 @@ class shopProductsDuplicateController extends waJsonController
             $total_count = $collection->count();
             while ($offset < $total_count) {
                 $product_ids = array_keys($collection->getProducts('id,name,url', $offset, $limit));
+                if (!$product_ids) {
+                    break;
+                }
                 if (!$this->checkProductRights($product_ids)) {
                     return $this->errors = [
                         'code'    => 403,

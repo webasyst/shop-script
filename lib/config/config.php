@@ -21,6 +21,7 @@ return array(
     'discount_description'     => 1,
     'filters_features'         => 'join', // or exists
     'products_per_page'        => 30,
+    'promos_per_page'          => 20,
     'reviews_per_page_total'   => 30,
     'reviews_per_page_product' => 5,
     'review_highlight_time'    => 180,

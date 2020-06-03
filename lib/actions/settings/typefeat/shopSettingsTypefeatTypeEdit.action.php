@@ -37,10 +37,33 @@ class shopSettingsTypefeatTypeEditAction extends waViewAction
             $type['icon_class'] = reset($icons);
         }
 
+        $storefronts = [];
+        $count_storefronts = 0;
+        $shop_routes = wa()->getRouting()->getByApp('shop');
+        $count_all_storefronts = count(shopStorefrontList::getAllStorefronts());
+
+        foreach ($shop_routes as $domain => $stores) {
+            foreach ($stores as $store_id => $param) {
+                if (is_array($param['type_id']) && count($param['type_id']) > 0) {
+                    $is_checked = in_array($type_id, $param['type_id']);
+                } else {
+                    $is_checked = in_array($param['type_id'], [null, [], false, '', '0', 0], true);
+                }
+                $storefronts[] = [
+                    'url'        => $param['url'],
+                    'domain'     => $domain,
+                    'is_checked' => $is_checked
+                ];
+                $count_storefronts = ($is_checked ? ++$count_storefronts : $count_storefronts);
+            }
+        }
+
         $this->view->assign([
+            'all_storefronts_is_checked' => ($count_storefronts === $count_all_storefronts),
             'type_templates' => $type_templates,
+            'storefronts' => $storefronts,
             'icons' => $icons,
-            'type' => $type,
+            'type' => $type
         ]);
     }
 }

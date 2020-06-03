@@ -151,6 +151,9 @@ class shopCheckoutAuthStep extends shopCheckoutStep
         }
 
         $errors = array_merge($errors, $this->getConfirmationErrors($data));
+        if (!$errors) {
+            $errors = $this->getCartErrors($data);
+        }
 
         $result = $this->addRenderedHtml([
             'contact_id'        => $contact_id,
@@ -221,5 +224,30 @@ class shopCheckoutAuthStep extends shopCheckoutStep
         }
 
         return $errors;
+    }
+
+    protected function getCartErrors($data)
+    {
+        // Validate cart against stock counts
+        $cart_is_ok = !array_filter($this->getCartItems(), function ($item) {
+            return isset($item['error']);
+        });
+
+        if ($cart_is_ok) {
+            return [];
+        } else {
+            return [[
+                'id'      => 'cart_invalid',
+                'text'    => _w('Some items in your order are not available. Please remove them from your cart.'),
+                'section' => 'cart',
+            ]];
+        }
+    }
+
+    protected function getCartItems()
+    {
+        // This is global and should be overridden in subclasses
+        $cart_vars = (new shopCheckoutViewHelper())->cartVars();
+        return ifset($cart_vars, 'cart', 'items', []);
     }
 }

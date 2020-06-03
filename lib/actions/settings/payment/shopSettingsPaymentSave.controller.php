@@ -12,7 +12,10 @@ class shopSettingsPaymentSaveController extends waJsonController
                     $plugin['settings'] = array();
                 }
                 foreach ($plugin['settings'] as $key => $value) {
-                    $plugin['settings'][$key] = trim($value);
+                    if (is_scalar($value)) {
+                        $value = trim($value);
+                    }
+                    $plugin['settings'][$key] = $value;
                 }
                 shopPayment::savePlugin($plugin);
 

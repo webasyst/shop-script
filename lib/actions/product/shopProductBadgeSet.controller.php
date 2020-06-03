@@ -56,6 +56,9 @@ class shopProductBadgeSetController extends waJsonController
                 $product_ids = array_keys($collection->getProducts('*', $offset, $count));
                 $product_model->updateById($product_ids, array('badge' => $code));
                 $offset += count($product_ids);
+                if (!$product_ids) {
+                    break;
+                }
             }
 
             /**

@@ -54,6 +54,9 @@ class shopProductsSetTypesController extends waJsonController
             $total_count = $collection->count();
             while ($offset < $total_count) {
                 $product_ids = array_keys($collection->getProducts('*', $offset, $count));
+                if (!$product_ids) {
+                    break;
+                }
                 $filtered = $this->product_model->filterAllowedProductIds($product_ids);
                 $this->product_model->updateType($filtered, $type_id);
                 $offset += count($product_ids);

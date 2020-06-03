@@ -47,6 +47,7 @@
                 {* BODY *}
                 <div class="s-section-body">
 
+                    {if isset($codes)}
                     <section class="s-features-section">
                         <h5 class="s-section-title heading">
                             <span class="s-title">[`Product codes`]</span>
@@ -59,6 +60,15 @@
                                 {foreach $codes as $_code}
                                     <div class="s-feature-wrapper js-code-wrapper" data-id="{$_code.id|escape}" data-code="{$_code.code|escape}">
                                         <div class="s-feature-block">
+                                            <div class="s-column-actions">
+                                                {strip}
+                                                    {if !empty($_code.icon)}
+                                                        <img src="{$wa_url}{$_code.icon}">
+                                                    {else}
+                                                        <i class="icon16 ss parameter"></i>
+                                                    {/if}
+                                                {/strip}
+                                            </div>
                                             <div class="s-column-name">
                                                 {strip}
                                                     <div class="js-search-place">
@@ -94,37 +104,40 @@
                             </div>
                         {/if}
                     </section>
+                    {/if}
 
                     <section class="s-features-section">
                         <h5 class="s-section-title heading">
                             <span class="s-title">[`Features`]</span>
                             <span class="shop-tooltip"><i class="icon10 info"></i><span>{if wa_is_int($type_url_id)}[`Features are displayed on storefront product pages in the order set up for this product type.`]<br><br>[`To change features’ sort order, drag &amp; drop them to desired locations within the list.`]{else}[`To change features’ sort order, select a product type.`]{/if}</span></span>
-                            <ul class="menu-h dropdown">
-                                <li>
-                                    <a class="inline-link s-visible-link" href="javascript:void(0);">
-                                        <i class="icon16 add"></i>
-                                    </a>
-                                    <ul class="menu-v without-icons" style="max-width: none; width: 250px;">
-                                        <li>
-                                            <a class="js-feature-add-new" href="javascript:void(0);">
-                                                <span class="s-name">[`New feature`]</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="js-feature-add-divider" href="javascript:void(0);">
-                                                <span class="s-name">[`Feature group heading`]</span>
-                                            </a>
-                                        </li>
-                                        {if empty($is_filter_page)}
-                                        <li class="with-border">
-                                            <a class="js-feature-add-existing" href="javascript:void(0);">
-                                                <span class="s-name">[`Feature or heading from&nbsp;other product types`]</span>
-                                            </a>
-                                        </li>
-                                        {/if}
-                                    </ul>
-                                </li>
-                            </ul>
+                            {if $type_url_id != 'builtin'}
+                                <ul class="menu-h dropdown">
+                                    <li>
+                                        <a class="inline-link s-visible-link" href="javascript:void(0);">
+                                            <i class="icon16 add"></i>
+                                        </a>
+                                        <ul class="menu-v without-icons" style="max-width: none; width: 250px;">
+                                            <li>
+                                                <a class="js-feature-add-new" href="javascript:void(0);">
+                                                    <span class="s-name">[`New feature`]</span>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="js-feature-add-divider" href="javascript:void(0);">
+                                                    <span class="s-name">[`Feature group heading`]</span>
+                                                </a>
+                                            </li>
+                                            {if empty($is_filter_page)}
+                                            <li class="with-border">
+                                                <a class="js-feature-add-existing" href="javascript:void(0);">
+                                                    <span class="s-name">[`Feature or heading from&nbsp;other product types`]</span>
+                                                </a>
+                                            </li>
+                                            {/if}
+                                        </ul>
+                                    </li>
+                                </ul>
+                            {/if}
                         </h5>
 
                         {if !empty($features)}
@@ -167,7 +180,11 @@
                                                     <a class="s-action js-feature-visibility-toggle" href="javascript:void(0);" title="[`Show on website`]"><i class="icon16 {if $_is_visible}visibility-on{else}ss visibility{/if}"></i></a>
                                                     {if empty($_is_divider)}
                                                         {if !empty($_feature.always_available_for_sku)}
-                                                            <a class="s-action js-feature-sku-toggle-always" href="javascript:void(0);" title="[`“Weight” is a special feature which must always be available for editing in product SKUs’ properties.`]"><i class="icon16 hierarchical"></i></a>
+                                                            {if $_feature.code === 'weight'}
+                                                                <a class="s-action js-feature-sku-toggle-always" href="javascript:void(0);" title="[`“Weight” is a special feature, which must always be available for editing in product SKUs’ properties.`]"><i class="icon16 hierarchical"></i></a>
+                                                            {elseif $_feature.code === 'gtin'}
+                                                                <a class="s-action js-feature-sku-toggle-always" href="javascript:void(0);" title="[`“GTIN (Global Trade Item Number)” is a special feature, which must always be available for editing in product SKUs’ properties.`]"><i class="icon16 hierarchical"></i></a>
+                                                            {/if}
                                                         {else}
                                                             <a class="s-action js-feature-sku-toggle" href="javascript:void(0);" title="[`Enables editing of feature values for product SKUs`]"><i class="icon16 {if $_sku_enabled}hierarchical{else}hierarchical-off{/if}"></i></a>
                                                         {/if}

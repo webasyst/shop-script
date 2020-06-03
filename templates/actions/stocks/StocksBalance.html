@@ -136,7 +136,12 @@
     </script>
     {/literal}
 
-    <script type="text/javascript">
+    {$_sort = ""}
+    {if !empty($sort) && $sort !== "count"}
+        {$_sort = $sort}
+    {/if}
+
+    <script>
         $.product_stocks.init({
             product_stocks: {json_encode($product_stocks)},
             stocks: {json_encode($stocks)},
@@ -144,7 +149,8 @@
             lazy_loading: {
                 auto: true,
                 count: {$count},
-                total_count: {$total_count}
+                total_count: {$total_count},
+                sort: {$_sort|json_encode}
             }
         });
     </script>

@@ -44,15 +44,31 @@ class shopProductsAddToCategoriesController extends waJsonController
         if (!$hash) {
             $all_product_ids = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
             $hash = 'id/'.join(',', $all_product_ids);
+        } else {
+            $all_product_ids = [];
+            $collection = new shopProductsCollection($hash);
+            $total_count = $collection->count();
+            $offset = 0;
+            while ($offset < $total_count) {
+                $product_ids = $collection->getProducts('id', $offset, 100);
+                $offset += count($product_ids);
+                if (!$product_ids) {
+                    break;
+                }
+                foreach($product_ids as $id => $_) {
+                    $all_product_ids[$id] = $id;
+                }
+            }
+            $all_product_ids = array_values($all_product_ids);
         }
-        
+
         /**
          * Adds a product to the category. Get data before changes
          *
          * @param int $new_category_id
          * @param array $category_ids with $new_category_id
          * @param string $hash
-         * @param array|string products_id
+         * @param array products_id
          *
          * @event products_set_categories.before
          */
@@ -64,15 +80,10 @@ class shopProductsAddToCategoriesController extends waJsonController
         );
         wa('shop')->event('products_set_categories.before', $params);
 
-        // add all products of collection with this hash
-        $collection = new shopProductsCollection($hash);
-        $offset = 0;
-        $count = 100;
-        $total_count = $collection->count();
-        while ($offset < $total_count) {
-            $product_ids = array_keys($collection->getProducts('*', $offset, $count));
+        $ids_left = $all_product_ids;
+        while ($ids_left) {
+            $product_ids = array_splice($ids_left, 0, min(100, count($ids_left)));
             $this->category_products_model->add($product_ids, $category_ids);
-            $offset += count($product_ids);
         }
 
         /**

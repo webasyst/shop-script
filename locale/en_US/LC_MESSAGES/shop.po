@@ -2494,7 +2494,7 @@ msgstr ""
 msgid "All ignored symbols will be automatically omitted from the user search query. Example: if product name contains “V-112”, and you wish users to be able to find this product using “v112” search criteria, add - (hyphen) to the list of ignored symbols."
 msgstr ""
 
-msgid "Search on part of word"
+msgid "Search by beginning of word"
 msgstr ""
 
 msgid "Enabling this option will make words such as “transmitter” and “transformer” found by a search query such as “trans”. Recommended if most products in your online store come with long or complex names."
@@ -9912,3 +9912,6 @@ msgstr ""
 
 msgid "An error occurred during the image uploading:"
 msgstr ""
+
+msgid "System features list"
+msgstr "System features"

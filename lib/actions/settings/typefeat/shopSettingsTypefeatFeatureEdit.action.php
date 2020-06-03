@@ -141,6 +141,7 @@ class shopSettingsTypefeatFeatureEditAction extends waViewAction
 
         switch($feature['type']) {
             case 'varchar':
+            case 'gtin':
                 return ['text', 'input'];
             case 'text':
                 return ['text', 'textarea'];
@@ -270,6 +271,10 @@ class shopSettingsTypefeatFeatureEditAction extends waViewAction
             }
         }
 
+        // Will be used later - see below. Have to read it here because the following loop
+        // can remove 'length' from the list of possible feature kinds.
+        $length_dimensions = ifset($result, 'length', 'dimensions', null);
+
         foreach($result as $id => &$kind) {
             $kind['id'] = $id;
 
@@ -309,6 +314,19 @@ class shopSettingsTypefeatFeatureEditAction extends waViewAction
         }
         unset($kind);
 
+        // Values for default unit selector.
+        // All feature kinds except area and volume use their normal feature dimensions for default unit.
+        // Area and volume use their dimensions unless selected format is 2d or 3d.
+        // Area and colume for 2d and 3d use dimensions of length.
+        if ($length_dimensions) {
+            if (isset($result['area'])) {
+                $result['area']['length_dimensions'] = $length_dimensions;
+            }
+            if (isset($result['volume'])) {
+                $result['volume']['length_dimensions'] = $length_dimensions;
+            }
+        }
+
         return $result;
     }
 
@@ -326,9 +344,11 @@ class shopSettingsTypefeatFeatureEditAction extends waViewAction
             ],
             '2d' => [
                 'title' => _w('Number × number'),
+                'is_multidimensional' => true,
             ],
             '3d' => [
                 'title' => _w('Number × number × number'),
+                'is_multidimensional' => true,
             ],
             'number' => [
                 'title' => _w('Number'),
@@ -371,7 +391,7 @@ class shopSettingsTypefeatFeatureEditAction extends waViewAction
     public static function analyzeSkus($feature)
     {
         // Can not disable SKU checkbox for weight
-        if ($feature['code'] == 'weight') {
+        if ($feature['code'] == 'weight' || $feature['code'] === 'gtin') {
             return [false, 0];
         }
 
@@ -393,8 +413,14 @@ class shopSettingsTypefeatFeatureEditAction extends waViewAction
         // But when there are SKUs with values of this feature, editor has
         // to show warning that disabling SKU checkbox will delete some data.
         // Therefore count such values.
+
+        // Have to count both feature itself, as well as its child sub-features
+        $feature_model = new shopFeatureModel();
+        $ids = array_keys($feature_model->select('id')->where('parent_id='.intval($feature['id']))->fetchAll('id'));
+        $ids[] = $feature['id'];
+
         $product_features_model = new shopProductFeaturesModel();
-        $sku_values_count = $product_features_model->countSkusByFeature($feature['id']);
+        $sku_values_count = $product_features_model->countSkusByFeature($ids);
 
         return [true, $sku_values_count];
     }

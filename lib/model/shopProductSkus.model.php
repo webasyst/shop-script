@@ -742,6 +742,7 @@ SQL;
         $sort = 0;
         $default_sku_id = null;
         $result = array();
+        $product_features_changed = false;
 
         foreach ($data as $sku_id => $sku) {
             if (!is_array($sku)) {
@@ -767,25 +768,38 @@ SQL;
             $sku = $this->updateSku($sku_id > 0 ? $sku_id : 0, $sku, false, $product);
             $result[$sku['id']] = $sku;
 
+            // Update product features. Features that are shown as checklist for the product
+            // render as single select for SKUs. Such features should be added to product
+            // when we save SKUs.
             if (!empty($sku['features'])) {
+                if (!isset($features_multiple)) {
+                    $feature_model = new shopFeatureModel();
+                    $features_multiple = $feature_model->select('code')->where('multiple>0 AND available_for_sku>0')->fetchAll('code');
+                }
+
                 foreach ($sku['features'] as $code => $value) {
+                    if (!isset($features_multiple[$code])) {
+                        continue;
+                    }
                     if (!isset($features)) {
                         $features = $product->features;
                     }
                     if (!isset($features[$code])) {
                         $features[$code] = array();
+                    } else if (!is_array($features[$code])) {
+                        continue;
                     }
 
-                    if (is_array($features[$code])) {
-                        if (is_array($value)) {
-                            if (isset($value['id'])) {
-                                if (!isset($features[$code][$value['id']])) {
-                                    $features[$code][$value['id']] = $value['value'];
-                                }
+                    if (is_array($value)) {
+                        if (isset($value['id'])) {
+                            if (!isset($features[$code][$value['id']])) {
+                                $features[$code][$value['id']] = $value['value'];
+                                $product_features_changed = true;
                             }
-                        } else {
-                            $features[$code][] = $value;
                         }
+                    } else {
+                        $features[$code][] = $value;
+                        $product_features_changed = true;
                     }
                 }
             }
@@ -820,7 +834,7 @@ SQL;
         $product->count = $product_data['count'];
         $product->setData('sku_count', count($data));
         $product->sku_id = $default_sku_id;
-        if (isset($features)) {
+        if (isset($features) && $product_features_changed) {
             $product->features = $features;
         }
 

@@ -256,12 +256,16 @@
 
                                         {if $item.product_codes}
                                             <div class="s-marking-section">
-                                                <div class="s-section-icon">
-                                                    <i class="icon16 ss parameter"></i>
-                                                </div>
                                                 <div class="s-marking-list">
                                                     {foreach $item.product_codes as $_code}
                                                         <div class="s-mark-wrapper">
+                                                            <span class="s-section-icon">
+                                                                {if !empty($_code.icon)}
+                                                                <img src="{$wa_url}{$_code.icon}">
+                                                                {else}
+                                                                <i class="icon16 ss parameter"></i>
+                                                                {/if}
+                                                            </span>
                                                             <a class="s-name inline-link wf-action" href="javascript:void(0);" title="{$_code.code|escape}" data-action-id="editcode" data-form-in-dialog="1" data-item-id="{$item.id|escape}" data-code-id="{$_code.id|escape}">
                                                                 <b><i>{$_code.name|escape}</i></b>
                                                             </a>
@@ -271,11 +275,7 @@
                                                                 {else}
                                                                     <i class="icon16 exclamation"></i>
                                                                 {/if}
-                                                                {if $item.quantity > 1}
-                                                                    {sprintf_wp("%s out of %s", count($_code.values), $item.quantity)}
-                                                                {else}
-                                                                    {count($_code.values)}
-                                                                {/if}
+                                                                {sprintf_wp("%s out of %s", count($_code.values), $item.quantity)}
                                                             {/strip}</span>
                                                         </div>
                                                     {/foreach}
@@ -284,7 +284,7 @@
                                         {/if}
                                     </td>
                                     <td class="align-right nowrap"><span class="gray">{wa_currency_html($item.price, $order.currency)} &times;</span> {$item.quantity}</td>
-                                    <td class="align-right nowrap">{wa_currency_html($item.price * $item.quantity, $order.currency)}</td>
+                                    <td class="align-right nowrap"{if $item.total_discount > 0} title="{sprintf_wp("Total discount for this order item: %s.", wa_currency($item.total_discount, $order.currency))|escape}"{/if}>{wa_currency_html($item.price * $item.quantity, $order.currency)}</td>
                                 </tr>
                                 {$subtotal = $subtotal + $item.price*$item.quantity}
                             {/foreach}

@@ -63,5 +63,11 @@ return array(
                 'none',
             ),
         ),
+        'gtin' => array(
+            'name' => 'GTIN',
+            'type' => shopFeatureModel::TYPE_VARCHAR,
+            'status' => shopFeatureModel::STATUS_PRIVATE,
+            'available_for_sku' => 1
+        ),
     ),
 );

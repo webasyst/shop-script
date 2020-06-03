@@ -94,10 +94,6 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         // Order items to pass to shipping plugins to calculate rates
         $items = $order->items;
 
-        // Reset discount inside shopOrder back to null
-        // so as not to mess with order creation logic later.
-        $order->discount = 'calculate';
-
         /** @var waContact $contact */
         $contact = $data['contact'];
         $customer_type = $contact['is_company'] ? shopCheckoutConfig::CUSTOMER_TYPE_COMPANY : shopCheckoutConfig::CUSTOMER_TYPE_PERSON;
@@ -206,7 +202,13 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             }
 
             // Update type rates
-            if (!empty($s['currency']) && !empty($currencies[$s['currency']]['rate']) && !empty($currencies[$type['currency']]['rate']) && isset($s['rate_min']) && isset($s['rate_max'])) {
+            if (
+                !empty($s['currency']) &&
+                !empty($currencies[$s['currency']]['rate']) &&
+                !empty($currencies[$type['currency']]['rate']) &&
+                isset($s['rate_min']) &&
+                isset($s['rate_max'])
+            ) {
                 $rate_from = $currencies[$s['currency']]['rate'];
                 $rate_to = $currencies[$type['currency']]['rate'];
                 $rate_min = $s['rate_min'] * $rate_from / $rate_to;
@@ -304,6 +306,7 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             }
 
             // This is used by Details step later
+            $data['shipping']['items'] = $items;
             $data['shipping']['address'] = $address;
             $data['shipping']['selected_variant'] = $shipping_types[$selected_type_id]['variants'][$selected_variant_id];
             $data['shipping']['is_free_shipping'] = $is_free_shipping;

@@ -11,8 +11,11 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
 
     public function isAvailable($order)
     {
-        if (!empty($order['id'])) {
+        if (!empty($order['id']) && !empty($order['auth_date']) && empty($order['paid_date'])) {
             $plugin = $this->getPaymentPlugin($order['id']);
+            if (!$plugin) {
+                return false;
+            }
             $transactions = $this->getPaymentTransactions($plugin, $order['id']);
 
             if ($plugin->getProperties('partial_capture')) {

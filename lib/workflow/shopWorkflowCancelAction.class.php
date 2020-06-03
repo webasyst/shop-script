@@ -4,7 +4,7 @@ class shopWorkflowCancelAction extends shopWorkflowDeleteAction
 {
     public function isAvailable($order)
     {
-        if (!empty($order['id'])) {
+        if (!empty($order['id']) && !empty($order['auth_date']) && empty($order['paid_date'])) {
             $plugin = null;
             $transactions = $this->getPaymentTransactions($plugin, $order['id']);
             if (isset($transactions[waPayment::TRANSACTION_CANCEL])) {

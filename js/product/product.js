@@ -33,6 +33,9 @@ editClick:(function ($) {
         data: {
             'main': {}
         },
+
+        $edit_forms: $(),
+
         getData: function (section, name) {
             return (this.data[section] || {})[name];
         },
@@ -377,14 +380,20 @@ editClick:(function ($) {
 
             this.refresh('submit');
 
+            this.clearValidateErrors();
+
             $.ajax({
                 'url': $(form).attr('action'),
                 'data': $(form).serializeArray(),
                 'dataType': 'json',
                 'type': 'post',
                 success: function (response) {
+
                     if (response.status == 'fail') {
-                        self.refresh('error', response.errors);
+                        var is_shown = self.showValidateErrors(response.errors);
+                        if (!is_shown) {
+                            self.refresh('error', response.errors);
+                        }
                     } else if (response.data.redirect) {
                         $.shop.trace('$.product.saveData redirect', response.data.redirect);
                         //$.product.helper.options.defaultChangedStatus = false;
@@ -422,6 +431,71 @@ editClick:(function ($) {
             return false;
             // force reload data
             // this.container.data('product-id',this.path.id + '-edited');
+        },
+
+        showValidateErrors: function(all_errors) {
+            all_errors = all_errors || {};
+            if ($.isEmptyObject(all_errors)) {
+                return false;
+            }
+
+            var that = this,
+                is_shown = false,
+                $edit_forms = that.$edit_forms;
+
+            // special case for GTIN feature validation
+            if (all_errors.features && all_errors.features.gtin) {
+                var $features_form = $edit_forms.find('.s-product-form.features'),
+                    input_name = 'product[features][gtin]',
+                    $input = $features_form.find('input[name="' + input_name + '"]');
+
+                if ($input.length) {
+                    $input.addClass('error js-validate-error-input');
+                    var $error = $('<div class="errormsg js-validate-error-msg"></div>').text(all_errors.features.gtin);
+                    $input.after($error);
+                    is_shown = true;
+
+                    that.refresh('error', $_('Save GTIN feature for product is fail'));
+                }
+            }
+
+            // special case for gtin validation for each skus
+            if (all_errors.skus) {
+
+                var $skus_table = $edit_forms.find('.s-product-form.main table.s-product-skus tbody');
+
+                $.each(all_errors.skus, function(sku_id, errors) {
+                    if (errors.features && errors.features.gtin) {
+                        var $sku_settings = $skus_table.find('.js-sku-settings[data-id="' + sku_id + '"]'),
+                            input_name = 'skus[' + sku_id + '][features][gtin]',
+                            $input = $sku_settings.find('input[name="' + input_name + '"]');
+
+                        if ($input.length) {
+                            $input.addClass('error js-validate-error-input');
+                            var $error = $('<div class="errormsg js-validate-error-msg"></div>').text(errors.features.gtin);
+                            $input.after($error);
+                            is_shown = true;
+
+                            that.refresh('error', $_('Save GTIN feature for SKU is fail'));
+                        }
+                    }
+                });
+            }
+
+            return is_shown;
+        },
+
+        clearValidateErrors: function() {
+            var that = this,
+                $edit_forms = that.$edit_forms,
+                $skus_table = $edit_forms.find('.s-product-form.main table.s-product-skus tbody'),
+                $features_form = $edit_forms.find('.s-product-form.features');
+
+            $skus_table.find('.js-validate-error-input').removeClass('error');
+            $skus_table.find('.js-validate-error-msg').remove();
+
+            $features_form.find('.js-validate-error-input').removeClass('error');
+            $features_form.find('.js-validate-error-msg').remove();
         },
 
         updateData: function (data, mode, tab) {
@@ -768,10 +842,14 @@ editClick:(function ($) {
         },
 
         editTabInit: function (path) {
+            var that = this;
+
             $('html, body').animate({
                 scrollTop: 0
             }, 200);
             $('#shop-productprofile').find('.s-product-name').removeClass('editable');
+
+            that.$edit_forms = $('#s-product-edit-forms');
         },
 
         editTabFocus: function (path) {
@@ -2249,7 +2327,7 @@ editClick:(function ($) {
             var $tab_link;
             var href;
             $container.find('.js-type-icon').html($type.data('icon'));
-            $container.find('.js-type-name').html($type.text());
+            $container.find('.js-type-name').text($type.text());
             if (type != $container.data('type')) {
                 var $tab = $('#s-product-edit-forms .s-product-form.' + tab);
                 if ($tab.length && typeof (this.editTabFeaturesReload) != 'undefined') {

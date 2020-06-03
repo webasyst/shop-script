@@ -97,7 +97,11 @@
                 $.settings.recommendationsInit({
                     $wrapper: $("#js-recommendations-page"),
                     features: {json_encode($features)},
-                    data: {json_encode($data)}
+                    data: {json_encode($data)},
+                    locales: {
+                        'yes': {_w('Yes')|json_encode},
+                        'no': {_w('No')|json_encode}
+                    }
                 });
             });
 

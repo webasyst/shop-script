@@ -90,7 +90,13 @@
                         $target = $errors.first();
                     }
 
-                    $("html, body").scrollTop( $target.offset().top - 40 );
+                    var top = $target.offset().top;
+                    if (top > $(window).height - 100) {
+                        top = top - 40;
+                    } else {
+                        top = 0;
+                    }
+                    $("html, body").scrollTop(top - 40);
                     that.reload();
 
                 } else {

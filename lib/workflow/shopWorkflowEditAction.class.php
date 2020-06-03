@@ -2,7 +2,8 @@
 
 class shopWorkflowEditAction extends shopWorkflowAction
 {
-    private $order_item;
+    private $order_item = null;
+    private $order_uneditable_reason = null;
 
     protected function price($value, $currency = null)
     {
@@ -27,19 +28,32 @@ class shopWorkflowEditAction extends shopWorkflowAction
                 $order = new shopOrder($order);
             }
 
-            // For now we explicitly prohibit to edit orders in 'auth' state -
-            // that is, when client's money are on hold. User has to capture
-            // or cancel the payment first.
-            // There's no fundamental reason why we can't edit the order. It just makes
-            // interaction with payment plugins way more complicated, when it is already
-            // a total mess. Nobody bothered.
             if ($order->auth_date && !$order->paid_date) {
                 if ($order->payment_plugin && !$order->payment_plugin->getProperties('partial_capture')) {
-                    $available = false;
+                    //
+                    // We may not modify order in any way while customer's money are on hold
+                    // when payment plugin only supports full capture. Order total must stay intact.
+                    // This is mostly legacy. All modern payment plugins should support partial capture.
+                    //
+                    $this->order_uneditable_reason = 'no_partial_capture';
                 } else {
-                    //TODO: turn it onto true, when partial edit will be realized
-                    $available = false;
+                    //
+                    // This one is complicated.
+                    //
+                    // For now we explicitly prohibit to edit orders while customer's money are on hold.
+                    // User has to capture or cancel the payment. Capture has an option to remove some items,
+                    // but no custom unrestricted edit is available.
+                    //
+                    // There's no fundamental reason why we can't edit the order. It just makes
+                    // interaction with payment plugins way more complicated, when it is already
+                    // a total mess. Nobody bothered.
+                    //
+                    $this->order_uneditable_reason = 'money_on_hold';
                 }
+
+                // We want to show button, but it will not work in this case.
+                // Attempt to edit will show warning and bail because of $this->order_uneditable_reason
+                $available = true;
             }
         }
 
@@ -251,7 +265,13 @@ class shopWorkflowEditAction extends shopWorkflowAction
     public function getButton()
     {
         $attrs = '';
-        if (is_array($this->order_item)) {
+        if ($this->order_uneditable_reason == 'no_partial_capture') {
+            $message = _w("This order cannot be edited while customer’s money are captured because the payment option’s plugin does not support partial captures.");
+            $attrs = sprintf('data-action-unavailable-reason="%s"', htmlentities($message, ENT_QUOTES, 'utf-8'));
+        } else if ($this->order_uneditable_reason == 'money_on_hold') {
+            $message = _w("This order cannot be edited while customer’s money are captured.");
+            $attrs = sprintf('data-action-unavailable-reason="%s"', htmlentities($message, ENT_QUOTES, 'utf-8'));
+        } else if (is_array($this->order_item)) {
             if (!empty($this->order_item['unsettled'])) {
                 $total = wa_currency($this->order_item['total'], $this->order_item['currency']);
                 $confirm = _w("Editing this order will mark it as settled and will re-calculate its current amount (%s) based on the changed order content. Are you sure you want to settle this order and to reset the order amount?");

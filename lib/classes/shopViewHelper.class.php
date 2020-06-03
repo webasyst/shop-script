@@ -32,8 +32,9 @@ class shopViewHelper extends waAppViewHelper
      * @param int $limit
      * @return string
      */
-    public function pager($count, $page, $url_params = '', $url_path = '', $limit = shopConfig::ROWS_PER_PAGE)
+    public function pager($count, $page, $url_params = '', $url_path = '', $limit = null)
     {
+        $limit = ifset($limit, wa('shop')->getConfig()->getOption('promos_per_page'));
         $old_url_path = self::$url;
         self::$url = $url_path;
         $width = 5;
@@ -234,6 +235,37 @@ class shopViewHelper extends waAppViewHelper
     }
 
     /**
+     * Includes `list-thumbs.html` sub-template of given theme, rendering given list of products
+     * as returned by $wa->shop->products() or $wa->shop->productSet() mehtods.
+     *
+     * @param array $products
+     * @param string $theme_id
+     * @since 8.11
+     */
+    public function getListThumbsTemplate($products, $theme_id = null)
+    {
+        try {
+            if (!$theme_id) {
+                $theme_id = waRequest::getTheme();
+            }
+            $theme = new waTheme($theme_id, $this->app_id);
+            $view = wa($this->app_id)->getView();
+            if(!$view->setThemeTemplate($theme, 'list-thumbs.html')) {
+                return '';
+            }
+            $view->assign([
+                'products' => $products,
+            ]);
+
+            return $view->fetch('list-thumbs.html');
+        } catch (Exception $e) {
+            if (waSystemConfig::isDebug() && wa()->getUser()->get('is_user') > 0) {
+                return $e->getMessage()."\n<br><br>\n<pre>".$e->getFullTraceAsString()."</pre>";
+            }
+        }
+    }
+
+    /**
      * @param array $product_ids
      * @param bool $apply_rounding
      * @return array
@@ -320,6 +352,8 @@ class shopViewHelper extends waAppViewHelper
      * @param array $products
      * @param bool $public_only
      * @return array
+     * @throws waDbException
+     * @throws waException
      */
     public function features(&$products, $public_only = true)
     {
@@ -327,10 +361,10 @@ class shopViewHelper extends waAppViewHelper
             return array();
         }
         $product_features_model = new shopProductFeaturesModel();
-        $rows = $product_features_model->getByField(array(
+        $rows = $product_features_model->getByField([
             'product_id' => array_keys($products),
             'sku_id'     => null
-        ), true);
+        ], true);
 
         $selectable_product_ids = array();
         foreach ($products as $p) {
@@ -365,7 +399,8 @@ SQL;
         $sql = "SELECT * FROM `shop_feature` WHERE id IN (i:ids) OR type = 'divider'";
         $features = $feature_model->query($sql, array('ids' => array_keys($tmp)))->fetchAll('id');
 
-        $type_values = $product_features = array();
+        $type_values = [];
+        $product_features = [];
         foreach ($rows as $row) {
             if (empty($features[$row['feature_id']])) {
                 continue;
@@ -421,12 +456,29 @@ SQL;
                     if (isset($product_features[$p['id']][$feature_id])) {
                         $value_ids = $product_features[$p['id']][$feature_id];
                         if ($type == shopFeatureModel::TYPE_BOOLEAN || $type == shopFeatureModel::TYPE_DIVIDER) {
-                            /**
-                             * @var shopFeatureValuesBooleanModel|shopFeatureValuesDividerModel $model
-                             */
+                            /** @var shopFeatureValuesBooleanModel|shopFeatureValuesDividerModel $model */
                             $model = shopFeatureModel::getValuesModel($type);
                             $values = $model->getValues('id', $value_ids);
                             $p['features'][$f['code']] = reset($values);
+                        }
+                        elseif ($type == shopFeatureModel::TYPE_2D || $type == shopFeatureModel::TYPE_3D) {
+                            $sub_type = preg_replace('#^(?:\S*\.)(double|dimension)(?:\.\S*)?#', '$1', $f['type']);
+                            switch ($sub_type) {
+                                case shopFeatureModel::TYPE_DIMENSION:
+                                case shopFeatureModel::TYPE_DOUBLE:
+                                    $val_obj = [];
+                                    foreach ($features as $id => $param) {
+                                        if ($param['parent_id'] === $feature_id) {
+                                            if (isset($product_features[$p['id']][$param['id']])) {
+                                                $val_obj[] = reset($type_values[$sub_type][$param['id']]);
+                                            }
+                                        }
+                                    }
+                                    $p['features'][$f['code']] = implode('&times;', $val_obj);
+                                    break;
+                                default:
+                                    $nop = 'nop';
+                            }
                         } else {
                             if (is_array($value_ids)) {
                                 $p['features'][$f['code']] = array();
@@ -471,6 +523,12 @@ SQL;
         return $result;
     }
 
+    /**
+     * @param int $limit
+     * @return array
+     * @throws waDbException
+     * @throws waException
+     */
     public function reviews($limit = 10)
     {
         $product_reviews_model = new shopProductReviewsModel();
@@ -913,6 +971,11 @@ SQL;
         }
         $category_model = new shopCategoryModel();
         if ($route && !is_array($route)) {
+            $route = trim($route);
+            if (substr($route, -1) !== '*') {
+                $route = rtrim($route, '/');
+                $route .= '/*';
+            }
             $route = explode('/', $route, 2);
             $route = $this->getRoute($route[0], isset($route[1]) ? $route[1] : null);
         }
