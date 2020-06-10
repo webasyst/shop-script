@@ -3,7 +3,7 @@
 
 <link href="{$wa_theme_url}swipebox/css/swipebox.css" rel="stylesheet">
 <script src="{$wa_theme_url}swipebox/js/jquery.swipebox.js"></script>
-<script src="{$wa_theme_url}js/page.product.js?v={$wa_theme_url}"></script>
+<script src="{$wa_theme_url}js/page.product.js?v={$wa_theme_version}"></script>
 
 {function name="_render_sku_features" _features=[]}
     <table class="features" id="product-features">
@@ -12,13 +12,13 @@
             {$_is_good_param = ($_feature_id|in_array:$_true_params)}
             {$_itemprop = ""}
             {if $_is_good_param}{$_itemprop = $_feature_id}{/if}
-            {$_feature = $sku_features[$_feature_id]}
+            {$_feature = ifset($sku_features, $_feature_id, null)}
 
-            {if $_feature.type == 'divider'}
+            {if $_feature && $_feature.type == 'divider'}
                 <tr class="divider">
                     <td colspan="2">{$_feature.name|escape}</td>
                 </tr>
-            {else}
+            {elseif $_feature}
                 <tr>
                     <td class="name">{$_feature.name|escape}</td>
                     <td class="value" itemprop="{$_itemprop|escape}">

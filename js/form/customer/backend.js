@@ -28,7 +28,6 @@ var ShopBackendCustomerForm = ( function($) {
         that.namespace = options.namespace || null;
         that.locales = options["locales"];
         that.fields_config = options.fields_config || {};
-        that.address_additional_subfields_display_type = options.address_additional_subfields_display_type;
 
         // bind with this DOM current instance of FORM
         that.$wrapper.data('ShopBackendCustomerForm', that);
@@ -58,9 +57,7 @@ var ShopBackendCustomerForm = ( function($) {
 
         that.initBillingAddress();
 
-        if (that.address_additional_subfields_display_type === 'folded') {
-            that.initAdditionalAddressSubfields();
-        }
+        that.initAdditionalAddressSubfields();
 
         that.fixStyles();
     };
@@ -163,17 +160,26 @@ var ShopBackendCustomerForm = ( function($) {
 
             var $subfields = $address_block.find('.field').hide();
             var $last_field = $();
+            var shown_fields = 0;
             $.each(fields_config['address.' + address_ext]['fields'] || {}, function (field_id) {
                 $last_field = $subfields.filter('.field-address-' + field_id).show();
+                shown_fields++;
             });
 
             // after last shown field put control link to unfold (show) other (additional) fields
-            $last_field.after(getControl().clone());
+            if (shown_fields != $subfields.length) {
+                $last_field.after(getControl().first().clone());
+            }
         });
 
         $wrapper.on('click', getControlSelector(), function () {
             var $link = $(this);
-            $link.closest(getAddressBlockSelector()).find('.field').show();
+            // Address fields are not always inside a block with class .s-address-block
+            if ($link.siblings(getAddressBlockSelector()).length) {
+                $link.siblings('.field, input').appendTo($link.siblings(getAddressBlockSelector())).show();
+            } else {
+                $link.closest(getAddressBlockSelector()).find('.field').show();
+            }
             $link.remove();
         });
     };
@@ -332,11 +338,19 @@ var ShopBackendCustomerForm = ( function($) {
         // If need load new form, we don't pass form input values
         if (!options['new']) {
             var field_data = $wrapper.find(':input:not(:disabled)').serializeArray();
+            var address_types = ['shipping', 'billing'];
             $.each(field_data, function (index, field) {
+                if (field.name.indexOf(that.namespace)) {
+                    for (var address_type of address_types) {
+                        var $region = $('[name="' + that.namespace + '[address.' + address_type + '][region]"]');
+                        if ($region.length > 0 && $region.data('country') != "") {
+                            data[that.namespace + '[address.' + address_type + '][data][country]'] = $region.data('country');
+                        }
+                    }
+                }
                 data[field.name] = field.value;
             });
         }
-
         $.post('?action=customerForm', data, function (html) {
 
             that.updateInnerHtml(html);

@@ -606,14 +606,12 @@ SQL;
 
             foreach ($features as $code => $value) {
                 if ($feature = $this->getFeature($code)) {
-
                     $model = shopFeatureModel::getValuesModel($feature['type']);
-
-                    $field = array(
+                    $field = [
                         'product_id' => $data['product_id'],
                         'sku_id'     => $id,
                         'feature_id' => $feature['id'],
-                    );
+                    ];
 
                     #delete old values
                     $product_features_model->deleteByField($field);
@@ -622,6 +620,11 @@ SQL;
                     if (is_array($value)) {
                         if (!empty($value['id'])) {
                             $field['feature_value_id'] = $value['id'];
+                        } elseif (
+                            isset($value['value']['begin']) && $value['value']['begin'] === ''
+                            || isset($value['value']['end']) && $value['value']['end'] === ''
+                        ) {
+                            // no operation range type
                         } elseif (isset($value['value'])) {
                             if (!in_array($value['value'], $skip_values, true) && $model) {
                                 //fix composite values

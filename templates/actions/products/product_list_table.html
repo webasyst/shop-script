@@ -98,7 +98,7 @@
                         {% if (p.badge) { %}
                             <div class="s-image-corner">{%#p.badge%}</div>
                         {% } %}
-                        <img src="{%#p.image_crop_small || '{/literal}{$wa_app_static_url}{literal}img/image-dummy-small.png'%}" width="48" height="48" class="drag-handle">
+                        <img src="{%#p.image_crop_small || '{/literal}{$wa_app_static_url}{literal}img/image-dummy-small.png'%}" width="48" height="48" class="drag-handle {% if (!p.image_crop_small) { %}is-empty{% } %}">
                     </a>
                 </div>
             </td>

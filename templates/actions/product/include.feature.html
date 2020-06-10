@@ -204,9 +204,9 @@ NOTICE: template contains generated javascript templates at `capture` sections
             {/if}
         {elseif strpos($feature.type,'text') === 0}
             {* WARNING: Do not use line break inside textarea, they are displayed in content *}
-            <textarea id="{$_prefix}{$code}" name="{$namespace}[features][{$code}]">
+            <textarea id="{$_prefix}{$code}" name="{$namespace}[features][{$code}]">{strip}
                 {if isset($item_features[$code])}{$item_features[$code]|escape}{/if}
-            </textarea>
+            {/strip}</textarea>
         {elseif strpos($feature.type,'color') === 0}
             <input id="{$_prefix}{$code}" name="{$namespace}[features][{$code}][value]" type="text"
                    value="{$item_features[$code]['value']|default:''|escape}" placeholder="[`color name`]">

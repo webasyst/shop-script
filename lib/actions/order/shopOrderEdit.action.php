@@ -62,9 +62,6 @@ class shopOrderEditAction extends waViewAction
             // set specific address
             $form->setValue('address.shipping', ['data' => $this->order->shipping_address]);
         }
-
-        // How show additional subfields of address field(s)
-        $form->setAddressAdditionalSubfieldsDisplayType('folded');
     }
 
     protected function initShopOrderInfoByOrderId($order_id)

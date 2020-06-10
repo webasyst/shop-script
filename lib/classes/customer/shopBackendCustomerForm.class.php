@@ -70,7 +70,6 @@ class shopBackendCustomerForm {
             'contact'         => null,
             'storefront'      => null,
             'address_display_type' => 'all',                        // 'first', 'all', 'none'
-            'address_additional_subfields_display_type' => 'hide',      // 'folded', 'hide'
         ));
 
         $this->options = $options;
@@ -120,17 +119,6 @@ class shopBackendCustomerForm {
     public function setAddressDisplayType($type)
     {
         $this->options['address_display_type'] = $type;
-    }
-
-    /**
-     * Type of showing additional subfields of address
-     * @param $type 'folded', 'hide'
-     *  - 'folded': show additional subfields inputs but all they hidden (folded), and on link will be shown
-     *  - 'hide': not showing additional subfields at all
-     */
-    public function setAddressAdditionalSubfieldsDisplayType($type)
-    {
-        $this->options['address_additional_subfields_display_type'] = $type;
     }
 
     /**
@@ -332,8 +320,7 @@ class shopBackendCustomerForm {
         /** @var shopConfig $config */
         $config = wa('shop')->getConfig();
 
-        $order_editor_config = $this->getOrderEditorConfig();
-        $fix_delivery_area = !empty($order_editor_config['fixed_delivery_area']) ? $order_editor_config['fixed_delivery_area'] : [];
+        $fix_delivery_area = $this->getFixDeliveryArea();
 
         // set current country as a value
         $current_country_value = $config->getGeneralSettings('country');
@@ -868,16 +855,48 @@ class shopBackendCustomerForm {
     {
         $fields_config = $this->getFieldsConfig();
 
-        if ($this->options['address_additional_subfields_display_type'] === 'folded') {
-            foreach (array('address.shipping', 'address.billing') as $address_key) {
-                if (!isset($fields_config[$address_key]['fields'])) {
-                    continue;
+        $order_editor_config = new shopOrderEditorConfig();
+        $address_types = array('address.shipping', 'address.billing');
+
+        foreach ($address_types as $address_type) {
+            if (!isset($fields_config[$address_type]['fields'])) {
+                continue;
+            }
+            $subfields = $this->getAddressSubfields();
+
+            foreach ($subfields as $field_id => $field_options) {
+                if (!isset($fields_config[$address_type]['fields'][$field_id])) {
+                    $field_options['required'] = false;
+                    $fields_config[$address_type]['fields'][$field_id] = $field_options;
                 }
-                $subfields = $this->getAddressSubfields();
-                foreach ($subfields as $field_id => $field_options) {
-                    if (!isset($fields_config[$address_key]['fields'][$field_id])) {
-                        $field_options['required'] = false;
-                        $fields_config[$address_key]['fields'][$field_id] = $field_options;
+            }
+        }
+
+        /**
+         * @var waContact $contact
+         */
+        $contact = $this->options['contact'];
+
+        $country_fixed_delivery_area = $order_editor_config['fixed_delivery_area']['country'];
+        $no_storefront = empty($this->options['storefront']);
+
+        // if in context of no concrete storefront (aka "added manually" case) and contact's country is not the same as in fixed_delivery_area setting
+        //  then force show country field in any case (even if country field was explicitly turned of
+        if (isset($contact) && $no_storefront) {
+            $contact_address = $contact['address'];
+            if (!empty($contact_address)) {
+                foreach ($contact_address as $address) {
+                    $contact_country = $address['data']['country'];
+                    if (!empty($contact_country) && $contact_country != $country_fixed_delivery_area) {
+                        foreach ($contact_address as $address_data) {
+                            $address_type = 'address.' . $address_data['ext'];
+                            if (in_array($address_type, $address_types, true) && isset($fields_config[$address_type])) {
+                                $fields_config[$address_type]['fields']['country'] = array(
+                                    'required' => false,
+                                );
+                            }
+                        }
+                        break;
                     }
                 }
             }
@@ -890,10 +909,15 @@ class shopBackendCustomerForm {
             )
         );
 
-        /**
-         * @var waContact $contact
-         */
-        $contact = $this->options['contact'];
+        $config_country_enabled = isset($order_editor_config['fields']['address']['country']);
+        if (!$config_country_enabled && !empty($country_fixed_delivery_area) && $no_storefront) {
+            foreach ($address_types as $address_type) {
+                if (isset($fields_config[$address_type]['fields']['country'])) {
+                    $country[$address_type]['data']['country'] = $country_fixed_delivery_area;
+                    $form->setValue($country);
+                }
+            }
+        }
 
         if ($contact) {
 
@@ -999,7 +1023,6 @@ class shopBackendCustomerForm {
             'form_options' => $this->getContactForm()->opt(),
             'contact_type_selector_info' => $contact_type_selector_info,
             'fields_config' => $this->getFieldsConfig(),
-            'address_additional_subfields_display_type' => $this->options['address_additional_subfields_display_type']
         ));
 
         return $html;
@@ -1049,6 +1072,16 @@ class shopBackendCustomerForm {
             $this->cache['order_editor_config'] = new shopOrderEditorConfig();
         }
         return $this->cache['order_editor_config'];
+    }
+
+
+    protected function getFixDeliveryArea()
+    {
+        if (empty($this->options['storefront'])) {
+            $order_editor_config = $this->getOrderEditorConfig();
+            return !empty($order_editor_config['fixed_delivery_area']) ? $order_editor_config['fixed_delivery_area'] : [];
+        }
+        return [];
     }
 
     public function __call($name, $arguments)

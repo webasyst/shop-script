@@ -104,6 +104,13 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         return $this->exec($sql);
     }
 
+    /**
+     * @param shopProduct $product
+     * @param bool $public_only
+     * @return array
+     * @throws waDbException
+     * @throws waException
+     */
     public function getData(shopProduct $product, $public_only = false)
     {
         return $this->getValues($product->getId(), null, $product->type_id, $product->sku_type, $public_only);
@@ -123,6 +130,11 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
     {
         $result = array();
         $features = array();
+
+        // Contains feature codes of features that we're not yet sure contain actual values.
+        // E.g. shop_product_features may contain value_id that was deleted from shop_feature_values_*
+        // or value_id corresponds to an empty string that does not count as value to show.
+        // Dividers must never get into this array.
         $codes_to_remove = array();
 
         //
@@ -130,35 +142,8 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         // even if divider is not saved for particular product in shop_product_features.
         //
         if ($type_id) {
-            $status_sql = '';
-            if ($public_only) {
-                $status_sql = "AND f.status='public'";
-            }
-
-            $sql = "SELECT f.id AS feature_id, f.code, f.type, f.multiple, tf.sort
-                    FROM shop_feature AS f
-                        JOIN shop_type_features AS tf
-                            ON tf.feature_id = IFNULL(f.parent_id,f.id)
-                    WHERE tf.type_id=i:type_id
-                        {$status_sql}
-                    ORDER BY tf.sort";
-            $data = $this->query($sql, array(
-                'type_id' => $type_id,
-            ));
-            foreach ($data as $row) {
-                $features[$row['feature_id']] = [
-                    'type'     => $row['type'],
-                    'code'     => $row['code'],
-                    'multiple' => $row['multiple'],
-                ];
-
-                if (preg_match('/^(.+)\.[0-2]$/', $row['code'], $matches)) {
-                    $code = $matches[1];
-                } else {
-                    $code = $row['code'];
-                }
-
-                $result[$code] = null;
+            $result = $this->getListFeatures($type_id, $public_only);
+            foreach ($result as $code => $row) {
                 if ($row['type'] != shopFeatureModel::TYPE_DIVIDER) {
                     $codes_to_remove[$code] = true;
                 }
@@ -222,8 +207,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
             'type_id' => $type_id,
         ));
 
-        // Prepare list of value_ids to fetch later
-        // and places to fetch them from.
+        // Prepare list of value_ids to fetch later and places to fetch them from
         $storages = array();
         foreach ($data as $row) {
             $features[$row['feature_id']] = array(
@@ -237,7 +221,6 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                 $code = $row['code'];
             }
             $result[$code] = null;
-            unset($codes_to_remove[$code]);
 
             $type = preg_replace('/\..*$/', '', $row['type']);
             switch ($type) {
@@ -250,6 +233,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                     $result[$row['code']] = $feature_values[$row['feature_value_id']];
                     break;
                 default:
+                    $codes_to_remove[$code] = true;
                     if ($sku_id) {
                         // Make sure feature assigned to SKU overrides feature assigned to product
                         if (!empty($row['sku_id']) || !isset($storages[$type][$row['feature_id']])) {
@@ -272,6 +256,9 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                     if (isset($features[$feature_id])) {
                         $f = $features[$feature_id];
                         $result[$f['code']] = ($sku_id || empty($f['multiple'])) ? reset($values) : $values;
+                        if ($result[$f['code']] !== null) {
+                            unset($codes_to_remove[$f['code']]);
+                        }
                     } else {
                         //obsolete feature value
                     }
@@ -281,40 +268,61 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
             }
         }
 
-        // Remove all features without values (except dividers)
-        foreach (array_keys($codes_to_remove) as $code) {
-            unset($result[$code]);
-        }
-
         /** composite fields workaround */
         $composite = array_filter(array_keys($result), wa_lambda('$a', 'return preg_match("/\.[0-2]$/",$a);'));
         $composite = array_unique(preg_filter('#\.[0-3]#', '', $composite));
         foreach ($composite as $code) {
             $code = preg_replace('/\.0$/', '', $code);
             $result[$code] = new shopCompositeValue($code, $result);
+            unset($codes_to_remove[$code]);
+        }
+
+        // Remove all features without values (except dividers)
+        foreach (array_keys($codes_to_remove) as $code) {
+            unset($result[$code]);
         }
 
         return $result;
     }
 
     /**
-     * @param $features
-     * @param $data_form
+     * @param $type_id
+     * @param bool $public_only
      * @return array
      */
-    private function get2d3d($features, $data_form)
+    public function getListFeatures($type_id, $public_only = false)
     {
-        $param_2d_3d = [];
-        foreach ($features as $name => $param) {
-            if (null !== $param['parent_id']) {
-                $param_2d_3d[$param['parent_id']][] = $param['code'];
-                if (!isset($param_2d_3d[$param['parent_id']]['empty'])) {
-                    $param_2d_3d[$param['parent_id']]['empty'] = true;
+        if (!$type_id) {
+            return [];
                 }
-                $param_2d_3d[$param['parent_id']]['empty'] = ($param_2d_3d[$param['parent_id']]['empty'] && empty($data_form[$param['code']]));
+        $result     = [];
+        $status_sql = '';
+        if ($public_only) {
+            $status_sql = "AND f.status='public'";
             }
+        $sql = "SELECT f.id AS feature_id, f.code, f.type, f.multiple, tf.sort
+                    FROM shop_feature AS f
+                        JOIN shop_type_features AS tf
+                            ON tf.feature_id = IFNULL(f.parent_id,f.id)
+                    WHERE tf.type_id=i:type_id
+                        {$status_sql}
+                    ORDER BY tf.sort";
+
+        $data = $this->query($sql, ['type_id' => $type_id]);
+        foreach ($data as $row) {
+            $features[$row['feature_id']] = [
+                'type'     => $row['type'],
+                'code'     => $row['code'],
+                'multiple' => $row['multiple'],
+            ];
+            if (preg_match('/^(.+)\.[0-2]$/', $row['code'], $matches)) {
+                $code = $matches[1];
+            } else {
+                $code = $row['code'];
         }
-        return $param_2d_3d;
+            $result[$code] = $row;
+    }
+        return $result;
     }
 
     /**
@@ -329,9 +337,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         $product_id = $product->getId();
         $codes = array_keys($data);
 
-        /**
-         * unset features_selectable and don't save them
-         */
+        /** unset features_selectable and don't save them */
         foreach ($codes as $code) {
             if (isset($product->features_selectable[$code])) {
                 $data[$code] = array();
@@ -394,8 +400,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                 $code = $f['code'];
                 if (empty($f['multiple'])) {
                     $current[$code] = intval($row['feature_value_id']);
-                }
-                else {
+                } else {
                     if (!isset($current[$code])) {
                         $current[$code] = array();
                     }
@@ -408,18 +413,8 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
         $add = [];
         $delete = [];
-        $arr_2d_3d = $this->get2d3d($features, $data);
         foreach ($data as $code => $value) {
             if (isset($features[$code])) {
-
-                /** parent 2d and 3d operation */
-                if (null !== $features[$code]['parent_id']) {
-                    $delete[$features[$code]['parent_id']] = 0;
-                    if (!$arr_2d_3d[$features[$code]['parent_id']]['empty']) {
-                        $add[$features[$code]['parent_id']] = 0;
-                    }
-                }
-
                 $f =& $features[$code];
                 if (is_array($value)) {
                     $empty = isset($value['value']) && ($value['value'] === '');

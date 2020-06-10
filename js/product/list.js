@@ -85,7 +85,7 @@
 
                 if (options.enable_2x) {
                     this.container.on('append_product_list', function() {
-                        $.fn.retina && $.product_list.container.find('img').retina();
+                        $.fn.retina && $.product_list.container.find('img').not(".is-empty").retina();
                     });
                 }
 

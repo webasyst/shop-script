@@ -510,6 +510,10 @@ class shopProduct implements ArrayAccess
         return ifset($info['sign_html'], $info['sign']);
     }
 
+    /**
+     * @return mixed
+     * @throws waException
+     */
     public function getSkus()
     {
         $data = $this->getStorage('skus')->getData($this);
@@ -524,6 +528,15 @@ class shopProduct implements ArrayAccess
         }
 
         return $data;
+    }
+
+    /**
+     * @return mixed
+     * @throws waException
+     */
+    public function getListFeatures()
+    {
+        return $this->getStorage('features')->getListFeatures($this->type_id, false);
     }
 
     /**
@@ -1174,11 +1187,16 @@ class shopProduct implements ArrayAccess
         return array();
     }
 
+    /**
+     * @return array
+     * @throws waDbException
+     * @throws waException
+     */
     public function getSkuFeatures()
     {
         if ($this->getId()) {
             $product_features_model = new shopProductFeaturesModel();
-            $sql = "SELECT * FROM ".$product_features_model->getTableName()." WHERE product_id = i:0 AND sku_id IS NOT NULL";
+            $sql = "SELECT * FROM ".$product_features_model->getTableName()." WHERE product_id = i:0 AND sku_id IS NOT NULL ORDER BY id";
             $rows = $product_features_model->query($sql, $this->getId())->fetchAll();
             if (!$rows) {
                 return array();

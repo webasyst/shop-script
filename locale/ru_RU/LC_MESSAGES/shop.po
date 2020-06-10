@@ -10863,8 +10863,8 @@ msgstr "увеличить скидку"
 msgid "The discount will be increased, and the order total will be reduced, by a minimum amount necessary for correct discount distribution across order items."
 msgstr "Скидка будет увеличена, а общая сумма заказа — уменьшена на минимальную сумму, необходимую для корректного распределения скидки по позициям заказа."
 
-msgid "Order currency rounding settings are taken into account if the discounts rounding is enabled."
-msgstr "Настройки округления валюты заказа применяются, если включено округление для скидок."
+msgid "To set a certain rounding precision for the discount adjustment amount, enable rounding for the <em>total discount amount</em> and select the desired rounding precision for the currencies, in which you receive orders, in their settings on this page."
+msgstr "Чтобы задать нужную точность для суммы корректировки размера скидки, включите округление для <em>итогового размера скидки</em> и выберите желаемую точность округления валют, в которых вы получаете заказы, в их настройках на этой странице."
 
 msgid "Increase discount without rounding"
 msgstr "Увеличить скидку, не применяя округление"
@@ -10873,10 +10873,10 @@ msgid "Order currency rounding settings are not applied as when rounding to 0.01
 msgstr "Настройки округления валюты заказа не применяются, как если бы было установлено округление до 0,01."
 
 msgid "split one of order items into two"
-msgstr "разбить одну из позиций в заказе на две"
+msgstr "разделить одну из позиций в заказе на две"
 
 msgid "One of order items will be split into two separate items."
-msgstr "Одна из позиций заказа будет разбита на две самостоятельные позиции."
+msgstr "Одна из позиций заказа будет разделена на две самостоятельные позиции."
 
 msgid "The price of a new order item will differ by one cent."
 msgstr "Цена новой позиции будет отличаться на одну копейку."

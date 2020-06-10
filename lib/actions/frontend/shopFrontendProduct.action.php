@@ -125,14 +125,6 @@ class shopFrontendProductAction extends shopFrontendAction
             }
         }
 
-        /** Add array of 'features' to each SKU */
-        $sku_features = $product->getSkuFeatures();
-        $skus_with_features = array();
-        foreach ($product->skus as $sku_id => $sku) {
-            $sku['features'] = array_merge($product->features, ifempty($sku_features, $sku_id, []));
-            $skus_with_features[$sku_id] = $sku;
-        }
-        $product->skus = $skus_with_features;
         $product->tags = array_map('htmlspecialchars', $product->tags);
     }
 
@@ -245,14 +237,12 @@ class shopFrontendProductAction extends shopFrontendAction
                 wa()->getResponse()->setOGMeta('og:video', $product['video_url']);
             }
 
-            $feature_codes = array_keys($product->features);
-            $feature_model = new shopFeatureModel();
-            $features = $feature_model->getByCode($feature_codes);
-
-            $sku_features = self::getСommonFeatures($product, $features);
-
-            $this->view->assign('features', $features);
-            $this->view->assign('sku_features', $sku_features);
+            // Prepare feature-related variables.
+            // (Template vars are named like that for legacy reasons.)
+            list($product_features, $used_features, $skus_with_features) = $this->prepareFeatureVars($product);
+            $product->skus = $skus_with_features;
+            $this->view->assign('features', $product_features);
+            $this->view->assign('sku_features', $used_features);
         }
 
 
@@ -303,6 +293,74 @@ class shopFrontendProductAction extends shopFrontendAction
     }
 
     /**
+     * Fetch feature values from DB: product features and SKU features.
+     * Fetch feature settings from DB.
+     * Filter features, removing those not visible in frontend.
+     * Prepare arrays of feature values for product and each SKU,
+     * sorting them in proper order according to product type settings.
+     */
+    protected function prepareFeatureVars($product)
+    {
+        // All features (settings) used in product type. In order as set in type settings.
+        // This includes private features at this point (not visible in frontend).
+        $feature_model = new shopFeatureModel();
+        $all_features = $feature_model->getByType($product->type_id, 'code');
+
+        // Feature values of all SKUs and of the product
+        $sku_feature_values = $product->getSkuFeatures();
+        $product_feature_values = $product->features;
+
+        // Figure out which feature values are manually added to the product.
+        $all_feature_codes = $all_features;
+        $all_feature_codes += $product_feature_values;
+        foreach($sku_feature_values as $values) {
+            $all_feature_codes += $values;
+        }
+        $manually_added_feature_codes = array_keys(array_diff_key($all_feature_codes, $all_features));
+        unset($all_feature_codes);
+
+        // Fetch feature settings for features not attached to product type
+        // but still manually added to this product. Sort order for them is undefined,
+        // so just add them at the end of the feature list.
+        if ($manually_added_feature_codes) {
+            $all_features += $feature_model->getByCode($manually_added_feature_codes);
+        }
+
+        // Hide features not available in frontend
+        foreach($all_features as $code => $feature) {
+            if ($feature['status'] === 'private') {
+                unset($all_features[$code]);
+            }
+        }
+
+        // Add array of feature values to each SKU, in proper order.
+        // Remove values of features that are not visible in frontend.
+        // Collect feature codes used in product or any SKU.
+        $skus_with_features = array();
+        $used_feature_codes = [];
+        foreach ($product->skus as $sku_id => $sku) {
+            $sku['features'] = [];
+            foreach($all_features as $code => $feature) {
+                if (isset($sku_feature_values[$sku_id][$code])) {
+                    $sku['features'][$code] = $sku_feature_values[$sku_id][$code];
+                    $used_feature_codes[$code] = $code;
+                } else if (isset($product_feature_values[$code])) {
+                    $sku['features'][$code] = $product_feature_values[$code];
+                    $used_feature_codes[$code] = $code;
+                }
+            }
+            $skus_with_features[$sku_id] = $sku;
+        }
+
+        // Settings of features that are used in product. This does not necessarily contains all features used in SKUs.
+        $product_features = array_intersect_key($all_features, $product_feature_values);
+        // Settings of all features used in product or SKUs
+        $used_features = array_intersect_key($all_features, $used_feature_codes);
+
+        return [$product_features, $used_features, $skus_with_features];
+    }
+
+    /**
      * @param $public_stocks
      * @param $skus
      * @return int|null
@@ -322,41 +380,6 @@ class shopFrontendProductAction extends shopFrontendAction
         }
 
         return $count;
-    }
-
-    protected function getСommonFeatures($product, $features)
-    {
-        if (isset($product) && is_array($features)) {
-            $feature_model = new shopFeatureModel();
-            $features_additional = $feature_model->getByType($product->type_id, 'code');
-            if ($features_additional) {
-                $features += $features_additional;
-            }
-
-            $common_features = array();
-            $product_skus = $product->skus;
-            if (isset(current($product_skus)['features'])) {
-                $first_element = current($product_skus)['features'];
-                $common_features = array_flip(array_keys($first_element));
-                foreach (array_slice($product_skus, 1) as $key => $item) {
-                    if (isset($item['features'])) {
-                        foreach ($item['features'] as $feature_key => $feature) {
-                            if (!isset($common_features[$feature_key])) {
-                                $common_features[$feature_key] = '';
-                            }
-                        }
-                    }
-                }
-
-                foreach ($features as $key => $feature) {
-                    if (!isset($common_features[$key])) {
-                        unset($features[$key]);
-                    }
-                }
-            }
-
-            return $features;
-        }
     }
 
     protected function getServiceVars($product)
