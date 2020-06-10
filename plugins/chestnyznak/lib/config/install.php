@@ -1,0 +1,3 @@
+<?php
+
+shopChestnyznakPlugin::installSettingsPlugin();

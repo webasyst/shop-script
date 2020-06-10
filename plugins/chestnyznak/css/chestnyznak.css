@@ -1,0 +1,4 @@
+.s-cz-parsing-result .s-cz-parsed-params { color: #888; font-size: 13px; }
+.s-cz-parsing-result .s-cz-parsed-params .s-cs-invalid { color: red }
+.s-cz-parsing-result .s-cz-parsed-params .s-cz-gtin-value { min-width: 106px; display: inline-block}
+.s-cz-parsing-result .s-cs-errormsg { color: red; font-size: 13px; }
