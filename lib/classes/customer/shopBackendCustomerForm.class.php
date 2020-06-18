@@ -877,12 +877,13 @@ class shopBackendCustomerForm {
          */
         $contact = $this->options['contact'];
 
-        $country_fixed_delivery_area = $order_editor_config['fixed_delivery_area']['country'];
+        $country_fixed_delivery_area = isset($order_editor_config['fixed_delivery_area']['country'])
+            ? $order_editor_config['fixed_delivery_area']['country'] : null;
         $no_storefront = empty($this->options['storefront']);
 
         // if in context of no concrete storefront (aka "added manually" case) and contact's country is not the same as in fixed_delivery_area setting
         //  then force show country field in any case (even if country field was explicitly turned of
-        if (isset($contact) && $no_storefront) {
+        if (isset($contact) && $no_storefront && $country_fixed_delivery_area) {
             $contact_address = $contact['address'];
             if (!empty($contact_address)) {
                 foreach ($contact_address as $address) {

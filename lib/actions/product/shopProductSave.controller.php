@@ -340,7 +340,7 @@ class shopProductSaveController extends waJsonController
     protected function ensureGtinForSkus($data)
     {
         foreach(ifset($data, 'skus', []) as $sku) {
-            if (isset($sku['features']['weight'])) {
+            if (isset($sku['features']['gtin'])) {
                 $feature_model = new shopFeatureModel();
                 $feature_model->updateByField('code', 'gtin', [
                     'available_for_sku' => 1,

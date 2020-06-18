@@ -231,6 +231,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                     $values = $model->getValues('id', $row['feature_value_id']);
                     $feature_values = reset($values);
                     $result[$row['code']] = $feature_values[$row['feature_value_id']];
+                    unset($codes_to_remove[$row['code']]);
                     break;
                 default:
                     $codes_to_remove[$code] = true;

@@ -741,7 +741,7 @@ HTML;
         // Adjust discount precision if discount is not divisible by it for some reason.
         // It happens when discount is specified by hand during order edit,
         // or during partial refund or partial capture.
-        if ($order_discount_cents % $discount_batch_cents) {
+        if (!$discount_batch_cents || $order_discount_cents % $discount_batch_cents) {
             $discount_batch_cents = 1;
         }
 
@@ -898,10 +898,11 @@ HTML;
     {
         list($round_unit, $shift, $precision) = shopRounding::getRoundingVars($currency_rounding);
         if ($shift > 0) {
-            return $shift*100;
-        } else {
-            return $round_unit*100;
+            $result = $shift*$currency_precision;
+        } else if ($round_unit) {
+            $result = $round_unit*$currency_precision;
         }
+        return max($result, 1);
     }
 
     protected static function formatItemDiscount(&$order, $item_id, $discounts, &$total_items_discount)
