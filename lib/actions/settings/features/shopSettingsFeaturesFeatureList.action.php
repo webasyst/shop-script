@@ -24,7 +24,7 @@ class shopSettingsFeaturesFeatureListAction extends waViewAction
             }
         }
         if ($features) {
-            shopFeatureModel::appendTypeNames($features);
+            shopFeatureModel::appendTypeNames($features, true);
             $type_features_model = new shopTypeFeaturesModel();
             $type_features_model->fillTypes($features);
         }

@@ -9,6 +9,7 @@ class shopLoginAction extends waLoginAction
         $this->setThemeTemplate('login.html');
         try {
             parent::execute();
+            $this->saveReferer();
         } catch (waException $e) {
             if ($e->getCode() == 404) {
                 $this->view->assign('error_code', $e->getCode());
@@ -26,11 +27,14 @@ class shopLoginAction extends waLoginAction
         $referer = waRequest::server('HTTP_REFERER');
         $referer = substr($referer, strlen($this->getConfig()->getHostUrl()));
         $checkout_url = wa()->getRouteUrl('shop/frontend/checkout');
+        $auth_referer = $this->getStorage()->get('auth_referer');
 
         if ($referer && !strncasecmp($referer, $checkout_url, strlen($checkout_url))) {
             $url = $referer;
+        } else if ($auth_referer) {
+            $url = $auth_referer;
         } elseif ($referer != wa()->getRouteUrl('/login')) {
-            $url = $this->getStorage()->get('auth_referer');
+            $url = $referer;
         }
         if (empty($url)) {
             if (waRequest::param('secure')) {

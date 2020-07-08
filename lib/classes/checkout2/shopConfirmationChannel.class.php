@@ -663,11 +663,17 @@ class shopConfirmationChannel
     {
         $channel = waDomainAuthConfig::factory()->getVerificationChannelInstance($this->getTransport());
 
-        $result = $channel->sendConfirmationCodeMessage($source, [
-            'use_session' => true,
-        ]);
+        $auth_config = waDomainAuthConfig::factory();
 
-        return $result;
+        // options for send method
+        $options = [
+            'site_url' => $auth_config->getSiteUrl(),
+            'site_name' => $auth_config->getSiteName(),
+            'login_url' => $auth_config->getLoginUrl(array(), true),
+            'use_session' => true
+        ];
+
+        return $channel->sendConfirmationCodeMessage($source, $options);
     }
 
     /**

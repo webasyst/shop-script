@@ -3,7 +3,8 @@
 class shopCustomersCollectionPreparator
 {
     protected $customer_table_alias;
-    protected $order_table_alias;
+    protected $last_order_table_alias;
+    protected $filtering_order_table_alias;
     protected $model;
     protected $join_table_index = array();
     protected $left_join_table_index = array();
@@ -12,21 +13,30 @@ class shopCustomersCollectionPreparator
     protected $models = array();
     protected $options = array();
 
-    /**
-     * @var waCollection
-     */
+    /** @var waContactsCollection */
     protected $collection;
 
     public function __construct(waContactsCollection $collection, $options = array())
     {
+        $this->options = $options;
         $this->collection = $collection;
-        $this->customer_table_alias = $this->addJoinOnce('shop_customer');
-        $this->order_table_alias = $this->addJoinOnce([
+        $hash = $collection->getHash();
+        if (ifset($hash, 0, '') === 'search') {
+            $this->options = $this->parseOptionsFromSearchQuery(ifset($hash, 1, '')) + $this->options;
+        }
+
+        // Add shop_customer join
+        $this->customer_table_alias = $this->addJoinOnce([
+            'table' => 'shop_customer',
+            'type'  => empty($this->options['left_customer_join']) ? null : 'LEFT',
+        ]);
+
+        // Last order join
+        $this->last_order_table_alias = $this->addJoinOnce([
             'table' => 'shop_order',
             'on'    => $this->customer_table_alias.'.last_order_id = :table.id',
             'type'  => 'LEFT'
         ]);
-        $this->options = $options;
     }
 
     public function getCustomerTableAlias()
@@ -36,7 +46,26 @@ class shopCustomersCollectionPreparator
 
     public function getOrderTableAlias()
     {
-        return $this->order_table_alias;
+        return $this->last_order_table_alias;
+    }
+
+    protected function getFilteringOrderTableAlias()
+    {
+        if (!$this->filtering_order_table_alias) {
+
+            $on = [':table.contact_id = c.id'];
+            if (empty($this->options['include_unpaid_orders'])) {
+                $on[] = ':table.paid_date IS NOT NULL';
+            } else if ($this->options['include_unpaid_orders'] === 'only') {
+                $on[] = ':table.paid_date IS NULL';
+            }
+
+            $this->filtering_order_table_alias = $this->addJoin([
+                'table' => 'shop_order',
+                'on' => join(' AND ', $on),
+            ]);
+        }
+        return $this->filtering_order_table_alias;
     }
 
     protected function addJoinOnce($table, $on = null, $where = null, $options = array())
@@ -166,7 +195,7 @@ class shopCustomersCollectionPreparator
             } else if (substr($f, 0, 13) == 'order_params.') {
                 $param_name = $this->getModel()->escape(substr($f, 13));
                 $expr = $this->getExpression($op, $val);
-                $on = ":table.order_id = {$this->order_table_alias}.id AND :table.name = '{$param_name}'";
+                $on = ":table.order_id = {$this->getFilteringOrderTableAlias()}.id AND :table.name = '{$param_name}'";
                 if (strtolower($val) === ':null') {
                     $this->addLeftJoin("shop_order_params", $on, ":table.value IS NULL");
                 } else {
@@ -189,6 +218,50 @@ class shopCustomersCollectionPreparator
         } else {
             return $query;
         }
+    }
+
+    // Used in tonstructor to set options depending on search query
+    protected function parseOptionsFromSearchQuery($query)
+    {
+        $options = [];
+        $hash_ar = self::parseSearchHash($query);
+
+        //
+        // We have two important parameters that affect how whole collection behaves.
+        //
+        // * show_contacts customers|paid|unpaid|all
+        //   when customers: JOIN shop_customer, WHERE number_of_orders > 0
+        //   when unpaid:    JOIN shop_customer, WHERE number_of_orders > 0 AND total_spent <= 0
+        //   when paid:      JOIN shop_customer, WHERE number_of_orders > 0 AND total_spent > 0
+        //   when all:       LEFT JOIN shop_customer
+        //
+        // * consider_orders all|paid|unpaid
+        //   when paid:   Total amount spent and number of orders are taken from shop_customer table.
+        //                In case contact has no shop_customer record, they are taken to be zero.
+        //                (this forces show_contacts=paid)
+        //   when unpaid: Aggregated sum with join to shop_order, filter unpaid orders only.
+        //   when all:    Aggregated sum with join to shop_order.
+        //
+
+        if (empty($hash_ar['app']['consider_orders'])) {
+            $hash_ar['app']['consider_orders'] = [
+                'val' => 'all',
+                'op' => '=',
+            ];
+        }
+        if ($hash_ar['app']['consider_orders']['val'] === 'unpaid') {
+            $options['include_unpaid_orders'] = 'only';
+        } else if ($hash_ar['app']['consider_orders']['val'] !== 'paid') {
+            $options['include_unpaid_orders'] = true;
+        } // also see middlewareSearchPrepare
+
+        $show_contacts_val = ifempty($hash_ar, 'app', 'show_contacts', 'val', 'customers');
+        if ($show_contacts_val === 'all') {
+            $options['left_customer_join'] = true;
+            // also see searchPrepareShowContacts
+        }
+
+        return $options;
     }
 
     protected function middlewareSearchPrepare(&$query, $auto_title = true)
@@ -217,6 +290,25 @@ class shopCustomersCollectionPreparator
                 $contact_info_hash[] = "{$field_id}{$val['op']}{$val['val']}";
             }
             unset($hash_ar['contact_info']);
+        }
+
+        if (empty($hash_ar['app']['consider_orders'])) {
+            $hash_ar['app']['consider_orders'] = [
+                'val' => 'all',
+                'op' => '=',
+            ];
+        }
+
+        if (ifset($hash_ar, 'app', 'consider_orders', 'val', '') === 'paid') {
+            $hash_ar['app']['show_contacts'] = [
+                'val' => 'paid',
+                'op' => '=',
+            ];
+        } else if (empty($hash_ar['app']['show_contacts'])) {
+            $hash_ar['app']['show_contacts'] = [
+                'val' => 'customers',
+                'op' => '=',
+            ];
         }
 
         if (!empty($hash_ar['app'])) {
@@ -252,6 +344,30 @@ class shopCustomersCollectionPreparator
         return implode('&', $query);
     }
 
+    protected function searchPrepareShowContacts($op, $val = '', $auto_title = true)
+    {
+        if ($val == 'all') {
+            return; // already done at this point, see parseOptionsFromSearchQuery
+        }
+
+        $al = $this->customer_table_alias;
+        $this->addWhere("{$al}.number_of_orders > 0");
+
+        if ($val == 'unpaid') {
+            $this->addWhere("{$al}.total_spent <= 0");
+        } else if ($val == 'paid') {
+            $this->addWhere("{$al}.total_spent > 0");
+        }
+    }
+
+    protected function searchPrepareConsiderOrders($op, $val = '', $auto_title = true)
+    {
+        if ($val === 'unpaid') {
+            // Only show customers who has at least one unpaid order.
+            // We only require a join, no conditions necessary.
+            $this->getFilteringOrderTableAlias();
+        }
+    }
 
     protected function searchPrepareEmailName($op, $val = '', $auto_title = true)
     {
@@ -263,7 +379,7 @@ class shopCustomersCollectionPreparator
     protected function searchPrepareShipmentMethod($op, $val = '', $auto_title = true)
     {
         $val = (int) $val;
-        $this->addJoin('shop_order_params', ":table.order_id = {$this->order_table_alias}.id AND :table.name = 'shipping_id' AND :table.value = '{$val}'");
+        $this->addJoin('shop_order_params', ":table.order_id = {$this->getFilteringOrderTableAlias()}.id AND :table.name = 'shipping_id' AND :table.value = '{$val}'");
         if ($auto_title) {
             $item = $this->getModel('plugin')->getById($val);
             $this->addTitle(_w('Shipping option') . '=' . ($item ? $item['name'] : $val));
@@ -273,7 +389,7 @@ class shopCustomersCollectionPreparator
     protected function searchPreparePaymentMethod($op, $val = '', $auto_title = true)
     {
         $val = (int) $val;
-        $this->addJoin('shop_order_params', ":table.order_id = {$this->order_table_alias}.id AND :table.name = 'payment_id' AND :table.value = '{$val}'");
+        $this->addJoin('shop_order_params', ":table.order_id = {$this->getFilteringOrderTableAlias()}.id AND :table.name = 'payment_id' AND :table.value = '{$val}'");
         if ($auto_title) {
             $item = $this->getModel('plugin')->getById($val);
             $this->addTitle(_w('Payment option') . '=' . ($item ? $item['name'] : $val));
@@ -285,14 +401,25 @@ class shopCustomersCollectionPreparator
         if (is_array($val)) {
             $range[0] = $this->getModel()->escape($val[0]);
             $range[1] = $this->getModel()->escape($val[1]);
-            $this->addWhere("{$this->customer_table_alias}.total_spent >= '{$range[0]}' AND
-                {$this->customer_table_alias}.total_spent <= '{$range[1]}'");
+            $operator = ($range[0] == 0 ? '>' : '>=');
+            if (empty($this->options['include_unpaid_orders'])) {
+                $al = $this->customer_table_alias;
+                $this->addWhere("{$al}.total_spent {$operator} '{$range[0]}' AND {$al}.total_spent <= '{$range[1]}'");
+            } else {
+                $al = $this->getFilteringOrderTableAlias();
+                $this->addHaving("SUM({$al}.total * {$al}.rate) {$operator} '{$range[0]}' AND SUM({$al}.total * {$al}.rate) <= '{$range[1]}'");
+            }
             if ($auto_title)  {
                 $this->addTitle(_w('Total spent') . '=' . $val[0] . '–' . $val[1] . ' ' . wa('shop')->getConfig()->getCurrency());
             }
         } else {
             $expr = $this->getExpression($op, $val);
-            $this->addWhere("{$this->customer_table_alias}.total_spent {$expr}");
+            if (empty($this->options['include_unpaid_orders'])) {
+                $this->addWhere("{$this->customer_table_alias}.total_spent {$expr}");
+            } else {
+                $al = $this->getFilteringOrderTableAlias();
+                $this->addHaving("SUM({$al}.total * {$al}.rate) {$expr}");
+            }
             if ($auto_title) {
                 $this->addTitle(_w('Total spent') . $op . $val . ' ' . wa('shop')->getConfig()->getCurrency());
             }
@@ -323,7 +450,13 @@ class shopCustomersCollectionPreparator
     {
         if (in_array($op, array('<', '>', '=', '>=', '<='))) {
             $val = (int) $val;
-            $this->addWhere("{$this->customer_table_alias}.number_of_orders {$op} '{$val}'");
+
+            if (!empty($this->options['include_unpaid_orders'])) {
+                $this->addWhere("{$this->customer_table_alias}.number_of_orders {$op} '{$val}'");
+            } else {
+                $this->addHaving("COUNT({$this->getFilteringOrderTableAlias()}.id) {$op} '{$val}'");
+            }
+
             if ($auto_title) {
                 $this->addTitle(_w('Number of orders') . $op . $val);
             }
@@ -335,7 +468,7 @@ class shopCustomersCollectionPreparator
         if (is_array($val)) {
             $period[0] = $this->getModel()->escape($val[0]);
             $period[1] = $this->getModel()->escape($val[1]);
-            $this->addWhere("{$this->order_table_alias}.create_datetime >= '{$period[0]}' AND {$this->order_table_alias}.create_datetime <= '{$period[1]}'");
+            $this->addWhere("{$this->getFilteringOrderTableAlias()}.create_datetime >= '{$period[0]}' AND {$this->getFilteringOrderTableAlias()}.create_datetime <= '{$period[1]}'");
             if ($auto_title) {
                 $this->addTitle(_w('Order time frame') . '=' . $val[0] . '–' . $val[1]);
             }
@@ -353,7 +486,7 @@ class shopCustomersCollectionPreparator
                 }
             }
             $expr = $this->getExpression($op, $date);
-            $this->addWhere("{$this->order_table_alias}.create_datetime {$expr}");
+            $this->addWhere("{$this->getFilteringOrderTableAlias()}.create_datetime {$expr}");
             if ($auto_title) {
                 $this->addTitle(_w('Order time frame') . $title);
             }
@@ -365,7 +498,7 @@ class shopCustomersCollectionPreparator
         if (is_numeric($val)) {
             $val = (int) $val;
             $this->addJoinOnce('shop_order_items',
-                    ":table.order_id = {$this->order_table_alias}.id AND :table.type = 'product'",
+                    ":table.order_id = {$this->getFilteringOrderTableAlias()}.id AND :table.type = 'product'",
                     ":table.product_id = '{$val}'");
             if ($auto_title) {
                 $m = $this->getModel('product');
@@ -379,7 +512,7 @@ class shopCustomersCollectionPreparator
         } else {
             $name = $this->getModel()->escape($val, 'like');
             $oi = $this->addJoinOnce('shop_order_items',
-                    ":table.order_id = {$this->order_table_alias}.id AND :table.type = 'product'");
+                    ":table.order_id = {$this->getFilteringOrderTableAlias()}.id AND :table.type = 'product'");
             $this->addJoinOnce('shop_product', ":table.id = {$oi}.product_id",
                     ":table.name LIKE '%{$name}%'");
             if ($auto_title) {
@@ -392,7 +525,7 @@ class shopCustomersCollectionPreparator
     {
         if ($val === ':backend') {
             $this->addLeftJoin('shop_order_params',
-                    ":table.order_id = {$this->order_table_alias}.id AND :table.name = 'storefront'",
+                    ":table.order_id = {$this->getFilteringOrderTableAlias()}.id AND :table.name = 'storefront'",
                     ":table.value IS NULL");
             if ($auto_title) {
                 $this->addTitle(_w('Storefront') . '=' . _w('Backend'));
@@ -400,7 +533,7 @@ class shopCustomersCollectionPreparator
         } else {
             $val = rtrim($this->getModel()->escape($val), '/');
             $storefronts = array($val, $val . '/');
-            $this->addJoin('shop_order_params', ":table.order_id = {$this->order_table_alias}.id AND :table.name = 'storefront'",
+            $this->addJoin('shop_order_params', ":table.order_id = {$this->getFilteringOrderTableAlias()}.id AND :table.name = 'storefront'",
                     ":table.value IN ('".  implode("','", $storefronts)."')");
             if ($auto_title) {
                 $this->addTitle(_w('Storefront') . '=' . $val);
@@ -411,7 +544,7 @@ class shopCustomersCollectionPreparator
     protected function searchPrepareReferer($op, $val = '', $auto_title = true)
     {
         $val = $this->getModel()->escape($val);
-        $this->addJoin('shop_order_params', ":table.order_id = {$this->order_table_alias}.id AND :table.name = 'referer_host'",
+        $this->addJoin('shop_order_params', ":table.order_id = {$this->getFilteringOrderTableAlias()}.id AND :table.name = 'referer_host'",
                 ":table.value = '{$val}'");
         if ($auto_title) {
             $this->addTitle(_w('Referer') . '=' . $val);
@@ -430,12 +563,19 @@ class shopCustomersCollectionPreparator
 
     protected function _seachPrepareOrderDatetime($type, $op, $val = '', $auto_title = true)
     {
-        $arg_func = $type === 'last' ? 'MAX' : 'MIN';
-        $title = array($type === 'last' ? _w('Last order') : _w('First order'));
+        if ($type === 'last') {
+            $arg_func = 'MAX';
+            $title = array(_w('Last order'));
+            $order_table_alias = $this->getOrderTableAlias();
+        } else {
+            $arg_func = 'MIN';
+            $title = array(_w('First order'));
+            $order_table_alias = $this->getFilteringOrderTableAlias();
+        }
         if (is_array($val)) {
             $period[0] = $this->getModel()->escape($val[0]);
             $period[1] = $this->getModel()->escape($val[1]);
-            $this->addHaving("{$arg_func}({$this->order_table_alias}.create_datetime) >= '{$period[0]}' AND {$arg_func}({$this->order_table_alias}.create_datetime) <= '{$period[1]}'");
+            $this->addHaving("{$arg_func}({$order_table_alias}.create_datetime) >= '{$period[0]}' AND {$arg_func}({$order_table_alias}.create_datetime) <= '{$period[1]}'");
             if ($auto_title) {
                 $this->addTitle($title[0] . '=' . $val[0] . '–' . $val[1]);
             }
@@ -453,7 +593,7 @@ class shopCustomersCollectionPreparator
                 }
             }
             $expr = $this->getExpression($op, $date);
-            $this->addHaving("{$arg_func}({$this->order_table_alias}.create_datetime) {$expr}");
+            $this->addHaving("{$arg_func}({$order_table_alias}.create_datetime) {$expr}");
             if ($auto_title) {
                 $this->addTitle($title[0] . $title[1]);
             }
@@ -464,13 +604,13 @@ class shopCustomersCollectionPreparator
     {
         if ($val) {
             if ($val === ':any') {
-                $this->addJoin('shop_order_params', ":table.order_id = {$this->order_table_alias}.id AND :table.name = 'coupon_id'");
+                $this->addJoin('shop_order_params', ":table.order_id = {$this->getFilteringOrderTableAlias()}.id AND :table.name = 'coupon_id'");
                 if ($auto_title) {
                     $this->addTitle(_w('Any coupon'));
                 }
             } else if (is_numeric($val)) {
                 $val = (int) $val;
-                $this->addJoin('shop_order_params', ":table.order_id = {$this->order_table_alias}.id AND :table.name = 'coupon_id' AND :table.value = '{$val}'");
+                $this->addJoin('shop_order_params', ":table.order_id = {$this->getFilteringOrderTableAlias()}.id AND :table.name = 'coupon_id' AND :table.value = '{$val}'");
                 if ($auto_title) {
                     $name = $val;
                     $m = $this->getModel('coupon');
@@ -482,7 +622,7 @@ class shopCustomersCollectionPreparator
                 }
             } else {
                 $expr = $this->getExpression($op, $val);
-                $al = $this->addJoin('shop_order_params', ":table.order_id = {$this->order_table_alias}.id AND :table.name = 'coupon_id'");
+                $al = $this->addJoin('shop_order_params', ":table.order_id = {$this->getFilteringOrderTableAlias()}.id AND :table.name = 'coupon_id'");
                 $this->addJoin('shop_coupon', ":table.id = {$al}.value", ":table.code {$expr}");
                 $this->addTitle(_w('Coupon') . $op . $val);
             }
@@ -493,13 +633,13 @@ class shopCustomersCollectionPreparator
     {
         if ($val) {
             if ($val === ':any') {
-                $this->addJoin('shop_order_params', ":table.order_id = {$this->order_table_alias}.id AND :table.name = 'utm_campaign'");
+                $this->addJoin('shop_order_params', ":table.order_id = {$this->getFilteringOrderTableAlias()}.id AND :table.name = 'utm_campaign'");
                 if ($auto_title) {
                     $this->addTitle(_w('Any UTM campaign'));
                 }
             } else {
                 $val = $this->getModel()->escape($val);
-                $this->addJoin('shop_order_params', ":table.order_id = {$this->order_table_alias}.id AND :table.name = 'utm_campaign' AND :table.value = '{$val}'");
+                $this->addJoin('shop_order_params', ":table.order_id = {$this->getFilteringOrderTableAlias()}.id AND :table.name = 'utm_campaign' AND :table.value = '{$val}'");
                 if ($auto_title) {
                     $this->addTitle(_w('UTM campaign') . '=' . $val);
                 }

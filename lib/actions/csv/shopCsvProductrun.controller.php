@@ -1236,7 +1236,6 @@ SQL;
 
             //Use id & sku_id only for search
             unset($data['id']);
-            //unset($data['skus'][-1]['id']);
             //Use id_1c only for search
             //TODO update parsing 1c guid
             // unset($data['id_1c']);
@@ -1570,6 +1569,11 @@ SQL;
                 if (isset($data['sku_id'])) {
                     unset($data['sku_id']);
                 }
+            }
+
+            // sku id is only used for identification, never to insert or update actual value of an id
+            foreach ($data['skus'] as $key => $sku) {
+                unset($data['skus'][$key]['id']);
             }
 
             shopProductStocksLogModel::setContext(shopProductStocksLogModel::TYPE_IMPORT);

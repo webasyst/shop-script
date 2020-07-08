@@ -747,20 +747,24 @@ SQL;
         return $id;
     }
 
-    public static function appendTypeNames(&$features)
+    public static function appendTypeNames(&$features, $legacy=false)
     {
         foreach ($features as & $feature) {
-            $feature['type_name'] = self::getTypeName($feature);
+            $feature['type_name'] = self::getTypeName($feature, $legacy);
         }
         unset($feature);
         return $features;
     }
 
-    public static function getTypeName($feature)
+    public static function getTypeName($feature, $legacy=false)
     {
         static $names = array();
         if (empty($names)) {
-            $types = self::getTypes();
+            if ($legacy) {
+                $types = self::getLegacyTypes();
+            } else {
+                $types = self::getTypes();
+            }
             foreach ($types as $type) {
                 if (empty($type['subtype'])) {
                     $key = sprintf('m:%d;s:%d;t:%s', !empty($type['multiple']), !empty($type['selectable']), $type['type']);
@@ -787,7 +791,271 @@ SQL;
         return $names[$key];
     }
 
+    /**
+     * List of feature kinds used in feature editor.
+     * @return array
+     * @since 8.12.0
+     */
+    public static function getAllFeatureKinds()
+    {
+        $result = [
+            'boolean' => [
+                'title' => _w('Yes/No toggle'),
+                'formats' => [], // means do not show second selector at all
+            ],
+            'color' => [
+                'title' => _w('Color'),
+                'formats' => ['value', 'selector', 'checklist'],
+            ],
+            'text' => [
+                'title' => _w('Text'),
+                'formats' => ['input', 'textarea', 'selector', 'checklist'],
+            ],
+            'numeric' => [
+                'title' => _w('Numbers'),
+                'formats' => ['number', '2d', '3d', 'range', 'selector', 'checklist'],
+            ],
+            'date' => [
+                'title' => _w('Date'),
+                'formats' => ['date', 'range'],
+            ],
+        ];
+
+        // Dimension-based kinds (length, volume, area, etc.) are from shop config
+        $dimensions = shopDimension::getInstance();
+        foreach($dimensions->getList() as $id => $dim) {
+            $result[$id] = [
+                'title' => $dim['name'],
+                'formats' => ['number', 'range', 'selector', 'checklist'],
+                'dimensions' => array_map(function($u, $dim_id) {
+                    return [
+                        'id' => $dim_id,
+                        'title' => $u['name'],
+                    ];
+                }, ifset($dim, 'units', []), array_keys(ifset($dim, 'units', []))),
+            ];
+        }
+        // Volume kind allows for Length x Length x Length, same with area
+        if (isset($result['volume'])) {
+            array_unshift($result['volume']['formats'], '3d');
+        }
+        if (isset($result['area'])) {
+            array_unshift($result['area']['formats'], '2d');
+        }
+
+        foreach($result as $id => &$kind) {
+            $kind['id'] = $id;
+        }
+        unset($kind);
+
+        return $result;
+    }
+
+    /**
+     * List of feature formats used in feature editor.
+     * @return array
+     * @since 8.12.0
+     */
+    public static function getAllFeatureFormats()
+    {
+        $result = [
+            'input' => [
+                'title' => _w('One line of text'),
+            ],
+            'value' => [
+                'title' => _w('Value'),
+            ],
+            'textarea' => [
+                'title' => _w('Multi-line text'),
+            ],
+            'date' => [
+                'title' => _w('Date'),
+            ],
+            '2d' => [
+                'title' => _w('Number × number'),
+                'is_multidimensional' => true,
+            ],
+            '3d' => [
+                'title' => _w('Number × number × number'),
+                'is_multidimensional' => true,
+            ],
+            'number' => [
+                'title' => _w('Number'),
+            ],
+            'range' => [
+                'title' => _w('Range'),
+            ],
+            'selector' => [
+                'title' => _w('Single value selection from a list'),
+                'values' => true,
+            ],
+            'checklist' => [
+                'title' => _w('Multiple values selection from a list'),
+                'values' => true,
+            ],
+        ];
+
+        foreach($result as $id => &$format) {
+            $format['id'] = $id;
+            $format['values'] = ifset($format, 'values', false);
+        }
+        unset($format);
+
+        return $result;
+    }
+
+    /**
+     * Converts feature kind and format (as used in feature editor)
+     * to feature type (as used in shop_feature.type)
+     *
+     * @param string $kind id of a feature kind see getAllFeatureKinds()
+     * @param string $format id of a feature format see getAllFeatureFormats()
+     * @return array list($selectable, $multiple, $type) as in DB table shop_feature
+     * @since 8.12.0
+     */
+    public static function getTypeByKindAndFormat($kind, $format)
+    {
+        // 'selectable' and 'multiple' flags only depend on format
+        switch($format) {
+            case 'selector':
+                $selectable = 1;
+                $multiple = 0;
+                break;
+            case 'checklist':
+                $selectable = 1;
+                $multiple = 1;
+                break;
+            default:
+                $selectable = 0;
+                $multiple = 0;
+        }
+
+        // feature type is complicated and depends on both kind and format selectors
+        switch($kind) {
+            case 'color':
+                $type = 'color';
+                break;
+            case 'text':
+                if ($format == 'textarea') {
+                    $type = 'text';
+                } else { // input, selector, checklist
+                    $type = 'varchar';
+                }
+                break;
+            case 'numeric':
+                if(in_array($format, ['2d', '3d', 'range'])) {
+                    $type = $format.'.double';
+                } else { // number, selector, checklist
+                    $type = 'double';
+                }
+                break;
+            case 'boolean':
+                $type = 'boolean';
+                break;
+            case 'date':
+                if ($format == 'date') {
+                    $type = 'date';
+                } else {
+                    $type = 'range.date';
+                }
+                break;
+            default: // all kinds of dimensions
+                switch($format) {
+                    case 'selector':
+                    case 'checklist':
+                    case 'number':
+                        $type = 'dimension.'.$kind;
+                        break;
+                    case 'range':
+                        $type = 'range.'.$kind;
+                        break;
+                    case '2d':
+                    case '3d':
+                        $type = $format.'.dimension.'.$kind;
+
+                        // 2d and 3d are only supported for 'number' and 'length'.
+                        // type=volume|area with format=2d|3d means length instead of area|volume.
+                        if ($type === '3d.dimension.volume') {
+                            $type = '3d.dimension.length';
+                        } else if ($type === '2d.dimension.area') {
+                            $type = '2d.dimension.length';
+                        }
+                        break;
+                    default: // input, textarea, any garbage
+                        // try to be safe and convert to something reasonable
+                        $type = 'dimension.number';
+                        break;
+                }
+                break;
+        }
+
+        return [
+            $selectable,
+            $multiple,
+            $type,
+        ];
+    }
+
+    /**
+     * Flat list of available feature types.
+     * @return array
+     * @see also getAllFeatureKinds(), getAllFeatureFormats()
+     * @since 8.12.0
+     */
     public static function getTypes()
+    {
+        $all_features_formats = shopFeatureModel::getAllFeatureFormats();
+        $all_features_kinds = shopFeatureModel::getAllFeatureKinds();
+
+        $types = array();
+        foreach ($all_features_kinds as $kind_id => $kind) {
+            if ($kind['formats']) {
+                foreach ($kind['formats'] as $format_id) {
+                    $kind_title = $kind['title'];
+                    if (isset($kind['dimensions'])) {
+                        $count = count($kind['dimensions']);
+                        $units = array_slice(array_values($kind['dimensions']), 0, min(4, $count));
+
+                        if ($count > 5) {
+                            $units[] = array('title' => '...');
+                        }
+                        foreach ($units as &$u) {
+                            $u = $u['title'];
+                        }
+                        unset($u);
+
+                        $kind_title .= ' (' . implode(', ', $units) . ')';
+                    }
+                    $types[] = self::getType($kind_title, $kind_id, $all_features_formats[$format_id]['title'], $format_id);
+                }
+            } else {
+                $types[] = self::getType($kind['title'], $kind_id);
+            }
+        }
+
+        return $types;
+    }
+
+    protected static function getType($kind_title, $kind_id, $format_title = false, $format_id = false)
+    {
+        $type['name'] = $format_title ? $kind_title . ' — ' . mb_strtolower($format_title) : $kind_title;
+        list(
+            $type['selectable'],
+            $type['multiple'],
+            $type['type']
+            ) = shopFeatureModel::getTypeByKindAndFormat($kind_id, $format_id);
+        $available = $format_id && in_array($format_id, array('checklist', 'selector', '2d', '3d')) ? 1 : 2;
+        $type['available'] = $available; // 0 under development; 1 only at features settings; 2 full access
+
+        return $type;
+    }
+
+    /**
+     * Used in legacy type and feature editor and will be eventually removed
+     * along with ?action=settings#/features/ whole section.
+     * @deprecated
+     */
+    public static function getLegacyTypes()
     {
         static $types;
         if (!$types) {
@@ -1046,5 +1314,15 @@ SQL;
             $m->deleteByField('feature_id', $id);
         }
         return $this->deleteById($id);
+    }
+
+    public function getBuiltinFeatures()
+    {
+        return $this->select('*')->where('builtin = 1')->fetchAll('id');
+    }
+
+    public function countBuiltinFeatures()
+    {
+        return $this->select('count(*)')->where('builtin = 1')->fetchField();
     }
 }

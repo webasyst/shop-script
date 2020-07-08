@@ -60,6 +60,7 @@ editClick:(function ($) {
          */
         init: function (options, tab) {
             this.setOptions(options, tab);
+            this.initFeatureDate();
             this.deleteDivider();
         },
 
@@ -88,6 +89,51 @@ editClick:(function ($) {
                 $(this).parent().hide();
                 $.product.helper.updateSubmitButton(true);
             })
+        },
+
+        initFeatureDate: function() {
+            var $wrapper = $($.product.options.form_selector).find('.js-datepicker-wrapper'),
+                $input = $wrapper.find(".js-datepicker");
+
+            $input.each(function() {
+                $(this).datepicker({
+                    altField: $(this).siblings('.js-datepicker-hidden'),
+                    altFormat: "yy-mm-dd",
+                    changeMonth: true,
+                    changeYear: true,
+                    onSelect: checkDate
+                })
+
+                .on('blur', checkDate)
+
+                .on("keydown keypress keyup", function(event) {
+                    if ( event.which === 13 ) {
+                        event.preventDefault();
+                    }
+                });
+            });
+
+            $wrapper.on("click", ".js-focus-on-field", function () {
+                $input.focus();
+            });
+
+            function checkDate() {
+                var $input = $(this),
+                    $altField = $input.siblings('.js-datepicker-hidden');
+
+                if (!$input.val()) {
+                    $altField.val('');
+                }
+
+                try {
+                    $.datepicker.parseDate($.datepicker._defaults.dateFormat, $input.val());
+                    $input.data('last-correct-value', $input.val());
+                    $altField.data('last-correct-value', $altField.val());
+                } catch(e) {
+                    $input.val($input.data('last-correct-value') || '');
+                    $altField.val($altField.data('last-correct-value') || '');
+                }
+            }
         },
         /**
          * @param {String} path
@@ -2197,6 +2243,7 @@ editClick:(function ($) {
                 $target.load(url, function () {
                     $sku.find(':input[name$="\[available\]"]').remove();
                     $.product_images && $.product_images.options && $.product_images.options.enable_2x && $.fn.retina && $target.find('.s-product-image-crops img').retina();
+                    $.product.initFeatureDate();
 
                     if (sku_id > 0) {
                         $.shop.trace('fileupload', [$target.find('.fileupload').length, typeof ($target.find('.fileupload').fileupload)]);

@@ -240,6 +240,7 @@ return array(
         'count' => array('int', 10, 'unsigned' => 1, 'null' => 0, 'default' => '0'),
         'available_for_sku' => array('int', 11),
         'default_unit' => array('varchar', 255),
+        'builtin' => array('int', 11, 'default' => 0),
         ':keys' => array(
             'PRIMARY' => 'id',
             'code' => array('code', 'unique' => 1),

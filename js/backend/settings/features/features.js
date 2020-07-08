@@ -1279,6 +1279,10 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 $errorsPlace = that.$wrapper.find(".js-errors-place"),
                 is_locked = false;
 
+            that.$wrapper.one("change", function() {
+                $submit_button.removeClass("green").addClass("yellow");
+            });
+
             $form.on("submit", onSubmit);
 
             function onSubmit(event) {

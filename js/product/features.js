@@ -12,7 +12,8 @@ $.product = $.extend(true, $.product, {
         value_templates: {
             '': '',
             color: '-color',
-            text: '-text'
+            text: '-text',
+            date: '-date'
         }
     },
 
@@ -201,6 +202,27 @@ $.product = $.extend(true, $.product, {
                             }, 300);
                         });
                         $value.find(':input[name$="\\[value\\]"]:first').focus();
+                        break;
+                    case 'range.date':
+                        var $wrapper = $value.find('.js-datepicker-wrapper'),
+                            $input = $wrapper.find(".js-datepicker");
+
+                        $input.first().attr('id', $input.first().attr('id') + feature.code.toString());
+                        $input.last().attr('id', $input.last().attr('id') + feature.code.toString());
+
+                        $.product.updateDateFields($wrapper, $input);
+
+                        $value.find(':text:first').focus();
+                        break;
+                    case 'date':
+                        var $wrapper = $value.find('.js-datepicker-wrapper'),
+                            $input = $wrapper.find(".js-datepicker");
+
+                        $input.attr('id', $input.attr('id') + feature.code.toString());
+
+                        $.product.updateDateFields($wrapper, $input);
+
+                        $value.find(':text:first').focus();
                         break;
                     default:
                         $value.find(':text:first').focus();
@@ -428,6 +450,44 @@ $.product = $.extend(true, $.product, {
                 });
             } catch (e) {
                 $.shop.error('Exception ' + e.message, e);
+            }
+        }
+    },
+
+    updateDateFields: function($wrapper, $input) {
+        $input.each(function() {
+            $(this).datepicker({
+                altField: $(this).siblings('.js-datepicker-hidden'),
+                altFormat: "yy-mm-dd",
+                changeMonth: true,
+                changeYear: true,
+                onSelect: checkDate
+            });
+        });
+
+        $input.on('blur', checkDate);
+
+        $input.on("keydown keypress keyup", function(event) {
+            if ( event.which === 13 ) {
+                event.preventDefault();
+            }
+        });
+
+        $wrapper.on("click", ".js-focus-on-field", function () {
+            $input.focus();
+        });
+
+        function checkDate() {
+            var $input = $(this),
+                $altField = $input.siblings('.js-datepicker-hidden');
+
+            try {
+                $.datepicker.parseDate($.datepicker._defaults.dateFormat, $input.val());
+                $input.data('last-correct-value', $input.val());
+                $altField.data('last-correct-value', $altField.val());
+            } catch(e) {
+                $input.val($input.data('last-correct-value') || '');
+                $altField.val($altField.data('last-correct-value') || '');
             }
         }
     }

@@ -621,6 +621,67 @@ if (file_exists($file)) {
         }
     }
 
+    public static function createProductsRequiredFiles()
+    {
+        $names = array(
+            'dir' => 'products/',
+            'file' => 'thumb.php'
+        );
+        return self::createRequiredFiles($names);
+    }
+
+    public static function createPromosRequiredFiles()
+    {
+        $names = array(
+            'dir' => 'promos/',
+            'file' => 'promos.thumb.php'
+        );
+        return self::createRequiredFiles($names);
+    }
+
+    private static function createRequiredFiles($names)
+    {
+        $app_id = 'shop';
+        $target_path = wa()->getDataPath($names['dir'], true, $app_id);
+        $source_path = wa()->getAppPath('lib/config/data/', $app_id);
+
+        $thumb_path = $target_path.'thumb.php';
+        if (!file_exists($thumb_path)) {
+            // TODO: number of `/..` parts should depend on parts in `$names['dir']`
+            // but so far they both happen to be of the same length
+            $php_file = '<?php
+$file = dirname(__FILE__)."/../../../../"."/wa-apps/shop/lib/config/data/' . $names['file'] . '";
+
+if (file_exists($file)) {
+    include($file);
+} else {
+    header("HTTP/1.0 404 Not Found");
+}
+';
+            try {
+                waFiles::write($thumb_path, $php_file);
+            } catch (Exception $e) {
+                return false;
+            }
+        }
+
+        $htaccess_path = $target_path.'.htaccess';
+
+        if (!file_exists($htaccess_path)) {
+            try {
+                waFiles::copy($source_path.'.htaccess', $htaccess_path);
+            } catch (Exception $e) {
+                return false;
+            }
+        }
+
+        if (file_exists($thumb_path) && file_exists($htaccess_path)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     private function removeEmptyPaths($path, &$counter, $base_path = null)
     {
         static $time = 0;

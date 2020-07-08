@@ -23,9 +23,7 @@ class shopFeatureValuesRangeModel extends shopFeatureValuesModel
          * @todo string based pattern
          * d.d(\s+|\.\.\.?|\s*[\-—]\s*)\d\.\d
          */
-        if (strpos($type, '.')) { //
-
-
+        if (strpos($type, '.')) {
             if (!is_array($value) || ((count($value) == 1) && !isset($value['value']))) {
                 $matches = null;
                 $value = trim(is_array($value) ? reset($value) : $value);
@@ -41,14 +39,16 @@ class shopFeatureValuesRangeModel extends shopFeatureValuesModel
                     );
                 }
                 $values = array_map('trim', preg_split('/\s*([\s—]+|\.\.\.?|-\s+)\s*/', $value['value'], 2));
+
+                $cast_type = $type == 'range.date' ? 'date' : 'double';
                 if (count($values) > 1) {
                     $value['value'] = array(
-                        'begin' => ($values[0] === '') ? null : $this->castValue('double', $values[0]),
-                        'end'   => ($values[1] === '') ? null : $this->castValue('double', $values[1]),
+                        'begin' => ($values[0] === '') ? null : $this->castValue($cast_type, $values[0]),
+                        'end'   => ($values[1] === '') ? null : $this->castValue($cast_type, $values[1]),
                     );
                 } else {
                     $value['value'] = array(
-                        'begin' => ($values[0] === '') ? null : $this->castValue('double', $values[0]),
+                        'begin' => ($values[0] === '') ? null : $this->castValue($cast_type, $values[0]),
                         'end'   => null,
                     );
                 }
@@ -77,12 +77,12 @@ class shopFeatureValuesRangeModel extends shopFeatureValuesModel
             }
         }
 
-
         $data['unit'] = $dimensions->fixUnit($data['type'], $data['unit']);
-        $data['begin'] = (isset($value['value']['begin']) && ($value['value']['begin'] !== '')) ? $this->castValue('double', $value['value']['begin']) : null;
+        $cast_type = $data['type'] == 'date' ? 'timestamp' : 'double';
+        $data['begin'] = (isset($value['value']['begin']) && ($value['value']['begin'] !== '')) ? $this->castValue($cast_type, $value['value']['begin']) : null;
         $data['begin_base_unit'] = $dimensions->convert($data['begin'], $data['type'], null, $data['unit']);
 
-        $data['end'] = (isset($value['value']['end']) && ($value['value']['end'] !== '')) ? $this->castValue('double', $value['value']['end']) : null;
+        $data['end'] = (isset($value['value']['end']) && ($value['value']['end'] !== '')) ? $this->castValue($cast_type, $value['value']['end']) : null;
         $data['end_base_unit'] = $dimensions->convert($data['end'], $data['type'], null, $data['unit']);
 
         if (($data['end'] !== null) && ($data['begin'] !== null) && ($data['begin_base_unit'] > $data['end_base_unit'])) {
@@ -114,5 +114,23 @@ class shopFeatureValuesRangeModel extends shopFeatureValuesModel
             $sql .= ' AND begin_base_unit <= f:2';
         }
         return $this->query($sql, $feature_id, $min, $max)->fetchAll(null, true);
+    }
+
+    protected function castValue($type, $value, $is_null = false)
+    {
+        if ($type == 'date') {
+            return $value;
+        }
+
+        if ($value instanceof waModelExpr || $type !== 'timestamp') {
+            return parent::castValue($type, $value, $is_null);
+        }
+
+        // Dates in this table are stored as timestamps
+        $date = @strtotime($value);
+        if ($date) {
+            return $this->escape($date);
+        }
+        return null;
     }
 }

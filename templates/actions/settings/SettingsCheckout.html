@@ -120,7 +120,7 @@
                 {if $auth_alert}
                 <div class="guest-checkout-alert value no-shift"{if $guest_checkout != 'merge_email'} style="display:none"{/if}>
                     <p class="small">
-                        <span class="highlighted"><i class="icon10 exclamation"></i> {sprintf('[`Automated assignment of guest orders to existing customers will not work on following sites: <strong>%s</strong>. Due to privacy considerations, auto order assignment requires enabling “Confirm email on signup” option in <em>Site app > select your domain > Personal > Auth & Sign up settings</em>.`]', implode(', ', $auth_alert))}</span>
+                        <span class="highlighted"><i class="icon10 exclamation"></i> {sprintf('[`Automated assignment of guest orders to existing customers will not work on following sites: <strong>%s</strong>. Due to privacy considerations, auto order assignment requires enabling “Confirm signup” option in <em>Site app > select your domain > Personal > Login and signup settings</em>.`]', implode(', ', $auth_alert))}</span>
                     </p>
                 </div>
                 {/if}

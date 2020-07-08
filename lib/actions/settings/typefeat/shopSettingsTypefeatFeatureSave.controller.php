@@ -282,78 +282,24 @@ class shopSettingsTypefeatFeatureSaveController extends waJsonController
     {
         $feature_data['format'] = ifset($feature_data, 'format', ''); // because may not be set for booleans
 
-        // 'selectable' and 'multiple' flags only depend on format
-        switch($feature_data['format']) {
-            case 'selector':
-                $feature_data['selectable'] = 1;
-                $feature_data['multiple'] = 0;
-                break;
-            case 'checklist':
-                $feature_data['selectable'] = 1;
-                $feature_data['multiple'] = 1;
-                break;
-            default:
-                $feature_data['selectable'] = 0;
-                $feature_data['multiple'] = 0;
-        }
+        list(
+            $feature_data['selectable'],
+            $feature_data['multiple'],
+            $feature_data['type']
+        ) = shopFeatureModel::getTypeByKindAndFormat($feature_data['kind'], $feature_data['format']);
 
-        // feature type is complicated and depends on both kind and format selectors
-        switch($feature_data['kind']) {
-            case 'color':
-                $feature_data['type'] = 'color';
-                break;
-            case 'text':
-                if ($feature_data['format'] == 'textarea') {
-                    $feature_data['type'] = 'text';
-                } else { // input, selector, checklist
-                    $feature_data['type'] = 'varchar';
-                }
-                break;
-            case 'numeric':
-                if(in_array($feature_data['format'], ['2d', '3d', 'range'])) {
-                    $feature_data['type'] = $feature_data['format'].'.double';
-                } else { // number, selector, checklist
-                    $feature_data['type'] = 'double';
-                }
-                break;
-            case 'boolean':
-                $feature_data['type'] = 'boolean';
-                break;
-            default: // all kinds of dimensions
-                switch($feature_data['format']) {
-                    case 'selector':
-                    case 'checklist':
-                    case 'number':
-                        $feature_data['type'] = 'dimension.'.$feature_data['kind'];
-                        break;
-                    case 'range':
-                        $feature_data['type'] = 'range.'.$feature_data['kind'];
-                        break;
-                    case '2d':
-                    case '3d':
-                        $feature_data['type'] = $feature_data['format'].'.dimension.'.$feature_data['kind'];
-
-                        // Special cases. Reasoning behind this is legacy.
-                        // It was possible to create 2d.volume and 3d.volume features in old editor,
-                        // as well as 2d.* and 3d.* for any dimension type.
-                        // Then it was decided that 2d and 3d should only be supported for 'number' and 'length',
-                        // notably 2d/3d.length being under 'area' and 'volume' type selectors respectively.
-                        // Yet, to be nice to legacy features, we still want to save them without breaking them.
-                        // Hence this code checks for that.
-                        if (empty($old_feature['type']) || $feature_data['type'] != $old_feature['type']) {
-                            if ($feature_data['type'] == '3d.dimension.volume') {
-                                $feature_data['type'] = '3d.dimension.length';
-                            } else if ($feature_data['type'] == '2d.dimension.area') {
-                                $feature_data['type'] = '2d.dimension.length';
-                            }
-                        }
-                        break;
-                    default: // input, textarea, any garbage
-                        // try to be safe and convert to something reasonable
-                        $feature_data['type'] = 'dimension.number';
-                        break;
-                }
-                break;
+        if ($feature_data['format'] == '2d' || $feature_data['format'] == '3d') {
+            // Special cases. Reasoning behind this is legacy.
+            // It was possible to create 2d.volume and 3d.volume features in old editor,
+            // as well as 2d.* and 3d.* for any dimension type.
+            // Then it was decided that 2d and 3d should only be supported for 'number' and 'length',
+            // notably 2d/3d.length being under 'area' and 'volume' type selectors respectively.
+            // Yet, to be nice to legacy features, we still want to save them without breaking them.
+            // Hence this code checks for that.
+            $legacy_type = $feature_data['format'].'.dimension.'.$feature_data['kind'];
+            if ($legacy_type === ifempty($old_feature, 'type', '')) {
+                $feature_data['type'] = $legacy_type;
+            }
         }
 
         return [

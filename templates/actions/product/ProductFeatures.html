@@ -87,6 +87,15 @@
                 <textarea name="{literal}product[features][{%=o.feature.input%}]{/literal}"></textarea>
                 <!-- {/capture} values here -->
 
+                <!-- {capture name="feature-value-date-template-js"} -->
+                <label class="js-datepicker-wrapper">
+                    <input id="date" data-type="date" class="s-product-feature-date js-datepicker" type="text">
+                    <input name="{literal}product[features][{%=o.feature.input%}]{/literal}"
+                           data-type="date" class="s-product-feature-date js-datepicker-hidden" type="hidden">
+                    <i class="icon16 calendar js-focus-on-field"></i>
+                </label>
+                <!-- {/capture} values here -->
+
                 <!-- {capture name="feature-value-divider-template-js"} -->
                 <hr/>
                 <input type="hidden" name="{literal}product[features][{%=o.feature.input%}]{/literal}" value="-">
@@ -149,6 +158,22 @@
                        placeholder="[`Feature value`]" class="numerical short">
                 <!-- {/capture} -->
 
+                <!-- {capture name="feature-value-range-date-template-js"} -->
+                <label class="js-datepicker-wrapper">
+                    <input id="date-begin" class="s-product-feature-date js-datepicker" type="text">
+                    <input name="{literal}product[features][{%=o.feature.input%}][value][begin]{/literal}"
+                           class="s-product-feature-date js-datepicker-hidden" type="hidden">
+                    <i class="icon16 calendar js-focus-on-field"></i>
+                </label>
+                <span>—</span>
+                <label class="js-datepicker-wrapper">
+                    <input id="date-end" class="s-product-feature-date js-datepicker" type="text">
+                    <input name="{literal}product[features][{%=o.feature.input%}][value][end]{/literal}"
+                           class="s-product-feature-date js-datepicker-hidden" type="hidden">
+                    <i class="icon16 calendar js-focus-on-field"></i>
+                </label>
+                <!-- {/capture} -->
+
                 {foreach $dimensions as $code=>$unit}
                     <!-- {capture name="feature-value-range-`$code`-template-js"} -->
                     <input type="text" name="{literal}product[features][{%=o.feature.input%}][value][begin]{/literal}" value=""
@@ -200,10 +225,12 @@
                 {foreach $dimensions as $code => $var}'range.{$code|escape}': '-range-{$code|escape}',
                 {/foreach}{literal}
                 'range.double': '-range-double',
+                'range.date': '-range-date',
                 boolean: '-boolean',
                 color: '-color',
                 divider:'-divider',
-                text: '-text'
+                text: '-text',
+                date: '-date'
             }
         }, 'features');
         {/literal}

@@ -1,12 +1,14 @@
 {* SOURCES *}
 {wa_js}
     {$wa_url}wa-content/js/jquery-wa/wa.dialog.js
-    {$wa_url}wa-content/js/jquery-wa/wa.contentrouter.js
 {/wa_js}
 
+{* Custom router *}
+<script src="{$wa_app_static_url}js/backend/marketing/content_router.js?v={$wa->version()}"></script>
+
 {* Marketing *}
-<link href="{$wa_app_static_url}css/backend/marketing.css" rel="stylesheet">
-<script src="{$wa_app_static_url}js/backend/marketing/marketing.js"></script>
+<link href="{$wa_app_static_url}css/backend/marketing.css?v={$wa->version()}" rel="stylesheet">
+<script src="{$wa_app_static_url}js/backend/marketing/marketing.js?v={$wa->version()}"></script>
 
 {* PAGE *}
 <div class="s-marketing-page">
@@ -34,11 +36,15 @@
 
             <script>
                 (function($) { "use strict";
+
+                    var loading = "<div class=\"block double-padded\" style=\"min-height: 60vh;\">{_w("Loading...")|escape} <i class=\"icon16 loading\"></i></div>";
+
                     $.shop.marketing.content = new ContentRouter({
                         $content: $("#js-marketing-content"),
-                        {* Set the url to the Marketing tab, so that when switching to another section js-routing does not work *}
                         app_url: {"`$wa_app_url`marketing"|json_encode},
-                        base_href: {$wa_app_url|json_encode}
+                        onBeforeLoad: function(router) {
+                            router.setContent(loading);
+                        }
                     });
                 })(jQuery);
             </script>

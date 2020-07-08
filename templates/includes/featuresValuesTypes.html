@@ -1,6 +1,8 @@
 {if !isset($base)}{$base = ''}{/if}
 {if !isset($available)}{$available = 2}{/if}
-{$variants = shopFeatureModel::getTypes()}
+{if !isset($variants)}
+    {$variants = shopFeatureModel::getTypes()}
+{/if}
 {$subtypes = []}
 <select{if !empty($link)} style="display:none;"{/if} class="js-feature-types-control">
     {if $available gt 1}<option>—</option>{/if}

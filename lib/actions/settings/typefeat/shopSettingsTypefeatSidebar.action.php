@@ -25,7 +25,7 @@ class shopSettingsTypefeatSidebarAction extends waViewAction
             $count_features_no_types = '';
         }
 
-        $count_features_builtin = count(array('gtin', 'weight'));
+        $count_features_builtin = $feature_model->countBuiltinFeatures();
 
         $this->view->assign([
             'count_all_features' => $count_all_features,

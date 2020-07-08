@@ -219,7 +219,7 @@
                                     <td class="min-width valign-top">
                                         {if $item.type != 'service'}
                                             {if !empty($item.image_id)}
-                                                {$wa->shop->productImgHtml(['id' => $item.product_id, 'image_id' => $item.image_id, 'image_filename' => $item.image_filename, 'ext' => $item.ext], '48x48')}
+                                                {$wa->shop->productImgHtml(['id' => $item.product_id, 'image_id' => $item.image_id, 'image_filename' => $item.image_filename, 'ext' => $item.ext], '48x48', ["class" => "js-retina-image"])}
                                             {else}
                                                 <img src="{$wa_app_static_url}img/image-dummy-small.png" class="not-found" style="width: 48px; height: 48px;">
                                             {/if}
@@ -584,7 +584,7 @@
                 $.order.init(options);
 
                 {if $wa->shop->config('enable_2x')}
-                    $.fn.retina && $('#s-order-items img').retina();
+                    $.fn.retina && $('#s-order-items img.js-retina-image').retina();
                 {/if}
             }
         })(jQuery);

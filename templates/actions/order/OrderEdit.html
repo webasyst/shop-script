@@ -356,10 +356,15 @@
                             <select id="shipping_methods" name="shipping_id" style="max-width: 250px;">
                                 <option value=""></option>
                                 {foreach $shipping_methods as $m_id => $m}
-                                    <option {if $_shipping_id === $m_id}selected{/if}
+                                    <option {if $_shipping_id === $m_id}
+                                                selected
+                                                {if isset($order.params) && isset($order['params']['shipping_params_desired_delivery.interval'])}
+                                                    data-desired-delivery-selected-interval="{$order['params']['shipping_params_desired_delivery.interval']}"
+                                                {/if}
+                                            {/if}
                                             data-test="2"
                                             {if !empty($m.custom_data)}{foreach $m.custom_data as $_custom_field => $_custom_value}
-                                            data-{$_custom_field|escape}={$_custom_value|json_encode:$_json_encode_options|escape}
+                                            data-{$_custom_field|escape}='{$_custom_value|json_encode:$_json_encode_options|escape}'
                                             {/foreach}{/if}
                                             data-rate="{$m.rate}" value="{$m_id}"{if !empty($m.external)} data-external="1"{/if}
                                             {if !empty($m.comment)} data-comment="{$m.comment|escape}"{/if}

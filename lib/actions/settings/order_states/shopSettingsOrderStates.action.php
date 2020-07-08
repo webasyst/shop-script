@@ -33,12 +33,17 @@ class shopSettingsOrderStatesAction extends waViewAction
 
         $buttons = $this->getButtons($actions, $info);
 
+        $extend_actions = $this->getExtendsActions($workflow);
+        $extend_classes = waUtils::getFieldValues($extend_actions, 'classname', 'classname');
+        $extend_classes['shopWorkflowAction'] = 'shopWorkflowAction';
+
         //Assign temporary data
         $this->view->assign(array(
             'edit_actions_map' => $this->getEditActionsMap(),
             'states'           => $states,
             'actions'          => $actions,
-            'extend_actions'   => shopWorkflow::getExtendsActions(),
+            'extend_actions'   => $extend_actions,
+            'extend_classes'   => $extend_classes,
             'info'             => $info,
             'icons'            => (array)$this->getConfig()->getOption('order_state_icons'),
             'action_icons'     => (array)$this->getConfig()->getOption('order_action_icons'),
@@ -75,12 +80,13 @@ class shopSettingsOrderStatesAction extends waViewAction
         }
         $info = array();
         $workflow = new shopWorkflow();
+        $workflow_config = shopWorkflow::getConfig();
         /** @var shopWorkflowState $state */
         $state = $workflow->getStateById($id);
         $info['id'] = $state->id;
         $info['name'] = $state->getName();
         $info['options'] = $state->getOptions();
-        $info['actions'] = array_keys($state->getActions(null, $state->id));
+        $info['actions'] = ifset($workflow_config, 'states', $state->id, 'available_actions', []);
         $info['original'] = $state->original;
         $info['payment_allowed'] = $state->paymentAllowed();
         $info['payment_not_allowed_text'] = $state->paymentNotAllowedText();
@@ -149,5 +155,21 @@ class shopSettingsOrderStatesAction extends waViewAction
             }
         }
         return $actions;
+    }
+
+    protected function getExtendsActions($workflow)
+    {
+        $result = [];
+        foreach(shopWorkflow::getExtendsActions() as $key => $action) {
+            try {
+                $extend_action = $workflow->getActionById($action['id']);
+                if ($extend_action) {
+                    $action['classname'] = get_class($extend_action);
+                    $result[$key] = $action;
+                }
+            } catch (waException $e) {
+            }
+        }
+        return $result;
     }
 }

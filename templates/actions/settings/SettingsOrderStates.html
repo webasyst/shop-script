@@ -140,19 +140,19 @@
                                 {if empty($a.internal)}
                                     <div class="value no-shift s-order-action{if !in_array($id, $info.actions)} unsortable{/if}"
                                          data-id="{$id|escape}"
-                                         data-name="{$a.name|escape}"
+                                         data-name="{$a.name|default:''|escape}"
                                          data-description="{$a.options.description|default:''|escape}"
                                          data-state="{$a.state|default:''|escape}"
                                          data-link="{if !empty($a.options) && !empty($a.options.position)}1{/if}"
                                          data-border_color="{if !empty($a.options) && !empty($a.options.border_color)}{$a.options.border_color}{else}dddddd{/if}"
-                                         data-extends="{if (strpos($a.classname,'shopWorkflow')===0)}{$a.extends|default:''|escape}{else}false{/if}"
+                                         data-extends="{if !empty($extend_classes[$a.classname])}{$a.extends|default:''|escape}{else}false{/if}"
                                          data-icon="{if !empty($a.options) && !empty($a.options.icon)}{$a.options.icon}{/if}"
                                          title="{$a.options.description|default:''|escape}"
                                     >
                                         <label>
                                             <i class="icon16 sort"{if !in_array($id, $info.actions)} style="display: none;"{/if}></i>
                                             <input type="checkbox" name="action[]" value="{$id|escape}" {if in_array($id, $info.actions)}checked="checked"{/if} {if $id == 'create'}disabled="disabled"{/if}>
-                                            {$a.name|escape} <span class="hint">{$id|upper}</span>
+                                            {$a.name|default:''|escape} <span class="hint">{$id|upper}</span>
                                         </label>
                                         {if empty($a.original)}
                                             <a href="javascript:void(0)" class="inline-link small s-edit-action" data-id="{$id}"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
@@ -229,7 +229,7 @@
                                         <div class="value no-shift">
                                             <label><input name="new_action_extends[0]" type="radio" value="" checked>&nbsp;[`default`]</label>
                                         </div>
-                                        {foreach shopWorkflow::getExtendsActions() as $pattern_id => $pattern_info}
+                                        {foreach $extend_actions as $pattern_id => $pattern_info}
                                             <div class="value no-shift">
                                                 <label title="{$pattern_info.description|default:''|escape}"><input name="new_action_extends[0]" type="radio" value="{$pattern_id|escape}">&nbsp;{$pattern_info.name|default:$pattern_id|escape}</label>
                                                 <span class="hint">{$pattern_id|upper}</span>

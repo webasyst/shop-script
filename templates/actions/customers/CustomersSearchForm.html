@@ -4,8 +4,8 @@
     .s-clear-radio { display: inline-block; }
 </style>
 
-{function name=select n='' o=[] d='' with_empty=true}
-    <select name={$n|default:''}>
+{function name=select n='' o=[] d='' with_empty=true c=""}
+    <select name={$n|default:''}{if $c} class="{$c|escape}"{/if}>
         {if $with_empty}
             <option value=""></option>
         {/if}
@@ -30,11 +30,62 @@
     <div class="fields form">
         <div class="field-group">
             <div class="field">
+                {$hash_app_show_contacts = ifset($hash, 'app', 'show_contacts', 'val', 'customers')}
+                <div class="value small">
+                    <label>
+                        <input type="radio" name="app.show_contacts" value="customers"{if $hash_app_show_contacts == 'customers'} checked{/if}> [`Show customers with orders`]
+                        {shopHinter::hint('customers_search_show_contacts_customers')}
+                    </label>
+                    <label>
+                        <input type="radio" name="app.show_contacts" value="unpaid"{if $hash_app_show_contacts == 'unpaid'} checked{/if}> [`Show customers who have only non-paid orders`]
+                        {shopHinter::hint('customers_search_show_contacts_unpaid')}
+                    </label>
+                    <label>
+                        <input type="radio" name="app.show_contacts" value="all"{if $hash_app_show_contacts == 'all'} checked{/if}> [`Show all contacts`]
+                        {shopHinter::hint('customers_search_show_contacts_all')}
+                    </label>
+                </div>
+                {strip}
+                    {if isset($hash.app.orders_total_sum)}
+                        {$_default = 'all'}
+                    {else}
+                        {$_default = 'paid'}
+                    {/if}
+                    {$hash_app_consider_orders = ifset($hash, 'app', 'consider_orders', 'val', $_default)}
+                {/strip}
+                <div class="value small">
+                    <label>
+                        <input type="radio" name="app.consider_orders" value="paid"{if $hash_app_consider_orders == 'paid'} checked="checked"{/if}>
+                        [`Count only paid orders`]
+                        {shopHinter::hint('customers_search_consider_orders_paid')}
+                    </label>
+                    <label>
+                        <input type="radio" name="app.consider_orders" value="unpaid"{if $hash_app_consider_orders == 'unpaid'} checked="checked"{/if}>
+                        [`Count only non-paid orders`]
+                        {shopHinter::hint('customers_search_consider_orders_unpaid')}
+                    </label>
+                    <label>
+                        <input type="radio" name="app.consider_orders" value="all"{if $hash_app_consider_orders == 'all'} checked="checked"{/if}>
+                        [`Count all orders`]
+                    </label>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="name">
+                    [`Number of orders`]
+                </div>
+                <div class="value">
+                    {select n="app.number_of_orders.op" o=['>=', '=', '<='] d=$hash.app.number_of_orders.op|default:'' with_empty=false}
+                    <input name="app.number_of_orders.val" value="{$hash.app.number_of_orders.val|default:''}" class="numerical short">
+                </div>
+            </div>
+
+            <div class="field">
                 <div class="name">
                     [`Total spent`]
                 </div>
                 <div class="value">
-
                     {if isset($hash.app.orders_total_sum)}
                         [`from`] <input name="app.orders_total_sum.from" value="{if isset($hash.app.orders_total_sum.val)}{if is_array($hash.app.orders_total_sum.val)}{$hash.app.orders_total_sum.val[0]|default:''}{else if ($hash.app.orders_total_sum.op == '>=')}{$hash.app.orders_total_sum.val|default:''}{/if}{/if}" type="text" class="numerical short s-total-spent-from" placeholder="0">
                         [`to`] <input name="app.orders_total_sum.to" value="{if isset($hash.app.orders_total_sum.val)}{if is_array($hash.app.orders_total_sum.val)}{$hash.app.orders_total_sum.val[1]|default:''}{else if ($hash.app.orders_total_sum.op == '<=')}{$hash.app.orders_total_sum.val|default:''}{/if}{/if}" type="text" class="numerical short s-total-spent-to" placeholder="&infin;">
@@ -44,21 +95,6 @@
                     {/if}
                     {$primary_currency}
                 </div>
-                <div class="value small">
-                    <label>
-                        <input type="checkbox" {if !isset($hash.app.orders_total_sum)}checked="checked"{/if} class="s-customer-only-paid-orders"> [`Count only paid orders`]
-                    </label>
-                </div>
-            </div>
-            <div class="field">
-                <div class="name">
-                    [`Number of orders`]
-                </div>
-                <div class="value">
-
-                    {select n="app.number_of_orders.op" o=['>=', '<='] d=$hash.app.number_of_orders.op|default:'' with_empty=false}
-                    <input name="app.number_of_orders.val" value="{$hash.app.number_of_orders.val|default:''}" class="numerical short" placeholder="0">
-                </div>
             </div>
 
             <div class="field">
@@ -67,7 +103,7 @@
                 </div>
                 <div class="value no-shift">
                     {capture "_last_order_options"}
-                        <select name="app.last_order_datetime" data-op="<=" id="s-customers-order-datetime-select">
+                        <select name="app.last_order_datetime" data-op="<=" id="s-customers-order-datetime-select" class="non-wa-contact-field">
                             <option></option>
                             <option value="-30d" {if $hash.app.last_order_datetime.val|default:'' == '-30d'}selected="selected"{/if}>[`30 days`]</option>
                             <option value="-90d" {if $hash.app.last_order_datetime.val|default:'' == '-90d'}selected="selected"{/if}>[`90 days`]</option>
@@ -78,10 +114,11 @@
                     {/capture}
                     {sprintf('<span>[`Over %s ago`]</span>', $smarty.capture._last_order_options)}
                     <div id="s-customers-last-order-period" class="hidden">
-                        <input type="text" class="s-customer-datepicker" name="app.last_order_datetime.val" value="{$hash.app.last_order_datetime.val|default:''}">
+                        <input type="text" class="s-customer-datepicker non-wa-contact-field" name="app.last_order_datetime.val" value="{$hash.app.last_order_datetime.val|default:''}">
                         {select n='app.last_order_datetime.op'
                             o=[['id' => '<=', 'name' => _w('or earlier')],
                                 ['id' => '>=', 'name' => _w('or later')]]
+                            c="non-wa-contact-field"
                             d=$hash.app.last_order_datetime.op|default:'' with_empty=false}
                     </div>
                 </div>
@@ -91,10 +128,11 @@
                     [`First order`]
                 </div>
                 <div class="value">
-                    <input type="text" class="s-customer-datepicker" name="app.first_order_datetime.val" value="{$hash.app.first_order_datetime.val|default:''}">
+                    <input type="text" class="s-customer-datepicker non-wa-contact-field" name="app.first_order_datetime.val" value="{$hash.app.first_order_datetime.val|default:''}">
                     {select n='app.first_order_datetime.op'
                         o=[['id' => '<=', 'name' => _w('or earlier')],
                             ['id' => '>=', 'name' => _w('or later')]]
+                        c="non-wa-contact-field"
                         d=$hash.app.first_order_datetime.op|default:'' with_empty=false}
                 </div>
             </div>
@@ -105,7 +143,7 @@
                         [`Payment`]
                     </div>
                     <div class="value no-shift">
-                        {select n='app.payment_method' o=$payment_methods d=$hash.app.payment_method.val|default:''}
+                        {select n='app.payment_method' o=$payment_methods d=$hash.app.payment_method.val|default:'' c="non-wa-contact-field"}
                     </div>
                 </div>
             {/if}
@@ -115,7 +153,7 @@
                         [`Shipping`]
                     </div>
                     <div class="value no-shift">
-                        {select n='app.shipment_method' o=$shipping_methods d=$hash.app.shipment_method.val|default:''}
+                        {select n='app.shipment_method' o=$shipping_methods d=$hash.app.shipment_method.val|default:'' c="non-wa-contact-field"}
                     </div>
                 </div>
             {/if}
@@ -126,7 +164,7 @@
                         [`Applied discount coupon`]
                     </div>
                     <div class="value no-shift">
-                        {select n="app.coupon" o=$coupons d=$hash.app.coupon.val|default:''}
+                        {select n="app.coupon" o=$coupons d=$hash.app.coupon.val|default:'' c="non-wa-contact-field"}
                     </div>
                 </div>
             {/if}
@@ -140,8 +178,8 @@
             <div class="field">
                 <div class="name">[`Purchased product`]</div>
                 <div class="value">
-                    <input type="text" value="{if $hash.app.product.val|default:'' && !is_numeric($hash.app.product.val|default:'')}{$hash.app.product.val|default:''}{else}{$product_name}{/if}" placeholder="[`Start typing product or SKU name`]" class="long"  id="s-customer-product" data-enter-ignore="1">
-                    <input type="hidden" name="app.product" value="{$hash.app.product.val|default:''}" {if $hash.app.product.val|default:'' && is_numeric($hash.app.product.val|default:'')}data-op="="{else}data-op="*="{/if}>
+                    <input type="text" value="{if $hash.app.product.val|default:'' && !is_numeric($hash.app.product.val|default:'')}{$hash.app.product.val|default:''}{else}{$product_name}{/if}" placeholder="[`Start typing product or SKU name`]" class="long non-wa-contact-field"  id="s-customer-product" data-enter-ignore="1">
+                    <input type="hidden" name="app.product" value="{$hash.app.product.val|default:''}" {if $hash.app.product.val|default:'' && is_numeric($hash.app.product.val|default:'')}data-op="="{else}data-op="*="{/if} class="non-wa-contact-field">
                 </div>
             </div>
             <div class="field">
@@ -162,7 +200,7 @@
             <div class="field">
                 <div class="name">[`Referer`]</div>
                 <div class="value no-shift">
-                    {select n="app.referer" o=$referers d=$hash.app.referer.val|default:''}
+                    {select n="app.referer" o=$referers d=$hash.app.referer.val|default:'' c="non-wa-contact-field"}
                 </div>
             </div>
             <div class="field">
@@ -170,14 +208,14 @@
                     [`Storefront`]
                 </div>
                 <div class="value no-shift">
-                    {select n="app.storefront" o=$storefronts d=$hash.app.storefront.val|default:''}
+                    {select n="app.storefront" o=$storefronts d=$hash.app.storefront.val|default:'' c="non-wa-contact-field"}
                 </div>
             </div>
             {if $utm_campagns}
                 <div class="field">
                     <div class="name">[`UTM campaign`]</div>
                     <div class="value no-shift">
-                        {select n="app.utm_campaign" o=$utm_campagns d=$hash.app.utm_campaign.val|default:''}
+                        {select n="app.utm_campaign" o=$utm_campagns d=$hash.app.utm_campaign.val|default:'' c="non-wa-contact-field"}
                     </div>
                 </div>
             {/if}
@@ -227,63 +265,67 @@
     $(function() {
         (function(container) {
             var form = container;
-            var buildHash = function() {
+
+            function buildHash() {
                 var hash = { };
-                $(':input', container).not('[type=submit]').not(':disabled')
-                    .each(
-                        function() {
-                            var item = $(this);
-                            if ((item.is(':radio') || item.is(':checkbox')) && !item.attr('checked')) {
-                                return;
-                            }
-                            var value = (item.val() || '').trim();
-                            if (!value) {
-                                return;
-                            }
-                            var name = (item.attr('name') || '').trim();
-                            name = name.replace('[', '.').replace(']', '');
-                            if (!name) {
-                                return;
-                            }
-                            if (name.slice(-3) === '.op') {
-                                name = name.slice(0, -3);
-                                hash[name] = hash[name] || { };
-                                hash[name].op = value;
-                                return;
-                            } else if (name.slice(-4) === '.val') {
-                                name = name.slice(0, -4);
-                                hash[name] = hash[name] || { } ;
-                                hash[name].val = value;
-                            } else if (name.slice(-5) === '.from') {
-                                name = name.slice(0, -5);
-                                hash[name] = hash[name] || { };
-                                hash[name].type = 'range';
-                                hash[name].val = hash[name].val || { };
-                                hash[name].val.from = value;
-                            } else if (name.slice(-3) === '.to') {
-                                name = name.slice(0, -3);
-                                hash[name] = hash[name] || { };
-                                hash[name].type = 'range';
-                                hash[name].val = hash[name].val || { };
-                                hash[name].val.to = value;
-                            } else {
-                                var op = '*=';
-                                if (item.data('op')) {
-                                    op = item.data('op');
-                                } else if (item.is('select') || item.is(':radio') || item.is(':checkbox')) {
-                                    op = '=';
-                                }
-                                if (name === 'contact_info.address.region') {
-                                    value = (item.data('country') ? (item.data('country')  + ':') : '') + value;
-                                }
-                                hash[name] = {
-                                    op: op, val: value
-                                };
-                            }
-                        });
-                var formatRange = function(key, el) {
+                $(':input', container).not('[type=submit]').not(':disabled').each(function () {
+                    var item = $(this);
+                    if ((item.is(':radio') || item.is(':checkbox')) && !item.attr('checked')) {
+                        return;
+                    }
+                    var value = (item.val() || '').trim();
+                    if (!value) {
+                        return;
+                    }
+                    var name = (item.attr('name') || '').trim();
+                    name = name.replace('[', '.').replace(']', '');
+                    if (!name) {
+                        return;
+                    }
+                    if (name.slice(-3) === '.op') {
+                        name = name.slice(0, -3);
+                        hash[name] = hash[name] || { };
+                        hash[name].op = value;
+                        return;
+                    } else if (name.slice(-4) === '.val') {
+                        name = name.slice(0, -4);
+                        hash[name] = hash[name] || { } ;
+                        hash[name].val = value;
+                    } else if (name.slice(-5) === '.from') {
+                        name = name.slice(0, -5);
+                        hash[name] = hash[name] || { };
+                        hash[name].type = 'range';
+                        hash[name].val = hash[name].val || { };
+                        hash[name].val.from = value;
+                    } else if (name.slice(-3) === '.to') {
+                        name = name.slice(0, -3);
+                        hash[name] = hash[name] || { };
+                        hash[name].type = 'range';
+                        hash[name].val = hash[name].val || { };
+                        hash[name].val.to = value;
+                    } else {
+                        var op = '*=';
+                        if (item.data('op')) {
+                            op = item.data('op');
+                        } else if (item.is('select') || item.is(':radio') || item.is(':checkbox')) {
+                            op = '=';
+                        }
+                        if (name === 'contact_info.address.region') {
+                            value = (item.data('country') ? (item.data('country')  + ':') : '') + value;
+                        }
+                        hash[name] = {
+                            op: op,
+                            val: value
+                        };
+                    }
+                });
+
+                function formatRange(key, el) {
                     if (el.val.from && el.val.to) {
                         return key + '=' + el.val.from + '--' + el.val.to;
+                    }
+                    if (el.val.from && el.val.from.trim() === '0') {
+                        return key + '>' + el.val.from;
                     }
                     if (el.val.from) {
                         return key + '>=' + el.val.from;
@@ -292,13 +334,15 @@
                         return key + '<=' + el.val.to;
                     }
                     return '';
-                };
-                var format = function(key, el) {
+                }
+
+                function format(key, el) {
                     if (el.type === 'range') {
                         return formatRange(key, el);
                     }
                     return key + el.op + el.val;
-                };
+                }
+
                 var hash_ar = [];
                 $.each(hash, function(key, el) {
                     if (el.val) {
@@ -308,7 +352,7 @@
                     }
                 });
                 return hash_ar.join('&');
-            };
+            }
 
             form.submit(function() {
                 $.wa.setHash('search/' + buildHash());
@@ -344,42 +388,103 @@
                 return false;
             });
 
-            (function(selector) {
-                var name = selector.attr('name');
-                var handler = function() {
-                    if (selector.val() === ':enter_date') {
+            // Certain form fields are disabled depending on what is selected elsewhere.
+            // Namely, we disable all non-address fields when at least one of two things is selected
+            // 1) either "show all contacts" is selected in the first radio control.
+            // 2) or when "Number of orders" is set =0 or <=0.
+            (function() {
+                var $non_contact_fields = container.find('.non-wa-contact-field');
+                var $input_number_of_orders = $('input[name="app.number_of_orders.val"]');
+                var $radio_show_contacts_all = $('input[name="app.show_contacts"][value="all"]');
+                var $radio_show_contacts_unpaid = $('input[name="app.show_contacts"][value="unpaid"]');
+                var $radio_consider_orders = $('input[name="app.consider_orders"]');
+                var timeout = null;
+                var $select_compare = $(':input[name="app.number_of_orders.op"]');
+
+                $input_number_of_orders.on('keyup', function () {
+                    if (!timeout) {
+                        timeout = setTimeout(changePropDisabledIfNeeded, 1);
+                    }
+                });
+
+                $select_compare.on('change', function () {
+                    if (!timeout) {
+                        timeout = setTimeout(changePropDisabledIfNeeded, 1);
+                    }
+                });
+
+                $('input[name="app.show_contacts"]').change(function() {
+                    if (!timeout) {
+                        timeout = setTimeout(changePropDisabledIfNeeded, 1);
+                    }
+                });
+
+                function changePropDisabledIfNeeded() {
+                    var should_disable = false;
+
+                    // 1) when "show all contacts" is selected
+                    if ($radio_show_contacts_all.is(':checked')) {
+                        should_disable = true;
+                    }
+
+                    // 2) when number of orders is set to =0 or <=0
+                    if (!should_disable && $select_compare.val() !== '>=' && $.trim($input_number_of_orders.val()) === '0') {
+                        should_disable = true;
+                    }
+
+                    $non_contact_fields.prop('disabled', should_disable);
+
+                    // "Show customers with unpaid orders only" makes no sense to keep second selector
+                    if ($radio_show_contacts_unpaid.is(':checked')) {
+                        $radio_consider_orders.prop({
+                            'disabled': true,
+                            'checked': false
+                        }).filter('[value="unpaid"]').prop({
+                            'disabled': false,
+                            'checked': true
+                        });
+                    } else {
+                        $radio_consider_orders.prop({
+                            'disabled': false
+                        });
+                    }
+
+                    timeout = null;
+                }
+            }());
+
+            (function($selector) {
+                var name = $selector.attr('name');
+                handler($selector).change(handler);
+                function handler() {
+                    if ($selector.val() === ':enter_date') {
                         $('#s-customers-last-order-period').show().find(':input').attr('disabled', false);
-                        selector.attr('name', '').parent().hide();
+                        $selector.attr('name', '').parent().hide();
                     } else {
                         $('#s-customers-last-order-period').hide().find(':input').attr('disabled', true);
-                        selector.attr('name', name).parent().show();
+                        $selector.attr('name', name).parent().show();
                     }
-                    return selector;
-                };
-                handler(selector).change(handler);
+                    return $selector;
+                }
             })($('#s-customers-order-datetime-select'));
 
-            (function(toggler) {
-                var handler = function() {
-                    if (toggler.is(':checked')) {
-                        $('.s-total-spent-from').attr('name', 'app.total_spent.from');
-                        $('.s-total-spent-to').attr('name', 'app.total_spent.to');
-                    } else {
-                        $('.s-total-spent-from').attr('name', 'app.orders_total_sum.from');
-                        $('.s-total-spent-to').attr('name', 'app.orders_total_sum.to');
-                    }
-                    return toggler;
-                };
-                handler(toggler).click(handler);
-            })($('.s-customer-only-paid-orders', container));
+            /*
+             * Implies at least one order if:
+             * - show_contacts != 'all'
+             * - total_spent.from > 0
+             *
+             * When we have one of the above and also number of orders <= 0,
+             * search conditions do not make sense and will not find any contacts.
+             *
+             * Add validation for this case?.. Or not ¯\_(ツ)_/¯
+             */
 
         })($('#{$container_id}'));
 
-        function makeChoosePeriodControl(el)
-        {
-            var start_input = $('<input class="datepicker" style="width:111px;">');
-            var end_input = $('<input class="datepicker" style="width:111px;">');
-            var hidden_input = $('<input type="hidden" name="' + el.data('name') + '">');
+        function makeChoosePeriodControl(el) {
+            var start_input = $('<input class="datepicker non-wa-contact-field" style="width:111px;">');
+            var end_input = $('<input class="datepicker non-wa-contact-field" style="width:111px;">');
+            var hidden_input = $('<input type="hidden" name="' + el.data('name') + '" class="non-wa-contact-field">');
 
             var init_val = el.data('val');
             var init_op = el.data('op');

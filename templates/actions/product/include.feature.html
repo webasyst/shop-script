@@ -176,13 +176,37 @@ NOTICE: template contains generated javascript templates at `capture` sections
                 {/foreach}
             </select>
         {elseif strpos($feature.type,'range') === 0}
-            <input id="{$_prefix}{$code}" type="text"
-                   value="{if isset($item_features[$code]) && !$item_features[$code]->begin->is_null()}{$item_features[$code]->begin->value|escape}{/if}"
-                   name="{$namespace}[features][{$code}][value][begin]" class="numerical short">
-            <span>—</span>
-            <input id="{$_prefix}{$code}" type="text"
-                   value="{if isset($item_features[$code]) && !$item_features[$code]->end->is_null()}{$item_features[$code]->end->value|escape}{/if}"
-                   name="{$namespace}[features][{$code}][value][end]" class="numerical short">
+            {if $feature.type == 'range.date'}
+                <label class="js-datepicker-wrapper">
+                    <input id="{$_prefix}{$code}-start" type="text"
+                           value="{if isset($item_features[$code]) && !$item_features[$code]->begin->is_null()}{$item_features[$code]->begin->value|default:''|wa_date}{/if}"
+                           class="s-product-feature-date js-datepicker">
+                    <input name="{$namespace}[features][{$code}][value][begin]"
+                           id="{$_prefix}{$code}-start-hidden" type="hidden"
+                           value="{if isset($item_features[$code]) && !$item_features[$code]->begin->is_null()}{$item_features[$code]->begin->value|default:''}{/if}"
+                           class="s-product-feature-date js-datepicker-hidden">
+                    <i class="icon16 calendar js-focus-on-field"></i>
+                </label>
+                <span>—</span>
+                <label class="js-datepicker-wrapper">
+                    <input id="{$_prefix}{$code}-end" type="text"
+                           value="{if isset($item_features[$code]) && !$item_features[$code]->end->is_null()}{$item_features[$code]->end->value|default:''|wa_date}{/if}"
+                           class="s-product-feature-date js-datepicker">
+                    <input name="{$namespace}[features][{$code}][value][end]"
+                           id="{$_prefix}{$code}-end-hidden" type="hidden"
+                           value="{if isset($item_features[$code]) && !$item_features[$code]->end->is_null()}{$item_features[$code]->end->value|default:''}{/if}"
+                           class="s-product-feature-date js-datepicker-hidden">
+                    <i class="icon16 calendar js-focus-on-field"></i>
+                </label>
+            {else}
+                <input id="{$_prefix}{$code}" type="text"
+                       value="{if isset($item_features[$code]) && !$item_features[$code]->begin->is_null()}{$item_features[$code]->begin->value|escape}{/if}"
+                       name="{$namespace}[features][{$code}][value][begin]" class="numerical short">
+                <span>—</span>
+                <input id="{$_prefix}{$code}" type="text"
+                       value="{if isset($item_features[$code]) && !$item_features[$code]->end->is_null()}{$item_features[$code]->end->value|escape}{/if}"
+                       name="{$namespace}[features][{$code}][value][end]" class="numerical short">
+            {/if}
             {$units = shopDimension::getUnits($feature.type)}
             {if $units}
                 <select name="{$namespace}[features][{$code}][unit]">
@@ -243,6 +267,18 @@ NOTICE: template contains generated javascript templates at `capture` sections
                 </label>
         {elseif strpos($feature.type,'divider') === 0}
             <input type="hidden" name="{$namespace}[features][{$code}]" value="-">
+        {elseif strpos($feature.type,'date') === 0}
+            <label class="js-datepicker-wrapper">
+                <input id="{$_prefix}{$code}" data-type="{$feature.type}" type="text"
+                       class="s-product-feature-date js-datepicker"
+                       value="{if isset($item_features[$code])}{$item_features[$code]|default:''|wa_date}{/if}">
+                <input name="{$namespace}[features][{$code}]"
+                       id="{$_prefix}{$code}-hidden" data-type="{$feature.type}" type="hidden"
+                       class="s-product-feature-date js-datepicker-hidden"
+                       value="{if isset($item_features[$code])}{$item_features[$code]|default:''}{/if}">
+                <i class="icon16 calendar js-focus-on-field"></i>
+            </label>
+
         {else}
             <input id="{$_prefix}{$code}" type="text" name="{$namespace}[features][{$code}]" data-type="{$feature.type}"
                    value="{if isset($item_features[$code])}{$item_features[$code]|escape}{/if}">

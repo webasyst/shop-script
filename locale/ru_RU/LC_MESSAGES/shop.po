@@ -6646,8 +6646,8 @@ msgstr "Новая акция"
 msgid "Promos is an efficient and super easy way to display your custom offers and specials on your online store homepage. Every promo card has a picture, a title, and a custom link."
 msgstr "Промокарточки — это эффективный и очень простой способ представления акций и специальных предложений на главной странице интернет-магазина. Каждая промокарточка представляет собой изображение, заголовок и ссылку."
 
-msgid "Automated assignment of guest orders to existing customers will not work on following sites: <strong>%s</strong>. Due to privacy considerations, auto order assignment requires enabling “Confirm email on signup” option in <em>Site app > select your domain > Personal > Auth & Sign up settings</em>."
-msgstr "Автоматическое прикрепление заказов к существующим покупателям не будет работать на следующих сайтах: <strong>%s</strong>. Из соображений конфиденциальности функциональность автоматического прикрепления заказов будет работать, только если для сайта включена настройка «Подтверждение email-адреса после регистрации» в приложении «Сайт» в разделе <em>Личный кабинет > Настройки авторизации</em>."
+msgid "Automated assignment of guest orders to existing customers will not work on following sites: <strong>%s</strong>. Due to privacy considerations, auto order assignment requires enabling “Confirm signup” option in <em>Site app > select your domain > Personal > Login and signup settings</em>."
+msgstr "Автоматическое прикрепление заказов к существующим покупателям не будет работать на следующих сайтах: <strong>%s</strong>. Из соображений конфиденциальности функциональность автоматического прикрепления заказов будет работать, только если для сайта включена настройка «Подтверждать регистрацию» в приложении «Сайт» в разделе <em>Личный кабинет > Настройки входа и регистрации</em>."
 
 msgid "Latest blog updates"
 msgstr "Новые записи в блоге"
@@ -10887,8 +10887,8 @@ msgstr "Разбить одну из позиций в заказе на две,
 msgid "The price of a new order item will differ by a minimum amount, depending on the order currency rounding settings."
 msgstr "Цена новой позиции заказа будет отличаться на минимальную сумму, зависящую от настроек округления валюты заказа."
 
-msgid "Default measurement units"
-msgstr "Единицы измерения по умолчанию"
+msgid "Default measurement unit"
+msgstr "Единица измерения по умолчанию"
 
 msgid "This order cannot be edited while customer’s money are captured because the payment option’s plugin does not support partial captures."
 msgstr "Редактирование этого заказа недоступно, пока средства покупателя заблокированы, потому что плагин выбранного способа оплаты не поддерживает частичные списания."
@@ -10913,3 +10913,27 @@ msgstr "Невозможно создать заказ с указанной с�
 
 msgid "Unable to create an order with the specified discount. Please either disable the rounding for discounts or change the currency rounding settings so that the discount becomes lower than the ordered item’s price, or enable splitting of order items in currencies settings."
 msgstr "Невозможно сохранить заказ с указанной скидкой. Выключите округление для скидок или измените настройку округления валюты, чтобы скидка стала меньше цены заказанного товара, либо разрешите разбиение позиций заказа в настройках валют."
+
+msgid "Checkout block"
+msgstr "Оформление"
+
+msgid "Show customers with orders"
+msgstr "Показать покупателей с заказами"
+
+msgid "Show customers who have only non-paid orders"
+msgstr "Показать покупателей, у которых есть только неоплаченные заказы"
+
+msgid "Show all contacts"
+msgstr "Показать все контакты"
+
+msgid "Count only non-paid orders"
+msgstr "Учитывать только неоплаченные заказы"
+
+msgid "Count all orders"
+msgstr "Учитывать все заказы"
+
+msgid "You can choose a convenient time starting from this date."
+msgstr "Вы можете выбрать удобное время начиная с этой даты."
+
+msgid "Image thumbnails cannot be generated because required system files are missing in <em>wa-data/public/shop/promos/</em> directory."
+msgstr "Эскизы изображений не могут быть созданы, потому что отсутствуют необходимые системные файлы в директории <em>wa-data/public/shop/promos/</em>."

@@ -66,13 +66,15 @@ return array(
         ),
         'weight' => array(
             'name' => 'Weight',
-            'type' => shopFeatureModel::TYPE_DIMENSION.'.weight'
+            'type' => shopFeatureModel::TYPE_DIMENSION.'.weight',
+            'builtin' => 1
         ),
         'gtin' => array(
             'name' => 'GTIN',
             'type' => shopFeatureModel::TYPE_VARCHAR,
             'status' => shopFeatureModel::STATUS_PRIVATE,
-            'available_for_sku' => 1
+            'available_for_sku' => 1,
+            'builtin' => 1
         ),
     )
 );

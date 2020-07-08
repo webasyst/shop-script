@@ -18,7 +18,7 @@
                 {% if (p.image) { %}
                     <img src="{%#p.image.thumb_url%}" class="drag-handle">
                 {% } else { %}
-                    <img src="{/literal}{$wa_app_static_url}{literal}img/image-dummy.png" class="drag-handle not-found">
+                    <img src="{/literal}{$wa_app_static_url}{literal}img/image-dummy.png" class="drag-handle not-found is-empty">
                 {% } %}
             </a>
         </div>

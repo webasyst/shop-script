@@ -201,7 +201,7 @@ class shopHelper
         $total_params = shopShipping::getItemsTotal($items);
 
         $result = array();
-        foreach ($methods as &$m) {
+        foreach ($methods as $method_index => &$m) {
             $time_start = microtime(true);
             if (!$m['available']) {
                 continue;
@@ -212,8 +212,14 @@ class shopHelper
                 // Unit tests use this to inject stub plugins into this method
                 $plugin = $m['__instance'];
             } else {
-                $plugin = shopShipping::getPlugin($m['plugin'], $method_id);
+                try {
+                    $plugin = shopShipping::getPlugin($m['plugin'], $method_id);
+                } catch (waException $e) {
+                    unset($methods[$method_index]);
+                    continue;
+                }
             }
+
             if (isset($m['__plugin_info'])) {
                 $plugin_info = $m['__plugin_info'];
             } else {

@@ -726,6 +726,7 @@ SQL;
      * @param string $size
      * @param bool $absolute
      * @return string
+     * @throws waException
      */
     public function imgUrl($image, $size, $absolute = false)
     {
@@ -736,22 +737,21 @@ SQL;
                 //If is url set back
                 $url = $image;
             } else {
-                $data_path = realpath(waConfig::get('wa_path_data').DIRECTORY_SEPARATOR.'public');
+
+                $data_path = realpath(waConfig::get('wa_path_data').'/public');
                 $root_path = wa()->getConfig()->getRootPath();
 
-                //Replace url separator to directory separator
-                $path = str_replace('/', DIRECTORY_SEPARATOR, $image);
+                $root_url = wa()->getConfig()->getRootUrl();
+                $root_url_len = strlen($root_url);
 
-                //Check if this path start
-                if (substr($image, 0, 1) === DIRECTORY_SEPARATOR) {
+                // 2 cases:
+                //  - start with root_url (framework could be settled in folder)
+                //  - not started with root_url
 
-                    //If it doesn't start with root_path before adding it
-                    if (strpos($image, $root_path) !== 0) {
-                        $path = $root_path.$image;
-                    }
+                if (substr($image, 0, $root_url_len) === $root_url) {
+                    $path = $root_path . '/' . substr($image, $root_url_len);
                 } else {
-                    //If relative reference, then do absolute
-                    $path = $root_path.DIRECTORY_SEPARATOR.$image;
+                    $path = $root_path . '/' . ltrim($image, '/');
                 }
 
                 $path = realpath($path);
@@ -774,11 +774,13 @@ SQL;
                 }
 
                 if (!$absolute) {
+                    // after realpath we has OS specific dir separators
                     $path = str_replace($root_path.DIRECTORY_SEPARATOR, '', $path);
                     $path = wa()->getRootUrl().$path;
                     if ($this->cdn) {
                         $path = $this->cdn.$path;
                     }
+                    // after realpath we has OS specific dir separators
                     $url = str_replace(DIRECTORY_SEPARATOR, '/', $path);
                 }
             }

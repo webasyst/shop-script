@@ -1362,14 +1362,10 @@ class shopOrder implements ArrayAccess
 
         // Error for some sku
         if ($error_sku_id) {
+            $product_id_by_sku_id = waUtils::getFieldValues($this->data['items'], 'product_id', 'sku_id');
             $message = _w('The number of items your can add to the order is limited by the stock level');
             foreach ($error_sku_id as $sku_id) {
-                if (isset($skus[$sku_id])) {
-                    $sku = $skus[$sku_id];
-                } else {
-                    $sku = $this->product_skus_model->getById($sku_id);
-                }
-                $product_id = $sku['product_id'];
+                $product_id = ifset($product_id_by_sku_id, $sku_id, '');
                 $this->errors['order']['product'][$product_id]['sku_id'] = $sku_id;
                 $this->errors['order']['product'][$product_id]['quantity'] = $message;
             }

@@ -35,7 +35,7 @@ class shopSettingsTypefeatListAction extends waViewAction
             $title = _w('Not available for any product type');
         } elseif ($type === 'builtin') {
             // System (undeletable) features
-            $features = $feature_model->getByField('code', array('gtin', 'weight'), true);
+            $features = $feature_model->getBuiltinFeatures();
             $features = $this->sortByName($features);
             $codes = null;
             $title = _w('System features');
@@ -73,8 +73,6 @@ class shopSettingsTypefeatListAction extends waViewAction
             unset($f);
         }
 
-        $features = $this->markUndeletable($features);
-
         $this->view->assign([
             'title' => $title,
             'type_url_id' => $type,
@@ -91,18 +89,6 @@ class shopSettingsTypefeatListAction extends waViewAction
         uasort($features, function($f1, $f2) {
             return strcmp(mb_strtolower($f1['name']), mb_strtolower($f2['name']));
         });
-        return $features;
-    }
-
-    protected function markUndeletable($features)
-    {
-        foreach($features as &$f) {
-            if ($f['code'] == 'weight' || $f['code'] === 'gtin') {
-                $f['undeletable'] = true;
-                $f['always_available_for_sku'] = true;
-            }
-        }
-        unset($f);
         return $features;
     }
 }

@@ -154,7 +154,7 @@ class shopCustomersListAction extends waViewAction
             $hash[] = 'category='.$category_id;
         }
         if ($query) {
-            $hash[] = 'search='.$query;
+            $hash[] = 'search='.urlencode($query);
         }
         if ($type) {
             $hash[] = 'type='.$type;

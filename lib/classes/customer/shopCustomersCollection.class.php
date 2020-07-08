@@ -19,6 +19,13 @@ class shopCustomersCollection extends waContactsCollection
         $this->order_table_alias = $this->preparator->getOrderTableAlias();
     }
 
+    /**
+     * @param string $fields
+     * @param int $offset
+     * @param int $limit
+     * @return array
+     * @throws waException
+     */
     public function getCustomers($fields = "*", $offset = 0, $limit = 50) {
         return $this->getContacts($fields, $offset, $limit);
     }

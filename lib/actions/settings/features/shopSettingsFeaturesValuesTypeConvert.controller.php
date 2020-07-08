@@ -61,7 +61,7 @@ class shopSettingsFeaturesValuesTypeConvertController extends waJsonController
                 }
 
 
-                shopFeatureModel::appendTypeNames($this->response);
+                shopFeatureModel::appendTypeNames($this->response, true);
                 $type_features_model = new shopTypeFeaturesModel();
                 $type_features_model->fillTypes($this->response);
                 $feature['types'] = array_keys($feature['types']);

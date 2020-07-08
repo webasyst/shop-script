@@ -78,7 +78,7 @@
 
         var icon = $icon_field.val();
 
-        if (icon.length < 8 || icon.substr(0, 4) !== 'http') {
+        if (icon.length < 9 || icon.substr(0, 4) !== 'http') {
             if ($('#icons li.selected i').length > 0) {
                 icon = $('#icons li.selected i').attr('class').replace('icon16 ', '');
             } else {

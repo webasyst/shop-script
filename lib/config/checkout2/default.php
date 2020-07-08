@@ -29,7 +29,7 @@ return [
         'processing_time' => '0',
     ],
     'order'           => [
-        'block_name' => _wd('shop', 'Appearance'),
+        'block_name' => _wd('shop', 'Checkout block'),
     ],
     'customer'        => [
         'block_name'             => _wd('shop', 'Customer'),

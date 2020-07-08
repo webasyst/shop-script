@@ -24,12 +24,16 @@ class shopRangeValue implements ArrayAccess
      */
     public function __construct($row)
     {
-        $begin = $row;
+        $begin = $end = $row;
         $begin['value'] = $begin['begin'];
-        $this->begin = new shopDimensionValue($begin);
-        $end = $row;
         $end['value'] = $end['end'];
-        $this->end = new shopDimensionValue($end);
+        if ($row['type'] == 'date') {
+            $this->begin = new shopDateValue($begin);
+            $this->end = new shopDateValue($end);
+        } else {
+            $this->begin = new shopDimensionValue($begin);
+            $this->end = new shopDimensionValue($end);
+        }
         foreach ($row as $field => $value) {
             if (!isset($this->$field)) {
                 $this->$field = $value;

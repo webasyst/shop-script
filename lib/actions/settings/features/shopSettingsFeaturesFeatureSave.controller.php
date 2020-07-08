@@ -47,7 +47,7 @@ class shopSettingsFeaturesFeatureSaveController extends waJsonController
                 }
             }
             unset($feature);
-            shopFeatureModel::appendTypeNames($features);
+            shopFeatureModel::appendTypeNames($features, true);
 
             // ->fillTypes() fills in 'sort' and 'types' keys. We want 'sort',
             // but do not want to break our own pre-made 'types'. So, we run the method on a copy.

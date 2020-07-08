@@ -328,6 +328,11 @@ class shopFrontendCategoryAction extends shopFrontendAction
             wa()->getResponse()->setMeta('keywords', shopCategoryModel::getDefaultMetaKeywords($category));
         }
 
+        $canonical_url = wa()->getRouteUrl('shop/frontend/category', [
+            'category_url' => $category['full_url'],
+        ], true);
+        $this->getResponse()->setCanonical($canonical_url);
+
         /**
          * @event frontend_category
          * @return array[string]string $return[%plugin_id%] html output for category

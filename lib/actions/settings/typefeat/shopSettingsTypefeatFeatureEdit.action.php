@@ -151,6 +151,8 @@ class shopSettingsTypefeatFeatureEditAction extends waViewAction
                 return ['boolean', 'none'];
             case 'color':
                 return ['color', 'value'];
+            case 'date':
+                return ['date', 'date'];
             case '3d.length':
             case '3d.dimension.length':
                 return ['volume', '3d'];
@@ -208,46 +210,7 @@ class shopSettingsTypefeatFeatureEditAction extends waViewAction
 
     protected function getAllFeatureKinds($feature)
     {
-        $result = [
-            'boolean' => [
-                'title' => _w('Yes/No toggle'),
-                'formats' => [], // means do not show second selector at all
-            ],
-            'color' => [
-                'title' => _w('Color'),
-                'formats' => ['value', 'selector', 'checklist'],
-            ],
-            'text' => [
-                'title' => _w('Text'),
-                'formats' => ['input', 'textarea', 'selector', 'checklist'],
-            ],
-            'numeric' => [
-                'title' => _w('Numbers'),
-                'formats' => ['number', '2d', '3d', 'range', 'selector', 'checklist'],
-            ],
-        ];
-
-        // Dimension-based kinds (length, volume, area, etc.) are from shop config
-        $dimensions = shopDimension::getInstance();
-        foreach($dimensions->getList() as $id => $dim) {
-            $result[$id] = [
-                'title' => $dim['name'],
-                'formats' => ['number', 'range', 'selector', 'checklist'],
-                'dimensions' => array_map(function($u, $dim_id) {
-                    return [
-                        'id' => $dim_id,
-                        'title' => $u['name'],
-                    ];
-                }, ifset($dim, 'units', []), array_keys(ifset($dim, 'units', []))),
-            ];
-        }
-        // Volume kind allows for Length x Length x Length, same with area
-        if (isset($result['volume'])) {
-            array_unshift($result['volume']['formats'], '3d');
-        }
-        if (isset($result['area'])) {
-            array_unshift($result['area']['formats'], '2d');
-        }
+        $result = shopFeatureModel::getAllFeatureKinds();
 
         // Do not allow to change type of special feature 'weight'
         if (!empty($feature['id']) && ifset($feature, 'code', '') == 'weight' && isset($result['weight'])) {
@@ -257,17 +220,21 @@ class shopSettingsTypefeatFeatureEditAction extends waViewAction
             ];
         }
 
-        if (!isset($result[$feature['kind']])) {
-            // Show this option in selector only when feature has unknown type
-            $result[$feature['kind']] = [
-                'title' => _w('Unknown feature type').' ('.htmlspecialchars($feature['kind']).')',
-                'formats' => [],
-                'unable_to_save' => true,
-            ];
-        } else {
-            // Show unknown format in selector even if feature has pre-saved format that is not allowed for its kind
-            if ($result[$feature['kind']]['formats'] && !in_array($feature['format'], $result[$feature['kind']]['formats'])) {
-                $result[$feature['kind']]['formats'][] = $feature['format'];
+        if (!empty($feature['kind'])) {
+            if (!isset($result[$feature['kind']])) {
+                // Show this option in selector only when feature has unknown type
+                $result[$feature['kind']] = [
+                    'title' => _w('Unknown feature type').' ('.htmlspecialchars($feature['kind']).')',
+                    'formats' => [],
+                    'unable_to_save' => true,
+                ];
+            } else {
+                if (!empty($feature['format'])) {
+                    // Show unknown format in selector even if feature has pre-saved format that is not allowed for its kind
+                    if ($result[$feature['kind']]['formats'] && !in_array($feature['format'], $result[$feature['kind']]['formats'])) {
+                        $result[$feature['kind']]['formats'][] = $feature['format'];
+                    }
+                }
             }
         }
 
@@ -332,53 +299,16 @@ class shopSettingsTypefeatFeatureEditAction extends waViewAction
 
     protected function getAllFeatureFormats($feature)
     {
-        $result = [
-            'input' => [
-                'title' => _w('One line of text'),
-            ],
-            'value' => [
-                'title' => _w('Value'),
-            ],
-            'textarea' => [
-                'title' => _w('Multi-line text'),
-            ],
-            '2d' => [
-                'title' => _w('Number × number'),
-                'is_multidimensional' => true,
-            ],
-            '3d' => [
-                'title' => _w('Number × number × number'),
-                'is_multidimensional' => true,
-            ],
-            'number' => [
-                'title' => _w('Number'),
-            ],
-            'range' => [
-                'title' => _w('Range'),
-            ],
-            'selector' => [
-                'title' => _w('Single value selection from a list'),
-                'values' => true,
-            ],
-            'checklist' => [
-                'title' => _w('Multiple values selection from a list'),
-                'values' => true,
-            ],
-        ];
+        $result = shopFeatureModel::getAllFeatureFormats();
 
         // Unknown types keep as is
-        if (!isset($result[$feature['format']])) {
+        if (!empty($feature['format']) && !isset($result[$feature['format']])) {
             $result[$feature['format']] = [
+                'id' => $feature['format'],
                 'title' => _w('Unknown format').' ('.$feature['format'].')',
                 'values' => (bool)$feature['selectable'],
             ];
         }
-
-        foreach($result as $id => &$format) {
-            $format['id'] = $id;
-            $format['values'] = ifset($format, 'values', false);
-        }
-        unset($format);
 
         return $result;
     }
@@ -390,8 +320,8 @@ class shopSettingsTypefeatFeatureEditAction extends waViewAction
      */
     public static function analyzeSkus($feature)
     {
-        // Can not disable SKU checkbox for weight
-        if ($feature['code'] == 'weight' || $feature['code'] === 'gtin') {
+        // Can not disable SKU checkbox for builtin features
+        if ($feature['builtin']) {
             return [false, 0];
         }
 

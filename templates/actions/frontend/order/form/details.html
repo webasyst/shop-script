@@ -176,6 +176,11 @@
                                         </div>
                                         <div class="wa-cell wa-cell-value">
                                             {$_est_delivery|escape}
+                                            {if !empty($details.plugin_custom_fields.desired_delivery.html)}
+                                                <div class="wa-cell-value-description">
+                                                    [`You can choose a convenient time starting from this date.`]
+                                                </div>
+                                            {/if}
                                         </div>
                                     </div>
                                 {/if}

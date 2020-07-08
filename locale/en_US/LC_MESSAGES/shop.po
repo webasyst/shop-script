@@ -5748,7 +5748,7 @@ msgstr ""
 msgid "Promos is an efficient and super easy way to display your custom offers and specials on your online store homepage. Every promo card has a picture, a title, and a custom link."
 msgstr ""
 
-msgid "Automated assignment of guest orders to existing customers will not work on following sites: <strong>%s</strong>. Due to privacy considerations, auto order assignment requires enabling “Confirm email on signup” option in <em>Site app > select your domain > Personal > Auth & Sign up settings</em>."
+msgid "Automated assignment of guest orders to existing customers will not work on following sites: <strong>%s</strong>. Due to privacy considerations, auto order assignment requires enabling “Confirm signup” option in <em>Site app > select your domain > Personal > Login and signup settings</em>."
 msgstr ""
 
 msgid "Latest blog updates"
@@ -9915,3 +9915,6 @@ msgstr ""
 
 msgid "System features list"
 msgstr "System features"
+
+msgid "Checkout block"
+msgstr "Checkout"

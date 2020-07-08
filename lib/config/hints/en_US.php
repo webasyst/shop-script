@@ -65,5 +65,25 @@ return array(
 
     'product_pages' => array(
         'text' => 'Web pages with additional product-related information. A shopper can open them via links on the main product-viewing page to better learn its values before ordering.'
-    )
+    ),
+
+    'customers_search_show_contacts_customers' => array(
+        'text' => 'Displayed will be only customers who have at least one order. Their orders do not necessarily need to be paid.',
+    ),
+
+    'customers_search_show_contacts_unpaid' => array(
+        'text' => 'Displayed will be customers who have at least one order, and none of their orders may be paid.',
+    ),
+
+    'customers_search_show_contacts_all' => array(
+        'text' => 'Displayed will be all contacts. Search fields related to orders will not be taken into account.',
+    ),
+
+    'customers_search_consider_orders_paid' => array(
+        'text' => 'Displayed will be only customers who have orders labeled as “Paid”. Other search fields, if completed, will be taken into account only for paid orders while non-paid ones will be ignored.',
+    ),
+
+    'customers_search_consider_orders_unpaid' => array(
+        'text' => 'Displayed will be only customers who have orders not labeled as “Paid”. Other search fields, if completed, will be taken into account only for non-paid orders while paid ones will be ignored.',
+    ),
 );

@@ -26,7 +26,7 @@ class shopSettingsFeaturesAction extends waViewAction
             if ($features = $feature_model->getFeatures(true, null, 'id', $values_per_feature)) {
                 $show_all_features = count($features);
                 $type_features_model->fillTypes($features);
-                shopFeatureModel::appendTypeNames($features);
+                shopFeatureModel::appendTypeNames($features, true);
             }
         } else {
             $features = array();

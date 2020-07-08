@@ -273,7 +273,7 @@
             <span>{%#product.skus[chosen_sku_id].price_html%}</span>
             <input type="hidden" name="price[add][{%#index%}][product]" value="{%#''+product.skus[chosen_sku_id].price%}" class="short">
             {% } else { %}
-            <input type="text" name="price[add][{%#index%}][product]" value="{%#''+product.skus[chosen_sku_id].price%}" class="short js-order-edit-item-price">
+            <input type="text" name="price[add][{%#index%}][product]" value="{%#''+product.skus[chosen_sku_id].price%}" class="short numerical js-order-edit-item-price">
             <span style="padding-top: 2px;">{%#currency%}</span>
             {% } %}
             <br/><span class="hint js-item-total-discount" data-discount-id="{%#index%}"></span>

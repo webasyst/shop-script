@@ -25,7 +25,9 @@ class shopFrontendAction extends waViewAction
             }
         }
         if ($get_vars) {
-            $this->view->assign('canonical', wa()->getConfig()->getHostUrl().wa()->getConfig()->getRequestUrl(false, true));
+            $url = wa()->getConfig()->getHostUrl() . wa()->getConfig()->getRequestUrl(false, true);
+            $this->getResponse()->setCanonical($url);
+            $this->view->assign('canonical', $url);
         }
     }
 

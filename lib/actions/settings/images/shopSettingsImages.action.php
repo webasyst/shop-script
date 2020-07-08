@@ -18,7 +18,7 @@ class shopSettingsImagesAction extends waViewAction
             'system' => $this->formatSizes($this->getConfig()->getImageSizes('system')),
             'custom' => $this->formatSizes((array)$this->settings['image_sizes'])
         );
-        $has_required_files = self::createRequiredFilesForGeneration();
+        $has_required_files = shopRepairActions::createProductsRequiredFiles();
         $this->view->assign(array(
             'settings' => $this->settings,
             'has_required_files' => $has_required_files
@@ -63,7 +63,7 @@ class shopSettingsImagesAction extends waViewAction
         $settings['image_filename'] = waRequest::post('image_filename') ? 1 : 0;
         $settings['image_save_original'] = waRequest::post('image_save_original') ? 1 : 0;
         $settings['image_thumbs_on_demand'] = waRequest::post('image_thumbs_on_demand') ? 1 : 0;
-        
+
         if ($settings['image_thumbs_on_demand']) {
             $settings['image_max_size'] = waRequest::post('image_max_size', 1000, waRequest::TYPE_INT);
             $big_size = $config->getImageSize('big');
@@ -136,48 +136,16 @@ class shopSettingsImagesAction extends waViewAction
                 $settings[$k] = str_replace(',', '.', $settings[$k]);
             }
         }
-        
+
         waUtils::varExportToFile($settings, $config_file);
     }
 
+    /**
+     * @deprecated since 8.12.0
+     * @see shopRepairActions::createProductsRequiredFiles()
+     */
     public function createRequiredFilesForGeneration()
     {
-        $app_id = 'shop';
-
-        $target_path = wa()->getDataPath('products/', true, $app_id);
-        $source_path = wa()->getAppPath('lib/config/data/', $app_id);
-
-        $thumb_path = $target_path.'thumb.php';
-        if (!file_exists($thumb_path)) {
-            $php_file = '<?php
-            $file = dirname(__FILE__)."/../../../../"."/wa-apps/shop/lib/config/data/thumb.php";
-            
-            if (file_exists($file)) {
-                include($file);
-            } else {
-                header("HTTP/1.0 404 Not Found");
-            }
-            ';
-            try {
-                waFiles::write($thumb_path, $php_file);
-            } catch (Exception $e) {
-                return false;
-            }
-        }
-
-        $htaccess_path = $target_path.'.htaccess';
-        if (!file_exists($htaccess_path)) {
-            try {
-                waFiles::copy($source_path.'.htaccess', $htaccess_path);
-            } catch (Exception $e) {
-                return false;
-            }
-        }
-
-        if (file_exists($thumb_path) && file_exists($htaccess_path)) {
-            return true;
-        } else {
-            return false;
-        }
+        return shopRepairActions::createProductsRequiredFiles();
     }
 }

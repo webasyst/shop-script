@@ -668,6 +668,8 @@ ul.menu-v.with-icons a.rate-clear { margin: 0; padding: 0; }
 
 .s-product-feature-superposition { margin-bottom: 30px !important; }
 .s-product-feature-superposition ul.menu-v li { margin-left: 0; }
+.s-product-feature-date { width: 100px !important; min-width: 100px !important; }
+.s-product-feature-date ~ i.calendar { position: relative; right: 22px; margin-right: -19px;}
 
 .s-product-mini-stock-log i.icon10 { margin-right: 4px; }
 

@@ -36,7 +36,7 @@
             </td>
             <td>{waCurrency::format('%0{h}', $c.total_spent, $wa->shop->currency())}</td>
             <td>{if $c.affiliate_bonus>=0}+{/if}{$c.affiliate_bonus}</td>
-            <td>{$c.number_of_orders}</td>
+            <td>{$c.number_of_orders|default:'<span class="hint">&mdash;</span>'}</td>
             <td>
                 {if $c.last_order_id}
                     <a href="?action=orders#/order/{$c.last_order_id}/">{$wa->shop->orderId($c.last_order_id)}</a>
