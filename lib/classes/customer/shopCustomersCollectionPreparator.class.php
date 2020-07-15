@@ -604,7 +604,7 @@ class shopCustomersCollectionPreparator
     {
         if ($val) {
             if ($val === ':any') {
-                $this->addJoin('shop_order_params', ":table.order_id = {$this->getFilteringOrderTableAlias()}.id AND :table.name = 'coupon_id'");
+                $this->addJoin('shop_order_params', ":table.order_id = {$this->getFilteringOrderTableAlias()}.id AND :table.name = 'coupon_id' AND :table.value <> '0'");
                 if ($auto_title) {
                     $this->addTitle(_w('Any coupon'));
                 }

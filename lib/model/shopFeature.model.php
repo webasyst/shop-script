@@ -5,6 +5,7 @@ class shopFeatureModel extends waModel
     const TYPE_VARCHAR = 'varchar';
     const TYPE_DOUBLE = 'double';
     const TYPE_TEXT = 'text';
+    const TYPE_DATE = 'date';
     const TYPE_DIMENSION = 'dimension';
     const TYPE_RANGE = 'range';
     const TYPE_2D = '2d';
@@ -366,7 +367,7 @@ SQL;
                         $where['union'][] = sprintf("sf.type='%s'", self::TYPE_TEXT);
                         $where['union'][] = sprintf("sf.type='%s'", self::TYPE_VARCHAR);
                         $where['union'][] = sprintf("sf.type LIKE '%s.%%'", self::TYPE_DIMENSION);
-                        $where['union'][] = sprintf("sf.type LIKE '%s.%%'", self::TYPE_RANGE);
+                        $where['union'][] = sprintf("(sf.type LIKE '%s.%%' AND sf.type <> '%s.%s')", self::TYPE_RANGE, self::TYPE_RANGE, self::TYPE_DATE);
                     }
                     break;
                 case 'ignore_id':

@@ -302,8 +302,14 @@
                             <td colspan="2"></td>
                             <td class="align-right">
                                 [`Discount`]
-                                {if !empty($order.coupon)}
-                                    <a href="{$wa_app_url}marketing/coupons/{$order.coupon.id|escape}/"><i class="icon16 ss coupon"></i><strong>{$order.coupon.code|escape}</strong></a>
+                                {if !empty($order.coupon.code)}
+                                    {if !empty($order.coupon.id)}
+                                        <a href="{$wa_app_url}marketing/coupons/{$order.coupon.id|escape}/">
+                                    {/if}
+                                    <i class="icon16 ss coupon"></i><strong>{$order.coupon.code|escape}</strong>
+                                    {if !empty($order.coupon.id)}
+                                        </a>
+                                    {/if}
                                 {/if}
                             </td>
                             <td class="align-right nowrap">&minus; {wa_currency_html($order.discount, $order.currency)}</td>

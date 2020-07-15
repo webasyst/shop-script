@@ -392,7 +392,18 @@ class shopCategoryEditAction extends waViewAction
         $custom_conditions = array();
         if ($conditions) {
             foreach ($conditions as $name => $value) {
-                $custom_conditions[] = $name.implode('', $value);
+                if (isset($value['type'])) {
+                    if ($value['type'] == 'equal') {
+                        if (!empty($value['condition']) && isset($value['values'])) {
+                            $values = is_array($value['values']) ? implode(',', $value['values']) : $value['values'];
+                            $custom_conditions[] = $name.$value['condition'].$values;
+                        }
+                    } else {
+                        // not supported
+                    }
+                } else {
+                    $custom_conditions[] = $name.implode('', $value);
+                }
             }
         }
 

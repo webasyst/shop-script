@@ -281,6 +281,7 @@ td.s-empty-order-note { border-top: 1px solid #ddd; border-bottom: 1px solid #dd
 .s-order-customer-details .field.field-birthday .value input,
 .s-order-customer-details .field.field-birthday .value select { min-width: 84px; width: 84px; margin-right: 2px; }
 .s-order-customer-details .field.field-birthday .value input { height: 13px; }
+.s-order-customer-details .s-customers-search-form .shop-tooltip > span { width: 250px; }
 
 /* confirmation checkboxes */
 .s-order-customer-details .fields .field.field-email .value p,
