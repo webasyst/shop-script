@@ -42,7 +42,7 @@
                                                     <div class="s-code-wrapper" data-code-id="{$_code.id|escape}">
                                                         <div class="s-label-wrapper">
                                                             <div class="s-image">
-                                                                {if !empty($_code.icon)}
+                                                                {if !empty($_code.icon) && $_code.code_plugin_enabled}
                                                                     <img src="{$wa_url}{$_code.icon}">
                                                                 {else}
                                                                     <i class="icon16 ss parameter"></i>

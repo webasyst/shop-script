@@ -74,6 +74,7 @@ class shopTaxes
 
         // Calculate certain values to use later
         $order_subtotal = 0.0;
+        $total_item_discount = 0.0;
         $total_effective_value = 0.0;
         foreach ($items as &$i) {
             if ($i['type'] == 'shipping') {
@@ -93,6 +94,7 @@ class shopTaxes
             if (!empty($i['currency'])) {
                 $item_discount = shop_currency(ifset($i, 'total_discount', 0.0), $i['currency'], $currency, false);
             }
+            $total_item_discount += $item_discount;
 
             $item_effective_value = $item_value - $item_discount;
             $total_effective_value += $item_effective_value;
@@ -107,7 +109,8 @@ class shopTaxes
         $global_discount = 0;
         $discount_rate = min(1.0, max(0, ifset($params, 'discount_rate', 0)));
         if ($discount_rate > 0) {
-            $global_discount = $order_subtotal * $discount_rate;
+            $global_discount = $order_subtotal * $discount_rate - $total_item_discount;
+            $global_discount = max(0, $global_discount);
         }
 
         // Compute tax values for each item, and total tax
@@ -121,7 +124,7 @@ class shopTaxes
             $p = $i['price'] * $i['quantity'];
 
             // Split global discount proportionally between all items except shipping
-            if ($global_discount > 0 && $i['type'] != 'shipping') {
+            if ($global_discount > 0 && $i['type'] != 'shipping' && $total_effective_value > 0) {
                 $p -= $global_discount * $i['effective_value'] / $total_effective_value;
             }
 

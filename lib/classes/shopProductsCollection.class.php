@@ -431,12 +431,16 @@ class shopProductsCollection
                             $min = str_replace(',', '.', $values['min']);
                             if ($unit) {
                                 $min = shopDimension::getInstance()->convert($min, $features[$feature_code]['type'], null, $unit);
+                            } elseif ($features[$feature_code]['type'] == 'range.date') {
+                                $min = shopDateValue::dateToTimestamp($min);
                             }
                         }
                         if (isset($values['max']) && $values['max'] !== '') {
                             $max = str_replace(',', '.', $values['max']);
                             if ($unit) {
                                 $max = shopDimension::getInstance()->convert($max, $features[$feature_code]['type'], null, $unit);
+                            } elseif ($features[$feature_code]['type'] == 'range.date') {
+                                $max = shopDateValue::dateToTimestamp($max);
                             }
                         }
                         $fm = $feature_model->getValuesModel($features[$feature_code]['type']);

@@ -155,6 +155,13 @@ class shopCheckoutAuthStep extends shopCheckoutStep
             $errors = $this->getCartErrors($data);
         }
 
+        // We save the available data for the next steps and payment plugins
+        foreach ($form_fields as $field_id => $field) {
+            if (isset($field['value'])) {
+                $contact->set($field_id, $field['value']);
+            }
+        }
+
         $result = $this->addRenderedHtml([
             'contact_id'        => $contact_id,
             'selected_mode'     => $selected_mode,

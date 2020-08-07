@@ -93,7 +93,7 @@
             <div class="bordered-left" style="padding-left: 20px; min-height: 130px;">
                 {if $hash.type eq 'id'}
                 <ul class="menu-v">
-                    <li><a href="?action=products#/products/hash={"id/`$hash.product_ids`"|escape:'url'}" target="_blank" class="inline-link">{_wd('shop','%d product','%d products',$hash.count)|escape}<i class="icon16 new-window"></i></a></li>
+                    <li><a href="{$wa_app_url}?action=products#/products/hash={"id/`$hash.product_ids`"|escape:'url'}" target="_blank" class="inline-link">{_wd('shop','%d product','%d products',$hash.count)|escape}<i class="icon16 new-window"></i></a></li>
                 </ul>
                 {if !empty($hints.id)}<br/><span class="small">{$hints.id}</span>{/if}
                 {else}

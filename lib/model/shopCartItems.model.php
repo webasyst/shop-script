@@ -567,7 +567,7 @@ SQL;
             $can_be_ordered_field = "(s.available > 0 AND ({$count_field} IS NULL OR ci.quantity <= {$count_field}) AND p.status >= 1)";
         }
 
-        $sql = "SELECT ci.id, p.name, s.name AS sku_name, s.available, p.status,
+        $sql = "SELECT ci.id, p.name, s.name AS sku_name, s.available, p.status, ci.quantity, s.id as sku_id,
                     {$can_be_ordered_field} as `can_be_ordered`,
                     {$count_field} AS `count`
                 FROM {$this->table} AS ci
@@ -578,7 +578,29 @@ SQL;
                     {$count_join}
                 WHERE ci.type = 'product'
                     AND ci.code = s:code";
-        return $this->query($sql, array('code' => $code))->fetchAll('id');
+        $products = $this->query($sql, array('code' => $code))->fetchAll('id');
+
+        $quantity = array();
+        foreach ($products as $product) {
+            if (!empty($product['count'])) {
+                if (!isset($quantity[$product['sku_id']])) {
+                    $quantity[$product['sku_id']] = $product['quantity'];
+                } else {
+                    $quantity[$product['sku_id']] += $product['quantity'];
+                }
+            }
+        }
+        foreach ($products as $key => &$product) {
+            if (isset($quantity[$product['sku_id']])) {
+                $product['count'] -= $quantity[$product['sku_id']] - $product['quantity'];
+                if ($product['count'] < $product['quantity']) {
+                    $product['can_be_ordered'] = 0;
+                }
+            }
+        }
+        unset($product);
+
+        return $products;
     }
 
     public function deleteByProducts($product_ids)

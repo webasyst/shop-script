@@ -75,7 +75,7 @@
                     hideSortHint();
                     $(document).unbind('scroll', $.product_dragndrop._scrolHelper);
                     $('.block.drop-target').removeClass('drag-active');
-                    
+
                     hideSortHint();
                 },
                 helper: function(event, ui) {
@@ -113,7 +113,7 @@
                 greedy: true,
                 tolerance: 'pointer',
                 over: function(event, ui) {
-                    
+
                     // activate item
                     var self = $(this);
                     if (self.hasClass('s-alien')) {
@@ -122,13 +122,13 @@
                     if (!ui.draggable.hasClass('product')) {
                         return false;
                     }
-                    
+
                     if (!$.product_dragndrop.trigger('is_product_sortable')) {
                         showSortHint();
                     } else {
                         hideSortHint();
                     }
-                    
+
                     $.product_dragndrop._activatePhotoListItem.call(this);
                 },
                 out: function(event, ui) {
@@ -138,7 +138,7 @@
                     if (!ui.draggable.hasClass('product')) {
                         return false;
                     }
-                    
+
                     var self = $(this);
                     // drop into itself is illegal
                     if (self.hasClass('selected')) {
@@ -147,13 +147,13 @@
                     }
 
                     var selected = $('#product-list').find('.product.selected');
-                    
+
                     if (!$.product_dragndrop.trigger('is_product_sortable')) {
                         $.product_dragndrop._unactivatePhotoListItem.call(this);
                         $.product_dragndrop._unactivatePhotoListItem.call(ui.draggable);
                         return false;
                     }
-                    
+
                     var before_id = null;
                     // Special case: self is alien (from child categories)
                     if (self.hasClass('s-alien')) {
@@ -167,7 +167,7 @@
                             closest.after(selected);
                             if (closest.hasClass('last')) {
                                 closest.removeClass('last');
-                                selected.filter(':last').addClass('last');    
+                                selected.filter(':last').addClass('last');
                             }
                         } else {
                             before_id = closest.attr('data-product-id');
@@ -177,12 +177,12 @@
                                 selected.filter(':last').addClass('last');
                             }
                         }
-                        
+
                     } else {
                         if (!self.hasClass('drag-active-last')) {
                             before_id = self.attr('data-product-id');
                         }
-                        
+
                         if (self.hasClass('last') && self.hasClass('drag-active-last')) {
                             self.after(selected).removeClass('drag-active drag-active-last last');
                             selected.filter(':last').addClass('last');
@@ -191,10 +191,10 @@
                         }
                         self.removeClass('drag-active drag-active-last');
                     }
-                    
+
                     $.product_dragndrop._unactivatePhotoListItem.call(this);
                     $.product_dragndrop._unactivatePhotoListItem.call(ui.draggable);
-                    
+
                     selected.trigger('select', false);
 
                     var product_ids = selected.map(function() {
@@ -355,7 +355,7 @@
                                 // restore
                                 home.after(dr.next()).after(dr);
                                 if (!li_count) {
-                                    parent_list.parent('li').children('i').show();
+                                    // parent_list.parent('li').children('i').show();
                                     parent_list.show();
                                 }
                             }
@@ -598,7 +598,7 @@
                                 // restore
                                 home.after(dr).after(sep);
                                 if (!li_count) {
-                                    parent_list.parent('li').children('i').show();
+                                    // parent_list.parent('li').children('i').show();
                                     parent_list.show();
                                 }
                                 $('.s-collection-list .unapproved').remove();
@@ -664,11 +664,11 @@
                 );
             });
         },
-        
+
         _unbindExtDragActivate: function() {
             $(document).unbind('mousemove.ext_drag_activate');
         },
-                
+
         _activatePhotoListItem: function() {
                 var self = $(this);
                 var sort_enable = $.product_dragndrop.trigger('is_product_sortable');
@@ -680,7 +680,7 @@
                     $.product_dragndrop._bindExtDragActivate(self, className);
                 } else {
                     self.addClass(className);
-                }  
+                }
         },
 
         // clear (unactive) action
@@ -742,7 +742,7 @@
         }
 
     };
-    
+
     function showSortHint() {
         var sort_method = $.product_dragndrop.options.sort;
         if (sort_method) {
@@ -751,10 +751,10 @@
             block.find('.' + sort_method).show();
         }
     }
-    
+
     function hideSortHint() {
             var block = $('#hint-menu-block').hide();
             block.children().hide();
     }
-    
+
 })(jQuery);

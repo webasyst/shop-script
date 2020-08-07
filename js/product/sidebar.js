@@ -21,7 +21,47 @@
                 if (options.before_id) {
                     data.before_id = options.before_id;
                 }
-                $.products.jsonPost('?module=products&action=moveList', data, options.success, options.error);
+                $.products.jsonPost('?module=products&action=moveList', data, options.success, function(response) {
+                    if (response.errors && response.errors.length) {
+                        $.each(response.errors, function(i, error) {
+                            var text = null;
+                            if (typeof error === "string") { text = error; }
+                            if (typeof error.text === "string") { text = error.text; }
+                            if (text) { renderError(text); }
+                        });
+                    }
+                    return (typeof options.error === "function" ? options.error(response) : options.error);
+                });
+
+                function renderError(text) {
+                    var dialog_html = "<div class=\"dialog width650px height250px small\">\n" +
+                        "    <div class=\"dialog-background\"></div>\n" +
+                        "        <div class=\"dialog-window\">\n" +
+                        "        <div class=\"dialog-content\">\n" +
+                        "            <div class=\"dialog-content-indent\">\n" +
+                        "                <p>%text%</p>\n" +
+                        "            </div>\n" +
+                        "        </div>\n" +
+                        "        <div class=\"dialog-buttons\">\n" +
+                        "            <div class=\"dialog-buttons-gradient\">\n" +
+                        "                <input class=\"button gray cancel\" type=\"button\" value=\"%button_text%\">\n" +
+                        "            </div>\n" +
+                        "        </div>\n" +
+                        "    </div>\n" +
+                        "</div>";
+
+                    dialog_html = dialog_html
+                        .replace("%text%", text)
+                        .replace("%button_text%", $.wa.locale["Close"]);
+
+                    var $dialog = $(dialog_html);
+
+                    $dialog.waDialog({
+                        onClose: function() {
+                            $dialog.remove();
+                        }
+                    });
+                }
             });
 
             // SIDEBAR CUSTOM EVENT HANDLERS

@@ -199,7 +199,7 @@ class shopImportexportHelper
         }
         switch ($info['type']) {
             case 'id':
-                $ids = array_unique(array_map('intval', explode(',', $hash)));
+                $ids = array_unique(array_filter(array_map('intval', explode(',', $hash))));
                 sort($ids);
                 $info['count'] = count($ids);
                 $info['product_ids'] = implode(',', $ids);

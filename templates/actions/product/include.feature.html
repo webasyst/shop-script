@@ -199,11 +199,11 @@ NOTICE: template contains generated javascript templates at `capture` sections
                     <i class="icon16 calendar js-focus-on-field"></i>
                 </label>
             {else}
-                <input id="{$_prefix}{$code}" type="text"
+                <input id="{$_prefix}{$code}-begin" type="text"
                        value="{if isset($item_features[$code]) && !$item_features[$code]->begin->is_null()}{$item_features[$code]->begin->value|escape}{/if}"
                        name="{$namespace}[features][{$code}][value][begin]" class="numerical short">
                 <span>—</span>
-                <input id="{$_prefix}{$code}" type="text"
+                <input id="{$_prefix}{$code}-end" type="text"
                        value="{if isset($item_features[$code]) && !$item_features[$code]->end->is_null()}{$item_features[$code]->end->value|escape}{/if}"
                        name="{$namespace}[features][{$code}][value][end]" class="numerical short">
             {/if}

@@ -380,6 +380,8 @@ class shopPayment extends waAppPayment
             $options['total'] = $order['total'];
         }
 
+        $options['product_codes'] = true;
+
         return shopHelper::getWaOrder($order, $options);
     }
 

@@ -195,7 +195,8 @@ var OrderCaptureSection = (function ($) {
         // FUNCTIONS
 
         function updatePrices() {
-            var total_price = 0;
+            var total_price = 0,
+                total_quantity = 0;
 
             that.$products.find(".s-product-wrapper").each(function () {
                 var $product = $(this),
@@ -213,9 +214,10 @@ var OrderCaptureSection = (function ($) {
                 $product_total.html(formatPrice(product_price));
 
                 total_price += product_price;
+                total_quantity += quantity;
             });
 
-            that.$submit_button.attr("disabled", !(total_price > 0));
+            that.$submit_button.attr("disabled", !(total_quantity > 0));
 
             total_price += that.shipping_price;
 

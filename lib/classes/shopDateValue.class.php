@@ -75,6 +75,15 @@ class shopDateValue implements ArrayAccess
         return '';
     }
 
+    public static function dateToTimestamp($date)
+    {
+        if (DateTime::createFromFormat("Y-m-d", $date)) {
+            return @strtotime($date);
+        } else {
+            return '';
+        }
+    }
+
     public function is_null()
     {
         return empty($this->timestamp);

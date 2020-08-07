@@ -28,7 +28,7 @@
                 <div class="s-fields-wrapper">
                     <div class="wa-table-box fixed space-10">
                         <div class="s-column">
-                            {if !empty($code.logo)}
+                            {if !empty($code.logo) && $code_plugin_enabled}
                                 <div class="s-field-section-logo">
                                     <img src="{$wa_url}{$code.logo}">
                                 </div>
@@ -36,12 +36,12 @@
 
                             <div class="s-field-section">
                                 <label class="s-label">[`Name`]</label>
-                                <input class="s-field js-name-field" type="text" name="code[name]" value="{$code.name|default:""|escape}" required>
+                                <input class="s-field js-name-field" type="text" name="code[name]" value="{$code.name|default:""|escape}" {if $protected_code}readonly{else}required{/if}>
                             </div>
 
                             <div class="s-field-section">
                                 <label class="s-label">[`Identifier`]</label>
-                                <input class="s-field js-code-field" type="text" name="code[code]" value="{$code.code|default:""|escape}" required>
+                                <input class="s-field js-code-field" type="text" name="code[code]" value="{$code.code|default:""|escape}" {if $protected_code}readonly{else}required{/if}>
                             </div>
 
                             <div class="s-field-section js-type-field-section">

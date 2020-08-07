@@ -565,6 +565,8 @@ return array(
         'name' => array('varchar', 255, 'null' => 0),
         'icon' => array('varchar', 255),
         'logo' => array('varchar', 255),
+        'protected' => array('tinyint', 1, 'default' => 0),
+        'plugin_id' => array('varchar', 255),
         ':keys' => array(
             'PRIMARY' => 'id',
         ),

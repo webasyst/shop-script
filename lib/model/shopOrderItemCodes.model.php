@@ -40,6 +40,13 @@ class shopOrderItemCodesModel extends waModel
         $additional_code_ids = array_diff_key($additional_code_ids, $product_codes);
         $product_codes += $product_code_model->getById(array_keys($additional_code_ids));
 
+        $all_enabled_plugins = wa('shop')->getConfig()->getPlugins();
+        foreach ($product_codes as $id => $code) {
+            $code_plugin_enabled = !empty($code['plugin_id']) ? isset($all_enabled_plugins[$code['plugin_id']]) : false;
+            $product_codes[$id]['code_plugin_enabled'] = $code_plugin_enabled;
+            $product_codes[$id]['protected_code'] = $code['protected'] && $code_plugin_enabled;
+        }
+
         foreach ($order_items as &$item) {
             // Product codes - they can be assigned to any order item including services.
             // GUI shows them for products and services when assigned already, but only for products if not assigned.

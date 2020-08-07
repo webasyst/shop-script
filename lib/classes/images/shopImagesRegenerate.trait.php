@@ -173,7 +173,7 @@ trait shopImagesRegenerateTrait
         $new_path = $this->getPath($image);
 
         if (is_readable($old_path) && @waFiles::move($old_path, $new_path)) {
-            $this->updateFilename($image);
+            $this->updateFilename($image, $filename);
         } else {
             $image['filename'] = $old_filename;
         }

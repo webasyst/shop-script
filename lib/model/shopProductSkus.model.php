@@ -812,6 +812,7 @@ SQL;
             }
         }
 
+        $recount_features = [];
         foreach ($data as $sku_id => $sku) {
             #lazy delete sku
             if (!is_array($sku)) {
@@ -820,6 +821,26 @@ SQL;
                 }
                 unset($data[$sku_id]);
             }
+
+            // Figure out which features might have changed by this save
+            // Need to recalculate shop_feature.count field for those features
+            if (!empty($sku['features']) && is_array($sku['features'])) {
+                $recount_features += $sku['features'];
+            }
+        }
+
+        // update shop_feature.count
+        if ($recount_features) {
+            if (empty($feature_model)) {
+                $feature_model = new shopFeatureModel();
+            }
+            foreach(array_keys($recount_features) as $code) {
+                $feature = $this->getFeature($code);
+                if ($feature) {
+                    $feature_model->recount($feature);
+                }
+            }
+            unset($recount_features);
         }
 
         $model = new shopProductModel();

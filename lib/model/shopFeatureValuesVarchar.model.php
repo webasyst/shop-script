@@ -3,10 +3,22 @@
 class shopFeatureValuesVarcharModel extends shopFeatureValuesModel
 {
     protected $table = 'shop_feature_values_varchar';
+    protected $changed_fields = array('value');
 
     protected function getSearchCondition()
     {
         return '`value` LIKE s:search_value';
+    }
+
+    protected function isChanged($row, $data)
+    {
+        if (!empty($row['id']) && isset($data['value']) && $data['value'] !== $row['value']) {
+            return array(
+                'value' => $data['value']
+            );
+        } else {
+            return false;
+        }
     }
 
     protected function parseValue($value, $type)

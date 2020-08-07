@@ -205,7 +205,10 @@ class shopFrontendCategoryAction extends shopFrontendAction
                             unset($filters[$fid]);
                         } else {
                             $type = preg_replace('/^[^\.]*\./', '', $filters[$fid]['type']);
-                            if ($type != 'double') {
+                            if ($type == 'date') {
+                                $min = shopDateValue::timestampToDate($min);
+                                $max = shopDateValue::timestampToDate($max);
+                            } elseif ($type != 'double') {
                                 $filters[$fid]['base_unit'] = shopDimension::getBaseUnit($type);
                                 $filters[$fid]['unit'] = shopDimension::getUnit($type, $unit);
                                 if ($filters[$fid]['base_unit']['value'] != $filters[$fid]['unit']['value']) {
@@ -328,8 +331,9 @@ class shopFrontendCategoryAction extends shopFrontendAction
             wa()->getResponse()->setMeta('keywords', shopCategoryModel::getDefaultMetaKeywords($category));
         }
 
+        $url_field = waRequest::param('url_type') == 1 ? 'url' : 'full_url';
         $canonical_url = wa()->getRouteUrl('shop/frontend/category', [
-            'category_url' => $category['full_url'],
+            'category_url' => $category[$url_field],
         ], true);
         $this->getResponse()->setCanonical($canonical_url);
 
@@ -350,6 +354,8 @@ class shopFrontendCategoryAction extends shopFrontendAction
     {
         if ($v instanceof shopDimensionValue) {
             return $v->value_base_unit;
+        } elseif ($v instanceof shopDateValue) {
+            return $v->timestamp;
         }
         if (is_object($v)) {
             return $v->value;

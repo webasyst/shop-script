@@ -220,11 +220,11 @@ class shopRounding
                 // but could have been possibly disabled in the past.
                 return true;
             case 'services':
-                return wa('shop')->getSetting('round_services', 0);
+                return wa()->getSetting('round_services', 0, 'shop');
             case 'shipping':
-                return wa('shop')->getSetting('round_shipping', 0);
+                return wa()->getSetting('round_shipping', 0, 'shop');
             case 'discounts':
-                return wa('shop')->getSetting('round_discounts', 0);
+                return wa()->getSetting('round_discounts', 0, 'shop');
             default:
                 return false;
         }

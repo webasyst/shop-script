@@ -114,6 +114,8 @@ class shopOrderEditAction extends waViewAction
             }
         }
 
+        $money_on_hold_warning = $this->getMoneyOnHoldWarningType($this->order);
+
         $order_data_array = array();
         if ($this->order_data) {
             $order_data_array = $this->order->dataArray();
@@ -122,6 +124,9 @@ class shopOrderEditAction extends waViewAction
             $order_data_array['items'] = $this->order_data['items'];
             $order_data_array['items_total_discount'] = $items_total_discount;
             $order_data_array['coupon'] = $this->order->coupon;
+            if ($money_on_hold_warning) {
+                $order_data_array['amount_on_hold'] = $this->order['amount_on_hold'];
+            }
         }
 
         $tax_model = new shopTaxModel();
@@ -148,6 +153,7 @@ class shopOrderEditAction extends waViewAction
             'taxes_count'                  => $tax_model->countAll(),
             'shipping_address'             => $this->order->shipping_address,
             'has_contacts_rights'          => true,
+            'money_on_hold_warning'        => $money_on_hold_warning,
             'customer_validation_disabled' => wa()->getSetting('disable_backend_customer_form_validation'),
             'shipping_methods'             => $shipping_methods,
             'ignore_stock_count'           => wa()->getSetting('ignore_stock_count'),
@@ -416,5 +422,15 @@ class shopOrderEditAction extends waViewAction
             $this->order_editor_config = new shopOrderEditorConfig();
         }
         return $this->order_editor_config;
+    }
+
+    protected function getMoneyOnHoldWarningType($order)
+    {
+        $order_mode = shopOrderMode::getMode($order);
+        if ($order_mode['mode'] == shopOrderMode::MODE_DISABLED) {
+            throw new waException("Order not found", 404);
+        } else if ($order_mode['mode'] != shopOrderMode::MODE_ENABLED) {
+            return $order_mode['mode'];
+        }
     }
 }

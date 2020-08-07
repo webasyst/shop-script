@@ -762,7 +762,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 showFeatureDeleteDialog($(this));
             });
 
-            that.$wrapper.on("click", ".js-feature-undeletable", function(event) {
+            that.$wrapper.on("click", ".js-feature-undeletable, .js-code-undeletable", function(event) {
                 event.preventDefault();
                 alert($(this).attr('title'));
             });

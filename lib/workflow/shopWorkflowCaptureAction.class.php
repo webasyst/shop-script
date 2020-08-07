@@ -66,19 +66,18 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
                 && (isset($transactions[waPayment::TRANSACTION_CAPTURE]))
             ) {
                 $transaction = $transactions[waPayment::TRANSACTION_CAPTURE];
-                $partial_capture = $plugin->getProperties('partial_capture') && (waRequest::post('capture_mode') === 'partial');
+                $plugin_supports_partial_capture = $plugin->getProperties('partial_capture');
+                $partial_capture = $plugin_supports_partial_capture && (waRequest::post('capture_mode') === 'partial');
+
+                $return_stock = intval(ifset($options, 'action_options', 'return_stock', waRequest::post('return_stock')));
+                $order_options = array(
+                    'ignore_stock_validate' => true,
+                    'return_stock'          => $return_stock,
+                );
+                $order = new shopOrder($order_id, $order_options);
+
                 if ($partial_capture) {
-
-                    $return_stock = intval(ifset($options, 'action_options', 'return_stock', waRequest::post('return_stock')));
-
                     $change_items = ifset($options, 'action_options', 'capture_items', waRequest::post('capture_items'));
-
-                    $order_options = array(
-                        'ignore_stock_validate' => true,
-                        'return_stock'          => $return_stock,
-                    );
-                    $order = new shopOrder($order_id, $order_options);
-
                     $order->edit($change_items, waPayment::OPERATION_CAPTURE);
 
                     $text = nl2br(htmlspecialchars(trim(waRequest::post('text', '')), ENT_QUOTES, 'utf-8'));
@@ -88,17 +87,45 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
 
                     $order->save($text);
                     $order_data = shopPayment::getOrderData($order_id, $plugin);
-                } elseif (!empty($this->order_params_model->getOne($order_id, 'auth_edit'))) {
-                    $partial_capture = true;
-                    //order was edited before
-                    $order_data = shopPayment::getOrderData($order_id, $plugin);
+                } else {
+
+                    $amount_on_hold = $order['amount_on_hold'];
+                    if ($amount_on_hold < $order['total']) {
+                        // Amount on hold is not enough to cover order total. Bail.
+                        $message = sprintf(
+                            "Unable to capture money for order #%d because order total exceeds amount on hold.",
+                            $order_id
+                        );
+                        waLog::log($message, 'shop/workflow/capture.error.log');
+                        throw new waException(_w('An error occurred during the order capture. See error log for details.'));
+                    }
+
+
+                    if ($amount_on_hold > $order['total'] && !$plugin_supports_partial_capture) {
+                        // Can not do full capture because order total changed and does not match amount on hold.
+                        // Can not do partial capture because plugin does not support it. Bail.
+                        $message = sprintf(
+                            "Unable to capture money for order #%d because order was modified.",
+                            $order_id
+                        );
+                        waLog::log($message, 'shop/workflow/capture.error.log');
+                        throw new waException(_w('An error occurred during the order capture. See error log for details.'));
+                    }
+
+                    $params = $order['params'];
+                    if ($amount_on_hold > $order['total'] || !empty($params['auth_edit'])) {
+                        // if order changed since money auth, have to perform operation in partial mode
+                        $order_data = shopPayment::getOrderData($order_id, $plugin);
+                    }
+
                 }
 
                 try {
+                    // Perform capture operation via payment plugin
                     $response = $plugin->capture(compact('transaction', 'order_data'));
                 } catch (waException $ex) {
                     $message = sprintf(
-                        "Error during capture order #%d: %s\nDATA:%s",
+                        "Unable to perform money capture for order #%d: %s\nDATA:%s",
                         $order_id,
                         $ex->getMessage(),
                         var_export(compact('transaction', 'order_data'), true)

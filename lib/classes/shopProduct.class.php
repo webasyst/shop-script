@@ -1292,9 +1292,6 @@ class shopProduct implements ArrayAccess
             throw new waException('Unable duplicate shopProduct: data is converted for frontend');
         }
 
-        if (!$this->checkRights()) {
-            throw new waRightsException('Access denied');
-        }
         $data = $this->data;
         $skip = array(
             'id',

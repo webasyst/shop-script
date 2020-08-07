@@ -92,7 +92,12 @@ class shopCategorySaveController extends waJsonController
             if (empty($data['name'])) {
                 $data['name'] = _w('(no-name)');
             }
-            $category_id = $this->model->add($data, $data['parent_id']);
+            $response = $this->model->add($data, $data['parent_id']);
+            if (is_array($response)) {
+                $this->errors += $response;
+            } else {
+                $category_id = $response;
+            }
             $this->logAction('category_add', $category_id);
         } else {
             $category = $this->model->getById($category_id);

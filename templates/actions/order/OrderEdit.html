@@ -10,6 +10,26 @@
     <div id="s-content">
 {/if}
 
+{if !empty($money_on_hold_warning)}
+    <div class="s-alert s-order-editor-money-on-hold-warning" id="s-order-editor-money-on-hold-warning">
+        {if $money_on_hold_warning == 'total_fixed'}
+            <h3>[`The editing of this order is limited because customer’s funds are authorized on a bank account.`]</h3>
+            {sprintf_wp(
+                "You may change the list of ordered items. However, the order total of %s must remain unchanged because the selected payment plugin does not support partial funds capturing.",
+                sprintf('<strong>%s</strong>', shop_currency_html($order.amount_on_hold, $order.currency, $order.currency))
+            )}
+            <i class="icon16 exclamation"></i>
+        {else}
+            <h3>[`The editing of this order is limited because customer’s funds are authorized on a bank account.`]</h3>
+            {sprintf_wp(
+                "You may change the list of ordered items. However, the order total after your changes may not exceed the captured amount of %s.",
+                sprintf('<strong>%s</strong>', shop_currency_html($order.amount_on_hold, $order.currency, $order.currency))
+            )}
+            <i class="icon16 exclamation"></i>
+        {/if}
+    </div>
+{/if}
+
 <form id="order-edit-form" method="post" action="?module=order&action=save{if !empty($order.id)}&id={$order.id}{/if}">
 <div class="sidebar left400px s-order-customer-details">
     <div class="block top-padded">
@@ -451,10 +471,15 @@
                                data-updated-manually-msg="[`Manually edited discount. Click to apply automatically calculated discount value.`]"
                                data-edit-manually-msg="[`Manually edit automatically calculated discount`]"
                         >
-                        <a href="#" style="_display: none" id="update-discount"
+                        <a href="#" id="update-discount"
                            data-description="{$discount_description|escape}"
                            data-value="{if !empty($discount)}{$discount}{elseif !empty($order.id)}{$order.discount}{else}0{/if}"
                            data-items_discount="{$items_discount|json_encode|escape}"
+                           {if empty($order.id)}
+                             {* This tells order/edit.js to recalculate discounts automatically for new orders, no need to click the icon *}
+                             data-discount="calculate"
+                             style="display: none"
+                           {/if}
                         ><i class="icon16 update"></i></a>
                     </td>
                 </tr>

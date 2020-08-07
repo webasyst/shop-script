@@ -228,7 +228,7 @@
                                     <div id="s-reports-custom-controls" class="float-right"></div>
                                 </div>
 
-                                <ul class="menu-h s-reports">
+                                <ul class="menu-h s-reports" id="js-reports-menu-list">
                                     {if $wa->shop->config('reports_simple')}
                                         <li>
                                             <a href="#/summary/">[`Sales`]</a>
@@ -257,6 +257,30 @@
                                     <!-- plugin hook: 'backend_reports.menu_li' -->
                                     {* @event backend_reports.%plugin_id%.menu_li *}
                                     {foreach $backend_reports as $_}{ifset($_.menu_li)}{/foreach}
+
+                                    <li class="js-toggle-menu">
+                                        {strip}
+                                        <a href="javascript:void(0);">
+                                            {capture assign="_inactive"}<i class="icon16 darr"></i>[`More`]{/capture}
+                                            {capture assign="_active"}<i class="icon16 uarr"></i>[`Hide`]{/capture}
+                                            {$_inactive}
+                                        </a>
+                                        {/strip}
+
+                                        <script>
+                                            ( function($) {
+                                                $(document).ready( function() {
+                                                    $.reports.initMenuToggle({
+                                                        $wrapper: $("#js-reports-menu-list"),
+                                                        templates: {
+                                                            "active": {$_active|json_encode},
+                                                            "inactive": {$_inactive|json_encode}
+                                                        }
+                                                    });
+                                                });
+                                            })(jQuery);
+                                        </script>
+                                    </li>
 
                                 </ul>
 

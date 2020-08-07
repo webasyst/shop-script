@@ -173,7 +173,11 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
                 $custom_field_values[$field_id] = $custom_input_values[$field_id];
             }
             if (isset($selected_variant['delivery_date'])) {
-                $row['delivery_date'] = strtotime($selected_variant['delivery_date']);
+                if (is_array($selected_variant['delivery_date'])) {
+                    $row['delivery_date'] = strtotime(reset($selected_variant['delivery_date']));
+                } else {
+                    $row['delivery_date'] = strtotime($selected_variant['delivery_date']);
+                }
             }
 
             $plugin_custom_fields[$field_id] = $this->renderWaHtmlControl($field_id, $row, $data['origin'] != 'create' ? 'details[custom]' : false);

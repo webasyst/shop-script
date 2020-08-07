@@ -73,6 +73,13 @@ class shopSettingsTypefeatListAction extends waViewAction
             unset($f);
         }
 
+        $all_enabled_plugins = wa('shop')->getConfig()->getPlugins();
+        foreach ($codes as $id => $code) {
+            $code_plugin_enabled = !empty($code['plugin_id']) ? isset($all_enabled_plugins[$code['plugin_id']]) : false;
+            $codes[$id]['code_plugin_enabled'] = $code_plugin_enabled;
+            $codes[$id]['protected_code'] = $code['protected'] && $code_plugin_enabled;
+        }
+
         $this->view->assign([
             'title' => $title,
             'type_url_id' => $type,

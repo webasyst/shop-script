@@ -1576,6 +1576,19 @@ SQL;
                 unset($data['skus'][$key]['id']);
             }
 
+            static $dimension_features;
+            if (!isset($dimension_features)) {
+                $feature_codes = array_keys($data['features']);
+                $feature_model = new shopFeatureModel();
+                $dimension_features = $feature_model->getByCode($feature_codes);
+            }
+            foreach ($data['features'] as $code => &$value) {
+                if (!empty($dimension_features[$code]['default_unit']) && is_numeric($value)) {
+                    $value = $value . ' ' . $dimension_features[$code]['default_unit'];
+                }
+            }
+            unset($value);
+
             shopProductStocksLogModel::setContext(shopProductStocksLogModel::TYPE_IMPORT);
             if ($sku_only || ($this->data['primary'] === null)) {
                 if ($product_exists && ($item_sku_id !== false)) {

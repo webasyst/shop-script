@@ -26,7 +26,9 @@ class shopSettingsTypefeatCodeDuplicateController extends waJsonController
         $code_data['name'] = $old_name.$number;
         $code_data['code'] = rtrim($code_data['code'], '0123456789').$number;
         $code_data['code'] = $product_code_model->getUniqueCode($code_data['code']);
-        unset($code_data['id']);
+        foreach (array('id', 'icon', 'logo', 'protected', 'plugin_id') as $key) {
+            unset($code_data[$key]);
+        }
 
         // Duplicate code
         $new_code_id = $product_code_model->insert($code_data);

@@ -422,40 +422,44 @@ HTML;
      */
     protected static function getIntegerDiscountByCoupons($order, $coupon, $description)
     {
-        $result = [];
-
         $items = self::getItemsForCouponHash($order, $coupon);
 
-        if ($items) {
-            // Flat value in currency
-            $discount = max(0.0, (float)$coupon['value']);
-            if ($order['currency'] != $coupon['type']) {
-                $crm = new shopCurrencyModel();
-                $discount = (float)$crm->convert($discount, $coupon['type'], $order['currency']);
+        $total_items_cost = 0;
+        foreach ($items as $i => $item) {
+            if ($item['type'] === 'service') {
+                unset($items[$i]);
+                continue;
             }
+            $total_items_cost += $item['price'] * $item['quantity'];
+        }
 
-            if (!empty($coupon['products_hash'])) {
-                $total_items_cost = 0;
-                foreach ($items as $item) {
-                    // Skip service
-                    if ($item['type'] === 'service') {
-                        continue;
-                    }
+        // Flat value in currency
+        $discount = max(0.0, (float)$coupon['value']);
+        if ($order['currency'] != $coupon['type']) {
+            $crm = new shopCurrencyModel();
+            $discount = (float)$crm->convert($discount, $coupon['type'], $order['currency']);
+        }
 
-                    $total_items_cost += $item['price'] * $item['quantity'];
-                }
+        if ($total_items_cost < $discount) {
+            $discount = $total_items_cost;
+        }
 
-                // The discount can not be more than the prices of goods to which it applies.
-                if ($total_items_cost < $discount) {
-                    $discount = $total_items_cost;
-                }
-            }
+        if (!$items || $discount <= 0) {
+            return [];
+        }
 
-            $result = [
-                'coupon_discount' => $discount,
-                'discount'        => $discount,
-                'description'     => $description,
-            ];
+        $result = [
+            'coupon_discount' => $discount,
+            'items'           => [],
+        ];
+
+        // Distribute coupon discount between items it applies to
+        $discount_ratio = $discount / $total_items_cost;
+        foreach ($items as $item_id => $item) {
+            $result['items'][$item_id] = array(
+                'discount'    => $item['price'] * $item['quantity'] * $discount_ratio,
+                'description' => $description,
+            );
         }
 
         return $result;
@@ -678,6 +682,15 @@ HTML;
             $currency = $order['currency'];
         }
 
+        $items_price = 0;
+        foreach ($order['items'] as $item) {
+            $items_price += $item['price'] * $item['quantity'];
+        }
+        if ($discount > $items_price) {
+            $discount = $items_price;
+            $description .= _w('The discount amount was reduced so as not to exceed the cost of all products.');
+        }
+
         // Currency precision is how many cents in 1 unit of currency.
         // For all sane options this is 100.
         $currency_precision = 100;
@@ -686,6 +699,33 @@ HTML;
             $currency_precision = $order['__currency_precision'];
         } else if (($info = waCurrency::getInfo($currency)) && isset($info['precision'])) {
             $currency_precision = pow(10, max(0, $info['precision']));
+        }
+
+        //
+        // Keep everything as is, when both:
+        // 1) All discount is assigned to items, no leftovers.
+        // 2) All item discounts are evenly divisible by item quantity.
+        //
+        // This is required when order is modified after partial refund or partial capture:
+        // we do not want to mess with discount distribution in these cases.
+        //
+        try {
+            $total_items_discount_cents = 0;
+            foreach ($order['items'] as $item) {
+                if (!empty($item['quantity'])) {
+                    $total_item_discount_cents = round(ifset($item['total_discount'], 0) * $currency_precision);
+                    if ($total_item_discount_cents % $item['quantity']) {
+                        throw new waException();
+                    }
+                    $total_items_discount_cents += $total_item_discount_cents;
+                }
+            }
+            $total_discount_cents = round($discount * $currency_precision);
+            if ($total_discount_cents == $total_items_discount_cents) {
+                return; // order is good, do not change anything
+            }
+        } catch (waException $e) {
+            // one of item's discounts is not divisible by its quantity, continue
         }
 
         // Currency rounding setting affects discount batching, see below
@@ -699,6 +739,14 @@ HTML;
             } else {
                 $currency_rounding = 1/$currency_precision;
             }
+        }
+
+        // Shop setting: whether allowed to split a single order item into two
+        // rather than modify total order discount value
+        if (isset($order['__discount_distrbution_split'])) {
+            $discount_distrbution_split = (bool) $order['__discount_distrbution_split'];
+        } else {
+            $discount_distrbution_split = wa('shop')->getSetting('discount_distrbution_split');
         }
 
         // Vars with `_cents` postfix are cents, always round()'ed or floor()'ed to integers.
@@ -721,12 +769,23 @@ HTML;
         foreach ($order['items'] as &$item) {
             if ($item['quantity']) {
                 $total_item_discount_cents = round(ifset($item['total_discount'], 0) * $currency_precision);
+                if (!$discount_distrbution_split) {
+                    // When not allowed to split order item into two, make sure initial item
+                    // discounts are all rounded according to currency rouding settings
+                    // (that is, divisible by $discount_batch_cents).
+                    // This ensures that $order_discount_cents below will be divisible by $discount_batch_cents
+                    // as long as total $discount value is rounded to currency settings.
+                    $total_item_discount_cents = ceil($total_item_discount_cents / $discount_batch_cents) * $discount_batch_cents;
+                }
 
                 $item['total_discount'] = $total_item_discount_cents / $currency_precision;
 
                 $total_items_discount_cents += $total_item_discount_cents;
                 $item['_total'] = ($item['price'] * $item['quantity']) - $item['total_discount'];
                 $subtotal += $item['_total'];
+            } else {
+                $item['total_discount'] = 0;
+                $item['_total'] = 0;
             }
         }
         unset($item);
@@ -739,108 +798,103 @@ HTML;
         $order_discount_cents = round($discount * $currency_precision) - $total_items_discount_cents;
 
         // Adjust discount precision if discount is not divisible by it for some reason.
-        // It happens when discount is specified by hand during order edit,
-        // or during partial refund or partial capture.
+        // It happens when admin specifies discount by hand. Maybe also in some unforeseen cases.
         if (!$discount_batch_cents || $order_discount_cents % $discount_batch_cents) {
             $discount_batch_cents = 1;
         }
 
-        // Need to distribute something?
-        if ($order_discount_cents) {
+        $order_discount_percent = $order_discount_cents/$subtotal;
 
-            $order_discount_percent = $order_discount_cents/$subtotal;
+        foreach ($order['items'] as $item_id => &$item) {
+            if (empty($item['quantity'])) {
+                $item['smashed_discount_cents'] = 0;
+                $item['discount_batch_cents'] = 0;
+                $item['total_discount'] = 0;
+                continue;
+            }
 
-            foreach ($order['items'] as $item_id => &$item) {
+            // Discount we want to add to this item proportional to its value relative to the whole order
+            $delta_cents = floor($order_discount_percent * $item['_total']);
+
+            // Calculate new item discount, then adjust according to divisibility:
+            // Total item discount (in cents) must always be divisible by item quantity, as well as by discount batch size.
+            $total_item_discount_cents = round($item['total_discount'] * $currency_precision) + $delta_cents;
+            $item['discount_batch_cents'] = waUtils::lcm($item['quantity'], $discount_batch_cents);
+            $total_item_discount_cents = $item['discount_batch_cents'] * floor($total_item_discount_cents / $item['discount_batch_cents']);
+
+            // Modify item data
+            $delta_cents = $total_item_discount_cents - round($item['total_discount'] * $currency_precision);
+            $item['total_discount'] = $total_item_discount_cents / $currency_precision;
+            $item['smashed_discount_cents'] = $delta_cents;
+
+            // Modify vars that store totals
+            $order_discount_cents -= $delta_cents;
+            $total_items_discount_cents += $delta_cents;
+
+            unset($total_item_discount_cents, $delta_cents, $item['_total'], $item);
+        }
+        unset($item);
+
+        // Still have leftovers to distribute?
+        if ($order_discount_cents != 0) {
+
+            // Items sorted by discount batch, desc
+            $order_items = array_map(function($item_id, $i) {
+                return ['id'=>$item_id] + $i;
+            }, array_keys($order['items']), $order['items']);
+            array_multisort(array_column($order_items, 'discount_batch_cents'), SORT_DESC, $order_items);
+
+            // Loop over items once, larger discount batch first.
+            // Attempt to modify item discount to decrease `abs($order_discount_cents)` if possible.
+            foreach ($order_items as $item) {
+                $item_id = $item['id'];
                 if (empty($item['quantity'])) {
-                    $item['smashed_discount_cents'] = 0;
-                    $item['discount_batch_cents'] = 0;
-                    $item['total_discount'] = 0;
                     continue;
                 }
 
-                // Discount we want to add to this item proportional to its value relative to the whole order
-                $delta_cents = floor($order_discount_percent * $item['_total']);
+                // Move discount from order to item, one batch at a time
+                while (abs($order_discount_cents) >= $item['discount_batch_cents']) {
+                    if ($order_discount_cents < 0) {
+                        $item_discount_cents = -$item['discount_batch_cents'];
+                    } else {
+                        $item_discount_cents = $item['discount_batch_cents'];
+                    }
 
-                // Calculate new item discount, then adjust according to divisibility:
-                // Total item discount (in cents) must always be divisible by item quantity, as well as by discount batch size.
-                $total_item_discount_cents = round($item['total_discount'] * $currency_precision) + $delta_cents;
-                $item['discount_batch_cents'] = waUtils::lcm($item['quantity'], $discount_batch_cents);
-                $total_item_discount_cents = $item['discount_batch_cents'] * floor($total_item_discount_cents / $item['discount_batch_cents']);
+                    $new_item_total_discount = $order['items'][$item_id]['total_discount'] + $item_discount_cents / $currency_precision;
 
-                // Modify item data
-                $delta_cents = $total_item_discount_cents - round($item['total_discount'] * $currency_precision);
-                $item['total_discount'] = $total_item_discount_cents / $currency_precision;
-                $item['smashed_discount_cents'] = $delta_cents;
+                    // item discount may not be negative or exceed price - abort if it does
+                    if ($new_item_total_discount < 0 || $item['price']*$item['quantity'] < $new_item_total_discount) {
+                        break;
+                    }
 
-                // Modify vars that store totals
-                $order_discount_cents -= $delta_cents;
-                $total_items_discount_cents += $delta_cents;
-
-                unset($total_item_discount_cents, $delta_cents, $item['_total'], $item);
+                    $order['items'][$item_id]['total_discount'] = $new_item_total_discount;
+                    $order['items'][$item_id]['smashed_discount_cents'] += $item_discount_cents;
+                    $total_items_discount_cents += $item_discount_cents;
+                    $order_discount_cents -= $item_discount_cents;
+                }
             }
-            unset($item);
 
-            // Still have leftovers to distribute?
-            if ($order_discount_cents != 0) {
+            // Make sure order total never increases (add minimal available discount if it is about to)
+            if ($order_discount_cents > 0) {
 
-                // Items sorted by discount batch, desc
-                $order_items = array_map(function($item_id, $i) {
-                    return ['id'=>$item_id] + $i;
-                }, array_keys($order['items']), $order['items']);
-                array_multisort(array_column($order_items, 'discount_batch_cents'), SORT_DESC, $order_items);
-
-                // Loop over items once, larger discount batch first.
-                // Attempt to modify item discount to decrease `abs($order_discount_cents)` if possible.
+                // Loop over items once, smaller discount batch first.
+                // Use first item available to fix order discount into negative value.
+                $order_items = array_reverse($order_items);
                 foreach ($order_items as $item) {
-                    $item_id = $item['id'];
                     if (empty($item['quantity'])) {
                         continue;
                     }
+                    $item_id = $item['id'];
+                    $item_discount_cents = $item['discount_batch_cents'];
+                    $new_item_total_discount = $order['items'][$item_id]['total_discount'] + $item_discount_cents / $currency_precision;
 
-                    // Move discount from order to item, one batch at a time
-                    while (abs($order_discount_cents) >= $item['discount_batch_cents']) {
-                        if ($order_discount_cents < 0) {
-                            $item_discount_cents = -$item['discount_batch_cents'];
-                        } else {
-                            $item_discount_cents = $item['discount_batch_cents'];
-                        }
-
-                        $new_item_total_discount = $order['items'][$item_id]['total_discount'] + $item_discount_cents / $currency_precision;
-
-                        // item discount may not be negative or exceed price - abort if it does
-                        if ($new_item_total_discount < 0 || $item['price']*$item['quantity'] < $new_item_total_discount) {
-                            break;
-                        }
-
+                    // item discount may not be negative or exceed price - only apply discount to this item if possible
+                    if (!($new_item_total_discount < 0 || $item['price']*$item['quantity'] < $new_item_total_discount)) {
                         $order['items'][$item_id]['total_discount'] = $new_item_total_discount;
                         $order['items'][$item_id]['smashed_discount_cents'] += $item_discount_cents;
                         $total_items_discount_cents += $item_discount_cents;
                         $order_discount_cents -= $item_discount_cents;
-                    }
-                }
-
-                // Make sure order total never increases (add minimal available discount if it is about to)
-                if ($order_discount_cents > 0) {
-
-                    // Loop over items once, smaller discount batch first.
-                    // Use first item available to fix order discount into negative value.
-                    $order_items = array_reverse($order_items);
-                    foreach ($order_items as $item) {
-                        if (empty($item['quantity'])) {
-                            continue;
-                        }
-                        $item_id = $item['id'];
-                        $item_discount_cents = $item['discount_batch_cents'];
-                        $new_item_total_discount = $order['items'][$item_id]['total_discount'] + $item_discount_cents / $currency_precision;
-
-                        // item discount may not be negative or exceed price - only apply discount to this item if possible
-                        if (!($new_item_total_discount < 0 || $item['price']*$item['quantity'] < $new_item_total_discount)) {
-                            $order['items'][$item_id]['total_discount'] = $new_item_total_discount;
-                            $order['items'][$item_id]['smashed_discount_cents'] += $item_discount_cents;
-                            $total_items_discount_cents += $item_discount_cents;
-                            $order_discount_cents -= $item_discount_cents;
-                            break;
-                        }
+                        break;
                     }
                 }
             }
@@ -874,11 +928,6 @@ HTML;
             // Notify caller that discount has changed. This is used in shopOrder.
             $order['discount_increased_by'] = -$order_discount_cents / $currency_precision;
 
-            if (isset($order['__discount_distrbution_split'])) {
-                $discount_distrbution_split = (bool) $order['__discount_distrbution_split'];
-            } else {
-                $discount_distrbution_split = wa('shop')->getSetting('discount_distrbution_split');
-            }
             if (!$discount_distrbution_split) {
                 // This modifies $description in outer function scope by link
                 $description .= sprintf(

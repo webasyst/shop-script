@@ -60,6 +60,7 @@
                                 {else}
                                     <div class="value">
                                         {$frontend_base_url}{if !empty($parent)}{$parent.full_url}/{/if}<input type="text" name="url" value="" class="js-product-list-url">/
+                                        <span class="errormsg"></span>
                                     </div>
                                 {/if}
 
@@ -522,3 +523,4 @@
         });
     })(jQuery);
 </script>
+

@@ -71,6 +71,12 @@ class shopOrderSaveController extends waJsonController
 
         } catch (waException $ex) {
             $this->errors = $order->errors();
+            if (empty($this->errors)) {
+                $this->errors['order']['common'] = $ex->getMessage();
+                if (waSystemConfig::isDebug()) {
+                    $this->errors['order']['common'] .= "\n<br><br>\n".nl2br($ex->getTraceAsString());
+                }
+            }
         }
 
     }

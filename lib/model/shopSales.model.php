@@ -813,7 +813,7 @@ class shopSalesModel extends waModel
                 FROM shop_order AS o
                     JOIN shop_sales_tmp AS st
                         ON o.id=st.order_id
-                WHERE {$date_col} > '0000-00-00 00:00:00'";
+                WHERE {$date_col} > '1900-01-01 00:00:01'";
         $row = $this->query($sql)->fetchAssoc();
         $date_start = $row['date_start'];
         $date_end = $row['date_end'];

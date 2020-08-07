@@ -18,6 +18,13 @@
                 {* @event backend_customer.%plugin_id%.action_link *}
                 {if !empty($backend_customer)}{foreach $backend_customer as $_}{if (!empty($_.action_link))}<li>{$_.action_link}</li>{/if}{/foreach}{/if}
                 <li><a href="{$wa->shop->backendContactUrl($contact.id, 'edit')}"><i class="icon16 edit"></i>[`Edit contact`]</a></li>
+                {if $contact['is_user'] <= 0}
+                    {if empty($contact['password'])}
+                        <li><a href="javascript:void(0);" id="create-password-link"><i class="icon16 access"></i>[`Create a customer account and send the password`]</a></li>
+                    {else}
+                        <li><a href="javascript:void(0);" id="reset-password-link"><i class="icon16 access"></i>[`Reset password for customer account`]</a></li>
+                    {/if}
+                {/if}
                 <li><a href="{$wa->shop->backendContactUrl($contact.id, 'delete')}"><i class="icon16 delete"></i>[`Delete contact`]</a></li>
             </ul>
         </div>
@@ -266,6 +273,51 @@
             return false;
         });
     })();
+
+    ( function($) {
+        var sources = [{
+            id: "wa-dialog-css",
+            type: "css",
+            uri: "{$wa_url}wa-content/js/dialog/dialog.css?v={$wa->version(true)}"
+        }, {
+            id: "wa-dialog-js",
+            type: "js",
+            uri: "{$wa_url}wa-content/js/dialog/dialog.js?v={$wa->version(true)}"
+        }];
+
+        $.shop.loadSources(sources).then(init);
+
+        function init() {
+            var is_locked = false;
+
+            var contact_id = "{$contact->getId()}";
+
+            $('#s-content').on('click', '#reset-password-link, #create-password-link', function(event) {
+                event.preventDefault();
+
+                if (is_locked) { return false; }
+                is_locked = true;
+
+                var $icon = $(this).find('i'),
+                    $loading = $("<i />", { class: "icon16 loading" }).insertAfter( $icon.hide() );
+
+                var href = "?module=customers&action=prepareResetPassword",
+                    data = { contact_id: contact_id };
+
+                $.post(href, data, "json")
+                    .always( function() {
+                        $loading.remove();
+                        $icon.show();
+                        is_locked = false;
+                    })
+                    .done( function(html) {
+                        $.waDialog({
+                            html: html
+                        });
+                    });
+            });
+        }
+    })(jQuery);
 
     // Controller for affiliate editor
     (function() {

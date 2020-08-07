@@ -3,7 +3,6 @@
 class shopWorkflowEditAction extends shopWorkflowAction
 {
     private $order_item = null;
-    private $order_uneditable_reason = null;
 
     protected function price($value, $currency = null)
     {
@@ -21,6 +20,8 @@ class shopWorkflowEditAction extends shopWorkflowAction
         $available = true;
         if (is_array($order)) {
             $this->order_item = $order;
+        } elseif ($order instanceof shopOrder) {
+            $this->order_item = $order;
         }
 
         if ($order) {
@@ -29,28 +30,6 @@ class shopWorkflowEditAction extends shopWorkflowAction
             }
 
             if ($order->auth_date && !$order->paid_date) {
-                if ($order->payment_plugin && !$order->payment_plugin->getProperties('partial_capture')) {
-                    //
-                    // We may not modify order in any way while customer's money are on hold
-                    // when payment plugin only supports full capture. Order total must stay intact.
-                    // This is mostly legacy. All modern payment plugins should support partial capture.
-                    //
-                    $this->order_uneditable_reason = 'no_partial_capture';
-                } else {
-                    //
-                    // This one is complicated.
-                    //
-                    // For now we explicitly prohibit to edit orders while customer's money are on hold.
-                    // User has to capture or cancel the payment. Capture has an option to remove some items,
-                    // but no custom unrestricted edit is available.
-                    //
-                    // There's no fundamental reason why we can't edit the order. It just makes
-                    // interaction with payment plugins way more complicated, when it is already
-                    // a total mess. Nobody bothered.
-                    //
-                    $this->order_uneditable_reason = 'money_on_hold';
-                }
-
                 // We want to show button, but it will not work in this case.
                 // Attempt to edit will show warning and bail because of $this->order_uneditable_reason
                 $available = true;
@@ -209,7 +188,6 @@ class shopWorkflowEditAction extends shopWorkflowAction
                 ),
             );
             unset($data['params']['refund_items']);
-            //TODO use it, when edit order in `auth` state
             $data['params']['auth_edit'] = date('Y-m-d H:i:s');
         }
 
@@ -265,20 +243,21 @@ class shopWorkflowEditAction extends shopWorkflowAction
     public function getButton()
     {
         $attrs = '';
-        if ($this->order_uneditable_reason == 'no_partial_capture') {
-            $message = _w("This order cannot be edited while customer’s money are captured because the payment option’s plugin does not support partial captures.");
-            $attrs = sprintf('data-action-unavailable-reason="%s"', htmlentities($message, ENT_QUOTES, 'utf-8'));
-        } else if ($this->order_uneditable_reason == 'money_on_hold') {
-            $message = _w("This order cannot be edited while customer’s money are captured.");
-            $attrs = sprintf('data-action-unavailable-reason="%s"', htmlentities($message, ENT_QUOTES, 'utf-8'));
-        } else if (is_array($this->order_item)) {
-            if (!empty($this->order_item['unsettled'])) {
-                $total = wa_currency($this->order_item['total'], $this->order_item['currency']);
-                $confirm = _w("Editing this order will mark it as settled and will re-calculate its current amount (%s) based on the changed order content. Are you sure you want to settle this order and to reset the order amount?");
-                $confirm = sprintf($confirm, $total);
-                $attrs = sprintf('data-confirm="%s"', htmlentities($confirm, ENT_QUOTES, 'utf-8'));
+        if (!empty($this->order_item)) {
+            $order_mode = shopOrderMode::getMode($this->order_item);
+            if ($order_mode['mode'] == shopOrderMode::MODE_DISABLED) {
+                $message = $order_mode['message'];
+                $attrs = sprintf('data-action-unavailable-reason="%s"', htmlentities($message, ENT_QUOTES, 'utf-8'));
+            } elseif ($this->order_item->auth_date && !$this->order_item->paid_date && is_array($this->order_item)) {
+                if (!empty($this->order_item['unsettled'])) {
+                    $total = wa_currency($this->order_item['total'], $this->order_item['currency']);
+                    $confirm = _w("Editing this order will mark it as settled and will re-calculate its current amount (%s) based on the changed order content. Are you sure you want to settle this order and to reset the order amount?");
+                    $confirm = sprintf($confirm, $total);
+                    $attrs = sprintf('data-confirm="%s"', htmlentities($confirm, ENT_QUOTES, 'utf-8'));
+                }
             }
         }
+
         return <<<HTML
 <a href="#" class="s-edit-order show-alert" {$attrs}>
     <i class="icon16 edit"></i><span>{$this->getName()}</span>

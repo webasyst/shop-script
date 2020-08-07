@@ -184,7 +184,8 @@ var OrderRefundSection = ( function($) {
         // FUNCTIONS
 
         function updatePrices() {
-            var total_price = 0;
+            var total_price = 0,
+                total_quantity = 0;
 
             that.$products.find(".s-product-wrapper").each( function() {
                 var $product = $(this),
@@ -202,9 +203,10 @@ var OrderRefundSection = ( function($) {
                 $product_total.html( formatPrice(product_price) );
 
                 total_price += product_price;
+                total_quantity += quantity;
             });
 
-            that.$submit_button.attr("disabled", !(total_price > 0));
+            that.$submit_button.attr("disabled", !(total_quantity > 0));
 
             $total_price.html( formatPrice(total_price) );
         }

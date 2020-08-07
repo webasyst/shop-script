@@ -112,6 +112,7 @@ SQL;
     /**
      * Return value id by feature_id and value
      * If value not found this function creates it and return new id
+     * The base function that also run updateById() and insert()
      *
      * @param int $feature_id
      * @param mixed $value

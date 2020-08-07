@@ -366,8 +366,9 @@ SQL;
                         $where['union'][] = sprintf("sf.type='%s'", self::TYPE_DOUBLE);
                         $where['union'][] = sprintf("sf.type='%s'", self::TYPE_TEXT);
                         $where['union'][] = sprintf("sf.type='%s'", self::TYPE_VARCHAR);
+                        $where['union'][] = sprintf("sf.type='%s'", self::TYPE_DATE);
                         $where['union'][] = sprintf("sf.type LIKE '%s.%%'", self::TYPE_DIMENSION);
-                        $where['union'][] = sprintf("(sf.type LIKE '%s.%%' AND sf.type <> '%s.%s')", self::TYPE_RANGE, self::TYPE_RANGE, self::TYPE_DATE);
+                        $where['union'][] = sprintf("(sf.type LIKE '%s.%%')", self::TYPE_RANGE);
                     }
                     break;
                 case 'ignore_id':

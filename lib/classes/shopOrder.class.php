@@ -822,28 +822,25 @@ class shopOrder implements ArrayAccess
      * @param array|bool $change_items
      * @param string     $mode         waPayment::OPERATION_REFUND or waPayment::OPERATION_CAPTURE
      * @param array      $transaction_data
-     * @return array
+     * @return array     items removed from the order
      * @throws waException
      */
     public function edit($change_items, $mode = waPayment::OPERATION_REFUND, $transaction_data = null)
     {
-        $return_items = array();
+        // items removed from the order - return value of this method
+        // will be saved in order params if partial operation
+        $refunded_items = array();
 
+        // items to keep in order
+        // will be set back into $this->items below if partial operation
         $items = $this->items;
 
-        $discount = 0.0;
-        foreach ($this->items as $item) {
-            $discount += $item['total_discount'];
-        }
-
-        $extra_total_discount = 0;
-        if ($this->subtotal) {
-            $extra_total_discount = max(0, $this->discount - $discount) / $this->subtotal;
-        }
-
-        $refund_discount = 0.0;
-
         foreach ($items as $item_id => &$item) {
+
+            $item['quantity'] = intval($item['quantity']);
+            if (!$item['quantity']) {
+                continue;
+            }
 
             if (!empty($item['parent_id'])) {
                 $item_id = $item['parent_id'];
@@ -851,8 +848,11 @@ class shopOrder implements ArrayAccess
                 $item_id = $item['id'];
             }
 
+            // $quantity is how many items are removed from the order, refunded (or unpaid)
+            // ($item['quantity'] - $quantity) is how many are left in order, paid
+            $quantity = 0;
             if ($change_items === true) {
-                $quantity = true;
+                $quantity = $item['quantity'];
             } elseif (is_array($change_items) && isset($change_items[$item_id]['quantity'])) {
                 $quantity = max(0, $change_items[$item_id]['quantity']);
                 switch ($mode) {
@@ -865,56 +865,19 @@ class shopOrder implements ArrayAccess
                     default:
                         throw new waException('Unknown edit payment mode');
                 }
-
-                if (!$quantity) {
-                    $quantity = false;
-                }
-            } else {
-                $quantity = false;
             }
 
-            if ($quantity !== false) {
-                $item['quantity'] = intval($item['quantity']);
-                if ($item['quantity']) {
+            if ($quantity) {
+                $item['discount'] = $item['total_discount'] / $item['quantity'];
+                $item['quantity'] -= $quantity;
+                $item['total_discount'] = $item['discount'] * $item['quantity'];
 
-                    //correct item price and discount
-                    $item['price'] = floatval($item['price']);
-
-                    if ($item['price'] && $item['quantity']) {
-
-                        $item['discount'] = $item['total_discount'] / $item['quantity'];
-
-                        if ($extra_total_discount) {
-                            $item['discount'] += $item['price'] * $extra_total_discount / $item['quantity'];
-                        }
-
-                    } else {
-                        $item['discount'] = 0;
-                    }
-
-                    // update item quantity
-                    if ($quantity) {
-                        if ($quantity === true) {
-                            $quantity = $item['quantity'];
-                        } else {
-                            $quantity = max(0, min($quantity, $item['quantity']));
-                        }
-
-                        $receipt_item = $item;
-                        $receipt_item['total_discount'] = $item['discount'] * $quantity;
-                        $receipt_item['quantity'] = $quantity;
-
-                        $refund_discount += $receipt_item['total_discount'];
-
-                        $return_items[$item['id']] = $receipt_item;
-
-                        unset($receipt_item);
-                    }
-
-                    $item['total_discount'] = $item['discount'] * ($item['quantity'] - $quantity);
-                    $item['quantity'] -= $quantity;
-                }
+                $refunded_items[$item['id']] = [
+                    'quantity' => $quantity,
+                    'total_discount' => $item['discount'] * $quantity,
+                ] + $item;
             }
+
             unset($item);
         }
 
@@ -924,11 +887,11 @@ class shopOrder implements ArrayAccess
             $shipping = $this->shipping;
             $discount = $this->discount;
             $this->items = $items;
-            if ($refund_discount > 0) {
-                $this->discount = max(0, $discount - $refund_discount);
-            } else {
-                $this->discount = $discount;
-            }
+
+            // This assignment also triggers distribution of discount among items,
+            // if any were left undistributed (which it should not have)
+            $refunded_discount = array_sum(array_column($refunded_items, 'total_discount'));
+            $this->discount = max(0, $discount - max(0, $refunded_discount));
 
             // Shipping is currently non-refundable in partial mode
             $this->shipping = $shipping;
@@ -938,22 +901,22 @@ class shopOrder implements ArrayAccess
         // 'refund_items' param is written to order log by workflow edit action,
         // then rendered via template at view time.
         $this->params;
-        $this->data['params']['refund_items'] = $return_items;
+        $this->data['params']['refund_items'] = $refunded_items;
 
         if ($transaction_data && $this->payment_plugin) {
             $payment_options = array(
                 'currency'       => $this->payment_plugin->allowedCurrency(),
                 'order_currency' => $this->currency,
             );
-            foreach ($return_items as $id => $item) {
+            foreach ($refunded_items as $id => $item) {
                 if (empty($item['quantity'])) {
-                    unset($return_items[$id]);
+                    unset($refunded_items[$id]);
                 }
             }
-            $return_items = shopHelper::workupOrderItems($return_items, $payment_options);
+            $refunded_items = shopHelper::workupOrderItems($refunded_items, $payment_options);
         }
 
-        return $return_items;
+        return $refunded_items;
     }
 
     protected function getBillingAddress()
@@ -986,6 +949,21 @@ class shopOrder implements ArrayAccess
         return $billing_address;
     }
 
+    /**
+     * $this['amount_on_hold']
+     */
+    protected function getAmountOnHold()
+    {
+        if (!$this->auth_date || $this->paid_date) {
+            return 0;
+        }
+        $plugin = $this->payment_plugin;
+        if (!$plugin) {
+            return 0;
+        }
+        $transactions = $plugin->getAvailableTransactions($this['id']);
+        return ifset($transactions, waPayment::TRANSACTION_CAPTURE, 'amount', 0);
+    }
 
     ###############################
     # Workflow section
@@ -1141,6 +1119,10 @@ class shopOrder implements ArrayAccess
             if ($this->options['return_stock'] !== null) {
                 $data['params']['return_stock'] = $this->options['return_stock'];
             }
+
+            if ($this->getAmountOnHold() > 0) {
+                $data['params']['auth_edit'] = date('Y-m-d H:i:s');
+            }
         }
         if ($text !== null) {
             $data['text'] = $text;
@@ -1235,6 +1217,27 @@ class shopOrder implements ArrayAccess
 
         if (($this->subtotal + $this->shipping) < $this->discount) {
             $this->errors['order']['discount'] = _w('Discount is greater than order total.');
+        }
+
+        // Additional validation when money are on hold
+        $amount_on_hold = $this->getAmountOnHold();
+        if ($amount_on_hold > 0) {
+            $order_mode = shopOrderMode::getMode($this);
+            if ($order_mode['mode'] == shopOrderMode::MODE_TOTAL_LIMITED) {
+                if ($this['total'] > $amount_on_hold) {
+                    $this->errors['order']['common'] = sprintf_wp(
+                        'Order total may not exceed the captured amount of %s.',
+                        shop_currency($amount_on_hold, $this->currency, $this->currency)
+                    );
+                }
+            } elseif ($order_mode['mode'] == shopOrderMode::MODE_TOTAL_FIXED) {
+                if ($this['total'] != $amount_on_hold) {
+                    $this->errors['order']['common'] = sprintf_wp(
+                        'Order total must remain equal to the currently captured amount of %s.',
+                        shop_currency($amount_on_hold, $this->currency, $this->currency)
+                    );
+                }
+            }
         }
 
         if (!$this->errors && !$this->options(null, 'ignore_stock_validate')) {
@@ -2371,6 +2374,7 @@ class shopOrder implements ArrayAccess
                 $safe_item['total_discount'] = $safe_item_discount_cents / $currency_precision;
                 $safe_group[] = $safe_item;
 
+                unset($item['id']);
                 $item['quantity'] = $total_quantity - $safe_quantity;
                 $item_discount_cents = $total_discount_cents - $safe_item_discount_cents;
                 $item['total_discount'] = $item_discount_cents / $currency_precision;
@@ -2672,12 +2676,23 @@ class shopOrder implements ArrayAccess
     private function dependenciesDiscount()
     {
         $name = 'discount';
-        if ($this->is_changed[$name] === 'manual') {
+        $is_changed = ifset($this->is_changed, $name, null);
+        if ($is_changed === 'manual' || $is_changed === 'hold') {
             $this->items;
             $order = array(
                 'items' => &$this->data['items'],
             );
-            $orig_discount_manually_set = $this->data['discount'];
+            if ($is_changed === 'manual') {
+                $orig_discount_manually_set = $this->data['discount'];
+            } else { // $is_changed === 'hold'
+                $orig_discount_manually_set = $this->data['discount'] = $this->original_data['discount'];
+                foreach($order['items'] as &$item) {
+                    if (!empty($item['id']) && !empty($this->original_data['items'][$item['id']])) {
+                        $item['total_discount'] = $this->original_data['items'][$item['id']]['total_discount'];
+                    }
+                }
+                unset($item);
+            }
             shopDiscounts::correctOrderDiscount($order, $this->data['discount_description'], $this->data['discount'], $this->currency);
             if (!empty($order['discount_decreased_by'])) {
                 // This means shop is misconfigured. Do not change discount, do not allow to create an order (see validation elsewhere).
@@ -3428,7 +3443,11 @@ class shopOrder implements ArrayAccess
 
             # round to currency precision
             $item['price'] = shop_currency($item['price'], $this->currency, $this->currency, false);
-            $item['total_discount'] = 0;
+            if (!empty($item['total_discount'])) {
+                $item['total_discount'] = shop_currency($item['total_discount'], $this->currency, $this->currency, false);
+            } else {
+                $item['total_discount'] = 0;
+            }
             $item['currency'] = '';
 
             unset($item);
@@ -3811,6 +3830,7 @@ class shopOrder implements ArrayAccess
         $variants = self::extractValue($data, 'variant', $type);
         $names = self::extractValue($data, 'name', $type);
         $prices = self::extractValue($data, 'price', $type);
+        $total_discounts = self::extractValue($data, 'total_discount', $type);
         $quantities = self::extractValue($data, 'quantity', $type);
         $stocks = self::extractValue($data, 'stock', $type);
 
@@ -3828,6 +3848,7 @@ class shopOrder implements ArrayAccess
                 'service_id'         => null,
                 'service_variant_id' => null,
                 'price'              => $this->formatValue($prices[$item_id], 'float'),
+                'total_discount'     => $this->formatValue(ifset($total_discounts, $item_id, 0), 'float'),
                 'quantity'           => (int)$quantities[$item_id],
                 'stock_id'           => !empty($stocks[$item_id]) ? intval($stocks[$item_id]) : null,
                 'parent_id'          => null,
@@ -3847,6 +3868,7 @@ class shopOrder implements ArrayAccess
                             'type'               => 'service',
                             'service_id'         => (int)$service_id,
                             'price'              => $this->formatValue($prices[$group][$index][$k], 'float'),
+                            'total_discount'     => $this->formatValue(ifset($total_discounts, $group, $index, $k, 0), 'float'),
                             'quantity'           => (int)$quantity,
                             'service_variant_id' => null,
                             'stock_id'           => null,
@@ -3883,6 +3905,7 @@ class shopOrder implements ArrayAccess
 
             $skus = self::extractValue($data, 'sku', $type);
             $prices = self::extractValue($data, 'price', $type);
+            $total_discounts = self::extractValue($data, 'total_discount', $type);
             $quantities = self::extractValue($data, 'quantity', $type);
             $services = self::extractValue($data, 'service', $type);
             $variants = self::extractValue($data, 'variant', $type);
@@ -3899,6 +3922,7 @@ class shopOrder implements ArrayAccess
                     'type'               => 'product',
                     'service_id'         => null,
                     'price'              => $this->formatValue($prices[$index]['product'], 'float'),
+                    'total_discount'     => $this->formatValue(ifset($total_discounts, $index, 'product', 0), 'float'),
                     'currency'           => '',
                     'quantity'           => $quantity,
                     'service_variant_id' => null,
@@ -3915,6 +3939,7 @@ class shopOrder implements ArrayAccess
                             'type'               => 'service',
                             'service_id'         => $service_id,
                             'price'              => $this->formatValue(ifset($prices, $index, 'service', $service_id, 0), 'float'),
+                            'total_discount'     => $this->formatValue(ifset($total_discounts, $index, 'service', $service_id, 0), 'float'),
                             'currency'           => '',
                             'quantity'           => $quantity,
                             'service_variant_id' => null,

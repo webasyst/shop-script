@@ -70,6 +70,9 @@ class shopSettingsFeaturesTypeSaveController extends waJsonController
     private function addTypeToRoutes($storefronts, $type_id, $all_types, $routes)
     {
         foreach ($routes as $site => $site_routes) {
+            if (!is_array($site_routes)) {
+                continue;
+            }
             foreach ($site_routes as $route_id => $param) {
                 if (ifset($param, 'app', null) !== 'shop' || !isset($param['url'])) {
                     continue;

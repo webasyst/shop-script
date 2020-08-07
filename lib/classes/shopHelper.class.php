@@ -1699,14 +1699,16 @@ SQL;
 
     /**
      * @param array[] $order_items
-     * @param mixed[string] $options <ul>
-     *             <li>$options['dimensions']
-     *             <li>$options['weight']
-     *             <li>$options['tax']
-     *             <li>$options['currency']
-     *             <li>$options['order_currency']
-     *             <li>$options['discount']
-     *             </ul>
+     * @param mixed[string] $options
+     *   <ul>
+     *      <li>$options['dimensions']
+     *      <li>$options['weight']
+     *      <li>$options['tax']
+     *      <li>$options['currency']
+     *      <li>$options['order_currency']
+     *      <li>$options['discount']
+     *      <li>$options['product_codes']
+     *   </ul>
      * @return array[]
      * @throws waException
      */
@@ -1762,6 +1764,12 @@ SQL;
                 $item[$feature] = shopHelper::workupValue($item[$feature], $feature, $options[$type], $unit);
             }
 
+            $product_codes = [];
+            if (!empty($options['product_codes'])) {
+                if (isset($item['product_codes']) && is_array($item['product_codes'])) {
+                    $product_codes = $item['product_codes'];
+                }
+            }
 
             $items[] = array(
                 'id'              => ifset($item['id']),
@@ -1786,6 +1794,7 @@ SQL;
                 'dimensions_unit' => (string)$options['dimensions'],
                 'total_discount'  => (float)$item['total_discount'],
                 'discount'        => (float)($item['quantity'] ? ($item['total_discount'] / $item['quantity']) : 0.0),
+                'product_codes'   => $product_codes // see shopOrderItemCodesModel::extendOrderItems for format
             );
         }
 
@@ -1794,12 +1803,14 @@ SQL;
 
     /**
      * @param mixed[] $order
-     * @param mixed [string] $options <ul>
-     *              <li>$options['currency']
-     *              <li>$options['discount']
-     *              <li>$options['weight']
-     *              <li>$options['dimensions']
-     *              </ul>
+     * @param mixed [string] $options
+     *  <ul>
+     *      <li>$options['currency']
+     *      <li>$options['discount']
+     *      <li>$options['weight']
+     *      <li>$options['dimensions']
+     *      <li>$options['product_codes']
+     *  </ul>
      * @return waOrder
      * @throws waException
      */
@@ -1897,6 +1908,11 @@ SQL;
 
         if ($units) {
             shopShipping::extendItems($order['items'], $units);
+        }
+
+        if (!empty($options['product_codes'])) {
+            $order_item_codes_model = new shopOrderItemCodesModel();
+            $order['items'] = $order_item_codes_model->extendOrderItems($order['items']);
         }
 
         $order_data = array(

@@ -89,6 +89,17 @@ class shopFrontendCheckoutAction extends waViewAction
          * @return array[string]string $return[%plugin_id%] html output
          */
         $event_params = array('step' => $current_step);
+
+        if (!empty(waRequest::get('transaction_id')) && !empty(waRequest::get('order_id')) && $current_step === shopCheckout::STEP_ERROR) {
+            $transaction_id = waRequest::get('transaction_id');
+            $transaction_model = new waTransactionModel();
+            $transaction = $transaction_model->getById($transaction_id);
+            if ($transaction['order_id'] == waRequest::get('order_id')) {
+                $error_message = ifempty($transaction['error'], _w('Payment was canceled.'));
+                $this->view->assign('error', $error_message);
+            }
+        }
+
         $this->view->assign('frontend_checkout', wa()->event('frontend_checkout', $event_params));
 
         if (waRequest::isXMLHttpRequest()) {

@@ -426,6 +426,101 @@
             $tbody.append($.map(trs, function(o) {
                 return o.tr;
             }));
+        },
+
+        // show/hide list items in #mainmenu
+        initMenuToggle: function(options) {
+            // DOM
+            var $window = $(window),
+                $wrapper = options["$wrapper"],
+                $items = $wrapper.find("> li:not(.js-toggle-menu)"),
+                $toggle = $wrapper.find(".js-toggle-menu");
+
+            // CONST
+            var templates = options["templates"];
+
+            // VARS
+            var is_open = false;
+
+            // ready
+            watch();
+
+            // resize event
+            var resize_timer = 0;
+            $window.on("resize", resizeWatcher);
+            function resizeWatcher() {
+                var is_exist = $.contains(document, $wrapper[0]);
+                if (is_exist) {
+                    clearTimeout(resize_timer);
+                    resize_timer = setTimeout( function() {
+                        watch();
+                    }, 40);
+
+                } else {
+                    $window.off("resize", resizeWatcher);
+                }
+            }
+
+            $toggle.on("click", function (event) {
+                event.preventDefault();
+                var active_class = "is-active";
+
+                is_open = !is_open;
+
+                if (is_open) {
+                    $toggle.find("a").html(templates["active"])
+                    $items.show();
+
+                } else {
+                    $toggle.find("a").html(templates["inactive"]);
+                    watch();
+                }
+            });
+
+            var observer = new MutationObserver( function(mutations) {
+                var changed_inside_wrapper = !!($.contains($wrapper[0], mutations[0].target) || ($wrapper[0] === mutations[0].target));
+                if (!changed_inside_wrapper) {
+                    watch();
+                }
+            });
+
+            observer.observe($wrapper.closest("#mainmenu")[0], {
+                childList: true,
+                attributes: true,
+                subtree: true
+            });
+
+            //
+
+            function watch() {
+                if (is_open) { return false; }
+
+                $wrapper.css("visibility", "hidden");
+                $items.show();
+                $toggle.show();
+
+                var first_offset = $items.first().offset();
+
+                if (isToggleVisible()) {
+                    $toggle.hide();
+                } else {
+                    for (var i = $items.length - 1; i > 0; i--) {
+                        var $item = $($items[i]);
+
+                        $item.hide();
+
+                        if (isToggleVisible()) {
+                            break;
+                        }
+                    }
+                }
+
+                $wrapper.css("visibility", "");
+
+                function isToggleVisible() {
+                    return ( Math.abs($toggle.offset().top - first_offset.top) < 10 );
+                }
+            }
         }
 
     }

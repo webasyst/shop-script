@@ -11,110 +11,6 @@ class shopWorkflowRefundAction extends shopWorkflowAction
         return parent::isAvailable($order);
     }
 
-    /**
-     * @deprecated use shopOrder::edit
-     * @param shopOrder $order
-     * @param $refund_items
-     * @return array
-     */
-    protected function partialRefund(shopOrder &$order, $refund_items)
-    {
-        $order_items = array();
-
-        $items = $order->items;
-
-        $discount = 0.0;
-        foreach ($order->items as $item) {
-            $discount += $item['total_discount'];
-        }
-
-        $extra_total_discount = 0;
-        if ($order->subtotal) {
-            $extra_total_discount = max(0, $order->discount - $discount) / $order->subtotal;
-        }
-
-        $refund_discount = 0.0;
-
-        foreach ($items as $item_id => &$item) {
-
-            if (!empty($item['parent_id'])) {
-                $item_id = $item['parent_id'];
-            } else {
-                $item_id = $item['id'];
-            }
-
-            if ($refund_items === true) {
-                $quantity = true;
-            } elseif (is_array($refund_items) && isset($refund_items[$item_id]['quantity'])) {
-                $quantity = max(0, $refund_items[$item_id]['quantity']);
-                $quantity = intval(max(0, min($quantity, $item['quantity'])));
-                if (!$quantity) {
-                    $quantity = false;
-                }
-            } else {
-                $quantity = false;
-            }
-
-            if ($quantity !== false) {
-                $item['quantity'] = intval($item['quantity']);
-                if ($item['quantity']) {
-                    $item['price'] = floatval($item['price']);
-
-                    if ($item['price'] && $item['quantity']) {
-
-                        $item['discount'] = $item['total_discount'] / $item['quantity'];
-
-                        if ($extra_total_discount) {
-                            $item['discount'] += $item['price'] * $extra_total_discount / $item['quantity'];
-                        }
-
-                    } else {
-                        $item['discount'] = 0;
-                    }
-
-                    if ($quantity) {
-                        if ($quantity === true) {
-                            $quantity = $item['quantity'];
-                        } else {
-                            $quantity = max(0, min($quantity, $item['quantity']));
-                        }
-
-                        $refund_item = $item;
-                        $refund_item['total_discount'] = $item['discount'] * $quantity;
-                        $refund_item['quantity'] = $quantity;
-
-                        $refund_discount += $refund_item['total_discount'];
-
-                        $order_items[$item['id']] = $refund_item;
-
-                        unset($refund_item);
-                    }
-
-                    $item['total_discount'] = $item['discount'] * ($item['quantity'] - $quantity);
-                    $item['quantity'] -= $quantity;
-                }
-            }
-            unset($item);
-        }
-
-        if ($refund_items !== true) {
-
-            $shipping = $order->shipping;
-            $discount = $order->discount;
-            $order->items = $items;
-            if ($refund_discount > 0) {
-                $order->discount = max(0, $discount - $refund_discount);
-            } else {
-                $order->discount = $discount;
-            }
-
-            //XXX refund shipping delta?
-            $order->shipping = $shipping;
-        }
-
-        return $order_items;
-    }
-
     public function execute($options = null)
     {
         $result = true;
@@ -152,9 +48,8 @@ class shopWorkflowRefundAction extends shopWorkflowAction
                 #Don't change state after action execute
                 $this->state_id = null;
             }
-            $refund_items = $this->partialRefund($order, $refund_items);
 
-
+            $refund_items = $order->edit($refund_items, waPayment::OPERATION_REFUND);
             $refund_items = $this->workupOrderItems($order, $plugin, $refund_items);
             $refund_amount = 0.0;
             foreach ($refund_items as $refund_item) {
@@ -169,7 +64,6 @@ class shopWorkflowRefundAction extends shopWorkflowAction
             }
             $refund_items = null;
         }
-
 
         if ($refund && !empty($plugin)) {
             $result = $this->refundPayment($plugin, $order_id, $refund_amount, $refund_items);
@@ -407,10 +301,8 @@ class shopWorkflowRefundAction extends shopWorkflowAction
             $stocks = array();
         }
 
-        $order_items = $this->partialRefund($order, true);
-
         $order_items_count = 0;
-
+        $order_items = $order->edit(true, waPayment::OPERATION_REFUND);
         $order_items = $this->workupOrderItems($order, $transaction_data ? $plugin : null, $order_items);
         foreach ($order_items as &$item) {
             $order_items_count += intval($item['quantity']);

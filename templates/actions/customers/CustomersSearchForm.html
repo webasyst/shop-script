@@ -388,6 +388,10 @@
                 return false;
             });
 
+            $(container).find(':radio').change(function () {
+                $(this).closest('.field').find('.s-clear-radio').show();
+            });
+
             // Certain form fields are disabled depending on what is selected elsewhere.
             // Namely, we disable all non-address fields when at least one of two things is selected
             // 1) either "show all contacts" is selected in the first radio control.

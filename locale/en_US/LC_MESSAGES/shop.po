@@ -4951,9 +4951,6 @@ msgstr ""
 msgid "%s has no affiliate history yet."
 msgstr ""
 
-msgid "Only customers with at least one order are displayed."
-msgstr ""
-
 msgid "Page title"
 msgstr ""
 

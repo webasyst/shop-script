@@ -187,13 +187,26 @@ class shopCategoryModel extends waNestedSetModel
         $element = $this->getById($id);
         $old_parent_id = $element[$this->parent];
         $parent = $this->getById($parent_id);
+        $error_message = 'Error when move';
 
         if ($parent && $parent['type'] == self::TYPE_DYNAMIC && $element['type'] == self::TYPE_STATIC) {
-            return false;
+            return $error_message;
+        }
+
+        $possible_url = empty($parent) ? $element['url'] : $parent['full_url'] . '/' . $element['url'];
+        if ($element['full_url'] != $possible_url && $same = $this->getByField('full_url', $possible_url)) {
+            return strtr(
+                _w('Category “%current” being moved cannot be placed inside category “%parent” because category “%parent” already contains subcategory “%same” whose editable URL part matches that of category “%current”. To complete the category moving, change the editable URL part either for category “%current”, or for category “%same”.'),
+                array(
+                    '%current' => $element['name'],
+                    '%parent' => $parent['name'],
+                    '%same' => $same['name']
+                )
+            );
         }
 
         if (!parent::move($id, $parent_id, $before_id)) {
-            return false;
+            return $error_message;
         }
 
         // change url taking into account uniqueness of urls in one level
@@ -299,7 +312,7 @@ class shopCategoryModel extends waNestedSetModel
      * @param array $data
      * @param int $parent_id If 0 than root level
      * @param int|null $before_id If null than place at the end of level
-     * @return int|false record id
+     * @return int|false|array record id
      */
     public function add($data, $parent_id = null, $before_id = null)
     {
@@ -348,6 +361,10 @@ class shopCategoryModel extends waNestedSetModel
             if (!empty($data['url'])) {
                 $data['url'] = $this->suggestUniqueUrl($data['url'], null, $parent_id);
                 $data['full_url'] = $this->fullUrl($parent['full_url'], $data['url']);
+                // 255 is the size of the field in the table
+                if (strlen($data['full_url']) > 255) {
+                    return array('url' => _w('Too long URL including the URLs of parent categories.'));
+                }
             }
         }
 

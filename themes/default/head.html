@@ -1,18 +1,18 @@
 <!-- shop app css -->
-<link href="{$wa_active_theme_url}default.shop.css?v{$wa_theme_version}" rel="stylesheet" type="text/css">
+<link href="{$wa_active_theme_url}default.shop.css?v{$wa_theme_version}" rel="stylesheet">
 <link href="{$wa_active_theme_url}css/order.css?v={$wa_theme_version}" rel="stylesheet">
 <link href="{$wa_active_theme_url}jquery.bxslider.css?v{$wa_theme_version}" rel="stylesheet" />
-<link href="{$wa_active_theme_url}jquerycountdowntimer/css/jquery.countdownTimer.css" rel="stylesheet" type="text/css">
+<link href="{$wa_active_theme_url}jquerycountdowntimer/css/jquery.countdownTimer.css" rel="stylesheet">
 
 <!-- js -->
-<script type="text/javascript" src="{$wa_app_static_url}js/lazy.load.js?v{$wa->version()}"></script>
-<script type="text/javascript" src="{$wa_active_theme_url}jquery.bxslider.min.js?v{$wa_theme_version}"></script>
-<script type="text/javascript" src="{$wa_active_theme_url}jquerycountdowntimer/jquery.countdownTimer.min.js?v={$wa->version(true)}"></script>
-<script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-plugins/jquery.cookie.js?v{$wa->version(true)}"></script>
-<script type="text/javascript" src="{$wa_active_theme_url}default.shop.js?v{$wa_theme_version}"></script>
+<script src="{$wa_app_static_url}js/lazy.load.js?v{$wa->version()}"></script>
+<script src="{$wa_active_theme_url}jquery.bxslider.min.js?v{$wa_theme_version}"></script>
+<script src="{$wa_active_theme_url}jquerycountdowntimer/jquery.countdownTimer.min.js?v={$wa->version(true)}"></script>
+<script src="{$wa_static_url}wa-content/js/jquery-plugins/jquery.cookie.js?v{$wa->version(true)}"></script>
+<script src="{$wa_active_theme_url}default.shop.js?v{$wa_theme_version}"></script>
 {if $wa->shop->config('enable_2x')}
-<script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-plugins/jquery.retina.min.js?v{$wa->version(true)}"></script>
-<script type="text/javascript">$(window).load(function() {
+<script src="{$wa_static_url}wa-content/js/jquery-plugins/jquery.retina.min.js?v{$wa->version(true)}"></script>
+<script>$(window).load(function() {
     $('.promo img').retina({ force_original_dimensions: false });
     $('.product-list img,.product-info img,.cart img').retina();;
     $('.bestsellers img').retina();
@@ -21,11 +21,21 @@
 {/if}
 
 {if !empty($filters)}
-    <link href="{$wa_static_url}wa-content/css/jquery-ui/base/jquery.ui.slider.css" rel="stylesheet" type="text/css">
-    <script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.core.min.js?v{$wa->version(true)}"></script>
-    <script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.widget.min.js?v{$wa->version(true)}"></script>
-    <script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.mouse.min.js?v{$wa->version(true)}"></script>
-    <script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js?v{$wa->version(true)}"></script>
+    <link href="{$wa_static_url}wa-content/css/jquery-ui/base/jquery.ui.all.css?v={$wa->version(true)}" rel="stylesheet" />
+    <script src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.core.min.js?v{$wa->version(true)}"></script>
+    <script src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.widget.min.js?v{$wa->version(true)}"></script>
+    <script src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.mouse.min.js?v{$wa->version(true)}"></script>
+    <script src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js?v{$wa->version(true)}"></script>
+    {foreach $filters as $_filter}
+        {if !empty($_filter.type) && $_filter.type === "range.date"}
+            {$_lang = substr($wa->locale(), 0, 2)}
+            <script src="{$wa_url}wa-content/js/jquery-ui/jquery.ui.datepicker.min.js?v={$wa->version(true)}"></script>
+            {if $_lang !== "en"}
+                <script src="{$wa_url}wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js"></script>
+            {/if}
+            {break}
+        {/if}
+    {/foreach}
 {/if}
 
 {if !empty($nofollow)}

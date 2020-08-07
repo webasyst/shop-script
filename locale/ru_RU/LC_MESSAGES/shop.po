@@ -5854,9 +5854,6 @@ msgstr "%s еще не оставлял отзывы о товарах в ваш
 msgid "%s has no affiliate history yet."
 msgstr "%s не имеет начисленных бонусных баллов."
 
-msgid "Only customers with at least one order are displayed."
-msgstr "Отображаются только покупатели, оформившие хотя бы один заказ."
-
 msgid "Page title"
 msgstr "Заголовок страницы"
 
@@ -10770,8 +10767,8 @@ msgstr "частичное"
 msgid "Return items, not selected for capture, to selected stocks"
 msgstr "Вернуть на склад товары, для которых не выполняется списание средств"
 
-msgid "Partial capture reason"
-msgstr "Причина частичного списания"
+msgid "Capture reason"
+msgstr "Причина списания"
 
 msgid "Money will be captured via the payment gateway."
 msgstr "Средства будут списаны через платежную систему."
@@ -10937,3 +10934,78 @@ msgstr "Вы можете выбрать удобное время начина�
 
 msgid "Image thumbnails cannot be generated because required system files are missing in <em>wa-data/public/shop/promos/</em> directory."
 msgstr "Эскизы изображений не могут быть созданы, потому что отсутствуют необходимые системные файлы в директории <em>wa-data/public/shop/promos/</em>."
+
+msgid "Reset customer’s password and send it to an email address"
+msgstr "Сбросить пароль покупателя и отправить его на email-адрес"
+
+msgid "Create a customer account and send a password to an email address"
+msgstr "Создать личный кабинет покупателя и отправить пароль на email-адрес"
+
+msgid "Main"
+msgstr "Основной"
+
+msgid "The contact has no email addresses."
+msgstr "У контакта нет email-адресов."
+
+msgid "Contact’s main email address will be changed. The new main address will have to be used to sign into the customer account."
+msgstr "Будет изменен основной email-адрес контакта. Для входа в личный кабинет нужно будет использовать новый основной адрес."
+
+msgid "Reset password"
+msgstr "Сбросить пароль"
+
+msgid "Create customer account"
+msgstr "Создать личный кабинет"
+
+msgid "Create a customer account and send the password"
+msgstr "Создать личный кабинет и отправить пароль"
+
+msgid "Reset password for customer account"
+msgstr "Сбросить пароль от личного кабинета"
+
+msgid "To delete this product code, disable or delete the corresponding plugin."
+msgstr "Чтобы удалить этот товарный код, отключите или удалите соответствующий плагин."
+
+msgid "The editing of this order is limited because customer’s funds are authorized on a bank account."
+msgstr "Редактирование заказа ограничено, потому что денежные средства заблокированы на счете клиента."
+
+msgid "You may change the list of ordered items. However, the order total of %s must remain unchanged because the selected payment plugin does not support partial funds capturing."
+msgstr "Допускается менять состав заказа. Но итоговая сумма заказа %s должна остаться без изменений,  потому что плагин оплаты не поддерживает частичное списание средств."
+
+msgid "You may change the list of ordered items. However, the order total after your changes may not exceed the captured amount of %s."
+msgstr "Допускается менять состав заказа, но итоговая сумма заказа после изменений не должна превышать сумму заблокированных средств %s."
+
+msgid "Hide"
+msgstr "Скрыть"
+
+msgid "Cannot reset the password for a backend user."
+msgstr "Невозможно сбросить пароль для пользователя панели управления."
+
+msgid "Incorrect email addresses related data found for this contact."
+msgstr "Обнаружена некорректная информация об email-адресах этого контакта."
+
+msgid "Message has been sent."
+msgstr "Сообщение отправлено."
+
+msgid "Message sending has failed."
+msgstr "Ошибка отправки сообщения."
+
+msgid "Payment was canceled."
+msgstr "Оплата отменена."
+
+msgid "Order total may not exceed the captured amount of %s."
+msgstr "Сумма заказа не может превышать заблокированную сумму %s."
+
+msgid "Order total must remain equal to the currently captured amount of %s."
+msgstr "Сумма заказа должна сохраняться равной сумме заблокированных средств %s."
+
+msgid "The discount amount was reduced so as not to exceed the cost of all products."
+msgstr "Размер скидки был уменьшен, чтобы не превышать стоимость всех товаров."
+
+msgid "Order editing has been disabled because the customer’s funds have been captured and an installed plugin does not support partial funds capturing."
+msgstr "Редактирование заказа отключено, потому что средства покупателя заблокированы и установленный плагин не поддерживает частичное списание."
+
+msgid "Category “%current” being moved cannot be placed inside category “%parent” because category “%parent” already contains subcategory “%same” whose editable URL part matches that of category “%current”. To complete the category moving, change the editable URL part either for category “%current”, or for category “%same”."
+msgstr "Перемещаемая категория «%current» не может быть добавлена в категорию «%parent», потому что в категории «%parent» уже есть подкатегория «%same», редактируемая часть URL которой совпадает с редактируемой частью URL категории «%current». Для того чтобы совершить такое перемещение, измените редактируемую часть URL категории «%current» или категории «%same»."
+
+msgid "Too long URL including the URLs of parent categories."
+msgstr "Cлишком длинный URL с учетом URL родительских категорий."
