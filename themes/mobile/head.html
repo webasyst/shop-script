@@ -27,11 +27,21 @@
 <script src="{$wa_active_theme_url}plugin/swipebox/js/jquery.swipebox.js"></script>
 
 {if !empty($filters)}
-    <link href="{$wa_static_url}wa-content/css/jquery-ui/base/jquery.ui.slider.css" rel="stylesheet" type="text/css">
+    <link href="{$wa_static_url}wa-content/css/jquery-ui/base/jquery.ui.all.css?v={$wa->version(true)}" rel="stylesheet" />
     <script src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.core.min.js?v{$wa->version(true)}"></script>
     <script src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.widget.min.js?v{$wa->version(true)}"></script>
     <script src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.mouse.min.js?v{$wa->version(true)}"></script>
     <script src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js?v{$wa->version(true)}"></script>
+    {foreach $filters as $_filter}
+        {if !empty($_filter.type) && $_filter.type === "range.date"}
+            {$_lang = substr($wa->locale(), 0, 2)}
+            <script src="{$wa_url}wa-content/js/jquery-ui/jquery.ui.datepicker.min.js?v={$wa->version(true)}"></script>
+            {if $_lang !== "en"}
+                <script src="{$wa_url}wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js"></script>
+            {/if}
+            {break}
+        {/if}
+    {/foreach}
 {/if}
 
 {if !empty($nofollow)}

@@ -56,6 +56,58 @@
                                         <div class="filter-item">
                                             <label><input type="radio" name="{$filter.code}"{if $wa->get($filter.code, '') === ''} checked{/if} value=""> [`Any`]</label>
                                         </div>
+
+                                    {elseif $filter.type == "range.date"}
+                                        <div class="s-filter-item s-range-date-item" id="js-filter-{$filter.id|escape}" data-min="{$filter.min}" data-max="{$filter.max}">
+                                            <div class="s-datepicker-wrapper">
+                                                <span class="s-label">[`from`]</span>
+                                                <div class="s-fields">
+                                                    <input class="js-datepicker" type="text" value="{if !empty($_v.min)}{$_v.min|wa_date}{/if}" placeholder="{$filter.min|wa_date}">
+                                                    <input name="{$filter.code}[min]" type="hidden" value="{if !empty($_v.min)}{$_v.min}{/if}">
+                                                </div>
+                                            </div>
+                                            <div class="s-datepicker-wrapper">
+                                                <span class="s-label">[`to`]</span>
+                                                <div class="s-fields">
+                                                    <input class="js-datepicker" type="text" value="{if !empty($_v.max)}{$_v.max|wa_date}{/if}" placeholder="{$filter.max|wa_date}">
+                                                    <input name="{$filter.code}[max]" type="hidden" value="{if !empty($_v.max)}{$_v.max}{/if}">
+                                                </div>
+                                            </div>
+                                            <script>
+                                                ( function($) {
+                                                    var $filter = $("#js-filter-{$filter.id|escape}");
+                                                    $filter.find(".js-datepicker").each( function() { initDatepicker( $(this) ); });
+
+                                                    function initDatepicker($datepicker) {
+                                                        var $altField = $datepicker.parent().find("input[type='hidden']");
+                                                        $datepicker.datepicker({
+                                                            altField: $altField,
+                                                            altFormat: "yy-mm-dd",
+                                                            minDate: formatDate($filter.data("min")),
+                                                            maxDate: formatDate($filter.data("max")),
+                                                            changeMonth: true,
+                                                            changeYear: true
+                                                        });
+
+                                                        $datepicker.on("change", function() {
+                                                            var value = $datepicker.val();
+                                                            if (!value) {
+                                                                $altField.val("");
+                                                            }
+                                                        });
+
+                                                        function formatDate(date_string) {
+                                                            var date_array = date_string.split("-");
+                                                            var year = date_array[0],
+                                                                mount = date_array[1] - 1,
+                                                                day = date_array[2];
+                                                            return new Date(year, mount, day);
+                                                        }
+                                                    }
+                                                })(jQuery);
+                                            </script>
+                                        </div>
+
                                     {elseif isset($filter.min)}
                                         {$_v = $wa->get($filter.code)}
                                         <div class="filter-item filter-price-item">
