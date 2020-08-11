@@ -5,25 +5,27 @@ class shopChestnyznakPlugin extends shopPlugin
     public function orderActionForm(&$params)
     {
         $model = new shopChestnyznakPluginModel();
-        $code_id = $model->getProductCodeId();
+        $product_code = $model->getProductCode();
 
         // In case user deleted the code, create it again
-        if (empty($code_id)) {
-            $images = $this->getPluginImages('logo.png');
+        if (empty($product_code['id'])) {
+            $images = $this->getPluginImages();
             $model->setupProductCode($images);
-            $code_id = $model->getProductCodeId();
-            if (empty($code_id)) {
+            $code = $model->getProductCode();
+            if (empty($code['id'])) {
                 return; // should never happen
             }
+        } elseif ($product_code['name'] != shopChestnyznakPluginModel::PRODUCT_CODE_NAME) {
+            $model->setName($product_code['id']);
         }
 
         // this takes localization from shop.po
         $validation_error_message = htmlspecialchars(_w('Values must be unique'));
 
-        $codes = $this->getOrderItemsCodes($params['order_id'], $code_id);
+        $codes = $this->getOrderItemsCodes($params['order_id'], $product_code['id']);
 
         $options = [
-            'product_code_id' => $code_id,
+            'product_code_id' => $product_code['id'],
             'parsed_codes' => self::parseOrderItemsProductUIDs($codes),
             'messages' => [
                 'unique' => $validation_error_message
@@ -43,14 +45,16 @@ EOF;
     public function installSettingsPlugin()
     {
         $model = new shopChestnyznakPluginModel();
-        $hasCode = $model->getProductCodeId();
-        if (empty($hasCode)) {
-            $images = $this->getPluginImages('logo.png');
+        $product_code = $model->getProductCode();
+        if (empty($product_code['id'])) {
+            $images = $this->getPluginImages();
             $model->setupProductCode($images);
+        } elseif ($product_code['name'] != shopChestnyznakPluginModel::PRODUCT_CODE_NAME) {
+            $model->setName($product_code['id']);
         }
     }
 
-    protected function getPluginImages($image_name)
+    protected function getPluginImages($image_name = 'logo.png')
     {
         $images['icon'] = $this->getImagePath();
         $plugin_id = $this->getId();
@@ -92,16 +96,28 @@ EOF;
         $result = [];
         foreach ($data as $order_item_id => $codes) {
             foreach ($codes as $sort => $uid) {
-                $parsed = shopChestnyznakPlugin::parseProductUID($uid);
+                $parse_result = shopChestnyznakPluginCodeParser::parse($uid);
+
+                // if uid has cyrillic symbols convert it and try parse again, here is result of converting
+                $converted = '';
+                if (!$parse_result['status'] && $parse_result['details']['error_code'] === 'contains_cyrillic') {
+                    $converted = shopChestnyznakPluginCodeParser::convert($uid);
+                    $parse_result = shopChestnyznakPluginCodeParser::parse($converted);
+                }
 
                 $res = [
-                    'parsed' => $parsed,
-                    'validation' => []
+                    'validation' => [],
+                    'converted' => $converted,
+                    'parsed' => false       // here expected either FALSE or associative array-result of parsing
                 ];
 
+                if ($parse_result['status']) {
+                    $res['parsed'] = $parse_result['details'];
+                }
+
                 // validate GTIN's matching
-                if ($parsed && !empty($order_items_gtin_values[$order_item_id])) {
-                    if ($parsed['gtin'] != $order_items_gtin_values[$order_item_id]) {
+                if ($parse_result['status'] && !empty($order_items_gtin_values[$order_item_id])) {
+                    if ($parse_result['details']['gtin'] != $order_items_gtin_values[$order_item_id]) {
                         $res['validation']['not_match'] = 'GTIN в коде маркировки «Честный ЗНАК» не совпадает со значением GTIN товара.';
                     }
                 }
@@ -134,100 +150,6 @@ EOF;
             'feature_id' => $feature_id
         ])->fetchAll('id', true);
     }
-
-    /**
-     * Парсим уникальный идентификатор товара - УИД
-     *
-     * Из документации, УИД выглядит так
-     *  01+XXXXXXXXXXXXXX+21+XXXXXXXXXXXXX+240+XXXX
-     *  Где
-     *      - Первая группа (идет после идентификатора применения 01) это GTIN (14 символов)
-     *      - Вторая группа (идет после идентификатора применения 21) это серийный номер товара (13 символов)
-     *      - дальше идет символ \x1d (символ с ASCII кодом 29, так назыаемый Group Separator)
-     *          В доке говорится, что этот символ необходимо исползовать :)
-     *      - Третья группа (идет после идентификатора применения 240) это ТН ВЭД ЕАЭС (4 символа)
-     *
-     * @param string $uid
-     *
-     * @return array|false $parsed - если УИД не соответствует вышеприведенному формату, то FALSE (при этом \x1d после второй группы может быть опущен)
-     *      string $parsed['gtin'] - GTIN (14 символов)
-     *      string $parsed['serial'] - серийный номер товара (13 символов)
-     *      string $parsed['tnved'] - код ТН ВЭД ЕАЭС (4 символа)
-     *
-     */
-    public static function parseProductUID($uid)
-    {
-        if (!is_string($uid)) {
-            return false;
-        }
-
-        // group separator\x1d (29 ascii code) must not be at all or be on place 31
-        $pos = strpos($uid, "\x1d");
-        if ($pos !== false && $pos != 31) {
-            return false;
-        }
-
-        // normalize uid, insert group separator
-        if ($pos === false) {
-            $uid = substr($uid, 0, 31) . "\x1d" . substr($uid, 31);
-        }
-
-        // len of uid with group separator must be 39
-        $len = strlen($uid);
-        if ($len != 39) {
-            return false;
-        }
-
-        // aid is "application identifier" - идентификатор применения
-
-        $aid = substr($uid, 0, 2);
-        if ($aid != "01") {
-            return false;
-        }
-
-        $gtin = substr($uid, 2, 14);
-
-        $aid = substr($uid, 16, 2);
-        if ($aid != "21") {
-            return false;
-        }
-
-        $serial = substr($uid, 18, 13);
-
-        $aid = substr($uid, 32, 3);
-        if ($aid != "240") {
-            return false;
-        }
-
-        $tnved = substr($uid, 35);
-
-        if (!self::isAllDigits($gtin)) {
-            return false;
-        }
-
-        if (!self::isAllDigits($tnved)) {
-            return false;
-        }
-
-        return [
-            'gtin' => $gtin,
-            'serial' => $serial,
-            'tnved' => $tnved
-        ];
-    }
-
-    private static function isAllDigits($str)
-    {
-        $len = strlen($str);
-        for ($i = 0; $i < $len; $i++) {
-            $val = ord($str[$i]) - ord('0');
-            if ($val < 0 || $val > 9) {
-                return false;
-            }
-        }
-        return true;
-    }
-
 
     /**
      * Returns image path

@@ -135,6 +135,11 @@ var ShopChestnyznakPlugin = ( function($) {
                     return;
                 }
 
+                // if code have been converted from cyrillic to latin keyboard layout
+                if (result.converted) {
+                    $input.val(result.converted);
+                }
+
                 // clear previous render result
                 $parsing_result.find('.js-validation .js-error-not-match').text('');
                 $parsing_result.find('.js-parsed-params').removeClass('s-cs-invalid');

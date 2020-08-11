@@ -7,7 +7,7 @@ class shopChestnyznakPluginOrderCodesValidateController extends waJsonController
     public function __construct()
     {
         $m = new shopChestnyznakPluginModel();
-        $this->code_id = $m->getProductCodeId();
+        $this->code_id = $m->getProductCode()['id'];
     }
 
     public function execute()
