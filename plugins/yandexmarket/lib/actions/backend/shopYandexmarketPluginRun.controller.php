@@ -6,6 +6,7 @@
  */
 class shopYandexmarketPluginRunController extends waLongActionController
 {
+    /** @deprecated */
     const PRODUCT_PER_REQUEST = 500;
 
     /** @var string */
@@ -1629,7 +1630,7 @@ SQL;
         static $categories;
         static $stocks_model;
         if (!$products) {
-            $products = $this->getCollection()->getProducts($this->getProductFields(), $current_stage, self::PRODUCT_PER_REQUEST, false);
+            $products = $this->getCollection()->getProducts($this->getProductFields(), $current_stage, (int) shopYandexmarketPlugin::getConfigParam('products_per_request'), false);
             if (!$products) {
                 $current_stage = $count['product'];
             } elseif (!empty($this->data['export']['sku'])) {

@@ -21,4 +21,5 @@ return array(
         'Трехколесные велосипеды',
         'Кроватки',
     ),
+    'products_per_request'          => 500,
 );
