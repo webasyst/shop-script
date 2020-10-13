@@ -19,6 +19,19 @@ class shopCouponModel extends waModel
         $this->exec($sql, array('id' => $id));
     }
 
+    public function setUnused($order_id)
+    {
+        $order_params_model = new shopOrderParamsModel();
+        $row = $order_params_model->getByField(array('order_id' => $order_id, 'name' => 'coupon_id'));
+        if (!empty($row['value'])) {
+            $old_coupon = $this->getById($row['value']);
+            if (!empty($old_coupon['id'])) {
+                $sql = "UPDATE {$this->table} SET used = used - 1 WHERE id = :id AND used > 0";
+                $this->exec($sql, array('id' => $old_coupon['id']));
+            }
+        }
+    }
+
     public function countActive()
     {
         $sql = <<<SQL

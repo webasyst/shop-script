@@ -47,9 +47,10 @@ class shopAffiliate
      * Amount of affiliation points given order worths.
      * @param array|int $order_or_id
      * @param float $credit_rate
+     * @param bool $check_product_types
      * @return float
      */
-    public static function calculateBonus($order_or_id, $credit_rate = null)
+    public static function calculateBonus($order_or_id, $credit_rate = null, $check_product_types = true)
     {
         if (!self::isEnabled()) {
             return 0;
@@ -76,7 +77,7 @@ class shopAffiliate
         $affiliatable_total = $curm->convert(ifset($order['total'], 0) - ifset($order['shipping'], 0), ifempty($order_currency, $def_cur), $def_cur);
 
         $product_types = wa()->getSetting('affiliate_product_types', '', 'shop');
-        if (!empty($product_types)) {
+        if (!empty($product_types) && $check_product_types) {
 
             //
             // When affiliation program is enabled for certain product types only,

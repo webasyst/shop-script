@@ -110,13 +110,14 @@ class shopWorkflowMessageAction extends shopWorkflowAction
         $contact = new waContact($order['contact_id']);
 
         $source = ifset($order['params']['storefront'], '');
-        if ($source) {
+        if ($source && $source != 'backend' && $source != 'all_sources') {
             $source = trim($source, '/*').'/*';
         }
 
         $notification_model = new shopNotificationModel();
-        $sql = "SELECT DISTINCT n.source, n.transport, np.value FROM shop_notification n
+        $sql = "SELECT DISTINCT ns.source, n.transport, np.value FROM shop_notification n
                 JOIN shop_notification_params np ON n.id = np.notification_id
+                JOIN shop_notification_sources ns ON n.id = ns.notification_id
                 WHERE np.name = 'from'";
         $rows = $notification_model->query($sql)->fetchAll();
 

@@ -1263,7 +1263,7 @@ class shopHelper
                 $str = waLocale::transliterate($str, $lang);
             }
         }
-        $str = preg_replace('/[^a-zA-Z0-9_-]+/', '', $str);
+        $str = preg_replace('/[^a-zA-Z0-9_]+/', '-', $str);
         if ($strict && !strlen($str)) {
             $str = date('Ymd');
         }
@@ -1428,9 +1428,10 @@ class shopHelper
 
         $notification_model = new shopNotificationModel();
         $sql = <<<SQL
-SELECT DISTINCT n.source, n.transport, np.value
+SELECT DISTINCT ns.source, n.transport, np.value
 FROM shop_notification n
 JOIN shop_notification_params np ON n.id = np.notification_id
+JOIN shop_notification_sources ns ON n.id = ns.notification_id
 WHERE
   np.name = 'from'
   AND
@@ -1438,12 +1439,14 @@ WHERE
 
 SQL;
         if ($source) {
-            $source = trim($source, '/*').'/*';
-            $sql .= " AND n.source=s:source";
+            if ($source != 'backend' && $source != 'all_sources') {
+                $source = trim($source, '/*') . '/*';
+            }
+            $sql .= " AND ns.source=s:source";
         }
         $sql .= ' LIMIT 1';
 
-        if ($row = $notification_model->query($sql, compact('source'))->fetchRow()) {
+        if ($row = $notification_model->query($sql, compact('source'))->fetchAssoc()) {
             $store_email = ifset($row, 'value', '');
         }
         if (empty($store_email)) {
@@ -1560,11 +1563,12 @@ SQL;
         }
         $found_products = $col->getProducts('id,name', 0, 1);
         $found_product = reset($found_products);
-        $template = _w('The URL <strong>:url</strong> is already in use by another product (<a href="?action=products#/product/:another_product_id/" target="_blank" class="bold">:another_product_name</a>). You may still save this product with the same URL, but the storefront will display only one (any) product by this URL.');
+        $backend_url = sprintf('%sshop/?action=products#/product/%d/', wa()->getConfig()->getBackendUrl(true), $found_product['id']);
+        $template = _w('The URL <strong>:url</strong> is already in use by another product (<a href=":another_product_backend_url" target="_blank" class="bold">:another_product_name</a>). You may still save this product with the same URL, but the storefront will display only one (any) product by this URL.');
 
         return str_replace(
-            array(':url', ':another_product_id', ':another_product_name'),
-            array($product['url'], $found_product['id'], htmlspecialchars($found_product['name'])),
+            array(':url', ':another_product_backend_url', ':another_product_name'),
+            array($product['url'], $backend_url, htmlspecialchars($found_product['name'])),
             $template
         );
     }

@@ -65,7 +65,6 @@ class shopBackendLayout extends waLayout
         if ($page === 'reports') {
             $this->reportPagePrepare();
         }
-
         if ($module != 'backend') {
             $page = $module.':'.$page;
         }

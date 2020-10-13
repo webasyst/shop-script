@@ -19,6 +19,9 @@ class shopMarketingFollowupsDeleteController extends shopMarketingSettingsJsonCo
              */
             wa('shop')->event('followup_delete', $f);
             $fm->deleteById($id);
+
+            $followup_sources_model = new shopFollowupSourcesModel();
+            $followup_sources_model->deleteByField('followup_id', $id);
         }
     }
 }

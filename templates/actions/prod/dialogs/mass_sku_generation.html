@@ -1,0 +1,187 @@
+<div class="wa-dialog s-mass-sku-generation-dialog" id="js-mass-sku-generation-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div id="vue-generator-section" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h2>[`Создание артикулов и модификаций товара`]</h2>
+            </div>
+            <div class="dialog-content">
+
+                <div class="wa-message notice flexbox space-8">
+                    <div class="message-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="message-text wide">
+                        <p>[`Выберите и упорядочите характеристики и значения, из которых должны состоять модификации.`]</p>
+                        <p>[`Чтобы создать несколько артикулов, перетащите в «Артикулы» характеристику, у которой каждому значению будет соответствовать отдельный артикул.`]</p>
+                    </div>
+                </div>
+
+                <div class="s-generator-section tablebox fixed space-24">
+                    <div class="s-column-features">
+                        <div class="s-column-header">
+                            <div class="s-header">
+                                <span class="s-icon"><i class="fas fa-sitemap"></i></span>
+                                <span class="s-name">Характеристики</span>
+                            </div>
+
+                            <div class="dropdown s-features-dropdown js-features-dropdown">
+                                <button class="dropdown-toggle without-arrow wa-button wa-small transparent" type="button">
+                                    <span class="s-icon"><i class="fas fa-plus"></i></span>
+                                    <span class="s-name">[`Добавить`]</span>
+                                </button>
+                                <div class="dropdown-body">
+                                    <div class="s-list">
+                                        <div class="s-item" v-for="feature in features">
+                                            <label class="s-label">
+                                                <span class="wa-checkbox">
+                                                    <input type="checkbox" v-model="feature.dropdown_active">
+                                                    <span><span class="icon"><i class="fas fa-check"></i></span></span>
+                                                </span>
+                                                <span class="s-icon"><i class="fas fa-sitemap"></i></span>
+                                                <span class="s-name">{ { feature.name } }</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="s-actions">
+                                        <button class="wa-button blue js-apply-button" type="button">[`Применить`]</button>
+                                        <button class="wa-button gray js-close-button" type="button">[`Отмена`]</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="s-features-section" data-type="sku" v-if="getActiveFeatures().length">
+                            <div class="s-section-header">
+                                <div class="s-name">[`Артикулы`]</div>
+                            </div>
+
+                            <div class="s-features-list">
+                                <template v-for="feature in getActiveFeatures(false)">
+                                    <component-generator-feature v-bind:feature="feature" v-on:feature_updated="onFeatureUpdated"></component-generator-feature>
+                                </template>
+                            </div>
+
+                            <div class="s-empty-droparea js-drop-area" v-if="!getActiveFeatures(false).length">[`Модификации будут относены к 1 артикулу.`]</div>
+                        </div>
+
+                        <div class="s-features-section" data-type="mod" v-if="getActiveFeatures().length">
+                            <div class="s-section-header">
+                                <div class="s-name">[`Модификации артикулов`]</div>
+                            </div>
+
+                            <div class="s-features-list">
+                                <template v-for="feature in getActiveFeatures(true)">
+                                    <component-generator-feature v-bind:feature="feature" v-on:feature_updated="onFeatureUpdated"></component-generator-feature>
+                                </template>
+                            </div>
+
+                            <div class="s-empty-droparea js-drop-area" v-if="!getActiveFeatures(true).length">[`Перетащите сюда характеристику, чтобы использовать генерацию с модификациями`]</div>
+                        </div>
+
+                        <div v-if="!getActiveFeatures().length">
+                            <p class="hint">[`Добавьте характеристики`]</p>
+                        </div>
+                    </div>
+                    <div class="s-column-values">
+
+                        {strip}
+                        <div class="s-column-header inlinebox middle space-12">
+                            <div class="s-switch">
+                                <component-switch v-model="use_values"></component-switch>
+                            </div>
+                            <div class="s-name">Установить значения</div>
+                        </div>
+                        {/strip}
+
+                        <div class="s-column-body" v-bind:class="{ 'is-locked': !use_values }">
+
+                            <div class="wa-fields vertical">
+                                <div class="wa-field s-field-price">
+                                    <div class="name">[`Цена`]</div>
+                                    <div class="value">
+
+                                        <div class="tablebox middle space-16">
+                                            <div class="column">
+                                                <input class="wa-small full-width align-right" type="text" v-model="prices.price" v-bind:disabled="!use_values">
+                                            </div>
+                                            <div class="column">
+                                                <component-dropdown-currency v-bind:currency_code="currency" v-bind:currencies="currencies" v-on:change="currency = $event"></component-dropdown-currency>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="wa-field s-field-purchase-price">
+                                    <div class="name">[`Закупочная цена`]</div>
+                                    <div class="value">
+
+                                        <div class="tablebox middle space-16">
+                                            <div class="column">
+                                                <input class="wa-small full-width align-right" type="text" v-model="prices.purchase_price" v-bind:disabled="!use_values">
+                                            </div>
+                                            <div class="column">
+                                                <span class="s-currency">{ { currency } }</span>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="wa-field s-field-compare-price">
+                                    <div class="name">[`Зачёркнутая цена`]</div>
+                                    <div class="value">
+
+                                        <div class="tablebox middle space-16">
+                                            <div class="column">
+                                                <input class="wa-small full-width strike align-right" type="text" v-model="prices.compare_price" v-bind:disabled="!use_values">
+                                            </div>
+                                            <div class="column">
+                                                <span class="s-currency">{ { currency } }</span>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="dialog-footer">
+                {strip}
+                <div class="s-smart-string nowrap">
+                    <template v-if="getCount(false) === 0 && getCount(true) === 0">
+                        <span class="s-counter">0</span>
+                        &nbsp;[`артикулов`]&nbsp;
+                        <span class="s-counter">0</span>
+                        &nbsp;[`модификаций`].
+                    </template>
+                    <template v-else-if="getCount(false) === 1 && getCount(true) > 0">
+                        В&nbsp;<span class="s-counter is-green">1</span>
+                        &nbsp;[`артикуле`]&nbsp;
+                        <span class="s-counter">{ { getCount(true) } }</span>
+                        &nbsp;{ { getLocale(getCount(true), ["[`модификация`]", "[`модификации`]"]) } }.
+                    </template>
+                    <template v-else>
+                        В&nbsp;<span class="s-counter is-green">{ { getCount(false) } }</span>
+                        &nbsp;{ { getLocale(getCount(false), ["[`артикуле`]", "[`артикулах`]"]) } }
+                        &nbsp;[`по`]&nbsp;
+                        <span class="s-counter">{ { getCount(true) } }</span>
+                        &nbsp;[`модификации`].
+                    </template>
+                </div>
+                {/strip}
+
+                <button class="js-submit-button wa-button blue" type="button"
+                    v-on:click.prevent="startGenerator"
+                    v-bind:title="getCount(false) > 0 ? '{_w("Создать")|escape}' : '{_w("Нужно выбрать хотя бы одно значение характеристики для генерации")|escape}'"
+                    v-bind:disabled="!(getCount(false) > 0)">[`Создать`]</button>
+
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Отмена`]</button>
+            </div>
+        </div>
+    </div>
+</div>

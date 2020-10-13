@@ -196,7 +196,8 @@ class shopCheckoutContactinfo extends shopCheckout
         if ($shipping = $this->getSessionData('shipping') && !waRequest::post('ignore_shipping_error')) {
             $shipping_step = new shopCheckoutShipping();
             $rate_id = isset($shipping['rate_id']) ? $shipping['rate_id'] : null;
-            $rate = $shipping_step->getRate($shipping['id'], $rate_id, $contact);
+            $shipping_id = isset($shipping['id']) ? $shipping['id'] : null;
+            $rate = $shipping_step->getRate($shipping_id, $rate_id, $contact);
             if (!$rate || is_string($rate)) {
                 // remove selected shipping method
                 $this->setSessionData('shipping', null);

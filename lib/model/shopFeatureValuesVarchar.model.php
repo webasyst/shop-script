@@ -23,6 +23,9 @@ class shopFeatureValuesVarcharModel extends shopFeatureValuesModel
 
     protected function parseValue($value, $type)
     {
+        if (is_array($value)) {
+            $value = ifempty($value, 'value', '');
+        }
         $value = mb_substr(trim($value), 0, 255);
         return array(
             'value'        => $value,

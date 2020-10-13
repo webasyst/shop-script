@@ -72,7 +72,9 @@ class shopFeatureModel extends waModel
         if (empty($feature['code'])) {
             $feature['code'] = strtolower(waLocale::transliterate($feature['name']));
         }
-        $feature['code'] = $this->getUniqueCode($feature['code'], $id);
+
+        $multidimensional = substr($feature['type'], 0, 2) == '2d' || substr($feature['type'], 0, 2) == '3d';
+        $feature['code'] = $this->getUniqueCode($feature['code'], $id, $multidimensional);
         if ($id > 0) {
             if (isset($feature['type'])) {
                 unset($feature['type']);
@@ -118,14 +120,15 @@ class shopFeatureModel extends waModel
         return $id;
     }
 
-    public function getUniqueCode($code, $id = null)
+    public function getUniqueCode($code, $id = null, $multidimensional = false)
     {
         if ($code = preg_replace('/[^a-zA-Z0-9_]+/', '_', trim(waLocale::transliterate($code)))) {
+            $max_length = $multidimensional ? 62 : 64;
 
             if (!self::isCodeAllowed($code)) {
                 $code = ($code === '_' ? 'f' : 'f_').$code;
             }
-            $code = substr($code, 0, 64);
+            $code = substr($code, 0, $max_length);
 
             $sql = <<<SQL
             SELECT `id`, LOWER(`code`) AS `code`
@@ -142,7 +145,7 @@ SQL;
                 $unique_code = $code;
                 while (in_array(strtolower($unique_code), $codes)) {
                     $count++;
-                    $unique_code = substr($code, 0, 64 - strlen($count)).$count;
+                    $unique_code = substr($code, 0, $max_length - strlen($count)).$count;
                 }
             } else {
                 $unique_code = $code;
@@ -801,6 +804,10 @@ SQL;
     public static function getAllFeatureKinds()
     {
         $result = [
+            'text' => [
+                'title' => _w('Text'),
+                'formats' => ['input', 'textarea', 'selector', 'checklist'],
+            ],
             'boolean' => [
                 'title' => _w('Yes/No toggle'),
                 'formats' => [], // means do not show second selector at all
@@ -808,10 +815,6 @@ SQL;
             'color' => [
                 'title' => _w('Color'),
                 'formats' => ['value', 'selector', 'checklist'],
-            ],
-            'text' => [
-                'title' => _w('Text'),
-                'formats' => ['input', 'textarea', 'selector', 'checklist'],
             ],
             'numeric' => [
                 'title' => _w('Numbers'),

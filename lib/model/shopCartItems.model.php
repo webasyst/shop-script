@@ -567,7 +567,7 @@ SQL;
             $can_be_ordered_field = "(s.available > 0 AND ({$count_field} IS NULL OR ci.quantity <= {$count_field}) AND p.status >= 1)";
         }
 
-        $sql = "SELECT ci.id, p.name, s.name AS sku_name, s.available, p.status, ci.quantity, s.id as sku_id,
+        $sql = "SELECT ci.id, p.name, s.name AS sku_name, s.available, p.status > 0 as `status`, ci.quantity, s.id as sku_id,
                     {$can_be_ordered_field} as `can_be_ordered`,
                     {$count_field} AS `count`
                 FROM {$this->table} AS ci

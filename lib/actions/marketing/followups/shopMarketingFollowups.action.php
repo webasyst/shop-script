@@ -77,6 +77,38 @@ class shopMarketingFollowupsAction extends shopMarketingSettingsViewAction
         $workflow = new shopWorkflow();
         $states = $workflow->getAllStates();
 
+        $all_sources = false;
+        $backend_source = false;
+        $sources = array();
+        if (empty($followup['id'])) {
+            $all_sources = true;
+        } else {
+            $followup_sources_model = new shopFollowupSourcesModel();
+            $saved_sources = $followup_sources_model->getByField('followup_id', $followup['id'], true);
+            if (empty($saved_sources)) {
+                $all_sources = true;
+            } else {
+                foreach ($saved_sources as $source) {
+                    if ($source['source'] == 'backend') {
+                        $backend_source = true;
+                    } elseif ($source['source'] == 'all_sources' || !isset($source['source'])) {
+                        $all_sources = true;
+                    } else {
+                        $sources[] = $source['source'];
+                    }
+                }
+            }
+        }
+
+        $routes = wa()->getRouting()->getByApp('shop');
+        $domains = wa()->getRouting()->getAliases();
+        $active_domains = array();
+        foreach ($domains as $mirror => $domain) {
+            if (isset($routes[$domain])) {
+                $active_domains[$domain][] = $mirror;
+            }
+        }
+
         $this->view->assign('followup', $followup);
         $this->view->assign('followups', $followups);
         $this->view->assign('test_orders', $test_orders);
@@ -84,7 +116,11 @@ class shopMarketingFollowupsAction extends shopMarketingSettingsViewAction
         $this->view->assign('cron_ok', ((int)wa()->getSetting('last_followup_cli') + 3600*36) > time());
         $this->view->assign('cron_command', 'php '.$config->getRootPath().'/cli.php shop followup');
         $this->view->assign('default_email_from', $config->getGeneralSettings('email'));
-        $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));
+        $this->view->assign('all_sources', $all_sources);
+        $this->view->assign('backend_source', $backend_source);
+        $this->view->assign('sources', $sources);
+        $this->view->assign('active_domains', $active_domains);
+        $this->view->assign('routes', $routes);
         $this->view->assign('transports', $transports);
         $this->view->assign('sms_from', $this->getSmsFrom());
         $this->view->assign('states', $states);

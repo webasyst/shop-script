@@ -1,0 +1,65 @@
+<div class="wa-dialog s-modification-image-manager-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div id="vue-photo-manager-section" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h2>[`Выберите изображение`]</h2>
+            </div>
+            <div class="dialog-content">
+
+                <div class="s-photos-section js-photos-section">
+                    <div class="s-photos-form">
+                        <div class="s-drop-area box dragndrop"
+                            v-on:dragover.prevent="onAreaOver($event)"
+                            v-on:drop.prevent="onAreaDrop($event)">
+
+                            <div class="s-text" v-if="!errors.length">[`Загрузите или перетащите сюда фотографии`]</div>
+                            <div class="s-text" v-if="errors.length">
+                                <div class="color-red" v-for="error in errors">{ { error.text } }</div>
+                            </div>
+                            <input class="s-field" type="file" v-on:change="onAreaChange($event)">
+                        </div>
+                    </div>
+
+                    <div class="s-photos-list">
+                        <template v-for="file in files">
+                            <div class="s-photo-wrapper is-new">
+                                <component-loading-file v-bind:file="file" v-on:photo_added="onAddedPhoto"></component-loading-file>
+                            </div>
+                        </template>
+
+                        <template v-for="photo in photos">
+                            <div class="s-photo-wrapper" v-bind:class="{ 'is-active' : (active_photo && photo.id === active_photo.id) }">
+                                <div class="s-photo"
+                                     v-on:click.prevent="setPhoto(photo)"
+                                     v-bind:style="{ 'background-image' :  'url(' + photo.url + ')'}"></div>
+
+                                <div class="s-description-wrapper" v-bind:class="{ 'is-expanded': photo.expanded }">
+                                    <p class="s-description-text" v-if="!photo.expanded"
+                                        v-on:click.prevent="showDescriptionForm(photo)">{ { photo.description && photo.description.length ? photo.description : "{_w("Добавить описание...")|escape}" } }</p>
+
+                                    <form class="s-description-form" v-if="photo.expanded">
+                                        <textarea class="s-description-field" name="description" v-model="photo.description" placeholder="{_w("Добавить описание...")|escape}"></textarea>
+                                        <div class="s-buttons">
+                                            <button class="wa-button blue" v-on:click.prevent="changeDescription($event, photo)">[`Применить`]</button>
+                                            <button class="wa-button gray" v-on:click.prevent="revertDescription(photo)">
+                                                <span class="s-icon"><i class="fas fa-times"></i></span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button" type="button"
+                    v-bind:disabled="!active_photo"
+                    v-on:click.prevent="useChanges">{ { photo_id ? {_w("Изменить")|json_encode} : {_w("Добавить")|json_encode} } }</button>
+
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Отмена`]</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -59,7 +59,7 @@
                                     {/foreach}
                                 {else}
                                     <div class="value">
-                                        {$frontend_base_url}{if !empty($parent)}{$parent.full_url}/{/if}<input type="text" name="url" value="" class="js-product-list-url">/
+                                        {$frontend_base_url}{if !empty($parent) && !$flat_url_type}{$parent.full_url}/{/if}<input type="text" name="url" value="" class="js-product-list-url">/
                                         <span class="errormsg"></span>
                                     </div>
                                 {/if}
@@ -270,7 +270,7 @@
                                         <option value="price ASC" {if $settings.sort_products == 'price ASC'}selected="selected"{/if}>[`Least expensive`]</option>
                                         <option value="rating DESC" {if $settings.sort_products == 'rating DESC'}selected="selected"{/if}>[`Highest rated`]</option>
                                         <option value="rating ASC" {if $settings.sort_products == 'rating ASC'}selected="selected"{/if}>[`Lowest rated`]</option>
-                                        <option value="total_sales DESC" {if $settings.sort_products == 'total_sales DESC'}selected="selected"{/if}>[`Best sellers`]</option>
+                                        <option value="total_sales DESC" {if $settings.sort_products == 'total_sales DESC'}selected="selected"{/if}>[`Bestsellers by sold amount`]</option>
                                         <option value="total_sales ASC" {if $settings.sort_products == 'total_sales ASC'}selected="selected"{/if}>[`Worst sellers`]</option>
                                         <option value="count DESC" {if $settings.sort_products == 'count DESC'}selected="selected"{/if}>[`In stock`]</option>
                                         {if $settings.type == shopCategoryModel::TYPE_DYNAMIC}

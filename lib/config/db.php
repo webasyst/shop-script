@@ -324,12 +324,19 @@ return array(
         'body' => array('text', 'null' => 0),
         'last_cron_time' => array('datetime', 'null' => 0),
         'from' => array('varchar', 32),
-        'source' => array('varchar', 64),
         'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
         'transport' => array('enum', "'email','sms'", 'null' => 0, 'default' => 'email'),
         'state_id' => array('varchar', 32, 'default' => 'paid'),
         ':keys' => array(
             'PRIMARY' => 'id',
+        ),
+    ),
+    'shop_followup_sources' => array(
+        'followup_id' => array('int', 11, 'null' => 0),
+        'source' => array('varchar', 510),
+        ':keys' => array(
+            'followup_id' => 'followup_id',
+            'source' => array(array('source', '255')),
         ),
     ),
     'shop_importexport' => array(
@@ -349,7 +356,6 @@ return array(
         'name' => array('varchar', 128, 'null' => 0),
         'event' => array('varchar', 64, 'null' => 0),
         'transport' => array('enum', "'email','sms','http'", 'null' => 0, 'default' => 'email'),
-        'source' => array('varchar', 64),
         'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
         ':keys' => array(
             'PRIMARY' => 'id',
@@ -362,6 +368,14 @@ return array(
         'value' => array('text', 'null' => 0),
         ':keys' => array(
             'PRIMARY' => array('notification_id', 'name'),
+        ),
+    ),
+    'shop_notification_sources' => array(
+        'notification_id' => array('int', 11, 'null' => 0),
+        'source' => array('varchar', 510),
+        ':keys' => array(
+            'notification_id' => 'notification_id',
+            'source' => array(array('source', '255')),
         ),
     ),
     'shop_order' => array(

@@ -1,0 +1,711 @@
+{strip}
+
+{$_lang = substr($wa->locale(), 0, 2)}
+
+{$_templates = []}
+{$_locales = [
+    "add_tag" => _w("Добавить тег"),
+    "select_category" => _w("Выберите категорию"),
+    "storefront_changed" =>  _w('Адрес размещения товара изменён, адреса витрин изменятся после того, как вы нажмёте кнопу "Сохранить".'),
+    "modification_wysiwyg_message" => _ws('WYSIWYG editor may change your HTML code. It is necessary for correct text formatting. Smarty code may be broken and outdated HTML tags may be replaced with modern ones. Are you sure to switch to WYSIWYG editor?')
+]}
+
+{$_active_main_category = null}
+{if !empty($categories) && !empty($categories[$product.category_id])}
+    {$_active_main_category = $categories[$product.category_id]}
+{/if}
+
+{/strip}
+<div class="article s-product-general-section" id="js-product-general-section">
+    <div class="s-section-body">
+        <form>
+            <div class="s-fields-section">
+                <div class="wa-fields space-24">
+                    {* NAME *}
+                    <div class="wa-field">
+                        <div class="name">
+
+                            <div class="wa-label for-input-large">
+                                <div>
+                                    [`Наименование`]
+                                    <span class="wa-tooltip right" data-title="{_w("Наименование")|escape}">
+                                        <i class="fas fa-question-circle s-icon gray"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="value">
+
+                            <div class="s-name-section">
+                                <textarea class="s-field js-auto-height js-product-name-field" name="product[name]">{$product.name|default:_w("Название товара")|escape}</textarea>
+                            </div>
+
+                            <div class="s-storefronts-section js-storefronts-section">
+
+                                <div class="s-url-redactor">
+                                    <div class="tablebox space-8 middle">
+                                        <div class="s-column-name wide">
+
+                                            <div class="s-url-field-wrapper">
+                                                <span class="s-tail">{ifset($url_template, 'base', '')|escape}</span>
+                                                <input class="s-field js-product-url-field" type="text" name="product[url]" value="{$product.url|escape}">
+                                            </div>
+
+                                        </div>
+                                        <div class="s-column-actions nowrap">
+                                            <div class="s-actions inlinebox middle space-12">
+                                                <span class="s-action wa-tooltip inline bottom-left" data-title="{_w("Подсказка")|escape}">
+                                                    <i class="fas fa-question-circle hint"></i>
+                                                </span>
+                                                <span class="s-action gray s-refresh-button js-refresh-button">
+                                                    <i class="fas fa-sync-alt"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {if !empty($frontend_urls)}
+                                    <ul class="wa-list space-12 s-storefronts-list js-storefronts-list">
+                                        {$_limit = 2}
+                                        {$_count = count($frontend_urls)}
+                                        {$_show_toggle = ($_count > $_limit)}
+                                        {foreach $frontend_urls as $_front}
+                                            <li {if $_front@iteration > $_limit}class="s-extended-item" style="display: none;"{/if}>
+                                                <a href="{$_front.url|escape}">{$_front.url|escape}</a>
+                                            </li>
+                                        {/foreach}
+                                        {if !empty($_show_toggle)}
+                                            {$_locales["storefronts_show"] = _w('Показать еще %d витрину', 'Показать еще %d витрин', ($_count - $_limit) )}
+                                            {$_locales["storefronts_hide"] = _w('Скрыть %d витрину', 'Скрыть %d витрин', ($_count - $_limit) )}
+                                            {if $total_storefronts_count > $_count}
+                                                <li class="s-extended-item" style="display: none;">
+                                                    [`В списке показаны не все витрины.`]
+                                                    [`Перейдите на вкладку SEO, чтобы увидеть полный список.`]
+                                                    {* $total_storefronts_count - $_count *}
+                                                </li>
+                                            {/if}
+                                            <li>
+                                                <a class="s-action js-list-toggle" href="javascript:void(0);">{$_locales["storefronts_show"]|escape}</a>
+                                            </li>
+                                        {/if}
+                                    </ul>
+                                {/if}
+                            </div>
+                        </div>
+                    </div>
+
+                    {* STATUS *}
+                    <div class="wa-field">
+                        <div class="name">
+
+                            <div class="wa-label for-input">
+                                <div>
+                                    [`Публикация на сайте`]
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="value">
+
+                            {$_statuses = [
+                                "1" => [
+                                    "id" => "1",
+                                    "ident" => "published",
+                                    "icon" => "fas fa-check color-green-dark",
+                                    "name" => _w("Опубликован")
+                                ],
+                                "0" => [
+                                    "id" => "0",
+                                    "ident" => "unpublished",
+                                    "icon" => "fas fa-times color-gray",
+                                    "name" => _w("Скрыт")
+                                ],
+                                "-1" => [
+                                    "id" => "-1",
+                                    "ident" => "hidden",
+                                    "icon" => "fas fa-arrow-right color-blue",
+                                    "name" => _w("Снят с публикации")
+                                ]
+                            ]}
+
+                            {$_active_status = $_statuses["1"]}
+                            {if isset($product.status) && !empty($_statuses[$product.status])}
+                                {$_active_status = $_statuses[$product.status]}
+                            {/if}
+
+                            <div class="s-product-status-section js-product-status-section" data-id="{$_active_status.ident|escape}">
+                                <div class="tablebox fixed space-20">
+                                    <div class="s-column-status">
+                                        <div class="dropdown" id="js-product-status-select">
+                                            <button class="dropdown-toggle wa-button gray-field" type="button">
+                                                {if !empty($_active_status.icon)}
+                                                    <i class="{$_active_status.icon|escape}"></i>
+                                                {/if}
+                                                {$_active_status.name|escape}
+                                            </button>
+                                            <div class="dropdown-body">
+                                                {foreach $_statuses as $_status}
+                                                    {$_is_active = (isset($product.status) && $product.status === $_status.id)}
+                                                    <div class="dropdown-item {if !empty($_is_active)}selected{/if}" data-id="{$_status.id|escape}" data-ident="{$_status.ident|escape}">
+                                                        {if !empty($_status.icon)}
+                                                            <span class="icon baseline shift-2"><i class="{$_status.icon|escape}"></i></span>
+                                                        {/if}
+                                                        {$_status.name|escape}
+                                                    </div>
+                                                {/foreach}
+                                            </div>
+                                            <input name="product[status]" type="hidden" value="{$product.status|default:""|escape}">
+                                        </div>
+
+                                        <div class="s-status-hint" data-status-id="unpublished">
+                                            [`TODO: Текст подсказки для пункта "Снят с публикации"`]
+                                        </div>
+
+                                        <div class="s-status-hint" data-status-id="hidden">
+                                            {sprintf(
+                                                "Товар недоступен по прямому открытию страницы, удалён из %s, не показывается на витрине в общих списках товаров и его нельзя добавить в корзину.",
+                                                "<a href=\"javascript:void(0);\">Sitemap-файла</a> <span class=\"wa-tooltip bottom-left\" data-title=\"{_w("Sitemap-файла")|escape}\"><i class=\"fas fa-question-circle s-icon gray\"></i></span>"
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div class="s-column-redirect">
+
+                                        {$_redirect_options = [
+                                            "404" => [
+                                                "id" => "404",
+                                                "name" => "404"
+                                            ],
+                                            "home" => [
+                                                "id" => "home",
+                                                "name" => _w("Главная")
+                                            ],
+                                            "category" => [
+                                                "id" => "category",
+                                                "name" => _w("Основная категория")
+                                            ],
+                                            "url" => [
+                                                "id" => "url",
+                                                "name" => _w("Указанный адрес")
+                                            ]
+                                        ]}
+
+                                        {if empty($product.params.redirect_code)}
+                                            {$_active_redirect_option = $_redirect_options["404"]}
+                                        {elseif empty($product.params.redirect_url) && empty($product.params.redirect_category_id)}
+                                            {$_active_redirect_option = $_redirect_options["home"]}
+                                        {elseif !empty($product.params.redirect_category_id)}
+                                            {$_active_redirect_option = $_redirect_options["category"]}
+                                        {else}
+                                            {$_active_redirect_option = $_redirect_options["url"]}
+                                        {/if}
+
+                                        <div class="s-redirect-section" data-id="{$_active_redirect_option.id|escape}">
+
+                                            <div class="flexbox middle wrap space-12">
+                                                <div class="s-label">
+                                                    Перенаправлять
+                                                    <span class="wa-tooltip bottom-left" data-title="{_w("Перенаправлять")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
+                                                </div>
+                                                <div class="dropdown" id="js-product-redirect-select">
+                                                    <button class="dropdown-toggle wa-button gray-field" type="button">
+                                                        {$_active_redirect_option.name|escape}
+                                                    </button>
+                                                    <div class="dropdown-body right">
+                                                        {foreach $_redirect_options as $_option}
+                                                            {$_is_active = ($_active_redirect_option.id === $_option.id)}
+                                                            <div class="dropdown-item {if !empty($_is_active)}selected{/if}" data-id="{$_option.id|escape}">
+                                                                {$_option.name|escape}
+                                                            </div>
+                                                        {/foreach}
+                                                    </div>
+                                                    <input name="product[params][redirect_type]" type="hidden" value="">
+                                                </div>
+                                            </div>
+
+                                            <div class="s-custom-url-form">
+                                                <div class="line s-redirect-field">
+                                                    <input class="full-width" type="text" name="product[params][redirect_url]" value="{$product.params.redirect_url|default:""|escape}" placeholder="http://yoursite.com/category/product-name">
+                                                </div>
+
+                                                <div class="line">
+                                                    <div class="s-label">
+                                                        Протокол перенаправления
+                                                        <span class="wa-tooltip bottom-left" data-title="{_w("Протокол перенаправления")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
+                                                    </div>
+
+                                                    {$_redirect_codes = [
+                                                        "301" => [
+                                                            "id" => "301",
+                                                            "label" => _w("301 редирект — товар скрыт навсегда")
+                                                        ],
+                                                        "302" => [
+                                                            "id" => "302",
+                                                            "label" => _w("302 редирект — товар скрыт на время")
+                                                        ]
+                                                    ]}
+
+                                                    {$_active_code = reset($_redirect_codes)}
+                                                    {if !empty($product.params.redirect_code) && !empty($_redirect_codes[$product.params.redirect_code])}
+                                                        {$_active_code = $_redirect_codes[$product.params.redirect_code]}
+                                                    {/if}
+
+                                                    <ul class="s-options wa-list space-8">
+                                                        {foreach $_redirect_codes as $_code}
+                                                            {$_is_active = ($_active_code.id === $_code.id)}
+
+                                                            <li>
+                                                                <label>
+                                                                    <input type="radio" name="product[params][redirect_code]" value="{$_code.id|escape}" {if $_is_active}checked{/if}>
+                                                                    {$_code.label|escape}
+                                                                </label>
+                                                            </li>
+                                                        {/foreach}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {* TYPE *}
+                    {if !empty($product_types)}
+                        <div class="wa-field">
+                            <div class="name">
+
+                                <div class="wa-label for-input">
+                                    <div>
+                                        [`Тип товаров`]
+                                        <span class="wa-tooltip right" data-title="{_w("Тип товаров")|escape}">
+                                            <i class="fas fa-question-circle s-icon gray"></i>
+                                        </span>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="value">
+
+                                {function name="_render_type_icon" _icon=""}
+                                    {if !empty(_icon)}
+                                        {* <i class="s-icon fas fa-gift"></i>*}
+                                        {shopHelper::getIcon(ifempty($_icon,'box'))}
+                                    {/if}
+                                {/function}
+
+                                {$_active_product_type = reset($product_types)}
+                                {if !empty($product.type_id) && !empty($product_types[$product.type_id])}
+                                    {$_active_product_type = $product_types[$product.type_id]}
+                                {/if}
+
+                                {strip}
+                                <div class="s-product-type-section js-product-type-section">
+                                    <div class="inlinebox baseline space-20">
+                                        <div class="dropdown js-product-type-select">
+                                            <button class="dropdown-toggle wa-button gray-field" type="button">
+                                                {if !empty($_active_product_type.icon)}{_render_type_icon _icon=$_active_product_type.icon}{/if}
+                                                {$_active_product_type.name|default:""|escape}
+                                            </button>
+                                            <div class="dropdown-body">
+                                                {foreach $product_types as $_type}
+                                                    <div class="dropdown-item" data-id="{$_type.id|escape}">
+                                                        {if !empty($_type.icon)}{_render_type_icon _icon=$_type.icon}{/if}
+                                                        {$_type.name|default:""|escape}
+                                                    </div>
+                                                {/foreach}
+                                            </div>
+                                            <input name="product[type_id]" type="hidden" value="{$_active_product_type.id|default:""|escape}">
+                                        </div>
+
+                                        <a class="wa-button wa-small wa-short transparent-gray nowrap js-disable-router" href="{$wa_app_url}?action=settings#/typefeat/" target="_blank">
+                                            <span class="s-icon icon baseline shift-1 size-12"><i class="fas fa-cog"></i></span>
+                                            &nbsp;
+                                            <span class="s-name">[`Настроить`]</span>
+                                        </a>
+                                    </div>
+                                </div>
+                                {/strip}
+
+                            </div>
+                        </div>
+                    {/if}
+
+                    {* MAIN CATEGORY *}
+                    <div class="wa-field">
+                        <div class="name">
+
+                            <div class="wa-label for-input">
+                                <div>
+                                    [`Основная категория`]
+                                    <span class="wa-tooltip right" data-title="{_w("Основная категория")|escape}">
+                                        <i class="fas fa-question-circle s-icon gray"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="value">
+
+                            <div class="s-product-main-category-section">
+                                <div class="s-visible-place">
+                                    <div class="dropdown" id="js-product-main-category-select">
+                                        <button class="dropdown-toggle wa-button gray-field" type="button">{$_active_main_category.name|default:$_locales["select_category"]|escape}</button>
+                                        <div class="dropdown-body">
+                                            <div class="dropdown-item" data-action="create">
+                                                <div class="dropdown-item-name">[`Создать новую категорию`]</div>
+                                            </div>
+
+                                            {function name="_render_categories_options" _categories=[] }
+                                                {foreach $_categories as $_category}
+                                                    {$_is_active = (!empty($product.category_id) && $product.category_id === $_category.id)}
+                                                    <div class="dropdown-item {if !empty($_is_active)}selected{/if}" data-id="{$_category.id|escape}">
+                                                        <div class="dropdown-item-name">{$_category.name|escape}</div>
+                                                    </div>
+
+                                                    {if !empty($_category.categories)}
+                                                        <div class="dropdown-group">
+                                                            {_render_categories_options _categories=$_category.categories}
+                                                        </div>
+                                                    {/if}
+                                                {/foreach}
+                                            {/function}
+                                            {_render_categories_options _categories=$categories_tree}
+                                        </div>
+                                        <input name="product[category_id]" value="{$product.category_id|default:""|escape}" type="hidden">
+                                    </div>
+                                </div>
+                                <div class="s-hidden-place">
+                                    <div class="js-add-main-category-form">
+                                        <div class="flexbox middle space-8">
+                                            <input type="text" name="name" value="" placeholder="{_w("Введите название")|escape}" required disabled>
+                                            <button class="wa-button blue js-submit-button" type="submit">
+                                                <span class="icon s-icon"><i class="fas fa-check"></i></span>
+                                            </button>
+                                            <button class="wa-button top gray js-cancel" type="button">
+                                                <span class="icon"><i class="fas fa-times"></i></span>
+                                            </button>
+                                        </div>
+                                        <input type="hidden" name="parent_id" value="" disabled>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {* ADDITIONAL CATEGORY *}
+                    <div class="wa-field">
+                        <div class="name">
+
+                            <div class="wa-label for-input">
+                                <div>
+                                    [`Дополнительные категории`]
+                                    <span class="wa-tooltip right" data-title="{_w("Дополнительные категории")|escape}">
+                                        <i class="fas fa-question-circle s-icon gray"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="value">
+
+                            <div class="s-additional-categories-section">
+
+                                <div class="s-categories-list js-categories-list">
+                                    {function name="_render_additional_category" _category=[] _is_main=false}
+                                        <div class="s-category-wrapper {if !empty($_is_main)}is-main{/if}" data-id="{$_category.id|default:"%category_id%"|escape}">
+                                            <div class="flexbox middle space-8">
+                                                <div class="s-icon">
+                                                    <i class="fas fa-folder"></i>
+                                                </div>
+                                                <div class="s-name">{$_category.name|default:"%category_name%"|escape}</div>
+                                                <div class="s-actions">
+                                                    <button class="wa-button transparent-gray nowrap js-category-remove" type="button">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <input type="hidden" name="product[categories][]" value="{$_category.id|default:"%category_id%"|escape}">
+                                        </div>
+                                    {/function}
+
+                                    {capture assign="_additional_category_template"}{_render_additional_category}{/capture}
+                                    {$_templates["additional_category_template"] = $_additional_category_template}
+
+                                    {if !empty($product.categories)}
+                                        {foreach $product.categories as $_category}
+                                            {$_is_main = !empty($_active_main_category) && ($_active_main_category.id === $_category.id)}
+                                            {_render_additional_category _category=$_category _is_main=$_is_main}
+                                        {/foreach}
+                                    {/if}
+                                </div>
+
+                                <div class="s-actions">
+                                    <button class="wa-button wa-small wa-short transparent js-add-categories" type="button">
+                                        <span class="s-icon icon baseline shift-1 size-12"><i class="fas fa-plus"></i></span>&nbsp;[`Добавить`]
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {* LISTS *}
+                    <div class="wa-field">
+                        <div class="name">
+
+                            <div class="wa-label for-input">
+                                <div>
+                                    [`Списки`]
+                                    <span class="wa-tooltip right" data-title="{_w("Списки")|escape}">
+                                        <i class="fas fa-question-circle s-icon gray"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="value">
+
+                            <div class="s-product-sets-section">
+
+                                <div class="s-sets-list js-sets-list">
+                                    {function name="_render_set" _set=[]}
+                                        <div class="s-set-wrapper" data-id="{$_set.id|default:"%set_id%"|escape}">
+                                            <div class="flexbox middle space-8">
+                                                <div class="s-icon">
+                                                    <i class="fas fa-folder"></i>
+                                                </div>
+                                                <div class="s-name">{$_set.name|default:"%set_name%"|escape}</div>
+                                                <div class="s-actions">
+                                                    <button class="wa-button transparent-gray nowrap js-set-remove" type="button">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <input type="hidden" name="product[sets][]" value="{$_set.id|default:"%set_id%"|escape}">
+                                        </div>
+                                    {/function}
+
+                                    {capture assign="_set_template"}{_render_set}{/capture}
+                                    {$_templates["set_template"] = $_set_template}
+
+                                    {if !empty($product.sets)}
+                                        {foreach $product.sets as $_set}
+                                            {_render_set _set=$_set}
+                                        {/foreach}
+                                    {/if}
+                                </div>
+
+                                <div class="s-actions">
+                                    <button class="wa-button wa-small wa-short transparent js-add-sets" type="button">
+                                        <span class="s-icon icon baseline shift-1 size-12"><i class="fas fa-plus"></i></span>&nbsp;[`Добавить`]
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {* TAXES *}
+                    {if !empty($taxes)}
+                        <div class="wa-field">
+                            <div class="name">
+                                <div class="wa-label for-input">
+                                    <div>
+                                        [`Облагается налогом`]
+                                        <span class="wa-tooltip right" data-title="{_w("Облагается налогом")|escape}">
+                                            <i class="fas fa-question-circle s-icon gray"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="value">
+
+                                {$_empty_tax = [
+                                    "id" => "",
+                                    "name" => _w("Нет")
+                                ]}
+
+                                {$_is_empty = empty($taxes[$product.tax_id])}
+                                {$_active_tax = ifset($taxes, $product.tax_id, $_empty_tax)}
+
+                                <div class="dropdown" id="js-product-tax-select">
+                                    <button class="dropdown-toggle wa-button gray-field" type="button">{ifset($_active_tax, 'name', _w("Выберите налог"))|escape}</button>
+                                    <div class="dropdown-body">
+                                        <div class="dropdown-item {if $_is_empty}selected{/if}" data-id="{$_empty_tax.id|escape}">
+                                            {$_empty_tax.name|escape}
+                                        </div>
+                                        {foreach $taxes as $_tax}
+                                            {$_is_active = ifset($_active_tax, 'id', null) == $_tax.id}
+                                            <div class="dropdown-item {if !empty($_is_active)}selected{/if}" data-id="{$_tax.id|escape}">
+                                                {$_tax.name|escape}
+                                            </div>
+                                        {/foreach}
+                                    </div>
+                                    <input name="product[tax_id]" type="hidden" value="{$product.tax_id|default:""|escape}">
+
+                                    <script>
+                                        ( function($) {
+                                            var $select = $("#js-product-tax-select"),
+                                                $input = $select.find("input");
+
+                                            $select.waDropdown({
+                                                hover: false,
+                                                items: ".dropdown-item",
+                                                change: function(event, target) {
+                                                    $input.val($(target).data("id")).trigger("change");
+                                                }
+                                            });
+                                        })(jQuery);
+                                    </script>
+                                </div>
+
+                            </div>
+                        </div>
+                    {/if}
+
+                    {* DESCRIPTION *}
+                    <div class="wa-field">
+                        <div class="name">
+                            <div class="wa-label for-textarea">
+                                <div>
+                                    [`Краткое описание`]
+                                    <span class="wa-tooltip right" data-title="{_w("Краткое описание")|escape}">
+                                        <i class="fas fa-question-circle s-icon gray"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="value">
+                            <textarea class="full-width js-auto-height" name="product[summary]">{$product.summary|default:""}</textarea>
+                            <p class="hint">[`Отображается в списках товаров.`]</p>
+                        </div>
+                    </div>
+
+                    {* TAGS *}
+                    <div class="wa-field s-tags-section">
+                        <div class="name">
+                            <div class="wa-label for-textarea">
+                                <div>
+                                    [`Теги`]
+                                    <span class="wa-tooltip right" data-title="{_w("Теги")|escape}">
+                                        <i class="fas fa-question-circle s-icon gray"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="value">
+                            <input id="js-product-tags" type="hidden" name="product[tags]" value="{$product.tags|default:[]|join:","|escape}">
+                            <p class="hint">[`Разделяйте теги запятой (,).`]</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <section class="s-editor-section js-editor-section">
+                <div class="s-section-header">
+                    <h5 class="s-section-title">[`Описание`]</h5>
+                    {strip}
+                    <div class="toggle tabs-mode js-editor-type-toggle">
+                        <span class="selected" data-id="wysiwyg">Визуальный редактор</span>
+                        <span data-id="html">HTML</span>
+                    </div>
+                    {/strip}
+                </div>
+
+                <div class="s-section-body">
+                    <div class="s-wysiwyg-editor js-wysiwyg-editor">
+                        <textarea class="js-product-description-textarea" name="product[description]">{$product.description|escape}</textarea>
+                    </div>
+                    <div class="s-html-editor js-html-editor"></div>
+                </div>
+            </section>
+
+            <div class="s-errors-place js-errors-place"></div>
+
+            <input type="hidden" name="product[id]" value="{$product.id|default:""}">
+        </form>
+    </div>
+
+    {include file="./includes/footer.html" inline}
+
+    <script>
+        ( function($) {
+            var sources = [{
+                id: "ace-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/ace/ace.js?v=={$wa->version(true)}"
+            }, {
+                id: "redactor-2-css",
+                type: "css",
+                uri: "{$wa_url}wa-content/js/redactor/2/redactor.css?v={$wa->version(true)}"
+            }, {
+                id: "redactor-2-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/redactor/2/redactor.min.js?v={$wa->version(true)}"
+            }, {
+                id: "wa-editor-2-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/jquery-wa/editor2.js?v={$wa->version(true)}"
+            }, {
+                id: "wa-shop-products-product-general-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/product/product.general.js?v={$wa->version()}"
+            }, {
+                id: "wa-shop-products-product-general-add_categories-dialog-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/product/dialogs/product.general.add_categories.js?v={$wa->version()}"
+            }, {
+                id: "wa-shop-products-product-general-add_sets-dialog-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/product/dialogs/product.general.add_sets.js?v={$wa->version()}"
+            }, {
+                id: "wa-tags-input-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/jquery-plugins/jquery-tagsinput/jquery.tagsinput.min.js?v={$wa->version(true)}"
+            }];
+
+            $.wa.loadSources(sources).then( function() {
+                var is_en = {if $_lang === "en"}true{else}false{/if};
+                if (!is_en) {
+                    $.wa.loadSources([{
+                        id: "redactor-2-{$_lang}-js",
+                        type: "js",
+                        uri: "{$wa_url}wa-content/js/redactor/2/{$_lang}.js?v={$wa->version(true)}"
+                    }]).then(init);
+                } else {
+                    init();
+                }
+            });
+
+            function init() {
+                ace.config.set("basePath", "{$wa_url}wa-content/js/ace/");
+
+                $.wa_shop_products.init.initProductGeneralSection({
+                    $wrapper: $("#js-product-general-section"),
+                    product_id: {if !empty($product.id)}{$product.id|json_encode}{else}null{/if},
+                    product_category_id: {if !empty($product.category_id)}{$product.category_id|json_encode}{else}null{/if},
+                    categories_tree: {$categories_tree|json_encode},
+                    templates: {$_templates|json_encode},
+                    locales: {$_locales|json_encode},
+                    urls: {
+                        "wa_url": {$wa_url|json_encode},
+                        "save": "{$wa_app_url}?module=prod&action=saveGeneral",
+                        "transliterate": "{$wa_app_url}?module=prod&action=suggestUrl",
+                        "add_set_dialog": "{$wa_app_url}?module=prod&action=selectSetDialog",
+                        "add_category_dialog": "{$wa_app_url}?module=prod&action=selectCategoryDialog",
+                        "create_category": "{$wa_app_url}?module=category&action=add",
+                        "product_url_checker": "{$wa_app_url}?module=prod&action=checkUrlInUse"
+                    },
+                    lang: {$_lang|json_encode}
+                });
+            }
+
+        })(jQuery);
+    </script>
+</div>

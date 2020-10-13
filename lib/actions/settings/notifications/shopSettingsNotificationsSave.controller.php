@@ -7,9 +7,14 @@ class shopSettingsNotificationsSaveController extends waJsonController
         $id = waRequest::get('id', null, 'int');
         $data = waRequest::post('data', array(), 'array');
         $params = waRequest::post('params', array(), 'array');
-        $data['source'] = $data['source'] ? $data['source'] : null;
+
         if (!isset($data['status'])) {
             $data['status'] = 0;
+        }
+
+        $notification_sources = '';
+        if (empty($data['all_sources']) && !isset($data['selected_sources_all']) && isset($data['selected_sources'])) {
+            $notification_sources = $data['selected_sources'];
         }
 
         $model = new shopNotificationModel();
@@ -53,6 +58,18 @@ class shopSettingsNotificationsSaveController extends waJsonController
         }
 
         $params_model->save($id, $params);
+
+        $notification_sources_model = new shopNotificationSourcesModel();
+        $notification_sources_model->deleteByField('notification_id', $id);
+        $insert_sources = array();
+        if (empty($notification_sources)) {
+            $insert_sources[] = array('notification_id' => $id, 'source' => 'all_sources');
+        } else {
+            foreach ($notification_sources as $source) {
+                $insert_sources[] = array('notification_id' => $id, 'source' => $source);
+            }
+        }
+        $notification_sources_model->multipleInsert($insert_sources);
 
         $notification = $model->getById($id);
         if ($notification) {

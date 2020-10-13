@@ -12,8 +12,12 @@ class shopMarketingFollowupsSaveController extends shopMarketingSettingsJsonCont
         $fm = new shopFollowupModel();
 
         $followup = waRequest::post('followup');
+        $followup_sources = '';
 
         if ($followup && is_array($followup)) {
+            if (empty($followup['all_sources']) && !isset($followup['selected_sources_all']) && isset($followup['selected_sources'])) {
+                $followup_sources = $followup['selected_sources'];
+            }
             $id = ifempty($followup, 'id', null);
             $empty_row = $fm->getEmptyRow();
             $followup = array_intersect_key($followup, $empty_row) + $empty_row;
@@ -24,7 +28,6 @@ class shopMarketingFollowupsSaveController extends shopMarketingSettingsJsonCont
             }
 
             $followup['from'] = $followup['from'] ? $followup['from'] : null;
-            $followup['source'] = $followup['source'] ? $followup['source'] : null;
 
             if ($followup['from'] === 'other') {
                 $followup['from'] = waRequest::post('from');
@@ -54,6 +57,18 @@ class shopMarketingFollowupsSaveController extends shopMarketingSettingsJsonCont
                 $id = $fm->insert($followup);
                 $just_created = true;
             }
+
+            $followup_sources_model = new shopFollowupSourcesModel();
+            $followup_sources_model->deleteByField('followup_id', $id);
+            $insert_sources = array();
+            if (empty($followup_sources)) {
+                $insert_sources[] = array('followup_id' => $id, 'source' => 'all_sources');
+            } else {
+                foreach ($followup_sources as $source) {
+                    $insert_sources[] = array('followup_id' => $id, 'source' => $source);
+                }
+            }
+            $followup_sources_model->multipleInsert($insert_sources);
 
             $f = $fm->getById($id);
             if ($f) {

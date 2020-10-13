@@ -201,7 +201,7 @@ class shopFrontendCartAction extends shopFrontendAction
             if ($row['sku_name']) {
                 $row['name'] .= ' ('.$row['sku_name'].')';
             }
-            if ($row['available']) {
+            if ($row['available'] && $row['status'] > 0) {
                 if ($row['count'] > 0) {
                     $message = _w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.');
                     $errors[$row['id']] = sprintf($message, $row['count'], $row['name']);
@@ -209,7 +209,7 @@ class shopFrontendCartAction extends shopFrontendAction
                     $message = _w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience. Please remove this product from your shopping cart to proceed.');
                     $errors[$row['id']] = sprintf($message, $row['name']);
                 }
-            } elseif (!$row['available'] || !$row['status']) {
+            } else {
                 $message = _w('Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed.');
                 $errors[$row['id']] = sprintf($message, $row['name']);
             }

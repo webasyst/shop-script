@@ -164,7 +164,17 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
         // Render custom plugin fields. Also gather their values validated by plugin.
         $custom_field_values = [];
         $plugin_custom_fields = [];
+
         foreach ($plugin_custom_field_settings as $field_id => $row) {
+            if (isset($row['errors'])) {
+                foreach ($row['errors'] as $field_name => $error_message) {
+                    $errors[] = [
+                        'name'    => "details[custom][{$field_name}]",
+                        'text'    => $error_message,
+                        'section' => $this->getId(),
+                    ];
+                }
+            }
             if (array_key_exists('value', $row)) {
                 if (isset($row['value'])) { // null means do not pass to calculate()
                     $custom_field_values[$field_id] = $row['value'];

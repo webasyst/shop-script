@@ -1,0 +1,209 @@
+<section class="s-sidebar-section">
+    <div class="wa-heading">[`Редактирование`]</div>
+    <ul class="wa-menu-v">
+        <li>
+            <a href="{$wa_app_url}products/{$id|escape}/general/">
+                <span>[`Основные данные`]</span>
+                <span class="count">
+                    <span class="wa-tooltip bottom-left" data-title="{_w("Основные данные")|escape}">
+                        <i class="s-icon fas fa-question-circle"></i>
+                    </span>
+                </span>
+            </a>
+        </li>
+        <li>
+            <a href="{$wa_app_url}products/{$id|escape}/sku/">
+                <span>[`Цены и характеристики`]</span>
+                <span class="count">
+                    <span class="wa-tooltip bottom-left" data-title="{_w("Цены и характеристики")|escape}">
+                        <i class="s-icon fas fa-question-circle"></i>
+                    </span>
+                </span>
+            </a>
+        </li>
+        <li class="disabled">
+{*
+            <a href="{$wa_app_url}products/{$id|escape}/media/">
+                <span>[`Фото, видео и файлы`]</span>
+                <span class="count">
+                    <span class="wa-tooltip bottom-left" data-title="{_w("Фото, видео и файлы")|escape}">
+                        <i class="s-icon fas fa-question-circle"></i>
+                    </span>
+                </span>
+            </a>
+*}
+            <a class="flexbox" href="javascript:void(0);">
+                <div class="wa-tooltip custom top wide">
+                    <div>[`Фото, видео и файлы`]</div>
+                    <div class="tooltip-text">
+                        <p>[`Этот раздел ещё не готов, но мы работаем над этим.`]</p>
+                    </div>
+                </div>
+            </a>
+        </li>
+        <li class="disabled">
+{*
+            <a href="{$wa_app_url}products/{$id|escape}/services/">
+                <span>[`Услуги`]</span>
+                <span class="count">
+                    <span class="wa-tooltip bottom-left" data-title="{_w("Услуги")|escape}">
+                        <i class="s-icon fas fa-question-circle"></i>
+                    </span>
+                </span>
+            </a>
+*}
+            <a class="flexbox" href="javascript:void(0);">
+                <div class="wa-tooltip custom top wide">
+                    <div>[`Услуги`]</div>
+                    <div class="tooltip-text">
+                        <p>[`Этот раздел ещё не готов, но мы работаем над этим.`]</p>
+                    </div>
+                </div>
+            </a>
+        </li>
+        <li class="disabled">
+{*
+            <a href="{$wa_app_url}products/{$id|escape}/recommendations/">
+                <span>[`Рекомендуемые товары`]</span>
+                <span class="count">
+                    <span class="wa-tooltip bottom-left" data-title="{_w("Рекомендуемые товары")|escape}">
+                        <i class="s-icon fas fa-question-circle"></i>
+                    </span>
+                </span>
+            </a>
+*}
+            <a class="flexbox" href="javascript:void(0);">
+                <div class="wa-tooltip custom top wide">
+                    <div>[`Рекомендуемые товары`]</div>
+                    <div class="tooltip-text">
+                        <p>[`Этот раздел ещё не готов, но мы работаем над этим.`]</p>
+                    </div>
+                </div>
+            </a>
+        </li>
+        <li class="disabled">
+{*
+            <a href="{$wa_app_url}products/{$id|escape}/pages/">
+                <span>[`Подстраницы`]</span>
+                <span class="count">
+                    <span class="wa-tooltip bottom-left" data-title="{_w("Подстраницы")|escape}">
+                        <i class="s-icon fas fa-question-circle"></i>
+                    </span>
+                </span>
+            </a>
+*}
+            <a class="flexbox" href="javascript:void(0);">
+                <div class="wa-tooltip custom top wide">
+                    <div>[`Подстраницы`]</div>
+                    <div class="tooltip-text">
+                        <p>[`Этот раздел ещё не готов, но мы работаем над этим.`]</p>
+                    </div>
+                </div>
+            </a>
+        </li>
+        <li class="disabled">
+{*
+            <a href="{$wa_app_url}products/{$id|escape}/seo/">
+                <span>[`SEO`]</span>
+                <span class="count">
+                    <span class="wa-tooltip bottom-left" data-title="{_w("SEO")|escape}">
+                        <i class="s-icon fas fa-question-circle"></i>
+                    </span>
+                </span>
+            </a>
+*}
+            <a class="flexbox" href="javascript:void(0);">
+                <div class="wa-tooltip custom top wide">
+                    <div>[`SEO`]</div>
+                    <div class="tooltip-text">
+                        <p>[`Этот раздел ещё не готов, но мы работаем над этим.`]</p>
+                    </div>
+                </div>
+            </a>
+        </li>
+    </ul>
+</section>
+
+<section class="s-sidebar-section">
+    <div class="wa-heading">[`Отчёты`]</div>
+    <ul class="wa-menu-v">
+        <li class="disabled">
+{*            {$wa_app_url}products/{$id|escape}/prices/*}
+
+            <a class="flexbox" href="javascript:void(0);">
+                <div class="wa-tooltip custom top wide">
+                    <div>[`Цены и наличие`]</div>
+                    <div class="tooltip-text">
+                        <p>[`Этот раздел ещё не готов, но мы работаем над этим.`]</p>
+                    </div>
+                </div>
+            </a>
+        </li>
+        <li class="disabled">
+{*            {$wa_app_url}products/{$id|escape}/orders/*}
+
+            <a class="flexbox" href="javascript:void(0);">
+                <div class="wa-tooltip custom top wide">
+                    <div>[`Последние заказы`]</div>
+                    <div class="tooltip-text">
+                        <p>[`Этот раздел ещё не готов, но мы работаем над этим.`]</p>
+                    </div>
+                </div>
+            </a>
+        </li>
+        <li class="disabled">
+{*            {$wa_app_url}products/{$id|escape}/reviews/*}
+
+            <a class="flexbox" href="javascript:void(0);">
+                <div class="wa-tooltip custom top wide">
+                    <div>[`Отзывы`]</div>
+                    <div class="tooltip-text">
+                        <p>[`Этот раздел ещё не готов, но мы работаем над этим.`]</p>
+                    </div>
+                </div>
+            </a>
+        </li>
+    </ul>
+</section>
+
+<section class="s-sidebar-section">
+    <div class="wa-heading">[`История изменений`]</div>
+    <ul class="wa-menu-v">
+        <li class="disabled">
+{*            {$wa_app_url}products/{$id|escape}/stock_changes/*}
+
+            <a class="flexbox" href="javascript:void(0);">
+                <div class="wa-tooltip custom top wide">
+                    <div>[`Изменения остатков`]</div>
+                    <div class="tooltip-text">
+                        <p>[`Этот раздел ещё не готов, но мы работаем над этим.`]</p>
+                    </div>
+                </div>
+            </a>
+        </li>
+        <li class="disabled">
+{*            {$wa_app_url}products/{$id|escape}/price_changes/*}
+
+            <a class="flexbox" href="javascript:void(0);">
+                <div class="wa-tooltip custom top wide">
+                    <div>[`Изменения цен`]</div>
+                    <div class="tooltip-text">
+                        <p>[`Этот раздел ещё не готов, но мы работаем над этим.`]</p>
+                    </div>
+                </div>
+            </a>
+        </li>
+        <li class="disabled">
+{*            {$wa_app_url}products/{$id|escape}/product_changes/*}
+
+            <a class="flexbox" href="javascript:void(0);">
+                <div class="wa-tooltip custom top wide">
+                    <div>[`Изменения товара`]</div>
+                    <div class="tooltip-text">
+                        <p>[`Этот раздел ещё не готов, но мы работаем над этим.`]</p>
+                    </div>
+                </div>
+            </a>
+        </li>
+    </ul>
+</section>

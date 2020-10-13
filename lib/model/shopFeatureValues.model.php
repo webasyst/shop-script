@@ -163,7 +163,8 @@ SQL;
                 $sql = "SELECT {$fields} FROM ".$this->table." WHERE (`feature_id` = i:feature_id) AND (".$op.')';
                 $row = $this->query($sql, $data)->fetchAssoc();
                 if ($row) {
-                    if ($changed = $this->isChanged($row, $data)) {
+                    $changed = $this->isChanged($row, $data);
+                    if ($changed && $update) {
                         $this->updateById($row['id'], $changed);
                     }
                     if (isset($exists[$row['sort']]) && ($exists[$row['sort']] != $row['id'])) {

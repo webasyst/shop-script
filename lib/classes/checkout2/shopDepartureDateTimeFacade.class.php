@@ -75,11 +75,18 @@ class shopDepartureDateTimeFacade
 
 
     /**
-     * @return string SQL DATETIME
+     * Получение первой доступной даты и времени доставки,
+     * начиная с которой можно считать, что заказ готов для отправки
+     *
+     * @return false|int|mixed|string SQL DATETIME
+     * @throws waException
      */
     public function getDepartureDateTime()
     {
         $timestamp = $this->getFirstDay();
+
+        /** Учитываем "Количество рабочих часов на обработку заказа" (processing_time)
+         *  и "Дополнительное время на комплектацию" (extra_processing_time) */
         $processing = $processing_residue = round((float)$this->processing_time * 3600 + $this->extra_processing_time);
 
         //get first day processing

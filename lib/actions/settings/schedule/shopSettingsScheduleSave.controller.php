@@ -128,6 +128,10 @@ class shopSettingsScheduleSaveController extends waJsonController
             if ($start_time >= $end_time) {
                 $this->insertError("[{$block}][{$day_id}][end_work]", _w('Invalid time'));
             }
+            $end_processing = strtotime($day['end_processing']);
+            if ($end_processing <= $start_time || $end_processing > $end_time) {
+                $this->insertError("[{$block}][{$day_id}][end_processing]", _w('Invalid time'));
+            }
         }
     }
 

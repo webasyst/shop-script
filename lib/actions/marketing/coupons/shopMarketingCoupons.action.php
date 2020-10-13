@@ -112,7 +112,7 @@ class shopMarketingCouponsAction extends shopMarketingViewAction
         $alphabet = "QWERTYUIOPASDFGHJKLZXCVBNM1234567890";
         $result = '';
         while (strlen($result) < 8) {
-            $result .= $alphabet{mt_rand(0, strlen($alphabet) - 1)};
+            $result .= $alphabet[mt_rand(0, strlen($alphabet) - 1)];
         }
         return $result;
     }

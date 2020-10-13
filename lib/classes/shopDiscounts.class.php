@@ -80,7 +80,7 @@ class shopDiscounts
         $discount = $total_items_discount + $order_discount;
         if ($discount || strlen($order_discount_description)) {
             if (wa('shop')->getConfig()->getOption('discount_description') && strlen($items_description)) {
-                $description .= sprintf('<h5>%s</h5>', _wp('applicable to individual items:'));
+                $description .= sprintf('<h5>%s</h5>', _wp('Discount applicable to individual items:'));
                 $description .= $items_description;
             }
             if (self::getDiscountCombineType() == 'sum') {
@@ -89,7 +89,7 @@ class shopDiscounts
                         $icon = <<<HTML
 <i class="icon16 ss orders-all"></i>
 HTML;
-                        $description .= sprintf('<h5>%s%s</h5>', $icon, _wp('applicable to entire order:'));
+                        $description .= sprintf('<h5>%s%s</h5>', $icon, _wp('Discount applicable to entire order:'));
                     }
                     $description .= '<ul>'.$order_discount_description.'</ul>';
                 }
@@ -104,7 +104,7 @@ HTML;
 <i class="icon16 ss orders-all"></i>
 HTML;
 
-                        $description .= sprintf('<h5>%s%s</h5>', $icon, _wp('applicable to entire order:'));
+                        $description .= sprintf('<h5>%s%s</h5>', $icon, _wp('Discount applicable to entire order:'));
                     }
                     $description .= $order_discount_description.'<br>';
                 }
@@ -476,9 +476,13 @@ HTML;
      */
     protected static function byCoupons(&$order, $contact, $apply)
     {
+        $coupon_model = new shopCouponModel();
         $coupon = self::getCoupon($order);
         $result = [];
 
+        if (!$coupon && $apply) {
+            $coupon_model->setUnused($order['id']);
+        }
         // If there is no coupon or there are no items in the order, do not apply the coupon
         if (!$coupon || empty($order['items'])) {
             return $result;
@@ -499,8 +503,9 @@ HTML;
         }
 
         if ($result) {
-            if ($apply && !$order['id']) {
-                (new shopCouponModel())->useOne($coupon['id']);
+            if ($apply) {
+                $coupon_model->setUnused($order['id']);
+                $coupon_model->useOne($coupon['id']);
             }
 
             $order['params']['coupon_id'] = $coupon['id'];
@@ -932,9 +937,9 @@ HTML;
                 // This modifies $description in outer function scope by link
                 $description .= sprintf(
                     '<h5>%s</h5><b>%s</b>',
-                    _w('total discount value was adjusted:'),
+                    _w('Total discount value was adjusted.'),
                     sprintf_wp(
-                        'from %s to %s',
+                        'Before: %s, after: %s',
                         shop_currency($old_discount, $currency, $currency, 'h'),
                         shop_currency($discount, $currency, $currency, 'h')
                     )

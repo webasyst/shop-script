@@ -69,7 +69,9 @@
 
             <!-- plugin hook: 'backend_tutorial.sidebar_block' -->
             {* @event backend_tutorial.%plugin_id%.sidebar_block *}
-            {foreach ifempty($backend_tutorial, []) as $_}{ifset($_.sidebar_block)}{/foreach}
+            {if isset($backend_tutorial)}
+                {foreach ifempty($backend_tutorial, []) as $_}{ifset($_.sidebar_block)}{/foreach}
+            {/if}
 
         </div>
     </div>

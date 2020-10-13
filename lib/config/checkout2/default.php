@@ -47,7 +47,7 @@ return [
         'service_agreement_hint' => '',
     ],
     'shipping'        => [
-        'used'                   => false,
+        'used'                   => true,
         'block_name'             => _wd('shop', 'Shipping'),
         'mode'                   => shopCheckoutConfig::SHIPPING_MODE_TYPE_DEFAULT,
         'fixed_delivery_area'    => [
@@ -68,10 +68,11 @@ return [
         'auto_use_timeout'       => 3,  // In seconds, if there is empty or <= 0 timeout will not be applied
     ],
     'payment'         => [
-        'used'       => false,
+        'used'       => true,
         'block_name' => _wd('shop', 'Payment')
     ],
     'confirmation'    => [
+        'auto_submit'        => true,
         'order_comment'      => false,
         'terms'              => false,
         'terms_text'         => '',

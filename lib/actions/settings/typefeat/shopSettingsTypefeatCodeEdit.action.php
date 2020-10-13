@@ -21,7 +21,11 @@ class shopSettingsTypefeatCodeEditAction extends waViewAction
             $all_types_is_checked = true;
         }
 
-        $code_plugin_enabled = !empty($code['plugin_id']) ? isset(wa('shop')->getConfig()->getPlugins()[$code['plugin_id']]) : false;
+        $code_plugin_enabled = false;
+        if (!empty($code['plugin_id'])) {
+            $shop_plugins = wa('shop')->getConfig()->getPlugins();
+            $code_plugin_enabled = isset($shop_plugins[$code['plugin_id']]);
+        }
 
         $this->view->assign([
             'all_types_is_checked' => $all_types_is_checked,

@@ -1,0 +1,49 @@
+<div class="wa-dialog s-select-sku-features-dialog" id="js-select-sku-features-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="dialog-header">
+            <h2>[`Характеристики для выбора вариантов товара на витрине`]</h2>
+        </div>
+        <div class="dialog-content">
+
+            <div class="s-features-wrapper" id="vue-features-wrapper" style="visibility: hidden;">
+                <div class="s-filter-section">
+                    <div class="s-filter-form">
+                        <span class="s-button"><i class="fas fa-search"></i></span>
+                        <input class="s-field js-filter-field" type="text" value="" placeholder="{_w("Поиск категорий")|escape}">
+                    </div>
+                </div>
+
+                <div class="s-features-list">
+
+                    <template v-for="feature in selectable_features">
+                        <div class="s-feature-wrapper"
+                             v-bind:class="{ 'is-disabled': feature.disabled }"
+                             v-bind:title="feature.disabled ? '{_w("Данный формат характеристики не доступен для выбора вариантов товара.")|escape}' : ''">
+                            <div class="flexbox middle space-8">
+                                <div class="s-field">
+                                    <label class="wa-checkbox">
+                                        <input class="js-category-field" type="checkbox"
+                                               v-bind:id="'sku-feature-' + feature.id" v-model="feature.active"
+                                               v-bind:disabled="feature.disabled">
+                                        <span><span class="icon"><i class="fas fa-check"></i></span></span>
+                                    </label>
+                                </div>
+                                <div class="s-icon icon baseline size-12"><i class="fas fa-sitemap"></i></div>
+                                <div class="s-name">
+                                    <label class="js-name" v-bind:for="'sku-feature-' + feature.id">{ { feature.name } }</label>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                </div>
+            </div>
+
+        </div>
+        <div class="dialog-footer">
+            <button class="js-submit-button wa-button blue" type="button">[`Добавить`]</button>
+            <button class="js-dialog-close wa-button gray-light" type="button">[`Отмена`]</button>
+        </div>
+    </div>
+</div>

@@ -150,7 +150,18 @@ class shopProductReviewsModel extends waNestedSetModel
         $order = $this->getOrder($options);
         $limit = $this->getLimit($options);
 
-        $data = $this->select($main_fields)->where($where)->order($order)->limit($limit)->fetchAll('id');
+        if (isset($options['allowed_types_id']) && !empty($options['allowed_types_id'])) {
+            $where = 'p.type_id IN (' . implode(',', $options['allowed_types_id']) . ') AND ' . $where;
+            $sql = "SELECT {$main_fields}
+                    FROM {$this->table}
+                    JOIN shop_product AS p ON shop_product_reviews.product_id = p.id
+                    WHERE {$where}
+                    ORDER BY {$order}
+                    LIMIT {$limit}";
+            $data = $this->query($sql)->fetchAll('id');
+        } else {
+            $data = $this->select($main_fields)->where($where)->order($order)->limit($limit)->fetchAll('id');
+        }
 
         if (!$data) {
             return $data;
@@ -227,7 +238,7 @@ class shopProductReviewsModel extends waNestedSetModel
         }
 
         if (is_array($conditions)) {
-            $where .= $this->getWhereByField($conditions);
+            $where .= $this->getWhereByField($conditions, true);
         } elseif (is_string($conditions)) {
             $where .= $this->escape($conditions);
         }
@@ -243,11 +254,11 @@ class shopProductReviewsModel extends waNestedSetModel
         $order = ifset($options, 'order', 'DESC');
 
         if ($sort === 'rate') {
-            $result = $sort;
+            $result = $this->table . '.' . $sort;
         } else {
-            $result = 'datetime';
+            $result = $this->table . '.datetime';
         }
-        $result .= " {$order}, id";
+        $result .= " {$order}, {$this->table}.id";
 
         $result = $this->escape($result);
 
@@ -281,7 +292,7 @@ class shopProductReviewsModel extends waNestedSetModel
 
         foreach (explode(',', $fields) as $name) {
             if ($this->fieldExists($name) || $name == '*') {
-                $result['main_fields'] .= ','.$name;
+                $result['main_fields'] .= ',' . $this->table . '.' . $name;
             } else {
                 $result['post_fields'] .= ','.$name;
             }

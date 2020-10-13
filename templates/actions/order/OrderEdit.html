@@ -443,12 +443,23 @@
                         [`Discount`]
 
                         {*Coupon show/remove*}
-                        {if !empty($order.coupon)}
-                                <a href="{$wa_app_url}marketing/coupons/{$order.coupon.id|escape}/" class="s-order-edit-coupon" target="_blank">
-                                    <input type="hidden" id="coupon_id" name="coupon_id" value="{$order.coupon.id}">
-                                    <i class="icon16 ss coupon"></i><strong>{$order.coupon.code|escape}</strong>
-                                </a>
+                        {if empty($order.coupon)}
+                            {$hidden_first = 'style="display: none"'}
+                        {else}
+                            {$hidden_first = ''}
                         {/if}
+                        <span class="gray js-no-coupon-text" {if !empty($order.coupon)}style="display: none"{/if}>[`No coupon`]</span>
+                        <a href="{if isset($order.coupon.id)}{$wa_app_url}marketing/coupons/{$order.coupon.id|escape}/{/if}" data-href="{$wa_app_url}marketing/coupons/" class="s-order-edit-coupon {if !isset($order.coupon.id)}disabled-link{/if}" target="_blank">
+                            <i class="icon16 ss coupon js-coupon-icon" {$hidden_first}></i><strong class="coupon-code-label">{if !empty($order.coupon)}{$order.coupon.code|escape}{/if}</strong>
+                        </a>
+                        <input class="wa-input" type="text" id="coupon-code" name="coupon_code" value="" placeholder="[`Coupon code`]" style="display: none">
+                        <span class="coupon-controls">
+                            <i class="icon16 edit js-edit-coupon"></i>
+                            <i class="icon16 close js-close-coupon" style="display: none"></i>
+                            <i class="icon16 delete js-delete-coupon" {$hidden_first}></i>
+                        </span>
+                        <input type="hidden" id="coupon_id" name="coupon_id" value="{if isset($order.coupon.id)}{$order.coupon.id}{/if}">
+                        <div class="errormsg" id="js-coupon-invalid-msg" style="display: none">[`Invalid coupon code`]</div>
                     </td>
                     <td class="align-right nowrap">
                         &minus; <input type="text" class="numerical short" id="discount" name="discount" {if !empty($order.id)}value="{$order.discount}"{/if}{if !empty($order.items_total_discount)} style="display:none;" {/if}>
@@ -463,8 +474,8 @@
                     <td>
                         {capture name=hold_discount}
                             <br/><strong>[`Total discount breakdown`]</strong><br/>
-- [`applicable to individual items:`] {shop_currency_html((float)$order.items_total_discount|default:0,$currency,$currency)|escape:ENT_QUOTES}<br/>
-- [`applicable to entire order:`] {shop_currency_html((float)$order.discount|default:0-(float)$order.items_total_discount|default:0,$currency,$currency)}
+- [`Discount applicable to individual items:`] {shop_currency_html((float)$order.items_total_discount|default:0,$currency,$currency)|escape:ENT_QUOTES}<br/>
+- [`Discount applicable to entire order:`] {shop_currency_html((float)$order.discount|default:0-(float)$order.items_total_discount|default:0,$currency,$currency)}
                         {/capture}
 
                         <input type="hidden" name="discount_description" value="{if !empty($order.items_total_discount) || !empty($order.discount)}{$smarty.capture.hold_discount|escape}{/if}" id="discount-description"

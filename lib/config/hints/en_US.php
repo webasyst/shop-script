@@ -86,4 +86,7 @@ return array(
     'customers_search_consider_orders_unpaid' => array(
         'text' => 'Displayed will be only customers who have orders not labeled as “Paid”. Other search fields, if completed, will be taken into account only for non-paid orders while paid ones will be ignored.',
     ),
+    'marketing_promo_stock_price_products' => array(
+        'text' => 'A special product price specified for a promo becomes a product’s base price during the promo period and is not considered as a discounted price. Discounts are calculated relative to this base promo price.',
+    ),
 );

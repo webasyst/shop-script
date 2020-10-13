@@ -104,7 +104,10 @@ class shopFollowupCli extends waCliController
                             $source = rtrim($o['params']['storefront'], '/').'/*';
                         }
 
-                        if ($f['source'] && $f['source'] != $source) {
+                        if (isset($f['sources'])
+                            && in_array('all_sources', $f['sources']) === false
+                            && in_array($source, $f['sources']) === false
+                        ) {
                             if (waSystemConfig::isDebug()) {
                                 waLog::log("Skipping follow-up #{$f['id']} for order #{$o['id']}: mismatch order source.");
                             }

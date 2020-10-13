@@ -319,10 +319,10 @@ class shopCheckoutConfig implements ArrayAccess
         $locales = array(
             "locale_1" => _w("Non-authorized customers do not need to confirm their email address or phone number."),
             "locale_2" => _w("Authorized customers cannot use an email address or phone number from other customers’ or backend users’ profiles."),
-            "locale_3" => _w("Non-authorized customers must confirm their email address or phone number before checkout completion, only if those data have been found in other registered customers’ profiles or in only one backend user profile. Such customers are automatically logged in right after confirmation or get signed up, if not registered, and receive a corresponding notification."),
+            "locale_3" => _w("Non-authorized customers must confirm their email address or phone number before checkout completion, only if those data have been found in other registered customers’ profiles or in only one backend user profile. Such customers are automatically logged in right after confirmation, or get signed up if they were not registered before."),
             "locale_4" => _w("Authorized customers can change their email address or phone number to those found in other registered customers’ profiles or in one backend user profile, only after confirmation."),
             "locale_5" => _w("A customer cannot place an order with the use of an email address or phone number found in multiple backend user profiles."),
-            "locale_6" => _w("Non-authorized customers must confirm their email address or phone number before checkout completion. Such customers are automatically logged in right after confirmation or get signed up, if not registered, and receive a corresponding notification."),
+            "locale_6" => _w("Non-authorized customers must confirm their email address or phone number before checkout completion. Such customers are automatically logged in right after confirmation, or get signed up if they were not registered before."),
             "locale_7" => _w("Authorized customers can change their email address or phone number to those found in other registered customers’ profiles or in one backend user profile, only after confirmation."),
             "locale_8" => _w("A customer cannot place an order with the use of an email address or phone number found in multiple backend user profiles."),
         );
@@ -1336,6 +1336,7 @@ class shopCheckoutConfig implements ArrayAccess
                 'block_name' => self::SETTING_TYPE_SCALAR,
             ],
             'confirmation'    => [
+                'auto_submit'        => self::SETTING_TYPE_BOOL,
                 'order_comment'      => self::SETTING_TYPE_BOOL,
                 'terms'              => self::SETTING_TYPE_BOOL,
                 'terms_text'         => self::SETTING_TYPE_SCALAR,

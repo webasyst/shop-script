@@ -3342,9 +3342,9 @@ msgstr "Покупатель может оформить заказ, даже е
 
 msgid "You have %s bonus point! You can use it to get an additonal discount of up to %s."
 msgid_plural "You have %s bonus points! You can use your points to get an additonal discount of up to %s."
-msgstr[0] "У вас есть %s бонусный балл! Вы можете использовать свои баллы, чтобы получить скидку %s."
-msgstr[1] "У вас есть %s бонусных балла! Вы можете использовать свои баллы, чтобы получить скидку %s."
-msgstr[2] "У вас есть %s бонусных баллов! Вы можете использовать свои баллы, чтобы получить скидку %s."
+msgstr[0] "У вас есть %s бонусный балл! Вы можете использовать свои баллы, чтобы получить дополнительную скидку %s."
+msgstr[1] "У вас есть %s бонусных балла! Вы можете использовать свои баллы, чтобы получить дополнительную скидку %s."
+msgstr[2] "У вас есть %s бонусных баллов! Вы можете использовать свои баллы, чтобы получить дополнительную скидку %s."
 
 msgid "Use bonus"
 msgstr "Использовать бонусные баллы"
@@ -5341,6 +5341,9 @@ msgstr "Показать еще..."
 msgid "months"
 msgstr "месяцы"
 
+msgid "mo."
+msgstr "мес."
+
 msgid "years"
 msgstr "года"
 
@@ -6553,8 +6556,8 @@ msgstr "Неавторизованные покупатели не должны 
 msgid "Authorized customers cannot use an email address or phone number from other customers’ or backend users’ profiles."
 msgstr "Авторизованные покупатели не могут использовать email-адрес или номер телефона, ранее сохраненные в профилях других покупателей или пользователей бекенда."
 
-msgid "Non-authorized customers must confirm their email address or phone number before checkout completion, only if those data have been found in other registered customers’ profiles or in only one backend user profile. Such customers are automatically logged in right after confirmation or get signed up, if not registered, and receive a corresponding notification."
-msgstr "Неавторизованные покупатели должны подтвердить email-адрес или номер телефона до завершения оформления заказа, только если эти данные были ранее сохранены в профилях других зарегистрированных покупателей или в профиле одного пользователя бекенда. Такие покупатели авторизуются автоматически сразу после подтверждения или становятся зарегистрированными — с отправкой уведомления об этом, если ранее не были зарегистрированы."
+msgid "Non-authorized customers must confirm their email address or phone number before checkout completion, only if those data have been found in other registered customers’ profiles or in only one backend user profile. Such customers are automatically logged in right after confirmation, or get signed up if they were not registered before."
+msgstr "Неавторизованные покупатели должны подтвердить email-адрес или номер телефона до завершения оформления заказа, только если эти данные были ранее сохранены в профилях других зарегистрированных покупателей или в профиле одного пользователя бекенда. Такие покупатели авторизуются автоматически сразу после подтверждения или становятся зарегистрированными, если не были зарегистрированы ранее."
 
 msgid "Authorized customers can change their email address or phone number to those found in other registered customers’ profiles or in one backend user profile, only after confirmation."
 msgstr "Авторизованные покупатели могут сменить email-адрес или номер телефона на ранее сохраненные в профилях других зарегистрированных покупателей или в профиле одного пользователя бекенда — только после подтверждения."
@@ -6562,8 +6565,8 @@ msgstr "Авторизованные покупатели могут смени�
 msgid "A customer cannot place an order with the use of an email address or phone number found in multiple backend user profiles."
 msgstr "Нельзя оформить заказ с использованием email-адреса или номера телефона, указанных в профилях нескольких пользователей бекенда."
 
-msgid "Non-authorized customers must confirm their email address or phone number before checkout completion. Such customers are automatically logged in right after confirmation or get signed up, if not registered, and receive a corresponding notification."
-msgstr "Неавторизованные покупатели должны подтвердить email-адрес или номер телефона до завершения оформления заказа. Такие покупатели авторизуются автоматически сразу после подтверждения или становятся зарегистрированными — с отправкой уведомления об этом, если ранее не были зарегистрированы."
+msgid "Non-authorized customers must confirm their email address or phone number before checkout completion. Such customers are automatically logged in right after confirmation, or get signed up if they were not registered before."
+msgstr "Неавторизованные покупатели должны подтвердить email-адрес или номер телефона до завершения оформления заказа. Такие покупатели авторизуются автоматически сразу после подтверждения или становятся зарегистрированными, если не были зарегистрированы ранее."
 
 msgid "Oops!"
 msgstr "Ошибка!"
@@ -7734,8 +7737,8 @@ msgstr "Дата оплаты"
 msgid "Product prices"
 msgstr "Ввод цен товаров"
 
-msgid "The URL <strong>:url</strong> is already in use by another product (<a href=\"?action=products#/product/:another_product_id/\" target=\"_blank\" class=\"bold\">:another_product_name</a>). You may still save this product with the same URL, but the storefront will display only one (any) product by this URL."
-msgstr "URL <strong>:url</strong> уже используется для другого товара (<a href=\"?action=products#/product/:another_product_id/\" target=\"_blank\" class=\"bold\">:another_product_name</a>). Вы можете сохранить этот товар с тем же самым URL, но на витрине по этому адресу будет виден только один (любой) из этих товаров."
+msgid "The URL <strong>:url</strong> is already in use by another product (<a href=\":another_product_backend_url\" target=\"_blank\" class=\"bold\">:another_product_name</a>). You may still save this product with the same URL, but the storefront will display only one (any) product by this URL."
+msgstr "URL <strong>:url</strong> уже используется для другого товара (<a href=\":another_product_backend_url\" target=\"_blank\" class=\"bold\">:another_product_name</a>). Вы можете сохранить этот товар с тем же самым URL, но на витрине по этому адресу будет виден только один (любой) из этих товаров."
 
 msgid "Web push notifications"
 msgstr "Push-уведомления"
@@ -8136,11 +8139,11 @@ msgstr "Сохранена ранее рассчитанная скидка"
 msgid "Total discount breakdown"
 msgstr "Состав итоговой скидки"
 
-msgid "applicable to individual items:"
-msgstr "скидка на заказанные товары:"
+msgid "Discount applicable to individual items:"
+msgstr "Скидка на каждый заказанный товар:"
 
-msgid "applicable to entire order:"
-msgstr "скидка на весь заказ:"
+msgid "Discount applicable to entire order:"
+msgstr "Скидка на весь заказ:"
 
 msgid "Edit discount"
 msgstr "Изменить скидку"
@@ -9465,8 +9468,8 @@ msgstr "Ошибка отправки кода"
 msgid "Code has not been sent"
 msgstr "Код не отправлен"
 
-msgid "You have run out of available attempts. Please send a new SMS."
-msgstr "Закончилось доступное количество попыток. Отправьте SMS еще раз."
+msgid "You have run out of available attempts. Please request a new code."
+msgstr "Закончилось доступное количество попыток. Пожалуйста, запросите новый код."
 
 msgid "You have entered an incorrect code. %d more attempt is available."
 msgid_plural "You have entered an incorrect code. %d more attempts are available."
@@ -10470,11 +10473,11 @@ msgstr "Чтобы включить показ слайдера, настрой�
 msgid "To display promo cards, set up promos with the “Banner” tool in “<a href=\"%s\">Marketing</a>“ section."
 msgstr "Чтобы включить показ промокарточек, настройте промоакции с инструментом «Баннер» в разделе «<a href=\"%s\">Маркетинг</a>»."
 
-msgid "total discount value was adjusted:"
-msgstr "общая сумма скидки скорректирована:"
+msgid "Total discount value was adjusted."
+msgstr "Общая сумма скидки скорректирована."
 
-msgid "from %s to %s"
-msgstr "было %s, стало  %s"
+msgid "Before: %s, after: %s"
+msgstr "Было %s, стало  %s"
 
 msgid "Drag&amp;drop some products to set with id “%s” in your online store’s backend."
 msgstr "Перетащите несколько товаров в список с идентификатором «%s» в панели управления вашего интернет-магазина."
@@ -11009,3 +11012,6 @@ msgstr "Перемещаемая категория «%current» не может
 
 msgid "Too long URL including the URLs of parent categories."
 msgstr "Cлишком длинный URL с учетом URL родительских категорий."
+
+msgid "Promo prices are not a discount."
+msgstr "Цены товаров в промоакции не являются скидкой."

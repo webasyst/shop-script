@@ -1,0 +1,70 @@
+{strip}
+
+{$_is_sku = ($sku_class === "sku")}
+
+{$_sku_name_array = []}
+{$_sku = reset($skus)}
+{if !empty($_sku.sku) || !empty($_sku.name)}
+    {if !empty($_sku.sku)}
+        {$_sku_name_array[] = $_sku.sku}
+    {/if}
+    {if !empty($_sku.name)}
+        {$_sku_name_array[] = $_sku.name}
+    {/if}
+{else}
+    {if empty($_sku_id)}
+        {$_sku_id = $_sku["id"]}
+    {else}
+        {$_sku_id = $sku_id}
+    {/if}
+    {$_sku_name_array[] = $_sku_id}
+{/if}
+
+{/strip}
+
+<div class="wa-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="dialog-header">
+            <h2>
+                {if $_is_sku}
+                    [`Подтвердите удаление артикула`]
+                {else}
+                    [`Подтвердите удаление модификации`]
+                {/if}
+            </h2>
+        </div>
+        <div class="dialog-content">
+            <p class="color-red">
+                {if $_is_sku}
+                    {$sku_count_message = _w('%d модификация', '%d модификации', count($skus))}
+                    {sprintf_wp('Вы собираетесь удалить артикул "%s" товара "%s", в котором %s.', $_sku_name_array|join:"\" \""|escape, $product.name|escape, $sku_count_message)}
+                {else}
+                    {sprintf_wp('Вы собираетесь удалить модификацию артикула "%s" товара "%s".', $_sku_name_array|join:"\" \""|escape, $product.name|escape)}
+                {/if}
+            </p>
+
+
+            {if $orders_count > 0}
+                {$orders_count_msg = _w('in %d order', 'in %d orders', $orders_count)}
+                {$orders_count_link = sprintf('<a href="%s">%s</a>', $orders_list_url|escape, $orders_count_msg|escape)}
+
+                <p>{sprintf_wp('Он используется %s.', $orders_count_link)}</p>
+            {else}
+                <p>[`Ни одного заказа не обнаружено.`]</p>
+            {/if}
+
+            <p>
+                {if $_is_sku}
+                    [`Вы точно хотите удалить артикул?`]
+                {else}
+                    [`Вы точно хотите удалить модификацию?`]
+                {/if}
+            </p>
+        </div>
+        <div class="dialog-footer">
+            <button class="js-success-action wa-button red" type="button">[`Удалить`]</button>
+            <button class="js-dialog-close wa-button gray-light" type="button">[`Отмена`]</button>
+        </div>
+    </div>
+</div>

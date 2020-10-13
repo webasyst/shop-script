@@ -187,12 +187,18 @@ class shopFrontendProductAction extends shopFrontendAction
             }
         }
 
+        $product = new shopProduct($product, true);
+
+        if ($product['status'] < 0) {
+            // do the redirect when product is in "hidden and not available" status
+            $this->handleHiddenAndNotAvailable($product);
+        }
+
         $is_cart = waRequest::get('cart');
         if ($is_cart) {
             $this->setLayout(null);
         }
 
-        $product = new shopProduct($product, true);
         $this->ensureCanonicalUrl($product);
         $this->prepareProduct($product);
 
@@ -298,6 +304,9 @@ class shopFrontendProductAction extends shopFrontendAction
      * Filter features, removing those not visible in frontend.
      * Prepare arrays of feature values for product and each SKU,
      * sorting them in proper order according to product type settings.
+     *
+     * @param $product
+     * @return array
      */
     protected function prepareFeatureVars($product)
     {
@@ -346,6 +355,9 @@ class shopFrontendProductAction extends shopFrontendAction
                     $used_feature_codes[$code] = $code;
                 } else if (isset($product_feature_values[$code])) {
                     $sku['features'][$code] = $product_feature_values[$code];
+                    $used_feature_codes[$code] = $code;
+                } elseif ($feature['type'] === shopFeatureModel::TYPE_DIVIDER) {
+                    $sku['features'][$code]    = null;
                     $used_feature_codes[$code] = $code;
                 }
             }
@@ -677,5 +689,36 @@ class shopFrontendProductAction extends shopFrontendAction
             $res['og']['og:'.$k] = $v;
         }
         return $res;
+    }
+
+    protected function handleHiddenAndNotAvailable($product)
+    {
+        $redirect_code = ifset($product, 'params', 'redirect_code', null);
+        if (!$redirect_code) {
+            throw new waException(_w('Product not found'), 404);
+        }
+
+        $redirect_category_id = ifset($product, 'params', 'redirect_category_id', null);
+        if ($redirect_category_id) {
+            $category_model = new shopCategoryModel();
+            $category = $category_model->getById($redirect_category_id);
+            if (!$category) {
+                throw new waException(_w('Product not found'), 404);
+            }
+            if (waRequest::param('url_type', 1) == 1) {
+                $category_url_part = $category['url'];
+            } else {
+                $category_url_part = $category['full_url'];
+            }
+            $redirect_url = wa()->getRouteUrl('shop/frontend/category', array('category_url' => $category_url_part));
+        } else {
+            $redirect_url = ifset($product, 'params', 'redirect_url', null);
+        }
+        if (!$redirect_url) {
+            // shop home page
+            $redirect_url = wa()->getRouteUrl('shop/frontend/');
+        }
+
+        $this->redirect($redirect_url, $redirect_code == 301 ? 301 : 302);
     }
 }

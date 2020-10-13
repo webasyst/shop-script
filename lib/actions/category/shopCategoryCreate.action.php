@@ -17,6 +17,11 @@ class shopCategoryCreateAction extends waViewAction
 
         $parent = $this->getParentCategory();
 
+        $routing = wa()->getRouting();
+        $domain = $routing->getDomain();
+        $flat_url_type = isset($routing->getByApp($this->getAppId())[$domain])
+            && current($routing->getByApp($this->getAppId())[$domain])['url_type'] == 1;
+
         $settings = $this->getSettings();
 
         if ($parent) {
@@ -54,6 +59,7 @@ class shopCategoryCreateAction extends waViewAction
 
         $this->view->assign(array(
             'parent'            => $parent,
+            'flat_url_type'     => $flat_url_type,
             'cloud'             => $tag_model->getCloud(),
             'currency'          => wa()->getConfig()->getCurrency(),
             'frontend_base_url' => $frontend_base_url,
@@ -91,7 +97,8 @@ class shopCategoryCreateAction extends waViewAction
             'frontend_urls'          => array(),
             'allow_filter'           => false,
             'enable_sorting'         => 0,
-            'include_sub_categories' => 0,
+            'sort_products'          => 'name ASC',
+            'include_sub_categories' => 1,
             'custom_conditions'      => '',
             'params'                 => [],
             'routes'                 => $category_routes_model->getEmptyRow(),

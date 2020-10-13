@@ -1,0 +1,30 @@
+<div class="wa-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="dialog-header">
+            <h2>[`Подтвердите удаление товара`]</h2>
+        </div>
+        <div class="dialog-content">
+            {if $orders_count > 0}
+                {$message = _w('Найдено %s с использованием товара "%s".')}
+                {$orders_count_msg = _w('%d order', '%d orders', $orders_count)}
+                {$orders_count_link = sprintf('<a href="%s">%s</a>', $orders_list_url|escape, $orders_count_msg|escape)}
+                {$message = sprintf($message, $orders_count_link, $product.name|escape)}
+
+                <p class="color-red">{$message}</p>
+                <p>
+                    [`После удления товара заказы сохранятся, но информация на странице заказа перестанет быть полной.`]
+                    [`Останется только название товара.`]
+                </p>
+                <p>[`Точно удалить товар?`]</p>
+            {else}
+                <p>{sprintf_wp('Нет ни одного заказа с использованием товара "%s".', $product.name|escape)}</p>
+                <p>[`Смело удаляйте!`]</p>
+            {/if}
+        </div>
+        <div class="dialog-footer">
+            <button class="js-success-action wa-button red" type="button">[`Удалить`]</button>
+            <button class="js-dialog-close wa-button gray-light" type="button">[`Отмена`]</button>
+        </div>
+    </div>
+</div>

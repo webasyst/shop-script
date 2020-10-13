@@ -24,6 +24,10 @@ class shopNotifications
     public static function send($event, $data)
     {
         $notifications = self::getModel()->getByEvent($event, true);
+        // compatibility with old versions
+        foreach ($notifications as $id => $notification) {
+            $notifications[$id]['source'] = isset($data['order']['params']['storefront']) ? $data['order']['params']['storefront'] : null;
+        }
 
         /**
          * Run before send notification from shop
@@ -58,7 +62,10 @@ class shopNotifications
                     'log_id' => null,
                     'transport' => null
                 );
-                if (!$n['source'] || ($n['source'] == $data['source'])) {
+                if (!isset($n['sources'])
+                    || in_array('all_sources', $n['sources']) !== false
+                    || in_array($data['source'], $n['sources']) !== false
+                ) {
                     $method = 'send'.ucfirst($n['transport']);
                     if (method_exists('shopNotifications', $method)) {
                         try {

@@ -1,0 +1,64 @@
+{strip}
+
+{$_added_sets = waRequest::request("added_sets", [])}
+
+{/strip}
+
+<div class="wa-dialog s-product-sets-dialog" id="js-product-sets-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="dialog-header">
+            <h2>[`Выбор списков`]</h2>
+        </div>
+        <div class="dialog-content">
+
+            <div class="s-sets-section">
+                <div class="s-filter-section">
+                    <div class="s-filter-form">
+                        <span class="s-button"><i class="fas fa-search"></i></span>
+                        <input class="s-field js-filter-field" type="text" value="" placeholder="{_w("Поиск")|escape}">
+                    </div>
+                </div>
+
+                <div class="s-sets-list js-sets-list">
+                    {foreach $sets as $_set}
+                        {$_is_active = empty($_set.id) || in_array($_set.id, $_added_sets)}
+
+                        <div class="s-set-wrapper">
+                            <div class="s-set" data-id="{$_set.id|escape}">
+                                <div class="flexbox middle space-8">
+                                    <div class="s-field">
+                                        <label class="wa-checkbox">
+                                            <input class="js-set-field" id="set[{$_set.id|escape}][checkbox]" type="checkbox" {if !empty($_is_active)}checked{/if}>
+                                            <span><span class="icon"><i class="fas fa-check"></i></span></span>
+                                        </label>
+                                    </div>
+                                    <div class="s-icon"><i class="fas fa-folder"></i></div>
+                                    <div class="s-name">
+                                        <label class="js-name" for="set[{$_set.id|escape}][checkbox]">{$_set.name|escape}</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {/foreach}
+                </div>
+            </div>
+
+        </div>
+        <div class="dialog-footer">
+            <button class="js-add-sets wa-button blue" type="button">[`Добавить`]</button>
+            <button class="js-dialog-close wa-button gray-light" type="button">[`Отмена`]</button>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+
+            $.wa_shop_products.init.initProductGeneralAddSetsDialog({
+                $wrapper: $("#js-product-sets-dialog"),
+                sets: {$sets|json_encode}
+            });
+
+        })(jQuery);
+    </script>
+</div>

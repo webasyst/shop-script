@@ -19,14 +19,15 @@ class shopDialogVisibilityAction extends waViewAction
         }
 
         $this->view->assign(array(
-            'status_change' => (int)!!waRequest::post('status'),
+            'status_change' => (int)(waRequest::post('status') > 0),
             'result'        => $result,
         ));
     }
 
     protected function processPost()
     {
-        $set_status = (int)!!waRequest::post('status');
+        $set_status = (int)waRequest::post('status');
+        $set_status = ($set_status > 0) ? 1 : (($set_status < 0) ? -1 : 0);
         $update_sku_availability = !!waRequest::post('update_skus');
 
         $products_id = array();
@@ -111,7 +112,7 @@ class shopDialogVisibilityAction extends waViewAction
             $product_model->updateById($products_id, array('status' => $set_status));
             if ($update_sku_availability) {
                 $product_skus_model->updateByField('product_id', $products_id, array(
-                    'available' => $set_status,
+                    'available' => (int)($set_status > 0),
                 ));
             }
 

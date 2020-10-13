@@ -447,7 +447,7 @@
                         {/if}
                     {/foreach}
                     {$_url_params = substr($_url_params, 1)}
-                    {$wa->shop->pager($total_completed_promos|default:0, $page, $_url_params, 'marketing/')}
+                    {$wa->shop->pager($total_completed_promos|default:0, $page, $_url_params)}
                 {else}
                     <p>[`No completed promos.`]</p>
                 {/if}

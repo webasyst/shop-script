@@ -91,6 +91,12 @@ class shopBackendAutocompleteController extends waController
                 }
             }
 
+        } elseif ($type == 'filter') {
+            foreach ($data as &$item) {
+                if (empty($item['label'])) {
+                    $item['label'] = htmlspecialchars($item['name']);
+                }
+            }
         }
 
         return $data;

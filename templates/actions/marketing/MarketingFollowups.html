@@ -163,16 +163,66 @@
                                 <div class="field">
                                     <div class="name">[`Source`]</div>
                                     <div class="value no-shift">
-                                        <select name="followup[source]">
-                                            <option value="" {if !$followup.source}selected{/if}>[`All orders`]</option>
-                                            <option value="backend" {if $followup.source == 'backend'}selected{/if}>[`Backend orders`]</option>
-                                            {foreach $routes as $domain => $domain_routes}
-                                                {foreach $domain_routes as $route}
-                                                    {$url = $domain|cat:"/":$route.url}
-                                                    <option {if $url == $followup.source}selected{/if} value="{$url}">{$url}</option>
-                                                {/foreach}
-                                            {/foreach}
-                                        </select>
+                                        <ul class="s-fields-list menu-v">
+                                            <li class="s-radio-wrapper is-active">
+                                                <label class="s-radio-label">
+                                                    <input class="s-radio js-type-group-field" type="radio" name="followup[all_sources]" value="1" {if $all_sources}checked{/if}>
+                                                    <span class="s-text bold">[`All storefronts`]</span>
+                                                </label>
+                                            </li>
+                                            <li class="s-radio-wrapper">
+                                                <label class="s-radio-label">
+                                                    <input class="s-radio js-type-group-field" type="radio" name="followup[all_sources]" value="0" {if !$all_sources}checked{/if}>
+                                                    <span class="s-text">[`Selected only`]</span>
+                                                </label>
+
+                                                <ul class="s-checkbox-list menu-v" style="margin-left: 18px; {if $all_sources}display: none;{/if}">
+                                                    <li class="s-checkbox-wrapper">
+                                                        <label>
+                                                            <input class="s-checkbox js-type-field" type="checkbox" name="followup[selected_sources_all]">
+                                                            <span class="s-text bold">[`Select all`]</span>
+                                                        </label>
+                                                    </li>
+                                                    <li class="s-checkbox-wrapper">
+                                                        <label>
+                                                            <input class="s-checkbox js-type-field" type="checkbox" name="followup[selected_sources][]" value="backend"
+                                                                   {if $backend_source}checked{/if}
+                                                            >
+                                                            <span class="s-text">[`Backend orders`]</span>
+                                                        </label>
+                                                    </li>
+                                                    {foreach $routes as $domain => $domain_routes}
+                                                        {foreach $domain_routes as $route}
+                                                            {$url = $domain|cat:"/":$route.url}
+                                                            <li class="s-checkbox-wrapper">
+                                                                <label>
+                                                                    <input class="s-checkbox js-type-field" type="checkbox" name="followup[selected_sources][]" value="{$url}"
+                                                                           {if $url|in_array:$sources !== false}checked{/if}
+                                                                    >
+                                                                    <span class="s-text" style="line-break: anywhere;">{$url}</span>
+                                                                </label>
+                                                                {if isset($active_domains.$domain) && !empty($active_domains.$domain)}
+                                                                    <div class="s-sublist-title">[`Mirrors:`]</div>
+                                                                    <ul class="s-sublist">
+                                                                        {foreach $active_domains.$domain as $mirror}
+                                                                            {$mirror_url = $mirror|cat:"/":$route.url}
+                                                                            <li class="s-checkbox-wrapper s-sublist-item">
+                                                                                <label>
+                                                                                    <input class="s-checkbox js-type-field" type="checkbox" name="followup[selected_sources][]" value="{$mirror_url}"
+                                                                                           {if $mirror_url|in_array:$sources !== false}checked{/if}
+                                                                                    >
+                                                                                    <span class="s-text" style="line-break: anywhere;">{$mirror_url}</span>
+                                                                                </label>
+                                                                            </li>
+                                                                        {/foreach}
+                                                                    </ul>
+                                                                {/if}
+                                                            </li>
+                                                        {/foreach}
+                                                    {/foreach}
+                                                </ul>
+                                            </li>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
@@ -387,6 +437,53 @@
                             "delete": "{$marketing_url}?module=marketingFollowupsDelete"
                         }
                     });
+                }
+            });
+
+            var $wrapper = $("#js-followups-page"),
+                $checkbox_list = $wrapper.find('.s-checkbox-list');
+
+            $wrapper.on("change", ".js-type-group-field", function() {
+                // DOM
+                var $field = $(this).closest(".s-radio-wrapper"),
+                    $list = $field.find('.s-checkbox-list');
+
+                // CONST
+                var active_class = "is-active";
+
+                if ($list.length) {
+                    $checkbox_list.show();
+                } else {
+                    $checkbox_list.hide();
+                }
+
+                $wrapper.find('.s-radio-wrapper').each( function(i, _field) {
+                    var $_field = $(_field);
+                    if (_field[0] === $field[0]) {
+                        $_field.addClass(active_class);
+                    } else {
+                        $_field.removeClass(active_class);
+                    }
+                });
+            });
+
+            $checkbox_list.on('change', '[name*="[selected_sources]"]', function () {
+                var $selected_sources_all = $checkbox_list.find('[name*="selected_sources_all"]'),
+                    $selected_sources = $checkbox_list.find('[name*="[selected_sources]"]');
+
+                if ($checkbox_list.find('[name*="[selected_sources]"]:checked').length === $selected_sources.length) {
+                    $selected_sources_all.prop('checked', true);
+                } else {
+                    $selected_sources_all.prop('checked', false);
+                }
+            });
+
+            $checkbox_list.on('change', '[name*="selected_sources_all"]', function () {
+                var $selected_sources = $checkbox_list.find('[name*="[selected_sources]"]');
+                if ($(this).prop('checked')) {
+                    $selected_sources.prop('checked', true);
+                } else {
+                    $selected_sources.prop('checked', false);
                 }
             });
 

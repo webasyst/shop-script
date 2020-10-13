@@ -1856,21 +1856,27 @@ SQL;
         unset($p);
     }
 
+    /**
+     * @param array $products
+     * @param bool $escape
+     * @throws waDbException
+     * @throws waException
+     */
     private function workupProducts(&$products = array(), $escape = true)
     {
         if (empty($products)) {
             return;
         }
-
-        $rounding = array(
+        $skus     = [];
+        $rounding = [
             'price',
             'min_price',
             'max_price',
             'compare_price'
-        );
+        ];
 
-        // Names of fields that must be converted to float values
-        $float = array(
+        /** Names of fields that must be converted to float values */
+        $float = [
             'min_price',
             'max_price',
             'total_sales',
@@ -1878,7 +1884,7 @@ SQL;
             'rating',
             'price',
             'compare_price',
-        );
+        ];
 
         $fetch_params = !empty($this->options['params']) || (!empty($this->post_fields['_internal']) && in_array('params', $this->post_fields['_internal']));
 
@@ -1889,9 +1895,7 @@ SQL;
 
         // Round prices for products
         $config = wa('shop')->getConfig();
-        /**
-         * @var shopConfig $config
-         */
+        /** @var shopConfig $config */
         $default_currency = $config->getCurrency(true);
         $frontend_currency = null;
         if ($this->is_frontend) {
@@ -2552,9 +2556,18 @@ SQL;
         }
 
         if ($this->is_frontend && empty($this->options['no_plugins']) && empty($this->options['no_plugins_frontend_products'])) {
-            wa('shop')->event('frontend_products', ref(array(
+            wa('shop')->event('frontend_products', ref([
                 'products' => &$products,
-            )));
+                'skus'     => &$skus,
+            ]));
+        }
+
+        if (is_array($skus)) {
+            foreach ($skus as $sku_id => $sku_par) {
+                if (isset($products[$sku_par['product_id']], $products[$sku_par['product_id']]['skus'][$sku_id])) {
+                    $products[$sku_par['product_id']]['skus'][$sku_id] = array_merge($products[$sku_par['product_id']]['skus'][$sku_id], $sku_par);
+                }
+            }
         }
     }
 

@@ -10,6 +10,9 @@ class shopFeatureValuesDoubleModel extends shopFeatureValuesModel
 
     protected function parseValue($value, $type)
     {
+        if (is_array($value)) {
+            $value = ifempty($value, 'value', '');
+        }
         return array('value' => $this->castValue('double', $value));
     }
 

@@ -39,9 +39,10 @@ class shopImportexportHelper
             'id'     => $id,
             'plugin' => $this->plugin,
         ));
-
-        $config['config'] = json_decode($config['config'], true);
-        if (!is_array($config['config'])) {
+        if (isset($config['config'])) {
+            $config['config'] = json_decode($config['config'], true);
+        }
+        if (!isset($config['config']) || !is_array($config['config'])) {
             $config['config'] = array();
         }
         return $config;

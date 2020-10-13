@@ -253,17 +253,19 @@ class shopFrontendOrderActions extends waJsonActions
         $contact->save();
 
         $auth_config = waDomainAuthConfig::factory();
-        $channels = $auth_config->getVerificationChannelInstances();
-
         // You do not need to transfer the password in the one-time password mode
         if ($auth_config->getAuthType() !== $auth_config::AUTH_TYPE_ONETIME_PASSWORD) {
             $template_variables = ['password' => $password];
         }
 
-        foreach ($channels as $channel) {
-            $result = $channel->sendSignUpSuccessNotification($contact, $template_variables);
-            if ($result) {
-                break;
+        $signup_notify = $auth_config->getSignUpNotify();
+        if ($signup_notify) {
+            $channels = $auth_config->getVerificationChannelInstances();
+            foreach ($channels as $channel) {
+                $result = $channel->sendSignUpSuccessNotification($contact, $template_variables);
+                if ($result) {
+                    break;
+                }
             }
         }
 

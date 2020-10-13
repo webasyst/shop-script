@@ -1,0 +1,56 @@
+<div class="wa-dialog s-feature-select-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div id="vue-features-wrapper" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3>[`Выберите одно или несколько значений для характеристики`]  «{ { feature.name } }»</h3>
+            </div>
+            <div class="dialog-content">
+
+                <div class="s-feature-wrapper">
+                    <div class="s-filter-section">
+                        <div class="s-filter-form">
+                            <span class="s-button"><i class="fas fa-search"></i></span>
+                            <input class="s-field js-filter-field" type="text" value="" placeholder="{_w("Поиск")|escape}">
+                        </div>
+                    </div>
+
+                    <div class="s-add-value-form-wrapper" v-if="feature.can_add_value">
+                        <button class="s-add-button wa-button wa-small transparent" type="button"
+                                v-if="!feature.show_form"
+                                v-on:click.prevent="feature.show_form = true">
+
+                            <span class="s-icon icon top"><i class="fas fa-plus"></i></span>
+                            <span class="s-name">[`Добавить`]</span>
+                        </button>
+
+                        <template v-if="feature.show_form">
+                            <component-feature-value-form v-bind:feature="feature" v-on:feature_value_added="onFeatureValueAdded"></component-feature-value-form>
+                        </template>
+                    </div>
+
+                    <div class="s-options-list js-options-list">
+                        <div class="s-option-wrapper js-option-wrapper" v-for="(option, index) in feature.options">
+                            <div class="flexbox middle space-8">
+                                <div class="s-field">
+                                    <label class="wa-checkbox">
+                                        <input class="js-category-field" type="checkbox" v-bind:id="'feature-option-' + index" v-model="option.active">
+                                        <span><span class="icon"><i class="fas fa-check"></i></span></span>
+                                    </label>
+                                </div>
+                                <div class="s-icon icon size-12"><i class="fas fa-sitemap"></i></div>
+                                <div class="s-name">
+                                    <label class="js-name" v-bind:for="'feature-option-' + index">{ { option.name } }</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button" type="button" v-on:click.prevent="success">[`Выбрать`]</button>
+                <button class="wa-button gray-light" type="button" v-on:click.prevent="close">[`Отмена`]</button>
+            </div>
+        </div>
+    </div>
+</div>

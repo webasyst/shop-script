@@ -5,7 +5,10 @@
         <a href="#/" class="back">&larr; [`Back`]</a>
 
         <span class="s-product-name">{if $product.id == 'new'}[`New product`]{else}{$product.name|escape}{/if}</span>
-        <span class="hint float-right s-product-id" {if $product.id == 'new'}style="display:none;"{/if}>id: {$product.id}</span>
+        <span class="hint float-right s-product-id" style="width: auto; padding: 0 .5rem; {if $product.id == 'new'}display:none;{/if}">id: {$product.id}</span>
+        {if $product.id !== 'new'}
+            <a class="s-new-product-editor-button float-right" href="{$wa_app_url}products/{$product.id|escape}/" title="{_w("Попробуйте новую версию редактора товара. Вы всегда сможете вернуться в старый вариант.")|escape}">[`Попробовать новый редактор товара`]</a>
+        {/if}
 
         <!-- plugin hook: 'backend_product.title_suffix' -->
         {* @event backend_product.%plugin_id%.title_suffix *}
@@ -415,8 +418,9 @@
                         <div class="s-product-status">
                             <i class="icon10 {if $product.status}yes{else}no-bw{/if}"></i>
                             <select name="product[status]">
-                                <option {if $product.status}selected{/if} value="1">[`Visible`]</option>
+                                <option {if $product.status > 0}selected{/if} value="1">[`Visible`]</option>
                                 <option {if !$product.status}selected{/if} value="0">[`Hidden`]</option>
+                                <option {if $product.status < 0}selected{/if} value="-1">[`Скрыт и не доступен (404)`]</option>
                             </select>
                         </div>
 

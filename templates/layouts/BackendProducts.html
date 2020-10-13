@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="{if $wa->locale()}{$wa->locale()}{else}en{/if}">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>{$wa->title()|default:$wa->appName()|escape} — {$wa->accountName()}</title>
+
+    {* META *}
+    <meta charset="UTF-8">
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    {* CSS *}
+    {$wa->css()}
+    <link href="{$wa_app_static_url}css/shop.css?v{$wa->version()}" rel="stylesheet" />
+    <link href="{$wa_app_static_url}css/backend/products/wa2/wa2.css?v{$wa->version()}" rel="stylesheet" />
+    <link href="{$wa_app_static_url}css/backend/products/product/product.css?v={$wa->version(true)}" rel="stylesheet" />
+
+    {* JS *}
+    <script src="{$wa_url}wa-content/js/jquery/jquery-1.11.1.min.js"></script>
+    {* <script src="{$wa_url}wa-content/js/jquery-wa/wa.core.js?v{$wa->version(true)}"></script> *}
+    <script src="{$wa_app_static_url}js/backend/products/wa2.js?v{$wa->version()}"></script>
+    <script src="{$wa_app_static_url}js/backend/products/products.js?v{$wa->version()}"></script>
+    <script src="{$wa_url}wa-content/font/fontawesome/fontawesome-all.min.js?v={$wa->version()}"></script>
+    {$wa->js()}
+
+    <script>
+        ( function($) {
+            $.wa_shop_products.app_url = "{$wa_app_url|escape}";
+            $.wa_shop_products.section_url = "{$wa_app_url|escape}?action=products";
+        })(jQuery);
+    </script>
+</head>
+
+<body>
+<div id="wa">
+    {* HEADER *}
+    {$wa->header()}
+
+    {* APP *}
+    <div class="s-app-wrapper" id="wa-app">
+        {$content}
+    </div>
+
+    {capture assign="_confirm_dialog"}
+        <div class="wa-dialog">
+            <div class="dialog-background"></div>
+            <div class="dialog-body">
+                <div class="dialog-header">
+                    <h2>[`Имеются несохранённые данные`]</h2>
+                </div>
+                <div class="dialog-content">
+                    <p>[`Ты собираешься улизнуть со страницы не засейвив данные БРО. Не делай так!`]</p>
+                </div>
+                <div class="dialog-footer">
+                    <button class="js-dialog-close wa-button blue" type="button">[`Отмена`]</button>
+                    <button class="js-success-button wa-button gray" type="button">[`Свалить`]</button>
+                </div>
+            </div>
+        </div>
+    {/capture}
+
+    <script>
+        ( function($) {
+
+            var sections = {
+                "products": {
+                    id: "products",
+                    content_selector: ".s-product-page .js-page-content"
+                },
+                "product": {
+                    id: "product",
+                    content_selector: ".s-product-page .js-page-content"
+                }
+            }
+
+            var routes = {
+                "/products/": sections["products"],
+                "/products/\\d+/": sections["product"],
+                "/products/\\d+/general/": sections["product"],
+                "/products/\\d+/sku/": sections["product"]
+            }
+
+            $.wa_shop_products.init.initContentRouter({
+                $wrapper: $("#wa-app"),
+                main_url: {$wa_app_url|json_encode},
+                sections: sections,
+                routes: routes,
+                onClick: function(node, url) {
+                    var $link = $(node);
+                    if ($link.hasClass("js-disable-router")) {
+                        return false;
+                    }
+                },
+                templates: {
+                    confirm_dialog: {$_confirm_dialog|strip|trim|json_encode}
+                }
+            });
+
+        })(jQuery);
+    </script>
+</div>
+</body>
+</html>

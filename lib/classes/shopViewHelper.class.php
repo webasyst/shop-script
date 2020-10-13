@@ -399,6 +399,19 @@ SQL;
         $sql = "SELECT * FROM `shop_feature` WHERE id IN (i:ids) OR type = 'divider'";
         $features = $feature_model->query($sql, array('ids' => array_keys($tmp)))->fetchAll('id');
 
+        foreach ($features as $fid => $feature) {
+            /** отбираем ID фич у которых есть родитель */
+            if (null !== $feature['parent_id']) {
+                $parents[$feature['parent_id']] = true;
+            }
+        }
+        if (isset($parents)) {
+            $sql = "SELECT * FROM `shop_feature` WHERE id IN (i:ids)";
+            $parent_features = $feature_model->query($sql, ['ids' => array_keys($parents)])->fetchAll('id');
+            $features = $features + $parent_features;
+            unset($parent_features);
+        }
+
         $type_values = [];
         $product_features = [];
         foreach ($rows as $row) {
@@ -453,47 +466,60 @@ SQL;
                     }
                     $f = $features[$feature_id];
                     $type = preg_replace('/\..*$/', '', $f['type']);
-                    if (isset($product_features[$p['id']][$feature_id])) {
-                        $value_ids = $product_features[$p['id']][$feature_id];
-                        if ($type == shopFeatureModel::TYPE_BOOLEAN || $type == shopFeatureModel::TYPE_DIVIDER) {
-                            /** @var shopFeatureValuesBooleanModel|shopFeatureValuesDividerModel $model */
-                            $model = shopFeatureModel::getValuesModel($type);
-                            $values = $model->getValues('id', $value_ids);
-                            $p['features'][$f['code']] = reset($values);
+
+                    if ($type == shopFeatureModel::TYPE_BOOLEAN) {
+                        if (!isset($product_features[$p['id']][$feature_id])) {
+                            continue 1;
                         }
-                        elseif ($type == shopFeatureModel::TYPE_2D || $type == shopFeatureModel::TYPE_3D) {
-                            $sub_type = preg_replace('#^(?:\S*\.)(double|dimension)(?:\.\S*)?#', '$1', $f['type']);
-                            switch ($sub_type) {
-                                case shopFeatureModel::TYPE_DIMENSION:
-                                case shopFeatureModel::TYPE_DOUBLE:
-                                    $val_obj = [];
-                                    foreach ($features as $id => $param) {
-                                        if ($param['parent_id'] === $feature_id) {
-                                            if (isset($product_features[$p['id']][$param['id']])) {
-                                                $val_obj[] = reset($type_values[$sub_type][$param['id']]);
+                        $value_ids = $product_features[$p['id']][$feature_id];
+                        /** @var shopFeatureValuesBooleanModel $model */
+                        $model = shopFeatureModel::getValuesModel($type);
+                        $values = $model->getValues('id', $value_ids);
+                        $p['features'][$f['code']] = reset($values);
+                    } elseif ($type == shopFeatureModel::TYPE_DIVIDER) {
+                        /** @var shopFeatureValuesDividerModel $model */
+                        $values = shopFeatureModel::getValuesModel($type)->getValues('id', $feature_id);
+                        $p['features'][$f['code']] = reset($values);
+                    } elseif ($type == shopFeatureModel::TYPE_2D || $type == shopFeatureModel::TYPE_3D) {
+                        $sub_type = preg_replace('#^(?:\S*\.)(double|dimension)(?:\.\S*)?#', '$1', $f['type']);
+                        switch ($sub_type) {
+                            case shopFeatureModel::TYPE_DIMENSION:
+                            case shopFeatureModel::TYPE_DOUBLE:
+                                $val_obj = [];
+                                foreach ($features as $id => $param) {
+                                    if ($param['parent_id'] === $feature_id) {
+                                        if (isset($product_features[$p['id']][$param['id']])) {
+                                            /** если у продукта есть такая фича */
+                                            $feature_value_id = $product_features[$p['id']][$param['id']];
+                                            if (isset($type_values[$sub_type][$param['id']][$feature_value_id])) {
+                                                $val_obj[] = $type_values[$sub_type][$param['id']][$feature_value_id];
                                             }
                                         }
                                     }
-                                    $p['features'][$f['code']] = implode('&times;', $val_obj);
-                                    break;
-                                default:
-                                    $nop = 'nop';
-                            }
-                        } else {
-                            if (is_array($value_ids)) {
-                                $p['features'][$f['code']] = array();
-                                //keep feature values order
-                                foreach ($type_values[$type][$feature_id] as $v_id => $v_value) {
-                                    if (in_array($v_id, $value_ids)) {
-                                        $p['features'][$f['code']][$v_id] = $v_value;
-                                    }
                                 }
-                            } elseif (isset($type_values[$type][$feature_id][$value_ids])) {
-                                $p['features'][$f['code']] = $type_values[$type][$feature_id][$value_ids];
-                            }
+                                if ($val_obj) {
+                                    $p['features'][$f['code']] = implode('&times;', $val_obj);
+                                }
+                                break;
+                            default:
+                                /** no operation */
                         }
-                    } elseif ($type == shopFeatureModel::TYPE_DIVIDER) {
-                        $p['features'][$f['code']] = '';
+                    } else {
+                        if (!isset($product_features[$p['id']][$feature_id])) {
+                            continue 1;
+                        }
+                        $value_ids = $product_features[$p['id']][$feature_id];
+                        if (is_array($value_ids)) {
+                            $p['features'][$f['code']] = array();
+                            //keep feature values order
+                            foreach ($type_values[$type][$feature_id] as $v_id => $v_value) {
+                                if (in_array($v_id, $value_ids)) {
+                                    $p['features'][$f['code']][$v_id] = $v_value;
+                                }
+                            }
+                        } elseif (isset($type_values[$type][$feature_id][$value_ids])) {
+                            $p['features'][$f['code']] = $type_values[$type][$feature_id][$value_ids];
+                        }
                     }
                 }
             }
@@ -531,6 +557,16 @@ SQL;
      */
     public function reviews($limit = 10)
     {
+        $allowed_types_id = array();
+        $type_id = waRequest::param('type_id');
+        if (is_array($type_id)) {
+            foreach ($type_id as $key => $id) {
+                if (filter_var($id, FILTER_VALIDATE_INT) === false) {
+                    unset($type_id[$key]);
+                }
+            }
+            $allowed_types_id = $type_id;
+        }
         $product_reviews_model = new shopProductReviewsModel();
         $reviews = $product_reviews_model->getList('*,product,contact', array(
             'where'  => array(
@@ -538,7 +574,8 @@ SQL;
                 'status'    => shopProductReviewsModel::STATUS_PUBLISHED
             ),
             'limit'  => $limit,
-            'escape' => true
+            'escape' => true,
+            'allowed_types_id' => $allowed_types_id
         ));
 
 

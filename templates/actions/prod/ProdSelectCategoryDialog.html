@@ -1,0 +1,119 @@
+{strip}
+
+{$_templates = []}
+{$_added_categories = waRequest::request("added_categories", [])}
+{$_main_category_id = waRequest::request("main_category_id", null)}
+
+{function name="_render_category" _category=[]}
+    {$_is_active = empty($_category.id) || in_array($_category.id, $_added_categories)}
+    {$_is_main_category = !empty($_category.id) && !empty($_main_category_id) && $_category.id === $_main_category_id}
+
+    <div class="s-category" data-id="{$_category.id|default:"%category_id%"|escape}" data-parent-id="{$_category.parent_id|default:"%category_parent_id%"|escape}">
+        <div class="flexbox middle space-8">
+            <div class="s-field">
+                <label class="wa-checkbox">
+                    <input class="js-category-field" id="category[{$_category.id|default:"%category_id%"|escape}][checkbox]" type="checkbox" {if !empty($_is_active)}checked{/if} {if !empty($_is_main_category)}disabled{/if}>
+                    <span><span class="icon"><i class="fas fa-check"></i></span></span>
+                </label>
+            </div>
+            <div class="s-icon"><i class="fas fa-folder"></i></div>
+            <div class="s-name">
+                <label class="js-name" for="category[{$_category.id|default:"%category_id%"|escape}][checkbox]">{$_category.name|default:"%category_name%"|escape}</label>
+            </div>
+            <div class="s-actions">
+                <button class="s-action wa-button transparent-gray js-create-category" title="{_w("Добавить новую категорию")|escape}">
+                    <i class="fas fa-plus-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+{/function}
+
+{function name="_render_categories_options" _categories=[]}
+    {foreach $_categories as $_category}
+        <div class="s-category-wrapper">
+            {_render_category _category=$_category}
+
+            {if !empty($_category.categories)}
+                <div class="s-categories-group">
+                    {_render_categories_options _categories=$_category.categories}
+                </div>
+            {/if}
+        </div>
+    {/foreach}
+{/function}
+
+{capture assign="_new_category"}{_render_category}{/capture}
+{$_templates["new_category"] = $_new_category}
+
+{capture assign="_add_category_form"}
+    <form class="s-add-new-form">
+        <div class="flexbox middle space-8">
+            <input type="text" name="name" value="" placeholder="{_w("Введите название")|escape}" required>
+            <button class="wa-button blue js-submit-button" type="submit">
+                <span class="icon s-icon"><i class="fas fa-check"></i></span>
+            </button>
+            <button class="wa-button top gray js-cancel" type="button">
+                <span class="icon"><i class="fas fa-times"></i></span>
+            </button>
+        </div>
+        <input type="hidden" name="parent_id" value="%parent_id%">
+    </form>
+{/capture}
+{$_templates["add_category_form"] = $_add_category_form}
+
+{/strip}
+
+<div class="wa-dialog s-additional-categories-dialog" id="js-additional-categories-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="dialog-header">
+            <h2>[`Выбор дополнительных категорий`]</h2>
+        </div>
+        <div class="dialog-content">
+
+            <div class="s-categories-section">
+                <div class="s-filter-section">
+                    <div class="s-filter-form">
+                        <span class="s-button"><i class="fas fa-search"></i></span>
+                        <input class="s-field js-filter-field" type="text" value="" placeholder="{_w("Поиск категорий")|escape}">
+                    </div>
+                </div>
+
+                <div class="s-categories-list js-categories-list">
+                    <div class="s-category-wrapper">
+                        <div class="s-category">
+                            <div class="s-add-root-category-wrapper">
+                                <button class="wa-button transparent-gray js-create-category">
+                                    <span class="s-icon"><i class="fas fa-plus-circle"></i></span>{_w("Добавить новую категорию")|escape}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {_render_categories_options _categories=$categories_tree}
+                </div>
+            </div>
+
+        </div>
+        <div class="dialog-footer">
+            <button class="js-add-categories wa-button blue" type="button">[`Добавить`]</button>
+            <button class="js-dialog-close wa-button gray-light" type="button">[`Отмена`]</button>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+
+            $.wa_shop_products.init.initProductGeneralAddCategoriesDialog({
+                $wrapper: $("#js-additional-categories-dialog"),
+                categories: {$categories|json_encode},
+                templates: {$_templates|json_encode},
+                urls: {
+                    "create_category": "{$wa_app_url}?module=category&action=add"
+                }
+            });
+
+        })(jQuery);
+    </script>
+</div>

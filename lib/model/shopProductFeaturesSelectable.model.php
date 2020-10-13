@@ -626,4 +626,43 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
         $sql = 'SELECT DISTINCT feature_id FROM '.$this->table.' WHERE product_id = i:0';
         return $this->query($sql, $product_id)->fetchAll(null, true);
     }
+
+    public function setFeatureIds(shopProduct $product, array $features_selectable_ids)
+    {
+        // Select value ids of given features, saved for SKUs of current product
+        $values = [];
+        if ($features_selectable_ids) {
+            $feature_ids_with_no_values = array_fill_keys($features_selectable_ids, true);
+
+            $product_features_model = new shopProductFeaturesModel();
+            $rows = $product_features_model->getByField([
+                'sku_id' => array_keys($product['skus']),
+                'product_id' => $product['id'],
+                'feature_id' => $features_selectable_ids,
+            ], true);
+            foreach ($rows as $row) {
+                unset($feature_ids_with_no_values[$row['feature_id']]);
+                $values[$row['feature_id'].'.'.$row['feature_value_id']] = [
+                    'product_id' => $product['id'],
+                    'feature_id' => $row['feature_id'],
+                    'value_id' => $row['feature_value_id'],
+                ];
+            }
+            unset($rows);
+
+            foreach ($feature_ids_with_no_values as $feature_id => $_) {
+                $values[$feature_id.'.0'] = [
+                    'product_id' => $product['id'],
+                    'feature_id' => $feature_id,
+                    'value_id' => 0,
+                ];
+            }
+        }
+
+        // Set them as selectable values
+        $this->deleteByField('product_id', $product['id']);
+        if ($values) {
+            $this->multipleInsert(array_values($values));
+        }
+    }
 }

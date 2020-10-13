@@ -15,7 +15,7 @@ class shopOrdersCollection
     protected $having = array();
     protected $count;
     protected $order_by = 'o.create_datetime DESC, o.id';
-    protected $group_by;
+    protected $group_by = 'o.id';
     protected $joins;
     protected $join_index = array();
 
@@ -246,7 +246,7 @@ class shopOrdersCollection
      *
      * @return string
      */
-    public function getSQL()
+    public function getSQL($opts = [])
     {
         $this->prepare();
 
@@ -258,11 +258,19 @@ class shopOrdersCollection
          */
         wa('shop')->event('orders_collection.prepared', $this);
 
-        $sql = $this->buildSQL(array(
-            'joins'    => $this->joins,
-            'where'    => $this->where,
-            'order_by' => $this->order_by
-        ));
+        $parts = [
+            'joins' => $this->joins,
+            'where' => $this->where,
+        ];
+
+        if (ifset($opts, 'group_by', true)) {
+            $parts['group_by'] = $this->group_by;
+        }
+        if (ifset($opts, 'order_by', true)) {
+            $parts['order_by'] = $this->order_by;
+        }
+
+        $sql = $this->buildSQL($parts);
         return $sql;
     }
 
@@ -356,7 +364,10 @@ class shopOrdersCollection
         if ($this->count !== null) {
             return $this->count;
         }
-        $sql = $this->getSQL();
+        $sql = $this->getSQL([
+            'group_by' => false,
+            'order_by' => false,
+        ]);
         $sql = "SELECT COUNT(".($this->joins ? 'DISTINCT ' : '')."o.id) ".$sql;
         return $this->count = (int)self::getModel()->query($sql)->fetchField();
     }
@@ -367,15 +378,10 @@ class shopOrdersCollection
      */
     public function getSum()
     {
-        $this->prepare();
+        $sql = $this->getSQL([
+            'group_by' => false,
+        ]);
 
-        $statements = array(
-            'joins'    => $this->joins,
-            'where'    => $this->where,
-            'order_by' => $this->order_by
-        );
-
-        $sql = $this->buildSQL($statements);
         $sql = "SELECT ".($this->joins ? 'DISTINCT o.id, ' : '')."SUM(o.total * o.rate) as amount {$sql}";
         $num = (float)self::getModel()->query($sql)->fetchField('amount');
         return $num;
@@ -590,7 +596,9 @@ class shopOrdersCollection
      */
     public function getDistinctFieldValues($field_id)
     {
-        $sql = $this->getSQL();
+        $sql = $this->getSQL([
+            'group_by' => false,
+        ]);
         $sql = "SELECT DISTINCT {$field_id} {$sql}";
         $data = self::getModel()->query($sql)->fetchAll($field_id, true);
         return array_keys($data);

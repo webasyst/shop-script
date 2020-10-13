@@ -287,6 +287,134 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
     }
 
     /**
+     * Get feature values of multiple SKUs of the same product.
+     * Faster than calling getValues() many times in a loop.
+     * Only given $features will be returned.
+     *
+     * @param array $features feature settings
+     * @param array[int] $sku_ids
+     */
+    public function getValuesMultiple($features, $product_id, $sku_ids)
+    {
+        if (empty($features) || empty($sku_ids)) {
+            return [];
+        }
+
+        // index features by id in case they are indexed by code
+        $features = array_column($features, null, 'id');
+
+        // Fetch data from DB
+        $sql = "SELECT pf.*, f.code, f.type, f.multiple, f.parent_id
+                FROM {$this->table} pf
+                    JOIN shop_feature f
+                        ON pf.feature_id = f.id
+                WHERE pf.product_id = i:product_id
+                    AND pf.sku_id IN (i:sku_ids)
+                    AND (f.id IN (i:feature_ids)
+                        OR f.parent_id IN (i:feature_ids))";
+        $data = $this->query($sql, array(
+            'sku_ids'  => $sku_ids,
+            'product_id' => $product_id,
+            'feature_ids' => array_keys($features),
+        ));
+
+        // Prepare list of value_ids to fetch later (group by places to fetch them from)
+        $sku_feature_value_ids = []; // sku_id => feature_id => value ids
+        $storages = array(); // type => value ids
+        foreach ($data as $row) {
+            if (!isset($features[$row['feature_id']])) {
+                if (empty($row['parent_id']) || empty($features[$row['parent_id']])) {
+                    continue; // ignore features we've not been asked for
+                }
+                $features[$row['feature_id']] = array(
+                    'id'        => $row['feature_id'],
+                    'type'      => $row['type'],
+                    'code'      => $row['code'],
+                    'multiple'  => $row['multiple'],
+                    'parent_id' => $row['parent_id'],
+                );
+            }
+            $feature = $features[$row['feature_id']];
+            if (!empty($feature['parent_id'])) {
+                if (empty($features[$feature['parent_id']])) {
+                    // ignore features if parent id we've not been asked for
+                    unset($features[$feature['id']]);
+                    continue;
+                }
+                $features[$feature['id']]['is_internal'] = true;
+                $features[$feature['parent_id']]['is_composite'] = true;
+            }
+
+            $type = preg_replace('/\..*$/', '', $row['type']);
+            $features[$feature['id']]['storage_type'] = $type;
+            $storages[$type][$row['feature_value_id']] = $row['feature_value_id'];
+            $sku_feature_value_ids[$row['sku_id']][$row['feature_id']][$row['feature_value_id']] = $row['feature_value_id'];
+        }
+
+        // Fetch actual values from shop_feature_values_* tables
+        $feature_values = []; // feature_id => value_id => value
+        $storage_type_values = []; // type => value_id => value
+        foreach ($storages as $type => $value_ids) {
+            $model = shopFeatureModel::getValuesModel($type);
+            if ($model) {
+                $values = $model->getValues('id', $value_ids);
+
+                // Most storage types return $values as feature_id => value_id => value
+                // Some (boolean, divider) do not know real feature_id and return 0 instead.
+                // We keep them separately.
+                $storage_type_values[$type] = ifset($values, 0, []);
+                unset($values[0]);
+                $feature_values += $values;
+            }
+        }
+
+        unset($storages);
+
+        // So far we have:
+        // - $sku_feature_value_ids - value ids by sku, and
+        // - $feature_values / $storage_type_values - value by value id.
+        // Now combine them.
+        $result = []; // sku_id => feature code => value(s)
+        foreach($sku_ids as $sku_id) {
+
+            $result[$sku_id] = [];
+
+            $sku_values = [];
+            foreach(ifset($sku_feature_value_ids, $sku_id, []) as $feature_id => $value_ids) {
+                $feature = $features[$feature_id];
+                $type = $feature['storage_type'];
+                // Some values are attached to specific feature ids...
+                $values = ifset($feature_values, $feature_id, []);
+                // ...while some other values (boolean, divider) are common for all features of given type
+                $values += ifset($storage_type_values, $type, []);
+                $sku_values[$feature['code']] = array_intersect_key($values, $value_ids);
+                // SKU can not have multiple values (only product can). Return a single value per SKU.
+                $sku_values[$feature['code']] = reset($sku_values[$feature['code']]);
+            }
+
+            foreach($features as $feature) {
+                if (!empty($feature['is_internal'])) {
+                    continue; // internal features are part of composite (2d, 3d) - see below
+                }
+                if (!empty($feature['is_composite'])) {
+                    // Call to CompositeValue constructor removes its parts from $sku_values
+                    // because second argument to constructor is passed by referense X_x
+                    $count_before = count($sku_values);
+                    $value = new shopCompositeValue($feature['code'], $sku_values);
+                    if ($count_before != count($sku_values)) {
+                        $result[$sku_id][$feature['code']] = $value;
+                    }
+                } else if (isset($sku_values[$feature['code']])) {
+                    $result[$sku_id][$feature['code']] = $sku_values[$feature['code']];
+                }
+            }
+
+        }
+
+        return $result;
+    }
+
+    /**
      * @param $type_id
      * @param bool $public_only
      * @return array
@@ -300,7 +428,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         $status_sql = '';
         if ($public_only) {
             $status_sql = "AND f.status='public'";
-            }
+        }
         $sql = "SELECT f.id AS feature_id, f.code, f.type, f.multiple, tf.sort
                     FROM shop_feature AS f
                         JOIN shop_type_features AS tf
@@ -320,9 +448,10 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                 $code = $matches[1];
             } else {
                 $code = $row['code'];
-        }
+            }
             $result[$code] = $row;
-    }
+        }
+
         return $result;
     }
 
@@ -341,7 +470,18 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         /** unset features_selectable and don't save them */
         foreach ($codes as $code) {
             if (isset($product->features_selectable[$code])) {
-                $data[$code] = array();
+                // Data in $feature_selectable_data may come in two different formats
+                // depending on history of shopProduct interactions X_x
+                // * In old editor (i.e. when $product['features_selectable'] got assigned)
+                //   there won't be 'selected' key and the array will only contain features that are enabled.
+                // * In new editor (i.e. $product['features_selectable'] were not touched)
+                //   all andidates for selectable features are returned.
+                //   'selected' means feature is enabled for this product as selectable.
+                $feature_selectable_data = $product->features_selectable[$code];
+                $is_enabled = ifset($feature_selectable_data, 'selected', 1);
+                if ($is_enabled) {
+                    $data[$code] = array();
+                }
             }
         }
         unset($code);

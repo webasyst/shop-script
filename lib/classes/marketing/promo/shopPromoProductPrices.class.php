@@ -40,7 +40,9 @@ class shopPromoProductPrices
     protected function loadPromoPrices()
     {
         if (empty($this->storefront)) {
-            $this->promo_prices = $this->promo_skus = [];
+            $this->promo_prices = [];
+            $this->promo_skus   = [];
+
             return;
         }
 
@@ -51,43 +53,53 @@ class shopPromoProductPrices
         ];
 
         // trying to find promotions in which rewrites prices of products
-        $prlm = new shopPromoRulesModel();
+        $prlm  = new shopPromoRulesModel();
         $rules = $prlm->getByActivePromos($enabled_promo_params);
 
         $product_ids = [];
         foreach ($rules as $rule) {
-            foreach ($rule['rule_params'] as $product_id => $product_data) {
-                $product_ids[] = $product_id;
-            }
+            $product_ids = array_merge($product_ids, array_keys($rule['rule_params']));
         }
 
+        $promo_skus = [];
         $product_currencies = (new shopProductModel())->getCurrencies($product_ids);
 
-        $promo_skus = $promo_prices = [];
         foreach ($rules as $rule) {
             foreach ($rule['rule_params'] as $product_id => $product_data) {
                 if (empty($product_currencies[$product_id])) {
                     continue;
                 }
                 foreach ($product_data['skus'] as $sku_id => $sku) {
+                    /** если $promo_sku определился, то для товара с $product_id и $sku_id уже есть примененная промоакция */
                     $promo_sku = ifempty($promo_skus, $product_id, $sku_id, null);
-                    if ((!empty($sku['price']) || !empty($sku['compare_price'])) && (empty($promo_sku) || $promo_sku['price'] > $sku['price'])) {
 
+                    if (
+                        (!empty($sku['price']) || !empty($sku['compare_price']))
+                        && (empty($promo_sku) || $promo_sku['price'] > $sku['price'])
+                    ) {
                         $promo_skus[$product_id][$sku_id] = [
                             'promo_id'              => $rule['promo_id'],
+                            'ignored_promo_ids'     => [],
                             'storefront'            => $this->storefront,
                             'product_id'            => $product_id,
                             'sku_id'                => $sku_id,
-                            'price'                 => empty($sku['price']) ? null : (float)shop_currency($sku['price'], $product_data['currency'], $product_currencies[$product_id]['currency'], null),
-                            'primary_price'         => empty($sku['price']) ? null : (float)shop_currency($sku['price'], $product_data['currency'], $this->shop_currency, null),
-                            'compare_price'         => empty($sku['compare_price']) ? null : (float)shop_currency($sku['compare_price'], $product_data['currency'], $product_currencies[$product_id]['currency'], null),
-                            'primary_compare_price' => empty($sku['compare_price']) ? null : (float)shop_currency($sku['compare_price'], $product_data['currency'], $this->shop_currency, null),
+                            'price'                 => empty($sku['price']) ? null : (float) shop_currency($sku['price'], $product_data['currency'], $product_currencies[$product_id]['currency'], null),
+                            'primary_price'         => empty($sku['price']) ? null : (float) shop_currency($sku['price'], $product_data['currency'], $this->shop_currency, null),
+                            'compare_price'         => empty($sku['compare_price']) ? null : (float) shop_currency($sku['compare_price'], $product_data['currency'], $product_currencies[$product_id]['currency'], null),
+                            'primary_compare_price' => empty($sku['compare_price']) ? null : (float) shop_currency($sku['compare_price'], $product_data['currency'], $this->shop_currency, null),
                         ];
+                    }
+
+                    if (!empty($promo_sku)) {
+                        /** если товар уже участвует в промоакции, отмечаем их */
+                        $ignore = &$promo_skus[$product_id][$sku_id]['ignored_promo_ids'];
+                        $ignore = array_merge($ignore, [sprintf('shop.promos.%s', $promo_sku['promo_id']), sprintf('shop.promos.%s', $rule['promo_id'])]);
                     }
                 }
             }
         }
 
+        $promo_prices = [];
         foreach ($promo_skus as $product_id => $skus) {
             foreach ($skus as $sku) {
                 $promo_prices[] = $sku;
@@ -95,7 +107,7 @@ class shopPromoProductPrices
         }
 
         $this->promo_prices = $promo_prices;
-        $this->promo_skus = $promo_skus;
+        $this->promo_skus   = $promo_skus;
 
         if (!empty($promo_prices)) {
             $this->model->setupTable();
@@ -150,6 +162,17 @@ class shopPromoProductPrices
                 return $sku['promo_id'];
             }, $promo_sku_prices)));
             $p['used_promo_id'] = reset($p['used_promo_ids']);
+
+            foreach ($promo_sku_prices as $sku_id => $params) {
+                if (empty($params['ignored_promo_ids'])) {
+                    continue;
+                }
+                if (!isset($p['ignored_promo_ids'][$p['id']])) {
+                    $p['ignored_promo_ids'][$p['id']] = $params['ignored_promo_ids'];
+                } else {
+                    $p['ignored_promo_ids'][$p['id']] = array_merge($p['ignored_promo_ids'], $params['ignored_promo_ids']);
+                }
+            }
 
             // Save original product prices
             foreach ($price_fields as $k) {
@@ -218,12 +241,13 @@ class shopPromoProductPrices
             }
             foreach ($this->promo_prices as $promo_sku_price) {
                 if ($sku['product_id'] == $promo_sku_price['product_id'] && $sku['id'] == $promo_sku_price['sku_id']) {
-                    $sku['is_promo'] = true;
-                    $sku['used_promo_id'] = $promo_sku_price['promo_id'];
+                    $sku['is_promo']          = true;
+                    $sku['used_promo_id']     = $promo_sku_price['promo_id'];
+                    $sku['ignored_promo_ids'] = $promo_sku_price['ignored_promo_ids'];
                     foreach ($price_fields as $k) {
                         if (isset($sku[$k]) && $promo_sku_price[$k] !== null) {
                             $sku['raw_'.$k] = $sku[$k];
-                            $sku[$k] = $promo_sku_price[$k];
+                            $sku[$k]        = $promo_sku_price[$k];
                         }
                     }
                     break;

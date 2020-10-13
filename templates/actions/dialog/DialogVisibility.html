@@ -62,6 +62,11 @@
                             <input type="radio" name="status" value="0">
                             [`Hidden`]
                         </label>
+                        <br>
+                        <label>
+                            <input type="radio" name="status" value="-1">
+                            [`Скрыт и не доступен (404)`]
+                        </label>
                     </p>
 
                     <p><label>
@@ -101,10 +106,14 @@
     var $checkbox = $form.find('[name="update_skus"]');
     var $radios = $form.find('[name="status"]');
     $radios.on('change', function() {
-        if ($radios.filter(':checked').val() == '1') {
-            $checkbox.siblings('span').hide().filter('.status-on-label').show();
+        var status_value = $radios.filter(':checked').val();
+        $checkbox.siblings('span').hide();
+        if (status_value == '1') {
+            $checkbox.show().siblings('span.status-on-label').show();
+        } else if (status_value == '0') {
+            $checkbox.show().siblings('span.status-off-label').show();
         } else {
-            $checkbox.siblings('span').hide().filter('.status-off-label').show();
+            $checkbox.hide().prop('checked', 0);
         }
     });
 })();</script>

@@ -159,7 +159,14 @@ class shopFrontendCheckoutAction extends waViewAction
                     try {
                         /** @var waPayment $plugin */
                         $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
-                        $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), true);
+                        $route = wa()->getRouting()->getRoute();
+                        $checkout_config = new shopCheckoutConfig($route['checkout_storefront_id']);
+                        if (2 == ifset($route, 'checkout_version', null)) {
+                            $auto_submit = isset($checkout_config['confirmation']['auto_submit']) ? $checkout_config['confirmation']['auto_submit'] : true;
+                        } else {
+                            $auto_submit = true;
+                        }
+                        $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), $auto_submit);
                     } catch (waException $ex) {
                         $payment = $ex->getMessage();
                     }

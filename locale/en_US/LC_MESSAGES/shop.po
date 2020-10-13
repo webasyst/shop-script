@@ -7657,10 +7657,10 @@ msgstr ""
 msgid "Total discount breakdown"
 msgstr ""
 
-msgid "applicable to individual items:"
+msgid "Discount applicable to individual items:"
 msgstr ""
 
-msgid "applicable to entire order:"
+msgid "Discount applicable to entire order:"
 msgstr ""
 
 msgid "Manually edit automatically calculated discount"
@@ -8805,7 +8805,7 @@ msgstr ""
 msgid "Code has not been sent"
 msgstr ""
 
-msgid "You have run out of available attempts. Please send a new SMS."
+msgid "You have run out of available attempts. Please request a new code."
 msgstr ""
 
 msgid "Please confirm your contact data."
@@ -8823,7 +8823,7 @@ msgstr ""
 msgid "Authorized customers cannot use an email address or phone number from other customers’ or backend users’ profiles."
 msgstr ""
 
-msgid "Non-authorized customers must confirm their email address or phone number before checkout completion, only if those data have been found in other registered customers’ profiles or in only one backend user profile. Such customers are automatically logged in right after confirmation or get signed up, if not registered, and receive a corresponding notification."
+msgid "Non-authorized customers must confirm their email address or phone number before checkout completion, only if those data have been found in other registered customers’ profiles or in only one backend user profile. Such customers are automatically logged in right after confirmation, or get signed up if they were not registered before."
 msgstr ""
 
 msgid "Authorized customers can change their email address or phone number to those found in other registered customers’ profiles or in one backend user profile, only after confirmation."
@@ -8832,7 +8832,7 @@ msgstr ""
 msgid "A customer cannot place an order with the use of an email address or phone number found in multiple backend user profiles."
 msgstr ""
 
-msgid "Non-authorized customers must confirm their email address or phone number before checkout completion. Such customers are automatically logged in right after confirmation or get signed up, if not registered, and receive a corresponding notification."
+msgid "Non-authorized customers must confirm their email address or phone number before checkout completion. Such customers are automatically logged in right after confirmation, or get signed up if they were not registered before."
 msgstr ""
 
 msgid "Offer selection of shipping type and show pickup point selection map."

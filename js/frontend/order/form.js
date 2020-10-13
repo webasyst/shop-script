@@ -1988,6 +1988,7 @@
 
             if (typeof that.errors === "object" && Object.keys(that.errors).length ) {
                 that.scope.DEBUG("Errors:", "error", that.errors);
+                that.renderErrors(that.errors);
             }
 
             that.$form.on("submit", function(event) {
@@ -2391,10 +2392,47 @@
                 result = [];
 
             $.each(errors, function(i, error) {
+                if (error.name && error.text) {
+                    var $field = that.$wrapper.find("[name=\"" + error.name + "\"]");
+                    if ($field.length) {
+                        error.$field = $field;
+                        renderError(error);
+                    }
+                }
+
                 result.push(error);
             });
 
             return result;
+
+            function renderError(error) {
+                var $error = $("<div class=\"wa-error-text\" />").text(error.text);
+                var error_class = "wa-error";
+
+                if (error.$field) {
+                    var $field = error.$field;
+
+                    if (!$field.hasClass(error_class)) {
+                        $field.addClass(error_class);
+
+                        var $field_wrapper = $field.closest(".wa-field-wrapper");
+                        if ($field_wrapper.length) {
+                            $field_wrapper.append($error);
+                        } else {
+                            $error.insertAfter($field);
+                        }
+
+                        $field.on("change focus", removeFieldError);
+                    }
+                }
+
+                function removeFieldError() {
+                    $field.removeClass(error_class);
+                    $error.remove();
+
+                    $field.off("change focus", removeFieldError);
+                }
+            }
         };
 
         // PROTECTED

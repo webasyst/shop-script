@@ -55,6 +55,29 @@ class shopCategoryModel extends waNestedSetModel
     }
 
     /**
+     * Format a flat list of categories into a tree
+     * @param string $fields
+     * @param bool $static_only
+     * @return array
+     */
+    public function buildNestedTree($categories)
+    {
+        $tree = [];
+        foreach($categories as $id => &$c) {
+            $c['categories'] = ifset($c, 'categories', []);
+            if ($c['parent_id'] > 0) {
+                if (isset($categories[$c['parent_id']])) {
+                    $categories[$c['parent_id']]['categories'][$id] =& $c;
+                }
+            } else {
+                $tree[$id] =& $c;
+            }
+        }
+        unset($c, $categories);
+        return $tree;
+    }
+
+    /**
      * Returns subtree
      *
      * @param int $id
@@ -194,13 +217,15 @@ class shopCategoryModel extends waNestedSetModel
         }
 
         $possible_url = empty($parent) ? $element['url'] : $parent['full_url'] . '/' . $element['url'];
-        if ($element['full_url'] != $possible_url && $same = $this->getByField('full_url', $possible_url)) {
+        $same = $this->getByField('full_url', $possible_url);
+        if ($element['full_url'] != $possible_url && !empty($same)) {
+            $category_url =  wa()->getUrl() . '?action=products#/products/category_id=';
             return strtr(
                 _w('Category “%current” being moved cannot be placed inside category “%parent” because category “%parent” already contains subcategory “%same” whose editable URL part matches that of category “%current”. To complete the category moving, change the editable URL part either for category “%current”, or for category “%same”.'),
                 array(
-                    '%current' => $element['name'],
-                    '%parent' => $parent['name'],
-                    '%same' => $same['name']
+                    '%current' => '<a href="' . $category_url . $element['id'] . '">' . $element['name'] . '</a>',
+                    '%parent' => '<a href="' . $category_url . $parent['id'] . '">' . $parent['name'] . '</a>',
+                    '%same' => '<a href="' . $category_url . $same['id'] . '">' . $parent['name'] . '/' . $same['name'] . '</a>'
                 )
             );
         }

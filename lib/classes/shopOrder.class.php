@@ -1631,7 +1631,7 @@ class shopOrder implements ArrayAccess
             $fields = $form->fields();
             foreach ((array)$data as $f_id => $value) {
                 if (isset($fields[$f_id])) {
-                    $multiple = is_array($value) && array_filter(array_keys($value), 'is_int');
+                    $multiple = is_array($value) && array_filter(array_keys($value), 'is_int') && $f_id !== 'address.shipping';
                     // birthday data is not string and not array indexed by integer, birthday data presented as associative array with 3 keys: 'year', 'month', 'day'
                     if ($multiple || is_string($value) || $f_id === 'birthday') {
                         $post[$f_id] = $value;
@@ -2035,8 +2035,11 @@ class shopOrder implements ArrayAccess
                 $total = shopShipping::extractItemsTotal($params) + shopShipping::getItemsTotal($this->data['items']);
             }
 
+            $shipping_items = $this->data['items'];
+            shopShipping::convertItemsDimensions($shipping_items, $plugin);
+
             $plugin_params += shopShipping::convertTotalDimensions($total, $units);
-            $rates = $plugin->getRates($this->data['items'], $shipping_address, $plugin_params);
+            $rates = $plugin->getRates($shipping_items, $shipping_address, $plugin_params);
 
 
             $params['shipping_plugin'] = $plugin->getId();

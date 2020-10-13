@@ -81,7 +81,7 @@ class shopFrontendAction extends waViewAction
 
     public function execute()
     {
-        if (wa()->getRouting()->getCurrentUrl()) {
+        if (strlen(wa()->getRouting()->getCurrentUrl())) {
             throw new waException(_ws('Page not found'), 404);
         }
         $title = waRequest::param('title');

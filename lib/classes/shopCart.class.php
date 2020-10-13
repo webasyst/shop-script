@@ -81,6 +81,12 @@ class shopCart
             }
 
         }
+
+        if ($this->code) {
+            // Shop cart is a dynamic content.
+            // Send proper Last-Modified header to make sure browser understands that.
+            wa()->getResponse()->setLastModified(date('Y-m-d H:i:s'));
+        }
     }
 
     /**

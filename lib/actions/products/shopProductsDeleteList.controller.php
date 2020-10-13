@@ -74,28 +74,33 @@ class shopProductsDeleteListController extends waJsonController
         if (!$model) {
             return true;
         }
+
         $item = null;
-
-        if ($model = $this->getModel($hash[0])) {
-            if (!$model->delete($hash[1])) {
-                return false;
+        if ($hash[0] == 'category') {
+            $item = $model->getById($hash[1]);
+            if (!$item) {
+                return true;
             }
+        }
 
-            if ($hash[0] == 'category') {
-                $this->logAction('category_delete', $hash[1]);
-                if ($item['parent_id']) {
-                    $count = $model->countByField('parent_id', $item['parent_id']);
-                    $this->response['old_parent_category'] = array(
-                        'id' => $item['parent_id'],
-                        'children_count' => $model->countByField('parent_id', $item['parent_id'])
-                    );
-                    if (!$count) {
-                        shopCategories::clear($item['parent_id']);
-                    }
+        if (!$model->delete($hash[1])) {
+            return false;
+        }
+
+        if ($hash[0] == 'category') {
+            $this->logAction('category_delete', $hash[1]);
+            if (!empty($item['parent_id'])) {
+                $count = $model->countByField('parent_id', $item['parent_id']);
+                $this->response['old_parent_category'] = array(
+                    'id' => $item['parent_id'],
+                    'children_count' => $model->countByField('parent_id', $item['parent_id'])
+                );
+                if (!$count) {
+                    shopCategories::clear($item['parent_id']);
                 }
             }
-
         }
+
         return true;
     }
 

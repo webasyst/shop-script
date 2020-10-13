@@ -83,6 +83,7 @@ $.order_edit = {
         this.initView();
         this.initShippingControl();
         this.initDiscountControl();
+        this.initCouponControl();
         this.initCustomerSourceControl(options.customer_sources);
     },
 
@@ -573,7 +574,6 @@ $.order_edit = {
             updateTooltip();
         });
 
-
         /**
          * Show/hide and animation discount calculate button
          */
@@ -604,6 +604,97 @@ $.order_edit = {
          * @event order_edit_init_discount
          */
         this.container.trigger('order_edit_init_discount');
+    },
+
+    initCouponControl: function () {
+        var $coupon_id = $('#coupon_id'),
+            $coupon_code = $('#coupon-code'),
+            $coupon_code_label = $('.coupon-code-label'),
+            $js_no_coupon_text = $('.js-no-coupon-text'),
+            $js_coupon_icon = $('.js-coupon-icon'),
+            $js_edit_coupon = $('.js-edit-coupon'),
+            $js_close_coupon = $('.js-close-coupon'),
+            $js_delete_coupon = $('.js-delete-coupon'),
+            $update_discount_button = $('#update-discount'),
+            $js_coupon_invalid_msg = $('#js-coupon-invalid-msg');
+
+        $js_edit_coupon.click(function() {
+            $(this).add($js_no_coupon_text).add($js_coupon_icon).add($coupon_code_label).hide();
+            $coupon_code.data('value', $coupon_code.val());
+            $coupon_code.val('').show();
+            $js_close_coupon.show();
+        });
+
+        $js_close_coupon.click(function () {
+            $coupon_code.val($coupon_code.data('value'));
+            $js_edit_coupon.show();
+            if ($coupon_id.val() === "") {
+                $js_no_coupon_text.show();
+            } else {
+                $js_coupon_icon.add($coupon_code_label).show();
+            }
+            $(this).add($coupon_code).add($js_coupon_invalid_msg).hide();
+        });
+
+        $js_delete_coupon.click(function () {
+            $(this).add($coupon_code).add($js_coupon_icon).add($coupon_code_label).add($js_edit_coupon).add($js_close_coupon).add($js_coupon_invalid_msg).hide();
+            $coupon_id.val('');
+            $update_discount_button.click();
+            $js_no_coupon_text.add($js_edit_coupon).show();
+        });
+
+        $('.disabled-link').click(function(e) {
+           e.preventDefault();
+        });
+
+        $coupon_code.autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    type: "POST",
+                    url: '?module=marketing&action=CouponsAutocomplete',
+                    data: {
+                        term: $coupon_code.val(),
+                        products: $('input[name^="product["]').serializeArray()
+                    },
+                    success: function (data) {
+                        response(data);
+                        if (!data.length) {
+                            showCouponInvalidMessage();
+                        } else {
+                            $js_coupon_invalid_msg.hide();
+                        }
+                    },
+                    error: function () {
+                        response([]);
+                    }
+                });
+            },
+            minLength: 1,
+            delay: 300,
+            select: function (event, ui) {
+                if (ui.item.data.valid) {
+                    $coupon_code.val(ui.item.label).hide();
+                    $coupon_id.val(ui.item.value);
+                    $coupon_code_label.html(ui.item.label).show();
+                    $js_edit_coupon.add($js_coupon_icon).add($js_delete_coupon).show();
+                    $('.s-order-edit-coupon').attr('href', $('.s-order-edit-coupon').data('href') + ui.item.value);
+                    if (ui.item.value.length != 0) {
+                        $update_discount_button.click();
+                        $('.s-order-edit-coupon').removeClass('disabled-link');
+                    }
+                    $js_close_coupon.hide();
+                } else {
+                    $coupon_code.val(ui.item.label);
+                    showCouponInvalidMessage();
+                }
+                return false;
+            }
+        });
+
+        function showCouponInvalidMessage() {
+            $js_coupon_invalid_msg.show();
+            $js_coupon_invalid_msg.css('padding-right', $('.coupon-controls').width() + 4 + 'px');
+        }
     },
 
     initCustomerSourceControl: function (customer_sources) {

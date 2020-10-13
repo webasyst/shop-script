@@ -42,6 +42,15 @@ return array(
     # Plugins
     'marketing/plugins/?'                  => 'marketingPlugins',
 
-    '' => 'backend',
+    //
+    // Products (wa2)
+    //
 
+    'products/?'                           => 'prod/list',
+    'products/<id:\d+>/general/?'          => 'prod/general',
+    'products/<id:\d+>/sku/?'              => 'prod/sku',
+    'products/<id:\d+>/?'                  => 'prod/',
+
+    // everything else uses old routing via ?module=&action=
+    '' => 'backend',
 );

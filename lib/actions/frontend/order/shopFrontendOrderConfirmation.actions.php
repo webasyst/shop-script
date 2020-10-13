@@ -123,13 +123,13 @@ class shopFrontendOrderConfirmationActions extends waJsonActions
             if (is_null($result['details']['rest_tries']) || $result['details']['rest_tries'] == 0) {
                 $this->errors[] = [
                     'id'   => 'code_attempts_error',
-                    'text' => _w('You have run out of available attempts. Please send a new SMS.')
+                    'text' => _w('You have run out of available attempts. Please request a new code.')
                 ];
                 $confirmation->delStorage('verification');
             } else {
                 $this->errors[] = [
                     'id'   => 'code_error',
-                    'text' => _w('You have entered an incorrect code. %d more attempt is available.', 'You have entered an incorrect code. %d more attempts are available.', $result['details']['rest_tries']), 
+                    'text' => _w('You have entered an incorrect code. %d more attempt is available.', 'You have entered an incorrect code. %d more attempts are available.', $result['details']['rest_tries']),
                 ];
             }
         } else {

@@ -205,6 +205,14 @@ class shopCheckoutAuthStep extends shopCheckoutStep
             )
         ];
 
+        $email_validator = new waEmailValidator();
+        if (!$email_validator->isValid($options['address']['email'])) {
+            $errors[] = [
+                'name' => 'auth[data][email]',
+                'text' => _ws('Invalid Email'),
+            ];
+        }
+
         $confirmation = new shopConfirmationChannel($options);
 
         foreach (['banned_error', 'admin_error', 'forbidden_error'] as $error_type) {

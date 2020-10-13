@@ -4,12 +4,23 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
 {
     public function execute()
     {
+        $routes = wa()->getRouting()->getByApp('shop');
+        $domains = wa()->getRouting()->getAliases();
+        $active_domains = array();
+        foreach ($domains as $mirror => $domain) {
+            if (isset($routes[$domain])) {
+                $active_domains[$domain][] = $mirror;
+            }
+        }
+
         $this->view->assign('events', $this->getEvents());
+        $this->view->assign('availability_sms_plugins', $this->checkAvailabilitySmsPlugins());
         $this->view->assign('transports', self::getTransports());
         $this->view->assign('templates', $this->getTemplates());
         $this->view->assign('default_email_from', $this->getConfig()->getGeneralSettings('email'));
         $this->view->assign('sms_from', $this->getSmsFrom());
-        $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));
+        $this->view->assign('active_domains', $active_domains);
+        $this->view->assign('routes', $routes);
         $this->view->assign('backend_notification_add', wa()->event('backend_notification_add'));
     }
 
@@ -283,5 +294,11 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
             unset($item);
         }
         return $result;
+    }
+
+    protected function checkAvailabilitySmsPlugins()
+    {
+        $installed_adapter_ids = waSMS::getInstalledAdapterIds();
+        return !empty($installed_adapter_ids);
     }
 }

@@ -771,6 +771,44 @@ class shopConfig extends waAppConfig
         }
         return $logs;
     }
+
+    /**
+     * Get identity hash (aka installation hash)
+     * @return string
+     */
+    public function getIdentityHash()
+    {
+        $value = $this->getSystemOption('identity_hash');
+        if (is_scalar($value)) {
+            return strval($value);
+        }
+        return '';
+    }
+
+    /**
+     * @param string $method
+     *  - 'feedback' - send feedback about something (for example about new shop editor)
+     * @return string
+     */
+    public function getWebasystApiUrl($method)
+    {
+        $api_host = $this->getOption('webasyst_api_host');
+        if (!$api_host) {
+            $api_host = 'https://www.webasyst.com';
+        }
+        $api_host = trim($api_host, '/') . '/';
+
+        $url = '';
+        switch ($method) {
+            case 'feedback':
+                $url = $api_host . 'my/ajax/feedback/';
+                break;
+            default:
+                break;
+        }
+
+        return $url;
+    }
 }
 
 function shop_currency($n, $in_currency = null, $out_currency = null, $format = true)
@@ -810,10 +848,10 @@ function shop_currency($n, $in_currency = null, $out_currency = null, $format = 
     if ($in_currency != $out_currency) {
         $currencies = wa('shop')->getConfig()->getCurrencies(array($in_currency, $out_currency));
         if (isset($currencies[$in_currency]) && $in_currency != $primary) {
-            $n = $n * $currencies[$in_currency]['rate'];
+            $n = floatval($n) * $currencies[$in_currency]['rate'];
         }
         if ($out_currency != $primary) {
-            $n = $n / ifempty($currencies[$out_currency]['rate'], 1.0);
+            $n = floatval($n) / ifempty($currencies, $out_currency, 'rate', 1.0);
         }
     }
 

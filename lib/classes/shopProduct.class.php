@@ -321,7 +321,7 @@ class shopProduct implements ArrayAccess
             if ($route) {
                 $url_type = ifset($route['url_type']);
             } else {
-                $url_type = wa()->getRouting()->getDomain(null, true).'/'.wa()->getRouting()->getRoute('url_type');
+                $url_type = wa()->getRouting()->getRoute('url_type');
             }
             $category_url = ($url_type == 1) ? $category['url'] : $category['full_url'];
         }

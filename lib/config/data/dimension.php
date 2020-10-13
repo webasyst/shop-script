@@ -235,7 +235,7 @@ return array(
                 'multiplier' => 604800
             ),
             'month' => array(
-                'name' => _w('months'),
+                'name' => _w('mo.'),
                 'multiplier' => 2592000
             ),
             'year' => array(

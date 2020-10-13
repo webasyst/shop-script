@@ -10,6 +10,9 @@ class shopFeatureValuesTextModel extends shopFeatureValuesModel
 
     protected function parseValue($value, $type)
     {
+        if (is_array($value)) {
+            $value = ifempty($value, 'value', '');
+        }
         return array(
             'value'        => trim($value),
             'search_value' => preg_replace('@([%_\\\\])@', '\\\\$1', trim($value)),

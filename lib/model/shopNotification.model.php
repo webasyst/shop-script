@@ -18,7 +18,13 @@ class shopNotificationModel extends waModel
             $params_model = new shopNotificationParamsModel();
             $rows = $params_model->getByField('notification_id', array_keys($data), true);
             foreach ($rows as $row) {
-                $data[$row['notification_id']][$row['name']]= $row['value'];
+                $data[$row['notification_id']][$row['name']] = $row['value'];
+            }
+
+            $sources_model = new shopNotificationSourcesModel();
+            $sources = $sources_model->getByField('notification_id', array_keys($data), true);
+            foreach ($sources as $source) {
+                $data[$source['notification_id']]['sources'][] = isset($source['source']) ? $source['source'] : 'all_sources';
             }
         }
         return $data;
@@ -26,9 +32,10 @@ class shopNotificationModel extends waModel
 
     public function getActionTransportsBySource($source)
     {
-        $sql = "SELECT n.* FROM ".$this->table." n
+        $sql = "SELECT DISTINCT n.* FROM ".$this->table." n
                 JOIN shop_notification_params np ON n.id = np.notification_id
-                WHERE n.status = 1 AND (n.source IS NULL OR n.source = s:0) AND np.name = 'to' AND np.value = 'customer'";
+                JOIN shop_notification_sources ns ON n.id = ns.notification_id
+                WHERE n.status = 1 AND (ns.source IS NULL OR ns.source = s:0) AND np.name = 'to' AND np.value = 'customer'";
         $rows = $this->query($sql, $source);
 
         $result = array();
@@ -50,6 +57,11 @@ class shopNotificationModel extends waModel
             foreach ($rows as $row) {
                 $data[$row['name']]= $row['value'];
             }
+            $sources_model = new shopNotificationSourcesModel();
+            $sources = $sources_model->getByField('notification_id', $id, true);
+            foreach ($sources as $source) {
+                $data['sources'][] = $source['source'];
+            }
         }
         return $data;
     }
@@ -58,6 +70,8 @@ class shopNotificationModel extends waModel
     {
         $params_model = new shopNotificationParamsModel();
         if ($params_model->deleteByField('notification_id', $id)) {
+            $sources_model = new shopNotificationSourcesModel();
+            $sources_model->deleteByField('notification_id', $id);
             return $this->deleteById($id);
         }
         return false;

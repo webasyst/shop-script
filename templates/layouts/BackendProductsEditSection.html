@@ -1,0 +1,93 @@
+{strip}
+
+{$_templates = []}
+
+{capture assign="_callback_dialog"}{include file="../actions/prod/dialogs/callback.html" inline}{/capture}
+{$_templates["callback_dialog"] = $_callback_dialog}
+
+{capture assign="_callback_dialog_success"}
+    <div class="align-center" style="padding: 2rem 0;">
+        <h3>Спасибо!</h3>
+        <p>
+            {$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+            <i class='icon' style="font-size: 16rem;"><svg><use xlink:href='{$_sprite_url}#wave'></use></svg></i>
+        </p>
+        <p>[`Окно закроется автоматически через 3 секунды`]</p>
+    </div>
+{/capture}
+{$_templates["callback_dialog_success"] = $_callback_dialog_success}
+
+{/strip}
+
+<div class="s-product-page" id="js-product-page">
+    <script>
+        ( function($) {
+            $("#js-product-page").data("ready", $.Deferred());
+        })(jQuery);
+    </script>
+
+    <header class="s-page-header bordered-bottom">
+        <div class="flexbox middle space-8">
+            <div class="s-actions">
+                <a class="wa-button gray-field s-button-back" href="{$wa_app_url|escape}?action=products#/product/{$product.id|escape}/">&larr; [`Назад`]</a>
+            </div>
+            <div class="s-title-wrapper wide">
+                <h3 class="s-title">{$product.name|default:"TODO: Название продукта"}</h3>
+            </div>
+            <div class="s-details">
+                <button class="s-button wa-button rounded pink outlined js-show-callback-dialog animation-pulse" type="button">
+                    <span>
+                        <span class="s-icon"><i class="fas fa-comment-dots"></i></span>
+                        <span class="s-name">[`Как вам новый редактор товара?`]</span>
+                    </span>
+                </button>
+
+                <a class="s-button wa-button pink rounded" href="{$wa_app_url|escape}?action=products#/product/{$product.id|escape}/edit/" title="{_w("Вернуться в старую версию редактора товара.")|escape}">
+                    <span class="s-icon"><i class="fas fa-toggle-on"></i></span>
+                    <span class="s-name">[`Вернуть старый`]</span>
+                    <span class="s-icon"><i class="fas fa-question-circle"></i></span>
+                </a>
+
+                <span class="s-ident gray">id: {$product.id|default:"TODO: ID продукта"}</span>
+            </div>
+        </div>
+    </header>
+
+    {* APP BODY *}
+    <div class="s-page-body flexbox">
+        {* SIDEBAR *}
+        <div class="s-page-sidebar sidebar js-page-sidebar">{$sidebar}</div>
+        {* CONTENT *}
+        <div class="s-page-content content bordered-left js-page-content">{$content}</div>
+    </div>
+
+    <script>
+        ( function($) {
+
+            var sources = [{
+                id: "wa-shop-products-product-sidebar-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/product/sidebar.js?v={$wa->version()}"
+            },{
+                id: "wa-shop-products-product-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/product/product.js?v={$wa->version()}"
+            }];
+
+            $.wa.loadSources(sources).done( function() {
+                $.wa_shop_products.init.initProductPage({
+                    $wrapper: $("#js-product-page").removeAttr("id"),
+                    product_uri: "{$wa_app_url|escape}products/{$product.id|escape}/",
+                    product_id: "{$product.id|escape}",
+                    templates: {$_templates|json_encode},
+                    urls: {
+                        "product_delete": "{$wa_app_url}?module=products&action=deleteList",
+                        "product_delete_dialog": "{$wa_app_url}?module=prod&action=productDeleteDialog",
+                        "callback_submit": "{$wa_app_url}?module=prod&action=feedback"
+                    }
+                });
+            });
+
+        })(jQuery);
+    </script>
+</div>

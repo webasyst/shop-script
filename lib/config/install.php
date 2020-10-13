@@ -143,7 +143,7 @@ if ($notifications_model->countAll() == 0) {
 try {
     $plugins = shopPayment::getList();
     foreach ($plugins as $plugin => $info) {
-        if ($plugin === 'cash') {
+        if ($plugin === 'cash' || $plugin === 'yandexkassa') {
             $info['status'] = 1;
         }
         $info['plugin'] = $plugin;
@@ -156,8 +156,9 @@ try {
 //shipping plugins
 try {
     $plugins = shopShipping::getList();
+    $default_enabled_plugins = array('dummy', 'courier', 'sd', 'russianpost');
     foreach ($plugins as $plugin => $info) {
-        if ($plugin === 'dummy') {
+        if (in_array($plugin, $default_enabled_plugins, true)) {
             $info['status'] = 1;
         }
         $info['plugin'] = $plugin;
