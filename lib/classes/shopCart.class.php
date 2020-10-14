@@ -123,7 +123,7 @@ class shopCart
      */
     protected function setSessionData($key, $value)
     {
-        $data = wa()->getStorage()->get('shop/cart', array());
+        $data = wa()->getStorage()->get('shop/cart');
         $data[$key] = $value;
         wa()->getStorage()->set('shop/cart', $data);
     }
