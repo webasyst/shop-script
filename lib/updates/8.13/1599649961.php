@@ -9,7 +9,7 @@ try {
                 `followup_id` int not null,
                 `source` varchar(510) null,
                 key `followup_id` (`followup_id`),
-                key `source` (`source`(250))
+                key `source` (`source`(190))
     )';
     $model->exec($create);
 
@@ -32,8 +32,8 @@ try {
                 `notification_id` int not null,
                 `source` varchar(510) null,
                 key `notification_id` (`notification_id`),
-                key `source` (`source`(250))
-    )';
+                key `source` (`source`(190))
+                )';
     $model->exec($create);
 
     $insert = 'insert into shop_notification_sources (`notification_id`, `source`)

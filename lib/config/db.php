@@ -336,7 +336,7 @@ return array(
         'source' => array('varchar', 510),
         ':keys' => array(
             'followup_id' => 'followup_id',
-            'source' => array(array('source', '255')),
+            'source' => array(array('source', '190')),
         ),
     ),
     'shop_importexport' => array(
@@ -375,7 +375,7 @@ return array(
         'source' => array('varchar', 510),
         ':keys' => array(
             'notification_id' => 'notification_id',
-            'source' => array(array('source', '255')),
+            'source' => array(array('source', '190')),
         ),
     ),
     'shop_order' => array(
