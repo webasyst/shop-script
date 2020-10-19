@@ -51,7 +51,7 @@
                 <div class="value no-shift">
                     <select name="lifetime" id="s-plugin-yandexmarket-ondemand-update">
                         <option value="0"{if $profile.config.lifetime ==0} selected="selected"{/if}>Обновление только вручную</option>
-                        <option value="60"{if $profile.config.lifetime ==60} selected="selected"{/if}>Автоматически при каждом запросе</option>
+                        <option value="60"{if $profile.config.lifetime ==60} selected="selected"{/if}>Автоматически при каждом запросе, но не чаще, чем раз в минуту</option>
                         <option value="3600"{if $profile.config.lifetime ==3600} selected="selected"{/if}>Автоматически, но не чаще чем раз в час</option>
                         <option value="86400"{if $profile.config.lifetime ==86400} selected="selected"{/if}>Автоматически, но не чаще чем раз в день</option>
                         <option value="604800"{if $profile.config.lifetime ==604800} selected="selected"{/if}>Автоматически, но не чаще чем раз в неделю</option>

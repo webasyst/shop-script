@@ -63,7 +63,13 @@ class shopYandexmarketPluginSettingsActions extends waViewActions
             $error = $ex->getMessage();
             $error_code = $ex->getCode();
         }
-        $this->view->assign(compact('campaigns', 'cpa_available', 'error', 'error_code', 'settlements'));
+        $this->view->assign([
+            'cpa_available' => ifset($cpa_available),
+            'settlements' => ifset($settlements),
+            'campaigns' => ifset($campaigns),
+            'error_code' => ifset($error_code),
+            'error' => ifset($error),
+        ]);
     }
 
     public function campaignAction()

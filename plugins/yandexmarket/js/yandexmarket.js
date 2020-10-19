@@ -589,11 +589,13 @@ $.extend($.importexport.plugins, {
         progressHandler: function (url, processId, response) {
             // display progress
             // if not completed do next iteration
-            var self = $.importexport.plugins.yandexmarket;
             var $bar;
+            var self    = $.importexport.plugins.yandexmarket;
+            var $report = $('#plugin-yandexmarket-report');
+
             if (response && response.ready) {
-                $.wa.errorHandler = null;
                 var timer;
+                $.wa.errorHandler = null;
                 while (timer = self.ajax_pull[processId].pop()) {
                     if (timer) {
                         clearTimeout(timer);
@@ -603,8 +605,10 @@ $.extend($.importexport.plugins, {
                 $bar.css({
                     'width': '100%'
                 });
+                if (response.warn !== '') {
+                    $report.find(".value:first").html(response.warn);
+                }
                 $.shop.trace('cleanup', response.processId);
-
                 $.ajax({
                     url: url,
                     data: {
@@ -617,9 +621,10 @@ $.extend($.importexport.plugins, {
                         $.shop.trace('report', response);
                         $("#plugin-yandexmarket-submit").hide();
                         self.form.find('.progressbar').hide();
-                        var $report = $("#plugin-yandexmarket-report");
                         $report.show();
-                        if (response.report) {
+                        if (response.report && response.warn === '') {
+                            $report.find(".value:first").html($report.find(".value:first").html() + response.report);
+                        } else {
                             $report.find(".value:first").html(response.report);
                         }
                         $.storage.del('shop/hash');
@@ -627,14 +632,12 @@ $.extend($.importexport.plugins, {
                 });
 
             } else if (response && response.error) {
-
                 self.form.find(':input').attr('disabled', false);
                 self.form.find(':submit').show();
                 self.form.find('.js-progressbar-container').hide();
                 self.form.find('.shop-ajax-status-loading').remove();
                 self.form.find('.progressbar').hide();
                 self.form.find('.errormsg').text(response.error);
-
             } else {
                 var $description;
                 if (response && (typeof(response.progress) !== 'undefined')) {

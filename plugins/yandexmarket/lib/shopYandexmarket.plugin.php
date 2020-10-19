@@ -7,6 +7,15 @@
  */
 class shopYandexmarketPlugin extends shopPlugin
 {
+    /** @var int минимальная скидка для купона, в процентах */
+    const COUPON_PERCENT_LEFT = 5;
+
+    /** @var int максимальная скидка для купона, в процентах */
+    const COUPON_PERCENT_RIGHT = 95;
+
+    /** @var int шаг (кратность) скидки для купона, в рублях */
+    const COUPON_DISCOUNT_DIVIDER = 50;
+
     private $types;
     private $promos;
     private $api_limits;
@@ -1722,8 +1731,10 @@ HTML;
 
     /**
      * Валидация промоакций
+     *
      * @param $promo_rule
      * @return bool
+     * @throws waException
      */
     public function validatePromoRule(&$promo_rule)
     {
@@ -1739,18 +1750,18 @@ HTML;
                 );
 
                 if ($promo_rule['discount_unit'] == '%') {
-                    if ($promo_rule['discount_value'] > 95) {
-                        $promo_rule['errors']['discount'] = 'Скидка превышает 95%.';
-                    } elseif ($promo_rule['discount_value'] < 5) {
-                        $promo_rule['errors']['discount'] = 'Скидка менее 5%.';
+                    if ($promo_rule['discount_value'] > shopYandexmarketPlugin::COUPON_PERCENT_RIGHT) {
+                        $promo_rule['errors']['discount'] = _wp('Скидка превышает '.shopYandexmarketPlugin::COUPON_PERCENT_RIGHT.'%.');
+                    } elseif ($promo_rule['discount_value'] < shopYandexmarketPlugin::COUPON_PERCENT_LEFT) {
+                        $promo_rule['errors']['discount'] = _wp('Скидка менее '.shopYandexmarketPlugin::COUPON_PERCENT_LEFT.'%.');
                     } elseif (($promo_rule['discount_value'] != intval($promo_rule['discount_value']))) {
-                        $promo_rule['errors']['discount'] = 'Ожидается целочисленная скидка в процентах.';
+                        $promo_rule['errors']['discount'] = _wp('Ожидается целочисленная скидка в процентах.');
                     }
                 } else {
-                    if ($promo_rule['discount_value'] % 100) {
-                        $promo_rule['errors']['discount'] = sprintf('Ожидается скидка, кратная 100 %s.', $promo_rule['discount_unit']);
-                    } elseif ($promo_rule['discount_value'] < 100) {
-                        $promo_rule['errors']['discount'] = 'Ожидается ненулевая скидка.';
+                    if ($promo_rule['discount_value'] % shopYandexmarketPlugin::COUPON_DISCOUNT_DIVIDER) {
+                        $promo_rule['errors']['discount'] = sprintf(_wp('Ожидается скидка, кратная %s %s.'), shopYandexmarketPlugin::COUPON_DISCOUNT_DIVIDER, $promo_rule['discount_unit']);
+                    } elseif ($promo_rule['discount_value'] < shopYandexmarketPlugin::COUPON_DISCOUNT_DIVIDER) {
+                        $promo_rule['errors']['discount'] = _wp('Ожидается ненулевая скидка.');
                     }
                 }
 
