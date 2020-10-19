@@ -3,7 +3,7 @@
     <div class="dialog-body">
         <div id="vue-generator-section" style="visibility: hidden;">
             <div class="dialog-header">
-                <h2>[`Создание артикулов и модификаций товара`]</h2>
+                <h2>[`Creation of product SKUs and variants`]</h2>
             </div>
             <div class="dialog-content">
 
@@ -12,8 +12,8 @@
                         <i class="fas fa-info-circle"></i>
                     </div>
                     <div class="message-text wide">
-                        <p>[`Выберите и упорядочите характеристики и значения, из которых должны состоять модификации.`]</p>
-                        <p>[`Чтобы создать несколько артикулов, перетащите в «Артикулы» характеристику, у которой каждому значению будет соответствовать отдельный артикул.`]</p>
+                        <p>[`Please select and arrange features and their values to be used for the variants generation.`]</p>
+                        <p>[`To create several SKUs, drag & drop a feature to “SKUs”, each of whose values will correspond to an individual SKU.`]</p>
                     </div>
                 </div>
 
@@ -28,7 +28,7 @@
                             <div class="dropdown s-features-dropdown js-features-dropdown">
                                 <button class="dropdown-toggle without-arrow wa-button wa-small transparent" type="button">
                                     <span class="s-icon"><i class="fas fa-plus"></i></span>
-                                    <span class="s-name">[`Добавить`]</span>
+                                    <span class="s-name">[`Add`]</span>
                                 </button>
                                 <div class="dropdown-body">
                                     <div class="s-list">
@@ -44,8 +44,8 @@
                                         </div>
                                     </div>
                                     <div class="s-actions">
-                                        <button class="wa-button blue js-apply-button" type="button">[`Применить`]</button>
-                                        <button class="wa-button gray js-close-button" type="button">[`Отмена`]</button>
+                                        <button class="wa-button blue js-apply-button" type="button">[`Apply`]</button>
+                                        <button class="wa-button gray js-close-button" type="button">[`Cancel`]</button>
                                     </div>
                                 </div>
                             </div>
@@ -53,7 +53,7 @@
 
                         <div class="s-features-section" data-type="sku" v-if="getActiveFeatures().length">
                             <div class="s-section-header">
-                                <div class="s-name">[`Артикулы`]</div>
+                                <div class="s-name">[`SKUs`]</div>
                             </div>
 
                             <div class="s-features-list">
@@ -62,12 +62,12 @@
                                 </template>
                             </div>
 
-                            <div class="s-empty-droparea js-drop-area" v-if="!getActiveFeatures(false).length">[`Модификации будут относены к 1 артикулу.`]</div>
+                            <div class="s-empty-droparea js-drop-area" v-if="!getActiveFeatures(false).length">[`Variants will be associated with 1 SKU.`]</div>
                         </div>
 
                         <div class="s-features-section" data-type="mod" v-if="getActiveFeatures().length">
                             <div class="s-section-header">
-                                <div class="s-name">[`Модификации артикулов`]</div>
+                                <div class="s-name">[`SKU variants`]</div>
                             </div>
 
                             <div class="s-features-list">
@@ -76,11 +76,11 @@
                                 </template>
                             </div>
 
-                            <div class="s-empty-droparea js-drop-area" v-if="!getActiveFeatures(true).length">[`Перетащите сюда характеристику, чтобы использовать генерацию с модификациями`]</div>
+                            <div class="s-empty-droparea js-drop-area" v-if="!getActiveFeatures(true).length">[`Drag & drop a feature here to generate SKUs with variants`]</div>
                         </div>
 
                         <div v-if="!getActiveFeatures().length">
-                            <p class="hint">[`Добавьте характеристики`]</p>
+                            <p class="hint">[`Add features`]</p>
                         </div>
                     </div>
                     <div class="s-column-values">
@@ -98,7 +98,7 @@
 
                             <div class="wa-fields vertical">
                                 <div class="wa-field s-field-price">
-                                    <div class="name">[`Цена`]</div>
+                                    <div class="name">[`Price`]</div>
                                     <div class="value">
 
                                         <div class="tablebox middle space-16">
@@ -113,7 +113,7 @@
                                     </div>
                                 </div>
                                 <div class="wa-field s-field-purchase-price">
-                                    <div class="name">[`Закупочная цена`]</div>
+                                    <div class="name">[`Purchase price`]</div>
                                     <div class="value">
 
                                         <div class="tablebox middle space-16">
@@ -128,7 +128,7 @@
                                     </div>
                                 </div>
                                 <div class="wa-field s-field-compare-price">
-                                    <div class="name">[`Зачёркнутая цена`]</div>
+                                    <div class="name">[`Compare at price`]</div>
                                     <div class="value">
 
                                         <div class="tablebox middle space-16">
@@ -180,7 +180,7 @@
                     v-bind:title="getCount(false) > 0 ? '{_w("Создать")|escape}' : '{_w("Нужно выбрать хотя бы одно значение характеристики для генерации")|escape}'"
                     v-bind:disabled="!(getCount(false) > 0)">[`Создать`]</button>
 
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Отмена`]</button>
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

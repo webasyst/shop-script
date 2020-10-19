@@ -3,7 +3,7 @@
     <div class="dialog-body">
         <div id="vue-features-wrapper" style="visibility: hidden;">
             <div class="dialog-header">
-                <h3>[`Выберите одно или несколько значений для характеристики`]  «{ { feature.name } }»</h3>
+                <h3>{sprintf_wp("Select one or several values of feature “%s”", '{ { feature.name } }')}</h3>
             </div>
             <div class="dialog-content">
 
@@ -11,7 +11,7 @@
                     <div class="s-filter-section">
                         <div class="s-filter-form">
                             <span class="s-button"><i class="fas fa-search"></i></span>
-                            <input class="s-field js-filter-field" type="text" value="" placeholder="{_w("Поиск")|escape}">
+                            <input class="s-field js-filter-field" type="text" value="" placeholder="{_w("Search")|escape}">
                         </div>
                     </div>
 
@@ -21,7 +21,7 @@
                                 v-on:click.prevent="feature.show_form = true">
 
                             <span class="s-icon icon top"><i class="fas fa-plus"></i></span>
-                            <span class="s-name">[`Добавить`]</span>
+                            <span class="s-name">[`Add`]</span>
                         </button>
 
                         <template v-if="feature.show_form">
@@ -48,8 +48,8 @@
                 </div>
             </div>
             <div class="dialog-footer">
-                <button class="wa-button" type="button" v-on:click.prevent="success">[`Выбрать`]</button>
-                <button class="wa-button gray-light" type="button" v-on:click.prevent="close">[`Отмена`]</button>
+                <button class="wa-button" type="button" v-on:click.prevent="success">[`Select`]</button>
+                <button class="wa-button gray-light" type="button" v-on:click.prevent="close">[`Cancel`]</button>
             </div>
         </div>
     </div>

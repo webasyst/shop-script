@@ -3,7 +3,7 @@
     <div class="dialog-body">
         <div id="vue-photo-manager-section" style="visibility: hidden;">
             <div class="dialog-header">
-                <h2>[`Выберите изображение`]</h2>
+                <h2>[`Select an image`]</h2>
             </div>
             <div class="dialog-content">
 
@@ -13,7 +13,7 @@
                             v-on:dragover.prevent="onAreaOver($event)"
                             v-on:drop.prevent="onAreaDrop($event)">
 
-                            <div class="s-text" v-if="!errors.length">[`Загрузите или перетащите сюда фотографии`]</div>
+                            <div class="s-text" v-if="!errors.length">[`Upload or drag & drop images here`]</div>
                             <div class="s-text" v-if="errors.length">
                                 <div class="color-red" v-for="error in errors">{ { error.text } }</div>
                             </div>
@@ -36,12 +36,12 @@
 
                                 <div class="s-description-wrapper" v-bind:class="{ 'is-expanded': photo.expanded }">
                                     <p class="s-description-text" v-if="!photo.expanded"
-                                        v-on:click.prevent="showDescriptionForm(photo)">{ { photo.description && photo.description.length ? photo.description : "{_w("Добавить описание...")|escape}" } }</p>
+                                        v-on:click.prevent="showDescriptionForm(photo)">{ { photo.description && photo.description.length ? photo.description : "{_w("Add description...")|escape}" } }</p>
 
                                     <form class="s-description-form" v-if="photo.expanded">
-                                        <textarea class="s-description-field" name="description" v-model="photo.description" placeholder="{_w("Добавить описание...")|escape}"></textarea>
+                                        <textarea class="s-description-field" name="description" v-model="photo.description" placeholder="{_w("Add description...")|escape}"></textarea>
                                         <div class="s-buttons">
-                                            <button class="wa-button blue" v-on:click.prevent="changeDescription($event, photo)">[`Применить`]</button>
+                                            <button class="wa-button blue" v-on:click.prevent="changeDescription($event, photo)">[`Apply`]</button>
                                             <button class="wa-button gray" v-on:click.prevent="revertDescription(photo)">
                                                 <span class="s-icon"><i class="fas fa-times"></i></span>
                                             </button>
@@ -56,9 +56,9 @@
             <div class="dialog-footer">
                 <button class="wa-button" type="button"
                     v-bind:disabled="!active_photo"
-                    v-on:click.prevent="useChanges">{ { photo_id ? {_w("Изменить")|json_encode} : {_w("Добавить")|json_encode} } }</button>
+                    v-on:click.prevent="useChanges">{ { photo_id ? {_w("Change")|json_encode} : {_w("Add")|json_encode} } }</button>
 
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Отмена`]</button>
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

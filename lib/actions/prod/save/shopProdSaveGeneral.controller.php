@@ -52,7 +52,7 @@ class shopProdSaveGeneralController extends waJsonController
                         if (empty($product_data["params"]["redirect_url"])) {
                             $this->errors[] = [
                                 'name' => 'product[params][redirect_url]',
-                                'text' => _w('Redirect url is required'),
+                                'text' => _w('Enter a redirect URL.'),
                             ];
                         }
                         break;
@@ -94,7 +94,7 @@ class shopProdSaveGeneralController extends waJsonController
             // !!! TODO format errors properly, if any happened
             $this->errors[] = [
                 'id' => "general",
-                'text' => _w('Unable to save product').' '.wa_dump_helper($errors),
+                'text' => _w('Unable to save product.').' '.wa_dump_helper($errors),
             ];
             return null;
         }

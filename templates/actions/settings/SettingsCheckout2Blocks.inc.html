@@ -980,13 +980,13 @@
     {* Auto submit *}
     <div class="field">
         <div class="name">
-            <label for="confirmation_auto_submit">[`Auto submit`]</label>
+            <label for="confirmation_auto_submit">[`Auto-redirect to payment`]</label>
         </div>
         <div class="value">
             <label>
                 <input type="hidden" name="data[confirmation][auto_submit]" value="0" />
                 <input id="confirmation_auto_submit" type="checkbox" name="data[confirmation][auto_submit]"{if $settings.auto_submit} checked{/if} />
-                [`Automatically redirect to checkout page`]
+                [`Redirect a customer to the payment page`]
             </label>
         </div>
     </div>

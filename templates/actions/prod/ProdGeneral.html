@@ -4,9 +4,9 @@
 
 {$_templates = []}
 {$_locales = [
-    "add_tag" => _w("Добавить тег"),
-    "select_category" => _w("Выберите категорию"),
-    "storefront_changed" =>  _w('Адрес размещения товара изменён, адреса витрин изменятся после того, как вы нажмёте кнопу "Сохранить".'),
+    "add_tag" => _w("Add a tag"),
+    "select_category" => _w("Please select a category"),
+    "storefront_changed" =>  _w('Product publication URL has changed. Storefronts’ addresses will be updated after you click “Save”.'),
     "modification_wysiwyg_message" => _ws('WYSIWYG editor may change your HTML code. It is necessary for correct text formatting. Smarty code may be broken and outdated HTML tags may be replaced with modern ones. Are you sure to switch to WYSIWYG editor?')
 ]}
 
@@ -27,8 +27,8 @@
 
                             <div class="wa-label for-input-large">
                                 <div>
-                                    [`Наименование`]
-                                    <span class="wa-tooltip right" data-title="{_w("Наименование")|escape}">
+                                    [`Product name`]
+                                    <span class="wa-tooltip right" data-title="{_w("Main product name visible in the storefront.")|escape}">
                                         <i class="fas fa-question-circle s-icon gray"></i>
                                     </span>
                                 </div>
@@ -38,7 +38,7 @@
                         <div class="value">
 
                             <div class="s-name-section">
-                                <textarea class="s-field js-auto-height js-product-name-field" name="product[name]">{$product.name|default:_w("Название товара")|escape}</textarea>
+                                <textarea class="s-field js-auto-height js-product-name-field" name="product[name]">{$product.name|default:_w("Product name")|escape}</textarea>
                             </div>
 
                             <div class="s-storefronts-section js-storefronts-section">
@@ -55,7 +55,7 @@
                                         </div>
                                         <div class="s-column-actions nowrap">
                                             <div class="s-actions inlinebox middle space-12">
-                                                <span class="s-action wa-tooltip inline bottom-left" data-title="{_w("Подсказка")|escape}">
+                                                <span class="s-action wa-tooltip inline bottom-left" data-title="{_w("Editable part of the product address in the storefront.")|escape}">
                                                     <i class="fas fa-question-circle hint"></i>
                                                 </span>
                                                 <span class="s-action gray s-refresh-button js-refresh-button">
@@ -77,12 +77,12 @@
                                             </li>
                                         {/foreach}
                                         {if !empty($_show_toggle)}
-                                            {$_locales["storefronts_show"] = _w('Показать еще %d витрину', 'Показать еще %d витрин', ($_count - $_limit) )}
-                                            {$_locales["storefronts_hide"] = _w('Скрыть %d витрину', 'Скрыть %d витрин', ($_count - $_limit) )}
+                                            {$_locales["storefronts_show"] = _w('Show %d more strefront', 'Show %d more strefronts', ($_count - $_limit) )}
+                                            {$_locales["storefronts_hide"] = _w('Hide %d storefront', 'Hide %d storefronts', ($_count - $_limit) )}
                                             {if $total_storefronts_count > $_count}
                                                 <li class="s-extended-item" style="display: none;">
-                                                    [`В списке показаны не все витрины.`]
-                                                    [`Перейдите на вкладку SEO, чтобы увидеть полный список.`]
+                                                    [`Not all storefronts are included in this list.`]
+                                                    [`Open “SEO” tab to view the full list.`]
                                                     {* $total_storefronts_count - $_count *}
                                                 </li>
                                             {/if}
@@ -102,7 +102,7 @@
 
                             <div class="wa-label for-input">
                                 <div>
-                                    [`Публикация на сайте`]
+                                    [`Visibility in the storefront`]
                                 </div>
                             </div>
 
@@ -114,19 +114,19 @@
                                     "id" => "1",
                                     "ident" => "published",
                                     "icon" => "fas fa-check color-green-dark",
-                                    "name" => _w("Опубликован")
+                                    "name" => _w("Published")
                                 ],
                                 "0" => [
                                     "id" => "0",
                                     "ident" => "unpublished",
                                     "icon" => "fas fa-times color-gray",
-                                    "name" => _w("Скрыт")
+                                    "name" => _w("Hidden")
                                 ],
                                 "-1" => [
                                     "id" => "-1",
                                     "ident" => "hidden",
                                     "icon" => "fas fa-arrow-right color-blue",
-                                    "name" => _w("Снят с публикации")
+                                    "name" => _w("Unpublished")
                                 ]
                             ]}
 
@@ -160,13 +160,17 @@
                                         </div>
 
                                         <div class="s-status-hint" data-status-id="unpublished">
-                                            [`TODO: Текст подсказки для пункта "Снят с публикации"`]
+                                            [`The product is not shown among other products in the storefront, is not available for purchase, and can be viewed at its direct URL only.`]
                                         </div>
 
                                         <div class="s-status-hint" data-status-id="hidden">
                                             {sprintf(
-                                                "Товар недоступен по прямому открытию страницы, удалён из %s, не показывается на витрине в общих списках товаров и его нельзя добавить в корзину.",
-                                                "<a href=\"javascript:void(0);\">Sitemap-файла</a> <span class=\"wa-tooltip bottom-left\" data-title=\"{_w("Sitemap-файла")|escape}\"><i class=\"fas fa-question-circle s-icon gray\"></i></span>"
+                                                _w('The product is not visible among other products in the storefront, is not available for purchase, cannot be viewed at its direct URL, and is excluded from the %sSitemap file%s.'),
+                                                '<a href="javascript:void(0);">',
+                                                sprintf(
+                                                    '</a> <span class="wa-tooltip bottom-left" data-title="%s"><i class="fas fa-question-circle s-icon gray"></i></span>',
+                                                    _w('A Sitemap file is a special XML file containing URLs of all website pages that need to be indexed by search engines.')|escape
+                                                )
                                             )}
                                         </div>
                                     </div>
@@ -179,15 +183,15 @@
                                             ],
                                             "home" => [
                                                 "id" => "home",
-                                                "name" => _w("Главная")
+                                                "name" => _w("Homepage")
                                             ],
                                             "category" => [
                                                 "id" => "category",
-                                                "name" => _w("Основная категория")
+                                                "name" => _w("Main category")
                                             ],
                                             "url" => [
                                                 "id" => "url",
-                                                "name" => _w("Указанный адрес")
+                                                "name" => _w("Specified URL")
                                             ]
                                         ]}
 
@@ -205,8 +209,8 @@
 
                                             <div class="flexbox middle wrap space-12">
                                                 <div class="s-label">
-                                                    Перенаправлять
-                                                    <span class="wa-tooltip bottom-left" data-title="{_w("Перенаправлять")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
+                                                    [`Redirect`]
+                                                    <span class="wa-tooltip bottom-left" data-title="{_w("Select an address to which website visitors and search engines will be redirected when attempting to access this product’s URL.")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
                                                 </div>
                                                 <div class="dropdown" id="js-product-redirect-select">
                                                     <button class="dropdown-toggle wa-button gray-field" type="button">
@@ -231,18 +235,18 @@
 
                                                 <div class="line">
                                                     <div class="s-label">
-                                                        Протокол перенаправления
-                                                        <span class="wa-tooltip bottom-left" data-title="{_w("Протокол перенаправления")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
+                                                        [`Redirect code`]
+                                                        <span class="wa-tooltip bottom-left" data-title="{_w("Your server will add this code to its response to web browsers and search engines.")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
                                                     </div>
 
                                                     {$_redirect_codes = [
                                                         "301" => [
                                                             "id" => "301",
-                                                            "label" => _w("301 редирект — товар скрыт навсегда")
+                                                            "label" => _w("301: the product is permanently hidden")
                                                         ],
                                                         "302" => [
                                                             "id" => "302",
-                                                            "label" => _w("302 редирект — товар скрыт на время")
+                                                            "label" => _w("302: the product is temporarily hidden")
                                                         ]
                                                     ]}
 
@@ -281,8 +285,8 @@
 
                                 <div class="wa-label for-input">
                                     <div>
-                                        [`Тип товаров`]
-                                        <span class="wa-tooltip right" data-title="{_w("Тип товаров")|escape}">
+                                        [`Product type`]
+                                        <span class="wa-tooltip right" data-title="{_w("Each product type; e.g., “TVs”, “Phones”, or “Clocks”, can have its own set of features. You can decide which product types to make visible in a storefront. Separate access rights to product types can be set up for store backend users and user groups.")|escape}">
                                             <i class="fas fa-question-circle s-icon gray"></i>
                                         </span>
                                     </div>
@@ -325,7 +329,7 @@
                                         <a class="wa-button wa-small wa-short transparent-gray nowrap js-disable-router" href="{$wa_app_url}?action=settings#/typefeat/" target="_blank">
                                             <span class="s-icon icon baseline shift-1 size-12"><i class="fas fa-cog"></i></span>
                                             &nbsp;
-                                            <span class="s-name">[`Настроить`]</span>
+                                            <span class="s-name">[`Customize`]</span>
                                         </a>
                                     </div>
                                 </div>
@@ -341,8 +345,8 @@
 
                             <div class="wa-label for-input">
                                 <div>
-                                    [`Основная категория`]
-                                    <span class="wa-tooltip right" data-title="{_w("Основная категория")|escape}">
+                                    [`Main category`]
+                                    <span class="wa-tooltip right" data-title="{_w("A category is a group of products with its own page in the storefront. The main category in which a product is included affects navigation links on the product page and its address in the storefront with some configurations.")|escape}">
                                         <i class="fas fa-question-circle s-icon gray"></i>
                                     </span>
                                 </div>
@@ -357,7 +361,7 @@
                                         <button class="dropdown-toggle wa-button gray-field" type="button">{$_active_main_category.name|default:$_locales["select_category"]|escape}</button>
                                         <div class="dropdown-body">
                                             <div class="dropdown-item" data-action="create">
-                                                <div class="dropdown-item-name">[`Создать новую категорию`]</div>
+                                                <div class="dropdown-item-name">[`Add a new category`]</div>
                                             </div>
 
                                             {function name="_render_categories_options" _categories=[] }
@@ -382,7 +386,7 @@
                                 <div class="s-hidden-place">
                                     <div class="js-add-main-category-form">
                                         <div class="flexbox middle space-8">
-                                            <input type="text" name="name" value="" placeholder="{_w("Введите название")|escape}" required disabled>
+                                            <input type="text" name="name" value="" placeholder="{_w("Enter name")|escape}" required disabled>
                                             <button class="wa-button blue js-submit-button" type="submit">
                                                 <span class="icon s-icon"><i class="fas fa-check"></i></span>
                                             </button>
@@ -404,8 +408,8 @@
 
                             <div class="wa-label for-input">
                                 <div>
-                                    [`Дополнительные категории`]
-                                    <span class="wa-tooltip right" data-title="{_w("Дополнительные категории")|escape}">
+                                    [`Additional categories`]
+                                    <span class="wa-tooltip right" data-title="{_w("A category is a group of products with its own page in the storefront. A product can be included in one or several categories. Select additional categories here, in which the product must also be displayed in the storefront.")|escape}">
                                         <i class="fas fa-question-circle s-icon gray"></i>
                                     </span>
                                 </div>
@@ -447,7 +451,7 @@
 
                                 <div class="s-actions">
                                     <button class="wa-button wa-small wa-short transparent js-add-categories" type="button">
-                                        <span class="s-icon icon baseline shift-1 size-12"><i class="fas fa-plus"></i></span>&nbsp;[`Добавить`]
+                                        <span class="s-icon icon baseline shift-1 size-12"><i class="fas fa-plus"></i></span>&nbsp;[`Add`]
                                     </button>
                                 </div>
                             </div>
@@ -461,8 +465,8 @@
 
                             <div class="wa-label for-input">
                                 <div>
-                                    [`Списки`]
-                                    <span class="wa-tooltip right" data-title="{_w("Списки")|escape}">
+                                    [`Sets`]
+                                    <span class="wa-tooltip right" data-title="{_w("A set is a group of products to be displayed on existing storefront pages; e.g., on the homepage or in a slider. A product can be included in one or more sets.")|escape}">
                                         <i class="fas fa-question-circle s-icon gray"></i>
                                     </span>
                                 </div>
@@ -503,7 +507,7 @@
 
                                 <div class="s-actions">
                                     <button class="wa-button wa-small wa-short transparent js-add-sets" type="button">
-                                        <span class="s-icon icon baseline shift-1 size-12"><i class="fas fa-plus"></i></span>&nbsp;[`Добавить`]
+                                        <span class="s-icon icon baseline shift-1 size-12"><i class="fas fa-plus"></i></span>&nbsp;[`Add`]
                                     </button>
                                 </div>
                             </div>
@@ -517,8 +521,8 @@
                             <div class="name">
                                 <div class="wa-label for-input">
                                     <div>
-                                        [`Облагается налогом`]
-                                        <span class="wa-tooltip right" data-title="{_w("Облагается налогом")|escape}">
+                                        [`Taxable`]
+                                        <span class="wa-tooltip right" data-title="{_w("You can select a tax rule for the product. A tax rule is applied to customers from selected countries and their regions.")|escape}">
                                             <i class="fas fa-question-circle s-icon gray"></i>
                                         </span>
                                     </div>
@@ -528,14 +532,14 @@
 
                                 {$_empty_tax = [
                                     "id" => "",
-                                    "name" => _w("Нет")
+                                    "name" => _w("No")
                                 ]}
 
                                 {$_is_empty = empty($taxes[$product.tax_id])}
                                 {$_active_tax = ifset($taxes, $product.tax_id, $_empty_tax)}
 
                                 <div class="dropdown" id="js-product-tax-select">
-                                    <button class="dropdown-toggle wa-button gray-field" type="button">{ifset($_active_tax, 'name', _w("Выберите налог"))|escape}</button>
+                                    <button class="dropdown-toggle wa-button gray-field" type="button">{ifset($_active_tax, 'name', _w("Select a tax"))|escape}</button>
                                     <div class="dropdown-body">
                                         <div class="dropdown-item {if $_is_empty}selected{/if}" data-id="{$_empty_tax.id|escape}">
                                             {$_empty_tax.name|escape}
@@ -574,8 +578,8 @@
                         <div class="name">
                             <div class="wa-label for-textarea">
                                 <div>
-                                    [`Краткое описание`]
-                                    <span class="wa-tooltip right" data-title="{_w("Краткое описание")|escape}">
+                                    [`Summary`]
+                                    <span class="wa-tooltip right" data-title="{_w("Brief product description displayed in various product lists.")|escape}">
                                         <i class="fas fa-question-circle s-icon gray"></i>
                                     </span>
                                 </div>
@@ -583,7 +587,7 @@
                         </div>
                         <div class="value">
                             <textarea class="full-width js-auto-height" name="product[summary]">{$product.summary|default:""}</textarea>
-                            <p class="hint">[`Отображается в списках товаров.`]</p>
+                            <p class="hint">[`Displayed in product lists.`]</p>
                         </div>
                     </div>
 
@@ -592,8 +596,8 @@
                         <div class="name">
                             <div class="wa-label for-textarea">
                                 <div>
-                                    [`Теги`]
-                                    <span class="wa-tooltip right" data-title="{_w("Теги")|escape}">
+                                    [`Tags`]
+                                    <span class="wa-tooltip right" data-title="{_w("Words or short phrases, related to the product, which are displayed as a group of links for convenient navigation across all products in the storefront.")|escape}">
                                         <i class="fas fa-question-circle s-icon gray"></i>
                                     </span>
                                 </div>
@@ -601,7 +605,7 @@
                         </div>
                         <div class="value">
                             <input id="js-product-tags" type="hidden" name="product[tags]" value="{$product.tags|default:[]|join:","|escape}">
-                            <p class="hint">[`Разделяйте теги запятой (,).`]</p>
+                            <p class="hint">[`Separate tags with comma (,).`]</p>
                         </div>
                     </div>
                 </div>
@@ -609,11 +613,11 @@
 
             <section class="s-editor-section js-editor-section">
                 <div class="s-section-header">
-                    <h5 class="s-section-title">[`Описание`]</h5>
+                    <h5 class="s-section-title">[`Description`]</h5>
                     {strip}
                     <div class="toggle tabs-mode js-editor-type-toggle">
-                        <span class="selected" data-id="wysiwyg">Визуальный редактор</span>
-                        <span data-id="html">HTML</span>
+                        <span class="selected" data-id="wysiwyg">[`WYSIWYG`]</span>
+                        <span data-id="html">[`HTML`]</span>
                     </div>
                     {/strip}
                 </div>

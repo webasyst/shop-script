@@ -202,7 +202,7 @@
                                                                     <span class="s-text" style="line-break: anywhere;">{$url}</span>
                                                                 </label>
                                                                 {if isset($active_domains.$domain) && !empty($active_domains.$domain)}
-                                                                    <div class="s-sublist-title">[`Mirrors:`]</div>
+                                                                    <div class="s-sublist-title">[`Mirror sites:`]</div>
                                                                     <ul class="s-sublist">
                                                                         {foreach $active_domains.$domain as $mirror}
                                                                             {$mirror_url = $mirror|cat:"/":$route.url}

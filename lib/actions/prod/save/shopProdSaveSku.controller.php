@@ -144,13 +144,13 @@ class shopProdSaveSkuController extends waJsonController
             }
             $this->errors[] = [
                 'id' => "general",
-                'text' => _w('Unable to save product').' '.$message,
+                'text' => _w('Unable to save product.').' '.$message,
             ];
         }
         if ($errors) {
             $this->errors[] = [
                 'id' => "general",
-                'text' => _w('Unable to save product').' '.wa_dump_helper($errors),
+                'text' => _w('Unable to save product.').' '.wa_dump_helper($errors),
             ];
         }
 

@@ -2,7 +2,7 @@
     <div class="dialog-background"></div>
     <div class="dialog-body">
         <div class="dialog-header">
-            <h2>[`Характеристики для выбора вариантов товара на витрине`]</h2>
+            <h2>[`Features used for product version selection in the storefront`]</h2>
         </div>
         <div class="dialog-content">
 
@@ -10,7 +10,7 @@
                 <div class="s-filter-section">
                     <div class="s-filter-form">
                         <span class="s-button"><i class="fas fa-search"></i></span>
-                        <input class="s-field js-filter-field" type="text" value="" placeholder="{_w("Поиск категорий")|escape}">
+                        <input class="s-field js-filter-field" type="text" value="" placeholder="{_w("Category search")|escape}">
                     </div>
                 </div>
 
@@ -19,7 +19,7 @@
                     <template v-for="feature in selectable_features">
                         <div class="s-feature-wrapper"
                              v-bind:class="{ 'is-disabled': feature.disabled }"
-                             v-bind:title="feature.disabled ? '{_w("Данный формат характеристики не доступен для выбора вариантов товара.")|escape}' : ''">
+                             v-bind:title="feature.disabled ? '{_w("The feature’s format does not support selection of product versions.")|escape}' : ''">
                             <div class="flexbox middle space-8">
                                 <div class="s-field">
                                     <label class="wa-checkbox">
@@ -42,8 +42,8 @@
 
         </div>
         <div class="dialog-footer">
-            <button class="js-submit-button wa-button blue" type="button">[`Добавить`]</button>
-            <button class="js-dialog-close wa-button gray-light" type="button">[`Отмена`]</button>
+            <button class="js-submit-button wa-button blue" type="button">[`Add`]</button>
+            <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
         </div>
     </div>
 </div>

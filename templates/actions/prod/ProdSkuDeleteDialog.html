@@ -2,22 +2,20 @@
 
 {$_is_sku = ($sku_class === "sku")}
 
-{$_sku_name_array = []}
 {$_sku = reset($skus)}
-{if !empty($_sku.sku) || !empty($_sku.name)}
-    {if !empty($_sku.sku)}
-        {$_sku_name_array[] = $_sku.sku}
-    {/if}
-    {if !empty($_sku.name)}
-        {$_sku_name_array[] = $_sku.name}
-    {/if}
+{if !empty($_sku.name) && !empty($_sku.sku)}
+    {$_sku_name = sprintf('%s (%s)', $_sku.name, $_sku.sku)}
+{elseif !empty($_sku.sku)}
+    {$_sku_name = $_sku.sku}
+{elseif !empty($_sku.name)}
+    {$_sku_name = $_sku.name}
 {else}
-    {if empty($_sku_id)}
+    {if empty($sku_id)}
         {$_sku_id = $_sku["id"]}
     {else}
         {$_sku_id = $sku_id}
     {/if}
-    {$_sku_name_array[] = $_sku_id}
+    {$_sku_name = $_sku_id}
 {/if}
 
 {/strip}
@@ -28,43 +26,62 @@
         <div class="dialog-header">
             <h2>
                 {if $_is_sku}
-                    [`Подтвердите удаление артикула`]
+                    [`Confirm SKU deletion`]
                 {else}
-                    [`Подтвердите удаление модификации`]
+                    [`Confirm variant deletion`]
                 {/if}
             </h2>
         </div>
         <div class="dialog-content">
             <p class="color-red">
                 {if $_is_sku}
-                    {$sku_count_message = _w('%d модификация', '%d модификации', count($skus))}
-                    {sprintf_wp('Вы собираетесь удалить артикул "%s" товара "%s", в котором %s.', $_sku_name_array|join:"\" \""|escape, $product.name|escape, $sku_count_message)}
+                    {sprintf(
+                        _w(
+                            'You are about to delete SKU “%s” of product “%s” with %d variant.',
+                            'You are about to delete SKU “%s” of product “%s” with %d variants.',
+                            count($skus),
+                            false
+                        ),
+                        $_sku_name,
+                        $product.name|escape,
+                        count($skus)
+                    )}
                 {else}
-                    {sprintf_wp('Вы собираетесь удалить модификацию артикула "%s" товара "%s".', $_sku_name_array|join:"\" \""|escape, $product.name|escape)}
+                    {sprintf_wp(
+                        'You are about to delete a variant of SKU “%s” of product “%s”.',
+                        $_sku_name,
+                        $product.name|escape
+                    )}
                 {/if}
             </p>
 
 
             {if $orders_count > 0}
-                {$orders_count_msg = _w('in %d order', 'in %d orders', $orders_count)}
-                {$orders_count_link = sprintf('<a href="%s">%s</a>', $orders_list_url|escape, $orders_count_msg|escape)}
-
-                <p>{sprintf_wp('Он используется %s.', $orders_count_link)}</p>
+                <p>{sprintf(
+                    _w(
+                        'It is used in <a href="%s">%d order</a>.',
+                        'It is used in <a href="%s">%d orders</a>.',
+                        $orders_count,
+                        false
+                    ),
+                    $orders_list_url|escape,
+                    $orders_count
+                )}</p>
             {else}
-                <p>[`Ни одного заказа не обнаружено.`]</p>
+                <p>[`No orders were found.`]</p>
             {/if}
 
             <p>
                 {if $_is_sku}
-                    [`Вы точно хотите удалить артикул?`]
+                    [`Are you sure you want to delete this SKU?`]
                 {else}
-                    [`Вы точно хотите удалить модификацию?`]
+                    [`Are you sure you want to delete this SKU variant?`]
                 {/if}
             </p>
         </div>
         <div class="dialog-footer">
-            <button class="js-success-action wa-button red" type="button">[`Удалить`]</button>
-            <button class="js-dialog-close wa-button gray-light" type="button">[`Отмена`]</button>
+            <button class="js-success-action wa-button red" type="button">[`Delete`]</button>
+            <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
         </div>
     </div>
 </div>

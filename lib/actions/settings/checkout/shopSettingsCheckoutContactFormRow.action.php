@@ -35,7 +35,7 @@ class shopSettingsCheckoutContactFormRowAction extends waViewAction
                 'Branch' => _w('Selectable (radio)'),
                 'Text' => _w('Text (textarea)'),
                 'String' => _w('Text (input)'),
-                'Select' => _w('Select'),
+                'Select' => _w('select'),
                 'Phone' => _w('Text (input)'),
                 'IM' => _w('Text (input)'),
                 'Url' => _w('Text (input)'),

@@ -88,7 +88,7 @@ class shopProdFeedbackController extends waJsonController
         $errors = [
             [
                 'id' => 'request_fail',
-                'text' => _w('Request to send feedback is fail')
+                'text' => _w('Feedback message sending has failed.')
             ]
         ];
 
@@ -122,7 +122,7 @@ class shopProdFeedbackController extends waJsonController
                 // or pretty error for user when about invalid field 'content'
                 if ($error_type == 'validation' && $field === 'content') {
                     if ($code === 'required') {
-                        $text = _w('Field is required');
+                        $text = _w('This is a required field.');
                     } else {
                         $text = $code;
                     }

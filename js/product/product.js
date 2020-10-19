@@ -582,6 +582,16 @@ editClick:(function ($) {
             var h1 = $('#shop-productprofile h1');
             h1.find('.s-product-name:first').text(data.name);
             h1.find('.s-product-id').show().text('id: ' + data.id);
+
+            var $new_edit_button = h1.find('.s-new-product-editor-button');
+            if ($new_edit_button.length) {
+                var href = $new_edit_button.attr("href");
+                if (href.indexOf("%product_id%") >= 0) {
+                    $new_edit_button.attr("href", href.replace("%product_id%", data.id) );
+                }
+                $new_edit_button.show();
+            }
+
             document.title = data.name + $.product.options.title_suffix;
 
             $('#product-stock-stat').html(tmpl('template-product-stock-stat', data.raw));

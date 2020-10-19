@@ -2,29 +2,35 @@
     <div class="dialog-background"></div>
     <div class="dialog-body">
         <div class="dialog-header">
-            <h2>[`Подтвердите удаление товара`]</h2>
+            <h2>[`Confirm product deletion`]</h2>
         </div>
         <div class="dialog-content">
             {if $orders_count > 0}
-                {$message = _w('Найдено %s с использованием товара "%s".')}
-                {$orders_count_msg = _w('%d order', '%d orders', $orders_count)}
-                {$orders_count_link = sprintf('<a href="%s">%s</a>', $orders_list_url|escape, $orders_count_msg|escape)}
-                {$message = sprintf($message, $orders_count_link, $product.name|escape)}
+                {$message = sprintf(
+                    _w(
+                        'Found <a href="%s">%d order</a> containing product “%s”.',
+                        'Found <a href="%s">%d orders</a> containing product “%s”.',
+                        $orders_count,
+                        false
+                    ),
+                    $orders_list_url|escape,
+                    $orders_count,
+                    $product.name|escape
+                )}
 
                 <p class="color-red">{$message}</p>
                 <p>
-                    [`После удления товара заказы сохранятся, но информация на странице заказа перестанет быть полной.`]
-                    [`Останется только название товара.`]
+                    [`After the deletion of this product, related orders will be preserved but the information on order-viewing pages will become incomplete — only the product name will be visible.`]
                 </p>
-                <p>[`Точно удалить товар?`]</p>
+                <p>[`Delete the product?`]</p>
             {else}
-                <p>{sprintf_wp('Нет ни одного заказа с использованием товара "%s".', $product.name|escape)}</p>
-                <p>[`Смело удаляйте!`]</p>
+                <p>{sprintf_wp('No orders containing product “%s”.', $product.name|escape)}</p>
+                <p>[`Delete`]</p>
             {/if}
         </div>
         <div class="dialog-footer">
-            <button class="js-success-action wa-button red" type="button">[`Удалить`]</button>
-            <button class="js-dialog-close wa-button gray-light" type="button">[`Отмена`]</button>
+            <button class="js-success-action wa-button red" type="button">[`Delete`]</button>
+            <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
         </div>
     </div>
 </div>

@@ -125,11 +125,11 @@ class shopProdSkuAction extends waViewAction
             $badge["id"] = $_badge_id;
         }
 
-        $badge_example_html = "<div class=\"badge\" style=\"background-color: #a1fcff;\"><span>" . _w("ВАЩ ТЕКСТ") . "</span></div>";
+        $badge_example_html = "<div class=\"badge\" style=\"background-color: #a1fcff;\"><span>" . _w("YOUR TEXT") . "</span></div>";
 
         $badges[""] = [
             "id" => "",
-            "name" => _w("Другое"),
+            "name" => _w("Custom"),
             "code" => $badge_example_html,
             "code_model" => $badge_example_html
         ];
@@ -755,7 +755,7 @@ class shopProdSkuAction extends waViewAction
     {
         return [
             "name"          => "",
-            "sku"           => _w("артикул_"), // Это поле является основой для группировки модификаций, для новодобавленных артикулов оно генерируется на стороне JS (добавляется индекс)
+            "sku"           => mb_strtolower(sprintf('%s_', _w("SKU"))), // Это поле является основой для группировки модификаций, для новодобавленных артикулов оно генерируется на стороне JS (добавляется индекс)
             "sku_id"        => null,
             "modifications" => [],
             "expanded"      => true,
@@ -802,11 +802,11 @@ class shopProdSkuAction extends waViewAction
         return [
             shopProductModel::SKU_TYPE_FLAT => [
                 "id" => shopProductModel::SKU_TYPE_FLAT,
-                "name" => _w("По наименованию артикула")
+                "name" => _w("By SKU name")
             ],
             shopProductModel::SKU_TYPE_SELECTABLE => [
                 "id" => shopProductModel::SKU_TYPE_SELECTABLE,
-                "name" => _w("По характеристикам, таким как размер, цвет и другие")
+                "name" => _w("By features such as size or color")
             ],
         ];
     }

@@ -448,7 +448,7 @@
                         {else}
                             {$hidden_first = ''}
                         {/if}
-                        <span class="gray js-no-coupon-text" {if !empty($order.coupon)}style="display: none"{/if}>[`No coupon`]</span>
+                        <span class="gray js-no-coupon-text" {if !empty($order.coupon)}style="display: none"{/if}>[`No coupon.`]</span>
                         <a href="{if isset($order.coupon.id)}{$wa_app_url}marketing/coupons/{$order.coupon.id|escape}/{/if}" data-href="{$wa_app_url}marketing/coupons/" class="s-order-edit-coupon {if !isset($order.coupon.id)}disabled-link{/if}" target="_blank">
                             <i class="icon16 ss coupon js-coupon-icon" {$hidden_first}></i><strong class="coupon-code-label">{if !empty($order.coupon)}{$order.coupon.code|escape}{/if}</strong>
                         </a>

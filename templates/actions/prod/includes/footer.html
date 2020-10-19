@@ -1,12 +1,12 @@
 <footer class="s-section-footer js-sticky-footer">
     <div class="tablebox space-20">
         <div class="column">
-            <button class="wa-button blue js-product-save js-router-submit-button" type="button">[`Сохранить`]</button>
-            <a class="wa-button gray" href="{$wa_app_url}?action=products">[`Закрыть без сохранения`]</a>
+            <button class="wa-button blue js-product-save js-router-submit-button" type="button">[`Save`]</button>
+            <a class="wa-button gray" href="{$wa_app_url}?action=products">[`Close without saving`]</a>
 
             {if !empty($frontend_urls)}
                 {$_front = reset($frontend_urls)}
-                <a class="wa-button transparent" href="{$_front.url|escape}" target="_blank"><i class="fas fa-external-link-square-alt"></i> [`Просмотреть на витрине`]</a>
+                <a class="wa-button transparent" href="{$_front.url|escape}" target="_blank"><i class="fas fa-external-link-square-alt"></i> [`View in the storefront`]</a>
             {/if}
         </div>
 
@@ -14,7 +14,7 @@
             <div class="column align-right">
                 <button class="wa-button transparent-red js-product-delete" type="button">
                     <span class="icon top"><i class="fas fa-trash-alt"></i></span>
-                    [`Удалить продукт`]
+                    [`Delete product`]
                 </button>
             </div>
         {/if}

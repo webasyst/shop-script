@@ -154,6 +154,7 @@
                 mounted: function() {
                     var self = this;
                     $(self.$el).waToggle({
+                        use_animation: false,
                         change: function(event, target) {
                             self.$emit("change", $(target).data("id"));
                         }
@@ -761,6 +762,13 @@
                             })
                             .done( function(data) {
                                 self.feature.show_form = false;
+                                self.feature.form.value = "";
+                                if (self.feature.form.code) {
+                                    self.feature.form.code = "";
+                                }
+                                if (self.feature.default_unit) {
+                                    self.feature.form.unit = self.feature.default_unit;
+                                }
                                 // update all features model values
                                 that.addFeatureValueToModel(self.feature, data.option);
                                 self.$emit("feature_value_added", data.option);
