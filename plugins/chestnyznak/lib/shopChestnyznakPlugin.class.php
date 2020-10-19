@@ -84,6 +84,21 @@ EOF;
         return $data;
     }
 
+    /**
+     * @param array $data
+     *      string $data[<order_item_id>][<sort>]
+     * @return array $result
+     *      array $result['validation']
+     *      string $result['validation'][<error_code>]  - error message
+     *
+     *      string $result['converted'] - from cyrillic to latin symbols (if scanner in mode of keyboard emulation input could be cyrillic)
+     *
+     *      bool $result['parsed'] - ok parsed or not
+     *
+     *      array $result['warnings']
+     *      string $result['warnings'][<code>] - warning message
+     * @throws waException
+     */
     public static function parseOrderItemsProductUIDs($data)
     {
         if (!$data) {
@@ -107,6 +122,7 @@ EOF;
 
                 $res = [
                     'validation' => [],
+                    'warnings' => [],
                     'converted' => $converted,
                     'parsed' => false       // here expected either FALSE or associative array-result of parsing
                 ];
@@ -120,6 +136,10 @@ EOF;
                     if ($parse_result['details']['gtin'] != $order_items_gtin_values[$order_item_id]) {
                         $res['validation']['not_match'] = 'GTIN в коде маркировки «Честный ЗНАК» не совпадает со значением GTIN товара.';
                     }
+                }
+
+                if ($parse_result['status'] && $parse_result['details']['is_separator_missed']) {
+                    $res['warnings']['separator_missed'] = 'Шрихкод GS1 DataMatrix сформирован не правильно - в нем отсуствую разделители (group separator). В следствии этого сейриный номер может определен не правильно, а значит может неправильно передан в облачные и/или онлайн кассы!';
                 }
 
                 $result[$order_item_id][$sort] = $res;

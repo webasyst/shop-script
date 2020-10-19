@@ -3,31 +3,35 @@
 class shopChestnyznakPluginCodeParser
 {
     /**
+     * All possible AI codes
+     * https://www.gs1.org/docs/barcodes/GS1_General_Specifications.pdf
+     *
+     * Need for correct extract serial number
+     * @var string[]
+     */
+    private static $ai_codes;
+
+    private static $serial_max_len = 20;
+
+    /**
      * @var array - conversion table, see method convert()
      * @see convert()
      */
     protected static $convert;
 
     /**
-     * Парсим уникальный идентификатор товара - УИД
+     * Парсим GS1 DataMatrix
      *
-     * Из документации, УИД выглядит так
-     *  01+XXXXXXXXXXXXXX+21+XXXXXXXXXXXXX+240+XXXX+[Некий остаточный "Хвост"]
-     *  Где
-     *      - Первая группа (идет после идентификатора применения 01) это GTIN (14 символов)
-     *      - Вторая группа (идет после идентификатора применения 21) это серийный номер товара (13 символов)
-     *      - дальше идет символ \x1d (символ с ASCII кодом 29, так назыаемый Group Separator)
-     *          В доке говорится, что этот символ необходимо исползовать :)
-     *      - Третья группа (идет после идентификатора применения 240) это ТН ВЭД ЕАЭС (4 символа)
+     * See https://www.gs1.org/docs/barcodes/GS1_DataMatrix_Guideline.pdf page 15
      *
-     * @param string $uid
+     * To parse correctly this GS1 should has separators on right places
+     * Also you can pass serial number length to ensure parse result be adequate
+     *
+     * @param string $gs1
      *
      * @return array $result
-     *      bool $result['status'] -
-     *          Если УИД не соответствует вышеприведенному формату, то FALSE (при этом \x1d после второй группы может быть опущен)
-     *          Иначе TRUE
-     *
-     *      array $result['details'] - дополнительные детали парсинга (например код ошибки, сообщение ошибки, или результат парсинга при успехе)
+     *      bool $result['status']
+     *      array $result['details'] - result details of parsing
      *
      *          $result['status'] === FALSE:
      *              string $result['details']['error_type'] - общий код ошибки (invalid_argument, invalid_format)
@@ -36,14 +40,13 @@ class shopChestnyznakPluginCodeParser
      *
      *          $result['status'] === TRUE:
      *              string $result['details']['gtin'] - GTIN (14 символов)
-     *              string $result['details']['serial'] - серийный номер товара (13 символов)
-     *              string $result['details']['tnved'] - код ТН ВЭД ЕАЭС (4 символа)
-     *              string $result['details']['tail'] - остаточный "хвост"
+     *              string $result['details']['serial'] - серийный номер товара (7, 13, 20 символов)
+     *              string $result['details']['is_separator_missed'] - While trying extract serial code there is missed group separator, so serial code could be not correct
      *
      */
-    public static function parse($uid)
+    public static function parse($gs1)
     {
-        if (!is_string($uid)) {
+        if (!is_string($gs1)) {
             return [
                 'status' => false,
                 'details' => [
@@ -54,7 +57,7 @@ class shopChestnyznakPluginCodeParser
             ];
         }
 
-        if (self::containsCyrillic($uid)) {
+        if (self::containsCyrillic($gs1)) {
             return [
                 'status' => false,
                 'details' => [
@@ -65,80 +68,24 @@ class shopChestnyznakPluginCodeParser
             ];
         }
 
-        // group separator\x1d (29 ascii code) must not be at all or be on place 31
-        $pos = strpos($uid, "\x1d");
-        if ($pos !== false && $pos != 31) {
+        // AI codes for GTIN and for serial
+        $ai_gtin = '01';
+        $ai_serial = '21';
+
+        $current_pos = strpos($gs1, $ai_gtin);
+        if ($current_pos === false) {
             return [
                 'status' => false,
                 'details' => [
                     'error_type' => 'invalid_format',
-                    'error_code' => 'group_separator_wrong_place',
-                    'error_message' => 'Символ группового разделителя расположен в неправильном месте'
+                    'error_code' => 'not_found_gtin_ai',
+                    'error_message' => 'Не найден идентификатор применения для GTIN'
                 ]
             ];
         }
 
-        // normalize uid, insert group separator
-        if ($pos === false) {
-            $uid = substr($uid, 0, 31) . "\x1d" . substr($uid, 31);
-        }
-
-        // len of uid with group separator must not less than 39
-        $len = strlen($uid);
-        if ($len < 39) {
-            return [
-                'status' => false,
-                'details' => [
-                    'error_type' => 'invalid_format',
-                    'error_code' => 'short_string',
-                    'error_message' => 'Слишком короткая строка кода'
-                ]
-            ];
-        }
-
-        // aid is "application identifier" - идентификатор применения
-
-        $aid = substr($uid, 0, 2);
-        if ($aid != "01") {
-            return [
-                'status' => false,
-                'details' => [
-                    'error_type' => 'invalid_format',
-                    'error_code' => 'unexpected_application_identifier',
-                    'error_message' => 'Неожиданный идентификатор применения перед GTIN (должно быть 01)'
-                ]
-            ];
-        }
-
-        $gtin = substr($uid, 2, 14);
-
-        $aid = substr($uid, 16, 2);
-        if ($aid != "21") {
-            return [
-                'status' => false,
-                'details' => [
-                    'error_type' => 'invalid_format',
-                    'error_code' => 'unexpected_application_identifier',
-                    'error_message' => 'Неожиданный идентификатор применения перед серийным номером (должно быть 21)'
-                ]
-            ];
-        }
-
-        $serial = substr($uid, 18, 13);
-
-        $aid = substr($uid, 32, 3);
-        if ($aid != "240") {
-            return [
-                'status' => false,
-                'details' => [
-                    'error_type' => 'invalid_format',
-                    'error_code' => 'unexpected_application_identifier',
-                    'error_message' => 'Неожиданный идентификатор применения перед кодом ТН ВЭД ЕАЭС (должно быть 240)'
-                ]
-            ];
-        }
-
-        $tnved = substr($uid, 35, 4);
+        $gtin_len = 14;
+        $gtin = substr($gs1, $current_pos, $gtin_len + 2);
 
         if (!self::isAllDigits($gtin)) {
             return [
@@ -146,31 +93,97 @@ class shopChestnyznakPluginCodeParser
                 'details' => [
                     'error_type' => 'invalid_format',
                     'error_code' => 'gtin_invalid',
-                    'error_message' => 'GTIN должен иметь длину 14 символов и состоять только из цифр'
+                    'error_message' => 'GTIN должен исостоять только из цифр'
                 ]
             ];
         }
 
-        if (!self::isAllDigits($tnved)) {
+        $gtin = substr($gtin, 2);
+
+        $current_pos += $gtin_len + 2;
+
+        $serial_pos = strpos($gs1, $ai_serial, $current_pos);
+        if ($serial_pos === false) {
             return [
                 'status' => false,
                 'details' => [
                     'error_type' => 'invalid_format',
-                    'error_code' => 'tnved_invalid',
-                    'error_message' => 'Код ТН ВЭД ЕАЭС иметь длину 4 символа и состоять только из цифр'
+                    'error_code' => 'not_found_serial_ai',
+                    'error_message' => 'Не найден идентификатор применения для серийного номера'
                 ]
             ];
         }
 
-        $tail = substr($uid, 39);
+        // skip ai code itself
+        $current_pos = $serial_pos + 2;
+
+        // group separator \x1d separates AI values for variadic lengths inside GS1
+        // and there are all possible variants of group separators in practical reality
+        $separators = [
+            "\x1d",                 // as byte
+            '\x1d',                 // as string
+            '\\x1d',                // as string
+            '\x001d',               // as string
+            '\\x001d',              // as string
+            '\u001d',               // as string
+            '\\u001d',              // as string
+            '<FNC1>',               // as string
+            '<GS>',                 // as string
+            '<GS> ',                // as string
+        ];
+
+        // try extract serial when if bound by one of separator
+        $serial = self::getSerialBoundedBySep($gs1, $current_pos, $separators);
+        if ($serial) {
+            return [
+                'status' => true,
+                'details' => [
+                    'gtin' => $gtin,
+                    'serial' => $serial,
+                    'is_separator_missed' => false,
+                ]
+            ];
+        }
+
+        // all possible AI codes - see https://www.gs1.org/docs/barcodes/GS1_General_Specifications.pdf page 143
+        // exclude GTIN and serial
+        // each of code could be separator for serial number segment
+        $ai_codes = self::getAICodes([$ai_gtin, $ai_serial]);
+
+        // try extract serial when if bound by one of ai code
+        $serial = self::getSerialBoundedBySep($gs1, $current_pos, $ai_codes);
+        if ($serial) {
+            return [
+                'status' => true,
+                'details' => [
+                    'gtin' => $gtin,
+                    'serial' => $serial,
+                    'is_separator_missed' => true,
+                ]
+            ];
+        }
+
+        // https://xn--80ajghhoc2aj1c8b.xn--p1ai/upload/iblock/7ea/ru_API_OMS_CLOUD.pdf (page 118)
+        // 13 is most usable serial number - try this
+        $serial = substr($gs1, $current_pos, 13);
+
+        if (!$serial) {
+            return [
+                'status' => false,
+                'details' => [
+                    'error_type' => 'invalid_format',
+                    'error_code' => 'could_not_extract_serial',
+                    'error_message' => 'Не получилось вытащить серийный номер'
+                ]
+            ];
+        }
 
         return [
             'status' => true,
             'details' => [
                 'gtin' => $gtin,
                 'serial' => $serial,
-                'tnved' => $tnved,
-                'tail' => $tail !== false ? $tail : '',
+                'is_separator_missed' => true,
             ]
         ];
     }
@@ -198,18 +211,69 @@ class shopChestnyznakPluginCodeParser
         return strtr($str, self::$convert);
     }
 
+    private static function getAICodes(array $exclude = [])
+    {
+        if (self::$ai_codes == null) {
+            self::$ai_codes = [];
+            $file_path = wa()->getAppPath('plugins/chestnyznak/lib/config/data/ai_codes.php', 'shop');
+            if (file_exists($file_path)) {
+                self::$ai_codes = include($file_path);
+            }
+        }
+
+        return array_diff(self::$ai_codes, $exclude);
+    }
+
+    private static function getMinSubStrPos($string, $offset, $separators = [])
+    {
+        $min_sep_pos = false;
+        foreach ($separators as $sep) {
+            $sep_pos = strpos($string, $sep, $offset);
+            if ($sep_pos !== false) {
+                if ($min_sep_pos === false) {
+                    $min_sep_pos = $sep_pos;
+                } elseif ($sep_pos < $min_sep_pos) {
+                    $min_sep_pos = $sep_pos;
+                }
+            }
+        }
+        return $min_sep_pos;
+    }
+
+    private static function getSerialBoundedBySep($gs1, $offset, $separators = [])
+    {
+        $max_serial_section = substr($gs1, $offset, self::$serial_max_len);
+
+        $sep_pos = self::getMinSubStrPos($max_serial_section, 0, $separators);
+        if ($sep_pos !== false) {
+            return substr($max_serial_section, 0, $sep_pos);
+        }
+
+        $gs1_len = strlen($gs1);
+        if ($gs1_len <= $offset + strlen($max_serial_section)) {
+            return $max_serial_section;
+        }
+
+        return '';
+    }
+
     /**
      * Кассовое программное обеспечение должно отнести отсканированный
      * код, к группе обувных маркируемых товаров, выделить из кода GTIN и
      * серийный номер, после чего передать информацию для формирования
      * тега 1162 фискального документа согласно следующему алгоритму:
-     * https://xn--80ajghhoc2aj1c8b.xn--p1ai/upload/iblock/a6a/Rekomendatsii_dlya_uchastnikov_osushchestvlyayushchikh_realizatsiyu_v_roznitsu.pdf
+     * https://xn--80ajghhoc2aj1c8b.xn--p1ai/upload/iblock/d04/formirovanie-tega-1162-na-KKT.pdf
+     *
+     * NOTICE: работает только ДЛЯ DataMatrix штрих-кодов
+     * Для других видов кодов этот алогоримт не подходит (см доку)
      *
      * @param string $uid уникальный идентификатор товара - УИД, который поступает из DataMatrix или введен вручную
+     * @param array $options
+     *      $options['with_tag_code'] - default is TRUE
      * @return string - TLV значение для ККТ. Каждый байт разделен пробелом (байт=2 hex симвора)
-     *  Пример - 8A 04 15 00 15 20 04 36 03 BE F5 14 73 67 45 4b 4b 50 50 63 53 32 35 79 35
+     *  Пример - 8a 04 44 4d 15 20 04 36 03 be f5 14 73 67 45 4b 4b 50 50 63 53 32 35 79 35
      */
-    public static function convertToFiscalCode($uid)
+    public static function convertToFiscalCode($uid, $options = [])
     {
         $parse_result = self::parse($uid);
         if (!$parse_result['status']) {
@@ -235,10 +299,22 @@ class shopChestnyznakPluginCodeParser
         $serial_hex = bin2hex($serial);
 
         // Формируем тег 1162:
-        // Добавляем код типа маркировки: 15 20
+        // Добавляем код типа маркировки: 44 4D - для DataMatrix
         // Формируем TLV для передачи в ККТ. Так как тег 1162 не имеет фиксированное
         // значение, 11 байт резерва в ККТ не передаются:
-        $tag_value = '1520' . $gtin_hex . $serial_hex;
+        $tag_value = '444d' . $gtin_hex . $serial_hex;
+
+        if (!array_key_exists('with_tag_code', $options)) {
+            $options['with_tag_code'] = true;
+        } else {
+            $options['with_tag_code'] = (bool)$options['with_tag_code'];
+        }
+
+        if (!$options['with_tag_code']) {
+            // На выходе строка где байты (группы из 2 heх символов) разбит пробелами
+            return join(' ', str_split($tag_value, 2));
+        }
+
         $tag_value_len = strlen($tag_value) / 2;    // strlen дает кол-во hex символов, но нам надо кол-во байт
 
         $tag_value_len_hex = base_convert($tag_value_len, 10, 16);
@@ -254,6 +330,22 @@ class shopChestnyznakPluginCodeParser
 
         // На выходе строка где байты (группы из 2 heх символов) разбит пробелами
         return join(' ', str_split($tlv, 2));
+    }
+
+    /**
+     * Парсим уникальный идентификатор товара GS1 DataMatrix
+     * И достаем код продукта - 01<gtin>21<serial_number>
+     * @param string $uid
+     * @returns 01<gtin>21<serial_number>
+     * @return bool|string
+     */
+    public static function extractProductCode($uid)
+    {
+        $parsed = self::parse($uid);
+        if (!$parsed['status']) {
+            return false;
+        }
+        return '01' . $parsed['details']['gtin'] . '21' . $parsed['details']['serial'];
     }
 
     /**

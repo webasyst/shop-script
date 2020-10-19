@@ -156,8 +156,16 @@ var ShopChestnyznakPlugin = ( function($) {
                 $parsing_result.find('.js-gtin-value').text(result.parsed.gtin);
                 $parsing_result.find('.js-serial-value').text(result.parsed.serial);
 
+                // show warnings
+                if (!$.isEmptyObject(result.warnings) && result.warnings.separator_missed) {
+                    $parsing_result.find('.js-warning').show();
+                    $parsing_result.find('.js-warning .js-message').text(result.warnings.separator_missed);
+                } else {
+                    $parsing_result.find('.js-warning').hide();
+                }
+
                 // case when GTIN is not match with product GTIN
-                if (result.validation && result.validation.not_match) {
+                if (!$.isEmptyObject(result.validation) && result.validation.not_match) {
                     $parsing_result.find('.js-validation').show();
                     $parsing_result.find('.js-validation .js-error-not-match').text(result.validation.not_match);
                 } else {
@@ -182,6 +190,9 @@ var ShopChestnyznakPlugin = ( function($) {
             '<div class="js-parsed-params s-cz-parsed-params">' +
                 '<span> <span>GTIN:</span> <span class="js-gtin-value s-cz-gtin-value"></span> </span>' +
                 '<span> <span>S/N:</span> <span class="js-serial-value s-cz-serial-value"></span> </span>' +
+            '</div>' +
+            '<div class="js-warning" style="display: none">' +
+                '<i class="icon16 exclamation"></i> <span class="js-message hint"></span>' +
             '</div>' +
             '<div class="js-validation" style="display: none">' +
                 '<span class="s-cs-errormsg js-error-not-match"></span>' +
