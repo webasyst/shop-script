@@ -12,6 +12,7 @@ class shopCustomersCollectionPreparator
     protected $left_join_table_aliases = array();
     protected $models = array();
     protected $options = array();
+    protected $filter_data = null;
 
     /** @var waContactsCollection */
     protected $collection;
@@ -23,6 +24,11 @@ class shopCustomersCollectionPreparator
         $hash = $collection->getHash();
         if (ifset($hash, 0, '') === 'search') {
             $this->options = $this->parseOptionsFromSearchQuery(ifset($hash, 1, '')) + $this->options;
+        } else if (ifset($hash, 0, '') === 'filter') {
+            $filter_data = $this->getFilterData();
+            if ($filter_data && !empty($filter_data['hash'])) {
+                $this->options = $this->parseOptionsFromSearchQuery($filter_data['hash']) + $this->options;
+            }
         }
 
         // Add shop_customer join
@@ -139,15 +145,37 @@ class shopCustomersCollectionPreparator
 
     public function filterPrepare($filter_id, $auto_title = true)
     {
-        $filter_id = (int) $filter_id;
-        $m = $this->getModel('customers_filter');
-        $filter = $m->getById($filter_id);
+        $filter = $this->getFilterData();
+        if (empty($filter)) {
+            return;
+        }
         if (!$filter['hash']) {
             $this->where[] = 1;
         } else {
-            $this->searchPrepare($filter['hash'], false);
+            // Pretend collection has another hash.
+            // This will eventually call $this->searchPrepare()
+            $this->collection->setHash("search/" . $filter['hash']);
+            $this->collection->prepare(false, false);
         }
         $this->addTitle($filter['name']);
+    }
+
+    protected function getFilterData()
+    {
+        $hash = $this->collection->getHash();
+        if (ifset($hash, 0, '') !== 'filter' || empty($hash[1])) {
+            return $this->filter_data;
+        }
+        $filter_id = intval($hash[1]);
+        if (!$filter_id) {
+            return null;
+        }
+
+        if (empty($this->filter_data) || $this->filter_data['id'] != $filter_id) {
+            $this->filter_data = $this->getModel('customers_filter')->getById($filter_id);
+        }
+
+        return $this->filter_data;
     }
 
     public function categoryPrepare($id, $auto_title = false)
@@ -313,6 +341,24 @@ class shopCustomersCollectionPreparator
 
         if (!empty($hash_ar['app'])) {
             foreach ($hash_ar['app'] as $k => $h) {
+                /** call
+                 * searchPrepareShowContacts
+                 * searchPrepareConsiderOrders
+                 * searchPrepareEmailName
+                 * searchPrepareShipmentMethod
+                 * searchPreparePaymentMethod
+                 * searchPrepareTotalSpent
+                 * searchPrepareOrdersTotalSum
+                 * searchPrepareNumberOfOrders
+                 * searchPrepareOrderDatetime
+                 * searchPrepareProduct
+                 * searchPrepareStorefront
+                 * searchPrepareReferer
+                 * searchPrepareFirstOrderDatetime
+                 * searchPrepareLastOrderDatetime
+                 * searchPrepareCoupon
+                 * searchPrepareUtmCampaign
+                 */
                 $method_name = 'searchPrepare' . implode('', array_map('ucfirst', explode('_', $k)));
                 if (method_exists($this, $method_name)) {
                     $this->$method_name($h['op'], $h['val'], $auto_title);

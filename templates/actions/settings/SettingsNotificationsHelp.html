@@ -13,7 +13,7 @@
 </div>
 
 {if !empty($n)}
-    <div id="send-test-dialog" class="dialog" style="display:none">
+    <div id="send-test-dialog" class="dialog s-send-test-dialog" style="display:none">
         <div class="dialog-background"></div>
         <div class="dialog-window">
             <div class="dialog-content">
@@ -40,7 +40,9 @@
                         {foreach $test_orders as $o}
                             <tr>
                                 <td>
-                                    <input type="radio" name="order_selector" value="{$o.id|escape}">
+                                    <div class="s-checkbox-wrapper">
+                                        <input type="radio" name="order_selector" value="{$o.id|escape}">
+                                    </div>
                                 </td>
                                 <td class="nowrap">
                                     <span style="{$o.style|escape}">

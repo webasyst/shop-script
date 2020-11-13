@@ -822,10 +822,11 @@ class shopOrder implements ArrayAccess
      * @param array|bool $change_items
      * @param string     $mode         waPayment::OPERATION_REFUND or waPayment::OPERATION_CAPTURE
      * @param array      $transaction_data
+     * @param bool       $capture_shipping_cost
      * @return array     items removed from the order
      * @throws waException
      */
-    public function edit($change_items, $mode = waPayment::OPERATION_REFUND, $transaction_data = null)
+    public function edit($change_items, $mode = waPayment::OPERATION_REFUND, $transaction_data = null, $capture_shipping_cost = true)
     {
         // items removed from the order - return value of this method
         // will be saved in order params if partial operation
@@ -882,6 +883,7 @@ class shopOrder implements ArrayAccess
         }
 
         // Is it partial operation?
+        $is_delivery_cost_removed = false;
         if ($change_items !== true) {
 
             $shipping = $this->shipping;
@@ -893,8 +895,10 @@ class shopOrder implements ArrayAccess
             $refunded_discount = array_sum(array_column($refunded_items, 'total_discount'));
             $this->discount = max(0, $discount - max(0, $refunded_discount));
 
-            // Shipping is currently non-refundable in partial mode
-            $this->shipping = $shipping;
+            if (empty($capture_shipping_cost) && !empty($shipping)) {
+                $is_delivery_cost_removed = true;
+            }
+            $this->shipping = $capture_shipping_cost ? $shipping : 0;
         }
 
         // Make sure params are loaded, then remember what we are returning to stock.
@@ -902,6 +906,8 @@ class shopOrder implements ArrayAccess
         // then rendered via template at view time.
         $this->params;
         $this->data['params']['refund_items'] = $refunded_items;
+
+        $this->data['params']['is_delivery_cost_removed'] = $is_delivery_cost_removed;
 
         if ($transaction_data && $this->payment_plugin) {
             $payment_options = array(
@@ -4308,10 +4314,10 @@ HTML;
             'total_price'        => $this->subtotal - $this->discount,
             //Subtraction of a discount is necessary for the correct calculation of deliveries. This is how the frontend works;
             'no_external'        => true,
-            'allow_external_for' => (array)$allow_external_for,
+            'allow_external_for' => (array) $allow_external_for,
             'custom_html'        => true,
             'shipping_params'    => array(),
-            'departure_datetime' => ifset($this, 'params', 'departure_datetime', 0),
+            'departure_datetime' => shopDepartureDateTimeFacade::getDeparture(null, ifset($this->data, 'storefront', null)),
         );
 
         $shipping_id = $this['shipping_id'];

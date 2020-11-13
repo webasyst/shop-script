@@ -51,7 +51,7 @@
                             event.preventDefault();
 
                             if (that.is_changed) {
-                                confirmLoad()
+                                confirmLoad(content_url)
                                     .done( function() {
                                         that.is_changed = false;
                                         that.load(content_url)
@@ -61,6 +61,9 @@
                                     });
                             } else {
                                 that.load(content_url)
+                                    .done( function() {
+                                        $(window).scrollTop(0);
+                                    })
                                     .fail( function() {
                                         location.href = content_url;
                                     });
@@ -90,16 +93,29 @@
 
             that.initAnimation();
 
-            function confirmLoad() {
+            function confirmLoad(content_url) {
                 var deferred = $.Deferred(),
                     is_success = false;
 
                 $.waDialog({
                     html: that.templates["confirm_dialog"],
                     onOpen: function($wrapper, dialog) {
-                        $wrapper.on("click", ".js-success-button", function(event) {
+                        $wrapper.on("click", ".js-leave-button", function(event) {
                             event.preventDefault();
                             is_success = true;
+                            dialog.close();
+                        });
+
+                        $wrapper.on("click", ".js-save-button", function(event) {
+                            event.preventDefault();
+
+                            var $footer_save_button = $(".js-router-submit-button:first");
+                            if ($footer_save_button.length) {
+                                $footer_save_button.trigger("click", {
+                                    redirect_url: content_url
+                                });
+                            }
+
                             dialog.close();
                         });
                     },

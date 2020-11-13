@@ -343,12 +343,12 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             unset($result['types']);
         }
 
-        return array(
+        return [
             'data'         => $data,
             'result'       => $result,
             'errors'       => $errors,
             'can_continue' => !$errors,
-        );
+        ];
     }
 
     /**

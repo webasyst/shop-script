@@ -152,11 +152,11 @@ class shopProdSkuAction extends waViewAction
         }
 
         foreach ($product['skus'] as $modification) {
-            // TODO: its a new options of product
+            // TODO: status is a new (planned) option of SKU, not implemented yet
             $modification["status"] = "enabled";
             $modification["available"] = (boolean)$modification["available"];
 
-            // Добавляем информацию о частной фотке модификации
+            // SKU photo
             $modification["photo"] = null;
             if ( !empty($modification["image_id"]) ) {
                 if ($modification["id"] === $product["sku_id"]) {
@@ -170,7 +170,7 @@ class shopProdSkuAction extends waViewAction
             // SELECTABLE_FEATURES
             $_features = [];
             $_selectable_features = [];
-            if ( !empty($features) ) {
+            if (!empty($features)) {
                 $_features_values = ifset($skus_features_values, $modification['id'], []);
                 $_formatted_features = self::formatFeaturesValues($_corrected_features, $_features_values);
                 foreach ($_formatted_features as $feature) {
@@ -184,30 +184,63 @@ class shopProdSkuAction extends waViewAction
                 }
             }
 
+            // Figure out modification name, excluding feature names possibly attached at the end
+            $modification_name = $modification['name'];
+            if ($modification_name && $_selectable_features) {
+                // Loop over comma-delimeted parts of modification name, last to first
+                // remove everything that looks like active selected feature name
+                // break from loop as soon as we encounter anything that does not look like feature name
+                $modification_name = array_filter(array_map('trim', explode(',', $modification_name)));
+                while ($modification_name) {
+                    $part = array_pop($modification_name);
+                    if (!strlen($part)) {
+                        continue;
+                    }
+                    foreach($_selectable_features as $f) {
+                        $sku_feature_value = ifset($skus_features_values, $modification['id'], $f['code'], null);
+                        if ($sku_feature_value) {
+                            $active_feature_name = (string) $sku_feature_value;
+                            $active_feature_name = mb_strtolower($active_feature_name);
+                            if ($active_feature_name == mb_strtolower($part)) {
+                                $part = '';
+                                break;
+                            }
+                        }
+                    }
+                    if (strlen($part)) {
+                        // stop as soon as part does not look like feature name
+                        $modification_name[] = $part;
+                        break;
+                    }
+                }
+                $modification_name = join(', ', $modification_name);
+            }
+
             $modification["features"] = $_features;
             $modification["features_selectable"] = $_selectable_features;
 
             // MODIFICATIONS
-            if ($modification['sku']) {
-                if (empty($skus[$modification['sku']])) {
-                    $skus[$modification['sku']] = [
+            if ($modification['sku'] || $modification['name']) {
+                $sku_key = $modification['sku'].'###'.$modification_name;
+                if (empty($skus[$sku_key])) {
+                    $skus[$sku_key] = [
                         'sku' => $modification['sku'],
-                        'name' => $modification['name'],
+                        'name' => $modification_name,
                         'sku_id' => null,
                         'modifications' => [],
                     ];
                 }
-                $skus[$modification['sku']]['modifications'][] = $modification;
+                $skus[$sku_key]['modifications'][] = $modification;
 
                 if ($product["sku_id"] === $modification['id']) {
-                    $skus[$modification['sku']]["sku_id"] = $modification['id'];
+                    $skus[$sku_key]["sku_id"] = $modification['id'];
                 }
 
             } else {
                 $_id = uniqid($modification['id'], true);
                 $skus[$_id] = [
                     'sku' => $modification['sku'],
-                    'name' => $modification['name'],
+                    'name' => $modification_name,
                     'sku_id' => ($product["sku_id"] === $modification['id'] ? $modification['id'] : null),
                     'modifications' => [$modification],
                 ];
@@ -216,6 +249,16 @@ class shopProdSkuAction extends waViewAction
 
         $photo = ( !empty($photos) ? $photos[$product["image_id"]] : null );
         $_normal_mode = ($product["sku_count"] > 1);
+
+        // When product has a photo and only one modification with no photo,
+        // use product image as photo for the modification.
+        if ($photo && count($product['skus']) == 1 && $skus) {
+            $sku_key = array_keys($skus)[0];
+            if (empty($skus[$sku_key]['modifications'][0]['photo']) && !empty($skus[$sku_key]['modifications'][0])) {
+                $skus[$sku_key]['modifications'][0]['image_id'] = $photo['id'];
+                $skus[$sku_key]['modifications'][0]['photo'] = $photo;
+            }
+        }
 
         return [
             "id"              => $product["id"],
@@ -288,10 +331,18 @@ class shopProdSkuAction extends waViewAction
 
                     $feature["render_type"] = "checkbox";
                     foreach ($feature["values"] as $value_id => $value) {
-                        $feature["options"][] = [
+                        $_option = [
                             "name" => (string)$value,
                             "value" => (string)$value
                         ];
+
+                        if ($value instanceof shopColorValue) {
+                            if ( !empty($value["code"]) ) {
+                                $_option["code"] = $value['hex'];
+                            }
+                        }
+
+                        $feature["options"][] = $_option;
                     }
                     $feature["can_add_value"] = true;
 
@@ -306,10 +357,18 @@ class shopProdSkuAction extends waViewAction
                     ];
 
                     foreach ($feature["values"] as $value_id => $value) {
-                        $feature["options"][] = [
+                        $_option = [
                             "name" => (string)$value,
                             "value" => (string)$value
                         ];
+
+                        if ($value instanceof shopColorValue) {
+                            if ( !empty($value["code"]) ) {
+                                $_option["code"] = $value['hex'];
+                            }
+                        }
+
+                        $feature["options"][] = $_option;
                     }
                     $feature["active_option"] = reset($feature["options"]);
                     $feature["can_add_value"] = true;
@@ -704,17 +763,27 @@ class shopProdSkuAction extends waViewAction
         $result = [];
 
         foreach ($features as $_feature) {
-            // range, 2d and 3d features are not supported as selectable
-            $is_composite = preg_match('~^(2d|3d|range)\.~', $_feature['type']);
-            if (!empty($_feature['available_for_sku']) && !$is_composite) {
-                $disabled = !in_array($_feature["render_type"], ["select", "checkbox"]);
-                $result[] = [
-                    "id"          => $_feature["id"],
-                    "name"        => $_feature["name"],
-                    "disabled"    => $disabled,
-                    "render_type" => $_feature["render_type"],
-                    "active"      => in_array( $_feature["id"], $selected_selectable_feature_ids ),
-                ];
+            if (!empty($_feature['available_for_sku'])) {
+                // range, 2d and 3d features are not supported as selectable
+                $is_composite = preg_match('~^(2d|3d|range)\.~', $_feature['type']);
+                if (!$is_composite) {
+                    $disabled = !in_array($_feature["render_type"], ["select", "checkbox", "field", "field.date", "textarea", "color"]);
+                    $result[] = [
+                        "id"          => $_feature["id"],
+                        "name"        => $_feature["name"],
+                        "render_type" => $_feature["render_type"],
+                        "disabled"    => $disabled,
+                        "active"      => in_array( $_feature["id"], $selected_selectable_feature_ids ),
+                    ];
+                } else {
+                    $result[] = [
+                        "id"          => $_feature["id"],
+                        "name"        => $_feature["name"],
+                        "render_type" => $_feature["render_type"],
+                        "disabled"    => true,
+                        "active"      => false,
+                    ];
+                }
             }
         }
 

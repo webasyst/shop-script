@@ -43,14 +43,24 @@
 {capture assign="_feature_select_dialog"}{include file="./dialogs/feature_select.html" inline}{/capture}
 {$_templates["dialog_feature_select"] = $_feature_select_dialog}
 
+{capture assign="_sku_delete_dialog"}{include file="./dialogs/sku_delete_dialog.html" inline}{/capture}
+{$_templates["dialog_sku_delete"] = $_sku_delete_dialog}
+
 {capture assign="_sku_delete_photo"}{include file="./dialogs/sku_delete_photo.html" inline}{/capture}
 {$_templates["dialog_sku_delete_photo"] = $_sku_delete_photo}
 
 {capture assign="_photo_manager_dialog"}{include file="./ProdSkuImageDialog.html" inline}{/capture}
 {$_templates["dialog_photo_manager"] = $_photo_manager_dialog}
 
+{*
+Пока кнопка показа диалога заблокирована, нет смысла кешировать верстку диалога который не посмотреть.
 {capture assign="_mass_sku_generation"}{include file="./dialogs/mass_sku_generation.html" inline}{/capture}
 {$_templates["dialog_mass_sku_generation"] = $_mass_sku_generation}
+*}
+
+{* Диалог показывающий какие значения характеристики используются в модификациях *}
+{capture assign="_feature_used_values"}{include file="./dialogs/feature_used_values.html" inline}{/capture}
+{$_templates["dialog_feature_used_values"] = $_feature_used_values}
 
 {capture assign="_component_feature"}
     <div class="s-feature-component" v-bind:data-type="feature.render_type">
@@ -86,13 +96,15 @@
 
         <template v-else-if="feature.render_type == 'field'">
             <div class="s-fields-list flexbox wrap space-12" v-bind:class="{ 'is-triple': feature.options.length === 3, 'is-double': feature.options.length === 2 }">
-                <template v-if="feature.available_for_sku && !vertical">
-                    <span class="s-default-label middle hint">[`By default`]</span>
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
+                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
                 </template>
 
                 <template v-for="(option, index) in feature.options">
                     <div class="s-field-wrapper nowrap" v-bind:class="{ 'with-divider': (index + 1 < feature.options.length) }">
-                        <input class="wa-small size-short" type="text" v-model="option.value">
+                        <input class="wa-small size-short" type="text"
+                               v-bind:class="{ 'is-number' : (feature.type === 'double' || (feature.units && feature.units.length)) }"
+                               v-model="option.value">
                         <span class="s-divider" v-if="index + 1 < feature.options.length">×</span>
                     </div>
                 </template>
@@ -101,12 +113,16 @@
                     <dropdown-units v-bind:units="feature.units" v-bind:default_value="feature.active_unit.value" v-on:change_unit="feature.active_unit = $event"></dropdown-units>
                 </template>
             </div>
+
+            <template v-if="feature.available_for_sku && !vertical">
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+            </template>
         </template>
 
         <template v-else-if="feature.render_type == 'select'">
             <div class="flexbox wrap middle space-12">
-                <template v-if="feature.available_for_sku && !vertical">
-                    <span class="s-default-label hint">[`By default`]</span>
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
+                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
                 </template>
 
                 <dropdown-feature-options v-bind:feature="feature" v-bind:columns="columns"></dropdown-feature-options>
@@ -114,76 +130,100 @@
                 <template v-if="feature.can_add_value && feature.show_form">
                     <component-feature-value-form v-bind:feature="feature"></component-feature-value-form>
                 </template>
-
-                {*
-                <template v-if="feature.available_for_sku && !vertical">
-                    <div class="s-used-features-values">
-                        <span class="s-feature-value" v-for="name in getUsedFeatureValues(feature)">{ { name } }</span>
-                    </div>
-                </template>
-                *}
             </div>
+
+            <template v-if="feature.available_for_sku && !vertical">
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+            </template>
         </template>
 
         <template v-else-if="feature.render_type == 'checkbox'">
+            <div class="flexbox wrap space-12 s-small-text">
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
+                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
+                </template>
 
-            <div class="s-checkbox-group tablebox inline space-12">
-                <div class="s-column" v-if="feature.options.filter(option => option.active).length">
-                    <div class="s-checkbox-list inlinebox space-8">
-                        <template v-for="(option, index) in feature.options">
-                            <div class="s-option-wrapper" v-if="option.active">
-                                <span class="s-name">{ { option.name } }</span>
-                            </div>
+                <div class="s-checkbox-group tablebox inline space-12">
+                    <div class="s-column" v-if="feature.options.filter(option => option.active).length">
+                        <div class="s-checkbox-list inlinebox space-8">
+                            <template v-for="(option, index) in feature.options">
+                                <div class="s-option-wrapper" v-if="option.active">
+                                    <span class="s-icon" v-if="option.code">
+                                        <span class="icon size-12 rounded bordered shift-2" v-bind:style="{ 'background-color': option.code }"></span>
+                                    </span>
+                                    &nbsp;
+                                    <span class="s-name">{ { option.name } }</span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="s-column">
+                        <button class="wa-button transparent" v-on:click.prevent="changeFeatureValues(feature)">
+                            <span class="s-icon"><i class="fas fa-pen"></i></span>
+                            &nbsp;
+                            <span class="s-name">[`Select`]</span>
+                        </button>
+
+                        <template v-if="feature.options.filter(option => option.active).length > 0">
+                            <button class="wa-button transparent-gray" v-on:click.prevent="resetFeatureValues(feature)">
+                                <span class="s-icon"><i class="fas fa-times"></i></span>
+                                &nbsp;
+                                <span class="s-name">[`Remove`]</span>
+                            </button>
                         </template>
                     </div>
                 </div>
-                <div class="s-column">
-                    <button class="wa-button transparent" v-on:click.prevent="changeFeatureValues(feature)">
-                        <span class="s-icon"><i class="fas fa-pen"></i></span>
-                        &nbsp;
-                        <span class="s-name">[`Select`]</span>
-                    </button>
-
-                    <template v-if="feature.options.filter(option => option.active).length > 0">
-                        <button class="wa-button transparent-gray" v-on:click.prevent="resetFeatureValues(feature)">
-                            <span class="s-icon"><i class="fas fa-times"></i></span>
-                            &nbsp;
-                            <span class="s-name">[`Remove`]</span>
-                        </button>
-                    </template>
-                </div>
             </div>
 
+            <template v-if="feature.available_for_sku && !vertical">
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+            </template>
         </template>
 
         <template v-else-if="feature.render_type == 'textarea'">
-            <textarea class="full-width" v-model="feature.value"></textarea>
+            <div class="flexbox space-12">
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
+                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
+                </template>
+
+                <div class="s-textarea-wrapper wide">
+                    <textarea class="full-width" v-model="feature.value"></textarea>
+                </div>
+            </div>
+
+            <template v-if="feature.available_for_sku && !vertical">
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+            </template>
         </template>
 
         <template v-else-if="feature.render_type == 'range'">
             <div class="flexbox wrap space-12">
-                <template v-if="feature.available_for_sku && !vertical">
-                    <span class="s-default-label middle hint">[`By default`]</span>
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
+                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
                 </template>
 
                 <template v-for="(option, index) in feature.options">
                     <div class="s-field-wrapper" v-bind:class="{ 'with-divider': (index + 1 < feature.options.length) }">
-                        <input class="wa-small size-short" type="text" v-model="option.value">
+                        <input class="wa-small size-short is-number" type="text" v-model="option.value">
                         <span class="s-divider" v-if="index + 1 < feature.options.length">—</span>
                     </div>
                 </template>
             </div>
+
+            <template v-if="feature.available_for_sku && !vertical">
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+            </template>
         </template>
 
         <template v-else-if="feature.render_type == 'range.volume'">
             <div class="flexbox wrap space-12">
-                <template v-if="feature.available_for_sku && !vertical">
-                    <span class="s-default-label middle hint">[`By default`]</span>
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
+                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
                 </template>
 
                 <template v-for="(option, index) in feature.options">
                     <div class="s-field-wrapper" v-bind:class="{ 'with-divider': (index + 1 < feature.options.length) }">
-                        <input class="wa-small size-short" type="text" v-model="option.value">
+                        <input class="wa-small size-short is-number" type="text" v-model="option.value">
                         <span class="s-divider" v-if="index + 1 < feature.options.length">—</span>
                     </div>
                 </template>
@@ -192,12 +232,16 @@
                     <dropdown-units v-bind:units="feature.units" v-bind:default_value="feature.active_unit.value" v-on:change_unit="feature.active_unit = $event"></dropdown-units>
                 </template>
             </div>
+
+            <template v-if="feature.available_for_sku && !vertical">
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+            </template>
         </template>
 
         <template v-else-if="feature.render_type == 'range.date'">
             <div class="flexbox wrap space-12">
-                <template v-if="feature.available_for_sku && !vertical">
-                    <span class="s-default-label middle hint">[`By default`]</span>
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
+                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
                 </template>
 
                 <template v-for="(option, index) in feature.options">
@@ -207,20 +251,38 @@
                     </div>
                 </template>
             </div>
+
+            <template v-if="feature.available_for_sku && !vertical">
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+            </template>
         </template>
 
         <template v-else-if="feature.render_type == 'field.date'">
-            <div class="s-field-wrapper">
-                <template v-if="feature.available_for_sku && !vertical">
-                    <span class="s-default-label hint">[`By default`]</span>
+            <div class="flexbox wrap space-12">
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
+                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
                 </template>
 
                 <date-picker v-model="feature.options[0].value"></date-picker>
             </div>
+
+            <template v-if="feature.available_for_sku && !vertical">
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+            </template>
         </template>
 
         <template v-else-if="feature.render_type == 'color'">
-            <component-feature-color v-bind:feature="feature" v-bind:vertical="vertical"></component-feature-color>
+            <div class="flexbox wrap space-12">
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
+                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
+                </template>
+
+                <component-feature-color v-bind:feature="feature" v-bind:vertical="vertical"></component-feature-color>
+            </div>
+
+            <template v-if="feature.available_for_sku && !vertical">
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+            </template>
         </template>
     </div>
 {/capture}
@@ -228,18 +290,28 @@
 
 {capture assign="_component_feature_color"}
     <div class="flexbox wrap space-12">
-        <template v-if="feature.available_for_sku && !vertical">
-            <span class="s-default-label middle hint">[`By default`]</span>
-        </template>
-
         <div class="s-field-wrapper">
             <input class="wa-small size-short" type="text" v-model="feature.options[0].value" v-on:input="colorNameChange" placeholder="{_w("Value")|escape}">
         </div>
 
-        <feature-color-picker v-bind:data="feature.options[0]" v-bind:property="'code'" v-on:input="colorChange"></feature-color-picker>
+        <component-feature-color-picker v-bind:data="feature.options[0]" v-bind:property="'code'" v-on:input="colorChange"></component-feature-color-picker>
     </div>
 {/capture}
 {$_templates["component-feature-color"] = $_component_feature_color}
+
+{capture assign="_component_feature_default_tooltip"}
+    <div class="s-feature-default-tooltip" v-bind:class="{ 'middle' : feature.render_type !== 'textarea' }">
+        <span class="s-label">[`By default`]</span>
+
+        <div class="wa-tooltip custom top">
+            <i class="fas fa-question-circle s-icon gray"></i>
+            <div class="tooltip-text">
+                [`Какой-то интересный текст-посказка`]
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_templates["component-feature-default-tooltip"] = $_component_feature_default_tooltip}
 
 {capture assign="_component_features"}
     <div class="s-features-list wa-fields space-24" v-bind:class="{ 'vertical': vertical, 'two-columns': columns }">
@@ -360,10 +432,29 @@
 
 {capture assign="_dropdown_feature_options"}
     <div class="dropdown" v-bind:class="{ 'wide': columns }" v-show="!feature.show_form">
-        <button class="dropdown-toggle wa-button wa-small gray-field" type="button" v-text="feature.active_option.name"></button>
+        <button class="dropdown-toggle wa-button wa-small gray-field" type="button">
+            <span class="s-icon" v-if="feature.active_option.code">
+                <span class="icon size-12 rounded bordered shift-2" v-bind:style="{ 'background-color': feature.active_option.code }"></span>
+            </span>
+            &nbsp;
+            <span class="s-name">{ { feature.active_option.name } }</span>
+        </button>
         <div class="dropdown-body">
+            <div class="dropdown-filter js-dropdown-filter" v-show="feature.options.length > 5">
+                <div class="s-actions left">
+                    <div class="s-action js-apply"><i class="fas fa-search"></i></div>
+                </div>
+                <input class="s-field js-field" type="text" value="">
+            </div>
+
             <template v-for="option in feature.options">
-                <div class="dropdown-item js-set-dropdown-item" v-bind:class="{ 'selected': option.value === feature.active_option.value }" v-bind:data-value="option.value">{ { option.name } }</div>
+                <div class="dropdown-item js-set-dropdown-item" v-bind:class="{ 'selected': option.value === feature.active_option.value }" v-bind:data-value="option.value">
+                    <span class="s-icon" v-if="option.code">
+                        <span class="icon size-12 rounded bordered shift-2" v-bind:style="{ 'background-color': option.code }"></span>
+                    </span>
+                    &nbsp;
+                    <span class="s-name">{ { option.name } }</span>
+                </div>
             </template>
             <div class="dropdown-item" v-if="feature.can_add_value" v-on:click.prevent="feature.show_form = true">[`Add a new value`]</div>
             <div class="dropdown-item" v-if="!feature.can_add_value && feature.type !== 'boolean'" style="cursor: default;">
@@ -486,10 +577,12 @@
 {capture assign="_component_feature_value_form"}
     <div class="s-component-feature-value-form">
         <div class="flexbox middle space-8">
-            <input class="wa-small js-field" type="text" v-model="feature.form.value" v-on:input="colorNameChange" placeholder="{_w("Value")|escape}" required>
+            <input class="wa-small js-field" type="text"
+                   v-bind:class="{ 'is-number' : (feature.units && feature.units.length) }"
+                   v-model="feature.form.value" v-on:input="colorNameChange" placeholder="{_w("Value")|escape}" required>
 
             <template v-if="feature.type === 'color'">
-                <feature-color-picker v-bind:data="feature.form" v-bind:property="'code'" v-on:input="colorChange"></feature-color-picker>
+                <component-feature-color-picker v-bind:data="feature.form" v-bind:property="'code'" v-on:input="colorChange"></component-feature-color-picker>
             </template>
 
             <template v-if="feature.units && feature.units.length">
@@ -533,18 +626,20 @@
     <form>
         <div class="s-product-sku-section js-product-sku-section article" style="visibility: hidden;">
             <div class="s-section-header">
-                <div class="s-errors-place" id="js-errors-place" v-if="Object.keys(errors).length">
-                    <div class="wa-message info flexbox space-8" v-for="(error, error_id) in errors" v-bind:data-id="error.id">
-                        <div class="message-icon">
-                            <i class="fas fa-info-circle"></i>
-                        </div>
-                        <div class="message-text wide">{ { error.text } }</div>
-                        <div class="message-actions">
-                            <div class="message-action" v-on:click.prevent="removeError(error_id)">
-                                <i class="fas fa-times message-toggle"></i>
+                <div class="s-errors-place" id="js-errors-place" v-if="errors.global.length">
+                    <template v-for="error in errors.global">
+                        <div class="wa-message info flexbox space-8" v-bind:data-id="error.id" v-bind:key="error.id">
+                            <div class="message-icon">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div class="message-text wide">{ { error.text } }</div>
+                            <div class="message-actions">
+                                <div class="message-action" v-on:click.prevent="removeError(error.id)">
+                                    <i class="fas fa-times message-toggle"></i>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </template>
                 </div>
             </div>
 
@@ -680,25 +775,27 @@
                             <div class="value s-small-text">
 
                                 {strip}
-                                <div class="s-selected-sku-features-section flexbox middle space-12">
-                                    <div class="s-features-wrapper flexbox space-8" v-if="selectable_features.filter(feature => feature.active).length">
+                                <div class="s-selected-sku-features-section tablebox inline middle space-12">
+                                    <div class="s-features-wrapper inlinebox space-8" v-if="selectable_features.filter(feature => feature.active).length">
                                         <span class="s-icon"><i class="fas fa-sitemap gray"></i></span>
                                         <div class="s-features-list inlinebox space-4">
                                             <span class="s-feature" v-for="feature in selectable_features" v-if="feature.active" v-bind:id="feature.id">{ { feature.name } }</span>
                                         </div>
                                     </div>
 
-                                    <button class="wa-button wa-short transparent" type="button" v-on:click.prevent="changeSelectableFeatures">
-                                        <span class="s-icon" v-show="states.load.selectable_features">
-                                            <i class="fas fa-spinner fa-spin"></i>
-                                        </span>
-                                        <span class="s-icon" v-show="!states.load.selectable_features">
-                                            <i class="fas fa-pen"></i>
-                                        </span>
-                                        &nbsp;
-                                        <span class="s-name" v-if="selectable_features.filter(feature => feature.active).length">[`Change`]</span>
-                                        <span class="s-name" v-if="!selectable_features.filter(feature => feature.active).length">[`Add`]</span>
-                                    </button>
+                                    <div>
+                                        <button class="wa-button wa-short transparent" type="button" v-on:click.prevent="changeSelectableFeatures">
+                                            <span class="s-icon" v-show="states.load.selectable_features">
+                                                <i class="fas fa-spinner fa-spin"></i>
+                                            </span>
+                                                <span class="s-icon" v-show="!states.load.selectable_features">
+                                                <i class="fas fa-pen"></i>
+                                            </span>
+                                            &nbsp;
+                                            <span class="s-name" v-if="selectable_features.filter(feature => feature.active).length">[`Change`]</span>
+                                            <span class="s-name" v-if="!selectable_features.filter(feature => feature.active).length">[`Add`]</span>
+                                        </button>
+                                    </div>
 
                                     {capture assign="_select_selectable_features_dialog"}{include file="./dialogs/select_sku_feature.html" inline}{/capture}
                                     {$_templates["select_selectable_features_dialog"] = $_select_selectable_features_dialog|trim|strip}
@@ -840,20 +937,20 @@
                                         {strip}
                                         <div class="s-actions">
                                             <button class="wa-button wa-small transparent-gray" title="{_w("Copy the SKU with all its variants")|escape}" v-on:click.prevent="copySKU(sku, sku_index)">
-                                                <span class="icon size-16"><i class="fas fa-copy"></i></span>
+                                                <span class="icon size-14"><i class="fas fa-copy"></i></span>
                                             </button>
                                             <button class="wa-button wa-small transparent-gray"
                                                 title="{_w("Delete the SKU with all its variants")|escape}"
                                                 v-if="product.skus.length > 1"
                                                 v-on:click.prevent="removeSKU($event, sku, sku_index)">
-                                                <span class="s-icon icon size-18">
+                                                <span class="s-icon icon size-16">
                                                     <svg><use xlink:href='{$_sprite_url}#trash-alt'></use></svg>
                                                 </span>
                                             </button>
                                             <button class="wa-button wa-small transparent-gray disabled"
                                                 title="{_w("You cannot delete the last product SKU.")|escape}"
                                                 v-if="product.skus.length <= 1">
-                                                <span class="s-icon icon size-18 color-gray-light" style="opacity: .5">
+                                                <span class="s-icon icon size-16 color-gray-light" style="opacity: .5">
                                                     <svg><use xlink:href='{$_sprite_url}#trash-alt-slash'></use></svg>
                                                 </span>
                                             </button>
@@ -866,8 +963,9 @@
                             <div class="s-modifications-section" v-if="sku.render_skus">
                                 <div class="s-modifications-list" v-if="sku.expanded">
 
-                                    <template v-for="(sku_mod, sku_mod_index) in sku.modifications" v-bind:key="sku_mod.id">
+                                    <template v-for="(sku_mod, sku_mod_index) in sku.modifications">
                                         <div class="s-modification-wrapper"
+                                             v-bind:key="sku_mod.id"
                                              v-bind:class="{ 'is-highlighted' : sku_mod.highlight }"
                                              v-bind:data-id="sku_mod.id"
                                              v-bind:data-index="sku_mod_index">
@@ -942,22 +1040,56 @@
                                                         <div class="wa-field s-field-purchase-price">
                                                             <div class="name">[`Purchase price`]</div>
                                                             <div class="value">
-                                                                <input class="wa-small align-right" type="text" v-model="sku_mod.purchase_price" v-on:input="validate($event, 'number', sku_mod, 'purchase_price')">
+                                                                <input class="wa-small is-number" type="text"
+                                                                       v-model="sku_mod.purchase_price"
+                                                                       v-bind:class="{ 'wa-error-field' : !!errors['product[skus][' + sku_mod.id + '][purchase_price]'] }"
+                                                                       v-on:input="validate($event, 'price', sku_mod, 'purchase_price')">
+
+                                                                <div class="wa-error-text" v-if="!!errors['product[skus][' + sku_mod.id + '][purchase_price]']">
+                                                                    {_w("Неверный формат.")|escape}
+                                                                    &nbsp;
+                                                                    <div class="wa-tooltip" data-title="Введите число от 0 до 99 999 999 999.999, не более 3-х знаков после запятой.">
+                                                                        <i class="fas fa-question-circle color-red"></i>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         <div class="wa-field s-field-compare-price">
                                                             <div class="name">[`Compare at price`]</div>
                                                             <div class="value">
-                                                                <input class="wa-small strike align-right" type="text" v-model="sku_mod.compare_price" v-on:input="validate($event, 'number', sku_mod, 'compare_price')">
+                                                                <input class="wa-small strike is-number" type="text"
+                                                                       v-model="sku_mod.compare_price"
+                                                                       v-bind:class="{ 'wa-error-field' : !!errors['product[skus][' + sku_mod.id + '][compare_price]'] }"
+                                                                       v-on:input="validate($event, 'price', sku_mod, 'compare_price')">
+
+                                                                <div class="wa-error-text" v-if="!!errors['product[skus][' + sku_mod.id + '][compare_price]']">
+                                                                    {_w("Неверный формат.")|escape}
+                                                                    &nbsp;
+                                                                    <div class="wa-tooltip" data-title="Введите число от 0 до 99 999 999 999.999, не более 3-х знаков после запятой.">
+                                                                        <i class="fas fa-question-circle color-red"></i>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         <div class="wa-field s-field-price">
                                                             <div class="name">[`Price`]</div>
                                                             <div class="value">
-                                                                <input class="wa-small bold align-right" type="text" v-model="sku_mod.price" v-on:input="validate($event, 'number', sku_mod, 'price')">
+                                                                <input class="wa-small bold is-number" type="text"
+                                                                       v-model="sku_mod.price"
+                                                                       v-bind:class="{ 'wa-error-field' : !!errors['product[skus][' + sku_mod.id + '][price]'] }"
+                                                                       v-on:input="validate($event, 'price', sku_mod, 'price')">
+
+                                                                <div class="wa-error-text" v-if="!!errors['product[skus][' + sku_mod.id + '][price]']">
+                                                                    {_w("Неверный формат.")|escape}
+                                                                    &nbsp;
+                                                                    <div class="wa-tooltip" data-title="Введите число от 0 до 99 999 999 999.999, не более 3-х знаков после запятой.">
+                                                                        <i class="fas fa-question-circle color-red"></i>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         <div class="wa-field s-field-currency">
+                                                            <div class="name">&nbsp;</div>
                                                             <div class="value">
                                                                 <component-dropdown-currency v-bind:currency_code="product.currency" v-bind:currencies="currencies" v-bind:wide="true" v-on:change="product.currency = $event"></component-dropdown-currency>
                                                             </div>
@@ -1010,7 +1142,7 @@
                                                                             <div class="s-icon left" v-bind:class="{ 'color-green' : sku_mod.stocks_indicator > 0, 'color-orange' : sku_mod.stocks_indicator == 0, 'color-red' : sku_mod.stocks_indicator < 0 }">
                                                                                 <i class="icon size-16"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></i>
                                                                             </div>
-                                                                            <input class="wa-small s-field full-width" type="text" placeholder="∞"
+                                                                            <input class="wa-small s-field full-width is-number" type="text" placeholder="∞"
                                                                                    v-model="sku_mod.count"
                                                                                    v-bind:readonly="!!stocks_array.length"
                                                                                    v-on:click="focusSkuModStocks(sku_mod)"
@@ -1035,28 +1167,30 @@
                                                                 <div class="s-section-body">
                                                                     <div class="s-stocks-list">
 
-                                                                        <div class="s-stock-wrapper" v-for="stock in stocks_array">
-                                                                            <div class="flexbox fixed middle space-12"
-                                                                                 v-bind:title="stock.is_virtual ? '{_w("The quantity on virtual stocks is calculated automatically. You can change it in the “Settings”.")|escape}' : ''">
+                                                                        <template v-for="stock in stocks_array">
+                                                                            <div class="s-stock-wrapper">
+                                                                                <div class="flexbox fixed middle space-12"
+                                                                                     v-bind:title="stock.is_virtual ? '{_w("Значение на этом виртуальном складе равно сумме значений на складах Х1, Х2,... Изменить можно в “Настройках”.")|escape}' : ''">
 
-                                                                                <div class="c-column">
-                                                                                    <div class="s-field-wrapper">
-                                                                                        <div class="s-icon left" v-bind:class="{ 'color-green' : sku_mod.stock[stock.id] > stock.low_count || sku_mod.stock[stock.id] === '', 'color-orange' : sku_mod.stock[stock.id] > stock.critical_count && sku_mod.stock[stock.id] <= stock.low_count, 'color-red' : sku_mod.stock[stock.id] <= stock.critical_count && sku_mod.stock[stock.id] !== '' }">
-                                                                                            <i class="icon size-16"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></i>
+                                                                                    <div class="c-column">
+                                                                                        <div class="s-field-wrapper">
+                                                                                            <div class="s-icon left" v-bind:class="{ 'color-green' : sku_mod.stock[stock.id] > stock.low_count || sku_mod.stock[stock.id] === '', 'color-orange' : sku_mod.stock[stock.id] > stock.critical_count && sku_mod.stock[stock.id] <= stock.low_count, 'color-red' : sku_mod.stock[stock.id] <= stock.critical_count && sku_mod.stock[stock.id] !== '' }">
+                                                                                                <i class="icon size-16"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></i>
+                                                                                            </div>
+                                                                                            <input class="wa-small s-field full-width is-number" type="text" placeholder="∞"
+                                                                                                   v-model="sku_mod.stock[stock.id]"
+                                                                                                   v-bind:readonly="stock.is_virtual"
+                                                                                                   v-bind:class="{ 'transparent' : stock.is_virtual }"
+                                                                                                   v-on:change="changeSkuModStocks(sku_mod)"
+                                                                                                   v-on:input="validate($event, 'integer', sku_mod.stock, stock.id)">
                                                                                         </div>
-                                                                                        <input class="wa-small s-field full-width" type="text" placeholder="∞"
-                                                                                               v-model="sku_mod.stock[stock.id]"
-                                                                                               v-bind:readonly="stock.is_virtual"
-                                                                                               v-bind:class="{ 'transparent' : stock.is_virtual }"
-                                                                                               v-on:change="changeSkuModStocks(sku_mod)"
-                                                                                               v-on:input="validate($event, 'integer', sku_mod.stock, stock.id)">
+                                                                                    </div>
+                                                                                    <div class="c-column">
+                                                                                        { { stock.name } }
                                                                                     </div>
                                                                                 </div>
-                                                                                <div class="c-column">
-                                                                                    { { stock.name } }
-                                                                                </div>
                                                                             </div>
-                                                                        </div>
+                                                                        </template>
 
                                                                     </div>
                                                                 </div>
@@ -1082,7 +1216,7 @@
                                                             v-if="sku.modifications.length > 1"
                                                             v-on:click.prevent="removeModification($event, sku_mod, sku_mod_index, sku, sku_index)">
 
-                                                            <span class="s-icon icon size-18">
+                                                            <span class="s-icon icon size-16">
                                                                 <svg><use xlink:href='{$_sprite_url}#trash-alt'></use></svg>
                                                             </span>
                                                         </button>
@@ -1090,7 +1224,7 @@
                                                             title="{_w("You cannot delete the last SKU variant.")|escape}"
                                                             v-if="sku.modifications.length <= 1">
 
-                                                            <span class="s-icon icon size-18 color-gray-light" style="opacity: .5">
+                                                            <span class="s-icon icon size-16 color-gray-light" style="opacity: .5">
                                                                 <svg><use xlink:href='{$_sprite_url}#trash-alt-slash'></use></svg>
                                                             </span>
                                                         </button>

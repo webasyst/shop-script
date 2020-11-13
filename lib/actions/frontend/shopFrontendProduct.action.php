@@ -238,13 +238,13 @@ class shopFrontendProductAction extends shopFrontendAction
                 $content && wa()->getResponse()->setOGMeta($property, $content);
             }
 
-            // yes, override previous og:video url
+            /** yes, override previous og:video url */
             if ($product['video_url']) {
                 wa()->getResponse()->setOGMeta('og:video', $product['video_url']);
             }
 
-            // Prepare feature-related variables.
-            // (Template vars are named like that for legacy reasons.)
+            /** Prepare feature-related variables.
+              * (Template vars are named like that for legacy reasons.) */
             list($product_features, $used_features, $skus_with_features) = $this->prepareFeatureVars($product);
             $product->skus = $skus_with_features;
             $this->view->assign('features', $product_features);
@@ -281,7 +281,10 @@ class shopFrontendProductAction extends shopFrontendAction
         $this->setThemeTemplate($is_cart ? 'product.cart.html' : 'product.html');
     }
 
-    /** @param shopProduct $product */
+    /**
+     * @param shopProduct $product
+     * @throws waException
+     */
     protected function ensureCanonicalUrl($product)
     {
         $root_url = ltrim(wa()->getRootUrl(false, true), '/');
@@ -305,22 +308,23 @@ class shopFrontendProductAction extends shopFrontendAction
      * Prepare arrays of feature values for product and each SKU,
      * sorting them in proper order according to product type settings.
      *
-     * @param $product
+     * @param shopProduct $product
      * @return array
+     * @throws waException
      */
     protected function prepareFeatureVars($product)
     {
-        // All features (settings) used in product type. In order as set in type settings.
-        // This includes private features at this point (not visible in frontend).
+        /** All features (settings) used in product type. In order as set in type settings.
+          * This includes private features at this point (not visible in frontend). */
         $feature_model = new shopFeatureModel();
-        $all_features = $feature_model->getByType($product->type_id, 'code');
+        $all_features  = $feature_model->getByType($product->type_id, 'code');
 
-        // Feature values of all SKUs and of the product
-        $sku_feature_values = $product->getSkuFeatures();
+        /** Feature values of all SKUs and of the product */
+        $sku_feature_values     = $product->getSkuFeatures();
         $product_feature_values = $product->features;
 
-        // Figure out which feature values are manually added to the product.
-        $all_feature_codes = $all_features;
+        /** Figure out which feature values are manually added to the product */
+        $all_feature_codes  = $all_features;
         $all_feature_codes += $product_feature_values;
         foreach($sku_feature_values as $values) {
             $all_feature_codes += $values;
@@ -328,33 +332,36 @@ class shopFrontendProductAction extends shopFrontendAction
         $manually_added_feature_codes = array_keys(array_diff_key($all_feature_codes, $all_features));
         unset($all_feature_codes);
 
-        // Fetch feature settings for features not attached to product type
-        // but still manually added to this product. Sort order for them is undefined,
-        // so just add them at the end of the feature list.
+        /** Fetch feature settings for features not attached to product type
+          * but still manually added to this product. Sort order for them is undefined,
+          * so just add them at the end of the feature list. */
         if ($manually_added_feature_codes) {
             $all_features += $feature_model->getByCode($manually_added_feature_codes);
         }
 
-        // Hide features not available in frontend
+        /** Hide features not available in frontend */
         foreach($all_features as $code => $feature) {
             if ($feature['status'] === 'private') {
                 unset($all_features[$code]);
             }
         }
 
-        // Add array of feature values to each SKU, in proper order.
-        // Remove values of features that are not visible in frontend.
-        // Collect feature codes used in product or any SKU.
-        $skus_with_features = array();
+        /** Add array of feature values to each SKU, in proper order.
+         * Remove values of features that are not visible in frontend.
+         * Collect feature codes used in product or any SKU. */
+        $skus_with_features = [];
         $used_feature_codes = [];
         foreach ($product->skus as $sku_id => $sku) {
             $sku['features'] = [];
             foreach($all_features as $code => $feature) {
                 if (isset($sku_feature_values[$sku_id][$code])) {
-                    $sku['features'][$code] = $sku_feature_values[$sku_id][$code];
+                    $sku['features'][$code]    = $sku_feature_values[$sku_id][$code];
                     $used_feature_codes[$code] = $code;
-                } else if (isset($product_feature_values[$code])) {
-                    $sku['features'][$code] = $product_feature_values[$code];
+                } elseif (
+                    isset($product_feature_values[$code])
+                    || $feature['type'] === 'divider'
+                ) {
+                    $sku['features'][$code]    = $product_feature_values[$code];
                     $used_feature_codes[$code] = $code;
                 } elseif ($feature['type'] === shopFeatureModel::TYPE_DIVIDER) {
                     $sku['features'][$code]    = null;
@@ -364,9 +371,10 @@ class shopFrontendProductAction extends shopFrontendAction
             $skus_with_features[$sku_id] = $sku;
         }
 
-        // Settings of features that are used in product. This does not necessarily contains all features used in SKUs.
+        /** Settings of features that are used in product. This does not necessarily contains all features used in SKUs. */
         $product_features = array_intersect_key($all_features, $product_feature_values);
-        // Settings of all features used in product or SKUs
+
+        /** Settings of all features used in product or SKUs */
         $used_features = array_intersect_key($all_features, $used_feature_codes);
 
         return [$product_features, $used_features, $skus_with_features];

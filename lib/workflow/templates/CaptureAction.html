@@ -185,6 +185,15 @@
                                 </td>
                             </tr>
                         {/foreach}
+                        <tr>
+                            <td class="s-checkbox-column">
+                                <input name="capture_shipping_cost" type="hidden" value="0">
+                                <input name="capture_shipping_cost" type="checkbox" value="1" id="js-capture-shipping-cost">
+                            </td>
+                            <td colspan="3">
+                                <label for="js-capture-shipping-cost">[`Списывать стоимость доставки`]</label>
+                            </td>
+                        </tr>
                     </tbody>
                     {if !empty($order.shipping)}
                         <tfoot>

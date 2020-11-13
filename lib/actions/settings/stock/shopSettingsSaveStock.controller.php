@@ -149,8 +149,15 @@ class shopSettingsSaveStockController extends waJsonController
         $add = array();
         foreach (waRequest::post($field, array()) as $name => $items) {
             foreach ($items as $k => $value) {
-                $add[$k][$name] = $value;
+                if ($name != 'inventory') {
+                    $add[$k][$name] = $value;
+                }
             }
+        }
+        $post_field = waRequest::post($field);
+        if (isset($post_field['inventory'])) {
+            end($add);
+            $add[key($add)]['inventory'] = true;
         }
         $this->correct($add);
         return $add;

@@ -47,6 +47,7 @@ return array(
     //
 
     'products/?'                           => 'prod/list',
+    'products/<id:\d+>/media/?'            => 'prod/media',
     'products/<id:\d+>/general/?'          => 'prod/general',
     'products/<id:\d+>/sku/?'              => 'prod/sku',
     'products/<id:\d+>/?'                  => 'prod/',

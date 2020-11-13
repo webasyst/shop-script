@@ -1,0 +1,33 @@
+<div class="wa-dialog s-feature-used-values-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-wrapper" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3>{sprintf_wp("Значения характеристики “%s” в модификациях", '{ { feature.name } }')}</h3>
+            </div>
+
+            <div class="dialog-content">
+                <template v-if="getUsedValues().length">
+                    <div class="s-feature-values-list" v-bind:class="{ 'is-vertical' : feature.render_type === 'textarea' }">
+                        <template v-for="item in getUsedValues()">
+                            {strip}
+                            <div class="s-feature-value">
+                                <span class="s-icon" v-if="item.code"><span class="icon size-12 rounded bordered shift-1" v-bind:style="{ 'background-color': item.code }"></span></span>
+                                <span class="s-name">{ { item.value } }</span>
+                                <span class="s-unit" v-if="item.unit">({ { item.unit } })</span>
+                            </div>
+                            {/strip}
+                        </template>
+                    </div>
+                </template>
+                <template v-else>
+                    <p class="hint">[`Используемых значений нет`]</p>
+                </template>
+            </div>
+
+            <div class="dialog-footer">
+                <button class="wa-button gray-light js-close-dialog" type="button">[`Close`]</button>
+            </div>
+        </div>
+    </div>
+</div>

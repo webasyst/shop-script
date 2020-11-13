@@ -40,7 +40,14 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
         );
     }
 
-    // Called after prepare() only if there are no errors on previous checkout steps
+    /**
+     * Called after prepare() only if there are no errors on previous checkout steps
+     *
+     * @param $data
+     * @param $prepare_result
+     * @return array
+     * @throws waException
+     */
     public function process($data, $prepare_result)
     {
         // Is shipping step disabled altogether?
@@ -152,6 +159,16 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
         unset($field_info);
 
         // Ask shipping plugin for custom fields required for exact rate calculation
+
+        /**
+         * добавляем дату и время, когда магазин приготовит заказ и учитываем
+         * время ($assembly_time) на комплектацию заказа указанным способом доставки
+         */
+        $assembly_time  = $this->getCheckoutConfig()->getAssemblyTimeByRate($selected_variant);
+        $departure_date = shopDepartureDateTimeFacade::getDeparture($this->getCheckoutConfig()['schedule']);
+        $departure_date->setExtraProcessingTime($assembly_time * 3600);
+        $departure_datetime = (string) $departure_date->getDepartureDateTime();
+
         $custom_input_values = ifset($data, 'input', 'details', 'custom', []);
         $plugin_custom_field_settings = $plugin->customFieldsForService(new waOrder([
             'contact_id'       => ifempty($contact, 'id', null),
@@ -159,6 +176,9 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
             'items'            => $data['order']['items'],
             'shipping_address' => $address,
             'shipping_params'  => $custom_input_values,
+            'params'          => [
+                'departure_datetime' => $departure_datetime,
+            ],
         ]), $selected_variant);
 
         // Render custom plugin fields. Also gather their values validated by plugin.

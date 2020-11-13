@@ -151,6 +151,10 @@ var OrderCaptureSection = (function ($) {
             }
         });
 
+        that.$products.on("change", "#js-capture-shipping-cost", function () {
+            updatePrices();
+        });
+
         that.$products.on("change", ".js-product-checkbox", function (event, force) {
             var $field = $(this),
                 $product = $field.closest(".s-product-wrapper"),
@@ -219,7 +223,9 @@ var OrderCaptureSection = (function ($) {
 
             that.$submit_button.attr("disabled", !(total_quantity > 0));
 
-            total_price += that.shipping_price;
+            if (that.$products.find('#js-capture-shipping-cost').prop('checked')) {
+                total_price += that.shipping_price;
+            }
 
             $total_price.html(formatPrice(total_price));
         }

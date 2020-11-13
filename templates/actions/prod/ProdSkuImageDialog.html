@@ -36,7 +36,7 @@
 
                                 <div class="s-description-wrapper" v-bind:class="{ 'is-expanded': photo.expanded }">
                                     <p class="s-description-text" v-if="!photo.expanded"
-                                        v-on:click.prevent="showDescriptionForm(photo)">{ { photo.description && photo.description.length ? photo.description : "{_w("Add description...")|escape}" } }</p>
+                                        v-on:click.prevent="showDescriptionForm($event, photo)">{ { photo.description && photo.description.length ? photo.description : "{_w("Add description...")|escape}" } }</p>
 
                                     <form class="s-description-form" v-if="photo.expanded">
                                         <textarea class="s-description-field" name="description" v-model="photo.description" placeholder="{_w("Add description...")|escape}"></textarea>

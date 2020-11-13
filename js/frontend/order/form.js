@@ -3782,6 +3782,15 @@
                             value: that.locales["incorrect_date"]
                         });
                     }
+
+                    var is_valid = checkDate(value);
+                    if (!is_valid) {
+                        errors.push({
+                            $field: $input,
+                            name: name,
+                            value: that.locales["invalid_date"]
+                        });
+                    }
                 }
             });
 
@@ -4395,6 +4404,20 @@
                 return false;
             }
         });
+    }
+
+    function checkDate(string) {
+        var format = $.datepicker._defaults.dateFormat,
+            is_valid = false;
+
+        try {
+            $.datepicker.parseDate(format, string);
+            is_valid = true;
+        } catch(e) {
+
+        }
+
+        return is_valid;
     }
 
 })(jQuery);

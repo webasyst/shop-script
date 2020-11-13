@@ -41,12 +41,22 @@ class shopRightConfig extends waRightConfig
             'capture',
             'cancel',
         );
+
         foreach ($actions as $action_id => $action) {
             if (empty($action['internal'])
                 || !empty($action['rights'])
                 || in_array($action_id, $internal_actions)
             ) {
-                $items[$action_id] = $action['name'];
+
+                if (isset($action['name'])) {
+                    $action_name = $action['name'];
+                } elseif (isset($action['classname'])) {
+                    $action_name = $action['classname'];
+                } else {
+                    $action_name = $action_id;
+                }
+                
+                $items[$action_id] = $action_name;
             }
         }
 

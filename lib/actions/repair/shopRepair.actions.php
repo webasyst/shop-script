@@ -776,4 +776,24 @@ if (file_exists($file)) {
 
         return $something_changed;
     }
+
+    public function translateWorkflowAction()
+    {
+        $file = wa()->getConfig()->getAppsPath('shop', 'lib/config/data/workflow.php');
+        if (file_exists($file)) {
+            $config = shopWorkflow::getConfig();
+            $original_config = include($file);
+            foreach ($original_config as $type_key => $type) {
+                foreach ($type as $status_key => $params) {
+                    if (isset($config[$type_key][$status_key]['name'])) {
+                        $config[$type_key][$status_key]['name'] = $params['name'];
+                    }
+                }
+            }
+            shopWorkflow::setConfig($config);
+            print 'All statuses are translated';
+        } else {
+            print 'File not found';
+        }
+    }
 }

@@ -760,6 +760,7 @@
             that.$wrapper = options["$wrapper"];
             that.$button = that.$wrapper.find("> .dropdown-toggle");
             that.$menu = that.$wrapper.find("> .dropdown-body");
+            that.$filter = that.$menu.find("> .dropdown-filter");
 
             // VARS
             that.on = {
@@ -782,10 +783,10 @@
             that.$active = null;
 
             // INIT
-            that.initClass();
+            that.init();
         };
 
-        Dropdown.prototype.initClass = function() {
+        Dropdown.prototype.init = function() {
             var that = this,
                 $document = $(document),
                 $body = $("body");
@@ -806,6 +807,7 @@
             });
 
             if (that.options.items) {
+                if (that.$filter.length) { that.initFilter(); }
                 that.initChange(that.options.items);
             }
 
@@ -852,9 +854,13 @@
                 that.$wrapper.addClass(active_class);
                 that.on.open(that);
 
+                if (that.$filter.length) { that.$filter.find(".js-field").trigger("focus"); }
+
             } else {
                 that.$wrapper.removeClass(active_class);
                 that.on.close(that);
+
+                if (that.$filter.length) { that.$filter.find(".js-field").val("").trigger("input"); }
             }
         };
 
@@ -933,6 +939,38 @@
             }
 
             return result;
+        };
+
+        Dropdown.prototype.initFilter = function() {
+            var that = this;
+
+            var $wrapper = that.$filter,
+                $field = $wrapper.find(".js-field");
+
+            $field.on("input", function() {
+                filter($.trim($field.val()));
+            });
+
+            function filter(value) {
+                value = (typeof value === "string" ? value.toLowerCase() : "");
+
+                var $items = that.$menu.find(that.options.items);
+
+                if (value.length) {
+                    $items.each( function() {
+                        var $item = $(this),
+                            name = $item.text().toLowerCase();
+
+                        if (name.indexOf(value) >= 0) {
+                            $item.show();
+                        } else {
+                            $item.hide();
+                        }
+                    });
+                } else {
+                    $items.show();
+                }
+            }
         };
 
         return Dropdown;
@@ -1064,6 +1102,10 @@
 
         Progressbar.prototype.set = function(options) {
             var that = this;
+
+            // если нода была удалена из DOM, то метод set не будет работать.
+            var is_exist = $.contains(document, that.$wrapper[0]);
+            if (!is_exist) { return false; }
 
             options = (typeof options === "object" ? options : {});
             var percentage = (parseFloat(options.percentage) >= 0 ? options.percentage : that.percentage);
@@ -2888,6 +2930,58 @@
                     document.title = $.wa.title.pattern.replace("%s", title_string);
                 }
             }
+        },
+
+        /**
+        * @param {String} type
+        * @param {Number|String} value
+        * @return {String} value
+        * */
+        validate: function(type, value) {
+            value = (typeof value === "string" ? value : "" + value);
+
+            var result = value;
+
+            switch (type) {
+                case "number":
+                    var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", ","],
+                        letters_array = [],
+                        divider_exist = false;
+
+                    $.each(value.split(""), function(i, letter) {
+                        if (letter === "." || letter === ",") {
+                            if (!divider_exist) {
+                                divider_exist = true;
+                                letters_array.push(letter);
+                            }
+                        } else {
+                            if (white_list.indexOf(letter) >= 0) {
+                                letters_array.push(letter);
+                            }
+                        }
+                    });
+
+                    result = letters_array.join("");
+                    break;
+
+                case "integer":
+                    var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+                        letters_array = [];
+
+                    $.each(value.split(""), function(i, letter) {
+                        if (white_list.indexOf(letter) >= 0) {
+                            letters_array.push(letter);
+                        }
+                    });
+
+                    result = letters_array.join("");
+                    break;
+
+                default:
+                    break;
+            }
+
+            return result;
         },
 
         /**

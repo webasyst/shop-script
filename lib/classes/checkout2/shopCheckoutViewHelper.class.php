@@ -385,6 +385,7 @@ class shopCheckoutViewHelper
     public function form($opts = array())
     {
         $template_path = wa()->getAppPath('templates/actions/frontend/FrontendOrderForm.html', 'shop');
+
         return $this->renderTemplate($template_path, $this->formVars() + array(
                 'shop_checkout_include_path' => wa()->getAppPath('templates/actions/frontend/order/', 'shop'),
                 'options'                    => $opts,

@@ -191,6 +191,13 @@ class shopWorkflowEditAction extends shopWorkflowAction
             $data['params']['auth_edit'] = date('Y-m-d H:i:s');
         }
 
+        if (!empty($data['params']['is_delivery_cost_removed'])) {
+            if (!is_array($return)) {
+                $return = array();
+            }
+            $return['params']['is_delivery_cost_removed'] = $data['params']['is_delivery_cost_removed'];
+        }
+
         if (!empty($data['text'])) {
             if (!is_array($return)) {
                 $return = array();

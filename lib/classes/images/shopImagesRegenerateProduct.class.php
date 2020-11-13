@@ -18,7 +18,7 @@ class shopImagesRegenerateProduct implements shopImagesRegenerateInterface
     {
         $model = new shopProductImagesModel();
         $model->updateById($image['id'], array('filename' => $filename));
-        $this->updateFilenameInProduct($image, $filename = '');
+        $this->updateFilenameInProduct($image, $filename);
     }
 
     protected function updateFilenameInProduct($image, $filename = '')

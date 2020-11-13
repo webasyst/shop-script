@@ -79,7 +79,6 @@ class shopPromoProductPrices
                     ) {
                         $promo_skus[$product_id][$sku_id] = [
                             'promo_id'              => $rule['promo_id'],
-                            'ignored_promo_ids'     => [],
                             'storefront'            => $this->storefront,
                             'product_id'            => $product_id,
                             'sku_id'                => $sku_id,
@@ -90,10 +89,14 @@ class shopPromoProductPrices
                         ];
                     }
 
-                    if (!empty($promo_sku)) {
-                        /** если товар уже участвует в промоакции, отмечаем их */
-                        $ignore = &$promo_skus[$product_id][$sku_id]['ignored_promo_ids'];
-                        $ignore = array_merge($ignore, [sprintf('shop.promos.%s', $promo_sku['promo_id']), sprintf('shop.promos.%s', $rule['promo_id'])]);
+                    if (isset($promo_skus[$product_id][$sku_id])) {
+                        /** отмечаем примененные к товару промоакции */
+                        $used_promo = &$promo_skus[$product_id][$sku_id]['used_promo_ids'];
+                        $used_promo = [sprintf('shop.promos.%s', $rule['promo_id'])];
+                        if (!empty($promo_sku)) {
+                            /** случай применения нескольких промоакций к товару */
+                            $used_promo = array_merge($used_promo, [sprintf('shop.promos.%s', $promo_sku['promo_id'])]);
+                        }
                     }
                 }
             }
@@ -148,31 +151,30 @@ class shopPromoProductPrices
         ];
 
         foreach ($products as &$p) {
+            /** Проставляем "used_promo_ids" чтобы в сторонние плагины он передавался всегда */
+            $p['used_promo_ids'] = (isset($p['used_promo_ids']) ? $p['used_promo_ids'] : []);
             if (!isset($p['price']) || !empty($p['is_promo'])) {
                 continue;
             }
 
+            /** Узнаем какие SKU текущего товара участвуют в промоакциях из "Маркетинг" */
             $promo_sku_prices = ifempty($this->promo_skus, $p['id'], null);
             if (!$promo_sku_prices) {
                 continue;
             }
 
             $p['is_promo'] = true;
-            $p['used_promo_ids'] = array_values(array_unique(array_map(function($sku) {
-                return $sku['promo_id'];
-            }, $promo_sku_prices)));
-            $p['used_promo_id'] = reset($p['used_promo_ids']);
 
             foreach ($promo_sku_prices as $sku_id => $params) {
-                if (empty($params['ignored_promo_ids'])) {
+                if (empty($params['used_promo_ids'])) {
                     continue;
                 }
-                if (!isset($p['ignored_promo_ids'][$p['id']])) {
-                    $p['ignored_promo_ids'][$p['id']] = $params['ignored_promo_ids'];
-                } else {
-                    $p['ignored_promo_ids'][$p['id']] = array_merge($p['ignored_promo_ids'], $params['ignored_promo_ids']);
-                }
+                /** заполняем "used_promo_ids" всем промоакциями которые применены к товару,
+                 *  даже если промоакции применены к разным SKU */
+                $p['used_promo_ids'] = array_merge($p['used_promo_ids'], $params['used_promo_ids']);
+                $p['used_promo_id']  = (isset($p['used_promo_id']) ? $p['used_promo_id'] : $params['promo_id']);
             }
+            $p['used_promo_ids'] = array_unique($p['used_promo_ids']);
 
             // Save original product prices
             foreach ($price_fields as $k) {
@@ -236,14 +238,16 @@ class shopPromoProductPrices
         ];
 
         foreach ($skus as &$sku) {
+            /** Проставляем "used_promo_ids" чтобы в сторонние плагины он передавался всегда */
+            $sku['used_promo_ids'] = (isset($sku['used_promo_ids']) ? $sku['used_promo_ids'] : []);
             if (!empty($sku['is_promo'])) {
                 continue;
             }
             foreach ($this->promo_prices as $promo_sku_price) {
                 if ($sku['product_id'] == $promo_sku_price['product_id'] && $sku['id'] == $promo_sku_price['sku_id']) {
-                    $sku['is_promo']          = true;
-                    $sku['used_promo_id']     = $promo_sku_price['promo_id'];
-                    $sku['ignored_promo_ids'] = $promo_sku_price['ignored_promo_ids'];
+                    $sku['is_promo']       = true;
+                    $sku['used_promo_id']  = $promo_sku_price['promo_id'];
+                    $sku['used_promo_ids'] = $sku['used_promo_ids'] + $promo_sku_price['used_promo_ids'];
                     foreach ($price_fields as $k) {
                         if (isset($sku[$k]) && $promo_sku_price[$k] !== null) {
                             $sku['raw_'.$k] = $sku[$k];

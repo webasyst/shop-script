@@ -1,0 +1,44 @@
+<div class="wa-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-node-wrapper" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h2>{ { !sku_mod ? "{_w("Confirm SKU deletion")|escape}" : "{_w("Confirm variant deletion")|escape}" } }</h2>
+            </div>
+            <div class="dialog-content">
+                <p class="color-red">
+                    <template v-if="sku_mod">
+                        {sprintf_wp(
+                            'You are about to delete a variant of SKU “%s” of product “%s”.',
+                            "{ { getName() } }",
+                            "{ { product.name } }"
+                        )}
+                    </template>
+                    <template v-else>
+                        <template v-if="sku.modifications.length > 1">
+                            {sprintf(
+                                _w('Вы собираетесь удалить артикул “%s” товара “%s” со всеми модификациями (%s).'),
+                                "{ { getName() } }",
+                                "{ { product.name } }",
+                                "{ { sku.modifications.length } }"
+                            )}
+                        </template>
+                        <template v-else>
+                            {sprintf(
+                                _w('Вы собираетесь удалить артикул “%s” товара “%s” с 1 модификацией.'),
+                                "{ { getName() } }",
+                                "{ { product.name } }"
+                            )}
+                        </template>
+                    </template>
+                </p>
+
+                <p>{ { !sku_mod ? "{_w("Are you sure you want to delete this SKU?")|escape}" : "{_w("Are you sure you want to delete this SKU variant?")|escape}" } }</p>
+            </div>
+        </div>
+        <div class="dialog-footer">
+            <button class="js-success-action wa-button red" type="button">[`Delete`]</button>
+            <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+        </div>
+    </div>
+</div>

@@ -7,9 +7,11 @@
         <span class="s-product-name">{if $product.id == 'new'}[`New product`]{else}{$product.name|escape}{/if}</span>
         <span class="hint float-right s-product-id" style="width: auto; padding: 0 .5rem; {if $product.id == 'new'}display:none;{/if}">id: {$product.id}</span>
 
-        <a class="s-new-product-editor-button float-right" style="{if $product.id === 'new'}display: none{/if}"
-           href="{$wa_app_url}products/{if $product.id === 'new'}%product_id%{else}{$product.id|escape}{/if}/"
-           title="{_w("Try out the new product editor version. The option to return to the old editor will remain.")|escape}">[`Try out new product editor`]</a>
+        {if !empty($edit_rights)}
+            <a class="s-new-product-editor-button float-right" style="{if $product.id === 'new'}display: none{/if}"
+               href="{$wa_app_url}products/{if $product.id === 'new'}%product_id%{else}{$product.id|escape}{/if}/"
+               title="{_w("Try out the new product editor version. The option to return to the old editor will remain.")|escape}">[`Try out new product editor`]</a>
+        {/if}
 
         <!-- plugin hook: 'backend_product.title_suffix' -->
         {* @event backend_product.%plugin_id%.title_suffix *}

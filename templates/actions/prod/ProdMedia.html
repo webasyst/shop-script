@@ -1,0 +1,309 @@
+{strip}
+
+{$_templates = []}
+
+{capture assign="_media_delete_photos"}{include file="./dialogs/media_delete_photos.html" inline}{/capture}
+{$_templates["dialog_media_delete_photos"] = $_media_delete_photos}
+
+{capture assign="_component_loading_file"}
+    <div class="vue-component-loading-file">
+        <div class="wa-progressbar-wrapper" v-bind:class="{ 'has-error' : !!errors.length }">
+            <template v-if="!errors.length">
+                <div class="wa-progressbar" style="display: inline-block;"></div>
+            </template>
+            <template v-else>
+                <div class="s-error-icon">
+                    <span class="s-icon"><i class="fas fa-exclamation-triangle"></i></span>
+                </div>
+            </template>
+        </div>
+        <div class="s-errors" v-if="errors.length">
+            <template v-for="error in errors">
+                <div class="wa-error-text" v-text="error.text"></div>
+            </template>
+        </div>
+    </div>
+{/capture}
+{$_templates["component-loading-file"] = $_component_loading_file}
+
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+{/strip}
+
+<div id="js-product-media-section-wrapper">
+    <div class="s-product-media-section js-product-media-section" style="visibility: hidden;">
+        <div class="s-section-header">
+            <div class="s-errors-place" id="js-errors-place" v-if="errors.global.length">
+                <template v-for="error in errors.global" v-bind:key="error.id">
+                    <div class="wa-message info flexbox space-8" v-bind:data-id="error.id">
+                        <div class="message-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="message-text wide">{ { error.text } }</div>
+                        <div class="message-actions">
+                            <div class="message-action" v-on:click.prevent="removeError(error.id)">
+                                <i class="fas fa-times message-toggle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div class="s-section-body">
+
+            {* VIDEO SECTION *}
+            <div class="s-video-section">
+                <div class="s-section-header">
+                    <h2 class="s-title">[`Видео`]</h2>
+                </div>
+                <div class="s-section-body">
+
+                    <template v-if="video.url">
+
+                        <div class="tablebox fixed space-24">
+                            <div class="s-column-video">
+                                <div class="s-iframe-wrapper">
+                                    <iframe class="s-iframe" v-bind:src="video.url"></iframe>
+                                </div>
+                            </div>
+                            <div class="s-column-actions">
+                                <div class="wa-list space-12">
+                                    <div>
+                                        <a v-bind:href="video.model" target="_blank"
+                                           title="{_w("Открыть на новой вкладке")|escape}">
+                                            <span class="s-icon"><i class="fas fa-external-link-square-alt"></i></span>
+                                            <span class="s-name" v-text="video.model"></span>
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <span class="color-red cursor-pointer"
+                                              title="{_w("Удалить видео")|escape}"
+                                              v-on:click.prevent="deleteVideo">
+                                            <span class="s-icon" v-show="video.request_xhr"><i class="fas fa-spinner fa-spin"></i></span>
+                                            <span class="s-icon" v-show="!video.request_xhr"><i class="fas fa-trash-alt"></i></span>
+                                            <span class="s-name">[`Удалить видео`]</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </template>
+                    <template v-else>
+                        {strip}
+                        <div class="inlinebox top space-16">
+                            <input class="size-medium" type="text"
+                                   placeholder="{_w("Адрес видер на YouTube или Vimeo")|escape}"
+                                   v-bind:class="{ 'wa-error-field': !!errors['product_video_add'] }"
+                                   v-on:input="removeError('product_video_add')"
+                                   v-model="video.model">
+
+                            <button class="wa-button blue"
+                                    v-bind:disabled="!video.model.length || video.request_xhr"
+                                    v-on:click.prevent="setVideo">
+                                <span class="s-name">[`Добавить видео`]</span>
+                                <span class="s-icon" v-if="video.request_xhr">&nbsp;<i class="fas fa-spinner fa-spin"></i></span>
+                            </button>
+                        </div>
+                        {/strip}
+
+                        <template v-if="errors['product_video_add']">
+                            <div class="wa-error-text" v-text="errors['product_video_add'].text"></div>
+                        </template>
+
+                        <div class="s-description hint">[`Поддерживаются видео с привязкой к времени`]</div>
+                    </template>
+                </div>
+            </div>
+
+            {* PHOTOS SECTION *}
+            <div class="s-photos-section">
+                <div class="s-section-header">
+                    <h2 class="s-title">[`Фото`]</h2>
+                </div>
+                <div class="s-section-body">
+                    <div class="s-photos-form">
+                        <div class="s-drop-area box dragndrop"
+                             v-bind:class="{ 'has-class': !!errors['file_add'] }"
+                             v-on:dragover.prevent="onAreaOver($event)"
+                             v-on:drop.prevent="onAreaDrop($event)">
+
+                            <div class="s-text">[`Upload or drag & drop images here`]</div>
+                            <input class="s-field" type="file" accept="image/*" multiple
+                                   title="{_w("Перетащите файл в это поле или кликнете для выбора и загрузки файлов.")|escape}"
+                                   v-on:change="onAreaChange($event)">
+                        </div>
+
+                        <template v-if="files_errors.length">
+                            <div class="wa-error-text" v-for="error in files_errors">{ { error.data.file_name } }</div>
+                            <div class="wa-error-text">{ { files_errors[0].text } }</div>
+                        </template>
+                    </div>
+
+                    <div class="s-photo-actions flexbox middle wrap space-20" v-if="photos.length">
+                        <div class="s-counter" v-if="selected_photos.length">
+                            <span class="s-label">[`Выбрано:`]</span>
+                            <span class="s-count bold color-black">{ { selected_photos.length } }</span>
+                        </div>
+
+                        <template v-if="product.normal_mode">
+                            <template v-if="!(unused_photos.length > 0)">
+                                <button class="wa-button" type="button" disabled title="{_w("Нет фотографий, неиспользуемых в модификациях.")|escape}">
+                                    <span class="s-icon icon top"><i class="fas fa-minus-square"></i></span>
+                                    <span class="s-name">{sprintf(_w("Неиспользуемые в модификациях (%s)"), "{ { unused_photos.length } }")}</span>
+                                </button>
+                            </template>
+                            <template v-else-if="unused_photos.length !== unused_selected_photos.length">
+                                <button class="wa-button blue" type="button" v-on:click.prevent="selectUnusedPhotos">
+                                    <span class="s-icon icon top"><i class="fas fa-check-square"></i></span>
+                                    <span class="s-name">{sprintf(_w("Неиспользуемые в модификациях (%s)"), "{ { unused_photos.length } }")}</span>
+                                </button>
+                            </template>
+                            <template v-else>
+                                <button class="wa-button green" type="button" v-on:click.prevent="unselectUnusedPhotos">
+                                    <span class="s-icon icon top"><i class="fas fa-minus-square"></i></span>
+                                    <span class="s-name">{sprintf(_w("Неиспользуемые в модификациях (%s)"), "{ { unused_photos.length } }")}</span>
+                                </button>
+                            </template>
+                        </template>
+
+                        <template v-if="selected_photos.length === photos.length">
+                            <button class="wa-button green" type="button" v-on:click.prevent="unselectPhotos">
+                                <span class="s-icon icon top"><i class="fas fa-times"></i></span>
+                                <span class="s-name">[`Отменить выделение`]</span>
+                            </button>
+                        </template>
+                        <template v-else>
+                            <button class="wa-button blue" type="button" v-on:click.prevent="selectPhotos">
+                                <span class="s-name">[`Выделить все`]</span>
+                            </button>
+                        </template>
+
+                        <button class="wa-button red" type="button"
+                                title="{_w("Выделите фото, которые хотите удалить.")|escape}"
+                                v-bind:disabled="!selected_photos.length"
+                                v-on:click.prevent="deletePhotos(selected_photos)">
+                            <span class="s-icon icon top size-14">
+                                <svg><use xlink:href='{$_sprite_url}#trash-alt'></use></svg>
+                            </span>
+                            <span class="s-name">[`Delete`]</span>
+                        </button>
+                    </div>
+
+                    <div class="s-photos-list">
+                        <template v-for="file in files">
+                            <div v-bind:data-id="file.id" class="s-photo-wrapper is-new" v-bind:key="file.id">
+                                <component-loading-file v-bind:file="file" v-on:photo_added="onAddedPhoto"></component-loading-file>
+                            </div>
+                        </template>
+
+                        <template v-for="photo in photos">
+                            <div class="s-photo-wrapper"
+                                 {* v-bind:class="{ 'is-active' : (active_photo && photo.id === active_photo.id), 'is-moving' : photo.is_moving }"*}
+                                 v-bind:key="photo.id"
+                                 v-bind:class="{ 'is-moving' : photo.is_moving }"
+                                 v-bind:data-id="photo.id">
+
+                                <div class="s-photo-block cursor-move js-photo-move-toggle"
+                                     title="{_w("Вы может перетаскивать фотографии и выстроить их в таком порядке, как хотите, чтобы они показывались на витрине.")|escape}"
+                                     draggable="true">
+                                    <div class="s-photo"
+                                         {* v-on:click.prevent="setPhoto(photo)"*}
+                                         v-bind:style="{ 'background-image' :  'url(' + photo.url + ')'}">
+                                    </div>
+                                    <div class="s-toggle-move">
+                                        <i class="icon top size-14"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></i>
+                                    </div>
+                                </div>
+
+                                <div class="s-description-wrapper flexbox space-12" v-bind:class="{ 'is-expanded': photo.expanded }">
+                                    <div class="s-column-checkbox">
+                                        <component-checkbox v-model="photo.is_checked" v-on:change="selectPhoto(photo)"></component-checkbox>
+                                    </div>
+                                    <div class="s-column-details wide">
+                                        <p class="s-description-text" v-if="!photo.expanded"
+                                           title="{_w("Редактировать описание")|escape}"
+                                           v-on:click.prevent="showDescriptionForm($event, photo)">{ { photo.description && photo.description.length ? photo.description : "{_w("Add description...")|escape}" } }</p>
+
+                                        <div class="s-description-form" v-if="photo.expanded">
+                                            <component-flex-textarea
+                                                v-model="photo.description"
+                                                v-bind:class_name="'s-description-field'"
+                                                v-bind:placeholder="'{_w("Add description...")|escape}'"></component-flex-textarea>
+
+                                            <div class="s-buttons">
+                                                <button class="wa-button blue" v-on:click.prevent="changeDescription($event, photo)">[`Apply`]</button>
+                                                <button class="wa-button gray" v-on:click.prevent="revertDescription(photo)">
+                                                    <span class="s-icon"><i class="fas fa-times"></i></span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="s-counter-wrapper">
+                                    <template v-if="photo.uses_count > 0">
+                                        <span class="s-label">[`Используется:`]</span>
+                                        <span class="s-count" v-text="photo.uses_count"></span>
+                                    </template>
+                                    <template v-else>
+                                        <span class="s-label">[`Не используется`]</span>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {include file="./includes/footer.html" inline}
+    </div>
+
+    <script>
+        ( function($) {
+            var sources = [{
+                id: "vue-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/vue/vue.min.js?v={$wa->version()}"
+            }, {
+                id: "wa-shop-products-product-media-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/product/product.media.js?v={$wa->version()}"
+            }];
+
+            $.wa.loadSources(sources).then(init);
+
+            function init() {
+                {$_max_post_size = waRequest::getPostMaxSize()}
+                {$_max_file_size = waRequest::getUploadMaxFilesize()}
+                {$_max_post_size_mb = floor($_max_post_size * 10/(1024))/10}
+                {$_max_file_size_mb = floor($_max_file_size * 10/(1024))/10}
+
+                $.wa_shop_products.init.initProductMediaSection({
+                    $wrapper: $("#js-product-media-section-wrapper"),
+                    templates: {$_templates|json_encode},
+                    locales: {
+                        "file_type": {_w("Unsupported image type. Use PNG, GIF and JPEG image files only.")|json_encode},
+                        "file_size": {_w("Each file’s size cannot be greater than")|json_encode} + " " + {$_max_file_size_mb|json_encode} + {_w("KB")|json_encode} + ".",
+                        "post_size": {_w("Total size of selected files cannot be greater than")|json_encode} + " " + {$_max_post_size_mb|json_encode} + {_w("KB")|json_encode} + "."
+                    },
+                    urls: {
+                        "save": "{$wa_app_url}?module=prod&action=saveMedia",
+                        "video_add": "{$wa_app_url}?module=prod&action=saveVideo",
+                        "video_delete": "{$wa_app_url}?module=productVideoSave",
+                        "change_image_description": "{$wa_app_url}?module=product&action=imageSave",
+                        "add_product_image": "{$wa_app_url}?module=prod&action=imageUpload",
+                        "delete_images": "{$wa_app_url}?module=prod&action=deleteImage"
+                    },
+
+                    max_file_size: {$_max_file_size|json_encode},
+                    max_post_size: {$_max_post_size|json_encode},
+
+                    product: {$formatted_product|json_encode}
+                });
+            }
+        })(jQuery);
+    </script>
+</div>

@@ -296,6 +296,7 @@ HTML;
          * @param array [string]int $data['after_state_id']
          * @param array [string]int $data['id'] Order log record id
          * @param array [string]double $data['params']['refund_amount'] refund amount (at partial refund order_action.refund)
+         * @param array [string]int $data['params']['is_delivery_cost_removed']
          * @param array [string]array $data['params']['refund_items'] array of refunded items (at partial refund order_action.refund)
          * @param array [string]int $data['params']['return_stock'] stock id
          * @param array [string]mixed $data['callback_transaction_data'] payment gateway callback formalized data for order_action.callback event

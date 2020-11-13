@@ -302,9 +302,14 @@ class shopImportexportHelper
     }
 
     /**
+     * Получения данных о промо-акциях магазина.
+     * Метод предназначен для экспорта информации о
+     * промо-акциях в сторонние системы плагинами интеграции
+     *
      * @since 8.3.0
      * @param array $options
      * @return array
+     * @throws waException
      */
     public function getPromoRules($options = array())
     {

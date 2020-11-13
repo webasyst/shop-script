@@ -116,7 +116,11 @@ class shopVideo
             $site = 'youtu.be';
         }
         $id = $m[2];
-        return 'http://'.$site.'/'.$id;
+        $result = 'http://'.$site.'/'.$id;
+        if ($site == 'youtu.be' && preg_match('/(\?|&)t=(\d+)/i', $url, $match)) {
+            $result .= '?t='.$match[2];
+        }
+        return $result;
     }
 
     /**

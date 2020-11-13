@@ -11368,7 +11368,10 @@ msgid "Your product has more than 1 SKU. To disable the multi-SKU mode, first de
 msgstr "В вашем товаре более 1 артикула. Чтобы отключить многоартикульный режим, сначала удалите дополнительные артикулы и оставьте в товаре только 1 артикул."
 
 msgid "Confirm product image deletion"
-msgstr "Подвтердите удаление изображения товара"
+msgstr "Подтвердите удаление изображения товара"
+
+msgid "Confirm product images deletion"
+msgstr "Подтвердите удаление изображений товара"
 
 msgid "This image is associated with several SKUs. Deleting it will also remove it from all such SKUs’ properties."
 msgstr "Это изображение связано с несколькими артикулами. Его удаление приведет также к удалению из свойств всех таких артикулов."

@@ -32,7 +32,7 @@ label { cursor: pointer; }
 #mainmenu .s-level2 .block { padding: 0 0 10px; }
 #mainmenu .s-level2 ul li.selected a { /*background: none;*/ font-weight: bold; }
 #mainmenu .s-level2 input.button { margin: -4px 2px -5px; }
-#mainmenu .s-search-form { padding: 0; position: relative; margin-left: 30px; margin-right: 200px; }
+#mainmenu .s-search-form { padding: 0; position: relative; margin-left: 30px; margin-right: 230px; }
 #mainmenu .s-search-form input[type="search"] { width: 98%; font-size: 120%; border: none; -webkit-appearance: none; border-radius: 0; font-weight: bold; }
 #mainmenu .s-search-form input[type="search"]::-webkit-search-decoration,
 #mainmenu .s-search-form input[type="search"]::-webkit-search-cancel-button,
@@ -1443,6 +1443,9 @@ ul.s-feature-values.menu-v li a { margin-left: 0; padding-left: 0; }
 .s-settings-form .s-settings-shipping-rounding { margin: 0px; padding-left: 0px;}
 .s-settings-form .s-settings-shipping-params { margin: 0px;}
 .s-settings-form .is-fixed-to-bottom {position: fixed; bottom: 0; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1; background: white; margin: 0; padding: 15px}
+
+.s-send-test-dialog .s-checkbox-wrapper { position: relative; }
+.s-send-test-dialog .s-checkbox-wrapper:after { content: ""; position: absolute; top: 0; left: 0; display: block; width: 100%; height: 100%; background: transparent; }
 
 .s-ibutton-and-label { display: block; margin: -5px 0 10px; }
 .s-ibutton-and-label span { position: relative; top: -7px; }

@@ -335,6 +335,11 @@ class shopFrontendCategoryAction extends shopFrontendAction
         $canonical_url = wa()->getRouteUrl('shop/frontend/category', [
             'category_url' => $category[$url_field],
         ], true);
+
+        $page_number = max(1, $this->getRequest()->get('page', 1, waRequest::TYPE_INT));
+        if ($page_number > 1) {
+            $canonical_url .= '?page=' . $page_number;
+        }
         $this->getResponse()->setCanonical($canonical_url);
 
         /**

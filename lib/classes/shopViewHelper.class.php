@@ -1002,6 +1002,17 @@ SQL;
         return $route;
     }
 
+    /**
+     * Whether Shop app has at least one frontend route.
+     * @return bool
+     * @since 8.15.0
+     */
+    public function hasRoutes()
+    {
+        $routing = wa()->getRouting()->getByApp('shop');
+        return !empty($routing);
+    }
+
     public function categories($id = 0, $depth = null, $tree = false, $params = false, $route = null)
     {
         if ($id === true) {

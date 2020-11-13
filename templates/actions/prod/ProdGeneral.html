@@ -73,7 +73,7 @@
                                         {$_show_toggle = ($_count > $_limit)}
                                         {foreach $frontend_urls as $_front}
                                             <li {if $_front@iteration > $_limit}class="s-extended-item" style="display: none;"{/if}>
-                                                <a href="{$_front.url|escape}">{$_front.url|escape}</a>
+                                                <a href="{$_front.url|escape}" target="_blank">{$_front.url|escape}</a>
                                             </li>
                                         {/foreach}
                                         {if !empty($_show_toggle)}
@@ -316,6 +316,13 @@
                                                 {$_active_product_type.name|default:""|escape}
                                             </button>
                                             <div class="dropdown-body">
+                                                <div class="dropdown-filter js-dropdown-filter">
+                                                    <div class="s-actions left">
+                                                        <div class="s-action js-apply"><i class="fas fa-search"></i></div>
+                                                    </div>
+                                                    <input class="s-field js-field" type="text" value="">
+                                                </div>
+
                                                 {foreach $product_types as $_type}
                                                     <div class="dropdown-item" data-id="{$_type.id|escape}">
                                                         {if !empty($_type.icon)}{_render_type_icon _icon=$_type.icon}{/if}
@@ -326,7 +333,11 @@
                                             <input name="product[type_id]" type="hidden" value="{$_active_product_type.id|default:""|escape}">
                                         </div>
 
-                                        <a class="wa-button wa-small wa-short transparent-gray nowrap js-disable-router" href="{$wa_app_url}?action=settings#/typefeat/" target="_blank">
+                                        <a class="wa-button wa-small wa-short transparent-gray nowrap js-disable-router js-setup-type-link"
+                                           data-href="{$wa_app_url|escape}?action=settings#/typefeat/%type_id%/"
+                                           href="{$wa_app_url|escape}?action=settings#/typefeat/{$_active_product_type.id|escape}/"
+                                           target="_blank">
+
                                             <span class="s-icon icon baseline shift-1 size-12"><i class="fas fa-cog"></i></span>
                                             &nbsp;
                                             <span class="s-name">[`Customize`]</span>
@@ -360,6 +371,13 @@
                                     <div class="dropdown" id="js-product-main-category-select">
                                         <button class="dropdown-toggle wa-button gray-field" type="button">{$_active_main_category.name|default:$_locales["select_category"]|escape}</button>
                                         <div class="dropdown-body">
+                                            <div class="dropdown-filter js-dropdown-filter">
+                                                <div class="s-actions left">
+                                                    <div class="s-action js-apply"><i class="fas fa-search"></i></div>
+                                                </div>
+                                                <input class="s-field js-field" type="text" value="">
+                                            </div>
+
                                             <div class="dropdown-item" data-action="create">
                                                 <div class="dropdown-item-name">[`Add a new category`]</div>
                                             </div>

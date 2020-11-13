@@ -1353,7 +1353,9 @@ SQL;
 
                 if ((strpos($file, shopImage::getUrl($exists, $matches[3])) !== false)) {
                     $exists = $model->getByField($exists);
-                    $exists['::same'] = true;
+                    if ($exists) {
+                        $exists['::same'] = true;
+                    }
                 } else {
                     $exists = false;
                 }
@@ -1579,12 +1581,12 @@ SQL;
             }
 
             static $dimension_features;
-            if (!isset($dimension_features)) {
+            if (!isset($dimension_features) && !empty($data['features'])) {
                 $feature_codes = array_keys($data['features']);
                 $feature_model = new shopFeatureModel();
                 $dimension_features = $feature_model->getByCode($feature_codes);
             }
-            foreach ($data['features'] as $code => &$value) {
+            foreach (ifset($data, 'features', []) as $code => &$value) {
                 if (!is_array($value)) {
                     $last_piece = substr($value, strrpos($value, ' ') + 1);
                     if ((empty($last_piece) || is_numeric($last_piece))
@@ -2677,7 +2679,11 @@ SQL;
         $name = preg_replace('@[^a-zA-Zа-яёА-ЯЁ0-9\._\-]+@u', '', basename(urldecode($file)));
         $ext = pathinfo(urldecode($file), PATHINFO_EXTENSION);
         if (empty($ext) || !in_array($ext, array('jpeg', 'jpg', 'png', 'gif'))) {
-            $ext = 'jpeg';
+            $image = $this->getImage($file);
+            $ext = $image->getExt();
+            if (empty($ext)) {
+                $ext = 'jpeg';
+            }
             $name .= '.'.$ext;
         }
         return $name;

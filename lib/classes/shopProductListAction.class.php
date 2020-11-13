@@ -262,16 +262,14 @@ class shopProductListAction extends waViewAction
                     if ($sku['stock'] === null) {
                         $sku_stock_icon = shopHelper::getStockCountIcon($sku['count']);
                         $sku['count_icon_html'] = $sku_stock_icon;
-                    } else {
+                    } else if (is_array($sku['stock'])) {
                         foreach ($stocks as $stock_id => $stock) {
-                            if (is_array($sku['stock'])) {
-                                $sku_stock_count = $sku['stock'][$stock['id']];
-                                $sku_stock_icon = shopHelper::getStockCountIcon($sku_stock_count, $stock_id);
-                                $sku['stock'][$stock['id']] = array(
-                                    'count'     => $sku_stock_count,
-                                    'icon_html' => $sku_stock_icon
-                                );
-                            }
+                            $sku_stock_count = ifset($sku['stock'], $stock['id'], null);
+                            $sku_stock_icon = shopHelper::getStockCountIcon($sku_stock_count, $stock['id']);
+                            $sku['stock'][$stock['id']] = array(
+                                'count'     => $sku_stock_count,
+                                'icon_html' => $sku_stock_icon,
+                            );
                         }
                     }
                 }

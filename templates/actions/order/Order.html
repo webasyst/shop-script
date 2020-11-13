@@ -401,6 +401,11 @@
                                             {/strip}
                                         </div>
                                     {/if}
+                                    {if !empty($row.params.is_delivery_cost_removed)}
+                                        <div class="value delivery-cost-removed-caption">
+                                            [`Стоимость доставки была удалена`]
+                                        </div>
+                                    {/if}
                                     {if !empty($row.params.return_stock)}
                                     <div class="value">
                                         {ifset($row.params.return_stock_name,$row.params.return_stock)|string_format:"[`Items were returned to stock “%s”.`]"|escape}

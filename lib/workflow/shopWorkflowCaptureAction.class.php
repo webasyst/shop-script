@@ -78,7 +78,8 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
 
                 if ($partial_capture) {
                     $change_items = ifset($options, 'action_options', 'capture_items', waRequest::post('capture_items'));
-                    $order->edit($change_items, waPayment::OPERATION_CAPTURE);
+                    $capture_shipping_cost = waRequest::post('capture_shipping_cost', 0, waRequest::TYPE_INT);
+                    $order->edit($change_items, waPayment::OPERATION_CAPTURE, null, $capture_shipping_cost);
 
                     $text = nl2br(htmlspecialchars(trim(waRequest::post('text', '')), ENT_QUOTES, 'utf-8'));
                     if (!strlen($text)) {
@@ -139,6 +140,7 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
                 } else {
                     if (($response['result'] === 0)) {
                         $amount = ifset($response, 'data', 'amount', $transaction['amount']);
+                        $is_delivery_cost_removed = ifset($response, 'data', 'is_delivery_cost_removed', false);
                         $currency_id = ifset($response, 'data', 'currency_id', $transaction['currency_id']);
 
                         $capture_amount_html = shop_currency_html($amount, $currency_id);
@@ -152,6 +154,7 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
                         $result = array(
                             'params' => array(
                                 'capture_amount' => $amount,
+                                'is_delivery_cost_removed' => $is_delivery_cost_removed,
                             ),
                             'text'   => sprintf($template, $capture_amount_html, $plugin->getName()),
                         );

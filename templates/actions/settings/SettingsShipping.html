@@ -108,7 +108,7 @@
                     <i class="icon10 {if $cron_params.status==='ok'}yes{else} exclamation{/if}"></i> {$cron_params.time|wa_datetime:'humandatetime'|string_format:"[`Shipping-related information is automatically updated. Latest cron execution time: <strong>%s</strong>.`]"}
                 </p>
             {else}
-                <p class="red bold small s-cron-error">
+                <p class="red bold small">
                     <i class="icon10 {if $cron_params.status==='error'}no{else}exclamation{/if}"></i>
                     [`Shipping-related information is not automatically updated, because cron is not properly configured.`]
                     <br>

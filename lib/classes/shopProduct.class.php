@@ -450,15 +450,23 @@ class shopProduct implements ArrayAccess
             case 'youtube.com':
                 $video['width'] = 560;
                 $video['height'] = 315;
-                if (preg_match('/v=([^&]+)/i', $video['url'], $match)) {
-                    $url = '//www.youtube.com/embed/'.$match[1];
+                // https://www.youtube.com/watch?v=...&t=77
+                if (preg_match('/(\?|&)v=([^&]+)/i', $video['url'], $match)) {
+                    $url = '//www.youtube.com/embed/'.$match[2];
+                }
+                if ($url && preg_match('/(\?|&)t=(\d+)/i', $video['url'], $match)) {
+                    $url .= '?start='.$match[2];
                 }
                 break;
             case 'youtu.be':
                 $video['width'] = 560;
                 $video['height'] = 315;
-                if (preg_match('/youtu.be\/([^&]+)/i', $video['url'], $match)) {
+                // https://youtu.be/...?t=77
+                if (preg_match('/youtu.be\/([^&\?]+)/i', $video['url'], $match)) {
                     $url = '//www.youtube.com/embed/'.$match[1];
+                }
+                if ($url && preg_match('/(\?|&)t=(\d+)/i', $video['url'], $match)) {
+                    $url .= '?start='.$match[2];
                 }
                 break;
             case 'vimeo.com':
@@ -1189,7 +1197,6 @@ class shopProduct implements ArrayAccess
 
     /**
      * @return array
-     * @throws waDbException
      * @throws waException
      */
     public function getSkuFeatures()

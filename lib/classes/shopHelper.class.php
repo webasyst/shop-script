@@ -1263,7 +1263,7 @@ class shopHelper
                 $str = waLocale::transliterate($str, $lang);
             }
         }
-        $str = preg_replace('/[^a-zA-Z0-9_]+/', '-', $str);
+        $str = trim(preg_replace('/[^a-zA-Z0-9_]+/', '-', $str), '-');
         if ($strict && !strlen($str)) {
             $str = date('Ymd');
         }

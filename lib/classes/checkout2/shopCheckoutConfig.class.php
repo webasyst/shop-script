@@ -502,6 +502,13 @@ class shopCheckoutConfig implements ArrayAccess
         return $methods;
     }
 
+    public function getAssemblyTimeByRate($variant)
+    {
+        $shop_plugin_id = intval($variant['variant_id']);
+        $plugin_info    = shopShipping::getPluginInfo($shop_plugin_id);
+        return ifset($plugin_info, 'options', 'assembly_time', 0);
+    }
+
     protected function convertRate($rate, $in_currency, $out_currency)
     {
         if ($in_currency !== $out_currency) {

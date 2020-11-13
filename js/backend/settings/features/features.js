@@ -148,6 +148,8 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
             if (that.body_scroll_top) {
                 that.$body.scrollTop(that.body_scroll_top);
+            } else {
+                that.scrollToActive();
             }
         };
 
@@ -337,6 +339,20 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                     }
                 });
             });
+        };
+
+        Sidebar.prototype.scrollToActive = function() {
+            var that = this;
+
+            var $selected = that.$types_list.find(".js-type-wrapper.selected:first");
+            if (!$selected.length) { return false; }
+
+            that.$body.scrollTop(0);
+
+            var element_top = $selected.offset().top,
+                list_top = that.$types_list.offset().top;
+
+            that.$body.scrollTop(element_top - list_top);
         };
 
         return Sidebar;

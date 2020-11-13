@@ -29,7 +29,11 @@
                     selectable_features: false
                 }
             };
-            that.errors = {};
+            that.errors = {
+                // сюда будут добавться точечные ключи ошибок
+                // ключ global содержит массив с общими ошибками страницы
+                global: []
+            };
 
             //
             that.new_modification = that.formatModification(options["new_modification"]);
@@ -111,6 +115,566 @@
 
             // COMPONENTS
 
+            // feature components
+
+            Vue.component("component-features", {
+                props: ["product", "features", "values", "vertical", "columns"],
+                template: that.templates["component-features"],
+                delimiters: ['{ { ', ' } }'],
+                mounted: function() {
+                    var self = this;
+                    initFeatureTooltips(self);
+                }
+            });
+
+            Vue.component("component-feature", {
+                props: ["product", "feature", "value", "vertical", "columns"],
+                template: that.templates["component-feature"],
+                delimiters: ['{ { ', ' } }'],
+                methods: {
+                    changeFeatureValues: function(feature) {
+                        var self = this;
+
+                        that.initChangeFeatureValuesDialog(self, feature);
+                    },
+                    resetFeatureValues: function(feature) {
+                        var self = this;
+
+                        $.each(feature.options, function(i, option) {
+                            option.active = false;
+                        });
+
+                        that.$wrapper.trigger("change");
+                    },
+                    showFeatureUsedValuesDialog: function(feature) {
+                        var self = this;
+
+                        $.waDialog({
+                            html: that.templates["dialog_feature_used_values"],
+                            options: {
+                                scope: self,
+                                feature: feature
+                            },
+                            onOpen: initDialog
+                        });
+
+                        function initDialog($dialog, dialog) {
+                            var $section = $dialog.find(".js-vue-wrapper");
+
+                            new Vue({
+                                el: $section[0],
+                                data: {
+                                    feature: dialog.options.feature,
+                                    product: dialog.options.scope.product
+                                },
+                                delimiters: ['{ { ', ' } }'],
+                                methods: {
+                                    getUsedValues: function() {
+                                        var self = this,
+                                            target_feature = self.feature,
+                                            values = {};
+
+                                        if (target_feature.options && target_feature.options.length) {
+                                            $.each(self.product.skus, function(i, sku) {
+                                                $.each(sku.modifications, function(j, sku_mod) {
+                                                    var features_array = [].concat(sku_mod.features, sku_mod.features_selectable);
+                                                    $.each(features_array, function(k, feature) {
+                                                        if (feature.code === target_feature.code) {
+
+                                                            switch (feature.render_type) {
+                                                                case "field":
+                                                                    setFields("×");
+                                                                    break;
+                                                                case "select":
+                                                                    if (feature.active_option && feature.active_option.value.length) {
+                                                                        if (!values[feature.active_option.name]) {
+                                                                            values[feature.active_option.name] = {
+                                                                                value: feature.active_option.name
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    break;
+                                                                case "checkbox":
+                                                                    $.each(feature.options, function(n, option) {
+                                                                        if (option.active && option.value) {
+                                                                            if (!values[option.value]) {
+                                                                                values[option.value] = {
+                                                                                    value: option.value
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    });
+                                                                    break;
+                                                                case "textarea":
+                                                                    if (feature.value.length) {
+                                                                        if (!values[feature.value]) {
+                                                                            values[feature.value] = { value: feature.value }
+                                                                        }
+                                                                    }
+                                                                    break;
+                                                                case "range":
+                                                                    setFields(" — ");
+                                                                    break;
+                                                                case "range.volume":
+                                                                    setFields(" — ");
+                                                                    break;
+                                                                case "range.date":
+                                                                    setFields(" — ");
+                                                                    break;
+                                                                case "field.date":
+                                                                    setFields(" — ");
+                                                                    break;
+                                                                case "color":
+                                                                    var option = feature.options[0];
+                                                                    if (option.value && !values[option.value]) {
+                                                                        values[option.value] = {
+                                                                            value: option.value,
+                                                                            code: option.code
+                                                                        }
+                                                                    }
+                                                                    break;
+                                                                default:
+                                                                    break;
+                                                            }
+                                                            return false;
+
+                                                            function setFields(divider) {
+                                                                var values_array = [],
+                                                                    value_is_set = false;
+
+                                                                $.each(feature.options, function(n, option) {
+                                                                    if (option.value) { value_is_set = true; }
+                                                                    var value = ( option.value ? option.value : "\"\"");
+                                                                    values_array.push(value);
+                                                                });
+
+                                                                var name = values_array.join(divider);
+
+                                                                if (value_is_set && !values[name]) {
+                                                                    var value = { value: name }
+
+                                                                    if (feature.active_unit && feature.active_unit.name) {
+                                                                        value.unit = feature.active_unit.name;
+                                                                    }
+
+                                                                    values[name] = value;
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+                                                });
+                                            });
+                                        }
+
+                                        return sortValues(values);
+
+                                        function sortValues(values) {
+                                            var sorted_values = [];
+
+                                            if (Object.keys(values).length > 0) {
+                                                if (target_feature.render_type === "select" || target_feature.render_type === "checkbox") {
+                                                    $.each(target_feature.options, function(i, option) {
+                                                        if (values[option.name]) {
+                                                            sorted_values.push(option);
+                                                        }
+                                                    });
+                                                } else {
+                                                    sorted_values = $.wa.destruct(values);
+                                                }
+                                            }
+
+                                            return sorted_values;
+                                        }
+                                    }
+                                },
+                                created: function () {
+                                    $section.css("visibility", "");
+                                },
+                                mounted: function () {
+                                    dialog.resize();
+                                }
+                            });
+                        }
+                    }
+                },
+                components: {
+                },
+                mounted: function() {
+                    var self = this;
+                }
+            });
+
+            Vue.component("component-feature-default-tooltip", {
+                props: ["feature"],
+                template: that.templates["component-feature-default-tooltip"],
+                delimiters: ['{ { ', ' } }'],
+                mounted: function() {
+                    var self = this;
+
+                    $(self.$el).find(".wa-tooltip").each(function () {
+                        $(this).waTooltip({hover: true, hover_delay: 200});
+                    });
+                }
+            });
+
+            Vue.component("component-feature-color", {
+                props: ["feature", "vertical"],
+                data: function() {
+                    return {
+                        color_xhr: null,
+                        transliterate_name: true,
+                        transliterate_color: true,
+                        timer: 0
+                    }
+                },
+                template: that.templates["component-feature-color"],
+                methods: {
+                    colorChange: function() {
+                        var self = this;
+
+                        var option = self.feature.options[0];
+
+                        self.transliterate_color = !option.code.length;
+
+                        clearTimeout(self.timer);
+                        self.timer = setTimeout(sendRequest, 500);
+
+                        function sendRequest() {
+                            var color = option.code;
+                            color = (typeof color === "string" ? color : "");
+
+                            if (option.code.length && self.transliterate_name) {
+                                self.getColorInfo(null, color)
+                                    .done( function(data) {
+                                        if (self.transliterate_name) {
+                                            option.value = data.name;
+                                        }
+                                    });
+                            }
+                        }
+                    },
+                    colorNameChange: function() {
+                        var self = this;
+
+                        var option = self.feature.options[0];
+
+                        self.transliterate_name = !option.value.length;
+
+                        clearTimeout(self.timer);
+                        self.timer = setTimeout(sendRequest, 500);
+
+                        function sendRequest() {
+                            var name = option.value;
+                            name = (typeof name === "string" ? name : "");
+
+                            if (name.length && self.transliterate_color) {
+                                self.getColorInfo(name, null)
+                                    .done( function(data) {
+                                        if (self.transliterate_color) {
+                                            option.code = data.color;
+                                            self.$set(option, "code", data.color);
+                                        }
+                                    });
+                            }
+                        }
+                    },
+                    getColorInfo: function(name, color) {
+                        var self = this;
+
+                        var href = that.urls["color_transliterate"],
+                            data = {};
+
+                        if (color) { data.code = color2magic(color); }
+                        if (name) { data.name = name; }
+
+                        var deferred = $.Deferred();
+
+                        if (self.color_xhr) { self.color_xhr.abort(); }
+
+                        self.color_xhr = $.get(href, data, "json")
+                            .always( function() {
+                                self.color_xhr = null;
+                            })
+                            .done( function(response) {
+                                if (response.status === "ok") {
+                                    deferred.resolve({
+                                        name: response.data.name,
+                                        color: magic2color(response.data.code)
+                                    });
+                                } else {
+                                    deferred.reject();
+                                }
+                            })
+                            .fail( function() {
+                                deferred.reject();
+                            });
+
+                        return deferred.promise();
+
+                        function color2magic(color) {
+                            return 0xFFFFFF & parseInt(('' + color + '000000').replace(/[^0-9A-F]+/gi, '').substr(0, 6), 16);
+                        }
+
+                        function magic2color(magic) {
+                            return (0xF000000 | magic).toString(16).toLowerCase().replace(/^f/, "#");
+                        }
+                    }
+                },
+                mounted: function() {
+                    var self = this;
+                }
+            });
+
+            Vue.component("component-feature-value-form", {
+                props: ["feature"],
+                data: function() {
+                    return {
+                        is_locked: false,
+                        color_xhr: null,
+                        transliterate_name: true,
+                        transliterate_color: true,
+                        timer: 0
+                    }
+                },
+                template: that.templates["component-feature-value-form"],
+                methods: {
+                    submitForm: function() {
+                        var self = this;
+
+                        if (!self.feature.form.value.length) { return; }
+                        if (self.is_locked) { return; }
+
+                        self.is_locked = true;
+
+                        var data = {
+                            "feature_id": self.feature.id,
+                            "value[value]": self.feature.form.value
+                        };
+
+                        if (typeof self.feature.form.code === "string" && self.feature.form.code.length) {
+                            data["value[code]"] = self.feature.form.code;
+                        }
+
+                        if (typeof self.feature.form.unit === "string" && self.feature.form.unit.length) {
+                            data["value[unit]"] = self.feature.form.unit;
+                        }
+
+                        request(data)
+                            .always( function() {
+                                self.is_locked = false;
+                            })
+                            .done( function(data) {
+                                self.feature.show_form = false;
+                                self.feature.form.value = "";
+                                if (self.feature.form.code) {
+                                    self.feature.form.code = "";
+                                }
+                                if (self.feature.default_unit) {
+                                    self.feature.form.unit = self.feature.default_unit;
+                                }
+                                // update all features model values
+                                that.addFeatureValueToModel(self.feature, data.option);
+                                self.$emit("feature_value_added", data.option);
+                            });
+
+                        function request(request_data) {
+                            var deferred = $.Deferred();
+
+                            $.post(that.urls["add_feature_value"], request_data, "json")
+                                .done( function(response) {
+                                    if (response.status === "ok") {
+                                        deferred.resolve(response.data);
+                                    } else {
+                                        deferred.reject(response.errors);
+                                    }
+                                })
+                                .fail( function() {
+                                    deferred.reject([]);
+                                });
+
+                            return deferred.promise();
+                        }
+                    },
+                    closeForm: function() {
+                        var self = this;
+                        self.feature.show_form = false;
+                    },
+                    changeFormUnit: function(unit) {
+                        var self = this;
+                        self.feature.form.unit = unit.value;
+                    },
+                    colorChange: function() {
+                        var self = this;
+
+                        self.transliterate_color = !self.feature.form.code.length;
+
+                        clearTimeout(self.timer);
+                        self.timer = setTimeout(sendRequest, 500);
+
+                        function sendRequest() {
+                            var color = self.feature.form.code;
+                            color = (typeof color === "string" ? color : "");
+
+                            if (self.feature.form.code.length && self.transliterate_name) {
+                                self.getColorInfo(null, color)
+                                    .done( function(data) {
+                                        if (self.transliterate_name) {
+                                            self.feature.form.value = data.name;
+                                        }
+                                    });
+                            }
+                        }
+                    },
+                    colorNameChange: function() {
+                        var self = this;
+
+                        if (self.feature.type !== "color") { return false; }
+
+                        self.transliterate_name = !self.feature.form.value.length;
+
+                        clearTimeout(self.timer);
+                        self.timer = setTimeout(sendRequest, 500);
+
+                        function sendRequest() {
+                            var name = self.feature.form.value;
+                            name = (typeof name === "string" ? name : "");
+
+                            if (name.length && self.transliterate_color) {
+                                self.getColorInfo(name, null)
+                                    .done( function(data) {
+                                        if (self.transliterate_color) {
+                                            self.feature.form.code = data.color;
+                                            self.$set(self.feature.form, "code", data.color);
+                                        }
+                                    });
+                            }
+                        }
+                    },
+                    getColorInfo: function(name, color) {
+                        var self = this;
+
+                        var href = that.urls["color_transliterate"],
+                            data = {};
+
+                        if (color) { data.code = color2magic(color); }
+                        if (name) { data.name = name; }
+
+                        var deferred = $.Deferred();
+
+                        if (self.color_xhr) { self.color_xhr.abort(); }
+
+                        self.color_xhr = $.get(href, data, "json")
+                            .always( function() {
+                                self.color_xhr = null;
+                            })
+                            .done( function(response) {
+                                if (response.status === "ok") {
+                                    deferred.resolve({
+                                        name: response.data.name,
+                                        color: magic2color(response.data.code)
+                                    });
+                                } else {
+                                    deferred.reject();
+                                }
+                            })
+                            .fail( function() {
+                                deferred.reject();
+                            });
+
+                        return deferred.promise();
+
+                        function color2magic(color) {
+                            return 0xFFFFFF & parseInt(('' + color + '000000').replace(/[^0-9A-F]+/gi, '').substr(0, 6), 16);
+                        }
+
+                        function magic2color(magic) {
+                            return (0xF000000 | magic).toString(16).toLowerCase().replace(/^f/, "#");
+                        }
+                    }
+                },
+                mounted: function() {
+                    var self = this;
+                }
+            });
+
+            Vue.component("component-feature-color-picker", {
+                props: ["data", "property"],
+                data: function() {
+                    return {
+                        extended: false
+                    };
+                },
+                template: that.templates["component-feature-color-picker"],
+                delimiters: ['{ { ', ' } }'],
+                mounted: function() {
+                    var self = this;
+
+                    var $document = $(document),
+                        $wrapper = $(self.$el),
+                        $field = $wrapper.find(".js-color-field"),
+                        $toggle = $wrapper.find(".js-color-toggle"),
+                        $picker = $wrapper.find(".js-color-picker");
+
+                    var farbtastic = $.farbtastic($picker, function(color) {
+                        if (color !== self.data[self.property]) {
+                            self.data[self.property] = color;
+                            self.$emit("input", [color]);
+                        }
+                    });
+
+                    $toggle.on("click", function(event) {
+                        event.preventDefault();
+                        toggle(!self.extended);
+                    });
+
+                    $field.on("focus", function() {
+                        if (!self.extended) {
+                            toggle(true);
+                        }
+                    });
+
+                    $field.on("input", function(event) {
+                        var color = $(this).val();
+                        updateColor(color);
+                        self.$emit("input", [color]);
+                    });
+
+                    $document.on("click", clickWatcher);
+                    function clickWatcher(event) {
+                        var is_exist = $.contains(document, $wrapper[0]);
+                        if (is_exist) {
+                            if (self.extended) {
+                                if (!$.contains($wrapper[0], event.target)) {
+                                    toggle(false);
+                                }
+                            }
+                        } else {
+                            $document.off("click", clickWatcher);
+                        }
+                    }
+
+                    if (self.data[self.property]) {
+                        updateColor();
+                    }
+
+                    function updateColor(color) {
+                        color = (typeof color === "string" ? color : self.data[self.property]);
+
+                        if (color !== self.data[self.property]) {
+                            self.data[self.property] = color;
+                        }
+
+                        farbtastic.setColor(color);
+                    }
+
+                    function toggle(show) {
+                        self.extended = show;
+                    }
+                }
+            });
+
+            // other components
+
             Vue.component("component-advanced-sku-mode", {
                 props: ["product"],
                 template: that.templates["component-advanced-sku-mode"],
@@ -159,81 +723,6 @@
                             self.$emit("change", $(target).data("id"));
                         }
                     });
-                }
-            });
-
-            Vue.component("component-feature", {
-                props: ["product", "feature", "value", "vertical", "columns"],
-                template: that.templates["component-feature"],
-                delimiters: ['{ { ', ' } }'],
-                methods: {
-                    changeFeatureValues: function(feature) {
-                        var self = this;
-
-                        that.initChangeFeatureValuesDialog(self, feature);
-                    },
-                    resetFeatureValues: function(feature) {
-                        var self = this;
-
-                        $.each(feature.options, function(i, option) {
-                            option.active = false;
-                        });
-
-                        that.$wrapper.trigger("change");
-                    },
-                    getUsedFeatureValues: function(target_feature) {
-                        var self = this,
-                            values = [],
-                            sorted_values = [];
-
-                        if (target_feature.options && target_feature.options.length) {
-                            $.each(self.product.skus, function(i, sku) {
-                                $.each(sku.modifications, function(j, sku_mod) {
-                                    var features_array = [].concat(sku_mod.features, sku_mod.features_selectable);
-                                    $.each(features_array, function(k, feature) {
-                                        if (feature.code === target_feature.code) {
-                                            if (feature.active_option && feature.active_option.value) {
-                                                if (values.indexOf(feature.active_option.name) < 0) {
-                                                    values.push(feature.active_option.name);
-                                                }
-                                            } else {
-                                                $.each(feature.options, function(n, option) {
-                                                    if (option.active && option.value) {
-                                                        if (values.indexOf(option.name) < 0) {
-                                                            values.push(option.name);
-                                                        }
-                                                    }
-                                                });
-                                            }
-                                            return false;
-                                        }
-                                    });
-                                });
-                            });
-
-                            $.each(target_feature.options, function(i, option) {
-                                var index = values.indexOf(option.name);
-                                if (index >= 0) {
-                                    sorted_values.push(values[index]);
-                                }
-                            });
-                        }
-
-                        return sorted_values;
-                    }
-                },
-                mounted: function() {
-                    var self = this;
-                }
-            });
-
-            Vue.component("component-features", {
-                props: ["product", "features", "values", "vertical", "columns"],
-                template: that.templates["component-features"],
-                delimiters: ['{ { ', ' } }'],
-                mounted: function() {
-                    var self = this;
-                    initFeatureTooltips(self);
                 }
             });
 
@@ -453,82 +942,6 @@
                 }
             });
 
-            Vue.component("feature-color-picker", {
-                props: ["data", "property"],
-                data: function() {
-                    return {
-                        extended: false
-                    };
-                },
-                template: that.templates["component-feature-color-picker"],
-                delimiters: ['{ { ', ' } }'],
-                mounted: function() {
-                    var self = this;
-
-                    var $document = $(document),
-                        $wrapper = $(self.$el),
-                        $field = $wrapper.find(".js-color-field"),
-                        $toggle = $wrapper.find(".js-color-toggle"),
-                        $picker = $wrapper.find(".js-color-picker");
-
-                    var farbtastic = $.farbtastic($picker, function(color) {
-                        if (color !== self.data[self.property]) {
-                            self.data[self.property] = color;
-                            self.$emit("input", [color]);
-                        }
-                    });
-
-                    $toggle.on("click", function(event) {
-                        event.preventDefault();
-                        toggle(!self.extended);
-                    });
-
-                    $field.on("focus", function() {
-                        if (!self.extended) {
-                            toggle(true);
-                        }
-                    });
-
-                    $field.on("input", function(event) {
-                        var color = $(this).val();
-                        updateColor(color);
-                        self.$emit("input", [color]);
-                    });
-
-                    $document.on("click", clickWatcher);
-                    function clickWatcher(event) {
-                        var is_exist = $.contains(document, $wrapper[0]);
-                        if (is_exist) {
-                            if (self.extended) {
-                                if (!$.contains($wrapper[0], event.target)) {
-                                    toggle(false);
-                                }
-                            }
-                        } else {
-                            $document.off("click", clickWatcher);
-                        }
-                    }
-
-                    if (self.data[self.property]) {
-                        updateColor();
-                    }
-
-                    function updateColor(color) {
-                        color = (typeof color === "string" ? color : self.data[self.property]);
-
-                        if (color !== self.data[self.property]) {
-                            self.data[self.property] = color;
-                        }
-
-                        farbtastic.setColor(color);
-                    }
-
-                    function toggle(show) {
-                        self.extended = show;
-                    }
-                }
-            });
-
             Vue.component("component-switch", {
                 props: ["value", "disabled"],
                 data: function() {
@@ -722,284 +1135,6 @@
                 }
             });
 
-            Vue.component("component-feature-value-form", {
-                props: ["feature"],
-                data: function() {
-                    return {
-                        is_locked: false,
-                        color_xhr: null,
-                        transliterate_name: true,
-                        transliterate_color: true,
-                        timer: 0
-                    }
-                },
-                template: that.templates["component-feature-value-form"],
-                methods: {
-                    submitForm: function() {
-                        var self = this;
-
-                        if (!self.feature.form.value.length) { return; }
-                        if (self.is_locked) { return; }
-
-                        self.is_locked = true;
-
-                        var data = {
-                            "feature_id": self.feature.id,
-                            "value[value]": self.feature.form.value
-                        };
-
-                        if (typeof self.feature.form.code === "string" && self.feature.form.code.length) {
-                            data["value[code]"] = self.feature.form.code;
-                        }
-
-                        if (typeof self.feature.form.unit === "string" && self.feature.form.unit.length) {
-                            data["value[unit]"] = self.feature.form.unit;
-                        }
-
-                        request(data)
-                            .always( function() {
-                                self.is_locked = false;
-                            })
-                            .done( function(data) {
-                                self.feature.show_form = false;
-                                self.feature.form.value = "";
-                                if (self.feature.form.code) {
-                                    self.feature.form.code = "";
-                                }
-                                if (self.feature.default_unit) {
-                                    self.feature.form.unit = self.feature.default_unit;
-                                }
-                                // update all features model values
-                                that.addFeatureValueToModel(self.feature, data.option);
-                                self.$emit("feature_value_added", data.option);
-                            });
-
-                        function request(request_data) {
-                            var deferred = $.Deferred();
-
-                            $.post(that.urls["add_feature_value"], request_data, "json")
-                                .done( function(response) {
-                                    if (response.status === "ok") {
-                                        deferred.resolve(response.data);
-                                    } else {
-                                        deferred.reject(response.errors);
-                                    }
-                                })
-                                .fail( function() {
-                                    deferred.reject([]);
-                                });
-
-                            return deferred.promise();
-                        }
-                    },
-                    closeForm: function() {
-                        var self = this;
-                        self.feature.show_form = false;
-                    },
-                    changeFormUnit: function(unit) {
-                        var self = this;
-                        self.feature.form.unit = unit.value;
-                    },
-                    colorChange: function() {
-                        var self = this;
-
-                        self.transliterate_color = !self.feature.form.code.length;
-
-                        clearTimeout(self.timer);
-                        self.timer = setTimeout(sendRequest, 500);
-
-                        function sendRequest() {
-                            var color = self.feature.form.code;
-                            color = (typeof color === "string" ? color : "");
-
-                            if (self.feature.form.code.length && self.transliterate_name) {
-                                self.getColorInfo(null, color)
-                                    .done( function(data) {
-                                        if (self.transliterate_name) {
-                                            self.feature.form.value = data.name;
-                                        }
-                                    });
-                            }
-                        }
-                    },
-                    colorNameChange: function() {
-                        var self = this;
-
-                        self.transliterate_name = !self.feature.form.value.length;
-
-                        clearTimeout(self.timer);
-                        self.timer = setTimeout(sendRequest, 500);
-
-                        function sendRequest() {
-                            var name = self.feature.form.value;
-                            name = (typeof name === "string" ? name : "");
-
-                            if (name.length && self.transliterate_color) {
-                                self.getColorInfo(name, null)
-                                    .done( function(data) {
-                                        if (self.transliterate_color) {
-                                            self.feature.form.code = data.color;
-                                            self.$set(self.feature.form, "code", data.color);
-                                        }
-                                    });
-                            }
-                        }
-                    },
-                    getColorInfo: function(name, color) {
-                        var self = this;
-
-                        var href = that.urls["color_transliterate"],
-                            data = {};
-
-                        if (color) { data.code = color2magic(color); }
-                        if (name) { data.name = name; }
-
-                        var deferred = $.Deferred();
-
-                        if (self.color_xhr) { self.color_xhr.abort(); }
-
-                        self.color_xhr = $.get(href, data, "json")
-                            .always( function() {
-                                self.color_xhr = null;
-                            })
-                            .done( function(response) {
-                                if (response.status === "ok") {
-                                    deferred.resolve({
-                                        name: response.data.name,
-                                        color: magic2color(response.data.code)
-                                    });
-                                } else {
-                                    deferred.reject();
-                                }
-                            })
-                            .fail( function() {
-                                deferred.reject();
-                            });
-
-                        return deferred.promise();
-
-                        function color2magic(color) {
-                            return 0xFFFFFF & parseInt(('' + color + '000000').replace(/[^0-9A-F]+/gi, '').substr(0, 6), 16);
-                        }
-
-                        function magic2color(magic) {
-                            return (0xF000000 | magic).toString(16).toLowerCase().replace(/^f/, "#");
-                        }
-                    }
-                },
-                mounted: function() {
-                    var self = this;
-                }
-            });
-
-            Vue.component("component-feature-color", {
-                props: ["feature", "vertical"],
-                data: function() {
-                    return {
-                        color_xhr: null,
-                        transliterate_name: true,
-                        transliterate_color: true,
-                        timer: 0
-                    }
-                },
-                template: that.templates["component-feature-color"],
-                methods: {
-                    colorChange: function() {
-                        var self = this;
-
-                        var option = self.feature.options[0];
-
-                        self.transliterate_color = !option.code.length;
-
-                        clearTimeout(self.timer);
-                        self.timer = setTimeout(sendRequest, 500);
-
-                        function sendRequest() {
-                            var color = option.code;
-                            color = (typeof color === "string" ? color : "");
-
-                            if (option.code.length && self.transliterate_name) {
-                                self.getColorInfo(null, color)
-                                    .done( function(data) {
-                                        if (self.transliterate_name) {
-                                            option.value = data.name;
-                                        }
-                                    });
-                            }
-                        }
-                    },
-                    colorNameChange: function() {
-                        var self = this;
-
-                        var option = self.feature.options[0];
-
-                        self.transliterate_name = !option.value.length;
-
-                        clearTimeout(self.timer);
-                        self.timer = setTimeout(sendRequest, 500);
-
-                        function sendRequest() {
-                            var name = option.value;
-                            name = (typeof name === "string" ? name : "");
-
-                            if (name.length && self.transliterate_color) {
-                                self.getColorInfo(name, null)
-                                    .done( function(data) {
-                                        if (self.transliterate_color) {
-                                            option.code = data.color;
-                                            self.$set(option, "code", data.color);
-                                        }
-                                    });
-                            }
-                        }
-                    },
-                    getColorInfo: function(name, color) {
-                        var self = this;
-
-                        var href = that.urls["color_transliterate"],
-                            data = {};
-
-                        if (color) { data.code = color2magic(color); }
-                        if (name) { data.name = name; }
-
-                        var deferred = $.Deferred();
-
-                        if (self.color_xhr) { self.color_xhr.abort(); }
-
-                        self.color_xhr = $.get(href, data, "json")
-                            .always( function() {
-                                self.color_xhr = null;
-                            })
-                            .done( function(response) {
-                                if (response.status === "ok") {
-                                    deferred.resolve({
-                                        name: response.data.name,
-                                        color: magic2color(response.data.code)
-                                    });
-                                } else {
-                                    deferred.reject();
-                                }
-                            })
-                            .fail( function() {
-                                deferred.reject();
-                            });
-
-                        return deferred.promise();
-
-                        function color2magic(color) {
-                            return 0xFFFFFF & parseInt(('' + color + '000000').replace(/[^0-9A-F]+/gi, '').substr(0, 6), 16);
-                        }
-
-                        function magic2color(magic) {
-                            return (0xF000000 | magic).toString(16).toLowerCase().replace(/^f/, "#");
-                        }
-                    }
-                },
-                mounted: function() {
-                    var self = this;
-                }
-            });
-
             // ROOT VUE
 
             var vue_model = new Vue({
@@ -1061,8 +1196,17 @@
                 },
                 methods: {
                     removeError: function(error_id) {
-                        console.log(error_id);
-                        that.vue_model.$delete(that.errors, error_id);
+                        var error_index = null;
+                        $.each(that.errors.global, function(i, error) {
+                            if (error.id === error_id) {
+                                error_index = i;
+                                return false;
+                            }
+                        });
+
+                        if (typeof error_index === "number") {
+                            that.errors.splice(error_index, 1);
+                        }
                     },
 
                     // Misc
@@ -1475,6 +1619,8 @@
                             that.product.skus.splice(new_index, 0, sku);
                         }
 
+                        that.highlight("sku", { sku: sku });
+
                         that.$wrapper.trigger("change");
                     },
                     copySKU: function(sku, sku_index) {
@@ -1659,6 +1805,7 @@
                         var stocks_count = 0,
                             is_set = false;
 
+                        var virtual_stocks = [];
                         $.each(sku_mod.stock, function(stock_id, stock_value) {
                             var value = parseFloat(stock_value);
                             if (!isNaN(value)) {
@@ -1668,6 +1815,28 @@
                                 value = "";
                             }
                             sku_mod.stock[stock_id] = value;
+
+                            var stock = that.stocks[stock_id];
+                            if (stock.is_virtual) {
+                                virtual_stocks.push(stock);
+                            }
+                        });
+
+                        $.each(virtual_stocks, function(i, stock) {
+                            var value = "";
+
+                            if (stock.substocks) {
+                                $.each(stock.substocks, function(j, sub_stock_id) {
+                                    var sub_stock_value = sku_mod.stock[sub_stock_id];
+                                    sub_stock_value = parseFloat(sub_stock_value);
+                                    if (!isNaN(sub_stock_value)) {
+                                        if (!value) { value = 0; }
+                                        value += sub_stock_value;
+                                    }
+                                });
+                            }
+
+                            sku_mod.stock[stock.id] = value;
                         });
 
                         sku_mod.stocks_mode = is_set;
@@ -1708,48 +1877,47 @@
 
                     // OTHER
                     validate: function(event, type, data, key) {
-                        var $field = $(event.target),
+                        var self = this,
+                            $field = $(event.target),
                             target_value = $field.val(),
                             value = (typeof target_value === "string" ? target_value : "" + target_value);
 
-                        if (type === "number") {
-                            var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", ","],
-                                letters_array = [],
-                                divider_exist = false;
+                        value = $.wa.validate(type, value);
 
-                            $.each(value.split(""), function(i, letter) {
-                                if (letter === "." || letter === ",") {
-                                    if (!divider_exist) {
-                                        divider_exist = true;
-                                        letters_array.push(letter);
-                                    }
+                        switch (type) {
+                            case "price":
+                                value = $.wa.validate("number", value);
+
+                                var limit_body = 11,
+                                    limit_tail = 3,
+                                    parts = value.replace(",", ".").split(".");
+
+                                var error_key = "product[skus][" + data.id + "]["+ key + "]";
+
+                                if (parts[0].length > limit_body || (parts[1] && parts[1].length > limit_tail)) {
+                                    self.$set(self.errors, error_key, {
+                                        id: "price_error",
+                                        text: "price_error"
+                                    });
                                 } else {
-                                    if (white_list.indexOf(letter) >= 0) {
-                                        letters_array.push(letter);
+                                    if (self.errors[error_key]) {
+                                        self.$delete(that.errors, error_key);
                                     }
                                 }
-                            });
 
-                            value = letters_array.join("");
-
-                            // set
-                            set(value);
-
-                        } else if (type === "integer") {
-                            var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
-                                letters_array = [];
-
-                            $.each(value.split(""), function(i, letter) {
-                                if (white_list.indexOf(letter) >= 0) {
-                                    letters_array.push(letter);
-                                }
-                            });
-
-                            value = letters_array.join("");
-
-                            // set
-                            set(value);
+                                break;
+                            case "number":
+                                value = $.wa.validate("number", value);
+                                break;
+                            case "integer":
+                                value = $.wa.validate("integer", value);
+                                break;
+                            default:
+                                break;
                         }
+
+                        // set
+                        set(value);
 
                         function set(value) {
                             Vue.set(data, key, value);
@@ -1763,7 +1931,7 @@
                 mounted: function() {
                     var self = this;
                     that.initDragAndDrop(this);
-                    that.initTouchAndDrop(this);
+                    // that.initTouchAndDrop(this);
                     that.validate();
                 }
             });
@@ -2084,7 +2252,28 @@
 
             var $droparea = $("<div />", { class: "s-drop-area js-drop-area" });
 
+            $droparea
+                .on("dragover", function(event) {
+                    event.preventDefault();
+                })
+                .on("drop", function() {
+                    var $drop_mod = $droparea.attr("data-over_mod");
+                    $drop_mod.trigger("drop");
+                });
+
             that.$wrapper.on("dragstart", ".js-modification-move-toggle", function(event) {
+                drag_data = {
+                    before: null,
+                    moved_mod: null,
+                    moved_mod_id: null,
+                    moved_mod_index: null,
+                    moved_sku_index: null,
+                    drop_mod: null,
+                    drop_mod_id: null,
+                    drop_mod_index: null,
+                    drop_sku_index: null
+                };
+
                 start($(this).closest(".s-modification-wrapper"));
 
                 var $modification = $(drag_data.moved_mod);
@@ -2092,7 +2281,7 @@
                 $modification.addClass(move_class);
             });
 
-            that.$wrapper.on("dragend", ".js-modification-move-toggle", function(event) {
+            that.$wrapper.on("dragend", function(event) {
                 end();
                 $(drag_data.moved_mod).removeClass(move_class);
             });
@@ -2101,8 +2290,8 @@
                 event.preventDefault();
 
                 var $modification = $(this),
-                    over_mod_index = $modification.data("index"),
-                    over_sku_index = $modification.closest(".s-sku-section").data("index");
+                    over_mod_index = $modification.attr("data-index"),
+                    over_sku_index = $modification.closest(".s-sku-section").attr("data-index");
 
                 if (over_sku_index === drag_data.moved_sku_index && over_mod_index === drag_data.moved_mod_index) {
                     // position not change
@@ -2121,26 +2310,31 @@
                         } else {
                             $modification.after($droparea);
                         }
+                        $droparea.attr("data-over_mod", $modification);
                         drag_data.before = before;
                     }
                 }
             });
 
             that.$wrapper.on("drop", ".s-modification-wrapper", function() {
+                end();
+                $(drag_data.moved_mod).removeClass(move_class);
+
                 var $modification = $(this);
                 drag_data.drop_mod = $modification[0];
-                drag_data.drop_mod_id = $modification.data("id");
-                drag_data.drop_mod_index = $modification.data("index");
-                drag_data.drop_sku_index = $modification.closest(".s-sku-section").data("index");
+                drag_data.drop_mod_id = $modification.attr("data-id");
+                drag_data.drop_mod_index = $modification.attr("data-index");
+                drag_data.drop_sku_index = $modification.closest(".s-sku-section").attr("data-index");
+
                 drop(drag_data);
             });
 
             function start($modification) {
                 drag_data.before = null;
                 drag_data.moved_mod = $modification[0];
-                drag_data.moved_mod_id = $modification.data("id");
-                drag_data.moved_mod_index = $modification.data("index");
-                drag_data.moved_sku_index = $modification.closest(".s-sku-section").data("index");
+                drag_data.moved_mod_id = $modification.attr("data-id");
+                drag_data.moved_mod_index = $modification.attr("data-index");
+                drag_data.moved_sku_index = $modification.closest(".s-sku-section").attr("data-index");
                 drag_data.drop_mod = null;
                 drag_data.drop_mod_id = null;
                 drag_data.drop_mod_index = null;
@@ -2148,48 +2342,7 @@
             }
 
             function drop(drag_data) {
-                var new_index = drag_data.drop_mod_index + (drag_data.before ? 0 : 1);
-
-                if (drag_data.moved_mod === drag_data.drop_mod) {
-                    // position not change
-                } else if (drag_data.moved_sku_index === drag_data.drop_sku_index && new_index === drag_data.moved_mod_index) {
-                    // position not change
-                } else {
-                    move();
-                }
-
-                end();
-
-                function move() {
-                    var moved_sku = that.product.skus[drag_data.moved_sku_index],
-                        drop_sku = that.product.skus[drag_data.drop_sku_index],
-                        moved_mod = moved_sku.modifications[drag_data.moved_mod_index],
-                        drop_mod = moved_sku.modifications[drag_data.drop_mod_index];
-
-                    // remove target
-                    moved_sku.modifications.splice(drag_data.moved_mod_index, 1);
-
-                    // set target
-                    var drop_index = null;
-                    $.each(drop_sku.modifications, function(i, mod) {
-                        if (mod === drop_mod) { drop_index = i; }
-                    });
-                    new_index = drop_index + (drag_data.before ? 0 : 1);
-
-                    drop_sku.modifications.splice(new_index, 0, moved_mod);
-
-                    drag_data = {
-                        before: null,
-                        moved_mod: null,
-                        moved_mod_id: null,
-                        moved_mod_index: null,
-                        moved_sku_index: null,
-                        drop_mod: null,
-                        drop_mod_id: null,
-                        drop_mod_index: null,
-                        drop_sku_index: null
-                    };
-                }
+                that.moveMod(drag_data.moved_sku_index, drag_data.moved_mod_index, drag_data.drop_sku_index, parseInt(drag_data.drop_mod_index) + (drag_data.before ? 0 : 1));
             }
 
             function end(use_timer) {
@@ -2277,9 +2430,9 @@
                     if (target_modification) {
                         var $drop_mod = $(target_modification);
                         drag_data.drop_mod = $drop_mod[0];
-                        drag_data.drop_mod_id = $drop_mod.data("id");
-                        drag_data.drop_mod_index = $drop_mod.data("index");
-                        drag_data.drop_sku_index = $drop_mod.closest(".s-sku-section").data("index");
+                        drag_data.drop_mod_id = $drop_mod.attr("data-id");
+                        drag_data.drop_mod_index = $drop_mod.attr("data-index");
+                        drag_data.drop_sku_index = $drop_mod.closest(".s-sku-section").attr("data-index");
                         drop(drag_data);
                     }
 
@@ -2332,9 +2485,9 @@
                     if (target_modification) {
                         var $drop_mod = $(target_modification);
                         drag_data.drop_mod = $drop_mod[0];
-                        drag_data.drop_mod_id = $drop_mod.data("id");
-                        drag_data.drop_mod_index = $drop_mod.data("index");
-                        drag_data.drop_sku_index = $drop_mod.closest(".s-sku-section").data("index");
+                        drag_data.drop_mod_id = $drop_mod.attr("data-id");
+                        drag_data.drop_mod_index = $drop_mod.attr("data-index");
+                        drag_data.drop_sku_index = $drop_mod.closest(".s-sku-section").attr("data-index");
                         drop(drag_data);
                     }
 
@@ -2360,8 +2513,8 @@
             }
 
             function hover($target_mod, $move_mod, x, y) {
-                var over_mod_index = $target_mod.data("index"),
-                    over_sku_index = $target_mod.closest(".s-sku-section").data("index");
+                var over_mod_index = $target_mod.attr("data-index"),
+                    over_sku_index = $target_mod.closest(".s-sku-section").attr("data-index");
 
                 if (over_sku_index === drag_data.moved_sku_index && over_mod_index === drag_data.moved_mod_index) {
                     // position not change
@@ -2387,9 +2540,9 @@
             function start($modification) {
                 drag_data.before = null;
                 drag_data.moved_mod = $modification[0];
-                drag_data.moved_mod_id = $modification.data("id");
-                drag_data.moved_mod_index = $modification.data("index");
-                drag_data.moved_sku_index = $modification.closest(".s-sku-section").data("index");
+                drag_data.moved_mod_id = $modification.attr("data-id");
+                drag_data.moved_mod_index = $modification.attr("data-index");
+                drag_data.moved_sku_index = $modification.closest(".s-sku-section").attr("data-index");
                 drag_data.drop_mod = null;
                 drag_data.drop_mod_id = null;
                 drag_data.drop_mod_index = null;
@@ -2523,7 +2676,9 @@
                 event.preventDefault();
             });
 
-            that.$wrapper.on("click", ".js-product-save", function (event) {
+            that.$wrapper.on("click", ".js-product-save", function (event, options) {
+                options = (options || {});
+
                 event.preventDefault();
 
                 // Останавливаем сохранение если во фронте есть ошибки
@@ -2541,13 +2696,47 @@
                 var $button = $(this),
                     $loading = $(loading).appendTo($button.attr("disabled", true));
 
+                // Очищаем ошибки
+                $.each(that.errors, function(key, error) {
+                    // Точечные ошибки
+                    if (key !== "global") { Vue.delete(that.errors, key); }
+                    // Общие ошибки
+                    else if (error.length) {
+                        error.splice(0, error.length);
+                    }
+                });
+
                 sendRequest()
                     .done( function() {
-                        $.wa_shop_products.router.reload();
+                        if (options.redirect_url) {
+                            $.wa_shop_products.router.load(options.redirect_url);
+                        } else {
+                            $.wa_shop_products.router.reload();
+                        }
                     })
-                    .fail( function () {
+                    .fail( function(errors) {
                         $button.attr("disabled", false);
                         $loading.remove();
+
+                        if (errors) {
+                            $.each(errors, function(i, error) {
+                                console.log( error );
+
+                                if (error.id) {
+                                    switch (error.id) {
+                                        case "price_error":
+                                            Vue.set(that.errors, error.name, error);
+                                            break;
+                                        default:
+                                            that.errors.global.push(error);
+                                            break;
+                                    }
+                                } else {
+                                    that.errors.global.push(error);
+                                }
+                            });
+                            $(window).scrollTop(0);
+                        }
                     });
             });
 
@@ -2886,7 +3075,58 @@
                             });
                         });
                 } else {
-                    deferred.resolve();
+                    $.waDialog({
+                        html: that.templates["dialog_sku_delete"],
+                        onOpen: function($dialog, dialog) {
+                            var $section = $dialog.find(".js-vue-node-wrapper");
+
+                            new Vue({
+                                el: $section[0],
+                                data: {
+                                    sku: sku,
+                                    sku_mod: sku_mod,
+                                    product: that.product
+                                },
+                                delimiters: ['{ { ', ' } }'],
+                                methods: {
+                                    getName: function() {
+                                        var self = this;
+
+                                        var result = self.sku.id;
+
+                                        if (self.sku.name && self.sku.sku) {
+                                            result = self.sku.name + " (" + self.sku.sku + ")";
+                                        } else if (self.sku.name) {
+                                            result = self.sku.name;
+                                        } else if (self.sku.sku) {
+                                            result = self.sku.sku;
+                                        }
+
+                                        return result;
+                                    }
+                                },
+                                created: function () {
+                                    $section.css("visibility", "");
+                                },
+                                mounted: function () {
+                                    dialog.resize();
+                                }
+                            });
+
+                            $dialog.on("click", ".js-success-action", function(event) {
+                                event.preventDefault();
+                                is_success = true;
+                                dialog.close();
+                            });
+                        },
+                        onClose: function() {
+                            if (is_success) {
+                                deferred.resolve();
+                            } else {
+                                deferred.reject();
+                            }
+                        }
+                    });
                 }
 
                 return deferred.promise();
@@ -3259,8 +3499,19 @@
                             dialog.close();
                         }
                     },
-                    showDescriptionForm: function(photo) {
+                    showDescriptionForm: function(event, photo) {
+                        var self = this;
+
+                        var $photo = $(event.currentTarget).closest(".s-photo-wrapper");
+
                         photo.expanded = true;
+
+                        self.$nextTick( function() {
+                            var $textarea = $photo.find("textarea:first");
+                            if ($textarea) {
+                                $textarea.trigger("focus");
+                            }
+                        });
                     },
                     changeDescription: function(event, photo) {
                         var $button = $(event.currentTarget);
@@ -3510,7 +3761,7 @@
 
             var highlight_class = "is-highlighted";
 
-            var time = 3000;
+            var time = 1000;
 
             switch (type) {
                 case "sku":
@@ -3562,6 +3813,29 @@
             $textarea.css("min-height", 0);
             var scroll_h = $textarea[0].scrollHeight;
             $textarea.css("min-height", scroll_h + "px");
+        };
+
+        Section.prototype.moveMod = function(moved_sku_index, moved_mod_index, drop_sku_index, drop_mod_index) {
+            var that = this;
+
+            // console.log(moved_sku_index, moved_mod_index, drop_sku_index, drop_mod_index);
+
+            var moved_sku = that.product.skus[moved_sku_index],
+                moved_mod = moved_sku.modifications[moved_mod_index],
+                drop_sku = that.product.skus[drop_sku_index];
+
+            // remove target
+            moved_sku.modifications.splice(moved_mod_index, 1);
+
+            // set target
+            drop_sku.modifications.splice(drop_mod_index, 0, moved_mod);
+
+            moved_mod.name = drop_sku.name;
+            moved_mod.sku = drop_sku.sku;
+
+            that.highlight("sku_mod", { sku_mod: moved_mod });
+
+            that.$wrapper.trigger("change");
         };
 
         return Section;
