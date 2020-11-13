@@ -74,87 +74,88 @@ class shopYandexmarketPluginSettingsActions extends waViewActions
 
     public function campaignAction()
     {
-        $campaign_id = waRequest::request('campaign_id', null, waRequest::TYPE_INT);
-        $cpa_available = $this->plugin->checkCpa();
-        $this->view->assign('cpa_available', $cpa_available);
-
-        $api_available = $this->plugin->checkApi();
-        $this->view->assign('api_available', $api_available);
-        $this->view->assign('api_net', class_exists('waNet'));
-
-
-        $this->view->assign('campaign_id', $campaign_id);
-
-        if ($cpa_available) {
-            $model = new shopYandexmarketCampaignsModel();
-            $campaign = $model->get($campaign_id);
-            $this->view->assign('campaign', $campaign);
-
-            $this->view->assign('app_settings', waSystem::getSetting(null));
-            $shipping_methods = array();
-
-
-            try {
-                if ($api_available && ($region = $this->plugin->getCampaignRegion($campaign_id))) {
-                    $address = shopYandexmarketPluginOrder::parseAddress($region, null, true);
-                    $this->view->assign('address', $address);
-
-                    $shipping_methods = $this->getShippingMethods($address);
-                }
-            } catch (waException $ex) {
-                $this->view->assign('address_error', $ex->getMessage());
-            }
-
-            try {
-                $campaign_options = compact('campaign_id');
-                $campaign_options['feeds'] = false;
-                $campaign_options['settings'] = true;
-                if ($api_available && ($campaign_data = $this->plugin->getCampaigns($campaign_options))) {
-                    $this->view->assign('campaign_data', $campaign_data);
-
-                    $this->view->assign('campaign_settings', $campaign_data[$campaign_id]['settings']);
-
-
-                }
-            } catch (waException $ex) {
-                $this->view->assign('campaign_data_error', $ex->getMessage());
-            }
-
-            $settings = isset($campaign['shipping_methods']['dummy']) ? $campaign['shipping_methods']['dummy'] : array();
-            $primary_currency = $this->getPrimaryCurrency();
-            $dummy = array(
-                'rate'     => ifset($settings['cost']),
-                'name'     => ifset($settings['name'], 'Курьер'),
-                'estimate' => ifset($settings['estimate']),
-                'currency' => $primary_currency,
-            );
-
-
-            $this->view->assign('shipping_methods', compact('dummy') + $shipping_methods);
-            $plugin_model = new shopPluginModel();
-
-            $fields = array(
-                'plugin' => 'yandexmoney',
-                'type'   => shopPluginModel::TYPE_PAYMENT,
-                'status' => 1,
-            );
-
-            $payment_methods = $plugin_model->getByField($fields, true);
-
-            $this->view->assign('payment_methods', $payment_methods);
-
-            $this->view->assign('primary_currency', $primary_currency);
-
-
-            $routing = wa()->getRouting();
-            $route_params = array(
-                'plugin' => $this->plugin_id,
-                'module' => 'api',
-                'action' => 'hello',
-            );
-            $this->view->assign('api_url', preg_replace('@^http://@', 'https://', $routing->getUrl('shop', $route_params, true)));
-            $this->view->assign('timezones', waDateTime::getTimeZones());
-        }
+        return;
+//        $campaign_id = waRequest::request('campaign_id', null, waRequest::TYPE_INT);
+//        $cpa_available = $this->plugin->checkCpa();
+//        $this->view->assign('cpa_available', $cpa_available);
+//
+//        $api_available = $this->plugin->checkApi();
+//        $this->view->assign('api_available', $api_available);
+//        $this->view->assign('api_net', class_exists('waNet'));
+//
+//
+//        $this->view->assign('campaign_id', $campaign_id);
+//
+//        if ($cpa_available) {
+//            $model = new shopYandexmarketCampaignsModel();
+//            $campaign = $model->get($campaign_id);
+//            $this->view->assign('campaign', $campaign);
+//
+//            $this->view->assign('app_settings', waSystem::getSetting(null));
+//            $shipping_methods = array();
+//
+//
+//            try {
+//                if ($api_available && ($region = $this->plugin->getCampaignRegion($campaign_id))) {
+//                    $address = shopYandexmarketPluginOrder::parseAddress($region, null, true);
+//                    $this->view->assign('address', $address);
+//
+//                    $shipping_methods = $this->getShippingMethods($address);
+//                }
+//            } catch (waException $ex) {
+//                $this->view->assign('address_error', $ex->getMessage());
+//            }
+//
+//            try {
+//                $campaign_options = compact('campaign_id');
+//                $campaign_options['feeds'] = false;
+//                $campaign_options['settings'] = true;
+//                if ($api_available && ($campaign_data = $this->plugin->getCampaigns($campaign_options))) {
+//                    $this->view->assign('campaign_data', $campaign_data);
+//
+//                    $this->view->assign('campaign_settings', $campaign_data[$campaign_id]['settings']);
+//
+//
+//                }
+//            } catch (waException $ex) {
+//                $this->view->assign('campaign_data_error', $ex->getMessage());
+//            }
+//
+//            $settings = isset($campaign['shipping_methods']['dummy']) ? $campaign['shipping_methods']['dummy'] : array();
+//            $primary_currency = $this->getPrimaryCurrency();
+//            $dummy = array(
+//                'rate'     => ifset($settings['cost']),
+//                'name'     => ifset($settings['name'], 'Курьер'),
+//                'estimate' => ifset($settings['estimate']),
+//                'currency' => $primary_currency,
+//            );
+//
+//
+//            $this->view->assign('shipping_methods', compact('dummy') + $shipping_methods);
+//            $plugin_model = new shopPluginModel();
+//
+//            $fields = array(
+//                'plugin' => 'yandexmoney',
+//                'type'   => shopPluginModel::TYPE_PAYMENT,
+//                'status' => 1,
+//            );
+//
+//            $payment_methods = $plugin_model->getByField($fields, true);
+//
+//            $this->view->assign('payment_methods', $payment_methods);
+//
+//            $this->view->assign('primary_currency', $primary_currency);
+//
+//
+//            $routing = wa()->getRouting();
+//            $route_params = array(
+//                'plugin' => $this->plugin_id,
+//                'module' => 'api',
+//                'action' => 'hello',
+//            );
+//            $this->view->assign('api_url', preg_replace('@^http://@', 'https://', $routing->getUrl('shop', $route_params, true)));
+//            $this->view->assign('timezones', waDateTime::getTimeZones());
+//        }
     }
 
     private function getPrimaryCurrency()
@@ -212,37 +213,38 @@ class shopYandexmarketPluginSettingsActions extends waViewActions
 
     public function outletsAction()
     {
-        $campaign_id = max(0, waRequest::get('campaign_id', 0, waRequest::TYPE_INT));
-        $campaign = null;
-        if ($campaign_id) {
-            $model = new shopYandexmarketCampaignsModel();
-            $campaign = $model->get($campaign_id);
-
-            $cron_template = 'php %s/cli.php shop yandexmarketPluginCache %d';
-            $cron_command = sprintf($cron_template, wa()->getConfig()->getRootPath(), $campaign_id);
-
-            $ttl = round(shopYandexmarketPlugin::getTTL() / 2);
-            $api_available = $this->plugin->checkApi();
-
-            try {
-                $outlets = $this->plugin->getOutlets($campaign_id);
-            } catch (waException $ex) {
-                $error = $ex->getMessage();
-                $error_code = $ex->getCode();
-            }
-
-            try {
-                if ($api_available && ($region = $this->plugin->getCampaignRegion($campaign_id))) {
-                    $address = shopYandexmarketPluginOrder::parseAddress($region, null, true);
-                    $this->view->assign('address', $address);
-                    $shipping_methods = $this->getShippingMethods($address);
-                }
-            } catch (waException $ex) {
-                $this->view->assign('address_error', $ex->getMessage());
-            }
-        }
-
-        $this->view->assign(compact('campaign_id', 'campaign', 'outlets', 'shipping_methods', 'cron_command', 'ttl', 'error', 'error_code'));
+        return;
+//        $campaign_id = max(0, waRequest::get('campaign_id', 0, waRequest::TYPE_INT));
+//        $campaign = null;
+//        if ($campaign_id) {
+//            $model = new shopYandexmarketCampaignsModel();
+//            $campaign = $model->get($campaign_id);
+//
+//            $cron_template = 'php %s/cli.php shop yandexmarketPluginCache %d';
+//            $cron_command = sprintf($cron_template, wa()->getConfig()->getRootPath(), $campaign_id);
+//
+//            $ttl = round(shopYandexmarketPlugin::getTTL() / 2);
+//            $api_available = $this->plugin->checkApi();
+//
+//            try {
+//                $outlets = $this->plugin->getOutlets($campaign_id);
+//            } catch (waException $ex) {
+//                $error = $ex->getMessage();
+//                $error_code = $ex->getCode();
+//            }
+//
+//            try {
+//                if ($api_available && ($region = $this->plugin->getCampaignRegion($campaign_id))) {
+//                    $address = shopYandexmarketPluginOrder::parseAddress($region, null, true);
+//                    $this->view->assign('address', $address);
+//                    $shipping_methods = $this->getShippingMethods($address);
+//                }
+//            } catch (waException $ex) {
+//                $this->view->assign('address_error', $ex->getMessage());
+//            }
+//        }
+//
+//        $this->view->assign(compact('campaign_id', 'campaign', 'outlets', 'shipping_methods', 'cron_command', 'ttl', 'error', 'error_code'));
     }
 
     protected function getTemplate()

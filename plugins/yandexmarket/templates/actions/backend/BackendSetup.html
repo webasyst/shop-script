@@ -1,14 +1,14 @@
 {strip}
 
 <div class="block double-padded ymarket-setup-page" id="s-yandexmarket-form">
-    <p>Экспорт каталога товаров в формате YML, прием заказов (CPC, CPA)</p>
+    <p>Экспорт каталога товаров в формате YML</p>
     <div class="block">
         <a href="https://support.webasyst.ru/shop-script/276/shop-script-yandexmarket/" target="_blank" class="underline">
             <i class="icon16 light-bulb" style="vertical-align: middle;"></i>
             Документация пользователя
         </a> <i class="icon16 new-window"></i>
         <br/><br/>
-        Для изменения дополнительных параметров экспорта и подключения к «Заказу на Маркете» (CPA) перейдите в <a href="?action=plugins#/yandexmarket/" class="underline bold">настройки плагина</a>.
+        Для изменения дополнительных параметров экспорта перейдите в <a href="?action=plugins#/yandexmarket/" class="underline bold">настройки плагина</a>.
     </div>
 {if $settlements}
     <form id="s-plugin-yandexmarket" method="post" action="?plugin=yandexmarket&module=run">
@@ -395,24 +395,25 @@
             </div>
         </div>
 
-        <div class="field">
-            <div class="name">Участие предложений в программе «Заказ на Маркете».</div>
-            <div class="value no-shift">
-                <select name="shop[cpa]" id="s-plugin-yandexmarket-shop-cpa">
-                    <option value=""></option>
-                    <option value="true"{if ifempty($profile.config.shop.cpa) eq 'true'} selected="selected"{/if}>Да</option>
-                    <option value="false"{if ifempty($profile.config.shop.cpa) eq 'false'} selected="selected"{/if}>Нет</option>
-                </select>
-                <br/>
-                <span class="hint">Глобальный параметр <tt>cpa</tt> для для элемента <tt>&lt;shop&gt;</tt>.
-                <br/>Обработка заказов возможна вручную в партнерском интерфейсе «Яндекс.Маркета» или автоматически через <a href="?action=plugins#/yandexmarket/api/">API в Shop-Script</a>.
-                <br/><i class="icon10 info"></i>Это значение может быть переопределено для отдельных товаров в секции «Экспорт характеристик товаров».</span>
-            </div>
-        </div>
+{*        <div class="field">*}
+{*            <div class="name">Участие предложений в программе «Заказ на Маркете».</div>*}
+{*            <div class="value no-shift">*}
+{*                <select name="shop[cpa]" id="s-plugin-yandexmarket-shop-cpa">*}
+{*                    <option value=""></option>*}
+{*                    <option value="true"{if ifempty($profile.config.shop.cpa) eq 'true'} selected="selected"{/if}>Да</option>*}
+{*                    <option value="false"{if ifempty($profile.config.shop.cpa) eq 'false'} selected="selected"{/if}>Нет</option>*}
+{*                </select>*}
+{*                <br/>*}
+{*                <span class="hint">Глобальный параметр <tt>cpa</tt> для для элемента <tt>&lt;shop&gt;</tt>.*}
+{*                <br/>Обработка заказов возможна вручную в партнерском интерфейсе «Яндекс.Маркета» или автоматически через <a href="?action=plugins#/yandexmarket/api/">API в Shop-Script</a>.*}
+{*                <br/><i class="icon10 info"></i>Это значение может быть переопределено для отдельных товаров в секции «Экспорт характеристик товаров».</span>*}
+{*            </div>*}
+{*        </div>*}
     </div>
 
     <div class="field-group block top-padded">
         <h2>4. Общие параметры доставки</h2>
+
         <div class="field">
             <div class="name">
                 Покупка в офлайне
@@ -456,88 +457,113 @@
                     <option value="false"{if ifempty($profile.config.shop.delivery) eq 'false'} selected="selected"{/if}>Нет</option>
                 </select>
 
-                <p class="hint">Осуществляет ли ваш магазин доставку
-                <br/><i class="icon10 info"></i>Это значение может быть переопределено для отдельных товаров в секции «Экспорт характеристик товаров».</p>
+                <p class="hint">
+                    Осуществляет ли ваш магазин доставку<br/>
+                    <i class="icon10 info"></i>Это значение может быть переопределено для отдельных товаров в секции «Экспорт характеристик товаров».
+                </p>
             </div>
         </div>
 
+        <div class="field js-local-delivery-cost">
+            <div class="name">
+                Стоимость доставки
+            </div>
+            <div class="value">
+                <input type="text" name="shop[local_delivery_cost]" value="{ifset($profile.config.shop.local_delivery_cost)|escape}" placeholder="0" class="numerical short" id="s-plugin-yandexmarket-shop-local_delivery_cost"> {$primary_currency|escape}&rarr;&lt;delivery-options&gt;&lt;option <b>cost</b>="..." &gt;
 
-        <div class="field">
+                <p class="hint">
+                    <i class="icon10 info"></i>Это значение может быть переопределено для отдельных товаров в секции «Экспорт характеристик товаров».
+                </p>
+            </div>
+        </div>
+
+        <div class="field js-local-delivery-estimate">
+            <div class="name">
+                Сроки доставки
+            </div>
+            <div class="value">
+                <input type="text" name="shop[local_delivery_estimate]" value="{ifset($profile.config.shop.local_delivery_estimate)|escape}" placeholder="2-4" class="numerical short" id="s-plugin-yandexmarket-shop-local_delivery_estimate">&rarr;&lt;delivery-options&gt;&lt;option <b>days</b>="..." &gt;
+
+                <p class="hint">
+                    Срок указывается в рабочих днях<br/>
+                    <i class="icon10 info"></i>Это значение может быть переопределено для отдельных товаров в секции «Экспорт характеристик товаров».
+                </p>
+            </div>
+        </div>
+
+        <div class="field js-local-delivery-order-before">
             <div class="name">
                 Время приема заказа
             </div>
-
             <div class="value">
                 {$profile.config.shop.local_delivery_order_before=min(24,max(1,intval(ifset($profile.config.shop.local_delivery_order_before,24))))}
                 <input type="text" name="shop[local_delivery_order_before]" value="{$profile.config.shop.local_delivery_order_before|escape}" placeholder="24" class="numerical short" id="s-plugin-yandexmarket-shop-local_delivery_order_before">&rarr;&lt;delivery-options&gt;&lt;option <b>order-before</b>="..." &gt;
-            </div>
 
-            <div class="value">
-                <span class="hint">Время оформления заказа (только часы), до наступления которого действуют указанные сроки и условия доставки.<br>
-                Это общее значение можно переопределить для отдельных товаров в секции «Экспорт характеристик товаров».</span>
-            </div>
-        </div>
-
-        <div class="field js-delivery-options">
-            <div class="name">Домашний регион</div>
-            {if $api_available}
-                <div class="value no-shift">
-                    <input type="hidden" name="home_region_id" value="{$profile.config.home_region_id|default:''|escape}">
-                    {if !empty($address)}
-                        <span class="js-home-region-name">{$address.value|trim:' ,'}</span> <a href="#/yandexmarket:{$profile.id|escape}/region/edit/" class="inline-link js-edit-region js-action"><b><i>Изменить</i></b></a>
-                    {else}
-                        <span class="js-home-region-name"><i class="icon16 exclamation"></i>
-                        Не удалось определить домашний регион.</span> <a href="#/yandexmarket:{$profile.id|escape}/region/edit/" class="inline-link js-edit-region js-action"><b><i>Настроить</i></b></a>
-                        <br/>
-                        <span class="hint"><i class="icon10 info"></i>Выбор домашнего региона необходим для получения списка доступных способов доставки в секции «Условия доставки».
-                            <br/>Домашний регион определится автоматически из настроек кампании в аккаунте «Яндекс.Маркета» после экспорта этого YML-файла, если URL этого YML-файла указан в настройках кампании.</span>
-                    {/if}
-
-                    {if !empty($address_error)}<br/><span class="red"><i class="icon16 no"></i>{$address_error|escape}</span>{/if}
-
-                </div>
-                {if !empty($profile.config.campaign_id)}
-                <div class="value">
-                    <input type="hidden" name="campaign_id" value="{$profile.config.campaign_id|escape}">
-                    <span class="hint">Домашний регион определен на основе настроек личного кабинета на сайте «Яндекс.Маркета», используется для расчета стоимости доставки.</span>
-                </div>
-                {/if}
-                <div class="value js-edit-region" style="display:none;">
-                    <!-- changed region placeholder -->
-                </div>
-
-                <div class="value js-edit-region" style="display:none;">
-                    <a href="#/yandexmarket:{$profile.id|escape}/region/apply/" class="js-action">Применить</a> или <a href="#/yandexmarket:{$profile.id|escape}/region/cancel/" class="js-action">отмена</a>
-                </div>
-            {else}
-                <div class="value">
-                    Проверьте настройки <a href="?action=plugins#/yandexmarket/api/" title="Магазин — Плагины — Яндекс.Маркет — Авторизация партнерского API">партнерского API</a>
-                    <br>
-                    <span class="hint">Домашний регион необходимо указывать только при участии в программе "Заказ на Маркете"</span>
-                </div>
-            {/if}
-        </div>
-    </div>
-
-    <div class="block top-padded">
-        <h2>5. Условия доставки (домашний регион)</h2>
-
-        <div class="field">
-            <div class="name">Доставка включена</div>
-            <div class="value no-shift">
-                <label><input type="checkbox" name="shop[deliveryIncluded]" value="true"{if ifempty($profile.config.shop.deliveryIncluded) eq 'true'} checked="checked"{/if}> Доставка уже включена в стоимость товара</label>
+                <p class="hint">
+                    Время оформления заказа (только часы), до наступления которого действуют указанные сроки и условия доставки.<br/>
+                    <i class="icon10 info"></i>Это значение может быть переопределено для отдельных товаров в секции «Экспорт характеристик товаров».
+                </p>
             </div>
         </div>
+
+{*        <div class="field js-delivery-options">*}
+{*            <div class="name">Домашний регион</div>*}
+{*            {if $api_available}*}
+{*                <div class="value no-shift">*}
+{*                    <input type="hidden" name="home_region_id" value="{$profile.config.home_region_id|default:''|escape}">*}
+{*                    {if !empty($address)}*}
+{*                        <span class="js-home-region-name">{$address.value|trim:' ,'}</span> *}
+{*                        <a href="#/yandexmarket:{$profile.id|escape}/region/edit/" class="inline-link js-edit-region js-action"><b><i>Изменить</i></b></a>*}
+{*                    {else}*}
+{*                        <span class="js-home-region-name"><i class="icon16 exclamation"></i>*}
+{*                        Не удалось определить домашний регион.</span> <a href="#/yandexmarket:{$profile.id|escape}/region/edit/" class="inline-link js-edit-region js-action"><b><i>Настроить</i></b></a>*}
+{*                        <br/>*}
+{*                        <span class="hint"><i class="icon10 info"></i>Выбор домашнего региона необходим для получения списка доступных способов доставки в секции «Условия доставки».*}
+{*                            <br/>Домашний регион определится автоматически из настроек кампании в аккаунте «Яндекс.Маркета» после экспорта этого YML-файла, если URL этого YML-файла указан в настройках кампании.</span>*}
+{*                    {/if}*}
+
+{*                    {if !empty($address_error)}<br/><span class="red"><i class="icon16 no"></i>{$address_error|escape}</span>{/if}*}
+
+{*                </div>*}
+{*                {if !empty($profile.config.campaign_id)}*}
+{*                <div class="value">*}
+{*                    <input type="hidden" name="campaign_id" value="{$profile.config.campaign_id|escape}">*}
+{*                    <span class="hint">Домашний регион определен на основе настроек личного кабинета на сайте «Яндекс.Маркета», используется для расчета стоимости доставки.</span>*}
+{*                </div>*}
+{*                {/if}*}
+{*                <div class="value js-edit-region" style="display:none;">*}
+{*                    <!-- changed region placeholder -->*}
+{*                </div>*}
+
+{*                <div class="value js-edit-region" style="display:none;">*}
+{*                    <a href="#/yandexmarket:{$profile.id|escape}/region/apply/" class="js-action">Применить</a> или <a href="#/yandexmarket:{$profile.id|escape}/region/cancel/" class="js-action">отмена</a>*}
+{*                </div>*}
+{*            {else}*}
+{*                <div class="value">*}
+{*                    Проверьте настройки <a href="?action=plugins#/yandexmarket/api/" title="Магазин — Плагины — Яндекс.Маркет — Авторизация партнерского API">партнерского API</a>*}
+{*                    <br>*}
+{*                    <span class="hint">Домашний регион необходимо указывать только при участии в программе "Заказ на Маркете"</span>*}
+{*                </div>*}
+{*            {/if}*}
+{*        </div>*}
     </div>
 
-    <div class="field-group block js-delivery-options">
+{*    <div class="block top-padded">*}
+{*        <h2>5. Условия доставки (домашний регион)</h2>*}
+{*        <div class="field">*}
+{*            <div class="name">Доставка включена</div>*}
+{*            <div class="value no-shift">*}
+{*                <label><input type="checkbox" name="shop[deliveryIncluded]" value="true"{if ifempty($profile.config.shop.deliveryIncluded) eq 'true'} checked="checked"{/if}> Доставка уже включена в стоимость товара</label>*}
+{*            </div>*}
+{*        </div>*}
+{*    </div>*}
 
-        {include file="./BackendShipping.html"}
-
-    </div>
+{*    <div class="field-group block js-delivery-options">*}
+{*        {include file="./BackendShipping.html"}*}
+{*    </div>*}
 
     <div class="field-group block top-padded">
-        <h2>6. Экспорт характеристик товаров</h2>
+        <h2>5. Экспорт характеристик товаров</h2>
         <p class="hint">Базовое соответствие характеристик магазина параметрам товарных предложений «Яндекс.Маркета». Для отдельных групп товарных предложений «Яндекс.Маркета» можно ниже задать дополнительные правила соответствий.</p>
         {if !empty($custom_map)}
             <p class="hint">
@@ -627,7 +653,7 @@
     </div>
 
     <section class="field-group block top-padded ymarket-promos-section">
-        <h2>7. Промоакции</h2>
+        <h2>6. Промоакции</h2>
         <p class="hint">Информация о промоакциях появляется из 2 источников: из Shop-Script и из специальных плагинов. Описание экспорта промоакций и список подходящих плагинов смотрите в <a href="https://support.webasyst.ru/shop-script/276/shop-script-yandexmarket/#promo" target="_blank">инструкции</a>. Включите доступные промоакции в списке ниже.</p>
         {if !isset($promo_rules)}
             <p><i class="icon16 no"></i>Текущая версия Shop-Script не поддерживает промоакции.</p>

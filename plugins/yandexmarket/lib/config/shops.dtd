@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="windows-1251"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!ELEMENT yml_catalog (shop)>
 <!ATTLIST yml_catalog
         date CDATA #REQUIRED>
@@ -31,7 +31,7 @@
         order-before CDATA #IMPLIED>
 
 <!ELEMENT offers (offer+)>
-<!ELEMENT offer (url?, buyurl?, shop-sku?, price, oldprice?, wprice?, purchase_price?, currencyId, vat?, xCategory?, categoryId+, market_category?,
+<!ELEMENT offer (url?, buyurl?, shop-sku?, price, oldprice?, wprice?, purchase_price?, currencyId, xCategory?, categoryId+, market_category?,
         picture*, store?, pickup?, delivery?, deliveryIncluded?, ((local_delivery_cost?, orderingTime?)|(delivery-options?))?,
         ((typePrefix?, vendor, vendorCode?, model, (provider, tarifplan?)?) |
                 (author?, name, publisher?, series?, year?, ISBN?, volume?, part?, language?, binding?, page_extent?, table_of_contents?) |
@@ -45,11 +45,9 @@
         manufacturer_warranty?,seller_warranty?, country_of_origin?, downloadable?, adult?,
         age?,
         barcode*,
-        cpa?,
         expiry?,
         weight?,
         dimensions?,
-        rec?,
         condition?,
         param*,
         related_offer*
@@ -59,9 +57,7 @@
         group_id CDATA #IMPLIED
         type (vendor.model | book | medicine | audiobook | artist.title | tour | ticket | event-ticket) #IMPLIED
         available (true | false) #IMPLIED
-        fee CDATA #IMPLIED
-        bid CDATA #IMPLIED
-        cbid CDATA #IMPLIED>
+        bid CDATA #IMPLIED>
 
 <!ELEMENT promos (promo+)>
 
@@ -131,7 +127,7 @@
 <!ELEMENT purchase_price (#PCDATA)>
 <!ELEMENT wprice (#PCDATA)>
 <!ELEMENT currencyId (#PCDATA)>
-<!ELEMENT vat (#PCDATA)>
+<!--<!ELEMENT vat (#PCDATA)>-->
 <!ELEMENT categoryId (#PCDATA)>
 <!ATTLIST categoryId
         type (Yandex | Torg | Own) "Own" >
@@ -198,8 +194,8 @@
 <!ELEMENT weight (#PCDATA)>
 <!ELEMENT dimensions (#PCDATA)>
 <!ELEMENT barcode (#PCDATA)>
-<!ELEMENT cpa (#PCDATA)>
-<!ELEMENT rec (#PCDATA)>
+<!--<!ELEMENT cpa (#PCDATA)>-->
+<!--<!ELEMENT rec (#PCDATA)>-->
 <!ELEMENT condition (reason)>
 <!ATTLIST condition
     type (likenew|used) #REQUIRED>

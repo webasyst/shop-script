@@ -139,7 +139,12 @@ $.extend($.importexport.plugins, {
                 /**
                  * @this HTMLSelectElement
                  */
-                self.helpers.toggle(self.$form.find('div.js-delivery-options, div.js-delivery-included'), event, this.value !== 'false');
+                // self.helpers.toggle(self.$form.find('div.js-delivery-options, div.js-delivery-included'), event, this.value !== 'false');
+                self.helpers.toggle(
+                    self.$form.find('div.js-local-delivery-estimate, div.js-local-delivery-cost, div.js-local-delivery-order-before'),
+                    event,
+                    this.value !== 'false'
+                );
                 self.$form.find(':input[name$="\\[deliveryIncluded\\]"]').change();
             }).change();
 

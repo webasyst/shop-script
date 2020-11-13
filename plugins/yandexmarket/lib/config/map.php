@@ -1,10 +1,10 @@
 <?php
 return array(
-    'types'  => array(
+    'types' => array(
         /**
          * fields are order sensitive and depends on DTD
          */
-        'simple'       => array(
+        'simple' => array(
             'name'   => 'Упрощенное описание',
             'fields' => array(
                 'available'             => true,
@@ -15,7 +15,7 @@ return array(
                 'oldprice'              => true,
                 'purchase_price'        => false,
                 'currencyId'            => true,
-                'vat'                   => false,
+//                'vat'                   => false,
                 'categoryId'            => true,
                 'picture'               => false,
                 'store'                 => false,
@@ -37,12 +37,12 @@ return array(
                 'adult'                 => false,
                 'age'                   => false,
                 'barcode'               => false,
-                'cpa'                   => false,
-                'weight'                => false,
-                'fee'                   => false,
+//                'cpa'                   => false,
+//                'fee'                   => false,
+//                'cbid'                  => false,
+//                'rec'                   => false,
                 'bid'                   => false,
-                'cbid'                  => false,
-                'rec'                   => false,
+                'weight'                => false,
                 'param.*'               => false,
                 'condition'             => false,
                 'condition-reason'      => false,
@@ -60,7 +60,7 @@ return array(
                 'oldprice'              => true,
                 'purchase_price'        => false,
                 'currencyId'            => true,
-                'vat'                   => false,
+//                'vat'                   => false,
                 'categoryId'            => true,
                 'picture'               => true,
                 /**
@@ -78,13 +78,7 @@ return array(
                 'local_delivery_before' => false,
                 'local_delivery_days'   => false,
                 'local_delivery_cost'   => false,
-                'typePrefix'            => false,
-                /**
-                 *
-                 * Группа товаров/категория.
-                 *
-                 * Необязательный элемент.
-                 **/
+                'typePrefix'            => false, /** Группа товаров/категория. Необязательный элемент **/
                 'vendor'                => true,
                 'vendorCode'            => false,
                 'model'                 => true,
@@ -99,23 +93,11 @@ return array(
                 'adult'                 => false,
                 'age'                   => false,
                 'barcode'               => false,
-                'cpa'                   => false,
-                'fee'                   => false,
                 'bid'                   => false,
-                'cbid'                  => false,
-                /**
-                 *
-                 * Элемент предназначен для управления участием товарных предложений в программе «Покупка на Маркете».
-                 *
-                 * Необязательный элемент.
-                 **/
-                'rec'                   => false,
-                /**
-                 *
-                 * Элемент обозначает товары, рекомендуемые для покупки вместе с текущим.
-                 *
-                 * Необязательный элемент.
-                 **/
+//                'cpa'                   => false,
+//                'fee'                   => false,
+//                'cbid'                  => false, // Элемент предназначен для управления участием товарных предложений в программе «Покупка на Маркете». Необязательный элемент.
+//                'rec'                   => false, // Элемент обозначает товары, рекомендуемые для покупки вместе с текущим. Необязательный элемент.
                 'expiry'                => false,
                 'weight'                => false,
                 'dimensions'            => false,
@@ -140,7 +122,7 @@ return array(
                 'oldprice'              => true,
                 'purchase_price'        => false,
                 'currencyId'            => true,
-                'vat'                   => false,
+//                'vat'                   => false,
                 'categoryId'            => true,
                 'picture'               => false,
                 'store'                 => false,
@@ -167,12 +149,12 @@ return array(
                 'step-quantity'         => false,
                 'downloadable'          => false,
                 'age'                   => false,
-                'cpa'                   => false,
                 'weight'                => false,
-                'fee'                   => false,
                 'bid'                   => false,
-                'cbid'                  => false,
-                'rec'                   => false,
+//                'cpa'                   => false,
+//                'fee'                   => false,
+//                'cbid'                  => false,
+//                'rec'                   => false,
             ),
         ),
         'medicine'     => array(
@@ -185,7 +167,7 @@ return array(
                 'oldprice'              => true,
                 'purchase_price'        => false,
                 'currencyId'            => true,
-                'vat'                   => false,
+//                'vat'                   => false,
                 'categoryId'            => true,
                 'picture'               => false,
                 'store'                 => false,
@@ -205,13 +187,13 @@ return array(
                 'adult'                 => false,
                 'age'                   => false,
                 'barcode'               => false,
-                'cpa'                   => false,
                 'weight'                => false,
-                'fee'                   => false,
                 'bid'                   => false,
-                'cbid'                  => false,
-                'rec'                   => false,
                 'param.*'               => false,
+//                'cpa'                   => false,
+//                'fee'                   => false,
+//                'cbid'                  => false,
+//                'rec'                   => false,
             ),
         ),
         'audiobook'    => array(
@@ -224,7 +206,7 @@ return array(
                 'oldprice'          => true,
                 'purchase_price'    => false,
                 'currencyId'        => true,
-                'vat'               => false,
+//                'vat'               => false,
                 'categoryId'        => true,
                 'picture'           => false,
                 'author'            => false,
@@ -246,12 +228,12 @@ return array(
                 'sales_notes'       => false,
                 'downloadable'      => false,
                 'age'               => false,
-                'cpa'               => false,
-                'weight'            => false,
-                'fee'               => false,
                 'bid'               => false,
-                'cbid'              => false,
-                'rec'               => false,
+                'weight'            => false,
+//                'cpa'               => false,
+//                'fee'               => false,
+//                'cbid'              => false,
+//                'rec'               => false,
             ),
         ),
         'artist.title' => array(
@@ -264,7 +246,7 @@ return array(
                 'oldprice'       => true,
                 'purchase_price' => false,
                 'currencyId'     => true,
-                'vat'            => false,
+//                'vat'            => false,
                 'categoryId'     => true,
                 'picture'        => false,
                 'store'          => false,
@@ -274,33 +256,20 @@ return array(
                 'title'          => true,
                 'year'           => false,
                 'media'          => false,
-                'starring'       => false,
-                /**
-                 * Актеры.
-                 **/
-                'director'       => false,
-                /**
-                 * Режиссер.
-                 **/
-                'originalName'   => false,
-                /**
-                 * Оригинальное название.
-                 **/
-                'country'        => false,
-                /**
-                 * Страна.
-                 */
-
-                'description' => false,
-                'sales_notes' => false,
-                'adult'       => false,
-                'age'         => false,
-                'barcode'     => false,
-                'cpa'         => false,
-                'fee'         => false,
-                'bid'         => false,
-                'cbid'        => false,
-                'rec'         => false,
+                'starring'       => false, /** Актеры **/
+                'director'       => false, /** Режиссер **/
+                'originalName'   => false, /** Оригинальное название **/
+                'country'        => false, /** Страна */
+                'description'    => false,
+                'sales_notes'    => false,
+                'adult'          => false,
+                'age'            => false,
+                'barcode'        => false,
+                'bid'            => false,
+//                'cpa'         => false,
+//                'fee'         => false,
+//                'cbid'        => false,
+//                'rec'         => false,
             ),
         ),
         'tour'         => array(
@@ -311,24 +280,15 @@ return array(
                 'url'         => true,
                 'price'       => true,
                 'currencyId'  => true,
-                'vat'         => false,
+//                'vat'         => false,
                 'categoryId'  => true,
                 'picture'     => false,
                 'store'       => false,
                 'pickup'      => false,
                 'delivery'    => false,
-                'worldRegion' => false,
-                /**
-                 * Часть света.
-                 **/
-                'country'     => false,
-                /**
-                 * Страна.
-                 **/
-                'region'      => false,
-                /**
-                 * Курорт или город.
-                 **/
+                'worldRegion' => false, /** Часть света **/
+                'country'     => false, /** Страна **/
+                'region'      => false, /** Курорт или город **/
                 'days'        => true,
                 'dataTour'    => false,
                 'name'        => true,
@@ -342,7 +302,6 @@ return array(
             ),
         ),
         'event-ticket' => array(
-
             'name'   => 'Билеты на мероприятие (event-ticket)',
             'fields' => array(
                 'available'   => true,
@@ -350,7 +309,7 @@ return array(
                 'url'         => true,
                 'price'       => true,
                 'currencyId'  => true,
-                'vat'         => false,
+//                'vat'         => false,
                 'categoryId'  => true,
                 'picture'     => false,
                 'store'       => false,
@@ -358,25 +317,15 @@ return array(
                 'delivery'    => false,
                 'name'        => true,
                 'place'       => true,
-                'hall'        => false,
-                /**
-                 * Ссылка на изображение с планом зала.
-                 **/
+                'hall'        => false, /** Ссылка на изображение с планом зала **/
                 'date'        => true,
-                'is_premiere' => false,
-                /**
-                 * Признак премьерности мероприятия.
-                 **/
-                'is_kids'     => false,
-                /**
-                 * Признак детского мероприятия.
-                 **/
+                'is_premiere' => false, /** Признак премьерности мероприятия **/
+                'is_kids'     => false, /** Признак детского мероприятия **/
                 'age'         => false,
             ),
         ),
     ),
     'fields' => array(
-
         /**
          * Fields order is user friendly
          */
@@ -471,13 +420,13 @@ return array(
             ),
             'source'      => 'field:currency',
         ),
-        'vat'            => array(
-            'type'        => 'adjustable',
-            'name'        => 'Ставки НДС',
-            'description' => 'Выберите «Налоговые ставки», чтобы передать для товаров ставки НДС в прайс-листе.
-Налоговые ставки используются для предоплаты на «Маркете» и также передаются через API программы «Заказ на Маркете» для заказанных товаров.',
-            'source'      => 'field:tax_id',
-        ),
+//        'vat'            => array(
+//            'type'        => 'adjustable',
+//            'name'        => 'Ставки НДС',
+//            'description' => 'Выберите «Налоговые ставки», чтобы передать для товаров ставки НДС в прайс-листе.
+//Налоговые ставки используются для предоплаты на «Маркете» и также передаются через API программы «Заказ на Маркете» для заказанных товаров.',
+//            'source'      => 'field:tax_id',
+//        ),
         'categoryId'     => array(
             'type'        => 'fixed',
             'name'        => 'Идентификатор категории товара',
@@ -737,41 +686,42 @@ return array(
             'description' => 'Штрихкод товара, указанный производителем',
             'source'      => 'feature:barcode',
         ),
-        'cpa'                   => array(
-            'type'        => 'adjustable',
-            'name'        => 'CPA',
-            'description' => 'Участие товара в программе «Заказ на Маркете»',
-            'help'        => 'Элемент может принимать следующие значения:
-1) <b>0</b> — товар не участвует в программе «Заказ на Маркете»;
-2) <b>1</b> — товар участвует в программе «Заказ на Маркете».
-Если элемент не указан, то значение автоматически принимается равным 1 (то есть предложение без элемента <tt>cpa</tt> участвует в программе).
-Добавить дополнительный параметр <tt>yandexmarket.cpa</tt> возможно при редактировании товара, вкладка «Описание и SEO», поле «Дополнительные параметры».
-В текстовое поле добавьте строку вида <b>yandexmarket.cpa=0</b> или <b>yandexmarket.cpa=1</b>',
-            'source'      => 'skip:',
-            'values'      => array(
-                0 => 'Нет',
-                1 => 'Да',
-            ),
-            'params'      => array(
-                'cpa' => 'cpa',
-            ),
-        ),
-        'fee'                   => array(
-            'type'        => 'adjustable',
-            'attribute'   => true,
-            'field'       => 'offer',
-            'name'        => 'Комиссия',
-            'description' => 'Комиссия в процентах на товарное предложение для программы «Заказ на Маркете».',
-            'help'        => 'Целое положительное значение без знака %.
-Если указано недопустимое значение или значение меньше минимальной комиссии, то списывается минимальная комиссия.
-Добавить дополнительный параметр <tt>yandexmarket.bid</tt> возможно при редактировании товара, вкладка «Описание и SEO», поле «Дополнительные параметры».
-В текстовое поле добавьте строку вида <b>yandexmarket.fee=4.45</b> или <b>yandexmarket.fee=2</b>',
-            'source'      => 'skip:',
-            'params'      => array(
-                'fee' => 'fee',
-            ),
-            'format'      => '%d',
-        ),
+
+//        'cpa'                   => array(
+//            'type'        => 'adjustable',
+//            'name'        => 'CPA',
+//            'description' => 'Участие товара в программе «Заказ на Маркете»',
+//            'help'        => 'Элемент может принимать следующие значения:
+//1) <b>0</b> — товар не участвует в программе «Заказ на Маркете»;
+//2) <b>1</b> — товар участвует в программе «Заказ на Маркете».
+//Если элемент не указан, то значение автоматически принимается равным 1 (то есть предложение без элемента <tt>cpa</tt> участвует в программе).
+//Добавить дополнительный параметр <tt>yandexmarket.cpa</tt> возможно при редактировании товара, вкладка «Описание и SEO», поле «Дополнительные параметры».
+//В текстовое поле добавьте строку вида <b>yandexmarket.cpa=0</b> или <b>yandexmarket.cpa=1</b>',
+//            'source'      => 'skip:',
+//            'values'      => array(
+//                0 => 'Нет',
+//                1 => 'Да',
+//            ),
+//            'params'      => array(
+//                'cpa' => 'cpa',
+//            ),
+//        ),
+//        'fee'                   => array(
+//            'type'        => 'adjustable',
+//            'attribute'   => true,
+//            'field'       => 'offer',
+//            'name'        => 'Комиссия',
+//            'description' => 'Комиссия в процентах на товарное предложение для программы «Заказ на Маркете».',
+//            'help'        => 'Целое положительное значение без знака %.
+//Если указано недопустимое значение или значение меньше минимальной комиссии, то списывается минимальная комиссия.
+//Добавить дополнительный параметр <tt>yandexmarket.bid</tt> возможно при редактировании товара, вкладка «Описание и SEO», поле «Дополнительные параметры».
+//В текстовое поле добавьте строку вида <b>yandexmarket.fee=4.45</b> или <b>yandexmarket.fee=2</b>',
+//            'source'      => 'skip:',
+//            'params'      => array(
+//                'fee' => 'fee',
+//            ),
+//            'format'      => '%d',
+//        ),
         'bid'                   => array(
             'type'        => 'adjustable',
             'attribute'   => true,
@@ -786,20 +736,21 @@ return array(
             ),
             'format'      => '%d',
         ),
-        'cbid'                  => array(
-            'type'        => 'adjustable',
-            'attribute'   => true,
-            'field'       => 'offer',
-            'name'        => 'Ставка на клик на карточке модели',
-            'description' => 'Комиссия в условных долларах за клик на карточке модели без обозначения «у. е.» или символа $.',
-            'help'        => 'Добавить дополнительный параметр <tt>yandexmarket.cbid</tt> возможно при редактировании товара, вкладка «Описание и SEO», поле «Дополнительные параметры».
-В текстовое поле добавьте строку вида <b>yandexmarket.cbid=0.45</b> или <b>yandexmarket.cbid=0.87</b>',
-            'source'      => 'skip:',
-            'params'      => array(
-                'cbid' => 'cbid',
-            ),
-            'format'      => '%d',
-        ),
+//Отдельная ставка для карточки товара (cbid) устарела. Используйте bid вместо элемента cbid.
+//        'cbid'                  => array(
+//            'type'        => 'adjustable',
+//            'attribute'   => true,
+//            'field'       => 'offer',
+//            'name'        => 'Ставка на клик на карточке модели',
+//            'description' => 'Комиссия в условных долларах за клик на карточке модели без обозначения «у. е.» или символа $.',
+//            'help'        => 'Добавить дополнительный параметр <tt>yandexmarket.cbid</tt> возможно при редактировании товара, вкладка «Описание и SEO», поле «Дополнительные параметры».
+//В текстовое поле добавьте строку вида <b>yandexmarket.cbid=0.45</b> или <b>yandexmarket.cbid=0.87</b>',
+//            'source'      => 'skip:',
+//            'params'      => array(
+//                'cbid' => 'cbid',
+//            ),
+//            'format'      => '%d',
+//        ),
         'series'                => array(
             'type' => 'adjustable',
             'name' => 'Серия',
@@ -1057,30 +1008,6 @@ return array(
             'params'      => true,
 
         ),
-        'local_delivery_before' => array(
-            'type'        => 'adjustable',
-            'name'        => 'Время приема заказа',
-            'description' => 'Время оформления заказа (только часы), до наступления которого действуют указанные сроки и условия доставки. Например, дополнительный параметр товара yandexmarket.local_delivery_before.',
-            'params'      => true,
-            'help'        => 'Добавить дополнительный параметр <tt>yandexmarket.local_delivery_before</tt> возможно при редактировании товара, вкладка «Описание и SEO», поле «Дополнительные параметры».'
-                .' В текстовое поле добавьте строку вида <b>yandexmarket.local_delivery_before=17</b>.',
-            'path'        => 'delivery-options/option[order-before]',
-            'virtual'     => true,
-            'test'        => array(
-                array(null, ''),
-                array(null, false),
-            ),
-        ),
-        'local_delivery_days'   => array(
-            'type'        => 'adjustable',
-            'name'        => 'Сроки доставки',
-            'description' => 'Срок доставки данного товара в своем регионе (например, дополнительный параметр товара yandexmarket.local_delivery_days)',
-            'help'        => 'Добавить дополнительный параметр <tt>yandexmarket.local_delivery_days</tt> возможно при редактировании товара, вкладка «Описание и SEO», поле'
-                .' «Дополнительные параметры». В текстовое поле добавьте строку вида <b>yandexmarket.local_delivery_days=3</b>.',
-            'params'      => true,
-            'path'        => 'delivery-options/option[days]',
-            'virtual'     => true,
-        ),
         'local_delivery_cost'   => array(
             'type'        => 'adjustable',
             'name'        => 'Стоимость доставки',
@@ -1105,21 +1032,45 @@ return array(
                 array(null, false),
             ),
         ),
-        'rec'                   => array(
-            'type'     => 'adjustable',
-            'name'     => 'Рекомендуемые товары',
-            'help'     => 'Экспорт рекомендуемых товаров на основе автоматического выбора требует дополнительных ресурсов сервера.',
-            'params'   => false,
-            'function' => array(
-                'cross_selling.static' => 'Перекрестные продажи (cross-selling) — выбранные вручную для товара',
-                'cross_selling.all'    => 'Перекрестные продажи (cross-selling) — автоматический подбор',
-                'upselling.static'     => 'Схожие и альтернативные товары (upselling) — выбранные вручную для товара',
-                'upselling.all'        => 'Схожие и альтернативные товары (upselling) — автоматический подбор',
-            ),
-            'sources'  => array(
-                'function',
+        'local_delivery_days'   => array(
+            'type'        => 'adjustable',
+            'name'        => 'Сроки доставки',
+            'description' => 'Срок доставки данного товара в своем регионе (например, дополнительный параметр товара yandexmarket.local_delivery_days)',
+            'help'        => 'Добавить дополнительный параметр <tt>yandexmarket.local_delivery_days</tt> возможно при редактировании товара, вкладка «Описание и SEO», поле'
+                .' «Дополнительные параметры». В текстовое поле добавьте строку вида <b>yandexmarket.local_delivery_days=3</b>.',
+            'params'      => true,
+            'path'        => 'delivery-options/option[days]',
+            'virtual'     => true,
+        ),
+        'local_delivery_before' => array(
+            'type'        => 'adjustable',
+            'name'        => 'Время приема заказа',
+            'description' => 'Время оформления заказа (только часы), до наступления которого действуют указанные сроки и условия доставки. Например, дополнительный параметр товара yandexmarket.local_delivery_before.',
+            'params'      => true,
+            'help'        => 'Добавить дополнительный параметр <tt>yandexmarket.local_delivery_before</tt> возможно при редактировании товара, вкладка «Описание и SEO», поле «Дополнительные параметры».'
+                .' В текстовое поле добавьте строку вида <b>yandexmarket.local_delivery_before=17</b>.',
+            'path'        => 'delivery-options/option[order-before]',
+            'virtual'     => true,
+            'test'        => array(
+                array(null, ''),
+                array(null, false),
             ),
         ),
+//        'rec'                   => array(
+//            'type'     => 'adjustable',
+//            'name'     => 'Рекомендуемые товары',
+//            'help'     => 'Экспорт рекомендуемых товаров на основе автоматического выбора требует дополнительных ресурсов сервера.',
+//            'params'   => false,
+//            'function' => array(
+//                'cross_selling.static' => 'Перекрестные продажи (cross-selling) — выбранные вручную для товара',
+//                'cross_selling.all'    => 'Перекрестные продажи (cross-selling) — автоматический подбор',
+//                'upselling.static'     => 'Схожие и альтернативные товары (upselling) — выбранные вручную для товара',
+//                'upselling.all'        => 'Схожие и альтернативные товары (upselling) — автоматический подбор',
+//            ),
+//            'sources'  => array(
+//                'function',
+//            ),
+//        ),
         'condition-reason'      => array(
             'type'        => 'adjustable',
             'name'        => 'Уцененные товары',
@@ -1153,7 +1104,6 @@ return array(
                 .' введите пробел в поле для этого атрибута.',
         ),
     ),
-
     'promos' => array(
         'code'     => array(
             'id'            => array(

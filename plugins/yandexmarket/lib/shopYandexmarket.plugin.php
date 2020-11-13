@@ -590,9 +590,9 @@ HTML;
                 $profile['campaign_id'] = $campaign_id;
             }
         }
-        if (!empty($region)) {
-            $address = shopYandexmarketPluginOrder::parseAddress($region, null, true);
-        }
+//        if (!empty($region)) {
+//            $address = shopYandexmarketPluginOrder::parseAddress($region, null, true);
+//        }
 
         return $address;
     }
@@ -1454,7 +1454,7 @@ HTML;
                 $region = $response['regions'];
                 $cache->set($region);
             }
-            $region['formatted'] = shopYandexmarketPluginOrder::parseAddress($region, null, true);
+//            $region['formatted'] = shopYandexmarketPluginOrder::parseAddress($region, null, true);
             $children = array();
             if (!empty($region['children'])) {
                 foreach ($region['children'] as $info) {
