@@ -268,7 +268,7 @@ class shopShipping extends waAppShipping
 
                 if (count($features) == 3) {
 	                foreach($dimension_fields as $dimension_field_key => $dimension_field) {
-		                $map[$dimension_field] = $features[$dimension_field] = $features[$dimensions[$dimension_field_key]];
+		                $map[$dimension_field] = $features[$dimensions[$dimension_field_key]];
 	                }
                     if (isset($units['dimensions'])) {
                         foreach ($dimension_fields as $field) {
