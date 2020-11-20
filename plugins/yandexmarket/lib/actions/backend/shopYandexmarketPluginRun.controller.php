@@ -625,7 +625,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
     private function createDom($profile_config, $fast = false)
     {
         if (!class_exists('DOMDocument')) {
-            throw new waException(_wp('Необходимо PHP расширение DOM'));
+            throw new waException(_wp('Необходимо PHP-расширение DOM'));
         }
 
         $this->dom = new DOMDocument("1.0", $this->encoding);
@@ -1212,7 +1212,7 @@ SQL;
         $report .= implode(', ', $chunks);
         if (!empty($this->data['timestamp'])) {
             $interval = time() - $this->data['timestamp'];
-            $interval = sprintf(_wp('%02d hr %02d min %02d sec'), floor($interval / 3600), floor($interval / 60) % 60, $interval % 60);
+            $interval = sprintf(_wp('%02d ч %02d мин %02d сек'), floor($interval / 3600), floor($interval / 60) % 60, $interval % 60);
             $report .= ' '.sprintf(_wp('(Всего времени: %s)'), $interval);
         }
         $report .= '</div>';
@@ -1339,7 +1339,7 @@ SQL;
         }
         if (!$this->dom) {
             if (!class_exists('DOMDocument')) {
-                throw new waException(_wp('Необходимо PHP расширение DOM'));
+                throw new waException(_wp('Необходимо PHP-расширение DOM'));
             }
             $this->dom = new DOMDocument("1.0", $this->encoding);
             $this->dom->encoding = $this->encoding;
@@ -1905,7 +1905,7 @@ SQL;
                 }
 
                 $this->trace(
-                    _wp("Продукт #%d [%s] пропущен, потому что он недоступен (%s)\n\tПАРАМЕТРЫ:%s"),
+                    _wp("Товар #%d [%s] пропущен, потому что он недоступен (%s)\n\tПАРАМЕТРЫ:%s"),
                     $product['id'],
                     $product['name'],
                     implode(', ', $export_params),
@@ -2436,11 +2436,11 @@ SQL;
                 'name'        => _wp('Название продукта'),
                 'description' => _wp('Описание'),
                 'summary'     => _wp('Краткое описание'),
-                'sku'         => _wp('Код SKU'),
-                'file_name'   => _wp('Attachment'),
+                'sku'         => _wp('Код артикула'),
+                'file_name'   => _wp('Прикрепленный файл'),
                 'count'       => _wp('В наличии'),
-                'type_id'     => _wp('Тип продукта'),
-                'tax_id'      => _wp('Tax rates'),
+                'type_id'     => _wp('Тип товара'),
+                'tax_id'      => _wp('Налоговые ставки'),
             );
         }
 
@@ -2784,9 +2784,9 @@ SQL;
                 $gifts = $collection->getProducts('id, name, images', 0, $limit, false);
                 foreach ($gifts as $gift) {
                     if ($this->getOffer($gift['id'])) {
-                        $this->trace(_wp('Gift %d already exists as offer'), $gift['id']);
+                        $this->trace(_wp('Подарок %d уже существует как предложение'), $gift['id']);
                     } elseif ($this->getGift($gift['id'])) {
-                        $this->trace(_wp('Gift %d already exists as gift'), $gift['id']);
+                        $this->trace(_wp('Подарок %d уже существует как подарок'), $gift['id']);
                     } else {
                         $this->setGift($gift);
                         $this->addGiftDom($gift);
@@ -3811,7 +3811,7 @@ SQL;
                                 if (empty($promo_id) || ($promo_id !== $data['id'])) {
                                     if (!empty($this->data['trace'])) {
                                         $this->trace(
-                                            _wp("Offer #%s at promo [%s] skipped because it's not applicable - used promo_id = [%s]\n\tOFFER:%s"),
+                                            _wp("Предложение #%s в промоакции [%s] пропущено, потому что она не применяется — использован promo_id = [%s]\n\tOFFER:%s"),
                                             $product['offer-id'],
                                             $data['id'],
                                             var_export($promo_id, true),
@@ -3904,14 +3904,24 @@ SQL;
 
                                             if ('discount' === $data['type']) {
                                                 /** только для промо "Специальная цена" */
+
+                                                /** Так как в БД стоимость хранится в RUB, а товар может быть в иной валюте
+                                                 *  и на момент формирования секции <products> в нее попадает стоимость товара
+                                                 *  в этой иной валюте, что правильно. Но как только товар участвует в промо
+                                                 *  в секции <products> должна быть обычная стоимость, "Не по промо-акции".
+                                                 *  Поэтому меняем стоимость в <products> предварительно сконвертировав
+                                                 *  с учетом валюты товара */
                                                 if (isset($product['skus'])) {
                                                     /** если у товара есть SKU и SKU = 0, то берем первый артикул товара */
                                                     $curr_sku = ($sku_id === 0 ? reset($product['skus']) : $product['skus'][$sku_id]);
-                                                    $this->updatePriceDom($_offer['id'], $curr_sku['compare_price']);
+                                                    $value_price = shop_currency($curr_sku['compare_price'], $product['currency'], $_offer['currency'], false);
+                                                    $this->updatePriceDom($_offer['id'], $value_price);
                                                 } elseif (isset($product['raw_price'])) {
-                                                    $this->updatePriceDom($_offer['id'], $product['raw_price']);
+                                                    $value_price = shop_currency($product['raw_price'], $product['currency'], $_offer['currency'], false);
+                                                    $this->updatePriceDom($_offer['id'], $value_price);
                                                 } elseif (isset($product['compare_price'])) {
-                                                    $this->updatePriceDom($_offer['id'], $product['compare_price']);
+                                                    $value_price = shop_currency($product['compare_price'], $product['currency'], $_offer['currency'], false);
+                                                    $this->updatePriceDom($_offer['id'], $value_price);
                                                 }
                                             }
 
