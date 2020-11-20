@@ -11448,12 +11448,6 @@ msgstr "Вернуть старый редактор"
 msgid "Return to the old product editor version."
 msgstr "Вернуться в старую версию редактора товара."
 
-msgid "Non-saved data exist"
-msgstr "Есть несохраненные данные"
-
-msgid "You are about to leave this page without saving modified data."
-msgstr "Вы собираетесь уйти с этой страницы, не сохранив измененные данные."
-
 msgid "By SKU name"
 msgstr "По наименованию артикула"
 
@@ -11546,3 +11540,105 @@ msgstr "Цены товара, его складские остатки, арт�
 
 msgid "Remove"
 msgstr "Убрать"
+
+msgid "Enter a number between 0 and 99,999,999,999.999 with max. 3 decimal digits."
+msgstr "Введите число от 0 до 99 999 999 999,999 — не более 3 знаков после запятой."
+
+msgid "Default values are applied to SKU variants if other values have not been saved in variants’ properties."
+msgstr "Значения по умолчанию используются для модификаций артикулов, если в свойствах модификаций не выбраны другие значения."
+
+msgid "Custom badge"
+msgstr "Своя наклейка"
+
+msgid "Images & videos"
+msgstr "Изображения и видео"
+
+msgid "Product images, photos, and videos displayed in the storefront."
+msgstr "Изображения, фотографии и видеоролики для демонстрации товара на витрине."
+
+msgid "Video"
+msgstr "Видео"
+
+msgid "Open in a new tab"
+msgstr "Открыть на новой вкладке"
+
+msgid "Remove video"
+msgstr "Удалить видео"
+
+msgid "Add video"
+msgstr "Добавить видео"
+
+msgid "URLs of videos copied at a certain viewing time are supported."
+msgstr "Поддерживаются URL видеороликов, скопированные с привязкой к времени."
+
+msgid "Drag & drop image files here or click this area to upload files."
+msgstr "Перетащите файлы изображений в это поле или нажмите здесь для загрузки файлов."
+
+msgid "Selected:"
+msgstr "Выбрано:"
+
+msgid "No images not selected in SKU variants."
+msgstr "Нет фотографий, не используемых в модификациях артикулов."
+
+msgid "Not selected in SKU variants (%s)"
+msgstr "Не используемые в модификациях (%s)"
+
+msgid "Clear selection"
+msgstr "Отменить выделение"
+
+msgid "Select the photos you want to delete"
+msgstr "Выделите фотографии, которые нужно удалить"
+
+msgid "Drag photos to arrange them in the order in which they must appear in the storefront."
+msgstr "Перетаскивайте фотографии и выстраивайте их в том порядке, в котором они должны быть видны на витрине."
+
+msgid "Used:"
+msgstr "Используется:"
+
+msgid "Not used"
+msgstr "Не используется"
+
+msgid "Edit description"
+msgstr "Редактировать описание"
+
+msgid "Show values in variants"
+msgstr "Показать значения в модификациях"
+
+msgid "The quantity on this virtual stock is the sum of quantities on physical stocks — %s. You can change the list of stocks in “Settings” section."
+msgstr "Количество на этом виртуальном складе равно сумме значений на физических складах: %s. Изменить список складов можно в разделе «Настройки»."
+
+msgid "Do you confirm deletion?"
+msgstr "Вы подтверждаете удаление?"
+
+msgid "Photos to be deleted: %s."
+msgstr "Будет удалено фотографий: %s."
+
+msgid "Those used in SKU variants: %s."
+msgstr "Используются в модификациях: %s."
+
+msgid "No used values."
+msgstr "Используемых значений нет."
+
+msgid "Values of feature “%s” in variants"
+msgstr "Значения характеристики «%s» в модификациях"
+
+msgid "You are about to delete SKU “%s” of product “%s” with all its variants (%s)."
+msgstr "Вы собираетесь удалить артикул «%s» товара «%s» со всеми модификациями (%s)."
+
+msgid "You are about to delete SKU “%s” of product “%s” with 1 variant."
+msgstr "Вы собираетесь удалить артикул «%s» товара «%s» с 1 модификацией."
+
+msgid "Shipping cost will be deleted."
+msgstr "Стоимость доставки была удалена."
+
+msgid "Non-existent date."
+msgstr "Несуществующая дата."
+
+msgid "Save modified data before leaving?"
+msgstr "Сохранить измененные данные перед тем, как уйти?"
+
+msgid "Your changes will be lost if you do not save them."
+msgstr "Ваши изменения будут потеряны, если их не сохранить."
+
+msgid "Capture shipping cost"
+msgstr "Списывать стоимость доставки"

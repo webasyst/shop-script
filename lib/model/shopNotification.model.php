@@ -34,8 +34,10 @@ class shopNotificationModel extends waModel
     {
         $sql = "SELECT DISTINCT n.* FROM ".$this->table." n
                 JOIN shop_notification_params np ON n.id = np.notification_id
-                JOIN shop_notification_sources ns ON n.id = ns.notification_id
-                WHERE n.status = 1 AND (ns.source = 'all_sources' OR ns.source = s:0) AND np.name = 'to' AND np.value = 'customer'";
+                LEFT JOIN shop_notification_sources ns ON n.id = ns.notification_id
+                WHERE n.status = 1
+                      AND (ns.source = 'all_sources' OR ns.source IS NULL OR ns.source = s:0) 
+                      AND np.name = 'to' AND np.value = 'customer'";
         $rows = $this->query($sql, $source);
 
         $result = array();

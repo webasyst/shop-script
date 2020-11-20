@@ -145,7 +145,7 @@
 <script>
 ( function($) {
     $.order_list.init({
-        id: {if $view != 'table' && $order.id}{$order.id}{else}0{/if},
+        id: {if $view != 'table' && !empty($order.id)}{$order.id}{else}0{/if},
         view: '{$view}',
         filter_params: {json_encode($params)},
         filter_params_str: '{$params_str}',

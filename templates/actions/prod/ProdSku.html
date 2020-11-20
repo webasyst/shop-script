@@ -115,7 +115,7 @@
             </div>
 
             <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
             </template>
         </template>
 
@@ -133,7 +133,7 @@
             </div>
 
             <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
             </template>
         </template>
 
@@ -176,7 +176,7 @@
             </div>
 
             <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
             </template>
         </template>
 
@@ -192,7 +192,7 @@
             </div>
 
             <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
             </template>
         </template>
 
@@ -211,7 +211,7 @@
             </div>
 
             <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
             </template>
         </template>
 
@@ -234,7 +234,7 @@
             </div>
 
             <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
             </template>
         </template>
 
@@ -253,7 +253,7 @@
             </div>
 
             <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
             </template>
         </template>
 
@@ -267,7 +267,7 @@
             </div>
 
             <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
             </template>
         </template>
 
@@ -281,7 +281,7 @@
             </div>
 
             <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения в модификациях`]</button>
+                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
             </template>
         </template>
     </div>
@@ -306,7 +306,7 @@
         <div class="wa-tooltip custom top">
             <i class="fas fa-question-circle s-icon gray"></i>
             <div class="tooltip-text">
-                [`Какой-то интересный текст-посказка`]
+                [`Default values are applied to SKU variants if other values have not been saved in variants’ properties.`]
             </div>
         </div>
     </div>
@@ -1046,9 +1046,9 @@
                                                                        v-on:input="validate($event, 'price', sku_mod, 'purchase_price')">
 
                                                                 <div class="wa-error-text" v-if="!!errors['product[skus][' + sku_mod.id + '][purchase_price]']">
-                                                                    {_w("Неверный формат.")|escape}
+                                                                    {_w("Invalid value")|escape}
                                                                     &nbsp;
-                                                                    <div class="wa-tooltip" data-title="Введите число от 0 до 99 999 999 999.999, не более 3-х знаков после запятой.">
+                                                                    <div class="wa-tooltip" data-title="[`Enter a number between 0 and 99,999,999,999.999 with max. 3 decimal digits.`]">
                                                                         <i class="fas fa-question-circle color-red"></i>
                                                                     </div>
                                                                 </div>
@@ -1063,9 +1063,9 @@
                                                                        v-on:input="validate($event, 'price', sku_mod, 'compare_price')">
 
                                                                 <div class="wa-error-text" v-if="!!errors['product[skus][' + sku_mod.id + '][compare_price]']">
-                                                                    {_w("Неверный формат.")|escape}
+                                                                    {_w("Invalid value")|escape}
                                                                     &nbsp;
-                                                                    <div class="wa-tooltip" data-title="Введите число от 0 до 99 999 999 999.999, не более 3-х знаков после запятой.">
+                                                                    <div class="wa-tooltip" data-title="[`Enter a number between 0 and 99,999,999,999.999 with max. 3 decimal digits.`]">
                                                                         <i class="fas fa-question-circle color-red"></i>
                                                                     </div>
                                                                 </div>
@@ -1080,9 +1080,9 @@
                                                                        v-on:input="validate($event, 'price', sku_mod, 'price')">
 
                                                                 <div class="wa-error-text" v-if="!!errors['product[skus][' + sku_mod.id + '][price]']">
-                                                                    {_w("Неверный формат.")|escape}
+                                                                    {_w("Invalid value")|escape}
                                                                     &nbsp;
-                                                                    <div class="wa-tooltip" data-title="Введите число от 0 до 99 999 999 999.999, не более 3-х знаков после запятой.">
+                                                                    <div class="wa-tooltip" data-title="[`Enter a number between 0 and 99,999,999,999.999 with max. 3 decimal digits.`]">
                                                                         <i class="fas fa-question-circle color-red"></i>
                                                                     </div>
                                                                 </div>
@@ -1169,8 +1169,7 @@
 
                                                                         <template v-for="stock in stocks_array">
                                                                             <div class="s-stock-wrapper">
-                                                                                <div class="flexbox fixed middle space-12"
-                                                                                     v-bind:title="stock.is_virtual ? '{_w("Значение на этом виртуальном складе равно сумме значений на складах Х1, Х2,... Изменить можно в “Настройках”.")|escape}' : ''">
+                                                                                <div class="flexbox fixed middle space-12" v-bind:title="getStockTitle(stock)">
 
                                                                                     <div class="c-column">
                                                                                         <div class="s-field-wrapper">
@@ -1186,7 +1185,7 @@
                                                                                         </div>
                                                                                     </div>
                                                                                     <div class="c-column">
-                                                                                        { { stock.name } }
+                                                                                        <span class="cursor-default">{ { stock.name } }</span>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -1395,7 +1394,8 @@
                         "file_size": {_w("Each file’s size cannot be greater than")|json_encode} + " " + {$_max_file_size_mb|json_encode} + {_w("KB")|json_encode} + ".",
                         "post_size": {_w("Total size of selected files cannot be greater than")|json_encode} + " " + {$_max_post_size_mb|json_encode} + {_w("KB")|json_encode} + ".",
                         "sku_required": {_w("An SKU code is required for grouping.")|json_encode},
-                        "sku_unique_error": {_w("An SKU name must be unique.")|json_encode}
+                        "sku_unique_error": {_w("An SKU name must be unique.")|json_encode},
+                        "stock_title": {_w("The quantity on this virtual stock is the sum of quantities on physical stocks — %s. You can change the list of stocks in “Settings” section.")|json_encode}
                     },
                     urls: {
                         "save": "{$wa_app_url}?module=prod&action=saveSku",

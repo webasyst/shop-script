@@ -129,7 +129,7 @@ class shopProdSkuAction extends waViewAction
 
         $badges[""] = [
             "id" => "",
-            "name" => _w("Custom"),
+            "name" => _w("Custom badge"),
             "code" => $badge_example_html,
             "code_model" => $badge_example_html
         ];

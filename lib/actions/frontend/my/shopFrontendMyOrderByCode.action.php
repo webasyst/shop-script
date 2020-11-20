@@ -46,6 +46,10 @@ class shopFrontendMyOrderByCodeAction extends shopFrontendMyOrderAction
                 $this->layout->assign('breadcrumbs', self::getBreadcrumbs());
             }
             return;
+        } else {
+            // Provide at least basic info about the order for template
+            $order['id_str'] = shopHelper::encodeOrderId($order['id']);
+            $this->view->assign('order', $order);
         }
 
         //

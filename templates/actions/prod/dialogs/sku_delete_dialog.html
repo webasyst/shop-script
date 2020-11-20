@@ -17,7 +17,7 @@
                     <template v-else>
                         <template v-if="sku.modifications.length > 1">
                             {sprintf(
-                                _w('Вы собираетесь удалить артикул “%s” товара “%s” со всеми модификациями (%s).'),
+                                _w('You are about to delete SKU “%s” of product “%s” with all its variants (%s).'),
                                 "{ { getName() } }",
                                 "{ { product.name } }",
                                 "{ { sku.modifications.length } }"
@@ -25,7 +25,7 @@
                         </template>
                         <template v-else>
                             {sprintf(
-                                _w('Вы собираетесь удалить артикул “%s” товара “%s” с 1 модификацией.'),
+                                _w('You are about to delete SKU “%s” of product “%s” with 1 variant.'),
                                 "{ { getName() } }",
                                 "{ { product.name } }"
                             )}

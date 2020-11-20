@@ -87,7 +87,7 @@ class shopProdSaveSkuController extends waJsonController
                             $this->errors[] = [
                                 'id' => 'price_error',
                                 'name' => "product[skus][{$sku_id}][{$field}]",
-                                'text' => _w('Неверный формат цены.'),
+                                'text' => _w('Invalid value'),
                             ];
                         }
                     }
@@ -143,6 +143,11 @@ class shopProdSaveSkuController extends waJsonController
         // Group modifications by sku
         $mods_by_sku = [];
         foreach($product_data_skus as $sku_index => $sku_data) {
+            if (!is_array($sku_data)) {
+                // ignore SKUs marked for deletion
+                continue;
+            }
+
             if (isset($sku_data['sku']) && isset($sku_data['name']) && (strlen($sku_data['sku']) || strlen($sku_data['name']))) {
                 // mods with code or name are grouped into SKUs by code and name
                 $sku_code_and_name = $sku_data['sku'] . '###' . $sku_data['name'];
@@ -193,6 +198,11 @@ class shopProdSaveSkuController extends waJsonController
                 $features = $feature_model->getById($features_selectable_ids);
 
                 foreach($product_data['skus'] as $sku_index => &$sku_data) {
+                    if (!is_array($sku_data)) {
+                        // ignore SKUs marked for deletion
+                        continue;
+                    }
+
                     $sku_name_parts = [];
                     if (isset($sku_data['name']) && strlen($sku_data['name']) > 0) {
                         // When SKU has only one modification, and name specified by hand,

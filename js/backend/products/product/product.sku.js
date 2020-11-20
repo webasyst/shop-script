@@ -1874,6 +1874,24 @@
                     modificationStocksToggle: function(sku_mod, expanded) {
                         sku_mod.stocks_expanded = (typeof expanded === "boolean" ? expanded : !sku_mod.stocks_expanded);
                     },
+                    getStockTitle: function(stock) {
+                        var result = "";
+
+                        if (stock.is_virtual) {
+                            var stocks_array = [];
+
+                            if (stock.substocks) {
+                                $.each(stock.substocks, function(i, sub_stock_id) {
+                                    var sub_stock = that.stocks[sub_stock_id];
+                                    stocks_array.push(sub_stock.name);
+                                });
+                            }
+
+                            result = that.locales["stock_title"].replace("%s", stocks_array.join(", "));
+                        }
+
+                        return result;
+                    },
 
                     // OTHER
                     validate: function(event, type, data, key) {
@@ -2046,9 +2064,39 @@
                 }
             });
 
+            updateVirtualStockValue(sku_mod);
+
             that.updateModificationStocks(sku_mod);
 
             return sku_mod;
+
+            function updateVirtualStockValue(sku_mod) {
+                var virtual_stocks = [];
+
+                $.each(sku_mod.stock, function(stock_id, stock_value) {
+                    var stock = that.stocks[stock_id];
+                    if (stock.is_virtual) {
+                        virtual_stocks.push(stock);
+                    }
+                });
+
+                $.each(virtual_stocks, function(i, stock) {
+                    var value = "";
+
+                    if (stock.substocks) {
+                        $.each(stock.substocks, function(j, sub_stock_id) {
+                            var sub_stock_value = sku_mod.stock[sub_stock_id];
+                            sub_stock_value = parseFloat(sub_stock_value);
+                            if (!isNaN(sub_stock_value)) {
+                                if (!value) { value = 0; }
+                                value += sub_stock_value;
+                            }
+                        });
+                    }
+
+                    sku_mod.stock[stock.id] = value;
+                });
+            }
         };
 
         Section.prototype.updateModificationSelectableFeatures = function(updated_selectable_features, sku_mod) {
@@ -2125,6 +2173,10 @@
 
                 $.each(sku_mod.stock, function(stock_id, stock_value) {
                     var value = parseFloat(stock_value);
+
+                    var stock_data = that.stocks[stock_id];
+                    if (stock_data && stock_data.is_virtual) { return true; }
+
                     if (!isNaN(value)) {
                         is_set = true;
                         stocks_count += value;

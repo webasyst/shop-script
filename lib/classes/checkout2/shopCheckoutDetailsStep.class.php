@@ -166,7 +166,7 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
          */
         $assembly_time  = $this->getCheckoutConfig()->getAssemblyTimeByRate($selected_variant);
         $departure_date = shopDepartureDateTimeFacade::getDeparture($this->getCheckoutConfig()['schedule']);
-        $departure_date->setExtraProcessingTime($assembly_time * 3600);
+        $departure_date->setExtraProcessingTime((int) $assembly_time * 3600);
         $departure_datetime = (string) $departure_date->getDepartureDateTime();
 
         $custom_input_values = ifset($data, 'input', 'details', 'custom', []);

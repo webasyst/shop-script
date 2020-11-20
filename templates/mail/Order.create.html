@@ -113,7 +113,7 @@
                                 {/if}
                                 <tr>
                                     <td width="40" style="padding: 8px 4px 8px 0; {$_border_style}">
-                                        {if !$_is_service}
+                                        {if !$_is_service && !empty($item.product.image.crop_url)}
                                             <img src="{$item.product.image.crop_url}" alt="" style="width: 48px; height: 48px; vertical-align: middle;">
                                         {/if}
                                     </td>

@@ -55,7 +55,7 @@
             {* VIDEO SECTION *}
             <div class="s-video-section">
                 <div class="s-section-header">
-                    <h2 class="s-title">[`Видео`]</h2>
+                    <h2 class="s-title">[`Video`]</h2>
                 </div>
                 <div class="s-section-body">
 
@@ -71,18 +71,18 @@
                                 <div class="wa-list space-12">
                                     <div>
                                         <a v-bind:href="video.model" target="_blank"
-                                           title="{_w("Открыть на новой вкладке")|escape}">
+                                           title="{_w("Open in a new tab")|escape}">
                                             <span class="s-icon"><i class="fas fa-external-link-square-alt"></i></span>
                                             <span class="s-name" v-text="video.model"></span>
                                         </a>
                                     </div>
                                     <div>
                                         <span class="color-red cursor-pointer"
-                                              title="{_w("Удалить видео")|escape}"
+                                              title="{_w("Remove video")|escape}"
                                               v-on:click.prevent="deleteVideo">
                                             <span class="s-icon" v-show="video.request_xhr"><i class="fas fa-spinner fa-spin"></i></span>
                                             <span class="s-icon" v-show="!video.request_xhr"><i class="fas fa-trash-alt"></i></span>
-                                            <span class="s-name">[`Удалить видео`]</span>
+                                            <span class="s-name">[`Remove video`]</span>
                                         </span>
                                     </div>
                                 </div>
@@ -94,7 +94,7 @@
                         {strip}
                         <div class="inlinebox top space-16">
                             <input class="size-medium" type="text"
-                                   placeholder="{_w("Адрес видер на YouTube или Vimeo")|escape}"
+                                   placeholder="{_w("Video URL on YouTube or Vimeo")|escape}"
                                    v-bind:class="{ 'wa-error-field': !!errors['product_video_add'] }"
                                    v-on:input="removeError('product_video_add')"
                                    v-model="video.model">
@@ -102,7 +102,7 @@
                             <button class="wa-button blue"
                                     v-bind:disabled="!video.model.length || video.request_xhr"
                                     v-on:click.prevent="setVideo">
-                                <span class="s-name">[`Добавить видео`]</span>
+                                <span class="s-name">[`Add video`]</span>
                                 <span class="s-icon" v-if="video.request_xhr">&nbsp;<i class="fas fa-spinner fa-spin"></i></span>
                             </button>
                         </div>
@@ -112,7 +112,7 @@
                             <div class="wa-error-text" v-text="errors['product_video_add'].text"></div>
                         </template>
 
-                        <div class="s-description hint">[`Поддерживаются видео с привязкой к времени`]</div>
+                        <div class="s-description hint">[`URLs of videos copied at a certain viewing time are supported.`]</div>
                     </template>
                 </div>
             </div>
@@ -120,7 +120,7 @@
             {* PHOTOS SECTION *}
             <div class="s-photos-section">
                 <div class="s-section-header">
-                    <h2 class="s-title">[`Фото`]</h2>
+                    <h2 class="s-title">[`Photos`]</h2>
                 </div>
                 <div class="s-section-body">
                     <div class="s-photos-form">
@@ -131,7 +131,7 @@
 
                             <div class="s-text">[`Upload or drag & drop images here`]</div>
                             <input class="s-field" type="file" accept="image/*" multiple
-                                   title="{_w("Перетащите файл в это поле или кликнете для выбора и загрузки файлов.")|escape}"
+                                   title="{_w("Drag & drop image files here or click this area to upload files.")|escape}"
                                    v-on:change="onAreaChange($event)">
                         </div>
 
@@ -143,27 +143,27 @@
 
                     <div class="s-photo-actions flexbox middle wrap space-20" v-if="photos.length">
                         <div class="s-counter" v-if="selected_photos.length">
-                            <span class="s-label">[`Выбрано:`]</span>
+                            <span class="s-label">[`Selected:`]</span>
                             <span class="s-count bold color-black">{ { selected_photos.length } }</span>
                         </div>
 
                         <template v-if="product.normal_mode">
                             <template v-if="!(unused_photos.length > 0)">
-                                <button class="wa-button" type="button" disabled title="{_w("Нет фотографий, неиспользуемых в модификациях.")|escape}">
+                                <button class="wa-button" type="button" disabled title="{_w("No images not selected in SKU variants.")|escape}">
                                     <span class="s-icon icon top"><i class="fas fa-minus-square"></i></span>
-                                    <span class="s-name">{sprintf(_w("Неиспользуемые в модификациях (%s)"), "{ { unused_photos.length } }")}</span>
+                                    <span class="s-name">{sprintf(_w("Not selected in SKU variants (%s)"), "{ { unused_photos.length } }")}</span>
                                 </button>
                             </template>
                             <template v-else-if="unused_photos.length !== unused_selected_photos.length">
                                 <button class="wa-button blue" type="button" v-on:click.prevent="selectUnusedPhotos">
                                     <span class="s-icon icon top"><i class="fas fa-check-square"></i></span>
-                                    <span class="s-name">{sprintf(_w("Неиспользуемые в модификациях (%s)"), "{ { unused_photos.length } }")}</span>
+                                    <span class="s-name">{sprintf(_w("Not selected in SKU variants (%s)"), "{ { unused_photos.length } }")}</span>
                                 </button>
                             </template>
                             <template v-else>
                                 <button class="wa-button green" type="button" v-on:click.prevent="unselectUnusedPhotos">
                                     <span class="s-icon icon top"><i class="fas fa-minus-square"></i></span>
-                                    <span class="s-name">{sprintf(_w("Неиспользуемые в модификациях (%s)"), "{ { unused_photos.length } }")}</span>
+                                    <span class="s-name">{sprintf(_w("Not selected in SKU variants (%s)"), "{ { unused_photos.length } }")}</span>
                                 </button>
                             </template>
                         </template>
@@ -171,17 +171,17 @@
                         <template v-if="selected_photos.length === photos.length">
                             <button class="wa-button green" type="button" v-on:click.prevent="unselectPhotos">
                                 <span class="s-icon icon top"><i class="fas fa-times"></i></span>
-                                <span class="s-name">[`Отменить выделение`]</span>
+                                <span class="s-name">[`Clear selection`]</span>
                             </button>
                         </template>
                         <template v-else>
                             <button class="wa-button blue" type="button" v-on:click.prevent="selectPhotos">
-                                <span class="s-name">[`Выделить все`]</span>
+                                <span class="s-name">[`Select all`]</span>
                             </button>
                         </template>
 
                         <button class="wa-button red" type="button"
-                                title="{_w("Выделите фото, которые хотите удалить.")|escape}"
+                                title="{_w("Select the photos you want to delete")|escape}"
                                 v-bind:disabled="!selected_photos.length"
                                 v-on:click.prevent="deletePhotos(selected_photos)">
                             <span class="s-icon icon top size-14">
@@ -206,7 +206,7 @@
                                  v-bind:data-id="photo.id">
 
                                 <div class="s-photo-block cursor-move js-photo-move-toggle"
-                                     title="{_w("Вы может перетаскивать фотографии и выстроить их в таком порядке, как хотите, чтобы они показывались на витрине.")|escape}"
+                                     title="{_w("Drag photos to arrange them in the order in which they must appear in the storefront.")|escape}"
                                      draggable="true">
                                     <div class="s-photo"
                                          {* v-on:click.prevent="setPhoto(photo)"*}
@@ -223,7 +223,7 @@
                                     </div>
                                     <div class="s-column-details wide">
                                         <p class="s-description-text" v-if="!photo.expanded"
-                                           title="{_w("Редактировать описание")|escape}"
+                                           title="{_w("Edit description")|escape}"
                                            v-on:click.prevent="showDescriptionForm($event, photo)">{ { photo.description && photo.description.length ? photo.description : "{_w("Add description...")|escape}" } }</p>
 
                                         <div class="s-description-form" v-if="photo.expanded">
@@ -244,11 +244,11 @@
 
                                 <div class="s-counter-wrapper">
                                     <template v-if="photo.uses_count > 0">
-                                        <span class="s-label">[`Используется:`]</span>
+                                        <span class="s-label">[`Used:`]</span>
                                         <span class="s-count" v-text="photo.uses_count"></span>
                                     </template>
                                     <template v-else>
-                                        <span class="s-label">[`Не используется`]</span>
+                                        <span class="s-label">[`Not used`]</span>
                                     </template>
                                 </div>
                             </div>
