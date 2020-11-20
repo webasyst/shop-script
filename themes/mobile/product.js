@@ -463,6 +463,7 @@ var Product = ( function($) {
         $(".swipebox").swipebox({
             useSVG: false,
             hideBarsOnMobile: false,
+            hideBarsDelay: 0,
             afterOpen: function() {
                 // console.log(this);
             }

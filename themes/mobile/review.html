@@ -73,7 +73,8 @@
 
                         $.swipebox(images, {
                             useSVG : false,
-                            hideBarsDelay: false,
+                            hideBarsOnMobile: false,
+                            hideBarsDelay: 0,
                             afterOpen: function() {
                                 $document.on("scroll", closeSwipe);
                                 function closeSwipe() {

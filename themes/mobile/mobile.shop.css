@@ -367,6 +367,11 @@ input[type="radio"] {
 .s-review-images-section .s-errors-section .s-error:not(:first-child) {
   margin-top: 5px;
 }
+#swipebox-overlay #swipebox-action {
+  opacity: 1;
+  -ms-filter: none;
+  filter: none;
+}
 .wa-flex-box {
   display: -webkit-box;
   display: -moz-box;
