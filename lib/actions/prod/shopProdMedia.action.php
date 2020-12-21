@@ -9,6 +9,9 @@ class shopProdMediaAction extends waViewAction
     {
         $product_id = waRequest::param('id', '', 'int');
         $product = new shopProduct($product_id);
+        if (!$product['id']) {
+            throw new waException(_w("Unknown product"), 404);
+        }
 
         $frontend_urls = shopProdGeneralAction::getFrontendUrls($product)[0];
 
@@ -62,13 +65,42 @@ class shopProdMediaAction extends waViewAction
     {
         $result = [];
 
-        $_images = $product->getImages('thumb');
+        $config = wa('shop')->getConfig();
+        $wa_app_url = wa()->getAppUrl(null, true);
+
+        $_images = $product->getImages([
+            'default' => $config->getImageSize('default')
+        ]);
 
         foreach ($_images as $_image) {
+
+            // Append file motification time to image URL
+            // in order to avoid browser caching issues
+            $last_modified = '';
+            $path = shopImage::getPath($_image);
+            if (file_exists($path)) {
+                $last_modified = '?'.filemtime($path);
+            }
+
+            // Large image that is used to make smaller previews.
+            // Can be larger than 960px, does not contain watermarks.
+            $_url_original = $wa_app_url . "?module=prod&action=origImage&id=" . $_image["id"];
+
+            // Backup of the original uploaded image.
+            // This may differ from $_url_original in case user cropped or rotated image
+            // with web editor tools. "Restore from original" will use this backup.
+            $_url_backup = $wa_app_url . "?module=prod&action=origImage&backup=1&id=" . $_image["id"];
+
             $result[$_image["id"]] = [
                 "id" => $_image["id"],
-                "url" => $_image["url_thumb"],
+                "url" => $_image["url_default"].$last_modified,
+                "url_backup" => $_url_backup,
+                "url_original" => $_url_original,
                 "description" => $_image["description"],
+                "size" => waCurrency::formatWithUnit($_image["size"]),
+                "name" => $_image["original_filename"],
+                "width" => $_image["width"],
+                "height" => $_image["height"],
                 "uses_count" => 0
             ];
         }

@@ -39,12 +39,18 @@ class shopImportexportHelper
             'id'     => $id,
             'plugin' => $this->plugin,
         ));
-        if (isset($config['config'])) {
-            $config['config'] = json_decode($config['config'], true);
+
+        if (null === $config || !is_array($config)) {
+            /** случай когда профиля с $id не существует или нет ни одного созданного (дефолтного) профиля */
+            $id_profiles = array_keys($this->collection);
+            $id_profile  = (empty($id_profiles) ? $this->addConfig() : array_pop($id_profiles));
+            $config = $this->model->getByField(array(
+                'id'     => $id_profile,
+                'plugin' => $this->plugin,
+            ));
         }
-        if (!isset($config['config']) || !is_array($config['config'])) {
-            $config['config'] = array();
-        }
+        $config['config'] = (isset($config['config']) ? json_decode($config['config'], true) : []);
+
         return $config;
     }
 

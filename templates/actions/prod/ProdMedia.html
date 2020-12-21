@@ -2,8 +2,26 @@
 
 {$_templates = []}
 
+{* Подтверждение удаления пачки фотографий *}
 {capture assign="_media_delete_photos"}{include file="./dialogs/media_delete_photos.html" inline}{/capture}
 {$_templates["dialog_media_delete_photos"] = $_media_delete_photos}
+
+{* Подтверждение удаления одной фотографии из диалога редактирования *}
+{capture assign="_media_image_delete_confirm"}{include file="./dialogs/media_image_delete_confirm.html" inline}{/capture}
+{$_templates["dialog_media_image_delete_confirm"] = $_media_image_delete_confirm}
+
+{capture assign="_media_image_dialog"}{include file="./dialogs/media_image_dialog.html" inline}{/capture}
+{$_templates["dialog_media_image"] = $_media_image_dialog}
+
+{* Если имеются несохраненные данные в фотке *}
+{capture assign="_media_image_unsaved_changes_confirm"}{include file="./dialogs/media_image_unsaved_changes_confirm.html" inline}{/capture}
+{$_templates["dialog_media_image_unsaved_changes_confirm"] = $_media_image_unsaved_changes_confirm}
+
+{$_components = []}
+{$_globals_components = $wa->globals("components")}
+{if !empty($_globals_components)}
+    {$_components = array_merge($_components, $_globals_components)}
+{/if}
 
 {capture assign="_component_loading_file"}
     <div class="vue-component-loading-file">
@@ -205,14 +223,14 @@
                                  v-bind:class="{ 'is-moving' : photo.is_moving }"
                                  v-bind:data-id="photo.id">
 
-                                <div class="s-photo-block cursor-move js-photo-move-toggle"
+                                <div class="s-photo-block js-photo-move-toggle"
                                      title="{_w("Drag photos to arrange them in the order in which they must appear in the storefront.")|escape}"
                                      draggable="true">
-                                    <div class="s-photo"
-                                         {* v-on:click.prevent="setPhoto(photo)"*}
+                                    <div class="s-photo cursor-pointer"
+                                         v-on:click.prevent="setPhoto(photo)"
                                          v-bind:style="{ 'background-image' :  'url(' + photo.url + ')'}">
                                     </div>
-                                    <div class="s-toggle-move">
+                                    <div class="s-toggle-move cursor-move">
                                         <i class="icon top size-14"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></i>
                                     </div>
                                 </div>
@@ -271,6 +289,10 @@
                 id: "wa-shop-products-product-media-js",
                 type: "js",
                 uri: "{$wa_app_static_url}js/backend/products/product/product.media.js?v={$wa->version()}"
+            }, {
+                id: "wa-shop-products-product-media-image-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/product/dialogs/product.media.image.js?v={$wa->version()}"
             }];
 
             $.wa.loadSources(sources).then(init);
@@ -284,6 +306,7 @@
                 $.wa_shop_products.init.initProductMediaSection({
                     $wrapper: $("#js-product-media-section-wrapper"),
                     templates: {$_templates|json_encode},
+                    components: {$_components|json_encode},
                     locales: {
                         "file_type": {_w("Unsupported image type. Use PNG, GIF and JPEG image files only.")|json_encode},
                         "file_size": {_w("Each file’s size cannot be greater than")|json_encode} + " " + {$_max_file_size_mb|json_encode} + {_w("KB")|json_encode} + ".",
@@ -295,6 +318,7 @@
                         "video_delete": "{$wa_app_url}?module=productVideoSave",
                         "change_image_description": "{$wa_app_url}?module=product&action=imageSave",
                         "add_product_image": "{$wa_app_url}?module=prod&action=imageUpload",
+                        "save_photo_changes": "{$wa_app_url}?module=prod&action=saveImageDetails",
                         "delete_images": "{$wa_app_url}?module=prod&action=deleteImage"
                     },
 

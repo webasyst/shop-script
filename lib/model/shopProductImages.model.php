@@ -86,7 +86,7 @@ class shopProductImagesModel extends waModel
         if (!$this->updateById($id, array('sort' => $sort))) {
             return false;
         }
-        
+
         $main_image = $this->query("SELECT id, filename, ext FROM {$this->table} WHERE product_id = $product_id ORDER BY sort LIMIT 1")->fetch();
         $product_model = new shopProductModel();
         $product_model->updateById($product_id, array(
@@ -298,7 +298,9 @@ SQL;
             if (!$image) {
                 throw new waException('Incorrect image');
             }
-            $filename = $file->name;
+            if ($filename === null) {
+                $filename = $file->name;
+            }
         } else {
             throw new waException('Incorrect image');
         }
@@ -358,6 +360,12 @@ SQL;
         if ($image_id) {
             if ($this->updateById($image_id, $data)) {
                 $data['id'] = $image_id;
+            }
+
+            // Delete obsolete thumbs, if exist
+            $thumbs_path = shopImage::getThumbsPath($data);
+            if (file_exists($thumbs_path)) {
+                waFiles::delete($thumbs_path, true);
             }
         } else {
             $data['id'] = $this->add($data);

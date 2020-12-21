@@ -1,0 +1,28 @@
+{*
+
+@description Код компонента wa2-switch для копипасты.
+
+"component-switch": {
+    props: ["value", "disabled"],
+    data: function() {
+        return {
+            checked: (typeof this.value === "boolean" ? this.value : false),
+            disabled: (typeof this.disabled === "boolean" ? this.disabled : false)
+        };
+    },
+    template: '<div class="switch"><input type="checkbox" v-bind:checked="checked" v-bind:disabled="disabled"></div>',
+    delimiters: ['{ { ', ' } }'],
+    mounted: function() {
+        var self = this;
+
+        $(self.$el).waSwitch({
+            change: function(active, wa_switch) {
+                self.$emit("change", active);
+                self.$emit("input", active);
+            }
+        });
+    }
+}
+
+*}
+

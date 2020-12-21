@@ -121,7 +121,15 @@ class shopBackendAutocompleteController extends waController
         $q = $product_model->escape($q, 'like');
         $fields = 'id, name AS value, price, count, sku_id';
 
-        $products = $product_model->select($fields)
+        $products = array();
+        if (is_numeric($q)) {
+            $product_id = (int)$q;
+            $products = $product_model->select($fields)
+                ->where("id = $product_id")
+                ->fetchAll('id');
+        }
+
+        $products += $product_model->select($fields)
                                   ->where("name LIKE '$q%'")
                                   ->limit($limit)
                                   ->fetchAll('id');
@@ -287,7 +295,8 @@ class shopBackendAutocompleteController extends waController
 
         $cnt = count($orders);
         if ($cnt < $limit) {
-            $orders = array_merge($orders, $this->getOrders($q, $limit - $cnt));
+            $potential_orders = $this->getOrders($q, $limit - $cnt);
+            $orders = array_unique(array_merge($orders, $potential_orders), SORT_REGULAR);
         }
 
         foreach ($orders as &$o) {

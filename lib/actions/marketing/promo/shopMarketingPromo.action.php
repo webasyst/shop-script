@@ -18,6 +18,23 @@ class shopMarketingPromoAction extends shopMarketingViewAction
         }
 
         $storefronts = shopStorefrontList::getAllStorefronts();
+        if (empty($promo['id']) || (!empty($promo['routes'][shopPromoRoutesModel::FLAG_ALL]))) {
+            $storefronts_count = count($storefronts);
+        } else {
+            if (!empty($promo['routes'][shopPromoRoutesModel::FLAG_ALL . '/'])) {
+                $count_auxiliary_routes = 2;
+            } else {
+                $count_auxiliary_routes = !empty($promo['routes'][shopPromoRoutesModel::FLAG_ALL]) ? 1 : 0;
+            }
+            $storefronts_count = count($promo['routes']) - $count_auxiliary_routes;
+        }
+
+        $all_storefronts_checked = true;
+        foreach ($storefronts as $storefront) {
+            if (empty($promo["routes"][$storefront])) {
+                $all_storefronts_checked = false;
+            }
+        }
 
         list($start_date, $end_date, $group_by) = self::getTimeframeLimits($promo);
 
@@ -72,14 +89,16 @@ class shopMarketingPromoAction extends shopMarketingViewAction
         ]));
 
         $this->view->assign(array(
-            'promo'                => $promo,
-            'storefronts'          => $storefronts,
-            'available_rule_types' => $available_rule_types,
-            'options'              => $options,
-            'overall_totals'       => $overall_totals,
-            'promo_totals'         => $promo_totals,
-            'chart_data'           => $chart_data,
-            'additional_html'      => $additional_html,
+            'promo'                   => $promo,
+            'storefronts'             => $storefronts,
+            'storefronts_count'       => $storefronts_count,
+            'all_storefronts_checked' => $all_storefronts_checked,
+            'available_rule_types'    => $available_rule_types,
+            'options'                 => $options,
+            'overall_totals'          => $overall_totals,
+            'promo_totals'            => $promo_totals,
+            'chart_data'              => $chart_data,
+            'additional_html'         => $additional_html,
         ));
     }
 

@@ -566,12 +566,12 @@ class shopProductModel extends waModel
         $sql = "
             UPDATE shop_product p
                 JOIN (
-                    SELECT s.product_id id, SUM(IF(s.count < 0, 0, s.count)) count_of_skus
+                    SELECT s.product_id id, SUM(IF(s.count < 0, 0, s.count)) count_of_skus, SUM(s.count IS NULL) has_infinity_count
                     FROM shop_product_skus s
                     WHERE s.available > 0
                     GROUP BY s.product_id
                 ) t ON p.id = t.id
-            SET p.count = t.count_of_skus
+            SET p.count = IF(has_infinity_count, NULL, count_of_skus)
         ";
         $this->exec($sql);
 

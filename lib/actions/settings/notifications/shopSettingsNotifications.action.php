@@ -37,8 +37,7 @@ class shopSettingsNotificationsAction extends waViewAction
         return array(
             'email' => array('name' => _w('Email'), 'icon' => 'email'),
             'sms' => array('name' => _w('SMS'), 'icon' => 'mobile'),
-            //'http' => array('name' => _w('HTTP Request'), 'icon' => 'globe-small'),
-            //'twitter' => array('name' => _w('Tweet'), 'icon' => 'twitter'),
+            'http' => array('name' => _w('HTTP Request'), 'icon' => 'globe-small')
         );
     }
 

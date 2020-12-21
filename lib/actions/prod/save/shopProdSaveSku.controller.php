@@ -40,6 +40,7 @@ class shopProdSaveSkuController extends waJsonController
             'currency' => true,
             'features' => true,
             'skus' => true,
+            'params' => true,
         ]);
 
         // When no values come for a `checklist` feature type, it means we need to remove all its values.
@@ -157,7 +158,7 @@ class shopProdSaveSkuController extends waJsonController
                 $mods_by_sku[$sku_code_and_name][] = ['index' => $sku_index] + $sku_data;
             } else {
                 // mods with no code or name are their own SKUs
-                $mods_by_sku[] = [$sku_data];
+                $mods_by_sku[] = [['index' => $sku_index] + $sku_data];
             }
         }
 

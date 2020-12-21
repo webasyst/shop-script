@@ -1377,6 +1377,7 @@
 
             function initStorefrontsSection() {
                 var $storefronts_section = $root_section.find(".s-storefronts-section"),
+                    $js_storefront_mass_field = $storefronts_section.find('.js-storefront-mass-field'),
                     $storefronts_mass_toggle = $storefronts_section.find(".js-storefront-mass-toggle"),
                     $counter = $storefronts_section.find(".js-counter");
 
@@ -1395,7 +1396,18 @@
                     } else {
                         $storefronts_mass_toggle.attr("checked", true);
                     }
+                    $js_storefront_mass_field.data('storefront-count', count);
                     $counter.text(count);
+                });
+
+                $storefronts_section.on("change", ".js-storefront-group-field", function() {
+                    $('.js-storefront-toggle').change();
+                    if ($(this).hasClass('js-storefront-mass-field')) {
+                        $storefronts_section.find('.js-storefront-list').removeClass('hidden');
+                    } else {
+                        $storefronts_section.find('.js-storefront-list').addClass('hidden');
+                    }
+                    $counter.text($(this).data('storefront-count'));
                 });
 
                 $storefronts_mass_toggle.on("change", function(event) {

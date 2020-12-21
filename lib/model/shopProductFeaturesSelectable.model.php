@@ -83,15 +83,18 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
      * @param int $id product id
      * @return array value_id[feature_id][value_id]
      */
-    public function getByProduct($id)
+    public function getByProduct($id, &$sort = null)
     {
         $selected = array();
         if ($id) {
-            foreach ($this->getByField('product_id', $id, true) as $row) {
+            $rows = $this->where('product_id=?', [$id])->order('sort, feature_id')->fetchAll();
+            foreach ($rows as $row) {
                 $row = array_map('intval', $row);
                 $selected[$row['feature_id']][$row['value_id']] = $row['value_id'];
+                if (!isset($sort[$row['feature_id']])) {
+                    $sort[$row['feature_id']] = $row['sort'];
+                }
             }
-            ksort($selected, SORT_NUMERIC);
         }
 
         return $selected;
@@ -186,9 +189,7 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
                 $product->skus = $skus;
             }
         } else {
-            // empty selectable features data
-            $data = array();
-            $this->save($product, array(), true, true);
+            // selectable features are now used in both sku_type modes of a product
         }
 
         return $data;
@@ -418,23 +419,74 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
 
         $feature_model = new shopFeatureModel();
         if ($product->sku_type == shopProductModel::SKU_TYPE_SELECTABLE) {
-            $selected = $this->getByProduct($product->id);
+            $selected = $this->getByProduct($product->id, $sort);
 
             if ($env == 'backend') {
                 $features = $feature_model->getMultipleSelectableFeaturesByType($product->type_id);
             } else {
                 $features = $feature_model->getById(array_keys($selected));
-                if ($product->type_id) {
+
+                // Sort ordering for normal sort (when saved via new product editor)
+                foreach ($sort as $feature_id => $s) {
+                    if (isset($features[$feature_id])) {
+                        $features[$feature_id]['sort1'] = $s;
+                    }
+                }
+
+                // In case we need to sort features by type (see below), fetch the data
+                $need_sort_by_type = count(array_flip(array_values($sort))) <= 1;
+                if ($need_sort_by_type && $product->type_id) {
                     $types = array($product->type_id => true);
                     $type_features_model = new shopTypeFeaturesModel();
                     $type_features_model->fillTypes($features, $types);
                     foreach ($features as &$feature) {
                         unset($feature['types']);
-                        $feature['sort'] = ifset($feature['sort'][$product->type_id]);
-                        unset($feature);
+                        $feature['sort2'] = ifset($feature, 'sort', $product->type_id, null);
                     }
-                    uasort($features, wa_lambda('$a,$b', 'return max(-1,min(1,$a["sort"]-$b["sort"]));'));
+                    unset($feature);
                 }
+
+                uasort($features, function($a, $b) {
+
+                    //
+                    // Normal case: both features have their ordering specified
+                    // in shop_product_features_selectable. This is the case when
+                    // product has been saved via new editor.
+                    //
+                    if ($a['sort1'] < $b['sort1']) {
+                        return -1;
+                    } else if ($a['sort1'] > $b['sort1']) {
+                        return 1;
+                    }
+
+                    //
+                    // Legacy case: features have equal `sort` in shop_product_features_selectable.
+                    // This means that product has never been saved in new editor.
+                    // We should use old ordering as features are sorted in product type.
+                    //
+                    if (isset($a['sort2']) && isset($b['sort2'])) {
+                        if ($a['sort2'] < $b['sort2']) {
+                            return -1;
+                        } else if ($a['sort2'] > $b['sort2']) {
+                            return 1;
+                        } else {
+                            return 0;
+                        }
+                    }
+
+                    //
+                    // Abnormal case: one or both features are not part of product type.
+                    // This may happen if product type has been changed.
+                    // Append unknown features at the end.
+                    //
+                    if (isset($a['sort2'])) {
+                        return 1;
+                    } else if (isset($b['sort2'])) {
+                        return -1;
+                    }
+
+                    return 0;
+                });
             }
 
             // attach values
@@ -623,7 +675,7 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
 
     public function getProductFeatureIds($product_id)
     {
-        $sql = 'SELECT DISTINCT feature_id FROM '.$this->table.' WHERE product_id = i:0';
+        $sql = 'SELECT DISTINCT feature_id FROM '.$this->table.' WHERE product_id = i:0 ORDER BY sort';
         return $this->query($sql, $product_id)->fetchAll(null, true);
     }
 
@@ -632,7 +684,14 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
         // Select value ids of given features, saved for SKUs of current product
         $values = [];
         if ($features_selectable_ids) {
-            $feature_ids_with_no_values = array_fill_keys($features_selectable_ids, true);
+            $sort = 0;
+            $feature_ids_sort = [];
+            $feature_ids_with_no_values = [];
+            foreach ($features_selectable_ids as $id) {
+                $feature_ids_with_no_values[$id] = true;
+                $feature_ids_sort[$id] = $sort;
+                $sort++;
+            }
 
             $product_features_model = new shopProductFeaturesModel();
             $rows = $product_features_model->getByField([
@@ -646,6 +705,7 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
                     'product_id' => $product['id'],
                     'feature_id' => $row['feature_id'],
                     'value_id' => $row['feature_value_id'],
+                    'sort' => ifset($feature_ids_sort, $row['feature_id'], 0),
                 ];
             }
             unset($rows);
@@ -655,6 +715,7 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
                     'product_id' => $product['id'],
                     'feature_id' => $feature_id,
                     'value_id' => 0,
+                    'sort' => ifset($feature_ids_sort, $feature_id, 0),
                 ];
             }
         }

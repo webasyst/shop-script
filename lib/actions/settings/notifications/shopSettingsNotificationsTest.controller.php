@@ -35,12 +35,6 @@ class shopSettingsNotificationsTestController extends waJsonController
             $contact = new shopCustomer(wa()->getUser()->getId());
         }
 
-        $cm = new shopCustomerModel();
-        $customer = $cm->getById($contact->getId());
-        if (!$customer) {
-            $customer = $cm->getEmptyRow();
-        }
-
         $workflow = new shopWorkflow();
 
         // send notifications

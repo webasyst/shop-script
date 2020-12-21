@@ -93,6 +93,16 @@ class shopDemoDataImporter
             }
         }
 
+        if (wa()->appExists('site')) {
+            try {
+                wa('site');
+                // will fill site_domain table
+                siteHelper::getDomains();
+            } catch (Exception $e) {
+
+            }
+        }
+
         return true;
     }
 

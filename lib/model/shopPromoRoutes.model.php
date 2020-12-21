@@ -48,5 +48,14 @@ class shopPromoRoutesModel extends waModel
                 sort = VALUES(sort)";
         $this->exec($sql);
     }
+
+    public function deleteMissingStorefronts()
+    {
+        $storefronts = shopStorefrontList::getAllStorefronts();
+        $storefronts[] = shopPromoRoutesModel::FLAG_ALL;
+        $storefronts_values = "'" . implode("', '", $storefronts) . "'";
+        $sql = "DELETE FROM `{$this->table}` WHERE `storefront` NOT IN ({$this->escape($storefronts_values)})";
+        $this->exec($sql);
+    }
 }
 

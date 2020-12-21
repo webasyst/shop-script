@@ -279,10 +279,18 @@
                 li.find('.routes:first').html(' ');
             }
 
-            if (r.data.status == '0') {
-                li.children('a').addClass('gray');
-            } else if (r.data.status == '1') {
-                li.children('a').removeClass('gray');
+            if (r.data.subcategories_updated) {
+                if (r.data.status == '0') {
+                    li.find('a').addClass('gray');
+                } else if (r.data.status == '1') {
+                    li.find('a').removeClass('gray');
+                }
+            } else {
+                if (r.data.status == '0') {
+                    li.children('a').addClass('gray');
+                } else if (r.data.status == '1') {
+                    li.children('a').removeClass('gray');
+                }
             }
             li.find('.id:first').html(r.data.id);
             li.attr('id', 'category-' + r.data.id);

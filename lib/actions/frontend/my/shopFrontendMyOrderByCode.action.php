@@ -41,6 +41,10 @@ class shopFrontendMyOrderByCodeAction extends shopFrontendMyOrderAction
         $pin = waRequest::request('pin', wa()->getStorage()->get('shop/pin/'.$order_id));
         if ($pin && $pin == $params['auth_pin']) {
             wa()->getStorage()->set('shop/pin/'.$order_id, $pin);
+
+            // signup
+            $this->trySignUp($order['contact_id']);
+
             parent::execute();
             if (!waRequest::isXMLHttpRequest()) {
                 $this->layout->assign('breadcrumbs', self::getBreadcrumbs());
@@ -55,7 +59,7 @@ class shopFrontendMyOrderByCodeAction extends shopFrontendMyOrderAction
         //
         // No pin or pin is incorrect: show form to enter pin
         //
-
+        
         $this->view->assign('wrong_pin', !!$pin);
         $this->view->assign('pin_required', true);
         $this->view->assign('encoded_order_id', $encoded_order_id);
@@ -91,6 +95,111 @@ class shopFrontendMyOrderByCodeAction extends shopFrontendMyOrderAction
         } else {
             return null;
         }
+    }
+
+    /**
+     * @param int $contact_id
+     * @throws waException
+     */
+    protected function trySignUp($contact_id)
+    {
+        // already auth in session - no need to signup
+        if (wa()->getUser()->isAuth()) {
+            return;
+        }
+
+        // contact was deleted
+        $contact = new waContact($contact_id);
+        if (!$contact->exists()) {
+            return;
+        }
+
+        // contact is already singed up
+        $is_signed_up = (bool)$contact->get('password');
+        if ($is_signed_up) {
+            return;
+        }
+
+        // if auth in this site is disabled or auth is by onetime passwords
+        $site_auth_config = waDomainAuthConfig::factory();
+        if (!$site_auth_config->isAuthEnabled() || $site_auth_config->getAuthType() == waAuthConfig::AUTH_TYPE_ONETIME_PASSWORD) {
+            return;
+        }
+
+        // well, we good to go try and signup contact
+        $is_signed_up = $this->signup($contact, $site_auth_config);
+        if ($is_signed_up) {
+            wa()->getAuth()->auth(['id' => $contact->getId()]);
+        }
+    }
+
+    /**
+     * Signup contact (save generated password) and sent notification about it
+     * @param waContact $contact
+     * @param waDomainAuthConfig $auth_config
+     * @return bool
+     * @throws waException
+     */
+    protected function signup(waContact $contact, waDomainAuthConfig $auth_config)
+    {
+        $password = null;
+        $sent = null;
+
+        $addresses = [
+            'email' => $contact->get('email', 'default'),
+            'phone' => $contact->get('phone', 'default')
+        ];
+
+        $channels = $auth_config->getVerificationChannelInstances();
+        foreach ($channels as $channel) {
+
+            // options for send method
+            $options = array(
+                'site_url' => $auth_config->getSiteUrl(),
+                'site_name' => $auth_config->getSiteName(),
+                'login_url' => $auth_config->getLoginUrl([], true)
+            );
+
+            if ($channel->isEmail() && !empty($addresses['email'])) {
+                $address = $addresses['email'];
+
+                $password = waContact::generatePassword();
+                $options['password'] = $password;
+
+                $sent = $channel->sendSignUpSuccessNotification($address, $options);
+            } elseif ($channel->isSMS() && !empty($addresses['phone'])) {
+
+                // generate password on "not extended" alphabet, len is slightly greater to compensate lag of diversity
+                $password = waContact::generatePassword(13, false);
+                $options['password'] = $password;
+
+                $phone = $addresses['phone'];
+                $is_international = substr($phone, 0, 1) === '+';
+
+                $sent = $channel->sendSignUpSuccessNotification($phone, $options);
+
+                // Not sent, maybe because of sms adapter not work correct with not international phones
+                if (!$sent && !$is_international) {
+                    // If not international phone number - transform 8 to code (country prefix)
+                    $transform_result = $auth_config->transformPhone($phone);
+                    if ($transform_result['status']) {
+                        $phone = $transform_result['phone'];
+                        $sent = $channel->sendSignUpSuccessNotification($phone, $options);
+                    }
+                }
+            }
+
+            if ($sent) {
+                break;
+            }
+        }
+
+        if ($sent && $password) {
+            $contact->save(array('password' => $password));
+            return true;
+        }
+
+        return false;
     }
 }
 

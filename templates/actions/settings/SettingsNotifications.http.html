@@ -1,0 +1,24 @@
+<div class="field">
+    <div class="name">[`Send to`]</div>
+    <div class="value no-shift">
+        <input type="text" class="long" name="params[to]" value="{$params.to|default:''}" placeholder="[`Enter webhook url`]">
+    </div>
+</div>
+<div class="field">
+    <div class="name">[`GET-params`]</div>
+    <div class="value no-shift">
+        <textarea id="n-http-get" class="body" name="params[get]" placeholder="param=value">{if !empty($params.get)}{$params.get}{/if}</textarea>
+    </div>
+</div>
+<div class="field">
+    <div class="name">[`POST-params`]</div>
+    <div class="value no-shift">
+        <textarea id="n-http-post" class="body" name="params[post]" placeholder="param=value">{if !empty($params.post)}{$params.post}{/if}</textarea>
+    </div>
+</div>
+<div class="field">
+    <div class="name">[`POST-format`]<!--TODO Localize--></div>
+    <div class="value no-shift">
+        {html_options name='params[format]' options=['raw'=>'HTTP-query','json'=>'JSON'] selected=$params.format|default:'json'}
+    </div>
+</div>

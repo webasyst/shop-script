@@ -31,6 +31,7 @@ class shopCategorySaveController extends waJsonController
 
         if ($id) {
             $this->response = $this->model->getById($id);
+            $this->response['subcategories_updated'] = $data['update_subcategories'];
             $this->response['name'] = htmlspecialchars($this->response['name'], ENT_NOQUOTES);
 
             // when use iframe-transport unescaped content bring errors when parseJSON
@@ -116,6 +117,12 @@ class shopCategorySaveController extends waJsonController
             $this->logAction('category_edit', $category_id);
         }
         if ($category_id) {
+            if ($data['update_subcategories']) {
+                $tree = $this->model->getTree($category_id);
+                $category_ids = array_keys($tree);
+                $this->model->updateByField('parent_id', $category_ids, array('status' => $data['status']));
+            }
+
             if (waRequest::post('enable_sorting')) {
                 $data['params']['enable_sorting'] = 1;
             }
@@ -189,6 +196,8 @@ class shopCategorySaveController extends waJsonController
 
         $data['include_sub_categories'] = waRequest::post('include_sub_categories', 0, waRequest::TYPE_INT);
         $data['og'] = waRequest::post('og', array(), waRequest::TYPE_ARRAY);
+
+        $data['update_subcategories'] = waRequest::post('update_subcategories', 0);
 
         return $data;
     }

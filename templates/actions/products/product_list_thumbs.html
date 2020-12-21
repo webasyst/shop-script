@@ -5,7 +5,7 @@
     {% for (var i = 0, n = o.products.length, p = o.products[0]; i < n; p = o.products[++i]) { %}
     <li class="product
         {% if (i == n-1) { %}last{% } %}
-        {% if (p.status == '0') { %}gray{% } %}
+        {% if (p.status != '1') { %}gray{% } %}
         {% if (p.alien) { %}s-alien{% } %}"
         data-product-id="{%#p.id%}"
         {% if (p.alien) { %}title="[`This is a subcategory product`]"{% } %}

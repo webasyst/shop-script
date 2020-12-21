@@ -637,8 +637,8 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
                     }
                 }
                 if (!counter) {
-                    this.hide();
-                    $.importexport.profileAdd(key);
+                    /** случай когда профиль отсутствует. Сервер создаст дефолтный */
+                    document.location.reload();
                 } else {
                     var $delete = this.$profiles.find('> li.no-tab:last').show().find('> a:first');
                     $delete.attr('href', $delete.data('href').replace(/%plugin%/, key));

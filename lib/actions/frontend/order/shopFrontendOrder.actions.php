@@ -244,30 +244,47 @@ class shopFrontendOrderActions extends waJsonActions
 
         // If there is a password, do not need to register
         if ($contact['password']) {
-            return $result;
+            return false;
         }
 
-        //Having a password is a sign that the contact can log in.
-        $password = waContact::generatePassword();
-        $contact->setPassword($password);
-        $contact->save();
+        $password = null;
 
         $auth_config = waDomainAuthConfig::factory();
-        // You do not need to transfer the password in the one-time password mode
-        if ($auth_config->getAuthType() !== $auth_config::AUTH_TYPE_ONETIME_PASSWORD) {
-            $template_variables = ['password' => $password];
-        }
 
         $signup_notify = $auth_config->getSignUpNotify();
         if ($signup_notify) {
             $channels = $auth_config->getVerificationChannelInstances();
             foreach ($channels as $channel) {
+
+                // for sms channel use not extended alphabet, for simply copy-paste from SMS on phone
+                $is_sms_channel = $channel instanceof waVerificationChannelSMS;
+                $is_extended = !$is_sms_channel;
+
+                $len = 11;
+                if (!$is_extended) {
+                    $len = 13;  // lag of diversity compensate with greater length of password
+                }
+
+                $password = waContact::generatePassword($len, $is_extended);
+
+                // You do not need to transfer the password in the one-time password mode
+                if ($auth_config->getAuthType() !== $auth_config::AUTH_TYPE_ONETIME_PASSWORD) {
+                    $template_variables = ['password' => $password];
+                }
+
                 $result = $channel->sendSignUpSuccessNotification($contact, $template_variables);
                 if ($result) {
                     break;
                 }
             }
         }
+
+        if (!$password) {
+            $password = waContact::generatePassword();
+        }
+
+        $contact->setPassword($password);
+        $contact->save();
 
         return $result;
     }

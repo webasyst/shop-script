@@ -322,38 +322,59 @@
                         <div class="value">
 
                             <div class="s-storefronts-section">
-                                {$_count = $promo["routes"]|default:[]|count}
-                                {if empty($promo["id"])}
-                                    {$_count = $storefronts|count}
-                                {elseif !empty($promo["routes"][shopPromoRoutesModel::FLAG_ALL])}
-                                    {$_count = $_count - 1}
-                                {/if}
 
                                 <div class="s-visible">
-                                    <span class="s-title">[`Storefronts`] (<span class="js-counter">{$_count|escape}</span>)</span>
+                                    <span class="s-title">[`Storefronts`] (<span class="js-counter">{$storefronts_count|escape}</span>)</span>
                                     <a class="inline-link js-show-all" href="javascript:void(0);"><b><i>[`Options`]</i></b></a>
                                 </div>
                                 <div class="s-hidden">
-                                    <ul class="menu-v">
-                                        <li>
-                                            <label>
-                                                <input type="checkbox" class="js-storefront-mass-toggle" value="1"
-                                                    name="storefronts[{shopPromoRoutesModel::FLAG_ALL}]"
-                                                    {if empty($promo["id"]) || !empty($promo["routes"][shopPromoRoutesModel::FLAG_ALL])}checked{/if}> [`All storefronts`]
+                                    <div class="s-radio-list">
+                                        {$all_storefronts_count = $storefronts|default:[]|count}
+                                        <div class="s-radio-wrapper">
+                                            <label class="s-radio-label">
+                                                <input class="s-radio js-storefront-group-field" type="radio" value="1"
+                                                       name="storefronts[{shopPromoRoutesModel::FLAG_ALL}]"
+                                                       data-storefront-count="{$all_storefronts_count}"
+                                                       {if empty($promo["id"]) || !empty($promo["routes"][shopPromoRoutesModel::FLAG_ALL])}checked{/if}
+                                                >
+                                                <span class="s-text bold">[`Использовать на всех витринах`]</span>
                                             </label>
-                                        </li>
-                                        {foreach $storefronts as $_id => $_storefront}
-                                            {$_is_active = false}
-                                            {if empty($promo["id"]) || !empty($promo["routes"][$_storefront])}
-                                                {$_is_active = true}
+                                        </div>
+                                        <div class="s-radio-wrapper">
+                                            {$some_storefronts = false}
+                                            {if !empty($promo["id"]) && empty($promo["routes"][shopPromoRoutesModel::FLAG_ALL])}
+                                                {$some_storefronts = true}
                                             {/if}
-                                            <li>
-                                                <label>
-                                                    <input type="checkbox" class="js-storefront-toggle" name="storefronts[{$_storefront|escape}]" value="1" {if !empty($_is_active)}checked{/if}> {waIdna::dec($_storefront|escape)}
-                                                </label>
-                                            </li>
-                                        {/foreach}
-                                    </ul>
+                                            <label class="s-radio-label">
+                                                <input class="s-radio js-storefront-group-field js-storefront-mass-field" type="radio" value="0"
+                                                       name="storefronts[{shopPromoRoutesModel::FLAG_ALL}]" {if $all_storefronts_count == 0}disabled{/if}
+                                                       {if $some_storefronts}checked{/if}
+                                                >
+                                                <span class="s-text">[`Использовать только на выбранных витринах`]</span>
+                                            </label>
+
+                                            <ul class="menu-v js-storefront-list {if !$some_storefronts}hidden{/if}" style="margin-left: 18px">
+                                                <li>
+                                                    <label class="s-checkbox-wrapper s-all-checkbox-wrapper">
+                                                        <input class="s-checkbox js-storefront-mass-toggle" type="checkbox" {if $all_storefronts_checked}checked{/if}>
+                                                        <span class="s-text">[`Select all`]</span>
+                                                    </label>
+                                                </li>
+                                                {foreach $storefronts as $_id => $_storefront}
+                                                    {$_is_active = false}
+                                                    {if $some_storefronts && !empty($promo["routes"][$_storefront])}
+                                                        {$_is_active = true}
+                                                    {/if}
+                                                    <li>
+                                                        <label class="s-checkbox-wrapper">
+                                                            <input class="s-checkbox js-storefront-toggle" type="checkbox" name="storefronts[{$_storefront|escape}]" value="1" {if !empty($_is_active)}checked{/if}>
+                                                            <span class="s-text">{waIdna::dec($_storefront|escape)}</span>
+                                                        </label>
+                                                    </li>
+                                                {/foreach}
+                                            </ul>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 

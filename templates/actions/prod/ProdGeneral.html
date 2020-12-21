@@ -1,13 +1,98 @@
 {strip}
 
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
 {$_lang = substr($wa->locale(), 0, 2)}
+{$_max_post_size = waRequest::getPostMaxSize()}
+{$_max_file_size = waRequest::getUploadMaxFilesize()}
+{$_max_post_size_mb = floor($_max_post_size * 10/(1024))/10}
+{$_max_file_size_mb = floor($_max_file_size * 10/(1024))/10}
+
+{* ШАБЛОНЫ *}
 
 {$_templates = []}
+
+{capture assign="_sku_delete_photo"}{include file="./dialogs/sku_delete_photo.html" inline}{/capture}
+{$_templates["dialog_sku_delete_photo"] = $_sku_delete_photo}
+
+{capture assign="_photo_manager_dialog"}{include file="./ProdSkuImageDialog.html" inline}{/capture}
+{$_templates["dialog_photo_manager"] = $_photo_manager_dialog}
+
+{* ПОДСКАЗКИ *}
+
+{$_tooltips = [
+    "product-sku-8" => [
+        "id" => "product-sku-8",
+        "html" => _w("Change image")|escape,
+        "class" => "inline"
+    ],
+    "product-sku-9" => [
+        "id" => "product-sku-9",
+        "html" => _w("Delete image")|escape,
+        "class" => "inline"
+    ],
+    "product-sku-21" => [
+        "id" => "product-sku-21",
+        "html" => _w("The SKU is not available for purchase.")|escape
+    ],
+    "product-sku-22" => [
+        "id" => "product-sku-22",
+        "html" => _w("Some SKU variants are available for purchase.")|escape
+    ],
+    "product-sku-23" => [
+        "id" => "product-sku-23",
+        "html" => _w("The SKU is available for purchase.")|escape
+    ],
+    "product-sku-24" => [
+        "id" => "product-sku-24"
+    ],
+    "product-image-dialog-1" => [
+        "id" => "product-image-dialog-1",
+        "html" => _w("Drag & drop image files here or click this area to upload files.")|escape,
+        "position" => "top"
+    ]
+]}
+
+{* КОМПОНЕНТЫ *}
+
+{capture assign="_dropdown_currency"}
+    <div class="dropdown" v-bind:class="{ 'wide': wide }">
+        <button class="dropdown-toggle wa-button wa-small gray-field" type="button">{ { currency_code } }</button>
+        <div class="dropdown-body right" style="width: 6rem;">
+            <template v-for="currency in currencies">
+                <div class="dropdown-item"
+                     v-bind:data-id="currency.code"
+                     v-bind:class="{ 'selected': currency.code === currency_code }"
+                     v-bind:title="currency.title">{ { currency.code } }</div>
+            </template>
+        </div>
+    </div>
+{/capture}
+{$_templates["component-dropdown-currency"] = $_dropdown_currency}
+
+{capture assign="_component_product_badge_form"}
+    <div class="s-badge-form">
+        <div class="flexbox middle space-8">
+            <textarea class="wa-small wide" placeholder="{_w("Enter a value")|escape}" v-model="badge.code_model"></textarea>
+            <button class="wa-small wa-button blue" type="button" v-on:click="updateForm">
+                <span class="s-icon icon top"><i class="fas fa-check"></i></span>
+            </button>
+            <button class="wa-small wa-button gray" type="button" v-on:click="revertForm">
+                <span class="icon top"><i class="fas fa-times"></i></span>
+            </button>
+        </div>
+    </div>
+{/capture}
+{$_templates["component-product-badge-form"] = $_component_product_badge_form}
+
 {$_locales = [
     "add_tag" => _w("Add a tag"),
     "select_category" => _w("Please select a category"),
     "storefront_changed" =>  _w('Product publication URL has changed. Storefronts’ addresses will be updated after you click “Save”.'),
-    "modification_wysiwyg_message" => _ws('WYSIWYG editor may change your HTML code. It is necessary for correct text formatting. Smarty code may be broken and outdated HTML tags may be replaced with modern ones. Are you sure to switch to WYSIWYG editor?')
+    "modification_wysiwyg_message" => _ws('WYSIWYG editor may change your HTML code. It is necessary for correct text formatting. Smarty code may be broken and outdated HTML tags may be replaced with modern ones. Are you sure to switch to WYSIWYG editor?'),
+    "file_type" => _w("Unsupported image type. Use PNG, GIF and JPEG image files only."),
+    "file_size" => "{_w("Each file’s size cannot be greater than")} {$_max_file_size_mb}{_w("KB")}.",
+    "post_size" => "{_w("Total size of selected files cannot be greater than")} {$_max_post_size_mb}{_w("KB")}.",
+    "stock_title" => _w("The quantity on this virtual stock is the sum of quantities on physical stocks — %s. You can change the list of stocks in “Settings” section.")
 ]}
 
 {$_active_main_category = null}
@@ -16,7 +101,7 @@
 {/if}
 
 {/strip}
-<div class="article s-product-general-section" id="js-product-general-section">
+<div class="article s-product-general-section" id="js-product-general-section" style="visibility: hidden;">
     <div class="s-section-body">
         <form>
             <div class="s-fields-section">
@@ -100,7 +185,7 @@
                     <div class="wa-field">
                         <div class="name">
 
-                            <div class="wa-label for-input">
+                            <div class="wa-label">
                                 <div>
                                     [`Visibility in the storefront`]
                                 </div>
@@ -139,7 +224,7 @@
                                 <div class="tablebox fixed space-20">
                                     <div class="s-column-status">
                                         <div class="dropdown" id="js-product-status-select">
-                                            <button class="dropdown-toggle wa-button gray-field" type="button">
+                                            <button class="dropdown-toggle wa-button wa-small gray-field" type="button">
                                                 {if !empty($_active_status.icon)}
                                                     <i class="{$_active_status.icon|escape}"></i>
                                                 {/if}
@@ -213,7 +298,7 @@
                                                     <span class="wa-tooltip bottom-left" data-title="{_w("Select an address to which website visitors and search engines will be redirected when attempting to access this product’s URL.")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
                                                 </div>
                                                 <div class="dropdown" id="js-product-redirect-select">
-                                                    <button class="dropdown-toggle wa-button gray-field" type="button">
+                                                    <button class="dropdown-toggle wa-button wa-small gray-field" type="button">
                                                         {$_active_redirect_option.name|escape}
                                                     </button>
                                                     <div class="dropdown-body right">
@@ -277,13 +362,358 @@
 
                         </div>
                     </div>
+                </div>
 
+                {* SKU *}
+                <div class="s-product-minimal-sku-section" id="vue-sku-section">
+                    {* SKU ADVANCE MODE *}
+                    <div class="wa-fields space-24">
+                        <div class="wa-field">
+                            <div class="name unshifted">
+
+                                <div class="wa-label">
+                                    <div class="flexbox space-10">
+                                        <span class="s-name">[`The product contains several SKUs or variants.`]</span>
+                                        <span class="wa-tooltip right" data-title="{_w("Enable to offer customers several versions of the product.")|escape}">
+                                            <i class="fas fa-question-circle s-icon gray"></i>
+                                        </span>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="value s-small-text">
+
+                                <div class="flexbox middle space-10">
+                                    <component-switch v-model="product.normal_mode_switch"
+                                                      v-bind:disabled="product.normal_mode"
+                                                      v-bind:class="'wa-small'"
+                                                      v-on:change="changeProductMode"></component-switch>
+                                    <div class="s-status">{ { product.normal_mode_switch ? {_w("Enabled")|json_encode} : {_w("Disabled")|json_encode} } }</div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <template v-if="!product.normal_mode_switch">
+                        {* SKU *}
+                        <div class="s-sku-wrapper">
+                            <div class="s-sku-table tablebox fixed space-16">
+                                <div class="s-column-view-actions">
+                                    <div class="s-image-wrapper"></div>
+
+                                    {strip}
+                                    <div class="s-actions nowrap">
+                                        {*
+                                        <template v-if="product.normal_mode_switch">
+                                            <button class="wa-button transparent" v-on:click.prevent="skuMainToggle(sku);"
+                                                    v-bind:title="( product.sku_id === sku.sku_id ? '{_w("Main product SKU")|escape}': '{_w("Make the main product SKU")|escape}')">
+
+                                                <span class="s-icon" v-bind:class="{ 'color-orange': product.sku_id === sku.sku_id, 'color-gray-light': product.sku_id !== sku.sku_id }"><i class="fas fa-check-circle"></i></span>
+                                            </button>
+                                        </template>
+                                        *}
+                                        <button class="wa-button transparent"
+                                                v-on:click.prevent="skuAvailableToggle(sku)"
+                                                v-bind:data-tooltip-id="getSkuModAvailableTitle(sku, ['product-sku-21', 'product-sku-22', 'product-sku-23'])">
+
+                                            <span class="s-icon icon top size-18 color-green-dark" v-if="getSkuModAvailableState(sku, 'all')"><svg><use xlink:href='{$_sprite_url}#cart'></use></svg></span>
+                                            <span class="s-icon icon top size-18 color-gray-light" v-if="getSkuModAvailableState(sku, 'part')"><svg><use xlink:href='{$_sprite_url}#cart'></use></svg></span>
+                                            <span class="s-icon icon top size-18 color-gray-light" v-if="getSkuModAvailableState(sku, 'none')"><svg><use xlink:href='{$_sprite_url}#cart-slash'></use></svg></span>
+                                        </button>
+                                    </div>
+                                    {/strip}
+                                </div>
+
+                                <div class="s-column-details">
+                                    {strip}
+                                    <div class="wa-fields custom-columns vertical">
+                                        <div class="wa-field">
+                                            <div class="name">[`SKU code`]</div>
+                                            <div class="value">
+                                                <input type="text" class="wa-small"
+                                                       v-model="sku.sku"
+                                                       v-bind:class="{ 'wa-error-field': !!sku.errors['sku.sku'] }"
+                                                       v-on:change="changeSkuSku(sku)">
+
+                                                <template v-if="product.normal_mode && Object.keys(sku.errors).length">
+                                                    <div class="s-errors-place" v-for="error in sku.errors">
+                                                        <div class="wa-error-text">{ { error.text } }</div>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        {*
+                                        <div class="wa-field" v-if="product.normal_mode_switch">
+                                            <div class="name">[`SKU name`]</div>
+                                            <div class="value">
+                                                <component-flex-textarea v-model="sku.name" v-bind:class="'full-width wa-small'" v-on:input="changeSkuName(sku)"></component-flex-textarea>
+                                            </div>
+                                        </div>
+                                        *}
+                                    </div>
+                                    {/strip}
+                                </div>
+                            </div>
+                        </div>
+
+                        {* MODIFICATION *}
+                        <div class="s-modifications-section">
+                            <div class="s-modifications-list">
+                                <template v-for="(sku_mod, sku_mod_index) in sku.modifications">
+                                    <div class="s-modification-wrapper" v-bind:key="sku_mod.id">
+                                        <div class="s-sku-table tablebox fixed space-16">
+                                            <div class="s-column-view-actions">
+                                                <div class="s-image-wrapper">
+                                                    <div class="s-image-item"
+                                                         data-tooltip-id="product-sku-8"
+                                                         v-if="sku_mod.photo"
+                                                         v-bind:style="{ 'background-image': 'url(' + sku_mod.photo.url + ')' }"
+                                                         v-on:click.prevent="addProductPhoto($event, sku_mod)"></div>
+
+                                                    <div class="s-image-item"
+                                                         data-tooltip-id="product-sku-8"
+                                                         v-if="!sku_mod.photo"
+                                                         v-on:click.prevent="addProductPhoto($event, sku_mod)">
+
+                                                        <div class="s-icon icon">
+                                                            <svg><use xlink:href='{$_sprite_url}#empty-image'></use></svg>
+                                                        </div>
+                                                    </div>
+
+                                                    <span class="s-action rounded"
+                                                          data-tooltip-id="product-sku-9"
+                                                          v-if="sku_mod.photo"
+                                                          v-on:click.prevent="removeProductPhoto(sku_mod)">
+                                                        <span class="icon top size-12"><i class="fas fa-trash-alt"></i></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div class="s-column-details">
+                                                {strip}
+                                                <div class="s-prices-wrapper wa-fields vertical">
+                                                    <div class="wa-field s-field-purchase-price">
+                                                        <div class="name">[`Purchase price`]</div>
+                                                        <div class="value">
+                                                            <input class="wa-small is-number" type="text"
+                                                                   v-model="sku_mod.purchase_price"
+                                                                   v-bind:class="{ 'wa-error-field' : !!errors['product[skus][' + sku_mod.id + '][purchase_price]'] }"
+                                                                   v-on:input="validate($event, 'price', sku_mod, 'purchase_price')">
+
+                                                            <div class="wa-error-text" v-if="!!errors['product[skus][' + sku_mod.id + '][purchase_price]']">
+                                                                {_w("Invalid value")|escape}
+                                                                &nbsp;
+                                                                <div class="wa-tooltip" data-title="[`Enter a number between 0 and 99,999,999,999.999 with max. 3 decimal digits.`]">
+                                                                    <i class="fas fa-question-circle color-red"></i>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="wa-field s-field-compare-price">
+                                                        <div class="name">[`Compare at price`]</div>
+                                                        <div class="value">
+                                                            <input class="wa-small strike is-number" type="text"
+                                                                   v-model="sku_mod.compare_price"
+                                                                   v-bind:class="{ 'wa-error-field' : !!errors['product[skus][' + sku_mod.id + '][compare_price]'] }"
+                                                                   v-on:input="validate($event, 'price', sku_mod, 'compare_price')">
+
+                                                            <div class="wa-error-text" v-if="!!errors['product[skus][' + sku_mod.id + '][compare_price]']">
+                                                                {_w("Invalid value")|escape}
+                                                                &nbsp;
+                                                                <div class="wa-tooltip" data-title="[`Enter a number between 0 and 99,999,999,999.999 with max. 3 decimal digits.`]">
+                                                                    <i class="fas fa-question-circle color-red"></i>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="wa-field s-field-price">
+                                                        <div class="name">[`Price`]</div>
+                                                        <div class="value">
+                                                            <input class="wa-small bold is-number" type="text"
+                                                                   v-model="sku_mod.price"
+                                                                   v-bind:class="{ 'wa-error-field' : !!errors['product[skus][' + sku_mod.id + '][price]'] }"
+                                                                   v-on:input="validate($event, 'price', sku_mod, 'price')">
+
+                                                            <div class="wa-error-text" v-if="!!errors['product[skus][' + sku_mod.id + '][price]']">
+                                                                {_w("Invalid value")|escape}
+                                                                &nbsp;
+                                                                <div class="wa-tooltip" data-title="[`Enter a number between 0 and 99,999,999,999.999 with max. 3 decimal digits.`]">
+                                                                    <i class="fas fa-question-circle color-red"></i>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="wa-field s-field-currency">
+                                                        <div class="name">&nbsp;</div>
+                                                        <div class="value">
+                                                            <component-dropdown-currency v-bind:currency_code="product.currency" v-bind:currencies="currencies" v-bind:wide="true" v-on:change="product.currency = $event"></component-dropdown-currency>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {/strip}
+
+                                                <div class="s-other-fields wa-fields space-24">
+                                                    <div class="wa-field">
+                                                        <div class="name unshifted">
+
+                                                            <div class="flexbox space-10">
+                                                                <span class="s-name">[`SKU ID`]</span>
+                                                                <span class="wa-tooltip right" data-title="{_w("Numeric ID of this variant stored in the database.")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
+                                                            </div>
+
+                                                        </div>
+                                                        <div class="value middle">
+                                                            <span class="s-ident" v-bind:class="{ 'hint': sku_mod.id < 0 }">{ { sku_mod.id < 0 ? "[`An ID will be shown after saving.`]" : sku_mod.id } }</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+
+                                            <div class="s-column-stocks">
+                                                <div class="s-stocks-section">
+                                                    <div class="s-visible-part">
+
+                                                        <div class="wa-fields vertical">
+                                                            <div class="wa-field">
+                                                                <div class="name">[`Quantity`]</div>
+                                                                <div class="value">
+
+                                                                    <div class="s-field-wrapper">
+                                                                        <div class="s-icon left" v-bind:class="{ 'color-green' : sku_mod.stocks_indicator > 0, 'color-orange' : sku_mod.stocks_indicator == 0, 'color-red' : sku_mod.stocks_indicator < 0 }">
+                                                                            <i class="icon size-16"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></i>
+                                                                        </div>
+                                                                        <input class="wa-small s-field full-width is-number" type="text" placeholder="∞"
+                                                                               v-model="sku_mod.count"
+                                                                               v-bind:readonly="!!stocks_array.length"
+                                                                               v-on:click="focusSkuModStocks(sku_mod)"
+                                                                               v-on:input="validate($event, 'integer', sku_mod, 'count')">
+                                                                    </div>
+
+                                                                    <template v-if="stocks_array.length">
+                                                                        <div class="s-toggle" v-on:click.prevent="modificationStocksToggle(sku_mod)">
+                                                                            <span class="s-text">{ { sku_mod.stocks_expanded ? {_w("Hide stocks")|json_encode} : {_w("Show stocks")|json_encode} } }</span>
+                                                                            <span class="s-icon" v-show="!sku_mod.stocks_expanded"><i class="fas fa-angle-down"></i></span>
+                                                                            <span class="s-icon" v-show="sku_mod.stocks_expanded"><i class="fas fa-angle-up"></i></span>
+                                                                        </div>
+                                                                    </template>
+
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+                                                    <div class="s-hidden-part" v-if="sku_mod.stocks_expanded">
+                                                        <div class="s-stocks-list-section" v-bind:class="{ 'is-large': stocks_array.length > 6 }">
+                                                            <div class="s-section-body">
+                                                                <div class="s-stocks-list">
+
+                                                                    <template v-for="stock in stocks_array">
+                                                                        <div class="s-stock-wrapper">
+                                                                            <div class="flexbox fixed middle space-12"
+                                                                                 data-tooltip-id="product-sku-24"
+                                                                                 v-bind:data-title="getStockTitle(stock)">
+
+                                                                                <div class="c-column">
+                                                                                    <div class="s-field-wrapper">
+                                                                                        <div class="s-icon left" v-bind:class="{ 'color-green' : sku_mod.stock[stock.id] > stock.low_count || sku_mod.stock[stock.id] === '', 'color-orange' : sku_mod.stock[stock.id] > stock.critical_count && sku_mod.stock[stock.id] <= stock.low_count, 'color-red' : sku_mod.stock[stock.id] <= stock.critical_count && sku_mod.stock[stock.id] !== '' }">
+                                                                                            <i class="icon size-16"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></i>
+                                                                                        </div>
+                                                                                        <input class="wa-small s-field full-width is-number" type="text" placeholder="∞"
+                                                                                               v-model="sku_mod.stock[stock.id]"
+                                                                                               v-bind:readonly="stock.is_virtual"
+                                                                                               v-bind:class="{ 'transparent' : stock.is_virtual }"
+                                                                                               v-on:change="changeSkuModStocks(sku_mod)"
+                                                                                               v-on:input="validate($event, 'integer', sku_mod.stock, stock.id)">
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="c-column">
+                                                                                    <span class="cursor-default">{ { stock.name } }</span>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </template>
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="s-section-footer">
+                                                                <button class="wa-button gray-light" type="button" v-on:click.prevent="modificationStocksToggle(sku_mod, false)">[`Close`]</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        {* BAGES *}
+                        <div class="s-product-badges-section js-product-badges-section">
+                            <div class="tablebox fixed space-16">
+                                <div class="s-column middle s-column-label">
+                                    <div class="flexbox space-10">
+                                        <span class="s-name">[`Badge`]</span>
+                                        <span class="wa-tooltip inline right" data-title="{_w("An icon or brief caption to highlight this product among others.")|escape}">
+                                            <i class="fas fa-question-circle s-icon gray"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="s-column">
+
+                                    <template v-if="product.badges">
+                                        <div class="s-badges-list">
+                                            <template v-for="badge in product.badges">
+                                                <div class="s-badge-wrapper"
+                                                     v-bind:class="{ 'is-active': (badge.id === product.badge_id) }"
+                                                     v-on:click.prevent="changeProductBadge(badge)">
+
+                                                    <span class="s-icon" v-if="badge.id === 'new'"><i class="fas fa-bolt"></i></span>
+                                                    <span class="s-icon" v-if="badge.id === 'bestseller'"><i class="fas fa-chart-line"></i></span>
+                                                    <span class="s-icon" v-if="badge.id === 'lowprice'"><i class="fas fa-piggy-bank"></i></span>
+                                                    <span class="s-icon" v-if="badge.id === ''"><i class="fas fa-code"></i></span>
+                                                    <span class="s-name">{ { badge.name } }</span>
+                                                </div>
+                                            </template>
+                                            <div class="s-button-wrapper" v-if="product.badge_id !== null">
+                                                <button class="wa-button transparent" v-on:click.prevent="changeProductBadge()">
+                                                    <span class="s-icon"><i class="fas fa-times"></i></span>
+                                                    <span class="s-name">[`Remove`]</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <template v-if="product.badge_form">
+                                            <component-product-badge-form v-bind:product="product"></component-product-badge-form>
+                                        </template>
+                                    </template>
+                                    <template v-else>
+                                        <p>[`No badges`]</p>
+                                    </template>
+
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div class="s-sku-wrapper">
+                            <div class="s-info-message">
+                                <span class="icon size-16 top color-blue"><i class="fas fa-info-circle"></i></span>
+                                <span class="s-text">{sprintf(_w("Цены настраиваются в разделе: %s"),"<span>{_w("Prices and features")}</span>")}</span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="wa-fields space-24">
                     {* TYPE *}
                     {if !empty($product_types)}
                         <div class="wa-field">
                             <div class="name">
 
-                                <div class="wa-label for-input">
+                                <div class="wa-label">
                                     <div>
                                         [`Product type`]
                                         <span class="wa-tooltip right" data-title="{_w("Each product type; e.g., “TVs”, “Phones”, or “Clocks”, can have its own set of features. You can decide which product types to make visible in a storefront. Separate access rights to product types can be set up for store backend users and user groups.")|escape}">
@@ -311,7 +741,7 @@
                                 <div class="s-product-type-section js-product-type-section">
                                     <div class="inlinebox baseline space-20">
                                         <div class="dropdown js-product-type-select">
-                                            <button class="dropdown-toggle wa-button gray-field" type="button">
+                                            <button class="dropdown-toggle wa-button wa-small gray-field" type="button">
                                                 {if !empty($_active_product_type.icon)}{_render_type_icon _icon=$_active_product_type.icon}{/if}
                                                 {$_active_product_type.name|default:""|escape}
                                             </button>
@@ -354,7 +784,7 @@
                     <div class="wa-field">
                         <div class="name">
 
-                            <div class="wa-label for-input">
+                            <div class="wa-label">
                                 <div>
                                     [`Main category`]
                                     <span class="wa-tooltip right" data-title="{_w("A category is a group of products with its own page in the storefront. The main category in which a product is included affects navigation links on the product page and its address in the storefront with some configurations.")|escape}">
@@ -369,7 +799,7 @@
                             <div class="s-product-main-category-section">
                                 <div class="s-visible-place">
                                     <div class="dropdown" id="js-product-main-category-select">
-                                        <button class="dropdown-toggle wa-button gray-field" type="button">{$_active_main_category.name|default:$_locales["select_category"]|escape}</button>
+                                        <button class="dropdown-toggle wa-button wa-small gray-field" type="button">{$_active_main_category.name|default:$_locales["select_category"]|escape}</button>
                                         <div class="dropdown-body">
                                             <div class="dropdown-filter js-dropdown-filter">
                                                 <div class="s-actions left">
@@ -557,7 +987,7 @@
                                 {$_active_tax = ifset($taxes, $product.tax_id, $_empty_tax)}
 
                                 <div class="dropdown" id="js-product-tax-select">
-                                    <button class="dropdown-toggle wa-button gray-field" type="button">{ifset($_active_tax, 'name', _w("Select a tax"))|escape}</button>
+                                    <button class="dropdown-toggle wa-button wa-small gray-field" type="button">{ifset($_active_tax, 'name', _w("Select a tax"))|escape}</button>
                                     <div class="dropdown-body">
                                         <div class="dropdown-item {if $_is_empty}selected{/if}" data-id="{$_empty_tax.id|escape}">
                                             {$_empty_tax.name|escape}
@@ -659,6 +1089,10 @@
     <script>
         ( function($) {
             var sources = [{
+                id: "vue-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/vue/vue.min.js?v={$wa->version()}"
+            }, {
                 id: "ace-js",
                 type: "js",
                 uri: "{$wa_url}wa-content/js/ace/ace.js?v=={$wa->version(true)}"
@@ -714,6 +1148,7 @@
                     product_category_id: {if !empty($product.category_id)}{$product.category_id|json_encode}{else}null{/if},
                     categories_tree: {$categories_tree|json_encode},
                     templates: {$_templates|json_encode},
+                    tooltips: {$_tooltips|json_encode},
                     locales: {$_locales|json_encode},
                     urls: {
                         "wa_url": {$wa_url|json_encode},
@@ -722,9 +1157,19 @@
                         "add_set_dialog": "{$wa_app_url}?module=prod&action=selectSetDialog",
                         "add_category_dialog": "{$wa_app_url}?module=prod&action=selectCategoryDialog",
                         "create_category": "{$wa_app_url}?module=category&action=add",
-                        "product_url_checker": "{$wa_app_url}?module=prod&action=checkUrlInUse"
+                        "product_url_checker": "{$wa_app_url}?module=prod&action=checkUrlInUse",
+                        "add_product_image": "{$wa_app_url}?module=prod&action=imageUpload",
+                        "change_image_description": "{$wa_app_url}?module=product&action=imageSave",
+                        "delete_image": "{$wa_app_url}?module=product&action=ImageDelete"
                     },
-                    lang: {$_lang|json_encode}
+                    lang: {$_lang|json_encode},
+
+                    max_file_size: {$_max_file_size|json_encode},
+                    max_post_size: {$_max_post_size|json_encode},
+
+                    stocks: {$stocks|array_values|json_encode},
+                    product: {$formatted_product|json_encode},
+                    currencies: {$currencies|json_encode}
                 });
             }
 

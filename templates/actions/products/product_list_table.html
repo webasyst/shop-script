@@ -66,7 +66,7 @@
     {literal}
     {% for (var i = 0, n = o.products.length, p = o.products[0]; i < n; p = o.products[++i]) { %}
     <tr class="product {% if (i == n-1) { %}last{% } %}
-        {% if (p.status == '0') { %}gray{% } %}
+        {% if (p.status != '1') { %}gray{% } %}
         {% if (o.check_all) { %}selected{% } %}
         {% if (p.alien) { %}s-alien{% } %}"
         data-product-id="{%#p.id%}"

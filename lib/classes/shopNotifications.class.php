@@ -571,6 +571,7 @@ SQL;
                 if (wa()->getEnv() == 'frontend') {
                     $from_name = waRequest::param('_name');
                 } elseif (!empty($data['order']['params']['storefront'])) {
+                    $order_storefront = $data['order']['params']['storefront'];
                     if ($routes = wa()->getRouting()->getByApp('shop')) {
                         foreach ($routes as $domain => $domain_routes) {
                             foreach ($domain_routes as $route) {
@@ -579,8 +580,13 @@ SQL;
                                 if ($route_url) {
                                     $route_storefront .= '/'.$route_url;
                                 }
-                                if ($route_storefront == $data['order']['params']['storefront']) {
-                                    $from_name = ifempty($route['_name']);
+                                if (trim($route_storefront, '/') == trim($order_storefront, '/')) {
+                                    if (isset($route['_name'])) {
+                                        $from_name = $route['_name'];
+                                    } else {
+                                        $app = wa()->getAppInfo('shop');
+                                        $from_name = $app['name'];
+                                    }
                                     break 2;
                                 }
                             }
@@ -700,9 +706,135 @@ SQL;
 
     }
 
+    /**
+     * @param $n
+     * @param $data
+     * @return array
+     * @throws waException
+     * @since Shop-Script 8.15.0
+     */
     protected static function sendHttp($n, $data)
     {
+        $fail_result = [
+            'status' => false,
+            'log_id' => null
+        ];
+        $webhook_url = ifset($n, 'to', false);
+        if (!$webhook_url) {
+            return $fail_result;
+        }
 
+        //GET params
+        if (!empty($n['get'])) {
+            $n['get'] = self::prepareHttpParam($data, $n['get']);
+            if (!empty($n['get']) && strpos($webhook_url, '?') === false) {
+                $webhook_url.= '?';
+                $webhook_url.= http_build_query($n['get']);
+            }
+        }
+
+        //POST params
+        if (!empty($n['post'])) {
+            $n['post'] = self::prepareHttpParam($data, $n['post']);
+        }
+
+        $options = [
+            'request_format' => waNet::FORMAT_JSON,
+            'format' => waNet::FORMAT_JSON
+        ];
+
+        if ($n['format'] === 'raw') {
+            $options = [
+                'request_format' => waNet::FORMAT_RAW,
+                'format' => waNet::FORMAT_RAW
+            ];
+        }
+
+        $net = new waNet($options);
+        try {
+            $net->query($webhook_url, $n['post'], empty($n['post'])?waNet::METHOD_GET:waNet::METHOD_POST);
+        } catch (waException $e) {
+            waLog::dump($net->getResponse(),$e->getMessage(), 'shop/webhook.log');
+            return $fail_result;
+        }
+
+        $order_id = $data['order']['id'];
+        $log = sprintf(_w('Webhook <strong>%s</strong> sent.'), $n['name']); //TODO Localize
+        $order_log_model = new shopOrderLogModel();
+        $log_id = $order_log_model->add(
+            [
+                'order_id' => $order_id,
+                'contact_id' => null,
+                'action_id' => '',
+                'text' => '<i class="icon16 globe"></i> ' . $log,
+                'before_state_id' => $data['order']['state_id'],
+                'after_state_id' => $data['order']['state_id'],
+            ]
+        );
+        return [
+            'status' => true,
+            'log_id' => $log_id
+        ];
+    }
+
+    /**
+     * @param $data
+     * @param $params
+     * @return false|string[]
+     * @throws waException
+     */
+    private static function prepareHttpParam($data, $params)
+    {
+        $view = wa()->getView();
+        $view->assign($data);
+        $params = self::parseParams($params);
+        foreach ($params as &$param) {
+            //Skip text e.g. order=order
+            if (strpos($param, '{') === false) {
+                continue;
+            }
+            //Check for existing keys in order data
+            $preset_key = trim($param,'{$}');
+            if (array_key_exists($preset_key, $data)) {
+                $param = $data[$preset_key];
+                continue;
+            }
+            try {
+                $param = $view->fetch('string:' . $param);
+            } catch (Exception $e) {
+                waLog::dump($e->getMessage(), 'shop/webhook.error.log');
+                continue;
+            }
+            //Check if param is encoded array like order={$order.items|json_encode}
+            try {
+                $test_array = @json_decode($param, true);
+                if (is_array($test_array)) {
+                    $param = $test_array;
+                }
+            } catch (Exception $e) {
+                continue;
+            }
+        }
+        return $params;
+    }
+
+    /**
+     * @param $params
+     * @return false|string[]
+     */
+    protected static function parseParams($params)
+    {
+        $result = [];
+        if ($params) {
+            $params = explode("\n", $params);
+            foreach ($params as $param) {
+                $param = explode('=', trim($param), 2);
+                if (count($param) === 2) { //?
+                    $result[$param[0]] = $param[1];
+                }
+            }
+        }
+        return $result;
     }
 
     protected static function sendPushNotifications($event, $data)

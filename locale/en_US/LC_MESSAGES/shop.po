@@ -2809,11 +2809,6 @@ msgstr ""
 msgid "Apply"
 msgstr ""
 
-msgid "You have %s bonus point! You can use it to get an additonal discount of up to %s."
-msgid_plural "You have %s bonus points! You can use your points to get an additonal discount of up to %s."
-msgstr[0] "You have %s bonus point! You can use it to get an additional discount of up to %s."
-msgstr[1] "You have %s bonus points! You can use your points to get an additional discount of up to %s."
-
 msgid "Use bonus"
 msgstr ""
 
@@ -9915,3 +9910,15 @@ msgstr "System features"
 
 msgid "Checkout block"
 msgstr "Checkout"
+
+msgid "Webhook"
+msgstr ""
+
+msgid "Enter webhook url"
+msgstr ""
+
+msgid "GET-params"
+msgstr ""
+
+msgid "POST-params"
+msgstr ""

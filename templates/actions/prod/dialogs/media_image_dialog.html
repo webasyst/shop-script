@@ -1,0 +1,239 @@
+{$_components = []}
+
+{capture assign="_component_crop_section"}
+    <div class="s-editor-table tablebox fixed space-24">
+        <div class="s-column-editor">
+
+            <div class="s-image-editor-wrapper">
+                <div class="s-editor-block">
+                    <template v-if="!photo_is_ready">
+                        <span class="icon baseline top size-64"><i class="fas fa-spinner fa-spin"></i></span>
+                    </template>
+
+                    <div class="s-photo-wrapper" v-bind:style="{ 'visibility': (photo_is_ready ? '' : 'hidden') }">
+                        <img class="s-photo js-image" v-bind:src="photo.url" v-on:load="onPhotoLoad" alt="" draggable="false">
+                    </div>
+                    <div class="s-image-background" v-bind:style="selection_bg_styles"></div>
+                    <div class="s-selection-area js-selection-area" v-bind:style="selection_styles">
+                    <div class="s-area-divider horizontal" style="top: 33.33%;"></div>
+                    <div class="s-area-divider horizontal" style="top: 66.66%;"></div>
+
+                    <div class="s-area-divider vertical" style="left: 33.33%;"></div>
+                    <div class="s-area-divider vertical" style="left: 66.66%;"></div>
+
+                    <div class="s-area-corner top-left"
+                         data-type="top-left"></div>
+                    <div class="s-area-corner top"
+                         data-type="top"></div>
+                    <div class="s-area-corner top-right"
+                         data-type="top-right"></div>
+                    <div class="s-area-corner right"
+                         data-type="right"></div>
+                    <div class="s-area-corner bottom-right"
+                         data-type="bottom-right"></div>
+                    <div class="s-area-corner bottom"
+                         data-type="bottom"></div>
+                    <div class="s-area-corner bottom-left"
+                         data-type="bottom-left"></div>
+                    <div class="s-area-corner left"
+                         data-type="left"></div>
+                </div>
+                </div>
+            </div>
+        </div>
+        <div class="s-column-sidebar">
+            <h5>[`Кадрирование фотографии`]</h5>
+            <p>
+                <span class="s-label">[`Разрешение (w×h)`]:</span>
+                <span class="bold color-black">{ { selection_size } } px</span>
+            </p>
+            <div class="s-actions-wrapper inlinebox top space-16">
+                <button class="wa-button green" type="button"
+                        v-bind:disabled="!photo_edited"
+                        v-on:click.prevent="save">[`Apply`]</button>
+                <button class="wa-button gray" type="button"
+                        v-on:click.prevent="cancel">[`Cancel`]</button>
+            </div>
+            <p>
+                {sprintf(
+                _w("Зажмите %s, чтобы сохранить пропорции при кадрировании фотографии."),
+                "<code>Shift</code>"
+                )}
+            </p>
+        </div>
+    </div>
+{/capture}
+{$_components["component-crop-section"] = $_component_crop_section|trim}
+
+{$_globals_components = $wa->globals("components")}
+{if !empty($_globals_components)}
+    {$_components = array_merge($_globals_components, $_components)}
+{/if}
+{$wa->globals("components", $_components)}
+
+<div class="wa-dialog s-product-media-image-dialog" id="js-product-media-image-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="dialog-content">
+            <div id="js-vue-node" style="visibility: hidden;">
+                <template v-if="edit_mode">
+                    <component-crop-section
+                        v-bind:photo="photo"
+                        v-on:success="cropSuccess"
+                        v-on:cancel="cropCancel"></component-crop-section>
+                </template>
+                <template v-else>
+                    <div class="s-slider-table tablebox fixed space-24">
+                        <div class="s-column-slider">
+
+                            <div class="s-slider-section">
+                                <div class="s-photo-section">
+                                    <div class="s-photo-wrapper">
+                                        <img class="s-photo" v-bind:src="photo.url" alt="" v-on:load="onPhotoLoad">
+                                    </div>
+
+                                    <div class="s-slider-actions left">
+                                        <button class="wa-button transparent-gray" type="button"
+                                            v-bind:disabled="is_prev_disabled"
+                                            v-on:click.prevent="prevPhoto">
+                                            <span class="s-icon"><i class="fas fa-chevron-circle-left"></i></span>
+                                        </button>
+                                    </div>
+
+                                    <div class="s-slider-actions right">
+                                        <button class="wa-button transparent-gray" type="button"
+                                            v-bind:disabled="is_next_disabled"
+                                            v-on:click.prevent="nextPhoto">
+                                            <span class="s-icon"><i class="fas fa-chevron-circle-right"></i></span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="s-photos-list-wrapper js-photos-list-wrapper">
+                                    <div class="s-slider-actions">
+                                        <button class="wa-button transparent js-prev-move" type="button">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="s-photos-list">
+                                        <template v-for="_photo in photos">
+                                            <div class="s-photo-wrapper"
+                                                 v-bind:class="{ 'is-active': _photo.id === photo.id }"
+                                                 v-on:click.prevent="changePhoto(_photo)">
+                                                <div class="s-photo" v-bind:style="{ 'background-image': 'url(' + _photo.url+ ')'}"></div>
+                                            </div>
+                                        </template>
+                                    </div>
+
+                                    <div class="s-slider-actions">
+                                        <button class="wa-button transparent js-next-move" type="button">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="s-column-sidebar">
+
+                            <div class="s-edit-section">
+                                <h5>[`Редактирование`]</h5>
+                                <div class="wa-list space-4">
+                                    <div class="list-item">
+                                        <button class="wa-button wa-small wa-short transparent"
+                                            v-bind:disabled="!photo_is_ready"
+                                            v-on:click.prevent="rotateImage(-90)">
+                                            <span class="s-icon"><i class="fas fa-undo"></i></span>
+                                            <span class="s-name">[`Повернуть налево`]</span>
+                                        </button>
+                                    </div>
+                                    <div class="list-item">
+                                        <button class="wa-button wa-small wa-short transparent"
+                                            v-bind:disabled="!photo_is_ready"
+                                            v-on:click.prevent="rotateImage(90)">
+                                            <span class="s-icon"><i class="fas fa-redo"></i></span>
+                                            <span class="s-name">[`Повернуть направо`]</span>
+                                        </button>
+                                    </div>
+                                    <div class="list-item">
+                                        <button class="wa-button wa-small wa-short transparent"
+                                            v-on:click.prevent="cropUse">
+                                            <span class="s-icon"><i class="fas fa-crop"></i></span>
+                                            <span class="s-name">[`Кадрировать`]</span>
+                                        </button>
+                                    </div>
+                                    <div class="list-item">
+                                        <button class="wa-button wa-small wa-short transparent-gray"
+                                            v-bind:disabled="(photo.url === photo.url_backup)"
+                                            v-on:click.prevent="restoreImage">
+                                            <span class="s-icon"><i class="fas fa-history"></i></span>
+                                            <span class="s-name">[`Восстановить оригинал`]</span>
+                                        </button>
+                                    </div>
+                                    <div class="list-item">
+                                        <button class="wa-button wa-small wa-short transparent-red"
+                                            v-on:click.prevent="deletePhoto">
+                                            <span class="s-icon"><i class="fas fa-trash-alt"></i></span>
+                                            <span class="s-name">[`Удалить фотографию`]</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="s-description-section">
+                                <h5>
+                                    <span class="s-title">[`Описание`]</span>
+                                    <span class="color-gray-light">[`(Title и Alt)`]</span>
+                                    <span class="wa-tooltip top" data-title="{_w("Описание")|escape}">
+                                        <span class="icon baseline size-12"><i class="fas fa-question-circle color-gray-light"></i></span>
+                                    </span>
+                                </h5>
+
+                                <div class="s-textarea-wrapper">
+                                    <textarea class="full-width" v-model="photo.description"></textarea>
+                                </div>
+
+                                <div class="s-use-counter" v-if="photo.uses_count > 1">
+                                    {sprintf(_w("Используется в %s модификациях."), "<span class=\"bold color-gray\" v-text=\"photo.uses_count\"></span>")}
+                                </div>
+                                <div class="s-use-counter" v-if="photo.uses_count === 1">
+                                    {sprintf(_w("Используется в %s модификации."), '<span class="bold color-gray">1</span>')}
+                                </div>
+                            </div>
+
+                            <div class="s-details-section">
+                                <h5>[`Оригинал фотографии`]</h5>
+                                <p>
+                                    <a class="s-download-link" v-bind:href="photo.url_backup" target="_blank">
+                                        <span class="s-icon"><i class="fas fa-download"></i></span>
+                                        <span class="s-name" v-text="photo.name"></span>
+                                    </a>
+                                </p>
+                                <p>
+                                    <span class="s-label color-gray">[`Разрешение`]:</span>
+                                    <span class="color-black bold" v-text="photo.width + 'x' + photo.height"></span>
+                                </p>
+                                <p>
+                                    <span class="s-label color-gray">[`Размер`]:</span>
+                                    <span class="color-black bold" v-text="photo.size"></span>
+                                </p>
+                            </div>
+
+                            <div class="s-actions-wrapper inlinebox top space-16">
+                                <button class="wa-button blue" type="button"
+                                        v-bind:disabled="!is_changed || is_locked"
+                                        v-on:click.prevent="save">
+                                    <span class="s-icon" v-if="is_locked"><i class="fas fa-spinner fa-spin"></i></span>
+                                    <span class="s-name">[`Save`]</span>
+                                </button>
+                                <button class="wa-button gray js-dialog-close" type="button">[`Cancel`]</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+</div>

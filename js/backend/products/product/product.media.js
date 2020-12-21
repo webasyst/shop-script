@@ -9,6 +9,7 @@
             that.$wrapper = options["$wrapper"];
 
             // CONST
+            that.components = options["components"];
             that.templates = options["templates"];
             that.locales = options["locales"];
             that.urls = options["urls"];
@@ -344,7 +345,20 @@
                     setPhoto: function(photo) {
                         var self = this;
 
-                        self.active_photo = photo;
+                        $.waDialog({
+                            html: that.templates["dialog_media_image"],
+                            onOpen: function($dialog, dialog) {
+                                $.wa_shop_products.init.initProductMediaImageDialog({
+                                    $wrapper: $dialog,
+                                    dialog: dialog,
+                                    photo: photo,
+                                    photos: photos,
+                                    scope_model: self,
+                                    scope: that
+                                });
+                            }
+                        });
+
                     },
                     selectPhoto: function(photo) {
                     },

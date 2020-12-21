@@ -20,10 +20,12 @@ class shopProdSkuAction extends waViewAction
         $features_selectable_model = new shopProductFeaturesSelectableModel();
         $selected_selectable_feature_ids = $features_selectable_model->getProductFeatureIds($product['id']);
 
-        $stocks = $this->getStocks();
-
         $formatted_features = $this->formatFeatures($features);
-        $formatted_product = $this->formatProduct($product, $formatted_features, $selected_selectable_feature_ids, $skus_features_values);
+        $formatted_product = $this->formatProduct($product, array(
+            "features"                        => $formatted_features,
+            "skus_features_values"            => $skus_features_values,
+            "selected_selectable_feature_ids" => $selected_selectable_feature_ids
+        ));
         $formatted_selectable_features = $this->formatSelectableFeatures($formatted_features, $selected_selectable_feature_ids);
 
         $frontend_urls = shopProdGeneralAction::getFrontendUrls($product)[0];
@@ -32,7 +34,7 @@ class shopProdSkuAction extends waViewAction
             'product'                       => $product,
             'product_types'                 => $product_types,
             'currencies'                    => $this->getCurrencies(),
-            'stocks'                        => $stocks,
+            'stocks'                        => $this->getStocks(),
             'frontend_urls'                 => $frontend_urls,
 
             'product_sku_types'             => $this->getProductSkuTypes(),
@@ -96,8 +98,12 @@ class shopProdSkuAction extends waViewAction
         return $features;
     }
 
-    protected function formatProduct($product, $features, $selected_selectable_feature_ids, $skus_features_values)
+    public static function formatProduct($product, $options = [])
     {
+        $features = (!empty($options["features"]) ? $options["features"] : []);
+        $selected_selectable_feature_ids = (!empty($options["selected_selectable_feature_ids"]) ? $options["selected_selectable_feature_ids"] : []);
+        $skus_features_values = (!empty($options["skus_features_values"]) ? $options["skus_features_values"] : []);
+
         $skus = [];
 
         $getPhotos = function($product) {
@@ -106,9 +112,18 @@ class shopProdSkuAction extends waViewAction
             $_images = $product->getImages('thumb');
 
             foreach ($_images as $_image) {
+
+                // Append file motification time to image URL
+                // in order to avoid browser caching issues
+                $last_modified = '';
+                $path = shopImage::getPath($_image);
+                if (file_exists($path)) {
+                    $last_modified = '?'.filemtime($path);
+                }
+
                 $result[$_image["id"]] = [
                     "id" => $_image["id"],
-                    "url" => $_image["url_thumb"],
+                    "url" => $_image["url_thumb"].$last_modified,
                     "description" => $_image["description"]
                 ];
             }
@@ -169,20 +184,27 @@ class shopProdSkuAction extends waViewAction
 
             // SELECTABLE_FEATURES
             $_features = [];
-            $_selectable_features = [];
+
+            // The should be in the same order as in $selected_selectable_feature_ids
+            $_selectable_features = array_fill_keys($selected_selectable_feature_ids, null);
+
             if (!empty($features)) {
                 $_features_values = ifset($skus_features_values, $modification['id'], []);
                 $_formatted_features = self::formatFeaturesValues($_corrected_features, $_features_values);
                 foreach ($_formatted_features as $feature) {
                     if ( !empty($feature["available_for_sku"]) ) {
                         if (in_array($feature["id"], $selected_selectable_feature_ids)) {
-                            $_selectable_features[] = $feature;
+                            $_selectable_features[$feature["id"]] = $feature;
                         } else {
                             $_features[] = $feature;
                         }
                     }
                 }
             }
+
+            // Make sure there are no NULLs left after array_fill_keys() above
+            // also keys must start from 0
+            $_selectable_features = array_values(array_filter($_selectable_features));
 
             // Figure out modification name, excluding feature names possibly attached at the end
             $modification_name = $modification['name'];
@@ -248,7 +270,9 @@ class shopProdSkuAction extends waViewAction
         }
 
         $photo = ( !empty($photos) ? $photos[$product["image_id"]] : null );
-        $_normal_mode = ($product["sku_count"] > 1);
+
+        $_normal_mode = (count($product['skus']) > 1);
+        $_normal_mode_switch = $_normal_mode || ifempty($product, 'params', 'multiple_sku', null);
 
         // When product has a photo and only one modification with no photo,
         // use product image as photo for the modification.
@@ -278,7 +302,7 @@ class shopProdSkuAction extends waViewAction
 
             // front-side options
             "normal_mode"        => $_normal_mode,
-            "normal_mode_switch" => $_normal_mode
+            "normal_mode_switch" => $_normal_mode_switch,
         ];
     }
 
@@ -533,7 +557,7 @@ class shopProdSkuAction extends waViewAction
     // Features that are rendered as checklists for product and allow multiple selection,
     // for SKUs must be rendered as a single select (no multiple selection).
     // This loop corrects for that.
-    protected function formatModificationFeature($feature)
+    protected static function formatModificationFeature($feature)
     {
         if ($feature["render_type"] === "checkbox") {
             $feature["render_type"] = "select";
@@ -557,7 +581,7 @@ class shopProdSkuAction extends waViewAction
         return $feature;
     }
 
-    protected function formatFeaturesValues($features, $values) {
+    protected static function formatFeaturesValues($features, $values) {
         $result = [];
 
         foreach ($features as $feature) {
@@ -760,7 +784,8 @@ class shopProdSkuAction extends waViewAction
 
     protected function formatSelectableFeatures($features, $selected_selectable_feature_ids)
     {
-        $result = [];
+        $active = [];
+        $inactive = [];
 
         foreach ($features as $_feature) {
             if (!empty($_feature['available_for_sku'])) {
@@ -768,15 +793,20 @@ class shopProdSkuAction extends waViewAction
                 $is_composite = preg_match('~^(2d|3d|range)\.~', $_feature['type']);
                 if (!$is_composite) {
                     $disabled = !in_array($_feature["render_type"], ["select", "checkbox", "field", "field.date", "textarea", "color"]);
-                    $result[] = [
+                    $data = [
                         "id"          => $_feature["id"],
                         "name"        => $_feature["name"],
                         "render_type" => $_feature["render_type"],
                         "disabled"    => $disabled,
                         "active"      => in_array( $_feature["id"], $selected_selectable_feature_ids ),
                     ];
+                    if ($data['active']) {
+                        $active[$_feature["id"]] = $data;
+                    } else {
+                        $inactive[] = $data;
+                    }
                 } else {
-                    $result[] = [
+                    $inactive[] = [
                         "id"          => $_feature["id"],
                         "name"        => $_feature["name"],
                         "render_type" => $_feature["render_type"],
@@ -787,10 +817,19 @@ class shopProdSkuAction extends waViewAction
             }
         }
 
-        return $result;
+        // Active features in the result has to be sorted
+        // in the same order as in $selected_selectable_feature_ids
+        $result = [];
+        foreach($selected_selectable_feature_ids as $id) {
+            if (isset($active[$id])) {
+                $result[] = $active[$id];
+            }
+        }
+
+        return array_merge($result, $inactive);
     }
 
-    protected function getCurrencies()
+    public static function getCurrencies()
     {
         $result = [];
 
@@ -807,7 +846,7 @@ class shopProdSkuAction extends waViewAction
         return $result;
     }
 
-    protected function getStocks()
+    public static function getStocks()
     {
         $stocks = shopHelper::getStocks(false);
 

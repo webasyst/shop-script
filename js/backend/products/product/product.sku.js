@@ -11,6 +11,7 @@
 
             // CONST
             that.templates = options["templates"];
+            that.tooltips = options["tooltips"];
             that.locales = options["locales"];
             that.urls = options["urls"];
 
@@ -45,7 +46,7 @@
 
             console.log( that );
 
-            function formatProduct(product, stocks) {
+            function formatProduct(product) {
                 // product.normal_mode = false;
                 // product.normal_mode_switch = false;
 
@@ -71,7 +72,7 @@
                     sku.errors = {};
 
                     $.each(sku.modifications, function(i, sku_mod) {
-                        that.formatModification(sku_mod, stocks);
+                        that.formatModification(sku_mod);
 
                         if (!product.normal_mode) {
                             sku_mod.expanded = true;
@@ -99,6 +100,10 @@
                 var $footer = that.$wrapper.find(".js-sticky-footer");
                 product_page.initProductDelete($footer);
                 product_page.initStickyFooter($footer);
+            });
+
+            $.each(that.tooltips, function(i, tooltip) {
+                $.wa.new.Tooltip(tooltip);
             });
 
             that.initSave();
@@ -145,175 +150,184 @@
                         });
 
                         that.$wrapper.trigger("change");
-                    },
-                    showFeatureUsedValuesDialog: function(feature) {
-                        var self = this;
-
-                        $.waDialog({
-                            html: that.templates["dialog_feature_used_values"],
-                            options: {
-                                scope: self,
-                                feature: feature
-                            },
-                            onOpen: initDialog
-                        });
-
-                        function initDialog($dialog, dialog) {
-                            var $section = $dialog.find(".js-vue-wrapper");
-
-                            new Vue({
-                                el: $section[0],
-                                data: {
-                                    feature: dialog.options.feature,
-                                    product: dialog.options.scope.product
-                                },
-                                delimiters: ['{ { ', ' } }'],
-                                methods: {
-                                    getUsedValues: function() {
-                                        var self = this,
-                                            target_feature = self.feature,
-                                            values = {};
-
-                                        if (target_feature.options && target_feature.options.length) {
-                                            $.each(self.product.skus, function(i, sku) {
-                                                $.each(sku.modifications, function(j, sku_mod) {
-                                                    var features_array = [].concat(sku_mod.features, sku_mod.features_selectable);
-                                                    $.each(features_array, function(k, feature) {
-                                                        if (feature.code === target_feature.code) {
-
-                                                            switch (feature.render_type) {
-                                                                case "field":
-                                                                    setFields("×");
-                                                                    break;
-                                                                case "select":
-                                                                    if (feature.active_option && feature.active_option.value.length) {
-                                                                        if (!values[feature.active_option.name]) {
-                                                                            values[feature.active_option.name] = {
-                                                                                value: feature.active_option.name
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                    break;
-                                                                case "checkbox":
-                                                                    $.each(feature.options, function(n, option) {
-                                                                        if (option.active && option.value) {
-                                                                            if (!values[option.value]) {
-                                                                                values[option.value] = {
-                                                                                    value: option.value
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    });
-                                                                    break;
-                                                                case "textarea":
-                                                                    if (feature.value.length) {
-                                                                        if (!values[feature.value]) {
-                                                                            values[feature.value] = { value: feature.value }
-                                                                        }
-                                                                    }
-                                                                    break;
-                                                                case "range":
-                                                                    setFields(" — ");
-                                                                    break;
-                                                                case "range.volume":
-                                                                    setFields(" — ");
-                                                                    break;
-                                                                case "range.date":
-                                                                    setFields(" — ");
-                                                                    break;
-                                                                case "field.date":
-                                                                    setFields(" — ");
-                                                                    break;
-                                                                case "color":
-                                                                    var option = feature.options[0];
-                                                                    if (option.value && !values[option.value]) {
-                                                                        values[option.value] = {
-                                                                            value: option.value,
-                                                                            code: option.code
-                                                                        }
-                                                                    }
-                                                                    break;
-                                                                default:
-                                                                    break;
-                                                            }
-                                                            return false;
-
-                                                            function setFields(divider) {
-                                                                var values_array = [],
-                                                                    value_is_set = false;
-
-                                                                $.each(feature.options, function(n, option) {
-                                                                    if (option.value) { value_is_set = true; }
-                                                                    var value = ( option.value ? option.value : "\"\"");
-                                                                    values_array.push(value);
-                                                                });
-
-                                                                var name = values_array.join(divider);
-
-                                                                if (value_is_set && !values[name]) {
-                                                                    var value = { value: name }
-
-                                                                    if (feature.active_unit && feature.active_unit.name) {
-                                                                        value.unit = feature.active_unit.name;
-                                                                    }
-
-                                                                    values[name] = value;
-                                                                }
-                                                            }
-                                                        }
-                                                    });
-                                                });
-                                            });
-                                        }
-
-                                        return sortValues(values);
-
-                                        function sortValues(values) {
-                                            var sorted_values = [];
-
-                                            if (Object.keys(values).length > 0) {
-                                                if (target_feature.render_type === "select" || target_feature.render_type === "checkbox") {
-                                                    $.each(target_feature.options, function(i, option) {
-                                                        if (values[option.name]) {
-                                                            sorted_values.push(option);
-                                                        }
-                                                    });
-                                                } else {
-                                                    sorted_values = $.wa.destruct(values);
-                                                }
-                                            }
-
-                                            return sorted_values;
-                                        }
-                                    }
-                                },
-                                created: function () {
-                                    $section.css("visibility", "");
-                                },
-                                mounted: function () {
-                                    dialog.resize();
-                                }
-                            });
-                        }
                     }
                 },
                 components: {
+                    "component-feature_default_tooltip": {
+                        props: ["feature"],
+                        template: that.templates["component-feature_default_tooltip"],
+                        delimiters: ['{ { ', ' } }'],
+                        mounted: function() {
+                            var self = this;
+
+                            $(self.$el).find(".wa-tooltip").each(function () {
+                                $(this).waTooltip({hover: true, hover_delay: 200});
+                            });
+                        }
+                    },
+                    "component-feature_values_in_modifications": {
+                        props: ["feature"],
+                        template: that.templates["component-feature_values_in_modifications"],
+                        delimiters: ['{ { ', ' } }'],
+                        methods: {
+                            showFeatureUsedValuesDialog: function(feature) {
+                                var self = this;
+
+                                $.waDialog({
+                                    html: that.templates["dialog_feature_used_values"],
+                                    options: {
+                                        scope: self,
+                                        feature: feature
+                                    },
+                                    onOpen: initDialog
+                                });
+
+                                function initDialog($dialog, dialog) {
+                                    var $section = $dialog.find(".js-vue-wrapper");
+
+                                    new Vue({
+                                        el: $section[0],
+                                        data: {
+                                            feature: dialog.options.feature,
+                                            product: dialog.options.scope.product
+                                        },
+                                        delimiters: ['{ { ', ' } }'],
+                                        methods: {
+                                            getUsedValues: function() {
+                                                var self = this,
+                                                    target_feature = self.feature,
+                                                    values = {};
+
+                                                if (target_feature.options && target_feature.options.length) {
+                                                    $.each(that.product.skus, function(i, sku) {
+                                                        $.each(sku.modifications, function(j, sku_mod) {
+                                                            var features_array = [].concat(sku_mod.features, sku_mod.features_selectable);
+                                                            $.each(features_array, function(k, feature) {
+                                                                if (feature.code === target_feature.code) {
+
+                                                                    switch (feature.render_type) {
+                                                                        case "field":
+                                                                            setFields("×");
+                                                                            break;
+                                                                        case "select":
+                                                                            if (feature.active_option && feature.active_option.value.length) {
+                                                                                if (!values[feature.active_option.name]) {
+                                                                                    values[feature.active_option.name] = {
+                                                                                        value: feature.active_option.name
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                            break;
+                                                                        case "checkbox":
+                                                                            $.each(feature.options, function(n, option) {
+                                                                                if (option.active && option.value) {
+                                                                                    if (!values[option.value]) {
+                                                                                        values[option.value] = {
+                                                                                            value: option.value
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            });
+                                                                            break;
+                                                                        case "textarea":
+                                                                            if (feature.value.length) {
+                                                                                if (!values[feature.value]) {
+                                                                                    values[feature.value] = { value: feature.value }
+                                                                                }
+                                                                            }
+                                                                            break;
+                                                                        case "range":
+                                                                            setFields(" — ");
+                                                                            break;
+                                                                        case "range.volume":
+                                                                            setFields(" — ");
+                                                                            break;
+                                                                        case "range.date":
+                                                                            setFields(" — ");
+                                                                            break;
+                                                                        case "field.date":
+                                                                            setFields(" — ");
+                                                                            break;
+                                                                        case "color":
+                                                                            var option = feature.options[0];
+                                                                            if (option.value && !values[option.value]) {
+                                                                                values[option.value] = {
+                                                                                    value: option.value,
+                                                                                    code: option.code
+                                                                                }
+                                                                            }
+                                                                            break;
+                                                                        default:
+                                                                            break;
+                                                                    }
+                                                                    return false;
+
+                                                                    function setFields(divider) {
+                                                                        var values_array = [],
+                                                                            value_is_set = false;
+
+                                                                        $.each(feature.options, function(n, option) {
+                                                                            if (option.value) { value_is_set = true; }
+                                                                            var value = ( option.value ? option.value : "\"\"");
+                                                                            values_array.push(value);
+                                                                        });
+
+                                                                        var name = values_array.join(divider);
+
+                                                                        if (value_is_set && !values[name]) {
+                                                                            var value = { value: name }
+
+                                                                            if (feature.active_unit && feature.active_unit.name) {
+                                                                                value.unit = feature.active_unit.name;
+                                                                            }
+
+                                                                            values[name] = value;
+                                                                        }
+                                                                    }
+                                                                }
+                                                            });
+                                                        });
+                                                    });
+                                                }
+
+                                                return sortValues(values);
+
+                                                function sortValues(values) {
+                                                    var sorted_values = [];
+
+                                                    if (Object.keys(values).length > 0) {
+                                                        if (target_feature.render_type === "select" || target_feature.render_type === "checkbox") {
+                                                            $.each(target_feature.options, function(i, option) {
+                                                                if (values[option.name]) {
+                                                                    sorted_values.push(option);
+                                                                }
+                                                            });
+                                                        } else {
+                                                            sorted_values = $.wa.destruct(values);
+                                                        }
+                                                    }
+
+                                                    return sorted_values;
+                                                }
+                                            }
+                                        },
+                                        created: function () {
+                                            $section.css("visibility", "");
+                                        },
+                                        mounted: function () {
+                                            dialog.resize();
+                                        }
+                                    });
+                                }
+                            }
+                        },
+                        mounted: function() {
+                            var self = this;
+                        }
+                    }
                 },
                 mounted: function() {
                     var self = this;
-                }
-            });
-
-            Vue.component("component-feature-default-tooltip", {
-                props: ["feature"],
-                template: that.templates["component-feature-default-tooltip"],
-                delimiters: ['{ { ', ' } }'],
-                mounted: function() {
-                    var self = this;
-
-                    $(self.$el).find(".wa-tooltip").each(function () {
-                        $(this).waTooltip({hover: true, hover_delay: 200});
-                    });
                 }
             });
 
@@ -943,9 +957,10 @@
             });
 
             Vue.component("component-switch", {
-                props: ["value", "disabled"],
+                props: ["value", "disabled", "id"],
                 data: function() {
                     return {
+                        id: (typeof this.id === "string" ? this.id : ""),
                         checked: (typeof this.value === "boolean" ? this.value : false),
                         disabled: (typeof this.disabled === "boolean" ? this.disabled : false)
                     };
@@ -1232,7 +1247,7 @@
                         $.each(that.selectable_features, function(i, feature) {
                             feature.active = false;
                         });
-                        that.updateModificationSelectableFeatures(that.selectable_features);
+                        that.updateModificationSelectableFeatures();
                     },
                     changeSelectableFeatures: function() {
                         that.states.load.selectable_features = true;
@@ -1243,11 +1258,13 @@
                             options: {
                                 selectable_features: clone_selectable_features,
                                 onSuccess: function(selectable_features) {
-                                    var root_selectable_features = $.wa.construct(that.selectable_features, "id");
+                                    that.selectable_features.splice(0, that.selectable_features.length);
+
                                     $.each(selectable_features, function(i, feature) {
-                                        root_selectable_features[feature.id].active = feature.active;
+                                        that.selectable_features.push(feature);
                                     });
-                                    that.updateModificationSelectableFeatures(selectable_features);
+
+                                    that.updateModificationSelectableFeatures();
                                 }
                             },
                             onOpen: initDialog,
@@ -1259,10 +1276,28 @@
                         function initDialog($dialog, dialog) {
                             var $section = $dialog.find("#vue-features-wrapper");
 
+                            var selectable_features = dialog.options.selectable_features;
+
+                            $.each(selectable_features, function(i, feature) {
+                                Vue.set(feature, "is_moving", false);
+                            });
+
                             new Vue({
                                 el: $section[0],
                                 data: {
-                                    selectable_features: dialog.options.selectable_features
+                                    selectable_features: selectable_features
+                                },
+                                computed: {
+                                    active_features: function() {
+                                        return this.selectable_features.filter( function(feature) {
+                                            return !!feature.active;
+                                        });
+                                    },
+                                    inactive_features: function() {
+                                        return this.selectable_features.filter( function(feature) {
+                                            return !feature.active;
+                                        });
+                                    }
                                 },
                                 delimiters: ['{ { ', ' } }'],
                                 created: function () {
@@ -1279,13 +1314,15 @@
                                 dialog.close();
                             });
 
-
                             initSearch();
+
+                            initDragAndDrop();
 
                             function initSearch() {
                                 var timer = 0;
 
-                                var $list = $dialog.find(".s-features-list");
+                                var $list = $dialog.find(".js-inactive-features-list");
+
                                 $dialog.on("keyup change", ".js-filter-field", function(event) {
                                     var $field = $(this);
 
@@ -1315,6 +1352,98 @@
                                     dialog.resize();
                                 }
                             }
+
+                            function initDragAndDrop() {
+                                var drag_data = {},
+                                    over_locked = false,
+                                    timer = 0;
+
+                                var move_class = "is-moving";
+
+                                var $list = $dialog.find(".js-active-features-list");
+
+                                $list.on("dragstart", ".js-feature-move-toggle", function(event) {
+                                    var $move = $(this).closest(".s-feature-wrapper");
+
+                                    var feature_id = "" + $move.attr("data-id"),
+                                        feature = getFeature(feature_id);
+
+                                    if (!feature) {
+                                        console.error("ERROR: feature isn't exist");
+                                        return false;
+                                    }
+
+                                    event.originalEvent.dataTransfer.setDragImage($move[0], 20, 20);
+
+                                    $.each(selectable_features, function(i, feature) {
+                                        feature.is_moving = (feature.id === feature_id);
+                                    });
+
+                                    drag_data.move_feature = feature;
+                                });
+
+                                $list.on("dragover", ".s-feature-wrapper", function(event) {
+                                    event.preventDefault();
+
+                                    if (!over_locked) {
+                                        over_locked = true;
+                                        onOver(event, $(this).closest(".s-feature-wrapper"));
+                                        setTimeout( function() {
+                                            over_locked = false;
+                                        }, 100);
+                                    }
+                                });
+
+                                $dialog.on("dragend", onEnd);
+
+                                function onOver(event, $over) {
+                                    var feature_id = "" + $over.attr("data-id"),
+                                        feature = getFeature(feature_id);
+
+                                    if (!feature) {
+                                        console.error("ERROR: feature isn't exist");
+                                        return false;
+                                    }
+
+                                    if (drag_data.move_feature === feature) { return false; }
+
+                                    var move_index = selectable_features.indexOf(drag_data.move_feature),
+                                        over_index = selectable_features.indexOf(feature),
+                                        before = (move_index > over_index);
+
+                                    if (over_index !== move_index) {
+                                        selectable_features.splice(move_index, 1);
+
+                                        over_index = selectable_features.indexOf(feature);
+                                        var new_index = over_index + (before ? 0 : 1);
+
+                                        selectable_features.splice(new_index, 0, drag_data.move_feature);
+
+                                        that.$wrapper.trigger("change");
+                                    }
+                                }
+
+                                function onEnd() {
+                                    drag_data.move_feature.is_moving = false;
+                                }
+
+                                //
+
+                                function getFeature(feature_id) {
+                                    var result = null;
+
+                                    $.each(selectable_features, function(i, feature) {
+                                        feature.id = (typeof feature.id === "number" ? "" + feature.id : feature.id);
+                                        if (feature.id === feature_id) {
+                                            result = feature;
+                                            return false;
+                                        }
+                                    });
+
+                                    return result;
+                                }
+                            }
+
                         }
                     },
                     changeViewType: function(type_id) {
@@ -1333,6 +1462,9 @@
                             options: {
                                 onPhotoAdd: function(photo) {
                                     that.product.photos.push(photo);
+                                    if (that.product.photos.length === 1) {
+                                        self.setProductPhoto(photo, sku_mod);
+                                    }
                                 },
                                 onSuccess: function(image_id) {
                                     var photo_array = that.product.photos.filter( function(photo) { return (photo.id === image_id); });
@@ -1389,6 +1521,13 @@
                                         that.product.photos.splice(index, 1);
                                     }
 
+                                    // проставляем первую фотку как главную если простой режим.
+                                    if (!self.product.normal_mode_switch) {
+                                        if (that.product.photos.length) {
+                                            self.setProductPhoto(that.product.photos[0], sku_mod);
+                                        }
+                                    }
+
                                     that.$wrapper.trigger("change");
                                 }
                             },
@@ -1396,11 +1535,15 @@
                         });
 
                         function initDialog($dialog, dialog) {
-                            $dialog.on("click", ".js-unpin-button", function(event) {
-                                event.preventDefault();
-                                dialog.options.onUnpin();
-                                dialog.close();
-                            });
+                            if (self.product.normal_mode_switch) {
+                                $dialog.on("click", ".js-unpin-button", function(event) {
+                                    event.preventDefault();
+                                    dialog.options.onUnpin();
+                                    dialog.close();
+                                });
+                            } else {
+                                $dialog.find(".js-unpin-button").remove();
+                            }
 
                             $dialog.on("click", ".js-delete-button", function(event) {
                                 event.preventDefault();
@@ -1529,7 +1672,7 @@
                                         });
                                     }
 
-                                    that.updateModificationSelectableFeatures(that.selectable_features);
+                                    that.updateModificationSelectableFeatures();
 
                                     that.product.normal_mode = true;
                                 }
@@ -1600,7 +1743,7 @@
                         new_sku.modifications.push(new_sku_mod);
                         that.product.skus.unshift(new_sku);
 
-                        that.updateModificationSelectableFeatures(that.selectable_features, new_sku_mod);
+                        that.updateModificationSelectableFeatures(new_sku_mod);
 
                         that.product.normal_mode = true;
 
@@ -1740,7 +1883,7 @@
 
                         sku.modifications.push(new_sku_mod);
 
-                        that.updateModificationSelectableFeatures(that.selectable_features, new_sku_mod);
+                        that.updateModificationSelectableFeatures(new_sku_mod);
 
                         that.product.normal_mode = true;
 
@@ -2099,16 +2242,8 @@
             }
         };
 
-        Section.prototype.updateModificationSelectableFeatures = function(updated_selectable_features, sku_mod) {
-            updated_selectable_features = ( typeof updated_selectable_features === "object" && updated_selectable_features.length ? updated_selectable_features : []);
-
+        Section.prototype.updateModificationSelectableFeatures = function(sku_mod) {
             var that = this;
-
-            updated_selectable_features = updated_selectable_features.filter( function(feature) {
-                return !!feature.active;
-            });
-
-            var updated_selectable_features_object = $.wa.construct(updated_selectable_features, "id")
 
             if (sku_mod) {
                 update(sku_mod);
@@ -2123,30 +2258,28 @@
             that.$wrapper.trigger("change");
 
             function update(modification) {
-                var features_object = $.wa.construct(modification.features, "id"),
-                    features_selectable_object = $.wa.construct(modification.features_selectable, "id");
+                var mod_features = [].concat(modification.features, modification.features_selectable),
+                    mod_features_object = $.wa.construct(mod_features, "id");
 
-                $.each(features_object, function(i, feature) {
-                    if (updated_selectable_features_object[feature.id]) {
-                        selectFeature(feature);
+                var selected_mod_features = [],
+                    unselected_mod_features = [];
+
+                $.each(that.selectable_features, function(i, feature) {
+                    var mod_feature = mod_features_object[feature.id];
+                    if (!mod_feature) {
+                        console.error("ERROR: feature isn't exist", feature);
+                        return true;
+                    }
+
+                    if (feature.active) {
+                        selected_mod_features.push(mod_feature);
+                    } else {
+                        unselected_mod_features.push(mod_feature);
                     }
                 });
 
-                $.each(features_selectable_object, function(i, feature) {
-                    if (!updated_selectable_features_object[feature.id]) {
-                        unselectFeature(feature);
-                    }
-                });
-
-                function selectFeature(feature) {
-                    modification.features.splice(modification.features.indexOf(feature), 1);
-                    modification.features_selectable.unshift(feature);
-                }
-
-                function unselectFeature(feature) {
-                    modification.features_selectable.splice(modification.features_selectable.indexOf(feature), 1);
-                    modification.features.unshift(feature);
-                }
+                Vue.set(modification, "features_selectable", selected_mod_features);
+                Vue.set(modification, "features", unselected_mod_features);
             }
         };
 
@@ -2833,6 +2966,10 @@
                     {
                         "name": "product[currency]",
                         "value": that.product.currency
+                    },
+                    {
+                        "name": "product[params][multiple_sku]",
+                        "value": (that.product.normal_mode_switch ? 1 : 0)
                     }
                 ];
 
@@ -3636,9 +3773,9 @@
                         var index = self.files.indexOf(data.file);
                         if (index >= 0) { self.files.splice(index, 1); }
 
-                        // Добавляем фотку в модели данных (диалог + страница)
-                        that.product.photos.push(photo);
+                        // Добавляем фотку в модели данных
                         self.photos.unshift(photo);
+                        dialog.options.onPhotoAdd(photo);
 
                         self.setPhoto(photo);
                     },

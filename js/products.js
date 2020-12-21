@@ -467,8 +467,16 @@
         initSearch: function () {
             var search = function () {
                 // encodeURIComponent ?..
-                $.wa.setHash('#/products/'+($.products.list_params && $.products.list_params.view ? 'view='+$.products.list_params.view+'&' : '')+'text='+encodeURIComponent(this.value));
+                var search_data = getSearchData(this.value);
+
+                $.wa.setHash('#/products/'+($.products.list_params && $.products.list_params.view ? 'view='+$.products.list_params.view+'&' : '') + search_data);
+
+                function getSearchData(value) {
+                    var string = (parseInt(value) > 0 ? "hash=id/" : "text=");
+                    return (string + encodeURIComponent(value));
+                }
             };
+
             var $products_search = $('#s-products-search');
 
             // HTML5 search input search-event isn't supported

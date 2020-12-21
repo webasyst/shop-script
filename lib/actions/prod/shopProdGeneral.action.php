@@ -9,6 +9,10 @@ class shopProdGeneralAction extends waViewAction
     {
         $product_id = waRequest::param('id', '', 'int');
         $product = new shopProduct($product_id);
+        if (!$product['id']) {
+            throw new waException(_w("Unknown product"), 404);
+            // TODO: new product mode when $product_id is empty
+        }
 
         list($frontend_urls, $total_storefronts_count, $url_template) = $this->getFrontendUrls($product);
 
@@ -21,7 +25,6 @@ class shopProdGeneralAction extends waViewAction
 
         $type_model = new shopTypeModel();
 
-        $product['skus'];
         $this->view->assign([
             'url_template' => $url_template,
             'frontend_urls' => $frontend_urls,
@@ -32,6 +35,10 @@ class shopProdGeneralAction extends waViewAction
             'taxes' => (new shopTaxModel())->getAll('id'),
             'sets' => $sets,
             'product' => $product,
+
+            'stocks'            => shopProdSkuAction::getStocks(),
+            'formatted_product' => shopProdSkuAction::formatProduct($product),
+            'currencies'        => shopProdSkuAction::getCurrencies()
         ]);
 
         $this->setLayout(new shopBackendProductsEditSectionLayout([

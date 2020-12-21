@@ -36,20 +36,23 @@ class shopProdSaveGeneralController extends waJsonController
         if (isset($product_data['status'])) {
             if ($product_data['status'] < 0) {
                 $product_data['status'] = -1;
-                switch ($product_data["params"]["redirect_type"]) {
-                    case "404":
-                        unset($product_data["params"]["redirect_code"]);
-                        unset($product_data["params"]["redirect_url"]);
+                switch ($product_data['params']['redirect_type']) {
+                    case '404':
+                        $product_data['params']['redirect_category_id'] = null;
+                        $product_data['params']['redirect_code'] = null;
+                        $product_data['params']['redirect_url'] = null;
                         break;
-                    case "home":
-                        unset($product_data["params"]["redirect_url"]);
+                    case 'home':
+                        $product_data['params']['redirect_category_id'] = null;
+                        $product_data['params']['redirect_url'] = null;
                         break;
-                    case "category":
-                        unset($product_data["params"]["redirect_url"]);
-                        $product_data["params"]["redirect_category_id"] = $product_data["category_id"];
+                    case 'category':
+                        $product_data['params']['redirect_url'] = null;
+                        $product_data['params']['redirect_category_id'] = $product_data['category_id'];
                         break;
-                    case "url":
-                        if (empty($product_data["params"]["redirect_url"])) {
+                    case 'url':
+                        $product_data['params']['redirect_category_id'] = null;
+                        if (empty($product_data['params']['redirect_url'])) {
                             $this->errors[] = [
                                 'name' => 'product[params][redirect_url]',
                                 'text' => _w('Enter a redirect URL.'),
@@ -57,13 +60,29 @@ class shopProdSaveGeneralController extends waJsonController
                         }
                         break;
                     default:
+                        // don't change anything
+                        unset(
+                            $product_data['params']['redirect_category_id'],
+                            $product_data['params']['redirect_code'],
+                            $product_data['params']['redirect_url']
+                        );
                         break;
                 }
             } else {
                 $product_data['status'] = $product_data['status'] > 0 ? 1 : 0;
+                unset(
+                    $product_data['params']['redirect_category_id'],
+                    $product_data['params']['redirect_code'],
+                    $product_data['params']['redirect_url']
+                );
             }
         }
-        unset($product_data["params"]["redirect_type"]);
+        unset($product_data['params']['redirect_type']);
+
+        if (isset($product_data['params']['multiple_sku'])) {
+            // set to 1 if not empty; remove from database if empty
+            $product_data['params']['multiple_sku'] = !empty($product_data['params']['multiple_sku']) ? 1 : null;
+        }
 
         if (isset($product_data['category_id'])) {
             if (!isset($product_data['categories']) || !is_array($product_data['categories'])) {
@@ -73,6 +92,23 @@ class shopProdSaveGeneralController extends waJsonController
         } else {
             unset($product_data['categories']);
             unset($product_data['category_id']);
+        }
+
+        // When product only has a single SKU, and this SKU has an image,
+        // then same image must also be set as main product image.
+        if (isset($product_data['skus']) && count($product_data['skus']) == 1) {
+            $sku = reset($product_data['skus']);
+            if (!empty($sku['image_id'])) {
+                $product_images_model = new shopProductImagesModel();
+                $image = $product_images_model->getById($sku['image_id']);
+                if ($image) {
+                    $product_data += [
+                        'image_filename' => $image['filename'],
+                        'image_id' => $image['id'],
+                        'ext' => $image['ext'],
+                    ];
+                }
+            }
         }
 
         return $product_data;
@@ -89,6 +125,15 @@ class shopProdSaveGeneralController extends waJsonController
     protected function saveProduct($product_id, array $product_data)
     {
         $product = new shopProduct($product_id);
+
+        if (isset($product_data['params']) && is_array($product_data['params'])) {
+            // should not remove params we don't explicitly set
+            $product_data['params'] += $product['params'];
+            $product_data['params'] = array_filter($product_data['params'], function($value) {
+                return $value !== null;
+            });
+        }
+
         $product->save($product_data, true, $errors);
         if ($errors) {
             // !!! TODO format errors properly, if any happened

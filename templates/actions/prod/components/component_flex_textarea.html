@@ -1,0 +1,27 @@
+{*
+
+@description Код компонент резиновой текстарии для копипасты.
+
+"component-flex-textarea": {
+    props: ["value", "placeholder"],
+    template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-on:input="$emit(\'input\', $event.target.value)"></textarea>',
+    delimiters: ['{ { ', ' } }'],
+    updated: function() {
+        var self = this;
+        var $textarea = $(self.$el);
+
+        $textarea.css("min-height", 0);
+        var scroll_h = $textarea[0].scrollHeight;
+        $textarea.css("min-height", scroll_h + "px");
+    },
+    mounted: function() {
+        var self = this;
+        var $textarea = $(self.$el);
+
+        $textarea.css("min-height", 0);
+        var scroll_h = $textarea[0].scrollHeight;
+        $textarea.css("min-height", scroll_h + "px");
+    }
+}
+
+*}

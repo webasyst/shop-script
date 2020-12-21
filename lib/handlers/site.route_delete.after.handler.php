@@ -19,6 +19,9 @@ class shopSiteRoute_deleteAfterHandler extends waEventHandler
                     waUtils::varExportToFile($cfg, $cfg_path);
                 }
             }
+
+            $promo_routes_model = new shopPromoRoutesModel();
+            $promo_routes_model->deleteMissingStorefronts();
         }
     }
 }

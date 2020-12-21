@@ -3340,8 +3340,8 @@ msgstr "Максимальное количество товаров, котор
 msgid "Ordering is not limited by stock levels"
 msgstr "Покупатель может оформить заказ, даже если товара нет в наличии"
 
-msgid "You have %s bonus point! You can use it to get an additonal discount of up to %s."
-msgid_plural "You have %s bonus points! You can use your points to get an additonal discount of up to %s."
+msgid "You have %s bonus point! You can use it to get an additional discount of up to %s."
+msgid_plural "You have %s bonus points! You can use your points to get an additional discount of up to %s."
 msgstr[0] "У вас есть %s бонусный балл! Вы можете использовать свои баллы, чтобы получить дополнительную скидку %s."
 msgstr[1] "У вас есть %s бонусных балла! Вы можете использовать свои баллы, чтобы получить дополнительную скидку %s."
 msgstr[2] "У вас есть %s бонусных баллов! Вы можете использовать свои баллы, чтобы получить дополнительную скидку %s."
@@ -11616,6 +11616,9 @@ msgstr "Будет удалено фотографий: %s."
 msgid "Those used in SKU variants: %s."
 msgstr "Используются в модификациях: %s."
 
+msgid "Photo used in SKU variants: %s."
+msgstr "Фотография используется в модификациях: %s."
+
 msgid "No used values."
 msgstr "Используемых значений нет."
 
@@ -11642,3 +11645,16 @@ msgstr "Ваши изменения будут потеряны, если их �
 
 msgid "Capture shipping cost"
 msgstr "Списывать стоимость доставки"
+
+msgid "Webhook"
+msgstr "Вебхук"
+
+msgid "Enter webhook url"
+msgstr "Укажите ссылку вебхука"
+
+msgid "GET-params"
+msgstr "GET-параметры"
+
+msgid "POST-params"
+msgstr "POST-параметры"
+

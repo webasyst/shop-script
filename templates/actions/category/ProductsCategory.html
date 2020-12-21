@@ -70,6 +70,15 @@
                                         [`Hidden category`] <span class="hint">[`Hide links to this category in the storefront`]</span>
                                     </label>
                                 </div>
+                                {if $settings.has_children}
+                                    <div class="value no-shift">
+                                        <label>
+                                            <input value="1" name="update_subcategories" type="checkbox">
+                                            [`Применить новые настройки видимости ко всем подкатегориям`]
+                                            <span class="hint">[`При сохранении этой категории обновить видимость всех подкатегорий на значение, указанное выше`]</span>
+                                        </label>
+                                    </div>
+                                {/if}
 
                             </div>
                         </div>

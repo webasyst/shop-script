@@ -87,11 +87,13 @@ class shopProductsCollection
 
         $this->setHash($hash);
 
-        /**
-         * @event products_collection.filter
-         * @param array shopProductsCollection $this
-         */
-        wa('shop')->event('products_collection.filter', $this);
+        if (empty($this->options['no_plugins'])) {
+            /**
+             * @event products_collection.filter
+             * @param array shopProductsCollection $this
+             */
+            wa('shop')->event('products_collection.filter', $this);
+        }
     }
 
     /**
@@ -1621,7 +1623,9 @@ SQL;
              * @param shopProductsCollection $this
              */
             $this->prepared_event = true;
-            wa('shop')->event('products_collection.prepared', $this);
+            if (empty($this->options['no_plugins'])) {
+                wa('shop')->event('products_collection.prepared', $this);
+            }
         }
 
         $sql = "FROM shop_product p";

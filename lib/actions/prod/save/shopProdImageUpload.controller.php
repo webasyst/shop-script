@@ -13,15 +13,22 @@ class shopProdImageUploadController extends shopUploadController
         }
 
         $product_images_model = new shopProductImagesModel();
-        $data = $product_images_model->addImage($file, $product_id);
+        $image = $product_images_model->addImage($file, $product_id);
 
         $config = wa('shop')->getConfig();
-        shopImage::generateThumbs($data, $config->getImageSizes());
+        shopImage::generateThumbs($image, $config->getImageSizes("default"));
 
+        // same data as shopProdSaveImageDetailsController
         return [
-            "id" => $data["id"],
-            "description" => $data["description"],
-            "url" => shopImage::getUrl($data, $config->getImageSize('thumb'))
+            "id" => $image["id"],
+            "url" => shopImage::getUrl($image, $config->getImageSize('default')),
+            "url_original" => wa()->getAppUrl(null, true) . "?module=prod&action=origImage&id=" . $image["id"],
+            "description" => $image["description"],
+            "size" => waCurrency::formatWithUnit($image["size"]),
+            "name" => $image["original_filename"],
+            "width" => $image["width"],
+            "height" => $image["height"],
+            "uses_count" => 0
         ];
     }
 }

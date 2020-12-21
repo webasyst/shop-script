@@ -12,9 +12,25 @@
             // CONST
             that.product_id = options["product_id"];
             that.templates = options["templates"];
+            that.tooltips = options["tooltips"];
             that.locales = options["locales"];
             that.urls = options["urls"];
             that.lang = options["lang"];
+
+            //
+            that.max_file_size = options["max_file_size"];
+            that.max_post_size = options["max_post_size"];
+
+            // VUE JS MODELS
+            that.stocks_array = options["stocks"];
+            that.stocks = $.wa.construct(that.stocks_array, "id");
+            that.product = formatProduct(options["product"]);
+            that.currencies = options["currencies"];
+            that.errors = {
+                // сюда будут добавться точечные ключи ошибок
+                // ключ global содержит массив с общими ошибками страницы
+                global: []
+            };
 
             // DYNAMIC VARS
             that.categories_tree = options["categories_tree"];
@@ -22,6 +38,8 @@
             that.product_category_id = options["product_category_id"];
             that.is_changed = false;
             that.is_locked = false;
+
+            console.log( that );
 
             // INIT
             that.init();
@@ -39,6 +57,97 @@
                         if (category.categories) {
                             getCategories(category.categories);
                         }
+                    });
+                }
+            }
+
+            function formatProduct(product) {
+                // product.normal_mode = false;
+                // product.normal_mode_switch = false;
+
+                product.badge_form = false;
+                product.badge_id = (typeof product.badge_id === "string" ? product.badge_id : null);
+                product.badge_prev_id = null;
+
+                // Проставляю параметры с дефолтными значениями
+                $.each(product.features, function(i, feature) {
+                    if (feature.can_add_value) {
+                        var white_list = ["select", "checkbox"];
+                        if (white_list.indexOf(feature.render_type) >= 0) {
+                            feature.show_form = false;
+                            feature.form = { value: "" }
+
+                            if (feature.type === "color") { feature.form.code = ""; }
+                            if (feature.type.indexOf("dimension") >= 0) { feature.form.unit = feature.active_unit.value; }
+                        }
+                    }
+                });
+
+                $.each(product.skus, function(i, sku) {
+                    sku.errors = {};
+
+                    $.each(sku.modifications, function(i, sku_mod) {
+                        formatModification(sku_mod);
+
+                        if (!product.normal_mode) {
+                            sku_mod.expanded = true;
+                        }
+                    });
+                });
+
+                return product;
+            }
+
+            function formatModification(sku_mod) {
+                var stocks = that.stocks;
+
+                sku_mod.expanded = false;
+                sku_mod.stocks_expanded = false;
+                sku_mod.stocks_mode = true;
+                sku_mod.stocks_indicator = 1;
+
+                if (typeof sku_mod.stock !== "object" || Array.isArray(sku_mod.stock)) {
+                    sku_mod.stocks_mode = false;
+                    sku_mod.stock = {};
+                }
+
+                $.each(stocks, function(stock_id, stock_count) {
+                    if (typeof sku_mod.stock[stock_id] === "undefined") {
+                        sku_mod.stock[stock_id] = "";
+                    }
+                });
+
+                updateVirtualStockValue(sku_mod);
+
+                that.updateModificationStocks(sku_mod);
+
+                return sku_mod;
+
+                function updateVirtualStockValue(sku_mod) {
+                    var virtual_stocks = [];
+
+                    $.each(sku_mod.stock, function(stock_id, stock_value) {
+                        var stock = that.stocks[stock_id];
+                        if (stock.is_virtual) {
+                            virtual_stocks.push(stock);
+                        }
+                    });
+
+                    $.each(virtual_stocks, function(i, stock) {
+                        var value = "";
+
+                        if (stock.substocks) {
+                            $.each(stock.substocks, function(j, sub_stock_id) {
+                                var sub_stock_value = sku_mod.stock[sub_stock_id];
+                                sub_stock_value = parseFloat(sub_stock_value);
+                                if (!isNaN(sub_stock_value)) {
+                                    if (!value) { value = 0; }
+                                    value += sub_stock_value;
+                                }
+                            });
+                        }
+
+                        sku_mod.stock[stock.id] = value;
                     });
                 }
             }
@@ -60,6 +169,8 @@
 
             that.initStatusSection();
 
+            that.initSkuSection();
+
             that.initTypeSection();
 
             that.initMainCategory();
@@ -72,7 +183,7 @@
 
             that.initEditor();
 
-            that.initProductSave();
+            that.initSave();
 
             function initAreaAutoHeight() {
                 that.$wrapper.find("textarea.js-auto-height").each( function() {
@@ -90,6 +201,10 @@
                     $textarea.css("min-height", scroll_h + "px");
                 }
             }
+
+            $.each(that.tooltips, function(i, tooltip) {
+                $.wa.new.Tooltip(tooltip);
+            });
         };
 
         Section.prototype.renderErrors = function(errors) {
@@ -378,6 +493,497 @@
                     $redirect_input.val(status_id).trigger("change");
                 }
             });
+        };
+
+        Section.prototype.initSkuSection = function() {
+            var that = this;
+
+            var $section = that.$wrapper.find("#vue-sku-section");
+
+            var vue_model = new Vue({
+                el: $section[0],
+                data: {
+                    errors: that.errors,
+                    stocks: that.stocks,
+                    stocks_array: that.stocks_array,
+                    product: that.product,
+                    currencies: that.currencies
+                },
+                components: {
+                    "component-switch": {
+                        props: ["value", "disabled"],
+                        data: function() {
+                            return {
+                                checked: (typeof this.value === "boolean" ? this.value : false),
+                                disabled: (typeof this.disabled === "boolean" ? this.disabled : false)
+                            };
+                        },
+                        template: '<div class="switch"><input type="checkbox" v-bind:checked="checked" v-bind:disabled="disabled"></div>',
+                        delimiters: ['{ { ', ' } }'],
+                        mounted: function() {
+                            var self = this;
+
+                            $(self.$el).waSwitch({
+                                change: function(active, wa_switch) {
+                                    self.$emit("change", active);
+                                    self.$emit("input", active);
+                                }
+                            });
+                        }
+                    },
+                    "component-dropdown-currency": {
+                        props: ["currency_code", "currencies", "wide"],
+                        template: that.templates["component-dropdown-currency"],
+                        data: function() {
+                            return {
+                                wide: (typeof wide === "boolean" ? wide : false)
+                            }
+                        },
+                        delimiters: ['{ { ', ' } }'],
+                        mounted: function() {
+                            var self = this;
+
+                            $(self.$el).waDropdown({
+                                hover: false,
+                                items: ".dropdown-item",
+                                change: function(event, target, dropdown) {
+                                    self.$emit("change", $(target).data("id"));
+                                }
+                            });
+                        }
+                    },
+                    "component-product-badge-form": {
+                        props: ["product"],
+                        data: function() {
+                            var self = this;
+                            return {
+                                "badge": self.product.badges[self.product.badges.length - 1]
+                            }
+                        },
+                        template: that.templates["component-product-badge-form"],
+                        methods: {
+                            updateForm: function() {
+                                var self = this;
+
+                                self.badge.code = self.badge.code_model;
+                                self.product.badge_form = false;
+
+                                that.$wrapper.trigger("change");
+                            },
+                            revertForm: function() {
+                                var self = this;
+
+                                if (self.product.badge_prev_id) {
+                                    self.product.badge_id = self.product.badge_prev_id;
+                                    that.$wrapper.trigger("change");
+                                }
+
+                                self.product.badge_form = false;
+                            }
+                        },
+                        mounted: function() {
+                            var self = this;
+
+                            var $textarea = $(self.$el).find("textarea");
+
+                            toggleHeight($textarea);
+
+                            $textarea.on("input", function() {
+                                toggleHeight($textarea);
+                            });
+
+                            function toggleHeight($textarea) {
+                                $textarea.css("min-height", 0);
+                                var scroll_h = $textarea[0].scrollHeight;
+                                $textarea.css("min-height", scroll_h + "px");
+                            }
+                        }
+                    }
+                },
+                delimiters: ['{ { ', ' } }'],
+                computed: {
+                    sku: function() {
+                        return this.product.skus[0];
+                    },
+                    getSkuModAvailableState: function() {
+                        var self = this;
+
+                        return function(sku, target_state) {
+                            var sku_mods_count = sku.modifications.length,
+                                active_sku_mods_count = sku.modifications.filter( function(sku_mod) {
+                                    return sku_mod.available;
+                                }).length;
+
+                            var state = "";
+
+                            if (sku_mods_count === active_sku_mods_count) {
+                                state = "all";
+                            } else if (active_sku_mods_count === 0) {
+                                state = "none";
+                            } else {
+                                state = "part";
+                            }
+
+                            if (typeof target_state === "string") {
+                                return (target_state === state);
+                            } else {
+                                return state;
+                            }
+                        }
+                    },
+                    getSkuModAvailableTitle: function() {
+                        var self = this;
+
+                        return function(sku, locales) {
+                            var state = self.getSkuModAvailableState(sku),
+                                result = "";
+
+                            if (state === "all") {
+                                result = locales[2];
+                            } else if (state === "part") {
+                                result = locales[1];
+                            } else {
+                                result = locales[0];
+                            }
+
+                            return result;
+                        }
+                    }
+                },
+                methods: {
+                    // Misc
+                    changeProductMode: function(event) {
+                    },
+                    addProductPhoto: function(event, sku_mod) {
+                        var self = this;
+
+                        $.waDialog({
+                            html: that.templates["dialog_photo_manager"],
+                            options: {
+                                onPhotoAdd: function(photo) {
+                                    that.product.photos.push(photo);
+                                    if (that.product.photos.length === 1) {
+                                        self.setProductPhoto(that.product.photos[0], sku_mod);
+                                    }
+                                },
+                                onSuccess: function(image_id) {
+                                    var photo_array = that.product.photos.filter( function(photo) { return (photo.id === image_id); });
+                                    if (photo_array.length) {
+                                        self.setProductPhoto(photo_array[0], sku_mod);
+                                    }
+                                }
+                            },
+                            onOpen: function($dialog, dialog) {
+                                that.initPhotoManagerDialog($dialog, dialog, sku_mod);
+                            }
+                        });
+                    },
+                    setProductPhoto: function(photo, sku_mod) {
+                        var self = this;
+
+                        self.$set(sku_mod, "photo", photo);
+                        self.$set(sku_mod, "image_id", photo.id);
+                        that.$wrapper.trigger("change");
+                    },
+                    removeProductPhoto: function(sku_mod) {
+                        var self = this;
+
+                        $.waDialog({
+                            html: that.templates["dialog_sku_delete_photo"],
+                            options: {
+                                onUnpin: function() {
+                                    self.$set(sku_mod, "photo", null);
+                                    self.$set(sku_mod, "image_id", null);
+                                    that.$wrapper.trigger("change");
+                                },
+                                onDelete: function() {
+                                    var photo = sku_mod.photo;
+
+                                    // удаляем фотку на сервере
+                                    $.get(that.urls["delete_image"], { id: photo.id }, "json");
+
+                                    // удаляем фотку из модели модификаций
+                                    $.each(that.product.skus, function(i, _sku) {
+                                        $.each(_sku.modifications, function(i, _sku_mod) {
+                                            if (_sku_mod.photo && _sku_mod.photo.id === photo.id) {
+                                                self.$set(_sku_mod, "photo", null);
+                                                self.$set(_sku_mod, "image_id", null);
+                                            }
+                                        });
+                                    });
+
+                                    // удаляем фотку из модели продукта
+                                    var index = null;
+                                    $.each(that.product.photos, function(i, _photo) {
+                                        if (_photo.id === photo.id) { index = i; return false; }
+                                    });
+                                    if (typeof index === "number") {
+                                        that.product.photos.splice(index, 1);
+                                    }
+
+                                    // проставляем первую фотку как главную если простой режим.
+                                    if (!self.product.normal_mode_switch) {
+                                        if (that.product.photos.length) {
+                                            self.setProductPhoto(that.product.photos[0], sku_mod);
+                                        }
+                                    }
+
+                                    that.$wrapper.trigger("change");
+                                }
+                            },
+                            onOpen: initDialog
+                        });
+
+                        function initDialog($dialog, dialog) {
+                            if (self.product.normal_mode_switch) {
+                                $dialog.on("click", ".js-unpin-button", function(event) {
+                                    event.preventDefault();
+                                    dialog.options.onUnpin();
+                                    dialog.close();
+                                });
+                            } else {
+                                $dialog.find(".js-unpin-button").remove();
+                            }
+
+                            $dialog.on("click", ".js-delete-button", function(event) {
+                                event.preventDefault();
+                                dialog.options.onDelete();
+                                dialog.close();
+                            });
+                        }
+                    },
+
+                    // Badges
+                    changeProductBadge: function(badge) {
+                        var self = this;
+
+                        self.product.badge_prev_id = self.product.badge_id;
+
+                        if (badge) {
+                            self.product.badge_form = (badge.id === "");
+                            self.product.badge_id = badge.id;
+                        } else {
+                            self.product.badge_id = null;
+                            self.product.badge_form = false;
+                        }
+
+                        that.$wrapper.trigger("change");
+                    },
+
+                    // SKU
+                    changeSkuSku: function(sku, sku_index) {
+                        var self = this;
+
+                        $.each(sku.modifications, function(i, sku_mod) {
+                            sku_mod.sku = sku.sku;
+                        });
+                    },
+                    changeSkuName: function(sku, sku_index) {
+                        $.each(sku.modifications, function(i, sku_mod) {
+                            sku_mod.name = sku.name;
+                        });
+                    },
+
+                    // MODIFICATIONS
+                    skuMainToggle: function(sku, sku_index) {
+                        if (sku.sku_id !== that.product.sku_id) {
+                            $.each(that.product.skus, function(i, _sku) {
+                                if (_sku !== sku) {
+                                    _sku.sku_id = null;
+                                }
+                            });
+
+                            var sku_mod = sku.modifications[0];
+
+                            updateProductMainPhoto( sku_mod.image_id ? sku_mod.image_id : null );
+                            that.product.sku_id = sku.sku_id = sku_mod.id;
+
+                            that.$wrapper.trigger("change");
+                        }
+                    },
+                    skuStatusToggle: function(sku, sku_index) {
+                        var is_active = !!(sku.modifications.filter( function(sku_mod) { return (sku_mod.status === 'enabled'); }).length);
+
+                        $.each(sku.modifications, function(i, sku_mod) {
+                            sku_mod.status = (is_active ? "disabled" : "enabled");
+                        });
+
+                        that.$wrapper.trigger("change");
+                    },
+                    skuAvailableToggle: function(sku, sku_index) {
+                        var is_active = !!(sku.modifications.filter( function(sku_mod) { return sku_mod.available; }).length);
+
+                        $.each(sku.modifications, function(i, sku_mod) {
+                            sku_mod.available = !is_active;
+                        });
+
+                        that.$wrapper.trigger("change");
+                    },
+                    changeModificationCurrency: function(currency_code) {
+                        that.product.currency = currency_code;
+                    },
+                    changeSkuModStocks: function(sku_mod) {
+                        var stocks_count = 0,
+                            is_set = false;
+
+                        var virtual_stocks = [];
+                        $.each(sku_mod.stock, function(stock_id, stock_value) {
+                            var value = parseFloat(stock_value);
+                            if (!isNaN(value)) {
+                                is_set = true;
+                                stocks_count += value;
+                            } else {
+                                value = "";
+                            }
+                            sku_mod.stock[stock_id] = value;
+
+                            var stock = that.stocks[stock_id];
+                            if (stock.is_virtual) {
+                                virtual_stocks.push(stock);
+                            }
+                        });
+
+                        $.each(virtual_stocks, function(i, stock) {
+                            var value = "";
+
+                            if (stock.substocks) {
+                                $.each(stock.substocks, function(j, sub_stock_id) {
+                                    var sub_stock_value = sku_mod.stock[sub_stock_id];
+                                    sub_stock_value = parseFloat(sub_stock_value);
+                                    if (!isNaN(sub_stock_value)) {
+                                        if (!value) { value = 0; }
+                                        value += sub_stock_value;
+                                    }
+                                });
+                            }
+
+                            sku_mod.stock[stock.id] = value;
+                        });
+
+                        sku_mod.stocks_mode = is_set;
+                        sku_mod.count = (is_set ? stocks_count : "");
+
+                        that.updateModificationStocks(sku_mod);
+                    },
+                    focusSkuModStocks: function(sku_mod) {
+                        if (Object.keys(that.stocks).length) {
+                            this.modificationStocksToggle(sku_mod, true);
+                        }
+                    },
+                    modificationMainToggle: function(sku_mod, sku_mod_index, sku, sku_index) {
+                        if (sku.sku_id !== sku_mod.id) {
+                            $.each(that.product.skus, function(i, _sku) {
+                                if (_sku !== sku) {
+                                    _sku.sku_id = null;
+                                }
+                            });
+
+                            updateProductMainPhoto( sku_mod.image_id ? sku_mod.image_id : null );
+                            that.product.sku_id = sku.sku_id = sku_mod.id;
+
+                            that.$wrapper.trigger("change");
+                        }
+                    },
+                    modificationStatusToggle: function(sku_mod, sku_mod_index, sku, sku_index) {
+                        sku_mod.status = (sku_mod.status === "enabled" ? "disabled" : "enabled");
+                        that.$wrapper.trigger("change");
+                    },
+                    modificationAvailableToggle: function(sku_mod, sku_mod_index, sku, sku_index) {
+                        sku_mod.available = !sku_mod.available;
+                        that.$wrapper.trigger("change");
+                    },
+                    modificationStocksToggle: function(sku_mod, expanded) {
+                        sku_mod.stocks_expanded = (typeof expanded === "boolean" ? expanded : !sku_mod.stocks_expanded);
+                    },
+                    getStockTitle: function(stock) {
+                        var result = "";
+
+                        if (stock.is_virtual) {
+                            var stocks_array = [];
+
+                            if (stock.substocks) {
+                                $.each(stock.substocks, function(i, sub_stock_id) {
+                                    var sub_stock = that.stocks[sub_stock_id];
+                                    stocks_array.push(sub_stock.name);
+                                });
+                            }
+
+                            result = that.locales["stock_title"].replace("%s", stocks_array.join(", "));
+                        }
+
+                        return result;
+                    },
+
+                    // OTHER
+                    validate: function(event, type, data, key) {
+                        var self = this,
+                            $field = $(event.target),
+                            target_value = $field.val(),
+                            value = (typeof target_value === "string" ? target_value : "" + target_value);
+
+                        value = $.wa.validate(type, value);
+
+                        switch (type) {
+                            case "price":
+                                value = $.wa.validate("number", value);
+
+                                var limit_body = 11,
+                                    limit_tail = 3,
+                                    parts = value.replace(",", ".").split(".");
+
+                                var error_key = "product[skus][" + data.id + "]["+ key + "]";
+
+                                if (parts[0].length > limit_body || (parts[1] && parts[1].length > limit_tail)) {
+                                    self.$set(self.errors, error_key, {
+                                        id: "price_error",
+                                        text: "price_error"
+                                    });
+                                } else {
+                                    if (self.errors[error_key]) {
+                                        self.$delete(that.errors, error_key);
+                                    }
+                                }
+
+                                break;
+                            case "number":
+                                value = $.wa.validate("number", value);
+                                break;
+                            case "integer":
+                                value = $.wa.validate("integer", value);
+                                break;
+                            default:
+                                break;
+                        }
+
+                        // set
+                        set(value);
+
+                        function set(value) {
+                            Vue.set(data, key, value);
+                        }
+                    }
+                },
+                created: function() {
+                    that.$wrapper.css("visibility", "");
+                },
+                mounted: function() {
+
+                }
+            });
+
+            function updateProductMainPhoto(image_id) {
+                if (!that.product.photos.length) { return false; }
+
+                if (!image_id) {
+                    image_id = (that.product.image_id ? that.product.image_id : that.product.photos[0].id);
+                }
+
+                var photo_array = that.product.photos.filter( function(image) {
+                    return (image.id === image_id);
+                });
+
+                that.product.photo = (photo_array.length ? photo_array[0] : that.product.photos[0]);
+            }
         };
 
         Section.prototype.initTypeSection = function() {
@@ -834,102 +1440,6 @@
             }
         };
 
-        Section.prototype.initProductSave = function() {
-            var that= this,
-                $form = that.$form,
-                $submit_button = that.$wrapper.find(".js-product-save");
-
-            var loading = "<span class=\"icon top\" style=\"margin-left: .5rem\"><i class=\"fas fa-spinner fa-spin\"></i></span>";
-
-            $form.on("submit", function(event) {
-                event.preventDefault();
-            });
-
-            $submit_button.on("click", function(event, options) {
-                options = (options || {});
-                $form.trigger("submit");
-                onSubmit(options);
-            });
-
-            function onSubmit(options) {
-                if (!that.is_locked) {
-                    that.is_locked = true;
-
-                    var form_data = getData();
-                    if (form_data.errors.length) {
-                        that.renderErrors(form_data.errors);
-                        that.is_locked = false;
-
-                    } else {
-
-                        var $loading = $(loading).appendTo($submit_button.attr("disabled", true));
-
-                        request(that.urls["save"], form_data.data)
-                            .done( function() {
-                                if (options.redirect_url) {
-                                    $.wa_shop_products.router.load(options.redirect_url);
-                                } else {
-                                    $.wa_shop_products.router.reload();
-                                }
-                            })
-                            .fail( function() {
-                                $loading.remove();
-                                $submit_button.attr("disabled", false);
-                                that.is_locked = false;
-                            });
-                    }
-                }
-
-                function getData() {
-                    var result = {
-                            data: [],
-                            errors: []
-                        },
-                        data = $form.serializeArray();
-
-                    var sets_is_set = false;
-
-                    $.each(data, function(index, item) {
-                        if (item.name === "product[sets][]") {
-                            sets_is_set = true;
-                        }
-                        result.data.push(item);
-                    });
-
-                    if (!sets_is_set) {
-                        result.data.push({
-                            name: "product[sets]",
-                            value: ""
-                        });
-                    }
-
-                    return result;
-                }
-
-                function request(href, data) {
-                    var deferred = $.Deferred();
-
-                    $.post(href, data, "json")
-                        .done( function(response) {
-                            if (response.status === "ok") {
-                                deferred.resolve(response.data);
-
-                            } else {
-                                if (response.errors) {
-                                    that.renderErrors(response.errors);
-                                }
-                                deferred.reject("errors", (response.errors ? response.errors: null));
-                            }
-                        })
-                        .fail( function() {
-                            deferred.reject("server_error", arguments);
-                        });
-
-                    return deferred.promise();
-                }
-            }
-        };
-
         Section.prototype.initEditor = function() {
             var that = this;
 
@@ -1145,7 +1655,544 @@
                 .trigger("category.added", [category]);
         };
 
+        //
+
+        Section.prototype.initSave = function() {
+            var that= this,
+                $form = that.$form,
+                $submit_button = that.$wrapper.find(".js-product-save");
+
+            var loading = "<span class=\"icon top\" style=\"margin-left: .5rem\"><i class=\"fas fa-spinner fa-spin\"></i></span>";
+
+            $form.on("submit", function(event) {
+                event.preventDefault();
+            });
+
+            $submit_button.on("click", function(event, options) {
+                options = (options || {});
+                $form.trigger("submit");
+                onSubmit(options);
+            });
+
+            function onSubmit(options) {
+                if (!that.is_locked) {
+                    that.is_locked = true;
+
+                    var form_data = getData();
+                    if (form_data.errors.length) {
+                        that.renderErrors(form_data.errors);
+                        that.is_locked = false;
+
+                    } else {
+
+                        var $loading = $(loading).appendTo($submit_button.attr("disabled", true));
+
+                        request(that.urls["save"], form_data.data)
+                            .done( function() {
+                                if (options.redirect_url) {
+                                    $.wa_shop_products.router.load(options.redirect_url);
+                                } else {
+                                    $.wa_shop_products.router.reload();
+                                }
+                            })
+                            .fail( function() {
+                                $loading.remove();
+                                $submit_button.attr("disabled", false);
+                                that.is_locked = false;
+                            });
+                    }
+                }
+
+                function getData() {
+                    var result = {
+                            data: [],
+                            errors: []
+                        },
+                        data = $form.serializeArray();
+
+                    var sets_is_set = false;
+
+                    $.each(data, function(index, item) {
+                        if (item.name === "product[sets][]") {
+                            sets_is_set = true;
+                        }
+                        result.data.push(item);
+                    });
+
+                    if (!sets_is_set) {
+                        result.data.push({
+                            name: "product[sets]",
+                            value: ""
+                        });
+                    }
+
+                    var product_data = getProductData();
+
+                    result.data = [].concat(result.data, product_data);
+
+                    return result;
+
+                    function getProductData() {
+                        var data = [
+                            {
+                                "name": "product[currency]",
+                                "value": that.product.currency
+                            },
+                            {
+                                "name": "product[params][multiple_sku]",
+                                "value": (that.product.normal_mode_switch ? 1 : 0)
+                            }
+                        ];
+
+                        setBadge();
+
+                        setSKUS();
+
+                        return data;
+
+                        function setBadge() {
+                            var value = "";
+
+                            if (typeof that.product.badge_id === "string") {
+                                var active_badges = that.product.badges.filter( function(badge) {
+                                    return (badge.id === that.product.badge_id);
+                                });
+
+                                if (active_badges.length) {
+                                    var active_badge = active_badges[0];
+                                    value = (active_badge.id === "" ? active_badge.code : active_badge.id);
+                                }
+                            }
+
+                            data.push({
+                                name: "product[badge]",
+                                value: value
+                            });
+                        }
+
+                        function setSKUS() {
+                            $.each(that.product.skus, function(i, sku) {
+                                $.each(sku.modifications, function(i, sku_mod) {
+                                    var prefix = "product[skus][" + sku_mod.id + "]";
+                                    data.push({
+                                        name: prefix + "[name]",
+                                        value: sku_mod.name
+                                    });
+                                    data.push({
+                                        name: prefix + "[sku]",
+                                        value: sku_mod.sku
+                                    });
+                                    data.push({
+                                        name: prefix + "[status]",
+                                        value: (sku_mod.status ? 1 : 0)
+                                    });
+                                    data.push({
+                                        name: prefix + "[available]",
+                                        value: (sku_mod.available ? 1 : 0)
+                                    });
+                                    data.push({
+                                        name: prefix + "[image_id]",
+                                        value: sku_mod.image_id
+                                    });
+                                    data.push({
+                                        name: prefix + "[price]",
+                                        value: sku_mod.price
+                                    });
+                                    data.push({
+                                        name: prefix + "[compare_price]",
+                                        value: sku_mod.compare_price
+                                    });
+                                    data.push({
+                                        name: prefix + "[purchase_price]",
+                                        value: sku_mod.purchase_price
+                                    });
+
+                                    setStocks(sku_mod, prefix);
+                                });
+                            });
+
+                            function setStocks(sku_mod, prefix) {
+                                var stocks_data = [];
+
+                                var is_stocks_mode = false;
+
+                                $.each(sku_mod.stock, function(stock_id, stock_value) {
+                                    var value = parseFloat(stock_value);
+                                    if (value >= 0) {
+                                        is_stocks_mode = true;
+                                    } else {
+                                        value = "";
+                                    }
+
+                                    stocks_data.push({
+                                        name: prefix + "[stock][" + stock_id + "]",
+                                        value: value
+                                    });
+                                });
+
+                                if (!is_stocks_mode) {
+                                    stocks_data = [{
+                                        name: prefix + "[stock][0]",
+                                        value: sku_mod.count
+                                    }];
+                                }
+
+                                data = data.concat(stocks_data);
+                            }
+                        }
+                    }
+                }
+
+                function request(href, data) {
+                    var deferred = $.Deferred();
+
+                    $.post(href, data, "json")
+                        .done( function(response) {
+                            if (response.status === "ok") {
+                                deferred.resolve(response.data);
+
+                            } else {
+                                if (response.errors) {
+                                    that.renderErrors(response.errors);
+                                }
+                                deferred.reject("errors", (response.errors ? response.errors: null));
+                            }
+                        })
+                        .fail( function() {
+                            deferred.reject("server_error", arguments);
+                        });
+
+                    return deferred.promise();
+                }
+            }
+        };
+
+        // VUE Methods
+
+        Section.prototype.updateModificationStocks = function(sku_mod) {
+            var that = this;
+
+            if (sku_mod) {
+                update(sku_mod);
+            } else {
+                $.each(that.product.skus, function(i, sku) {
+                    $.each(sku.modifications, function(i, sku_mod) {
+                        update(sku_mod);
+                    });
+                });
+            }
+
+            function update(sku_mod) {
+                var is_good = false;
+                var is_warn = false;
+                var is_critical = false;
+
+                var stocks_count = 0,
+                    is_set = false;
+
+                $.each(sku_mod.stock, function(stock_id, stock_value) {
+                    var value = parseFloat(stock_value);
+
+                    var stock_data = that.stocks[stock_id];
+                    if (stock_data && stock_data.is_virtual) { return true; }
+
+                    if (!isNaN(value)) {
+                        is_set = true;
+                        stocks_count += value;
+
+                        var stock = that.stocks[stock_id];
+                        if (value > stock.critical_count) {
+                            if (value > stock.low_count) {
+                                is_good = true;
+                            } else {
+                                is_warn = true;
+                            }
+                        } else {
+                            is_critical = true;
+                        }
+                    }
+                });
+
+                if (is_critical) {
+                    sku_mod.stocks_indicator = -1;
+                } else if (is_warn) {
+                    sku_mod.stocks_indicator = 0;
+                } else {
+                    sku_mod.stocks_indicator = 1;
+                }
+
+                if (is_set) {
+                    sku_mod.count = stocks_count;
+                }
+            }
+        };
+
+        Section.prototype.initPhotoManagerDialog = function($dialog, dialog, sku_mod) {
+            var that = this;
+
+            var $vue_section = $dialog.find("#vue-photo-manager-section");
+
+            var photo_id = sku_mod.image_id,
+                active_photo = null,
+                photos = clone(that.product.photos);
+
+            photos.forEach( function(photo) {
+                photo = formatPhoto(photo);
+                if (photo_id && photo_id === photo.id) { active_photo = photo; }
+            });
+
+            if (!active_photo && photos.length) {
+                active_photo = photos[0];
+            }
+
+            new Vue({
+                el: $vue_section[0],
+                data: {
+                    photo_id: photo_id,
+                    photos: photos,
+                    active_photo: active_photo,
+                    files: [],
+                    errors: []
+                },
+                delimiters: ['{ { ', ' } }'],
+                components: {
+                    "component-loading-file": {
+                        props: ['file'],
+                        template: '<div class="vue-component-loading-file"><div class="wa-progressbar" style="display: inline-block;"></div></div>',
+                        mounted: function() {
+                            var self = this;
+
+                            var $bar = $(self.$el).find(".wa-progressbar").waProgressbar({ type: "circle", "stroke-width": 4.8, display_text: false }),
+                                instance = $bar.data("progressbar");
+
+                            loadPhoto(self.file)
+                                .done( function(response) {
+                                    $.each(response.files, function(i, photo) {
+                                        // remove loading photo
+                                        self.$emit("photo_added", {
+                                            file: self.file,
+                                            photo: photo
+                                        });
+                                    });
+                                });
+
+                            function loadPhoto(file) {
+                                var formData = new FormData();
+
+                                formData.append("product_id", that.product.id);
+                                formData.append("files", file);
+
+                                // Ajax request
+                                return $.ajax({
+                                    xhr: function() {
+                                        var xhr = new window.XMLHttpRequest();
+                                        xhr.upload.addEventListener("progress", function(event){
+                                            if (event.lengthComputable) {
+                                                var percent = parseInt( (event.loaded / event.total) * 100 );
+                                                instance.set({ percentage: percent });
+                                            }
+                                        }, false);
+                                        return xhr;
+                                    },
+                                    url: that.urls["add_product_image"],
+                                    data: formData,
+                                    cache: false,
+                                    contentType: false,
+                                    processData: false,
+                                    type: 'POST'
+                                });
+                            }
+                        }
+                    }
+                },
+                methods: {
+                    setPhoto: function(photo) {
+                        var self = this;
+                        self.active_photo = photo;
+                    },
+                    useChanges: function() {
+                        var self = this;
+                        if (self.active_photo) {
+                            dialog.options.onSuccess(self.active_photo.id);
+                            dialog.close();
+                        }
+                    },
+                    showDescriptionForm: function(event, photo) {
+                        var self = this;
+
+                        var $photo = $(event.currentTarget).closest(".s-photo-wrapper");
+
+                        photo.expanded = true;
+
+                        self.$nextTick( function() {
+                            var $textarea = $photo.find("textarea:first");
+                            if ($textarea) {
+                                $textarea.trigger("focus");
+                            }
+                        });
+                    },
+                    changeDescription: function(event, photo) {
+                        var $button = $(event.currentTarget);
+                        $button.attr("disabled", true);
+
+                        var href = that.urls["change_image_description"],
+                            data = {
+                                "id": photo.id,
+                                "data[description]": photo.description
+                            }
+
+                        $.post(href, data, "json")
+                            .always( function() {
+                                $button.attr("disabled", false);
+                            })
+                            .done( function() {
+                                photo.description_before = photo.description;
+                                photo.expanded = false;
+                            });
+                    },
+                    revertDescription: function(photo) {
+                        photo.expanded = false;
+                        photo.description = photo.description_before;
+                    },
+                    onAreaOver: function(event) {
+                        var $area = $(event.currentTarget);
+
+                        var active_class = "is-over";
+
+                        var timer = $area.data("timer");
+                        if (typeof timer === "number") { clearTimeout(timer); }
+
+                        $area.addClass(active_class);
+                        timer = setTimeout( clear, 100);
+                        $area.data("timer", timer);
+
+                        function clear() {
+                            $area.removeClass(active_class);
+                        }
+                    },
+                    onAreaDrop: function(event) {
+                        var self = this,
+                            files = event.dataTransfer.files;
+
+                        if (files.length) {
+                            $.each(files, function(i, file) {
+                                self.loadFile(file);
+                            });
+                        }
+                    },
+                    onAreaChange: function(event) {
+                        var self = this,
+                            files = event.target.files;
+
+                        if (files.length) {
+                            $.each(files, function(i, file) {
+                                self.loadFile(file);
+                            });
+                        }
+
+                        // clear
+                        $(event.target).val("");
+                    },
+                    onAddedPhoto: function(data) {
+                        var self = this;
+
+                        var photo = formatPhoto(data.photo);
+
+                        // удаляем UI загрузки
+                        var index = self.files.indexOf(data.file);
+                        if (index >= 0) { self.files.splice(index, 1); }
+
+                        // Добавляем фотку в модели данных
+                        self.photos.unshift(photo);
+                        dialog.options.onPhotoAdd(photo);
+
+                        self.setPhoto(photo);
+                    },
+
+                    //
+                    loadFile: function(file) {
+                        var self = this;
+
+                        var file_size = file.size,
+                            image_type = /^image\/(png|jpe?g|gif)$/,
+                            is_image_type = (file.type.match(image_type)),
+                            is_image = false;
+
+                        var name_array = file.name.split("."),
+                            ext = name_array[name_array.length - 1];
+
+                        ext = ext.toLowerCase();
+
+                        var white_list = ["png", "jpg", "jpeg", "gif"];
+                        if (is_image_type && white_list.indexOf(ext) >= 0) {
+                            is_image = true;
+                        }
+
+                        if (!is_image) {
+                            renderError({ id: "not_image", text: "ERROR: NOT IMAGE" });
+                        } else if (file_size >= that.max_file_size) {
+                            renderError({ id: "big_size", text: "ERROR: big file size" });
+                        } else if (file_size >= that.max_post_size) {
+                            renderError({ id: "big_post", text: "ERROR: big POST file size" });
+                        } else {
+                            self.files.push(file);
+                        }
+
+                        function renderError(error) {
+                            self.errors.push(error);
+
+                            setTimeout( function() {
+                                var index = null;
+                                $.each(self.errors, function(i, _error) {
+                                    if (_error === error) { index = i; return false; }
+                                });
+                                if (typeof index === "number") { self.errors.splice(index, 1); }
+                            }, 2000);
+                        }
+                    }
+                },
+                created: function () {
+                    $vue_section.css("visibility", "");
+                },
+                updated: function() {
+                    var self = this;
+
+                    $dialog.find("textarea.s-description-field").each( function() {
+                        toggleHeight( $(this) );
+                    });
+
+                    var $content = $dialog.find(".dialog-content"),
+                        content_top = $content.scrollTop();
+
+                    dialog.resize();
+                    $content.scrollTop(content_top);
+                },
+                mounted: function () {
+                    var self = this;
+
+                    dialog.resize();
+                }
+            });
+
+            function formatPhoto(photo) {
+                photo.expanded = false;
+                if (typeof photo.description !== "string") { photo.description = ""; }
+                photo.description_before = photo.description;
+                return photo;
+            }
+
+            function toggleHeight($textarea) {
+                $textarea.css("min-height", 0);
+                var scroll_h = $textarea[0].scrollHeight;
+                $textarea.css("min-height", scroll_h + "px");
+            }
+        };
+
         return Section;
+
+        function clone(data) {
+            return JSON.parse(JSON.stringify(data));
+        }
 
     })($);
 

@@ -10,14 +10,15 @@
                 <div class="s-photos-section js-photos-section">
                     <div class="s-photos-form">
                         <div class="s-drop-area box dragndrop"
-                            v-on:dragover.prevent="onAreaOver($event)"
-                            v-on:drop.prevent="onAreaDrop($event)">
+                             data-tooltip-id="product-image-dialog-1"
+                             v-on:dragover.prevent="onAreaOver($event)"
+                             v-on:drop.prevent="onAreaDrop($event)">
 
                             <div class="s-text" v-if="!errors.length">[`Upload or drag & drop images here`]</div>
                             <div class="s-text" v-if="errors.length">
                                 <div class="color-red" v-for="error in errors">{ { error.text } }</div>
                             </div>
-                            <input class="s-field" type="file" v-on:change="onAreaChange($event)">
+                            <input class="s-field" type="file" v-on:change="onAreaChange($event)" title="">
                         </div>
                     </div>
 

@@ -104,7 +104,7 @@
                 <span class="price nowrap">{shop_currency_html($p.price)}</span>
                 <meta itemprop="price" content="{shop_currency($p.price, null, null, 0)}">
                 <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
-                <div class="out-of-stock"><strong>{if $wa->shop->settings('ignore_stock_count')}[`Pre-order only`]{else}[`Out of stock`]{/if}</strong></div>
+                <div class="out-of-stock"><strong>{if $wa->shop->settings('ignore_stock_count')}[`Pre-order only`]{else}{_wd('shop', 'Out of stock')}{/if}</strong></div>
                 <link itemprop="availability" href="http://schema.org/OutOfStock" />
             {/if}
         </div>

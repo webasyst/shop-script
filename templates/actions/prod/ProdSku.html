@@ -5,8 +5,6 @@
     {$_settings_url = "{$_settings_url}{$product["type_id"]}/"}
 {/if}
 
-{$_templates = []}
-
 {$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
 {$_view_types = [
     "thin" => [
@@ -40,6 +38,10 @@
     {$formatted_product.skus[$_sku_index]["render_skus"] = $_active_view_type["render_skus"]}
 {/foreach}
 
+{* ШАБЛОНЫ *}
+
+{$_templates = []}
+
 {capture assign="_feature_select_dialog"}{include file="./dialogs/feature_select.html" inline}{/capture}
 {$_templates["dialog_feature_select"] = $_feature_select_dialog}
 
@@ -61,6 +63,133 @@
 {* Диалог показывающий какие значения характеристики используются в модификациях *}
 {capture assign="_feature_used_values"}{include file="./dialogs/feature_used_values.html" inline}{/capture}
 {$_templates["dialog_feature_used_values"] = $_feature_used_values}
+
+{* ПОДСКАЗКИ *}
+
+{$_tooltips = [
+    "product-sku-1" => [
+        "id" => "product-sku-1",
+        "html" => _w("Move by one SKU up")|escape,
+        "class" => "inline"
+    ],
+    "product-sku-2" => [
+        "id" => "product-sku-2",
+        "html" => _w("Move by one SKU down")|escape,
+        "class" => "inline"
+    ],
+    "product-sku-3" => [
+        "id" => "product-sku-3",
+        "html" => _w("Copy the SKU with all its variants")|escape
+    ],
+    "product-sku-4" => [
+        "id" => "product-sku-4",
+        "html" => _w("Delete the SKU with all its variants")|escape
+    ],
+    "product-sku-5" => [
+        "id" => "product-sku-5",
+        "html" => _w("You cannot delete the last product SKU.")|escape
+    ],
+    "product-sku-6" => [
+        "id" => "product-sku-6",
+        "html" => _w("Drag to change the variants’ sort order.")|escape
+    ],
+    "product-sku-7" => [
+        "id" => "product-sku-7",
+        "html" => _w("You cannot move the last variant away from an SKU.")|escape
+    ],
+    "product-sku-8" => [
+        "id" => "product-sku-8",
+        "html" => _w("Change image")|escape,
+        "class" => "inline"
+    ],
+    "product-sku-9" => [
+        "id" => "product-sku-9",
+        "html" => _w("Delete image")|escape,
+        "class" => "inline"
+    ],
+    "product-sku-10" => [
+        "id" => "product-sku-10",
+        "html" => _w("Copy variant")|escape,
+        "class" => "inline"
+    ],
+    "product-sku-11" => [
+        "id" => "product-sku-11",
+        "html" => _w("Detele variant")|escape,
+        "class" => "inline"
+    ],
+    "product-sku-12" => [
+        "id" => "product-sku-12",
+        "html" => _w("You cannot delete the last SKU variant.")|escape
+    ],
+    "product-sku-13" => [
+        "id" => "product-sku-13",
+        "html" => _w("Main product SKU")|escape
+    ],
+    "product-sku-14" => [
+        "id" => "product-sku-14",
+        "html" => _w("Make the main product SKU")|escape,
+        "class" => "inline"
+    ],
+    "product-sku-15" => [
+        "id" => "product-sku-15",
+        "html" => _w("Main product variant")|escape,
+        "class" => "inline"
+    ],
+    "product-sku-16" => [
+        "id" => "product-sku-16",
+        "html" => _w("Make the main product variant")|escape
+    ],
+    "product-sku-17" => [
+        "id" => "product-sku-17",
+        "html" => _w("The variant is available for purchase.")|escape
+    ],
+    "product-sku-18" => [
+        "id" => "product-sku-18",
+        "html" => _w("The variant is unavailable for purchase.")|escape
+    ],
+    "product-sku-19" => [
+        "id" => "product-sku-19",
+        "html" => _w("Collapse SKU variants")|escape,
+        "class" => "inline"
+    ],
+    "product-sku-20" => [
+        "id" => "product-sku-20",
+        "html" => _w("Expand SKU variants")|escape,
+        "class" => "inline"
+    ],
+    "product-sku-21" => [
+        "id" => "product-sku-21",
+        "html" => _w("The SKU is not available for purchase.")|escape
+    ],
+    "product-sku-22" => [
+        "id" => "product-sku-22",
+        "html" => _w("Some SKU variants are available for purchase.")|escape
+    ],
+    "product-sku-23" => [
+        "id" => "product-sku-23",
+        "html" => _w("The SKU is available for purchase.")|escape
+    ],
+    "product-sku-24" => [
+        "id" => "product-sku-24"
+    ],
+    "product-image-dialog-1" => [
+        "id" => "product-image-dialog-1",
+        "html" => _w("Drag & drop image files here or click this area to upload files.")|escape,
+        "position" => "top"
+    ]
+]}
+
+{capture assign="_tooltip_visible_in_storefront"}
+    <p>[`The heading is visible in the storefront.`]</p>
+    <p>{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
+{/capture}
+{$_tooltips["visible_in_storefront"] = [
+    "id" => "visible_in_storefront",
+    "html" => $_tooltip_visible_in_storefront|trim,
+    "width" => "15rem"
+]}
+
+{* КОМПОНЕНТЫ *}
 
 {capture assign="_component_feature"}
     <div class="s-feature-component" v-bind:data-type="feature.render_type">
@@ -96,8 +225,8 @@
 
         <template v-else-if="feature.render_type == 'field'">
             <div class="s-fields-list flexbox wrap space-12" v-bind:class="{ 'is-triple': feature.options.length === 3, 'is-double': feature.options.length === 2 }">
-                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
-                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode_switch">
+                    <component-feature_default_tooltip v-bind:feature="feature"></component-feature_default_tooltip>
                 </template>
 
                 <template v-for="(option, index) in feature.options">
@@ -114,15 +243,15 @@
                 </template>
             </div>
 
-            <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
+            <template v-if="product.normal_mode_switch && feature.available_for_sku && !vertical">
+                <component-feature_values_in_modifications v-bind:feature="feature"></component-feature_values_in_modifications>
             </template>
         </template>
 
         <template v-else-if="feature.render_type == 'select'">
             <div class="flexbox wrap middle space-12">
-                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
-                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode_switch">
+                    <component-feature_default_tooltip v-bind:feature="feature"></component-feature_default_tooltip>
                 </template>
 
                 <dropdown-feature-options v-bind:feature="feature" v-bind:columns="columns"></dropdown-feature-options>
@@ -132,18 +261,18 @@
                 </template>
             </div>
 
-            <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
+            <template v-if="product.normal_mode_switch && feature.available_for_sku && !vertical">
+                <component-feature_values_in_modifications v-bind:feature="feature"></component-feature_values_in_modifications>
             </template>
         </template>
 
         <template v-else-if="feature.render_type == 'checkbox'">
-            <div class="flexbox wrap space-12 s-small-text">
-                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
-                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
+            <div class="flexbox space-12 s-small-text">
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode_switch">
+                    <component-feature_default_tooltip v-bind:feature="feature"></component-feature_default_tooltip>
                 </template>
 
-                <div class="s-checkbox-group tablebox inline space-12">
+                <div class="s-checkbox-group wide tablebox inline space-12">
                     <div class="s-column" v-if="feature.options.filter(option => option.active).length">
                         <div class="s-checkbox-list inlinebox space-8">
                             <template v-for="(option, index) in feature.options">
@@ -157,7 +286,7 @@
                             </template>
                         </div>
                     </div>
-                    <div class="s-column">
+                    <div class="s-column nowrap">
                         <button class="wa-button transparent" v-on:click.prevent="changeFeatureValues(feature)">
                             <span class="s-icon"><i class="fas fa-pen"></i></span>
                             &nbsp;
@@ -175,15 +304,15 @@
                 </div>
             </div>
 
-            <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
+            <template v-if="product.normal_mode_switch && feature.available_for_sku && !vertical">
+                <component-feature_values_in_modifications v-bind:feature="feature"></component-feature_values_in_modifications>
             </template>
         </template>
 
         <template v-else-if="feature.render_type == 'textarea'">
             <div class="flexbox space-12">
-                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
-                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode_switch">
+                    <component-feature_default_tooltip v-bind:feature="feature"></component-feature_default_tooltip>
                 </template>
 
                 <div class="s-textarea-wrapper wide">
@@ -191,15 +320,15 @@
                 </div>
             </div>
 
-            <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
+            <template v-if="product.normal_mode_switch && feature.available_for_sku && !vertical">
+                <component-feature_values_in_modifications v-bind:feature="feature"></component-feature_values_in_modifications>
             </template>
         </template>
 
         <template v-else-if="feature.render_type == 'range'">
             <div class="flexbox wrap space-12">
-                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
-                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode_switch">
+                    <component-feature_default_tooltip v-bind:feature="feature"></component-feature_default_tooltip>
                 </template>
 
                 <template v-for="(option, index) in feature.options">
@@ -210,15 +339,15 @@
                 </template>
             </div>
 
-            <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
+            <template v-if="product.normal_mode_switch && feature.available_for_sku && !vertical">
+                <component-feature_values_in_modifications v-bind:feature="feature"></component-feature_values_in_modifications>
             </template>
         </template>
 
         <template v-else-if="feature.render_type == 'range.volume'">
             <div class="flexbox wrap space-12">
-                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
-                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode_switch">
+                    <component-feature_default_tooltip v-bind:feature="feature"></component-feature_default_tooltip>
                 </template>
 
                 <template v-for="(option, index) in feature.options">
@@ -233,15 +362,15 @@
                 </template>
             </div>
 
-            <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
+            <template v-if="product.normal_mode_switch && feature.available_for_sku && !vertical">
+                <component-feature_values_in_modifications v-bind:feature="feature"></component-feature_values_in_modifications>
             </template>
         </template>
 
         <template v-else-if="feature.render_type == 'range.date'">
             <div class="flexbox wrap space-12">
-                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
-                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode_switch">
+                    <component-feature_default_tooltip v-bind:feature="feature"></component-feature_default_tooltip>
                 </template>
 
                 <template v-for="(option, index) in feature.options">
@@ -252,36 +381,36 @@
                 </template>
             </div>
 
-            <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
+            <template v-if="product.normal_mode_switch && feature.available_for_sku && !vertical">
+                <component-feature_values_in_modifications v-bind:feature="feature"></component-feature_values_in_modifications>
             </template>
         </template>
 
         <template v-else-if="feature.render_type == 'field.date'">
             <div class="flexbox wrap space-12">
-                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
-                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode_switch">
+                    <component-feature_default_tooltip v-bind:feature="feature"></component-feature_default_tooltip>
                 </template>
 
                 <date-picker v-model="feature.options[0].value"></date-picker>
             </div>
 
-            <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
+            <template v-if="product.normal_mode_switch && feature.available_for_sku && !vertical">
+                <component-feature_values_in_modifications v-bind:feature="feature"></component-feature_values_in_modifications>
             </template>
         </template>
 
         <template v-else-if="feature.render_type == 'color'">
             <div class="flexbox wrap space-12">
-                <template v-if="feature.available_for_sku && !vertical && product.normal_mode">
-                    <component-feature-default-tooltip v-bind:feature="feature"></component-feature-default-tooltip>
+                <template v-if="feature.available_for_sku && !vertical && product.normal_mode_switch">
+                    <component-feature_default_tooltip v-bind:feature="feature"></component-feature_default_tooltip>
                 </template>
 
                 <component-feature-color v-bind:feature="feature" v-bind:vertical="vertical"></component-feature-color>
             </div>
 
-            <template v-if="feature.available_for_sku && !vertical">
-                <button class="wa-button transparent-text wa-small wa-short" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values in variants`]</button>
+            <template v-if="product.normal_mode_switch && feature.available_for_sku && !vertical">
+                <component-feature_values_in_modifications v-bind:feature="feature"></component-feature_values_in_modifications>
             </template>
         </template>
     </div>
@@ -311,12 +440,22 @@
         </div>
     </div>
 {/capture}
-{$_templates["component-feature-default-tooltip"] = $_component_feature_default_tooltip}
+{$_templates["component-feature_default_tooltip"] = $_component_feature_default_tooltip}
+
+{capture assign="_component_feature_values_in_modifications"}
+    <div class="s-feature-values-in-modifications">
+        <span class="s-label">[`В модификациях`]</span>
+        <span class="cursor-pointer" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения`]</span>
+    </div>
+{/capture}
+{$_templates["component-feature_values_in_modifications"] = $_component_feature_values_in_modifications}
 
 {capture assign="_component_features"}
     <div class="s-features-list wa-fields space-24" v-bind:class="{ 'vertical': vertical, 'two-columns': columns }">
         <div class="s-feature-wrapper wa-field" v-for="(feature, key) in features" v-bind:data-id="feature.id">
-            <div class="name unshifted" v-if="feature.render_type !== 'divider'">
+            <div class="name"
+                 v-bind:class="{ 'unshifted': ['divider', 'checkbox'].indexOf(feature.render_type) < 0 }"
+                 v-if="feature.render_type !== 'divider'">
 
                 <div class="s-feature-details tablebox space-8">
                     <template v-if="!vertical">
@@ -498,7 +637,7 @@
 
 {capture assign="_component_switch"}
     <div class="switch wa-small">
-        <input type="checkbox" v-bind:checked="checked" v-bind:disabled="disabled">
+        <input type="checkbox" v-bind:id="id" v-bind:checked="checked" v-bind:disabled="disabled">
     </div>
 {/capture}
 {$_templates["component-switch"] = $_component_switch|trim|strip}
@@ -855,13 +994,13 @@
                                 <div class="s-sku-table tablebox fixed space-16">
                                     <div class="s-column-move-actions middle" v-if="product.normal_mode_switch">
                                         <span class="s-action"
-                                              title="{_w("Move by one SKU up")|escape}"
+                                              data-tooltip-id="product-sku-1"
                                               v-bind:class="{ 'disabled': (sku_index === 0)}"
                                               v-on:click.prevent="moveSKU(true, sku, sku_index)">
                                             <i class="icon size-20"><svg><use xlink:href='{$_sprite_url}#arrow-up'></use></svg></i>
                                         </span>
                                         <span class="s-action"
-                                              title="{_w("Move by one SKU down")|escape}"
+                                              data-tooltip-id="product-sku-2"
                                               v-bind:class="{ 'disabled': (sku_index === product.skus.length -1)}"
                                               v-on:click.prevent="moveSKU(false, sku, sku_index)">
                                             <i class="icon size-20"><svg><use xlink:href='{$_sprite_url}#arrow-down'></use></svg></i>
@@ -875,7 +1014,7 @@
                                         <div class="s-actions nowrap">
                                             <template v-if="product.normal_mode_switch">
                                                 <button class="wa-button transparent" v-on:click.prevent="skuMainToggle(sku, sku_index);"
-                                                    v-bind:title="( product.sku_id === sku.sku_id ? '{_w("Main product SKU")|escape}': '{_w("Make the main product SKU")|escape}')">
+                                                    v-bind:data-tooltip-id="(product.sku_id === sku.sku_id ? 'product-sku-13': 'product-sku-14')">
 
                                                     <span class="s-icon" v-bind:class="{ 'color-orange': product.sku_id === sku.sku_id, 'color-gray-light': product.sku_id !== sku.sku_id }"><i class="fas fa-check-circle"></i></span>
                                                 </button>
@@ -887,8 +1026,8 @@
                                                 *}
                                             </template>
                                             <button class="wa-button transparent"
-                                                v-on:click.prevent="skuAvailableToggle(sku, sku_index)"
-                                                v-bind:title="getSkuModAvailableTitle(sku, ['{_w("The SKU is not available for purchase.")|escape}', '{_w("Some SKU variants are available for purchase.")|escape}', '{_w("The SKU is available for purchase.")|escape}'])">
+                                                    v-on:click.prevent="skuAvailableToggle(sku, sku_index)"
+                                                    v-bind:data-tooltip-id="getSkuModAvailableTitle(sku, ['product-sku-21', 'product-sku-22', 'product-sku-23'])">
 
                                                 <span class="s-icon icon top size-18 color-green-dark" v-if="getSkuModAvailableState(sku, 'all')"><svg><use xlink:href='{$_sprite_url}#cart'></use></svg></span>
                                                 <span class="s-icon icon top size-18 color-gray-light" v-if="getSkuModAvailableState(sku, 'part')"><svg><use xlink:href='{$_sprite_url}#cart'></use></svg></span>
@@ -936,11 +1075,11 @@
                                     <div class="s-column-actions" v-if="product.normal_mode_switch">
                                         {strip}
                                         <div class="s-actions">
-                                            <button class="wa-button wa-small transparent-gray" title="{_w("Copy the SKU with all its variants")|escape}" v-on:click.prevent="copySKU(sku, sku_index)">
+                                            <button class="wa-button wa-small transparent-gray" data-tooltip-id="product-sku-3" v-on:click.prevent="copySKU(sku, sku_index)">
                                                 <span class="icon size-14"><i class="fas fa-copy"></i></span>
                                             </button>
                                             <button class="wa-button wa-small transparent-gray"
-                                                title="{_w("Delete the SKU with all its variants")|escape}"
+                                                data-tooltip-id="product-sku-4"
                                                 v-if="product.skus.length > 1"
                                                 v-on:click.prevent="removeSKU($event, sku, sku_index)">
                                                 <span class="s-icon icon size-16">
@@ -948,7 +1087,7 @@
                                                 </span>
                                             </button>
                                             <button class="wa-button wa-small transparent-gray disabled"
-                                                title="{_w("You cannot delete the last product SKU.")|escape}"
+                                                data-tooltip-id="product-sku-5"
                                                 v-if="product.skus.length <= 1">
                                                 <span class="s-icon icon size-16 color-gray-light" style="opacity: .5">
                                                     <svg><use xlink:href='{$_sprite_url}#trash-alt-slash'></use></svg>
@@ -972,12 +1111,12 @@
                                             <div class="s-sku-table tablebox fixed space-16">
                                                 <div class="s-column-move-actions" v-if="product.normal_mode_switch">
                                                     <span class="s-action js-modification-move-toggle" draggable="true"
-                                                          title="{_w("Drag to change the variants’ sort order.")|escape}"
+                                                          data-tooltip-id="product-sku-6"
                                                           v-if="(sku.modifications.length > 1)">
                                                         <i class="icon size-20"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></i>
                                                     </span>
                                                     <span class="s-action s-disabled-action"
-                                                          title="{_w("You cannot move the last variant away from an SKU.")|escape}"
+                                                          data-tooltip-id="product-sku-7"
                                                           v-if="(sku.modifications.length <= 1)">
                                                         <i class="icon size-20 color-gray-light"><svg><use xlink:href='{$_sprite_url}#grip-slash'></use></svg></i>
                                                     </span>
@@ -986,12 +1125,14 @@
                                                 <div class="s-column-view-actions">
 
                                                     <div class="s-image-wrapper">
-                                                        <div class="s-image-item" title="{_w("Change image")|escape}"
+                                                        <div class="s-image-item"
+                                                             data-tooltip-id="product-sku-8"
                                                              v-if="sku_mod.photo"
                                                              v-bind:style="{ 'background-image': 'url(' + sku_mod.photo.url + ')' }"
                                                              v-on:click.prevent="addProductPhoto($event, sku_mod)"></div>
 
-                                                        <div class="s-image-item" title="{_w("Change image")|escape}"
+                                                        <div class="s-image-item"
+                                                             data-tooltip-id="product-sku-8"
                                                              v-if="!sku_mod.photo"
                                                              v-on:click.prevent="addProductPhoto($event, sku_mod)">
 
@@ -1000,9 +1141,10 @@
                                                             </div>
                                                         </div>
 
-                                                        <span class="s-action rounded" title="{_w("Delete image")|escape}"
-                                                            v-if="sku_mod.photo"
-                                                            v-on:click.prevent="removeProductPhoto(sku_mod)">
+                                                        <span class="s-action rounded"
+                                                              data-tooltip-id="product-sku-9"
+                                                              v-if="sku_mod.photo"
+                                                              v-on:click.prevent="removeProductPhoto(sku_mod)">
 
                                                             <span class="icon top size-12"><i class="fas fa-trash-alt"></i></span>
                                                         </span>
@@ -1011,7 +1153,8 @@
                                                     {strip}
                                                     <div class="s-actions nowrap" v-if="product.normal_mode_switch">
                                                         <button class="wa-button transparent-gray" v-on:click.prevent="modificationMainToggle(sku_mod, sku_mod_index, sku, sku_index);"
-                                                            v-bind:title="( sku.sku_id === sku_mod.id ? '{_w("Main product variant")|escape}': '{_w("Make the main product variant")|escape}')">
+                                                                v-bind:data-tooltip-id="( sku.sku_id === sku_mod.id ? 'product-sku-15': 'product-sku-16')">
+
                                                             <span class="s-icon" v-bind:class="{ 'color-orange': sku.sku_id === sku_mod.id, 'color-gray-light': sku.sku_id !== sku_mod.id }"><i class="fas fa-check-circle"></i></span>
                                                         </button>
                                                         {*
@@ -1021,7 +1164,7 @@
                                                         </button>
                                                         *}
                                                         <button class="wa-button transparent-gray" v-on:click.prevent="modificationAvailableToggle(sku_mod, sku_mod_index, sku, sku_index)"
-                                                            v-bind:title="( sku_mod.available ? '{_w("The variant is available for purchase.")|escape}': '{_w("The variant is unavailable for purchase.")|escape}')">
+                                                                v-bind:data-tooltip-id="( sku_mod.available ? 'product-sku-17': 'product-sku-18')">
 
                                                             <span class="s-icon icon top size-18 color-green-dark" v-if="sku_mod.available"><svg><use xlink:href='{$_sprite_url}#cart'></use></svg></span>
                                                             <span class="s-icon icon top size-18 color-gray-light" v-if="!sku_mod.available"><svg><use xlink:href='{$_sprite_url}#cart-slash'></use></svg></span>
@@ -1169,7 +1312,9 @@
 
                                                                         <template v-for="stock in stocks_array">
                                                                             <div class="s-stock-wrapper">
-                                                                                <div class="flexbox fixed middle space-12" v-bind:title="getStockTitle(stock)">
+                                                                                <div class="flexbox fixed middle space-12"
+                                                                                     data-tooltip-id="product-sku-24"
+                                                                                     v-bind:data-title="getStockTitle(stock)">
 
                                                                                     <div class="c-column">
                                                                                         <div class="s-field-wrapper">
@@ -1205,23 +1350,23 @@
                                                     {strip}
                                                     <div class="s-actions">
                                                         <button class="wa-button wa-small transparent-gray"
-                                                            title="{_w("Copy variant")|escape}"
-                                                            v-on:click.prevent="copyModification(sku_mod, sku_mod_index, sku, sku_index)">
+                                                                data-tooltip-id="product-sku-10"
+                                                                v-on:click.prevent="copyModification(sku_mod, sku_mod_index, sku, sku_index)">
 
                                                             <span class="icon"><i class="fas fa-copy"></i></span>
                                                         </button>
                                                         <button class="wa-button wa-small transparent-gray"
-                                                            title="{_w("Detele variant")|escape}"
-                                                            v-if="sku.modifications.length > 1"
-                                                            v-on:click.prevent="removeModification($event, sku_mod, sku_mod_index, sku, sku_index)">
+                                                                data-tooltip-id="product-sku-11"
+                                                                v-if="sku.modifications.length > 1"
+                                                                v-on:click.prevent="removeModification($event, sku_mod, sku_mod_index, sku, sku_index)">
 
                                                             <span class="s-icon icon size-16">
                                                                 <svg><use xlink:href='{$_sprite_url}#trash-alt'></use></svg>
                                                             </span>
                                                         </button>
                                                         <button class="wa-button wa-small transparent-gray disabled"
-                                                            title="{_w("You cannot delete the last SKU variant.")|escape}"
-                                                            v-if="sku.modifications.length <= 1">
+                                                                data-tooltip-id="product-sku-12"
+                                                                v-if="sku.modifications.length <= 1">
 
                                                             <span class="s-icon icon size-16 color-gray-light" style="opacity: .5">
                                                                 <svg><use xlink:href='{$_sprite_url}#trash-alt-slash'></use></svg>
@@ -1238,7 +1383,7 @@
 
                                 <div class="s-modifications-actions" v-if="product.normal_mode_switch">
                                     <button class="wa-button wa-small transparent" type="button"
-                                            v-bind:title="sku.expanded ? '{_w("Collapse SKU variants")|escape}' : '{_w("Expand SKU variants")|escape}'"
+                                            v-bind:data-tooltip-id="sku.expanded ? 'product-sku-19' : 'product-sku-20'"
                                             v-on:click.prevent="toggleSkuModifications($event, sku)">
                                         <span class="s-icon" v-show="!sku.expanded">
                                             <i class="fas fa-angle-down"></i>
@@ -1264,7 +1409,7 @@
                 </div>
 
                 {* BAGES *}
-                <div class="s-product-badges-section js-product-badges-section">
+                <div class="s-product-badges-section js-product-badges-section" v-bind:class="{ 'is-minimal-mode' : !product.normal_mode_switch }">
                     <div class="tablebox fixed space-16">
                         <div class="s-column middle s-column-label">
 
@@ -1389,6 +1534,7 @@
                 $.wa_shop_products.init.initProductSkuSection({
                     $wrapper: $("#js-product-sku-section-wrapper"),
                     templates: {$_templates|json_encode},
+                    tooltips: {$_tooltips|json_encode},
                     locales: {
                         "file_type": {_w("Unsupported image type. Use PNG, GIF and JPEG image files only.")|json_encode},
                         "file_size": {_w("Each file’s size cannot be greater than")|json_encode} + " " + {$_max_file_size_mb|json_encode} + {_w("KB")|json_encode} + ".",

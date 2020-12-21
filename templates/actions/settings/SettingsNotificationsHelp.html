@@ -30,6 +30,8 @@
                                         <input type="text" value="{$wa->user()->get('email', 'default')|escape}" class="bold">
                                     {else if $n.transport == 'sms'}
                                         <input type="text" value="{$wa->user()->get('phone', 'default')|escape}" class="bold">
+                                    {else if $n.transport == 'http'}
+                                        <input type="text" value="{$params.to|default:''}" class="long bold">
                                     {/if}
                                 </div>
                             </div>

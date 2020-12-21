@@ -145,7 +145,7 @@
     {% var product, product_iterator = $.shop.iterator(o.products); %}
     {% while (product = product_iterator.next()) { %}
         <tr class="product {% if (product_iterator.isLast()) { %}last{% } %}
-            {% if (product.status == '0') { %}gray{% } %}
+            {% if (product.status != '1') { %}gray{% } %}
             {% if (o.check_all) { %}selected{% } %}
             {% if (product.alien) { %}s-alien{% } %}"
             data-product-id="{%#product.id%}"

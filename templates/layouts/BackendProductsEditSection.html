@@ -35,17 +35,19 @@
                 <h3 class="s-title">{$product.name|default:_w('Product name')}</h3>
             </div>
             <div class="s-details">
-                <button class="s-button wa-button rounded pink outlined js-show-callback-dialog animation-pulse" type="button">
+                <button class="s-button wa-button rounded pink js-show-callback-dialog animation-pulse" type="button">
                     <span>
                         <span class="s-icon"><i class="fas fa-comment-dots"></i></span>
                         <span class="s-name">[`How do you like the new product editor?`]</span>
                     </span>
                 </button>
 
-                <a class="s-button wa-button pink rounded" href="{$wa_app_url|escape}?action=products#/product/{$product.id|escape}/edit/" title="{_w("Return to the old product editor version.")|escape}">
-                    <span class="s-icon"><i class="fas fa-toggle-on"></i></span>
-                    <span class="s-name">[`Return to old editor`]</span>
-                    <span class="s-icon"><i class="fas fa-question-circle"></i></span>
+                <a class="s-button wa-button pink rounded outlined" href="{$wa_app_url|escape}?action=products#/product/{$product.id|escape}/edit/" title="{_w("Return to the old product editor version.")|escape}">
+                    <span>
+                        <span class="s-icon"><i class="fas fa-toggle-on"></i></span>
+                        <span class="s-name">[`Return to old editor`]</span>
+                        <span class="s-icon"><i class="fas fa-question-circle"></i></span>
+                    </span>
                 </a>
 
                 <span class="s-ident gray">id: {$product.id|default:_w('Product ID')}</span>
@@ -87,6 +89,8 @@
                     }
                 });
             });
+
+            $.wa.title.set("{$product.name|escape}");
 
         })(jQuery);
     </script>

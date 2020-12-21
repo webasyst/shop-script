@@ -1,3 +1,5 @@
+( function($) {
+
 /**
  * @description autocomplete component
  * @example /webasyst/ui/component/autocomplete/
@@ -55,7 +57,7 @@
         }
     };
 
-})(jQuery);
+})($);
 
 /**
  * @description dialog component
@@ -471,7 +473,7 @@
         }
     }
 
-})(jQuery);
+})($);
 
 /**
  * @description drawer component
@@ -743,7 +745,7 @@
         }
     }
 
-})(jQuery);
+})($);
 
 /**
  * @description dropdown component
@@ -1009,7 +1011,7 @@
         }
     };
 
-})(jQuery);
+})($);
 
 /**
  * @description progressbar component
@@ -1218,7 +1220,7 @@
         }
     };
 
-})(jQuery);
+})($);
 
 /**
  * @description slider component
@@ -1941,7 +1943,7 @@
         }
     };
 
-})(jQuery);
+})($);
 
 /**
  * @description toggle component
@@ -2032,13 +2034,15 @@
             });
 
             that.$wrapper.addClass("animate");
-            that.$wrapper.on("change", refresh);
+            that.$wrapper.on("toggle.change", refresh);
 
             var $wrapper = $("<div class=\"animation-block\" />");
 
             if (that.$active.length) { refresh(); }
 
             function refresh() {
+                if (!that.$active.length) { return false; }
+
                 var area = getArea(that.$active);
 
                 $wrapper.css(area);
@@ -2098,7 +2102,7 @@
         }
     };
 
-})(jQuery);
+})($);
 
 /**
  * @description switch component
@@ -2241,7 +2245,7 @@
         return new Switch(options);
     }
 
-})(jQuery);
+})($);
 
 /**
  * @description tooltip component
@@ -2385,7 +2389,7 @@
         }
     };
 
-})(jQuery);
+})($);
 
 /**
  * @description upload component
@@ -2455,7 +2459,7 @@
         }
     };
 
-})(jQuery);
+})($);
 
 /**
  * @description loading component
@@ -2609,7 +2613,7 @@
         return new Loading(options);
     };
 
-})(jQuery);
+})($);
 
 /**
  * @description jQuery Ajax Setup
@@ -2695,312 +2699,754 @@
         });
     }
 
-})(jQuery);
+})($);
 
-/**
- * @description Array with useful features ( $.wa )
- * */
-( function($) {
+var sourceLoader = function(sources, async) {
+    async = (typeof async === "boolean" ? async : true);
 
-    function sourceLoader(sources, async) {
-        async = (typeof async === "boolean" ? async : true);
+    var deferred = $.Deferred();
 
-        var deferred = $.Deferred();
+    loader(sources).then( function() {
+        deferred.resolve();
+    }, function(bad_sources) {
+        if (console && console.error) {
+            console.error("Error loading resource", bad_sources);
+        }
+        deferred.reject(bad_sources);
+    });
 
-        loader(sources).then( function() {
-            deferred.resolve();
-        }, function(bad_sources) {
-            if (console && console.error) {
-                console.error("Error loading resource", bad_sources);
+    return deferred.promise();
+
+    function loader(sources) {
+        var deferred = $.Deferred(),
+            counter = sources.length;
+
+        var bad_sources = [];
+
+        if (async) {
+            $.each(sources, function(i, source) {
+                loadSource(source);
+            });
+
+        } else {
+            runner();
+            function runner(i) {
+                i = (typeof i === "number" ? i : 1);
+                loadSource(sources[i - 1]).always( function() {
+                    if (i < sources.length) {
+                        runner(i + 1);
+                    }
+                });
             }
-            deferred.reject(bad_sources);
-        });
+        }
 
         return deferred.promise();
 
-        function loader(sources) {
-            var deferred = $.Deferred(),
-                counter = sources.length;
+        function loadSource(source) {
+            var result;
 
-            var bad_sources = [];
-
-            if (async) {
-                $.each(sources, function(i, source) {
-                    loadSource(source);
-                });
-
-            } else {
-                runner();
-                function runner(i) {
-                    i = (typeof i === "number" ? i : 1);
-                    loadSource(sources[i - 1]).always( function() {
-                        if (i < sources.length) {
-                            runner(i + 1);
-                        }
-                    });
-                }
-            }
-
-            return deferred.promise();
-
-            function loadSource(source) {
-                var result;
-
-                switch (source.type) {
-                    case "css":
-                        result = loadCSS(source).then(onLoad, onError);
-                        break;
-
-                    case "js":
-                        result = loadJS(source).then(onLoad, onError);
-                        break;
-
-                    default:
-                        var deferred = $.Deferred();
-                        deferred.reject();
-                        result = deferred.promise();
-                        counter -= 1;
-                        break;
-                }
-
-                return result;
-            }
-
-            function loadCSS(source) {
-                var deferred = $.Deferred(),
-                    promise = deferred.promise();
-
-                var $link = $("#" + source.id);
-                if ($link.length) {
-                    promise = $link.data("promise");
-
-                } else {
-                    $link = $("<link />", {
-                        id: source.id,
-                        rel: "stylesheet"
-                    }).appendTo("head")
-                        .data("promise", promise);
-
-                    $link
-                        .on("load", function() {
-                            deferred.resolve(source);
-                        }).on("error", function() {
-                        deferred.reject(source);
-                    });
-
-                    $link.attr("href", source.uri);
-                }
-
-                return promise;
-            }
-
-            function loadJS(source) {
-                var deferred = $.Deferred(),
-                    promise = deferred.promise();
-
-                var $script = $("#" + source.id);
-                if ($script.length) {
-                    promise = $script.data("promise");
-
-                } else {
-                    var script = document.createElement("script");
-                    document.getElementsByTagName("head")[0].appendChild(script);
-
-                    $script = $(script)
-                        .attr("id", source.id)
-                        .data("promise", promise);
-
-                    $script
-                        .on("load", function() {
-                            deferred.resolve(source);
-                        }).on("error", function() {
-                        deferred.reject(source);
-                    });
-
-                    $script.attr("src", source.uri);
-                }
-
-                return promise;
-            }
-
-            function onLoad(source) {
-                counter -= 1;
-                watcher();
-            }
-
-            function onError(source) {
-                bad_sources.push(source);
-                counter -= 1;
-                watcher();
-            }
-
-            function watcher() {
-                if (counter === 0) {
-                    if (!bad_sources.length) {
-                        deferred.resolve();
-                    } else {
-                        deferred.reject(bad_sources);
-                    }
-                }
-            }
-        }
-    }
-
-    var SizeWatcher = ( function($) {
-
-        SizeWatcher = function(options) {
-            var that = this;
-
-            // DOM
-            that.$wrapper = options["$wrapper"];
-            that.cases = options["cases"];
-
-            // INIT
-            that.init();
-        };
-
-        SizeWatcher.prototype.init = function() {
-            var that = this;
-
-            var $wrapper = that.$wrapper,
-                $windows = $(window);
-
-            var width_type = null;
-
-            setWidthClass();
-
-            if (typeof ResizeObserver === "function") {
-                var resizeObserver = new ResizeObserver(onSizeChange);
-                resizeObserver.observe($wrapper[0]);
-                function onSizeChange(entries) {
-                    var is_exist = $.contains(document, $wrapper[0]);
-                    if (is_exist) {
-                        var entry = entries[0].contentRect;
-                        setWidthClass(entry.width);
-                    } else {
-                        resizeObserver.unobserve($wrapper[0]);
-                    }
-                }
-            } else {
-                $windows.on("resize refresh", resizeWatcher);
-                function resizeWatcher() {
-                    var is_exist = $.contains(document, $wrapper[0]);
-                    if (is_exist) {
-                        setWidthClass();
-                    } else {
-                        $windows.off("resize refresh", resizeWatcher);
-                    }
-                }
-            }
-
-            function setWidthClass(width) {
-                width = (typeof width !== "undefined" ? width : $wrapper.outerWidth());
-
-                $.each(that.cases, function(i, item) {
-                    var is_enabled = false;
-
-                    if (item.min === null || width >= item.min) {
-                        if (item.max === null || width <= item.max) {
-                            is_enabled = true;
-                        }
-                    }
-
-                    if (is_enabled) {
-                        $wrapper.addClass(item.class_name);
-                    } else {
-                        $wrapper.removeClass(item.class_name);
-                    }
-                });
-            }
-        };
-
-        return SizeWatcher;
-
-    })($);
-
-    $.wa = $.extend($.wa || {}, {
-        title: {
-            pattern: "%s",
-            set: function(title_string) {
-                if (title_string) {
-                    var state = history.state;
-                    if (state) {
-                        state.title = title_string;
-                    }
-                    document.title = $.wa.title.pattern.replace("%s", title_string);
-                }
-            }
-        },
-
-        /**
-        * @param {String} type
-        * @param {Number|String} value
-        * @return {String} value
-        * */
-        validate: function(type, value) {
-            value = (typeof value === "string" ? value : "" + value);
-
-            var result = value;
-
-            switch (type) {
-                case "number":
-                    var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", ","],
-                        letters_array = [],
-                        divider_exist = false;
-
-                    $.each(value.split(""), function(i, letter) {
-                        if (letter === "." || letter === ",") {
-                            if (!divider_exist) {
-                                divider_exist = true;
-                                letters_array.push(letter);
-                            }
-                        } else {
-                            if (white_list.indexOf(letter) >= 0) {
-                                letters_array.push(letter);
-                            }
-                        }
-                    });
-
-                    result = letters_array.join("");
+            switch (source.type) {
+                case "css":
+                    result = loadCSS(source).then(onLoad, onError);
                     break;
 
-                case "integer":
-                    var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
-                        letters_array = [];
-
-                    $.each(value.split(""), function(i, letter) {
-                        if (white_list.indexOf(letter) >= 0) {
-                            letters_array.push(letter);
-                        }
-                    });
-
-                    result = letters_array.join("");
+                case "js":
+                    result = loadJS(source).then(onLoad, onError);
                     break;
 
                 default:
+                    var deferred = $.Deferred();
+                    deferred.reject();
+                    result = deferred.promise();
+                    counter -= 1;
                     break;
             }
 
             return result;
-        },
+        }
 
-        /**
-         * @description Localization repository function
-         * */
-        translate: function(word, translation) {
-            var result = word;
-            var sources = $.wa.translate.sources;
-            if (!sources) {
-                $.wa.translate.sources = {};
-                sources = $.wa.translate.sources;
-            }
+        function loadCSS(source) {
+            var deferred = $.Deferred(),
+                promise = deferred.promise();
 
-            if (translation) {
-                sources[word] = translation;
-                result = true;
+            var $link = $("#" + source.id);
+            if ($link.length) {
+                promise = $link.data("promise");
 
             } else {
+                $link = $("<link />", {
+                    id: source.id,
+                    rel: "stylesheet"
+                }).appendTo("head")
+                    .data("promise", promise);
 
+                $link
+                    .on("load", function() {
+                        deferred.resolve(source);
+                    }).on("error", function() {
+                    deferred.reject(source);
+                });
+
+                $link.attr("href", source.uri);
+            }
+
+            return promise;
+        }
+
+        function loadJS(source) {
+            var deferred = $.Deferred(),
+                promise = deferred.promise();
+
+            var $script = $("#" + source.id);
+            if ($script.length) {
+                promise = $script.data("promise");
+
+            } else {
+                var script = document.createElement("script");
+                document.getElementsByTagName("head")[0].appendChild(script);
+
+                $script = $(script)
+                    .attr("id", source.id)
+                    .data("promise", promise);
+
+                $script
+                    .on("load", function() {
+                        deferred.resolve(source);
+                    }).on("error", function() {
+                    deferred.reject(source);
+                });
+
+                $script.attr("src", source.uri);
+            }
+
+            return promise;
+        }
+
+        function onLoad(source) {
+            counter -= 1;
+            watcher();
+        }
+
+        function onError(source) {
+            bad_sources.push(source);
+            counter -= 1;
+            watcher();
+        }
+
+        function watcher() {
+            if (counter === 0) {
+                if (!bad_sources.length) {
+                    deferred.resolve();
+                } else {
+                    deferred.reject(bad_sources);
+                }
+            }
+        }
+    }
+}
+
+var SizeWatcher = ( function($) {
+
+    SizeWatcher = function(options) {
+        var that = this;
+
+        // DOM
+        that.$wrapper = options["$wrapper"];
+        that.cases = options["cases"];
+
+        // INIT
+        that.init();
+    };
+
+    SizeWatcher.prototype.init = function() {
+        var that = this;
+
+        var $wrapper = that.$wrapper,
+            $windows = $(window);
+
+        var width_type = null;
+
+        setWidthClass();
+
+        if (typeof ResizeObserver === "function") {
+            var resizeObserver = new ResizeObserver(onSizeChange);
+            resizeObserver.observe($wrapper[0]);
+            function onSizeChange(entries) {
+                var is_exist = $.contains(document, $wrapper[0]);
+                if (is_exist) {
+                    var entry = entries[0].contentRect;
+                    setWidthClass(entry.width);
+                } else {
+                    resizeObserver.unobserve($wrapper[0]);
+                }
+            }
+        } else {
+            $windows.on("resize refresh", resizeWatcher);
+            function resizeWatcher() {
+                var is_exist = $.contains(document, $wrapper[0]);
+                if (is_exist) {
+                    setWidthClass();
+                } else {
+                    $windows.off("resize refresh", resizeWatcher);
+                }
+            }
+        }
+
+        function setWidthClass(width) {
+            width = (typeof width !== "undefined" ? width : $wrapper.outerWidth());
+
+            $.each(that.cases, function(i, item) {
+                var is_enabled = false;
+
+                if (item.min === null || width >= item.min) {
+                    if (item.max === null || width <= item.max) {
+                        is_enabled = true;
+                    }
+                }
+
+                if (is_enabled) {
+                    $wrapper.addClass(item.class_name);
+                } else {
+                    $wrapper.removeClass(item.class_name);
+                }
+            });
+        }
+    };
+
+    return SizeWatcher;
+
+})($);
+
+/**
+ * @description custom tooltip component
+ * */
+var Tooltip = ( function($) {
+
+    // OBSERVER
+
+    var observer = null;
+
+    var Observer = ( function($) {
+
+        Observer = function(options) {
+            var that = this;
+
+            this.init();
+        };
+
+        Observer.prototype.init = function() {
+            var that = this;
+
+            $(document).on("mouseenter", "[data-tooltip-id]", function(event) {
+                var $target = $(this),
+                    tooltip_id = $target.attr("data-tooltip-id");
+
+                if (tooltips[tooltip_id]) {
+                    var tooltip = tooltips[tooltip_id];
+
+                    // Принудительно закрываем другие подсказки если они показаны
+                    $.each(tooltips, function(id, _tooltip) {
+                        if (_tooltip !== tooltip && _tooltip.is_open) {
+                            _tooltip.close();
+                        }
+                    });
+
+                    tooltip.show($target);
+
+                    $target.one("mouseleave", function(event) {
+                        tooltip.hide();
+                    });
+
+                } else {
+                    console.error("Tooltip is not found.");
+                }
+            });
+
+            $(window).on("resize scroll", function() {
+                // Принудительно закрываем другие подсказки если они показаны
+                $.each(tooltips, function(id, tooltip) {
+                    if (tooltip.is_open) {
+                        tooltip.close();
+                    }
+                });
+            });
+        };
+
+        return Observer;
+
+    })(jQuery);
+
+    // TOOLTIPS
+
+    var tooltips = {};
+
+    var Tooltip = ( function($) {
+
+        function Tooltip(options) {
+            var that = this;
+
+            // CONST
+            that.id = options["id"];
+            that.html = options["html"];
+            that.width = (typeof options["width"] === "string" ? options["width"] : null);
+            that.index = (typeof options["index"] === "number" ? options["index"] : null);
+            that.class = (typeof options["class"] === "string" ? options["class"] : null);
+            that.animate = (typeof options["animate"] === "boolean" ? options["animate"] : false);
+            that.position = (typeof options["position"] === "string" ? options["position"] : "right");
+            that.start_time = (typeof options["hide_time"] === "number" ? options["hide_time"] : 500);
+            that.hide_time = (typeof options["hide_time"] === "number" ? options["hide_time"] : 500);
+
+            // DOM
+            that.$tooltip = getTooltip(that.html);
+
+            // DYNAMIC VARS
+            that.timeout = 0;
+
+            // INIT
+            that.init();
+
+            function getTooltip() {
+                var tooltip_html = '<div class="wa-flex-tooltip"></div>';
+                var $tooltip = $(tooltip_html)
+                    .attr("data-id", that.id)
+                    .html(that.html);
+
+                if (that.width) {
+                    $tooltip.css("width", that.width);
+                }
+
+                if (that.index) {
+                    $tooltip.css("z-index", that.index);
+                }
+
+                if (that.class) {
+                    $tooltip.addClass(that.class);
+                }
+
+                return $tooltip;
+            }
+        }
+
+        Tooltip.prototype.init = function() {
+            var that = this;
+
+            that.$tooltip.on("mouseenter", function() {
+                clearTimeout(that.timeout);
+                that.$tooltip.one("mouseleave", function() {
+                    that.hide();
+                });
+            });
+        };
+
+        /**
+         * @description Открывает подсказку по таймеру. Таймер может отменяться
+         * */
+        Tooltip.prototype.show = function($target) {
+            var that = this;
+
+            // Кейс для ситуаций когда текст подсказки генерируется
+            if (!that.html) {
+                var html = $target.attr("data-title");
+                if (html) {
+                    that.$tooltip.html(html);
+                } else {
+                    return false;
+                }
+            }
+
+            clearTimeout(that.timeout);
+            that.timeout = setTimeout( function() {
+                that.open($target);
+            }, that.start_time);
+        };
+
+        /**
+         * @description Закрывает подсказку по таймеру. Таймер может отменяться
+         * */
+        Tooltip.prototype.hide = function() {
+            var that = this;
+
+            clearTimeout(that.timeout);
+            that.timeout = setTimeout( function() {
+                that.close();
+            }, that.hide_time);
+        };
+
+        /**
+         * @description Принудительное открытие подсказки без таймаута
+         * */
+        Tooltip.prototype.open = function($target) {
+            var that = this;
+
+            that.$tooltip.appendTo($("body"));
+
+            that.setPosition($target);
+
+            if (that.animate) {
+                that.animateTooltip(true);
+            }
+
+            that.is_open = true;
+        };
+
+        /**
+         * @description Принудительное закрытие подсказки без таймаута
+         * */
+        Tooltip.prototype.close = function() {
+            var that = this;
+
+            if (that.is_open) {
+                clearTimeout(that.timeout);
+
+                if (that.animate) {
+                    that.animateTooltip(false).then( function() {
+                        that.$tooltip.detach();
+                    });
+                } else {
+                    that.$tooltip.detach();
+                }
+
+                that.is_open = false;
+            }
+        };
+
+        /**
+         * @param {Boolean} animate
+         * */
+        Tooltip.prototype.animateTooltip = function(animate) {
+            var that = this,
+                deferred = $.Deferred(),
+                time = 200;
+
+            var shifted_class = "is-shifted",
+                animate_class = "is-animated";
+
+            if (animate) {
+                that.$tooltip.addClass(shifted_class);
+                that.$tooltip[0].offsetHeight;
+                that.$tooltip
+                    .addClass(animate_class)
+                    .removeClass(shifted_class);
+
+                setTimeout( function() {
+                    deferred.resolve();
+                }, time);
+
+            } else {
+                that.$tooltip.addClass(shifted_class);
+                setTimeout( function() {
+                    deferred.resolve();
+                    that.$tooltip.removeClass(animate_class);
+                }, time);
+            }
+
+            return deferred.promise();
+        };
+
+        Tooltip.prototype.setPosition = function($target) {
+            var that = this;
+
+            var target_position = $target.attr("data-tooltip-position");
+            target_position = (typeof target_position === "string" ? target_position : null);
+
+            var position = (target_position ? target_position : that.position);
+
+            // hack для того чтобы узнать реальные размеры после рендера
+            that.$tooltip[0].offsetHeight;
+
+            var target_offset = $target.offset(),
+                target_left = target_offset.left,
+                target_top = target_offset.top,
+                target_w = $target.outerWidth(),
+                target_h = $target.outerHeight();
+
+            var tooltip_w = that.$tooltip.outerWidth(),
+                tooltip_h = that.$tooltip.outerHeight();
+
+            var page_w = $(window).width(),
+                page_h = $(document).height();
+
+            var css = getCSS(position, true);
+
+            that.$tooltip.css(css);
+
+            function getCSS(position, correct) {
+                var indent = 8;
+
+                var top = "",
+                    left = "";
+
+                switch (position) {
+                    case "left-top":
+                        top = target_top - indent - tooltip_h;
+                        left = target_left;
+                        break;
+                    case "top":
+                        top = target_top - indent - tooltip_h;
+                        left = target_left + (target_w/2) - (tooltip_w/2);
+                        break;
+                    case "top-right":
+                        top = target_top - indent - tooltip_h;
+                        left = target_left + target_w - tooltip_w;
+                        break;
+                    case "right":
+                        top = target_top + (target_h/2) - (tooltip_h/2);
+                        left = target_left + target_w + indent;
+                        break;
+                    case "bottom-right":
+                        top = target_top + target_h + indent;
+                        left = target_left + target_w - tooltip_w;
+                        break;
+                    case "bottom":
+                        top = target_top + target_h + indent;
+                        left = target_left + (target_w/2) - (tooltip_w/2);
+                        break;
+                    case "bottom-left":
+                        top = target_top + target_h + indent;
+                        left = target_left;
+                        break;
+                    case "left":
+                        top = target_top + (target_h/2) - (tooltip_h/2);
+                        left = target_left - tooltip_w - indent;
+                        break;
+                }
+
+                var result = {
+                    top: top,
+                    left: left
+                };
+
+                if (correct) {
+                    var new_position = position;
+                    if (top + tooltip_h + indent > page_h) {
+                        new_position = new_position.replace("bottom", "top");
+                    } else if (top < indent) {
+                        new_position = new_position.replace("top", "bottom");
+                    }
+
+                    if (left + tooltip_w + indent > page_w) {
+                        new_position = new_position.replace("right", "left");
+                    } else if (left < indent) {
+                        new_position = new_position.replace("left", "right");
+                    }
+
+                    if (new_position !== position) {
+                        return getCSS(new_position, false);
+                    }
+                }
+
+                return result;
+            }
+        };
+
+        return Tooltip;
+
+    })($);
+
+    // RESULT
+
+    return function(options) {
+        var result = null;
+
+        if (typeof options === "undefined") {
+            return tooltips;
+        }
+
+        if (!options["id"]) {
+            console.error("Tooltip ID is required");
+            return result;
+        }
+
+        if (tooltips[options["id"]]) {
+            delete tooltips[options["id"]];
+        }
+
+        // Создаём и регистрируем tooltip
+        var tooltip = new Tooltip(options);
+        tooltips[tooltip.id] = tooltip;
+        result = tooltip;
+
+        // Создаём observer, если он не был создан ранее
+        if (!observer) {
+            observer = new Observer({});
+        }
+
+        return result;
+    };
+
+})($);
+
+/**
+ * @description Array with useful features ( $.wa )
+ * */
+$.wa = $.extend($.wa || {}, {
+    title: {
+        pattern: "%s",
+        set: function(title_string) {
+            if (title_string) {
+                var state = history.state;
+                if (state) {
+                    state.title = title_string;
+                }
+                document.title = $.wa.title.pattern.replace("%s", title_string);
+            }
+        }
+    },
+
+    // new - массив конструкторов для инициализации
+
+    new: {
+        Tooltip: function(options) {
+            return new Tooltip(options);
+        },
+        SizeWatcher: function(options) {
+            return new SizeWatcher(options);
+        }
+    },
+
+    // Функции
+
+    notice: function(options) {
+        var deferred = $.Deferred();
+
+        var header = ( options.title ? '<h2>' + options.title + '</h2>' : null );
+        var text = ( options.text ? options.text : "Notice text is required" );
+        var footer = "<button class=\"js-dialog-close button gray\">" + (options.button_name ? options.button_name : $.wa.translate("Done")) + "</button>";
+
+        $.waDialog({
+            header: header,
+            content: text,
+            footer: footer,
+            onClose: function () {
+                if (typeof options.onClose === "function") {
+                    options.onClose();
+                }
+                deferred.resolve();
+            }
+        });
+
+        return deferred.promise();
+    },
+
+    confirm: function(options) {
+        var deferred = $.Deferred();
+
+        var header = ( options.title ? '<h2>' + options.title + '</h2>' : null );
+        var text = ( options.text ? options.text : "Confirm text is required" );
+
+        var success_button = "<button class=\"js-success-action wa-button blue\" type=\"button\">" + ( options.success_button_name ? options.success_button_name : $.wa.translate("Ok") ) + "</button>",
+            cancel_button = "<button class=\"js-dialog-close wa-button gray\" type=\"button\">" + ( options.cancel_button_name ? options.cancel_button_name : $.wa.translate("Cancel") ) + "</button>";
+
+        var footer = success_button + cancel_button;
+
+        var is_success = false;
+
+        $.waDialog({
+            header: header,
+            content: text,
+            footer: footer,
+            onOpen: function($wrapper, dialog) {
+                $wrapper.on("click", ".js-success-action", function(event) {
+                    event.preventDefault();
+                    is_success = true;
+                    dialog.close();
+                });
+            },
+            onClose: function() {
+                if (is_success) {
+                    if (typeof options.onSuccess === "function") {
+                        options.onSuccess();
+                    }
+                    deferred.resolve();
+                } else {
+                    if (typeof options.onCancel === "function") {
+                        options.onCancel();
+                    }
+                    deferred.reject();
+                }
+            }
+        });
+
+        return deferred.promise();
+    },
+
+    /**
+     * @param {String} type
+     * @param {Number|String} value
+     * @return {String} value
+     * */
+    validate: function(type, value) {
+        value = (typeof value === "string" ? value : "" + value);
+
+        var result = value;
+
+        switch (type) {
+            case "number":
+                var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", ","],
+                    letters_array = [],
+                    divider_exist = false;
+
+                $.each(value.split(""), function(i, letter) {
+                    if (letter === "." || letter === ",") {
+                        if (!divider_exist) {
+                            divider_exist = true;
+                            letters_array.push(letter);
+                        }
+                    } else {
+                        if (white_list.indexOf(letter) >= 0) {
+                            letters_array.push(letter);
+                        }
+                    }
+                });
+
+                result = letters_array.join("");
+                break;
+
+            case "integer":
+                var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+                    letters_array = [];
+
+                $.each(value.split(""), function(i, letter) {
+                    if (white_list.indexOf(letter) >= 0) {
+                        letters_array.push(letter);
+                    }
+                });
+
+                result = letters_array.join("");
+                break;
+
+            default:
+                break;
+        }
+
+        return result;
+    },
+
+    /**
+     * @description Localization repository function
+     * @param {String|Array} word
+     * @param {String?} translation
+     * @return {String|Array|Null}
+     * */
+    translate: function(word, translation) {
+        var sources = $.wa.translate.sources;
+        if (!sources) {
+            $.wa.translate.sources = {};
+            sources = $.wa.translate.sources;
+        }
+
+        var result = sources;
+
+        if (word && word.length) {
+            if (translation) {
+                sources[word] = translation;
+                return null;
+
+            } else {
+                if (typeof word === "string" && sources[word]) {
+                    return sources[word];
+                }
+                else
                 if (typeof word === "object") {
                     $.each(word, function(_word, _translation) {
                         if (_translation) {
@@ -3008,181 +3454,160 @@
                         }
                     });
                 }
-
-                if (sources[word]) {
-                    result = sources[word];
+                else {
+                    console.error("Locale is not found.");
+                    return null;
                 }
-            }
-
-            return result;
-        },
-
-        confirm: function(options) {
-            var deferred = $.Deferred();
-
-            var header = ( options.title ? '<h2>' + options.title + '</h2>' : null );
-            var text = ( options.text ? options.text : "Confirm text is required" );
-
-            var success_button = "<button class=\"js-success-action wa-button blue\" type=\"button\">" + ( options.success_button_name ? options.success_button_name : $.wa.translate("Ok") ) + "</button>",
-                cancel_button = "<button class=\"js-dialog-close wa-button gray\" type=\"button\">" + ( options.cancel_button_name ? options.cancel_button_name : $.wa.translate("Cancel") ) + "</button>";
-
-            var footer = success_button + cancel_button;
-
-            var is_success = false;
-
-            $.waDialog({
-                header: header,
-                content: text,
-                footer: footer,
-                onOpen: function($wrapper, dialog) {
-                    $wrapper.on("click", ".js-success-action", function(event) {
-                        event.preventDefault();
-                        is_success = true;
-                        dialog.close();
-                    });
-                },
-                onClose: function() {
-                    if (is_success) {
-                        if (typeof options.onSuccess === "function") {
-                            options.onSuccess();
-                        }
-                        deferred.resolve();
-                    } else {
-                        if (typeof options.onCancel === "function") {
-                            options.onCancel();
-                        }
-                        deferred.reject();
-                    }
-                }
-            });
-
-            return deferred.promise();
-        },
-
-        notice: function(options) {
-            var deferred = $.Deferred();
-
-            var header = ( options.title ? '<h2>' + options.title + '</h2>' : null );
-            var text = ( options.text ? options.text : "Notice text is required" );
-            var footer = "<button class=\"js-dialog-close button gray\">" + (options.button_name ? options.button_name : $.wa.translate("Done")) + "</button>";
-
-            $.waDialog({
-                header: header,
-                content: text,
-                footer: footer,
-                onClose: function () {
-                    if (typeof options.onClose === "function") {
-                        options.onClose();
-                    }
-                    deferred.resolve();
-                }
-            });
-
-            return deferred.promise();
-        },
-
-        escape: function(string) {
-            return $("<div />").text(string).html();
-        },
-
-        unescape: function(string) {
-            return $("<div />").html(string).text();
-        },
-
-        /**
-         * @param {Array} array
-         * @param {String} key
-         * @return {Object}
-         * */
-        construct: function(array, key) {
-            var object = {};
-
-            if (key) {
-                $.each(array, function(i, item) {
-                    if (item[key]) {
-                        object[item[key]] = item;
-                    }
-                });
-            }
-
-            return object;
-        },
-
-        /**
-         * @param {Object} object
-         * @return {Array}
-         * */
-        destruct: function(object) {
-            var array = [];
-
-            $.each(object, function(i, item) {
-                array.push(item);
-            });
-
-            return array;
-        },
-
-        sizeWatcher: function(options) {
-            return new SizeWatcher(options);
-        },
-
-        /**
-         * @param {Array} options
-         * @param {Boolean?} async
-         * @return {Promise}
-         * @description loader for css/js sources
-         *
-         * options = [          // array
-         *   {                  // source item
-         *     id: source_id,   // needed to prevent reloading source, set as <script/link id="source_id">
-         *     type: "css/js",  // type of source
-         *     uri: ""          // source path for load
-         *   },
-         *   ...
-         * ]
-         * */
-        loadSources: function(options, async) {
-            return sourceLoader(options, async);
-        },
-
-        /**
-         * Automatically set server-side timezone if "Auto" timezone setting
-         * is saved in user profile.
-         */
-        determineTimezone: function(wa_url, callback) {
-            var done = false;
-
-            $.each(document.cookie.split(/;\s*/g), function(i, pair) {
-                pair = pair.split('=', 2);
-                if (pair[0] === 'tz') {
-                    done = true;
-                    if (callback) { callback(pair[1]); }
-                    return false;
-                }
-            });
-
-            if (done) { return; }
-
-            $.wa.loadSources([{
-                id: "wa-timezone-js",
-                type: "js",
-                uri: wa_url + "wa-content/js/jstz/jstz.min.js"
-            }]).then(setTimezone);
-
-            function setTimezone() {
-                var timezone = window.jstz.determine().name();
-
-                // Session cookie timezone
-                document.cookie = "tz="+jstz.determine().name();
-
-                // Expires in two weeks
-                var expire = new Date();
-                expire.setTime(expire.getTime() + 14*24*60*60*1000); // two weeks
-                document.cookie = "oldtz="+timezone+"; expires="+expire.toUTCString();
-
-                if (callback) { callback(timezone); }
             }
         }
-    });
+
+        return result;
+    },
+
+    /**
+     * @description Выбирает одну локализацию из строк массива на основе числа
+     * @param {Number} number
+     * @param {Array} locales
+     * @param {Boolean} replace
+     * @return {String}
+     * */
+    locale_plural: function(number, locales, replace) {
+        replace = (typeof replace === "boolean" ? replace : true);
+
+        var n = Math.abs(number) % 100,
+            n1 = n % 10;
+
+        var result;
+
+        if (n > 10 && n < 20) {
+            result = locales[2];
+        } else if (n1 > 1 && n < 5) {
+            result = locales[1];
+        } else if (n1 === 1) {
+            result = locales[0];
+        } else {
+            result = locales[2];
+        }
+
+        if (replace) {
+            result = result.replace(/%d/g, number);
+        }
+
+        return result;
+    },
+
+    /**
+     * @param {Array} options
+     * @param {Boolean?} async
+     * @return {Promise}
+     * @description loader for css/js sources
+     *
+     * options = [          // array
+     *   {                  // source item
+     *     id: source_id,   // needed to prevent reloading source, set as <script/link id="source_id">
+     *     type: "css/js",  // type of source
+     *     uri: ""          // source path for load
+     *   },
+     *   ...
+     * ]
+     * */
+    loadSources: function(options, async) {
+        return sourceLoader(options, async);
+    },
+
+    /**
+     * Automatically set server-side timezone if "Auto" timezone setting
+     * is saved in user profile.
+     */
+    determineTimezone: function(wa_url, callback) {
+        var done = false;
+
+        $.each(document.cookie.split(/;\s*/g), function(i, pair) {
+            pair = pair.split('=', 2);
+            if (pair[0] === 'tz') {
+                done = true;
+                if (callback) { callback(pair[1]); }
+                return false;
+            }
+        });
+
+        if (done) { return; }
+
+        $.wa.loadSources([{
+            id: "wa-timezone-js",
+            type: "js",
+            uri: wa_url + "wa-content/js/jstz/jstz.min.js"
+        }]).then(setTimezone);
+
+        function setTimezone() {
+            var timezone = window.jstz.determine().name();
+
+            // Session cookie timezone
+            document.cookie = "tz="+jstz.determine().name();
+
+            // Expires in two weeks
+            var expire = new Date();
+            expire.setTime(expire.getTime() + 14*24*60*60*1000); // two weeks
+            document.cookie = "oldtz="+timezone+"; expires="+expire.toUTCString();
+
+            if (callback) { callback(timezone); }
+        }
+    },
+
+    // Очень полезные простые функции
+
+    clone: function(data) {
+        return JSON.parse(JSON.stringify(data));
+    },
+
+    /**
+     * @param {String} string
+     * @return {String}
+     * */
+    escape: function(string) {
+        return $("<div />").text(string).html();
+    },
+
+    /**
+     * @param {String} string
+     * @return {String}
+     * */
+    unescape: function(string) {
+        return $("<div />").html(string).text();
+    },
+
+    /**
+     * @param {Object} object
+     * @return {Array}
+     * */
+    destruct: function(object) {
+        var array = [];
+
+        $.each(object, function(i, item) {
+            array.push(item);
+        });
+
+        return array;
+    },
+
+    /**
+     * @param {Array} array
+     * @param {String} key
+     * @return {Object}
+     * */
+    construct: function(array, key) {
+        var object = {};
+
+        if (key) {
+            $.each(array, function(i, item) {
+                if (item[key]) {
+                    object[item[key]] = item;
+                }
+            });
+        }
+
+        return object;
+    }
+});
 
 })(jQuery);

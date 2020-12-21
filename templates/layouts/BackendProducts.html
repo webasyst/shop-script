@@ -27,6 +27,7 @@
         ( function($) {
             $.wa_shop_products.app_url = "{$wa_app_url|escape}";
             $.wa_shop_products.section_url = "{$wa_app_url|escape}?action=products";
+            $.wa.title.pattern = "%s — {$wa->accountName()|escape}";
         })(jQuery);
     </script>
 </head>
@@ -79,7 +80,8 @@
                 "/products/\\d+/":          sections["product"],
                 "/products/\\d+/general/":  sections["product"],
                 "/products/\\d+/sku/":      sections["product"],
-                "/products/\\d+/media/":    sections["product"]
+                "/products/\\d+/media/":    sections["product"],
+                "/products/\\d+/seo/":      sections["product"]
             }
 
             $.wa_shop_products.init.initContentRouter({

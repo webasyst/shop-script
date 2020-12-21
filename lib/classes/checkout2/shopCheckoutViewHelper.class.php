@@ -319,6 +319,9 @@ class shopCheckoutViewHelper
         // Insert per-item discounts
         foreach ($items as &$item) {
             $item['discount'] = ifset($items_discount, $item['id'], 0);
+            if ($item['type'] == 'service' && isset($items[$item['parent_id']]['discount'])) {
+                $items[$item['parent_id']]['discount'] += $item['discount'];
+            }
         }
         unset($item);
 

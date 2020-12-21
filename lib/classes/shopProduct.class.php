@@ -1326,66 +1326,40 @@ class shopProduct implements ArrayAccess
         $sku_files = array();
         $sku_images = array();
 
-        $ignore_select = true;
+        $data_storages = self::$data_storages;
+        unset($data_storages['features_selectable']);   // will duplicate features selectable manually without voodoo magic
 
-        foreach (self::$data_storages as $key => $i) {
+        foreach ($data_storages as $key => $i) {
             $raw = $this->getStorage($key)->getData($this);
             switch ($key) {
-                case 'features_selectable':
-                    $storage_data = array();
-                    if (!$ignore_select) {
-                        if ($this->sku_type == shopProductModel::SKU_TYPE_SELECTABLE) {
-                            if (!is_array($raw)) {
-                                $raw = array();
-                            }
-
-                            foreach ($raw as $id => $f) {
-                                if (!empty($f['selected'])) {
-                                    foreach ($f['values'] as $value_id => &$value) {
-                                        if (!empty($value['selected'])) {
-
-                                            $value = array(
-                                                'id' => $value_id,
-                                            );
-                                        } else {
-                                            unset($f['values'][$value_id]);
-                                        }
-                                    }
-                                    $storage_data[$id] = $f;
-                                }
-                            }
-                        }
-                    }
-                    break;
                 case 'skus':
                     $storage_data = array();
                     $i = 0;
+                    $new_product_id = $this->model->select('MAX(id) as max_id')->fetchField('max_id') + 1;
                     foreach ($raw as $sku_id => $sku) {
                         if (isset($sku['sku']) && ifset($options, 'remove_sku', true)) {
-                            $sku['sku'] = null;
+                            $sku['sku'] .= '-' . $new_product_id;
                         }
 
-                        if (!empty($sku['virtual']) || $ignore_select) {
-                            if ($file_path = shopProductSkusModel::getPath($sku)) {
-                                $sku_files[$sku['id']] = array(
-                                    'file_name'        => $sku['file_name'],
-                                    'file_description' => $sku['file_description'],
-                                    'file_size'        => $sku['file_size'],
-                                    'file_path'        => $file_path,
-                                );
-                            }
-                            if (!empty($sku['image_id'])) {
-                                $sku_images[$sku['id']] = $sku['image_id'];
-                            }
-
-                            foreach (array('id', 'id_1c', 'product_id', 'image_id', 'file_name', 'file_size', 'file_description') as $field) {
-                                if (isset($sku[$field])) {
-                                    unset($sku[$field]);
-                                }
-                            }
-
-                            $storage_data[--$i] = $sku;
+                        if ($file_path = shopProductSkusModel::getPath($sku)) {
+                            $sku_files[$sku['id']] = array(
+                                'file_name'        => $sku['file_name'],
+                                'file_description' => $sku['file_description'],
+                                'file_size'        => $sku['file_size'],
+                                'file_path'        => $file_path,
+                            );
                         }
+                        if (!empty($sku['image_id'])) {
+                            $sku_images[$sku['id']] = $sku['image_id'];
+                        }
+
+                        foreach (array('id', 'id_1c', 'product_id', 'image_id', 'file_name', 'file_size', 'file_description') as $field) {
+                            if (isset($sku[$field])) {
+                                unset($sku[$field]);
+                            }
+                        }
+
+                        $storage_data[--$i] = $sku;
                     }
                     break;
                 case 'tags':
@@ -1411,6 +1385,15 @@ class shopProduct implements ArrayAccess
         if (!$duplicate->save($data, true, $errors)) {
             return false;
         }
+
+        // clone features selectable
+        $features_selectable_model = new shopProductFeaturesSelectableModel();
+        $features_selectable = $features_selectable_model->getByField(['product_id' => $this->getId()], true);
+        foreach ($features_selectable as &$item) {
+            $item['product_id'] = $duplicate->getId();
+        }
+        unset($item);
+        $features_selectable_model->multipleInsert($features_selectable);
 
         $product_id = $duplicate->getId();
 
