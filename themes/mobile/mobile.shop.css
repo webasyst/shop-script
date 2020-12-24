@@ -1852,9 +1852,6 @@ input[type="radio"] {
 .checkout-page-wrapper .checkout-step-content .wa-field:first-child {
   margin-top: 0;
 }
-.checkout-page-wrapper .checkout-step-content .wa-field .wa-name {
-  display: none;
-}
 .checkout-page-wrapper .checkout-step-content .wa-field .wa-value {
   margin: 0.5em 0 0;
 }
