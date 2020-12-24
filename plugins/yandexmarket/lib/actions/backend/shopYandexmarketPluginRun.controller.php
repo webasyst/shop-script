@@ -2,7 +2,20 @@
 
 /**
  * Class shopYandexmarketPluginRunController
+ *
  * @method shopConfig getConfig()
+ *
+ * Принцип формирования итогового XML файла
+ * В инициализации класса создается заготовка XML файла, в ней уже заполняется "шапка" с уже известными элементами
+ * name, company, phone, currencies, delivery-options и др. и пустыми элементами categories, offers, gifts, promos.
+ * Далее проход по шагам (step). Каждый шаг может делиться на чанки (chunks).
+ * Между чанками сформированный DOM XML сохраняется во временный файл.
+ * - На шаге stepCategory() формируется (заполняется) соответствующая секция <categories>
+ * - На шаге stepProduct() заполняется секция <offers> с доступными товарами магазина
+ * - На шаге stepGifts() заполняется секция <gifts> с доступными подарками магазина
+ * - Шаг completeGifts() выполняет инструкции один раз, после обработки секции с подарками
+ * - На шаге stepPromoRules() заполняется секция <promos> c промо-акциями. Одна промо-акция соответствует одному чанку
+ * - Шаг completePromoRules() выполняет инструкции один раз, после обработки секции с промо-акциями
  */
 class shopYandexmarketPluginRunController extends waLongActionController
 {
@@ -888,6 +901,7 @@ SQL;
             'product'          => $this->getCollection()->count(),
             'gifts'            => 0,
             'promo_rules'      => count(array_filter($this->data['export']['promo_rules'])),
+            'skip_product'     => 0
         ];
 
         if ($this->data['count']['promo_rules']) {
@@ -1201,6 +1215,7 @@ SQL;
         $report = '<div class="successmsg">';
         $report .= sprintf('<i class="icon16 yes"></i>%s ', _wp('Экспортировано'));
         $chunks = array();
+
         foreach ($this->data['current'] as $stage => $current) {
             if ($current) {
                 $data = $this->getStageReport($stage, $this->data['processed_count']);
@@ -1219,6 +1234,9 @@ SQL;
         return $report;
     }
 
+    /**
+     * @throws waException
+     */
     protected function info()
     {
         $interval = 0;
@@ -1261,13 +1279,11 @@ SQL;
                         $response['report'] .= _wp(', но файл создан.');
                     }
                 } else {
-                    $response['report'] = '<div class="errormsg"><i class="icon16 no"></i>'._wp('Не выгружено ни одного товарного предложения');
-                    if (file_exists($this->data['path']['offers'])) {
-                        $response['report'] .= _wp(', файл не обновлен.');
-                    } else {
-                        $response['report'] .= _wp(', файл не создан.');
-                    }
-                    $response['report'] .= '</div>';
+                    $response['report'] = '<div class="errormsg"><i class="icon16 no"></i>'
+                        ._wp('Не выгружено ни одного товарного предложения')
+                        .(file_exists($this->data['path']['offers']) ? _wp(', файл не обновлен.') : _wp(', файл не создан.'))
+                        .$this->validateReport()
+                        .'</div>';
                 }
             } else {
                 $response['warn']   = $this->validateReport();
@@ -1675,9 +1691,8 @@ SQL;
                         $this->data['error'][] = ['message' => $error_message];
                         $this->error($error_message);
                         $unset_product_ids[] = $item['id'];
-
-                        /** уменьшаем количество экспортируемого товара на число пропущенных */
-                        $this->data['processed_count']['product'] -= count($item['skus']);
+                        $this->data['count']['skip_product'] += count($item['skus']);
+                        ++$current_stage;
                     }
                 }
 
@@ -1825,13 +1840,12 @@ SQL;
                         $this->data['error'][] = ['message' => $error_message];
                         $this->error($error_message);
                         $unset_product_ids[] = $id;
-
-                        /** уменьшаем количество экспортируемого товара на число пропущенных */
-                        --$this->data['processed_count']['product'];
+                        ++$current_stage;
                     }
                     unset($product);
                 }
 
+                $this->data['count']['skip_product'] += count($unset_product_ids);
                 foreach ($unset_product_ids as $unset_id) {
                     /** удаляем из экспорта товары к которым применены несколько промоакций "Специальная цена" */
                     if (isset($products[$unset_id])) {
@@ -2200,24 +2214,10 @@ SQL;
                             }
                             break;
                         case 'compare_price':
-                            $_rule_id = null;
-                            if (
-                                isset($product['used_promo_ids'])
-                                && 1 === count($product['used_promo_ids'])
-                                && !empty($product['raw_price'])
-                            ) {
-                                /** если к товару применена только одна промоакция и у него есть "старая" цена */
-                                $_rule_id = reset($product['used_promo_ids']);
-                            }
-                            if ($_rule_id && empty($this->data['export']['promo_rules'][$_rule_id]) && 'oldprice' === $field) {
-                                /**
-                                 * для "oldprice" берется из "compare_price", и если на товар
-                                 * действует промоакция, то "oldprice" берем из "raw_price".
-                                 * "oldprice" указываем только когда промоакция НЕ экспортируется
-                                 */
-                                $value = (isset($product['raw_price']) ? $product['raw_price'] : null);
-                            } else {
+                            if (empty($this->data['prod_promo_skip'][$product['id']]['count'])) {
                                 $value = isset($product[$param]) ? $product[$param] : null;
+                            } else {
+                                $value = null;
                             }
                             break;
                         default:
@@ -2277,25 +2277,10 @@ SQL;
                             }
                             break;
                         case 'compare_price':
-                            $_rule_id = null;
-                            if (
-                                isset($product['used_promo_ids'])
-                                && 1 === count($sku['used_promo_ids'])
-                                && !empty($sku['raw_price'])
-                            ) {
-                                /** если к товару применена только одна промоакция и у него есть "старая" цена */
-                                $_rule_id = reset($sku['used_promo_ids']);
-                            }
-
-                            if ($_rule_id && empty($this->data['export']['promo_rules'][$_rule_id]) && 'oldprice' === $field) {
-                                /**
-                                 * для "oldprice" берется из "compare_price", и если на товар
-                                 * действует промоакция, то "oldprice" берем из "raw_price".
-                                 * "oldprice" указываем только когда промоакция НЕ экспортируется
-                                 */
-                                $value = (isset($sku['raw_price']) ? $sku['raw_price'] : null);
+                            if (empty($this->data['prod_promo_skip'][$sku['product_id']]['count'])) {
+                                $value = isset($sku[$param]) ? $sku[$param] : null;
                             } else {
-                                $value = ifset($sku[$param], $value);
+                                $value = null;
                             }
                             break;
                         case 'count':
@@ -3186,6 +3171,8 @@ SQL;
                             $_price = $data['price'];
                         }
                         $rate = $_price / $value;
+
+                        /** Скидка в процентах не меньше 5% и не больше 95%. Требования Маркета */
                         if (($rate < 0.05) || ($rate > 0.95)) {
                             $value = null;
                         }

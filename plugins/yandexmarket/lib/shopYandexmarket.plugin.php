@@ -705,28 +705,27 @@ HTML;
         }
 
         //TODO check api limits before run request
-        $query = array(
-            'oauth_token'     => $this->getSettings('api_oauth_token'),
-            'oauth_client_id' => $this->getSettings('api_client_id'),
-        );
+        $oauth_token     = $this->getSettings('api_oauth_token');
+        $oauth_client_id = $this->getSettings('api_client_id');
 
         $type = 'GET';
 
-        if (count(array_filter($query, 'strlen')) < 2) {
+        if (empty($oauth_token) || empty($oauth_client_id)) {
             throw new waException('Не указаны настройки API.');
         }
         //TODO detect by $method request type
-
-        $query = array_merge($query, $params);
         $options = array('format' => waNet::FORMAT_JSON);
-        $network = new waNet($options);
+
+        /** Authorization: OAuth oauth_token=«авторизационныйтокен», oauth_client_id=«идентификаторприложения» */
+        $headers  = ['Authorization' => "OAuth oauth_token=$oauth_token, oauth_client_id=$oauth_client_id"];
+        $network  = new waNet($options, $headers);
         $response = array();
         try {
             if ($data) {
                 $data = json_encode($data);
                 $type = waNet::METHOD_PUT;
             }
-            $url = $this->api_url.$method.'.json?'.http_build_query($query);
+            $url = $this->api_url.$method.'.json?'.http_build_query($params);
             $response = $network->query($url, $data, $type);
             $this->updateApiLimits($method, $network->getResponseHeader());
         } catch (waException $ex) {
@@ -766,7 +765,6 @@ HTML;
 
     public function checkApi($fast = true)
     {
-
         $oauth_token = $this->getSettings('api_oauth_token');
         $oauth_client_id = $this->getSettings('api_client_id');
         if (empty($oauth_token) || empty($oauth_client_id)) {
@@ -1028,6 +1026,7 @@ HTML;
         }
 
         #add verbal descriptions for CPA state
+        $campaign['stateCpa'] = ifset($campaign['stateCpa'], '');
         $campaign['stateDescriptionCpa'] = ifset($map['state_cpa']['name'][$campaign['stateCpa']], $campaign['stateCpa']);
         $campaign['stateIconCpa'] = ifset($map['state_cpa']['icon'][$campaign['stateCpa']]);
         $campaign['stateReasonsCpa'] = ifempty($campaign['stateReasonsCpa'], array());
