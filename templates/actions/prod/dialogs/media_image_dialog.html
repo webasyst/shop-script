@@ -42,9 +42,9 @@
             </div>
         </div>
         <div class="s-column-sidebar">
-            <h5>[`Кадрирование фотографии`]</h5>
+            <h5>[`Cropping`]</h5>
             <p>
-                <span class="s-label">[`Разрешение (w×h)`]:</span>
+                <span class="s-label">[`Resolution (w×h)`]:</span>
                 <span class="bold color-black">{ { selection_size } } px</span>
             </p>
             <div class="s-actions-wrapper inlinebox top space-16">
@@ -56,7 +56,7 @@
             </div>
             <p>
                 {sprintf(
-                _w("Зажмите %s, чтобы сохранить пропорции при кадрировании фотографии."),
+                _w("Press and hold %s to keep the proportions when cropping the image."),
                 "<code>Shift</code>"
                 )}
             </p>
@@ -138,14 +138,14 @@
                         <div class="s-column-sidebar">
 
                             <div class="s-edit-section">
-                                <h5>[`Редактирование`]</h5>
+                                <h5>[`Editing`]</h5>
                                 <div class="wa-list space-4">
                                     <div class="list-item">
                                         <button class="wa-button wa-small wa-short transparent"
                                             v-bind:disabled="!photo_is_ready"
                                             v-on:click.prevent="rotateImage(-90)">
                                             <span class="s-icon"><i class="fas fa-undo"></i></span>
-                                            <span class="s-name">[`Повернуть налево`]</span>
+                                            <span class="s-name">[`Rotate counterclockwise`]</span>
                                         </button>
                                     </div>
                                     <div class="list-item">
@@ -153,14 +153,14 @@
                                             v-bind:disabled="!photo_is_ready"
                                             v-on:click.prevent="rotateImage(90)">
                                             <span class="s-icon"><i class="fas fa-redo"></i></span>
-                                            <span class="s-name">[`Повернуть направо`]</span>
+                                            <span class="s-name">[`Rotate clockwise`]</span>
                                         </button>
                                     </div>
                                     <div class="list-item">
                                         <button class="wa-button wa-small wa-short transparent"
                                             v-on:click.prevent="cropUse">
                                             <span class="s-icon"><i class="fas fa-crop"></i></span>
-                                            <span class="s-name">[`Кадрировать`]</span>
+                                            <span class="s-name">[`Crop`]</span>
                                         </button>
                                     </div>
                                     <div class="list-item">
@@ -168,14 +168,14 @@
                                             v-bind:disabled="(photo.url === photo.url_backup)"
                                             v-on:click.prevent="restoreImage">
                                             <span class="s-icon"><i class="fas fa-history"></i></span>
-                                            <span class="s-name">[`Восстановить оригинал`]</span>
+                                            <span class="s-name">[`Revert to original`]</span>
                                         </button>
                                     </div>
                                     <div class="list-item">
                                         <button class="wa-button wa-small wa-short transparent-red"
                                             v-on:click.prevent="deletePhoto">
                                             <span class="s-icon"><i class="fas fa-trash-alt"></i></span>
-                                            <span class="s-name">[`Удалить фотографию`]</span>
+                                            <span class="s-name">[`Delete image`]</span>
                                         </button>
                                     </div>
                                 </div>
@@ -183,27 +183,22 @@
 
                             <div class="s-description-section">
                                 <h5>
-                                    <span class="s-title">[`Описание`]</span>
-                                    <span class="color-gray-light">[`(Title и Alt)`]</span>
-                                    <span class="wa-tooltip top" data-title="{_w("Описание")|escape}">
-                                        <span class="icon baseline size-12"><i class="fas fa-question-circle color-gray-light"></i></span>
-                                    </span>
+                                    <span class="s-title">[`Description`]</span>
+                                    <span class="color-gray-light">([`TITLE & Alt`])</span>
+                                    <span class="icon baseline size-12" data-tooltip-id="product-media-dialog-1"><i class="fas fa-question-circle color-gray-light"></i></span>
                                 </h5>
 
                                 <div class="s-textarea-wrapper">
                                     <textarea class="full-width" v-model="photo.description"></textarea>
                                 </div>
 
-                                <div class="s-use-counter" v-if="photo.uses_count > 1">
-                                    {sprintf(_w("Используется в %s модификациях."), "<span class=\"bold color-gray\" v-text=\"photo.uses_count\"></span>")}
-                                </div>
-                                <div class="s-use-counter" v-if="photo.uses_count === 1">
-                                    {sprintf(_w("Используется в %s модификации."), '<span class="bold color-gray">1</span>')}
-                                </div>
+                                <template v-if="photo.uses_count > 0">
+                                    <div class="s-use-counter" v-html="use_in_sku_html"></div>
+                                </template>
                             </div>
 
                             <div class="s-details-section">
-                                <h5>[`Оригинал фотографии`]</h5>
+                                <h5>[`Original image`]</h5>
                                 <p>
                                     <a class="s-download-link" v-bind:href="photo.url_backup" target="_blank">
                                         <span class="s-icon"><i class="fas fa-download"></i></span>
@@ -211,11 +206,11 @@
                                     </a>
                                 </p>
                                 <p>
-                                    <span class="s-label color-gray">[`Разрешение`]:</span>
+                                    <span class="s-label color-gray">[`Resolution`]:</span>
                                     <span class="color-black bold" v-text="photo.width + 'x' + photo.height"></span>
                                 </p>
                                 <p>
-                                    <span class="s-label color-gray">[`Размер`]:</span>
+                                    <span class="s-label color-gray">[`Size`]:</span>
                                     <span class="color-black bold" v-text="photo.size"></span>
                                 </p>
                             </div>

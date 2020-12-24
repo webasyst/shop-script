@@ -11,6 +11,7 @@
             // CONST
             that.components = options["components"];
             that.templates = options["templates"];
+            that.tooltips = options["tooltips"];
             that.locales = options["locales"];
             that.urls = options["urls"];
 
@@ -44,6 +45,10 @@
             that.initDragAndDrop();
 
             that.initSave();
+
+            $.each(that.tooltips, function(i, tooltip) {
+                $.wa.new.Tooltip(tooltip);
+            });
         };
 
         Section.prototype.initVue = function() {
@@ -646,6 +651,8 @@
         Section.prototype.initDragAndDrop = function() {
             var that = this;
 
+            var $document = $(document);
+
             var drag_data = {},
                 over_locked = false,
                 timer = 0;
@@ -671,23 +678,32 @@
                 });
 
                 drag_data.move_photo = photo;
+
+                $document.on("dragover", ".s-photo-wrapper", onDragOver);
+                $document.on("dragend", onDragEnd);
             });
 
-            that.$wrapper.on("dragover", ".s-photo-wrapper", function(event) {
+            function onDragOver(event) {
                 event.preventDefault();
+                if (!drag_data.move_photo) { return false; }
 
                 if (!over_locked) {
                     over_locked = true;
-                    onOver(event, $(this).closest(".s-photo-wrapper"));
+                    movePhoto($(this).closest(".s-photo-wrapper"));
                     setTimeout( function() {
                         over_locked = false;
                     }, 100);
                 }
-            });
+            }
 
-            that.$wrapper.on("dragend", onEnd);
+            function onDragEnd() {
+                drag_data.move_photo.is_moving = false;
+                drag_data = {};
+                $document.off("dragover", ".s-photo-wrapper", onDragOver);
+                $document.off("dragend", onDragEnd);
+            }
 
-            function onOver(event, $over) {
+            function movePhoto($over) {
                 var photo_id = "" + $over.attr("data-id"),
                     photo = getPhoto(photo_id);
 
@@ -712,10 +728,6 @@
 
                     that.$wrapper.trigger("change");
                 }
-            }
-
-            function onEnd() {
-                drag_data.move_photo.is_moving = false;
             }
 
             //

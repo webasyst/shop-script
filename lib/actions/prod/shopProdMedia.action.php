@@ -97,7 +97,7 @@ class shopProdMediaAction extends waViewAction
                 "url_backup" => $_url_backup,
                 "url_original" => $_url_original,
                 "description" => $_image["description"],
-                "size" => waCurrency::formatWithUnit($_image["size"]),
+                "size" => shopProdMediaAction::formatFileSize($_image["size"]),
                 "name" => $_image["original_filename"],
                 "width" => $_image["width"],
                 "height" => $_image["height"],
@@ -106,5 +106,20 @@ class shopProdMediaAction extends waViewAction
         }
 
         return $result;
+    }
+
+    public static function formatFileSize($file_size, $decimals=2) {
+        $dimension = _ws("b");
+        $dimensions = [_ws("kB"), _ws("MB"), _ws("GB")];
+        while ($file_size > 768 && $dimensions) {
+            $dimension = array_shift($dimensions);
+            $file_size = $file_size/1024;
+        }
+
+        if ($file_size != (int) $file_size) {
+            $file_size = waLocale::format($file_size, max(0, $decimals));
+        }
+
+        return $file_size.' '.$dimension;
     }
 }

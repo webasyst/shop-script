@@ -84,7 +84,7 @@ class shopProdSaveImageDetailsController extends waJsonController
             "url" => shopImage::getUrl($image, $config->getImageSize('default')),
             "url_original" => wa()->getAppUrl(null, true) . "?module=prod&action=origImage&id=" . $image["id"],
             "description" => $image["description"],
-            "size" => waCurrency::formatWithUnit($image["size"]),
+            "size" => shopProdMediaAction::formatFileSize($image["size"]),
             "name" => $image["original_filename"],
             "width" => $image["width"],
             "height" => $image["height"],

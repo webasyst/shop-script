@@ -337,7 +337,7 @@
                                                        data-storefront-count="{$all_storefronts_count}"
                                                        {if empty($promo["id"]) || !empty($promo["routes"][shopPromoRoutesModel::FLAG_ALL])}checked{/if}
                                                 >
-                                                <span class="s-text bold">[`Использовать на всех витринах`]</span>
+                                                <span class="s-text bold">[`Use in all storefronts`]</span>
                                             </label>
                                         </div>
                                         <div class="s-radio-wrapper">
@@ -350,7 +350,7 @@
                                                        name="storefronts[{shopPromoRoutesModel::FLAG_ALL}]" {if $all_storefronts_count == 0}disabled{/if}
                                                        {if $some_storefronts}checked{/if}
                                                 >
-                                                <span class="s-text">[`Использовать только на выбранных витринах`]</span>
+                                                <span class="s-text">[`Use only in selected storefronts`]</span>
                                             </label>
 
                                             <ul class="menu-v js-storefront-list {if !$some_storefronts}hidden{/if}" style="margin-left: 18px">

@@ -42,6 +42,9 @@ class shopImportexportHelper
 
         if (null === $config || !is_array($config)) {
             /** случай когда профиля с $id не существует или нет ни одного созданного (дефолтного) профиля */
+            if (!$this->collection) {
+                $this->getList();
+            }
             $id_profiles = array_keys($this->collection);
             $id_profile  = (empty($id_profiles) ? $this->addConfig() : array_pop($id_profiles));
             $config = $this->model->getByField(array(

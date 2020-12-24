@@ -601,6 +601,7 @@ return array(
         'product_id' => array('int', 11, 'null' => 0),
         'feature_id' => array('int', 11, 'null' => 0),
         'value_id' => array('int', 11, 'null' => 0),
+        'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => array('product_id', 'feature_id', 'value_id'),
         ),

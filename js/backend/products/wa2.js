@@ -3481,7 +3481,7 @@ $.wa = $.extend($.wa || {}, {
 
         if (n > 10 && n < 20) {
             result = locales[2];
-        } else if (n1 > 1 && n < 5) {
+        } else if (n1 > 1 && n1 < 5) {
             result = locales[1];
         } else if (n1 === 1) {
             result = locales[0];

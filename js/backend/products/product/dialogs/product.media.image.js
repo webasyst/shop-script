@@ -443,6 +443,14 @@
                         var self = this;
                         var photo_index = self.photos.indexOf(self.photo);
                         return (photo_index === photos.length - 1);
+                    },
+                    use_in_sku_html: function() {
+                        var self = this,
+                            count = self.photo.uses_count;
+
+                        var locale = $.wa.locale_plural(count, that.scope.locales["use_in_sku_forms"], false);
+
+                        return locale.replace("%d", "<span class=\"bold color-gray\">" + count + "</span>");
                     }
                 },
                 methods: {

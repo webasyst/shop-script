@@ -759,7 +759,7 @@ SQL;
         }
 
         $order_id = $data['order']['id'];
-        $log = sprintf(_w('Webhook <strong>%s</strong> sent.'), $n['name']); //TODO Localize
+        $log = sprintf(_w('HTTP request <strong>%s</strong> has been sent.'), $n['name']);
         $order_log_model = new shopOrderLogModel();
         $log_id = $order_log_model->add(
             [

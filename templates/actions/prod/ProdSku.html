@@ -239,7 +239,7 @@
                 </template>
 
                 <template v-if="feature.units && feature.units.length">
-                    <dropdown-units v-bind:units="feature.units" v-bind:default_value="feature.active_unit.value" v-on:change_unit="feature.active_unit = $event"></dropdown-units>
+                    <dropdown-units v-bind:key="feature.id" v-bind:units="feature.units" v-bind:default_value="feature.active_unit.value" v-on:change_unit="feature.active_unit = $event"></dropdown-units>
                 </template>
             </div>
 
@@ -358,7 +358,7 @@
                 </template>
 
                 <template v-if="feature.units && feature.units.length">
-                    <dropdown-units v-bind:units="feature.units" v-bind:default_value="feature.active_unit.value" v-on:change_unit="feature.active_unit = $event"></dropdown-units>
+                    <dropdown-units v-bind:key="feature.id" v-bind:units="feature.units" v-bind:default_value="feature.active_unit.value" v-on:change_unit="feature.active_unit = $event"></dropdown-units>
                 </template>
             </div>
 
@@ -444,8 +444,8 @@
 
 {capture assign="_component_feature_values_in_modifications"}
     <div class="s-feature-values-in-modifications">
-        <span class="s-label">[`В модификациях`]</span>
-        <span class="cursor-pointer" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Показать значения`]</span>
+        <span class="s-label">[`In variants`]</span>
+        <span class="cursor-pointer" v-on:click.prevent="showFeatureUsedValuesDialog(feature)">[`Show values`]</span>
     </div>
 {/capture}
 {$_templates["component-feature_values_in_modifications"] = $_component_feature_values_in_modifications}
@@ -725,7 +725,7 @@
             </template>
 
             <template v-if="feature.units && feature.units.length">
-                <dropdown-units v-bind:units="feature.units" v-bind:default_value="feature.default_unit" v-on:change_unit="changeFormUnit"></dropdown-units>
+                <dropdown-units v-bind:key="feature.id" v-bind:units="feature.units" v-bind:default_value="feature.default_unit" v-on:change_unit="changeFormUnit"></dropdown-units>
             </template>
 
             <button class="wa-small wa-button blue js-submit-button" type="button"

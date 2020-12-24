@@ -107,12 +107,12 @@ NOTICE: template contains generated javascript templates at `capture` sections
                 {$units = shopDimension::getUnits($type)}
                 {$d=intval($feature.type)}
                 {$feature_unit = null}
-                {if !$feature_unit && isset($item_features[$code][$d-1])}
+                {if !$feature_unit && isset($item_features[$code][$d-1]) && is_object($item_features[$code][$d-1])}
                     {$feature_unit=$item_features[$code][$d-1]->unit}
                 {/if}
                 {for $i = 0; $i < $d; $i++}
                     {$code_ = "`$code`.`$i`"}
-                    {if !$feature_unit && isset($item_features[$code][$i])}
+                    {if !$feature_unit && isset($item_features[$code][$i]) && is_object($item_features[$code][$i])}
                         {$feature_unit=$item_features[$code][$i]->unit}
                     {/if}
                     {if $i}×{/if}

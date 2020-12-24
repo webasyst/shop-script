@@ -1,5 +1,12 @@
 {strip}
 
+{$_tooltips = [
+    "product-media-dialog-1" => [
+        "id" => "product-media-dialog-1",
+        "html" => _w("Enter a description that will be used in the TITLE and in META tags used by search systems.")
+    ]
+]}
+
 {$_templates = []}
 
 {* Подтверждение удаления пачки фотографий *}
@@ -138,7 +145,7 @@
             {* PHOTOS SECTION *}
             <div class="s-photos-section">
                 <div class="s-section-header">
-                    <h2 class="s-title">[`Photos`]</h2>
+                    <h2 class="s-title">[`Images`]</h2>
                 </div>
                 <div class="s-section-body">
                     <div class="s-photos-form">
@@ -199,7 +206,7 @@
                         </template>
 
                         <button class="wa-button red" type="button"
-                                title="{_w("Select the photos you want to delete")|escape}"
+                                title="{_w("Select the images you want to delete")|escape}"
                                 v-bind:disabled="!selected_photos.length"
                                 v-on:click.prevent="deletePhotos(selected_photos)">
                             <span class="s-icon icon top size-14">
@@ -224,7 +231,7 @@
                                  v-bind:data-id="photo.id">
 
                                 <div class="s-photo-block js-photo-move-toggle"
-                                     title="{_w("Drag photos to arrange them in the order in which they must appear in the storefront.")|escape}"
+                                     title="{_w("Drag images to arrange them in the order in which they must appear in the storefront.")|escape}"
                                      draggable="true">
                                     <div class="s-photo cursor-pointer"
                                          v-on:click.prevent="setPhoto(photo)"
@@ -305,12 +312,18 @@
 
                 $.wa_shop_products.init.initProductMediaSection({
                     $wrapper: $("#js-product-media-section-wrapper"),
+                    tooltips: {$_tooltips|json_encode},
                     templates: {$_templates|json_encode},
                     components: {$_components|json_encode},
                     locales: {
                         "file_type": {_w("Unsupported image type. Use PNG, GIF and JPEG image files only.")|json_encode},
                         "file_size": {_w("Each file’s size cannot be greater than")|json_encode} + " " + {$_max_file_size_mb|json_encode} + {_w("KB")|json_encode} + ".",
-                        "post_size": {_w("Total size of selected files cannot be greater than")|json_encode} + " " + {$_max_post_size_mb|json_encode} + {_w("KB")|json_encode} + "."
+                        "post_size": {_w("Total size of selected files cannot be greater than")|json_encode} + " " + {$_max_post_size_mb|json_encode} + {_w("KB")|json_encode} + ".",
+                        "use_in_sku_forms": [
+                            {_w("Used in %d variant.", "Used in %d variants.", 1, false)|json_encode},
+                            {_w("Used in %d variant.", "Used in %d variants.", 2, false)|json_encode},
+                            {_w("Used in %d variant.", "Used in %d variants.", 5, false)|json_encode}
+                        ]
                     },
                     urls: {
                         "save": "{$wa_app_url}?module=prod&action=saveMedia",
