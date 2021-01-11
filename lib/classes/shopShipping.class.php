@@ -264,10 +264,12 @@ class shopShipping extends waAppShipping
 
             if ($dimensions = self::getShopSettings('shipping_dimensions')) {
                 $dimensions = preg_split('@\D+@', $dimensions);
-                $features = $feature_model->getByField((count($dimensions) == 1) ? 'parent_id' : 'id', $dimensions, true);
+                $features = $feature_model->getByField((count($dimensions) == 1) ? 'parent_id' : 'id', $dimensions, 'id');
 
                 if (count($features) == 3) {
-                    $map += array_combine($dimension_fields, array_values($features));
+	                foreach($dimension_fields as $dimension_field_key => $dimension_field) {
+		                $map[$dimension_field] = $features[$dimensions[$dimension_field_key]];
+	                }
                     if (isset($units['dimensions'])) {
                         foreach ($dimension_fields as $field) {
                             $units[$field] = $units['dimensions'];
