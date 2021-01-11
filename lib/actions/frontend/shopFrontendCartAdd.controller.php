@@ -225,6 +225,11 @@ class shopFrontendCartAddController extends waJsonController
             $item['full_price'] = $this->currencyFormat($price, true);
             $items[] = $item;
         }
+        
+        wa('shop')->event('frontend_cart_add_items_after', ref([
+            'items' => &$items
+        ]));
+        
         return $items;
     }
 
