@@ -109,11 +109,11 @@
                     uri: "{$wa_app_static_url}css/frontend/order/form.css?v={$wa->version()}"
                 }
             ]).then( function() {
-                if (locale === "ru") {
+                if (locale !== "en") {
                     load([{
                         id: "wa-content-jquery-ui-locale-js",
                         type: "js",
-                        uri: "{$wa_url}wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-ru_RU.js?v={$wa->version(true)}"
+                        uri: "{$wa_url}wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js?v={$wa->version(true)}"
                     }]).then(init);
 
                 } else {
