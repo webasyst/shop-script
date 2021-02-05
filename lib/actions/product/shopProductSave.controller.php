@@ -66,28 +66,36 @@ class shopProductSaveController extends waJsonController
         if (empty($data['tags'])) {
             $data['tags'] = array();
         }
-        if (empty($data['features_selectable'])) {
-            $data['features_selectable'] = array();
-        }
-
-        # verify sku_type before save
-        if (!empty($data['type_id'])) {
-            $features_model = new shopFeatureModel();
-            if ($features_model->isTypeMultipleSelectable($data['type_id'])) {
-                if ($data['sku_type'] == shopProductModel::SKU_TYPE_SELECTABLE) {
-                    if (empty($data['features_selectable'])) {
-                        throw new waException(_w("Check at least one feature value"));
+        if (waRequest::request('ignore_features_selectable')) {
+            // Product has been modified in new editor
+            // and has incompatible set of features_selectable.
+            // Do not attempt to save it via old editor
+            // because it breaks stuff.
+            unset(
+                $data['ignore_features_selectable'],
+                $data['features_selectable'],
+                $data['sku_type']
+            );
+        } else {
+            # verify sku_type before save
+            if (!empty($data['type_id'])) {
+                $features_model = new shopFeatureModel();
+                if ($features_model->isTypeMultipleSelectable($data['type_id'])) {
+                    if ($data['sku_type'] == shopProductModel::SKU_TYPE_SELECTABLE) {
+                        if (empty($data['features_selectable'])) {
+                            throw new waException(_w("Check at least one feature value"));
+                        }
                     }
+                } else {
+                    $data['sku_type'] = shopProductModel::SKU_TYPE_FLAT;
                 }
             } else {
                 $data['sku_type'] = shopProductModel::SKU_TYPE_FLAT;
             }
-        } else {
-            $data['sku_type'] = shopProductModel::SKU_TYPE_FLAT;
-        }
 
-        if ($data['sku_type'] == shopProductModel::SKU_TYPE_FLAT) {
-            $data['features_selectable'] = array();
+            if ($data['sku_type'] == shopProductModel::SKU_TYPE_FLAT) {
+                $data['features_selectable'] = array();
+            }
         }
 
         $this->ensureWeightForSkus($data);
@@ -373,13 +381,27 @@ class shopProductSaveController extends waJsonController
     {
         $errors = [];
         $pfm = new shopProductFeaturesModel();
+        $status_count = 0;
         foreach ($data['skus'] as $sku_id => $sku) {
             $gtin = isset($sku['features']['gtin']) ? trim($sku['features']['gtin']) : '';
             $is_valid = $pfm->validateGtinFeatureValue($gtin);
             if (!$is_valid) {
                 $errors[$sku_id]['features']['gtin'] = _w('Invalid GTIN code, it must have only 8, 12, 13, or 14 digits.');
             }
+            if (!empty($sku['status'])) {
+                $status_count++;
+            }
         }
+
+        if (!empty($data['skus']) && empty($status_count)) {
+            $errors['status'] = _w("Хотя бы один артикул должен быть виден на витрине.");
+        }
+
+        $main_sku_id = ifset($data['sku_id'], null);
+        if ($main_sku_id && empty($errors['status']) && empty($data['skus'][$main_sku_id]['status'])) {
+            $errors['status'] = _w('Основной артикул не может быть скрыт. Выберете другой артикул основным или включите видимость у основного артикула');
+        }
+
         return $errors;
     }
 

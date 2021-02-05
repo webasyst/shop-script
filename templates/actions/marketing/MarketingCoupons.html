@@ -38,6 +38,12 @@
                     {/foreach}
                 </ul>
 
+                {if $pages_count > 1}
+                    <div class="block pagination s-coupon-list-pagination">
+                        {wa_pagination total=$pages_count attrs=['class' => "menu-h"] url="`$wa_app_url`marketing/coupons/" nb=3}
+                    </div>
+                {/if}
+
             </div>
 
             <div class="content">

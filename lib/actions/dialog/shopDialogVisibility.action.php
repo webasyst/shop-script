@@ -28,7 +28,7 @@ class shopDialogVisibilityAction extends waViewAction
     {
         $set_status = (int)waRequest::post('status');
         $set_status = ($set_status > 0) ? 1 : (($set_status < 0) ? -1 : 0);
-        $update_sku_availability = !!waRequest::post('update_skus');
+        $update_sku_availability = (bool)waRequest::post('update_skus');
 
         $products_id = array();
         $products_id_denied = array();
@@ -113,6 +113,7 @@ class shopDialogVisibilityAction extends waViewAction
             if ($update_sku_availability) {
                 $product_skus_model->updateByField('product_id', $products_id, array(
                     'available' => (int)($set_status > 0),
+                    'status' => (int)($set_status > 0),
                 ));
             }
 

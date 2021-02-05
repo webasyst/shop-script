@@ -370,7 +370,7 @@ class shopProductsCollection
             $skus_alias = $this->addJoin([
                 'table' => 'shop_product_skus',
                 'on'    => ':table.product_id = p.id',
-                'where' => ':table.available > 0',
+                'where' => ':table.available > 0 AND :table.status > 0',
             ]);
 
             $where_conditional = "({$skus_alias}.primary_price)";
@@ -406,7 +406,7 @@ class shopProductsCollection
 
         if ($features && $this->getModel('product')->existsSelectableProducts()) {
             if (empty($skus_alias)) {
-                $skus_alias = $this->addJoin('shop_product_skus', ':table.product_id = p.id', ':table.available > 0');
+                $skus_alias = $this->addJoin('shop_product_skus', ':table.product_id = p.id', ':table.available > 0 AND :table.status');
             }
         }
         if (!empty($skus_alias) && waRequest::param('drop_out_of_stock') == 2) {
@@ -2462,7 +2462,11 @@ SQL;
                             }
                         }
                         // Ignore SKUs that are not available for order
-                        if (!$ignore_stock_count && !empty($stock_counts[$product_id][$sku_id]) && array_key_exists('available', $sku) && empty($sku['available'])) {
+                        if (!$ignore_stock_count && !empty($stock_counts[$product_id][$sku_id])
+                            && (array_key_exists('available', $sku) && empty($sku['available'])
+                                || array_key_exists('status', $sku) && empty($sku['status'])
+                            )
+                        ) {
                             $stock_counts[$product_id][$sku_id] = $zero_stocks;
                         }
                     }

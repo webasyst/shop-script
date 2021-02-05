@@ -169,6 +169,9 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
         $departure_date->setExtraProcessingTime((int) $assembly_time * 3600);
         $departure_datetime = (string) $departure_date->getDepartureDateTime();
 
+        /** отправляем в плагин временную зону магазина */
+        $shop_config = wa('shop')->getConfig()->getSchedule();
+
         $custom_input_values = ifset($data, 'input', 'details', 'custom', []);
         $plugin_custom_field_settings = $plugin->customFieldsForService(new waOrder([
             'contact_id'       => ifempty($contact, 'id', null),
@@ -178,6 +181,7 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
             'shipping_params'  => $custom_input_values,
             'params'          => [
                 'departure_datetime' => $departure_datetime,
+                'shop_time_zone'     => ifset($shop_config['timezone'], date_default_timezone_get())
             ],
         ]), $selected_variant);
 

@@ -1,99 +1,141 @@
-<div class="fields">
-    <div class="field-group">
-        <div class="field">
-            <div class="name">
-                [`Cross-selling`]
-            </div>
-            <div class="value">
-                <label><input type="radio" name="cross_selling" value="1" {if $product.cross_selling == 1}checked="true"{/if}> [`On`]
-                {if $type.cross_selling}
-                <em class="hint">[`Auto`] ({if $type.cross_selling == 'alsobought'}{sprintf('[`based on what other customers bought with %s`]',$product.name)}{else}[`products from category`] "{$type.category.name}"{/if})</em></label>
-                {/if}
-            </div>
-            <div class="value">
-                <label><input type="radio" name="cross_selling" value="0" {if !$product.cross_selling}checked="true"{/if}> [`Off`]</label>
-                {if !$type.cross_selling}
-                <em class="hint">[`Auto`]</em>
-                {/if}
-            </div>
-            <div class="value">
-                <label><input type="radio" name="cross_selling" value="2" {if $product.cross_selling == 2}checked="true"{/if}> [`Select manually`]</label>
-            </div>
-            <div class="value manually" {if $product.cross_selling != 2}style="display:none"{/if}>
-                <table class="related zebra">
-                    {if isset($related.cross_selling)}
-                    {foreach $related.cross_selling as $p}
-                    <tr class="p" data-product-id="{$p.id}">
-                        <td>{$p.name|escape}</td>
-                        <td>{shop_currency_html($p.price, true)}</td>
-                        <td class="min-width"><a class="delete" href="#"><i class="icon16 delete"></i></a></td>
-                    </tr>
-                    {/foreach}
-                    {/if}
-                    <tr>
-                        <td colspan="3">
-                            <input data-type="cross_selling" class="product-autocomplete long" type="text" placeholder="[`Start typing product name or SKU`]">
-                        </td>
-                    </tr>
-                </table>
+<div class="s-product-edit-related-page">
+    <div class="s-content-section s-cross-selling-section">
+        <div class="s-section-header">
+            <h2 class="s-title">[`Сопутствующие товары`] (Cross-selling)</h2>
+        </div>
+        <div class="s-section-body">
+            <div class="s-description">[`Рекомендуйте покупателям товары, которые до этого заказывались в магазине вместе с этим товаром, или товары из определенных категорий. Например, к телефону могут рекомендоваться чехлы, защитные стёкла и наушники.`]</div>
+
+            <div class="field">
+                <div class="name">
+                    <span>[`Использовать настройки рекомендаций`]</span>
+                </div>
+                <div class="value">
+                    <div class="s-variants-list">
+                        <div class="s-variant-section {if $product.cross_selling == 1}is-active{/if}">
+                            <div class="s-section-header">
+                                <label><input class="s-variant-radio" type="radio" name="cross_selling.view_type" value="auto" {if $product.cross_selling == 1}checked{/if}>&nbsp;[`Типа товаров`]</label>
+                            </div>
+                            <div class="s-section-body">
+                                {if $type.cross_selling}
+                                    <em class="hint">[`Auto`] ({if $type.cross_selling == 'alsobought'}{sprintf('[`based on what other customers bought with %s`]',$product.name)}{else}[`products from category`] "{$type.category.name}"{/if})</em>
+                                {/if}
+                            </div>
+                        </div>
+                        <div class="s-variant-section {if $product.cross_selling != 1}is-active{/if}">
+                            <div class="s-section-header">
+                                <label><input class="s-variant-radio" type="radio" name="cross_selling.view_type" value="manual" {if $product.cross_selling != 1}checked{/if}>&nbsp;[`Этого товара отдельно`]</label>
+                            </div>
+                            <div class="s-section-body">
+                                <div class="s-options-list">
+                                    <div class="s-option-section" style="display:none;">
+                                        <label><input class="s-option-radio" type="radio" name="cross_selling" value="1" {if $product.cross_selling == 1}checked{/if}>&nbsp;[`Auto`]</label>
+                                    </div>
+                                    <div class="s-option-section">
+                                        <label><input class="s-option-radio" type="radio" name="cross_selling" value="0" {if !$product.cross_selling}checked{/if}>&nbsp;[`Off`]</label>
+                                    </div>
+                                    <div class="s-option-section">
+                                        <label><input class="s-option-radio" type="radio" name="cross_selling" value="2" {if $product.cross_selling == 2}checked{/if}>&nbsp;[`Select manually`]</label>
+
+                                        <div class="s-products-list manually" {if $product.cross_selling != 2}style="display:none"{/if}>
+                                            <table class="related zebra">
+                                                {if isset($related.cross_selling)}
+                                                    {foreach $related.cross_selling as $p}
+                                                        <tr class="p" data-product-id="{$p.id}">
+                                                            <td>{$p.name|escape}</td>
+                                                            <td>{shop_currency_html($p.price, true)}</td>
+                                                            <td class="min-width"><a class="delete" href="#"><i class="icon16 delete"></i></a></td>
+                                                        </tr>
+                                                    {/foreach}
+                                                {/if}
+                                                <tr>
+                                                    <td colspan="3">
+                                                        <input data-type="cross_selling" class="product-autocomplete long" type="text" placeholder="[`Start typing product name or SKU`]">
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="field-group">
-        <div class="field">
-            <div class="name">
-                [`Upselling & Similar`]
-            </div>
-            <div class="value">
-                <label><input {if !$type.upselling}disabled="disabled"{/if} type="radio" name="upselling" value="1" {if $product.upselling == 1}checked="true"{/if}> [`On`]
-                {if !$type.upselling}
-                    <span class="hint">
-                        {$product.type = null}
-                        {sprintf(
-                            _w('Upselling & similar product recommendations are not configured for product type “%s”. Set up filtering conditions for “%s” in the <a href="%s">recommendation settings</a>.'),
-                            $product.type.name|default:'',
-                            $product.type.name|default:'',
-                            "`$wa_app_url`marketing/recommendations/"
-                        )}
-                    </span>
-                {/if}
-                {if $type.upselling}
-                <em class="hint">[`Auto`]</em>
-                {/if}
-                </label>
-                {if $type.upselling}
-                <p class="hint">
-                    <br>
-                    {$type.upselling_html}
-                </p>
-                {/if}
-            </div>
-            <div class="value">
-                <label><input type="radio" name="upselling" value="0" {if !$product.upselling}checked="true"{/if}> [`Off`]</label>
-                {if !$type.upselling}
-                <em class="hint">[`Auto`]</em>
-                {/if}
-            </div>
-            <div class="value">
-                <label><input type="radio" name="upselling" value="2" {if $product.upselling == 2}checked="true"{/if}> [`Select manually`]</label>
-            </div>
-            <div class="value manually" {if $product.upselling != 2}style="display:none"{/if}>
-                <table class="related zebra">
-                    {if isset($related.upselling)}
-                    {foreach $related.upselling as $p}
-                    <tr class="p" data-product-id="{$p.id}">
-                        <td>{$p.name|escape}</td>
-                        <td>{shop_currency_html($p.price, true)}</td>
-                        <td class="min-width"><a class="delete" href="#"><i class="icon16 delete"></i></a></td>
-                    </tr>
-                    {/foreach}
-                    {/if}
-                    <tr>
-                        <td colspan="3">
-                            <input data-type="upselling" class="product-autocomplete long" type="text" placeholder="[`Start typing product name or SKU`]">
-                        </td>
-                    </tr>
-                </table>
+    <div class="s-content-section">
+        <div class="s-section-header">
+            <h2 class="s-title">[`Схожие и альтернативные товары`] (Upselling)</h2>
+        </div>
+        <div class="s-section-body">
+            <div class="s-description">[`Рекомендуйте покупателям товары с другими ценами и характеристиками, или вообще другие типы товаров, подходящие под заданные критерии. Например, вместо одного телефона могут рекомендоваться телефоны других брендов с такими же характеристиками.`]</div>
+
+            <div class="field">
+                <div class="name">
+                    <span>[`Использовать настройки рекомендаций`]</span>
+                </div>
+                <div class="value">
+                    <div class="s-variants-list">
+                        <div class="s-variant-section {if $product.upselling == 1}is-active{/if}">
+                            <div class="s-section-header">
+                                <label><input class="s-variant-radio" type="radio" name="upselling.view_type" value="auto" {if $product.upselling == 1}checked{/if} {if !$type.upselling}disabled{/if}>&nbsp;[`Типа товаров`]</label>
+                            </div>
+                            <div class="s-section-body">
+                                {if !$type.upselling}
+                                    <div class="s-description hint">
+                                        {$product.type = null}
+                                        {sprintf(
+                                            _w('Upselling & similar product recommendations are not configured for product type “%s”. Set up filtering conditions for “%s” in the <a href="%s">recommendation settings</a>.'),
+                                            $product.type.name|default:'',
+                                            $product.type.name|default:'',
+                                            "`$wa_app_url`marketing/recommendations/"
+                                        )}
+                                    </div>
+                                {else}
+                                    <div class="s-description hint">{$type.upselling_html}</div>
+                                {/if}
+                            </div>
+                        </div>
+                        <div class="s-variant-section {if $product.upselling != 1}is-active{/if}">
+                            <div class="s-section-header">
+                                <label><input class="s-variant-radio" type="radio" name="upselling.view_type" value="manual" {if $product.upselling != 1}checked{/if}>&nbsp;[`Этого товара отдельно`]</label>
+                            </div>
+                            <div class="s-section-body">
+                                <div class="s-options-list">
+                                    <div class="s-option-section" style="display:none;">
+                                        <label><input class="s-option-radio" type="radio" name="upselling" value="1" {if $product.upselling == 1}checked{/if} {if !$type.upselling}disabled{/if}>&nbsp;[`Auto`]</label>
+                                    </div>
+                                    <div class="s-option-section">
+                                        <label><input class="s-option-radio" type="radio" name="upselling" value="0" {if !$product.upselling}checked{/if}>&nbsp;[`Off`]</label>
+                                    </div>
+                                    <div class="s-option-section">
+                                        <label><input class="s-option-radio" type="radio" name="upselling" value="2" {if $product.upselling == 2}checked{/if}>&nbsp;[`Select manually`]</label>
+
+                                        <div class="s-products-list manually" {if $product.upselling != 2}style="display:none"{/if}>
+                                            <table class="related zebra">
+                                                {if isset($related.upselling)}
+                                                    {foreach $related.upselling as $p}
+                                                        <tr class="p" data-product-id="{$p.id}">
+                                                            <td>{$p.name|escape}</td>
+                                                            <td>{shop_currency_html($p.price, true)}</td>
+                                                            <td class="min-width"><a class="delete" href="#"><i class="icon16 delete"></i></a></td>
+                                                        </tr>
+                                                    {/foreach}
+                                                {/if}
+                                                <tr>
+                                                    <td colspan="3">
+                                                        <input data-type="upselling" class="product-autocomplete long" type="text" placeholder="[`Start typing product name or SKU`]">
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -103,7 +145,10 @@
     {if !empty($backend_product_edit)}{foreach $backend_product_edit as $_}{ifset($_.related)}{/foreach}{/if}
 
 </div>
-<script type="text/javascript">
+<script>
+( function($) {
+    var $wrapper = $(".s-product-edit-related-page");
+
     $('#s-product-save > div.s-product-form.related').addClass('ajax');
 
     var save = function (data, after) {
@@ -166,19 +211,42 @@
         });
 
     })();
-    $('input[name="upselling"], input[name="cross_selling"]').click(function () {
-        var data = { };
-        data[this.name] = this.value;
-        if (this.value == 2) {
+
+    $wrapper.on("change", ".s-variant-radio", function() {
+        var $field = $(this),
+            value = "" + $field.val();
+        if (value === "auto") {
+            $field.closest(".s-variants-list").find(".s-option-radio[value='1']").attr("checked", true);
+        } else {
+            $field.closest(".s-variants-list").find(".s-option-radio[value='0']").attr("checked", true);
+        }
+    });
+
+    $wrapper.on("change", '.s-option-radio', function() {
+        var $field = $(this),
+            $products = $field.closest('div.field').find('.manually'),
+            name = this.name,
+            value = "" + this.value,
+            data = { };
+
+        // делаем активным радио варианта
+        if (value !== "1") {
+            $field.closest(".s-variant-section").find(".s-variant-radio").attr("checked", true);
+        }
+
+        data[name] = value;
+
+        if (value === "2") {
             var related_product_id = [];
-            $(this).closest('div.field').find('.manually').show().find('tr.p').each(function() {
-                related_product_id.push($(this).data('productId'));
+            $products.show().find('tr.p').each( function() {
+                related_product_id.push( $(this).data('productId') );
             });
-            data.type = this.name;
+            data.type = name;
             data.product_id = related_product_id;
         } else {
-            $(this).closest('div.field').find('.manually').hide();
+            $products.hide();
         }
+
         save(data);
     });
 
@@ -196,4 +264,5 @@
         });
         return false;
     });
+})(jQuery);
 </script>

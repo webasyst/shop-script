@@ -61,6 +61,13 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
             return false;
         }
 
+        $product_id = $sku['product_id'];
+        $deletable_sku = $this->select('SUM(status) as deletable_sku')
+                              ->where("id != $sku_id AND product_id = $product_id")->fetchField('deletable_sku');
+        if (empty($deletable_sku)) {
+            return false;
+        }
+
         $product_model = new shopProductModel();
         $product = $product_model->getById($sku['product_id']);
         if ($file_path = self::getPath($sku)) {
@@ -323,8 +330,10 @@ SQL;
             }
         }
 
-        if (empty($sku['available'])) {
-            $sku['available'] = 0;
+        foreach (array('available', 'status') as $key) {
+            if (!isset($sku[$key]) || $sku[$key] > 1) {
+                $sku[$key] = 1;
+            }
         }
 
         return $this->updateSku(0, $data);
@@ -753,10 +762,10 @@ SQL;
             }
             $sku['sort'] = ++$sort;
 
-            if (empty($sku['available'])) {
-                $sku['available'] = 0;
-            } elseif ($sku['available'] > 1) {
-                $sku['available'] = 1;
+            foreach (array('available', 'status') as $key) {
+                if (!isset($sku[$key]) || $sku[$key] > 1) {
+                    $sku[$key] = 1;
+                }
             }
 
             if (isset($sku['price'])) {

@@ -15,4 +15,16 @@ class shopPagesActions extends waPageActions
         $this->options['container'] = false;
     }
 
+    protected function getBlacklistUrl()
+    {
+        return array(
+            '',
+            'cart/',
+            'order/',
+            'my/',
+            'my/profile/',
+            'my/orders/',
+        );
+    }
+
 }

@@ -182,7 +182,7 @@ class shopProductMassUpdate
         $data = array();
         $product_skus_model = new shopProductSkusModel();
         $product_ids = array_keys($old_product_data);
-        $rows = $product_skus_model->select('id,product_id,count,price,primary_price,available')->where('product_id IN (?)', array($product_ids))->query();
+        $rows = $product_skus_model->select('id,product_id,count,price,primary_price,available,status')->where('product_id IN (?)', array($product_ids))->query();
         foreach($rows as $row) {
             $count = wa_is_int($row['count']) ? (int) $row['count'] : null;
             $data[$row['product_id']][$row['id']] = array(
@@ -193,6 +193,7 @@ class shopProductMassUpdate
                 'count' => $count,
                 'product_currency' => ifset($old_product_data, $row['product_id'], 'currency', null),
                 'available' => $row['available'],
+                'status' => $row['status'],
             );
         }
         return $data;
@@ -296,7 +297,7 @@ class shopProductMassUpdate
         foreach ($new_sku_data as $product_id => $product_skus) {
             $count = 0;
             foreach ($product_skus as $sku) {
-                if (!empty($sku['available'])) {
+                if (!empty($sku['available']) && !empty($sku['status'])) {
                     if (is_null($sku['count'])) {
                         $count = null;
                         break;

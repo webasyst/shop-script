@@ -87,14 +87,14 @@ class shopFrontendBuybuttonsAction extends waViewAction
             foreach ($features as $feature_id => $feature_value_id) {
                 $key .= $feature_id . ':' . $feature_value_id . ';';
             }
-            if (!isset($skus[$key]) || !$skus[$key]['available']) {
+            if (!isset($skus[$key]) || !$skus[$key]['available'] || !$skus[$key]['status']) {
                 $available = false;
             }
             $_POST['features'] = $features;
         } else if (count($product->skus) > 1) {
             $sku_id = (int) ifset($post['sku_id']);
             $skus = $product->skus;
-            if (!isset($skus[$sku_id]) || !$skus[$sku_id]['available']) {
+            if (!isset($skus[$sku_id]) || !$skus[$sku_id]['available'] || !$skus[$sku_id]['status']) {
                 $available = false;
             }
             $_POST['sku_id'] = $sku_id;
@@ -247,7 +247,7 @@ class shopFrontendBuybuttonsAction extends waViewAction
 
     private function isProductSkuAvailable($product, $sku)
     {
-        return $product->status && $sku['available'] &&
+        return $product->status && $sku['available'] && $sku['status'] &&
             ($this->getConfig()->getGeneralSettings('ignore_stock_count') || $sku['count'] === null || $sku['count'] > 0);
     }
 

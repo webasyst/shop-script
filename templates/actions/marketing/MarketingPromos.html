@@ -239,7 +239,9 @@
                     <li>
                         <a class="inline-link" href="javascript:void(0);">
                             <b><i class="s-text">
-                                {if !empty($active_storefront)}
+                                {if !empty($unattached_active)}
+                                    [`Без витрин`]
+                                {elseif !empty($active_storefront)}
                                     {waIdna::dec($active_storefront)}
                                 {else}
                                     [`All storefronts`] ({count($storefronts)})
@@ -247,9 +249,14 @@
                             </i></b>&nbsp;<i class="icon10 darr"></i>
                         </a>
                         <ul class="menu-v without-icons right">
-                            <li class="{if empty($active_storefront)}selected{/if}">
-                                <a class="s-ellipsis" href="{$marketing_url}" title="[`All storefronts`]">[`All storefronts`]</a>
+                            <li class="{if empty($active_storefront) && empty($unattached_active)}selected{/if}">
+                                <a class="s-ellipsis" href="{$marketing_url}{if $status}?status={$status}{/if}" title="[`All storefronts`]">[`All storefronts`]</a>
                             </li>
+                            {if !empty($show_unatt_storefronts) || !empty($unattached_active)}
+                                <li class="{if !empty($unattached_active)}selected{/if}">
+                                    <a class="s-ellipsis" href="{$marketing_url}?storefront=_unattached_{if $status}&status={$status}{/if}" title="[`Без витрин`]">[`Без витрин`]</a>
+                                </li>
+                            {/if}
 
                             {foreach $storefronts as $_storefront}
                                 {$_is_active = false}
@@ -258,7 +265,7 @@
                                 {/if}
 
                                 <li class="{if !empty($_is_active)}selected{/if}">
-                                    <a class="s-ellipsis" href="{$marketing_url}?storefront={$_storefront|urlencode}" title="{$_storefront|escape}">{waIdna::dec($_storefront)}</a>
+                                    <a class="s-ellipsis" href="{$marketing_url}?storefront={$_storefront|urlencode}{if $status}&status={$status}{/if}" title="{$_storefront|escape}">{waIdna::dec($_storefront)}</a>
                                 </li>
                             {/foreach}
                         </ul>

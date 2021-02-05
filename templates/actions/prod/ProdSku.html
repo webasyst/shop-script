@@ -54,15 +54,41 @@
 {capture assign="_photo_manager_dialog"}{include file="./ProdSkuImageDialog.html" inline}{/capture}
 {$_templates["dialog_photo_manager"] = $_photo_manager_dialog}
 
-{*
-Пока кнопка показа диалога заблокирована, нет смысла кешировать верстку диалога который не посмотреть.
 {capture assign="_mass_sku_generation"}{include file="./dialogs/mass_sku_generation.html" inline}{/capture}
 {$_templates["dialog_mass_sku_generation"] = $_mass_sku_generation}
-*}
 
 {* Диалог показывающий какие значения характеристики используются в модификациях *}
 {capture assign="_feature_used_values"}{include file="./dialogs/feature_used_values.html" inline}{/capture}
 {$_templates["dialog_feature_used_values"] = $_feature_used_values}
+
+{* КОМПОНЕНТЫ *}
+{* Они могуут добавляться внутри шаблонов через globals. Не удалять. *}
+
+{$_components = []}
+{$_globals_components = $wa->globals("components")}
+{if !empty($_globals_components)}
+    {$_components = array_merge($_components, $_globals_components)}
+{/if}
+
+{* LOCALE *}
+
+{$_locales = [
+    "file_type" => _w("Unsupported image type. Use PNG, GIF and JPEG image files only."),
+    "sku_required" => _w("An SKU code is required for grouping."),
+    "sku_unique_error" => _w("An SKU name must be unique."),
+    "stock_title" => _w("The quantity on this virtual stock is the sum of quantities on physical stocks — %s. You can change the list of stocks in “Settings” section."),
+    "total_sku_mods" => _w("Всего %s"),
+    "sku_generation_sku_forms" => [
+        _w("В %d артикуле %s.", "В %d артикуле %s.", 1, false),
+        _w("В %d артикулах %s.", "В %d артикулах по %s.", 2, false),
+        _w("В %d артикулах %s.", "В %d артикулах по %s.", 5, false)
+    ],
+    "sku_generation_sku_mod_forms" => [
+        _w("%d модификация", "%d модификация", 1, false),
+        _w("%d модификации", "%d модификации", 2, false),
+        _w("%d модификаций", "%d модификаций", 5, false)
+    ]
+]}
 
 {* ПОДСКАЗКИ *}
 
@@ -171,6 +197,11 @@
     ],
     "product-sku-24" => [
         "id" => "product-sku-24"
+    ],
+    "product-mass-sku-generation" => [
+        "id" => "product-mass-sku-generation",
+        "html" => _w("Automatically create product SKUs matching all selected feature settings.")|escape,
+        "position" => "top"
     ],
     "product-image-dialog-1" => [
         "id" => "product-image-dialog-1",
@@ -316,7 +347,7 @@
                 </template>
 
                 <div class="s-textarea-wrapper wide">
-                    <textarea class="full-width" v-model="feature.value"></textarea>
+                    <textarea class="full-width wa-small" v-model="feature.value"></textarea>
                 </div>
             </div>
 
@@ -654,65 +685,6 @@
 {/capture}
 {$_templates["component-dropdown-units"] = $_component_dropdown_units|trim}
 
-{capture assign="_component_generator_feature"}
-    <div class="s-feature-wrapper js-drop-area" v-bind:data-feature-code="feature.code">
-        <div class="tablebox">
-            <div class="s-column-move-actions">
-                <span class="s-action js-feature-move-toggle" draggable="true">
-                    <i class="icon size-20"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></i>
-                </span>
-            </div>
-            <div class="s-column-body">
-                <div class="s-feature-header">
-                    <span class="s-toggle inlinebox middle space-8" v-on:click.prevent="feature.expanded = !feature.expanded">
-                        <span class="s-icon" v-show="feature.expanded"><i class="fas fa-caret-down"></i></span>
-                        <span class="s-icon" v-show="!feature.expanded"><i class="fas fa-caret-right"></i></span>
-                        <span class="s-name">{ { feature.name } }</span>
-                        <span class="s-count">{ { getActiveOptionsCount } }</span>
-                    </span>
-                </div>
-
-                <div class="s-feature-body" v-if="feature.expanded">
-                    <div class="s-options-list">
-                        <template v-for="option in feature.options">
-                            <div class="s-option-wrapper" v-if="option.value">
-                                {*
-                                <div class="s-move-toggle">
-                                    <span class="s-action js-option-move-toggle" draggable="true">
-                                        <i class="icon"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></i>
-                                    </span>
-                                </div>
-                                *}
-                                <label class="s-label">
-                                    <span class="wa-checkbox">
-                                        <input type="checkbox" v-model="option.active">
-                                        <span>
-                                            <span class="icon">
-                                                <i class="fas fa-check"></i>
-                                            </span>
-                                        </span>
-                                    </span>
-                                    <span class="s-name">{ { option.name } }</span>
-                                </label>
-                            </div>
-                        </template>
-
-                        <div class="s-option-wrapper" v-on:click.prevent="addFeatureOption">
-                            <span class="s-add-button color-blue">
-                                <span class="s-icon"><i class="fas fa-plus"></i></span>
-                                &nbsp;
-                                <span class="s-name">[`Add`]</span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-{/capture}
-{$_templates["component-generator-feature"] = $_component_generator_feature|trim}
-
 {capture assign="_component_feature_value_form"}
     <div class="s-component-feature-value-form">
         <div class="flexbox middle space-8">
@@ -758,6 +730,63 @@
     </div>
 {/capture}
 {$_templates["add-feature-value-form"] = $_add_feature_value_form|trim}
+
+{capture assign="_component_file_manager"}
+    <div class="component-file-manager">
+        <div class="s-load-wrapper" v-if="!sku_mod.file.id">
+            <div class="s-button-wrapper" v-if="!files_to_upload.length">
+                <button class="wa-button wa-small gray" type="button">
+                    <span class="s-icon"><i class="fas fa-upload"></i></span>
+                    &nbsp;
+                    <span class="s-name">[`Загрузить файл`]</span>
+                </button>
+                <input class="js-file-field cursor-pointer" type="file" v-on:change="onFileChange($event)" title="">
+            </div>
+
+            <div class="s-loading-wrapper" v-if="files_to_upload.length">
+                <template v-for="file_to_upload in files_to_upload">
+                    <component-loading-file v-bind:file="file_to_upload"
+                                            v-bind:sku_mod="sku_mod"
+                                            v-on:file_load_fail="onFileLoadFail"
+                                            v-on:file_load_success="onFileLoadSuccess"></component-loading-file>
+                </template>
+            </div>
+
+            <template v-if="errors.length">
+                <div class="wa-error-text" v-for="error in errors">{ { error.text } }</div>
+            </template>
+        </div>
+
+        <div class="s-file-wrapper flexbox space-12 wrap baseline" v-if="sku_mod.file.id">
+            <a class="s-file-url" v-bind:href="file.url" target="_blank">
+                <span class="s-icon"><i class="fas fa-download"></i></span>
+                &nbsp;
+                <span class="s-name" v-text="file.name"></span>
+            </a>
+
+            <div class="s-file-size" v-text="file.size"></div>
+
+            <div class="s-file-delete" v-on:click.prevent="fileDelete">
+                <span class="s-icon"><i class="fas fa-trash-alt"></i></span>
+                &nbsp;
+                <span class="s-name">[`Delete`]</span>
+            </div>
+        </div>
+
+        <div class="s-hint-wrapper">
+            <p class="hint">[`Ссылка на загрузку файла будет отправлена покупателю в уведомлении о заказе и будет работать только в случае, если заказ был оплачен. Удобный способ доставки электронных товаров.`]</p>
+        </div>
+
+        <div class="s-description-wrapper" v-if="sku_mod.file.id">
+            <div class="s-title">[`Комментарий к прикрепленному файлу (необязательно):`]</div>
+            <component-flex-textarea v-bind:class="'wide wa-small'" v-model="sku_mod.file.description"></component-flex-textarea>
+        </div>
+    </div>
+{/capture}
+{$_templates["component-file-manager"] = $_component_file_manager|trim}
+
+{capture assign="_sku_file_delete_confirm_dialog"}{include file="./dialogs/sku_file_delete_confirm.html" inline}{/capture}
+{$_templates["sku-file-delete-confirm-dialog"] = $_sku_file_delete_confirm_dialog|trim}
 
 {/strip}
 
@@ -937,7 +966,7 @@
                                     </div>
 
                                     {capture assign="_select_selectable_features_dialog"}{include file="./dialogs/select_sku_feature.html" inline}{/capture}
-                                    {$_templates["select_selectable_features_dialog"] = $_select_selectable_features_dialog|trim|strip}
+                                    {$_templates["dialog_select_selectable_features"] = $_select_selectable_features_dialog|trim|strip}
                                 </div>
                                 {/strip}
 
@@ -951,20 +980,18 @@
                     <div class="s-section-header tablebox middle space-12" v-if="product.normal_mode_switch">
 
                         <div class="column wide">
-                            <button class="wa-button transparent" type="button" v-on:click.prevent="addSKU">
+                            <button class="wa-button transparent" type="button"
+                                    v-on:click.prevent="addSKU">
                                 <span class="s-icon color-green-dark"><i class="fas fa-plus-circle"></i></span>
                                 <span class="s-name">[`Add an SKU`]</span>
                             </button>
 
-                            <div class="wa-tooltip custom top">
-                                <button class="wa-button transparent disabled" type="button">
-                                    <span class="s-icon color-gray-light"><i class="fas fa-th"></i></span>
-                                    <span class="s-name color-gray-light">[`Generate multiple SKUs`]</span>
-                                </button>
-                                <div class="tooltip-text">
-                                    <p>[`The SKU generation form is not available yet, we are still working on it.`]</p>
-                                </div>
-                            </div>
+                            <button class="wa-button transparent" type="button"
+                                    data-tooltip-id="product-mass-sku-generation"
+                                    v-on:click="massSkuGeneration">
+                                <span class="s-icon color-blue"><i class="fas fa-th"></i></span>
+                                <span class="s-name">[`Generate multiple SKUs`]</span>
+                            </button>
                         </div>
                         <div class="column">
 
@@ -1018,12 +1045,12 @@
 
                                                     <span class="s-icon" v-bind:class="{ 'color-orange': product.sku_id === sku.sku_id, 'color-gray-light': product.sku_id !== sku.sku_id }"><i class="fas fa-check-circle"></i></span>
                                                 </button>
-                                                {*
-                                                <button class="wa-button transparent" v-on:click.prevent="skuStatusToggle(sku, sku_index)">
-                                                    <span class="s-icon color-blue" v-show="sku.modifications.filter(sku_mod => sku_mod.status === 'enabled').length"><i class="fas fa-eye"></i></span>
-                                                    <span class="s-icon color-gray-light" v-show="!sku.modifications.filter(sku_mod => sku_mod.status === 'enabled').length"><i class="fas fa-eye-slash"></i></span>
+                                                <button class="wa-button transparent" v-on:click.prevent="skuStatusToggle(sku, sku_index)"
+                                                        v-on:click.prevent="skuStatusToggle(sku, sku_index)"
+                                                        v-bind:title="getSkuModStatusTitle(sku, ['{_w("Артикул не виден на витрине.")|escape}', '{_w("Некоторые модификации артикула видны на витрине.")|escape}', '{_w("Все модификации артикула видны на витрине.")|escape}'])">
+                                                    <span class="s-icon color-blue" v-show="sku.modifications.filter(sku_mod => sku_mod.status).length"><i class="fas fa-eye"></i></span>
+                                                    <span class="s-icon color-gray-light" v-show="!sku.modifications.filter(sku_mod => sku_mod.status).length"><i class="fas fa-eye-slash"></i></span>
                                                 </button>
-                                                *}
                                             </template>
                                             <button class="wa-button transparent"
                                                     v-on:click.prevent="skuAvailableToggle(sku, sku_index)"
@@ -1157,12 +1184,11 @@
 
                                                             <span class="s-icon" v-bind:class="{ 'color-orange': sku.sku_id === sku_mod.id, 'color-gray-light': sku.sku_id !== sku_mod.id }"><i class="fas fa-check-circle"></i></span>
                                                         </button>
-                                                        {*
-                                                        <button class="wa-button transparent-gray" v-on:click.prevent="modificationStatusToggle(sku_mod, sku_mod_index, sku, sku_index)">
-                                                            <span class="s-icon color-blue" v-show="(sku_mod.status === 'enabled')"><i class="fas fa-eye"></i></span>
-                                                            <span class="s-icon color-gray-light" v-show="(sku_mod.status === 'disabled')"><i class="fas fa-eye-slash"></i></span>
+                                                        <button class="wa-button transparent-gray" v-on:click.prevent="modificationStatusToggle(sku_mod, sku_mod_index, sku, sku_index)"
+                                                                v-bind:title="( sku_mod.status ? '{_w("Модификация видна на витрине.")|escape}': '{_w("Модификация не видна на витрине.")|escape}')">
+                                                            <span class="s-icon color-blue" v-show="(sku_mod.status)"><i class="fas fa-eye"></i></span>
+                                                            <span class="s-icon color-gray-light" v-show="(!sku_mod.status)"><i class="fas fa-eye-slash"></i></span>
                                                         </button>
-                                                        *}
                                                         <button class="wa-button transparent-gray" v-on:click.prevent="modificationAvailableToggle(sku_mod, sku_mod_index, sku, sku_index)"
                                                                 v-bind:data-tooltip-id="( sku_mod.available ? 'product-sku-17': 'product-sku-18')">
 
@@ -1241,7 +1267,7 @@
                                                     {/strip}
 
                                                     <div class="s-extended-content">
-                                                        <div class="s-visible-content" v-if="product.normal_mode_switch">
+                                                        <div class="s-visible-content">
                                                             <div class="s-toggle" v-on:click.prevent="changeModificationExpand(sku_mod, sku_mod_index, sku, sku_index)">
                                                                 <span class="s-text">{_w("Custom parameters")}</span>
                                                                 <span class="s-icon" v-show="!sku_mod.expanded"><i class="fas fa-angle-down"></i></span>
@@ -1254,6 +1280,25 @@
                                                             </template>
 
                                                             <div class="s-other-fields wa-fields space-24">
+                                                                <div class="wa-field">
+                                                                    <div class="name unshifted">
+                                                                        <div class="flexbox space-10">
+                                                                            <div class="s-name wide">[`Прикреплённый файл`]</div>
+                                                                            <div>
+                                                                                <span class="wa-tooltip right" data-title="{_w("Прикреплённый файл")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="value">
+                                                                        <template v-if="parseInt(sku_mod.id) > 0">
+                                                                            <component-file-manager v-bind:sku_mod="sku_mod"></component-file-manager>
+                                                                        </template>
+                                                                        <template v-else>
+                                                                            <p>[`Сохраните информацию о товаре, чтобы прикрепить файл.`]</p>
+                                                                        </template>
+                                                                    </div>
+                                                                </div>
+
                                                                 <div class="wa-field">
                                                                     <div class="name unshifted">
 
@@ -1499,10 +1544,6 @@
                 type: "js",
                 uri: "{$wa_app_static_url}js/backend/products/product/product.sku.js?v={$wa->version()}"
             }, {
-                id: "wa-datepicker-js",
-                type: "js",
-                uri: "{$wa_url}wa-content/js/jquery-ui/jquery.ui.datepicker.min.js?v={$wa->version(true)}"
-            }, {
                 id: "wa-content-color-picker-js",
                 type: "js",
                 uri: "{$wa_url}wa-content/js/farbtastic/farbtastic.js?v={$wa->version(true)}"
@@ -1512,46 +1553,33 @@
                 uri: "{$wa_url}wa-content/js/farbtastic/farbtastic.css?v={$wa->version(true)}"
             }];
 
-            $.wa.loadSources(sources).then( function() {
-                if (lang.substr(0, 2) !== "en") {
-                    sources = [{
-                        id: "wa-datepicker-locale-" + lang + "-js",
-                        type: "js",
-                        uri: "{$wa_url}wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js"
-                    }];
-                    $.wa.loadSources(sources).then(init);
-                } else {
-                    init();
-                }
-            });
+            $.wa.loadSources(sources).then(init);
 
             function init() {
                 {$_max_post_size = waRequest::getPostMaxSize()}
                 {$_max_file_size = waRequest::getUploadMaxFilesize()}
                 {$_max_post_size_mb = floor($_max_post_size * 10/(1024))/10}
                 {$_max_file_size_mb = floor($_max_file_size * 10/(1024))/10}
+                {$_locales["file_size"] = "{_w("Each file’s size cannot be greater than")} {$_max_file_size_mb}{_w("KB")}."}
+                {$_locales["post_size"] = "{_w("Total size of selected files cannot be greater than")} {$_max_post_size_mb|escape}{_w("KB")}."}
 
                 $.wa_shop_products.init.initProductSkuSection({
                     $wrapper: $("#js-product-sku-section-wrapper"),
+                    components: {$_components|json_encode},
                     templates: {$_templates|json_encode},
                     tooltips: {$_tooltips|json_encode},
-                    locales: {
-                        "file_type": {_w("Unsupported image type. Use PNG, GIF and JPEG image files only.")|json_encode},
-                        "file_size": {_w("Each file’s size cannot be greater than")|json_encode} + " " + {$_max_file_size_mb|json_encode} + {_w("KB")|json_encode} + ".",
-                        "post_size": {_w("Total size of selected files cannot be greater than")|json_encode} + " " + {$_max_post_size_mb|json_encode} + {_w("KB")|json_encode} + ".",
-                        "sku_required": {_w("An SKU code is required for grouping.")|json_encode},
-                        "sku_unique_error": {_w("An SKU name must be unique.")|json_encode},
-                        "stock_title": {_w("The quantity on this virtual stock is the sum of quantities on physical stocks — %s. You can change the list of stocks in “Settings” section.")|json_encode}
-                    },
+                    locales: {$_locales|json_encode},
                     urls: {
                         "save": "{$wa_app_url}?module=prod&action=saveSku",
                         "sku_delete_dialog": "{$wa_app_url}?module=prod&action=skuDeleteDialog",
                         "add_feature_value": "{$wa_app_url}?module=prod&action=addFeatureValue",
                         "change_image_dialog": "{$wa_app_url}?module=prod&action=skuImageDialog",
                         "add_product_image": "{$wa_app_url}?module=prod&action=imageUpload",
-                        "change_image_description": "{$wa_app_url}?module=product&action=imageSave",
-                        "delete_image": "{$wa_app_url}?module=product&action=ImageDelete",
-                        "color_transliterate": "{$wa_app_url}?module=settings&action=featuresHelper"
+                        "change_image_description": "{$wa_app_url}?module=prod&action=saveImageDetails",
+                        "delete_image": "{$wa_app_url}?module=prod&action=deleteImage",
+                        "color_transliterate": "{$wa_app_url}?module=settings&action=featuresHelper",
+                        "sku_file_upload": "{$wa_app_url}?module=prod&action=addSkuFile",
+                        "sku_file_delete": "{$wa_app_url}?module=prod&action=deleteSkuFile"
                     },
 
                     max_file_size: {$_max_file_size|json_encode},

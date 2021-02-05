@@ -37,6 +37,10 @@ class shopCustomersListAction extends waViewAction
             'name' => $title,
             'hash' => $this->getQuery()
         ));
+        if (($filter['contact_id'] > 0 && $filter['contact_id'] != wa()->getUser()->getId())
+            || ($filter['contact_id'] < 1 && array_search($filter['contact_id'], wa()->getUser()->getGroupIds()) === false)) {
+            throw new waException(_w('Filter not available'), 403);
+        }
 
         $this->view->assign(array(
             'cols'             => $this->getCols(),
@@ -49,7 +53,6 @@ class shopCustomersListAction extends waViewAction
             'hash_start'       => $this->getHashStart(),
             'category_id'      => $this->getCategoryId(),
             'query'            => $this->getQuery(true),
-            'is_admin'         => wa()->getUser()->isAdmin(),
             'icons'            => wa()->getConfig()->getOption('customers_filter_icons'),
             'filter'           => $filter,
             'filter_id'        => $filter_id,

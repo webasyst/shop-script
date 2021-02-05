@@ -8,7 +8,7 @@ class shopProductSkuSortController extends waJsonController
         $after_id = waRequest::post('after_id', 0, waRequest::TYPE_INT);
 
         if (!$sku_id) {
-            $this->setError(_w("Error when delete: unknown sku"));
+            $this->setError(_w("Deletion error: unknown SKU."));
         } elseif (!$product_id) {
             $this->setError(_w("Error when delete: unknown product"));
         } else {

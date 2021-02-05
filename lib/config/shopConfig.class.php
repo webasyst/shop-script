@@ -11,6 +11,27 @@ class shopConfig extends waAppConfig
         'crop_small' => '48x48'
     );
 
+    public function checkUpdates()
+    {
+        parent::checkUpdates();
+        $this->installAfter();
+    }
+
+    protected function installAfter()
+    {
+        $model = new waAppSettingsModel();
+        $create_locale_configs = $model->get('shop', 'create_locale_configs', 0);
+        if ($create_locale_configs && wa()->getUser()->isAuth()) {
+            $old_active = waSystem::getApp();
+            if ($old_active != 'shop') {
+                waSystem::setActive('shop');
+            }
+            include($this->getAppPath('lib/config/install.after.php'));
+            $model->del('shop', 'create_locale_configs');
+            waSystem::setActive($old_active);
+        }
+    }
+
     public function checkRights($module, $action)
     {
         static $event_done = false;
@@ -52,6 +73,9 @@ class shopConfig extends waAppConfig
         } elseif (substr($module, 0, 5) == 'order' || $module == 'coupons' || $module == 'workflow') {
             return wa()->getUser()->getRights('shop', 'orders');
         } elseif (substr($module, 0, 9) == 'marketing') {
+            if ($action === 'CouponsAutocomplete') {
+                return true;
+            }
             return wa()->getUser()->getRights('shop', 'marketing');
         } elseif (substr($module, 0, 7) == 'reports') {
             return wa()->getUser()->getRights('shop', 'reports');

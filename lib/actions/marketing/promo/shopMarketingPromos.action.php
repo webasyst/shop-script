@@ -12,21 +12,28 @@ class shopMarketingPromosAction extends shopMarketingViewAction
         }
 
         $storefront_filter = waRequest::get('storefront', null, waRequest::TYPE_STRING_TRIM);
-        $storefronts = shopStorefrontList::getAllStorefronts();
-        if ($storefront_filter && (empty($storefronts) || !in_array($storefront_filter, $storefronts))) {
-            $storefront_filter = null;
-        }
-        if (!$storefront_filter && count($storefronts) === 1) {
-            $storefront_filter = current($storefronts);
-        }
 
-        $promo_model = new shopPromoModel();
+        $storefronts = shopStorefrontList::getAllStorefronts();
 
         $list_params = array(
-            'storefront'  => $storefront_filter,
             'with_images' => true
         );
 
+        $unattached_filter_active = $storefront_filter == '_unattached_';
+        if ($unattached_filter_active) {
+            $list_params['show_unattached'] = true;
+        } else {
+            if ($storefront_filter && (empty($storefronts) || !in_array($storefront_filter, $storefronts))) {
+                $storefront_filter = null;
+            }
+            if (!$storefront_filter && count($storefronts) === 1) {
+                $storefront_filter = current($storefronts);
+            }
+
+            $list_params['storefront'] = $storefront_filter;
+        }
+
+        $promo_model = new shopPromoModel();
         $active_promos = [];
         if (empty($status) || $status == shopPromoModel::STATUS_ACTIVE) {
             $active_promos = $promo_model->getList(array_merge($list_params, ['status' => shopPromoModel::STATUS_ACTIVE]));
@@ -74,8 +81,12 @@ class shopMarketingPromosAction extends shopMarketingViewAction
         // Marker icons
         $promos_markers = self::getMarkers($promo_ids);
 
+        $show_unattached_storefronts_selector = $promo_model->countUnattachedStorefronts() > 0;
+
         // params for backend_marketing_promos event
         $additional_html = $this->backendMarketingPromosEvent(ref([
+            'show_unatt_storefronts' => &$show_unattached_storefronts_selector,
+            'unattached_active'      => &$unattached_filter_active,
             'active_promos'          => &$active_promos,
             'planned_promos'         => &$planned_promos,
             'completed_promos'       => &$completed_promos,
@@ -93,6 +104,8 @@ class shopMarketingPromosAction extends shopMarketingViewAction
         ]));
 
         $this->view->assign(array(
+            'show_unatt_storefronts' => $show_unattached_storefronts_selector,
+            'unattached_active'      => $unattached_filter_active,
             'active_promos'          => $active_promos,
             'planned_promos'         => $planned_promos,
             'completed_promos'       => $completed_promos,

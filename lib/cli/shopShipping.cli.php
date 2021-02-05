@@ -47,8 +47,10 @@ class shopShippingCli extends waCliController
             try {
                 $plugin->runSync();
             } catch (waException $ex) {
-                $message = $ex->getMessage();
-                $data = compact('message', 'shipping_id');
+                $data = [
+                    'message'  => $ex->getMessage(),
+                    'shipping' => $method
+                ];
                 waLog::log(var_export($data, true), 'shop/shipping.cli.log');
             }
         }

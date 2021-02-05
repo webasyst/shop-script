@@ -15,20 +15,12 @@ class shopFrontendAction extends waViewAction
         }
     }
 
+    /**
+     * @deprecated
+     */
     public function addCanonical()
     {
-        $get_vars = waRequest::get();
-        $ignore = array('page');
-        foreach ($ignore as $k) {
-            if (isset($get_vars[$k])) {
-                unset($get_vars[$k]);
-            }
-        }
-        if ($get_vars) {
-            $url = wa()->getConfig()->getHostUrl() . wa()->getConfig()->getRequestUrl(false, true);
-            $this->getResponse()->setCanonical($url);
-            $this->view->assign('canonical', $url);
-        }
+
     }
 
     public function getStoreName()

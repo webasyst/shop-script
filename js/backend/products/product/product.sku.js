@@ -10,6 +10,7 @@
             that.$form = that.$wrapper.find("form:first");
 
             // CONST
+            that.components = options["components"];
             that.templates = options["templates"];
             that.tooltips = options["tooltips"];
             that.locales = options["locales"];
@@ -68,6 +69,11 @@
                     }
                 });
 
+                var session_json_data = sessionStorage.getItem("product_sku_page_data");
+                var session_data = JSON.parse(session_json_data);
+                // Если будут проблемы с "открытыми" модификациями там где не надо, то удалить данные сессии
+                //sessionStorage.removeItem("product_sku_page_data");
+
                 $.each(product.skus, function(i, sku) {
                     sku.errors = {};
 
@@ -76,6 +82,11 @@
 
                         if (!product.normal_mode) {
                             sku_mod.expanded = true;
+                        }
+
+                        if (session_data && session_data.mods[sku_mod.id]) {
+                            var session_sku_mod = session_data.mods[sku_mod.id];
+                            sku_mod.expanded = session_sku_mod.expanded;
                         }
                     });
                 });
@@ -633,6 +644,7 @@
                         if (color !== self.data[self.property]) {
                             self.data[self.property] = color;
                             self.$emit("input", [color]);
+                            $wrapper.trigger("change");
                         }
                     });
 
@@ -846,7 +858,18 @@
                             altField: $alt_field,
                             altFormat: "yy-mm-dd",
                             changeMonth: true,
-                            changeYear: true
+                            changeYear: true,
+                            beforeShow:function(field, instance){
+                                var $calendar = $(instance.dpDiv[0]);
+                                var index = 2001;
+                                setTimeout( function() {
+                                    $calendar.css("z-index", index);
+                                }, 10);
+                            },
+                            onClose: function(field, instance) {
+                                var $calendar = $(instance.dpDiv[0]);
+                                $calendar.css("z-index", "");
+                            }
                         });
 
                         if (self.value) {
@@ -901,6 +924,7 @@
                         if (is_ready) {
                             $field.trigger("change", [true]);
                         }
+                        $wrapper.trigger("change");
                     });
 
                     $toggle.on("click", function(event) {
@@ -979,118 +1003,6 @@
                 }
             });
 
-            Vue.component("component-generator-feature", {
-                props: ["feature"],
-                template: that.templates["component-generator-feature"],
-                delimiters: ['{ { ', ' } }'],
-                methods: {
-                    toggleHiddenContent: function() {
-                    },
-                    addFeatureOption: function(event) {
-                        var self = this;
-
-                        var $button = $(event.currentTarget),
-                            $list = $button.closest(".s-options-list");
-
-                        $button.hide();
-
-                        var $form = $(that.templates["add-feature-value-form"]).insertAfter($list);
-
-                        initForm($form)
-                            .always( function() {
-                                $form.remove();
-                                $button.show();
-                            })
-                            .done( function(data) {
-                                // add data to root model
-                                that.addFeatureValueToModel(self.feature, data.option);
-
-                                // add data to dialog model
-                                self.feature.options.push({
-                                    name: data.option.name,
-                                    value: data.option.value,
-                                    active: true
-                                });
-                            });
-
-                        function initForm($form) {
-                            var deferred = $.Deferred();
-
-                            var $submit_button = $form.find(".js-submit-button"),
-                                $field = $form.find(".js-field"),
-                                $icon = $submit_button.find(".s-icon");
-
-                            var loading = "<span class=\"icon\"><i class=\"fas fa-spinner fa-spin\"></i></span>";
-
-                            var is_locked = false;
-
-                            $field.val("").trigger("focus");
-
-                            //
-
-                            $submit_button.on("click", function(event) {
-                                event.preventDefault();
-
-                                var value = $.trim($field.val());
-                                if (!value.length) { return false; }
-
-                                if (!is_locked) {
-                                    is_locked = true;
-
-                                    var $loading = $(loading).insertAfter( $icon.hide() );
-                                    $submit_button.attr("disabled", true);
-
-                                    var data = {
-                                        "feature_id": self.feature.id,
-                                        "value": value
-                                    };
-
-                                    that.addFeatureValueRequest(data)
-                                        .always( function() {
-                                            $submit_button.attr("disabled", false);
-                                            $loading.remove();
-                                            $icon.show();
-                                            is_locked = false;
-                                        })
-                                        .done( function(data) {
-                                            deferred.resolve(data);
-                                        });
-                                }
-                            });
-
-                            $form.on("click", ".js-cancel", function(event) {
-                                event.preventDefault();
-                                deferred.reject();
-                            });
-
-                            //
-
-                            return deferred.promise();
-                        }
-
-                    }
-                },
-                updated: function() {
-                    var self = this;
-
-                    self.$emit("feature_updated");
-                },
-                computed: {
-                    getActiveOptionsCount: function() {
-                        var self = this;
-
-                        var active_options = self.feature.options.filter( function(option) {
-                            return !!option.value.length && option.active;
-                        });
-
-                        return active_options.length;
-                    }
-                },
-                mounted: function() {
-                    var self = this;
-                }
-            });
-
             Vue.component("component-product-badge-form", {
                 props: ["product"],
                 data: function() {
@@ -1163,51 +1075,235 @@
                     currencies: that.currencies,
                     selectable_features: that.selectable_features
                 },
-                computed: {
-                    getSkuModAvailableState: function() {
-                        var self = this;
+                components: {
+                    "component-file-manager": {
+                        props: ["sku_mod"],
+                        data: function() {
+                            var self = this;
+                            return {
+                                file: self.sku_mod.file,
+                                files_to_upload: [],
+                                is_locked: false,
+                                errors: []
+                            };
+                        },
+                        template: that.templates["component-file-manager"],
+                        components: {
+                            "component-flex-textarea": {
+                                props: ["value", "placeholder"],
+                                template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-on:input="$emit(\'input\', $event.target.value)"></textarea>',
+                                delimiters: ['{ { ', ' } }'],
+                                updated: function() {
+                                    var self = this;
+                                    var $textarea = $(self.$el);
 
-                        return function(sku, target_state) {
-                            var sku_mods_count = sku.modifications.length,
-                                active_sku_mods_count = sku.modifications.filter( function(sku_mod) {
-                                    return sku_mod.available;
-                                }).length;
+                                    $textarea.css("min-height", 0);
+                                    var scroll_h = $textarea[0].scrollHeight;
+                                    $textarea.css("min-height", scroll_h + "px");
+                                },
+                                mounted: function() {
+                                    var self = this;
+                                    var $textarea = $(self.$el);
 
-                            var state = "";
+                                    $textarea.css("min-height", 0);
+                                    var scroll_h = $textarea[0].scrollHeight;
+                                    $textarea.css("min-height", scroll_h + "px");
+                                }
+                            },
+                            "component-loading-file": {
+                                props: ["file", "sku_mod"],
+                                template: '<div class="vue-component-loading-file"><div class="wa-progressbar"></div></div>',
+                                mounted: function() {
+                                    var self = this;
 
-                            if (sku_mods_count === active_sku_mods_count) {
-                                state = "all";
-                            } else if (active_sku_mods_count === 0) {
-                                state = "none";
-                            } else {
-                                state = "part";
+                                    var $bar = $(self.$el).find(".wa-progressbar").waProgressbar({}),
+                                        instance = $bar.data("progressbar");
+
+                                    loadFile(self.file)
+                                        .done( function(response) {
+                                            if (response.status === "ok") {
+                                                self.$emit("file_load_success", {
+                                                    file: self.file,
+                                                    file_data: response.data
+                                                });
+                                            } else if (response.errors) {
+                                                self.$emit("file_load_fail", {
+                                                    file: self.file,
+                                                    errors: response.errors
+                                                });
+                                            }
+                                        });
+
+                                    function loadFile(file) {
+                                        var formData = new FormData();
+
+                                        formData.append("product_id", that.product.id);
+                                        formData.append("sku_id", self.sku_mod.id);
+                                        formData.append("files", file);
+
+                                        // Ajax request
+                                        return $.ajax({
+                                            xhr: function() {
+                                                var xhr = new window.XMLHttpRequest();
+                                                xhr.upload.addEventListener("progress", function(event){
+                                                    if (event.lengthComputable) {
+                                                        var percent = parseInt( (event.loaded / event.total) * 100 );
+                                                        instance.set({ percentage: percent });
+                                                    }
+                                                }, false);
+                                                return xhr;
+                                            },
+                                            url: that.urls["sku_file_upload"],
+                                            data: formData,
+                                            cache: false,
+                                            contentType: false,
+                                            processData: false,
+                                            type: 'POST'
+                                        });
+                                    }
+                                }
                             }
+                        },
+                        delimiters: ['{ { ', ' } }'],
+                        computed: {},
+                        methods: {
+                            fileDelete: function(event) {
+                                var self = this;
+                                if (!self.is_locked) {
+                                    var loading = "<span class=\"icon color-gray\"><i class=\"fas fa-spinner fa-spin\"></i></span>";
 
-                            if (typeof target_state === "string") {
-                                return (target_state === state);
-                            } else {
-                                return state;
+                                    var $icon = $(event.currentTarget).find(".s-icon"),
+                                        $loading = $(loading).insertAfter( $icon.hide() );
+
+                                    self.is_locked = true;
+                                    showDeleteConfirm()
+                                        .always( function() {
+                                            self.is_locked = false;
+                                            $loading.remove();
+                                            $icon.show();
+                                        })
+                                        .done( function() {
+                                            var data = {
+                                                sku_id: self.sku_mod.id,
+                                                product_id: that.product.id
+                                            };
+
+                                            $.post(that.urls["sku_file_delete"], data, "json")
+                                                .done( function() {
+                                                    $.each(Object.keys(self.file), function(i, key) {
+                                                        self.file[key] = null;
+                                                    });
+                                                    that.$wrapper.trigger("change");
+                                                });
+                                        });
+                                }
+
+                                function showDeleteConfirm() {
+                                    var deferred = $.Deferred();
+                                    var is_success = false;
+
+                                    $.waDialog({
+                                        html: that.templates["sku-file-delete-confirm-dialog"],
+                                        onOpen: function($dialog, dialog) {
+
+                                            var $section = $dialog.find(".js-vue-node-wrapper");
+
+                                            new Vue({
+                                                el: $section[0],
+                                                delimiters: ['{ { ', ' } }'],
+                                                created: function() {
+                                                    $section.css("visibility", "");
+                                                },
+                                                mounted: function() {
+                                                    dialog.resize();
+                                                }
+                                            });
+
+                                            $dialog.on("click", ".js-success-action", function(event) {
+                                                event.preventDefault();
+                                                is_success = true;
+                                                dialog.close();
+                                            });
+                                        },
+                                        onClose: function() {
+                                            if (is_success) {
+                                                deferred.resolve();
+                                            } else {
+                                                deferred.reject();
+                                            }
+                                        }
+                                    });
+
+                                    return deferred.promise();
+                                }
+                            },
+                            onFileChange: function(event) {
+                                var self = this,
+                                    files = event.target.files;
+
+                                if (files.length) {
+                                    // $.each(files, function(i, file) {
+                                        self.loadFile(files[0]);
+                                    // });
+                                }
+
+                                // clear
+                                $(event.target).val("");
+                                self.errors.splice(0, self.errors.length);
+                            },
+                            loadFile: function(file) {
+                                var self = this,
+                                    file_size = file.size;
+
+                                if (file_size >= that.max_file_size) {
+                                    self.renderError({ id: "big_size", text: "ERROR: big file size" });
+                                } else if (file_size >= that.max_post_size) {
+                                    self.renderError({ id: "big_post", text: "ERROR: big POST file size" });
+                                } else {
+                                    self.files_to_upload.push(file);
+                                }
+                            },
+                            onFileLoadSuccess: function(data) {
+                                var self = this;
+
+                                self.file.id = data.file_data.id;
+                                self.file.url = data.file_data.url;
+                                self.file.name = data.file_data.name;
+                                self.file.size = data.file_data.size;
+                                self.file.description = data.file_data.description;
+
+                                // удаляем UI загрузки
+                                var index = self.files_to_upload.indexOf(data.file);
+                                if (index >= 0) { self.files_to_upload.splice(index, 1); }
+                            },
+                            onFileLoadFail: function(data) {
+                                var self = this;
+
+                                // Показываем ошибки
+                                $.each(data.errors, function(i, error) {
+                                    self.renderError(error);
+                                });
+
+                                // Убираем загрузку
+                                $.each(Object.keys(self.file), function(i, key) {
+                                    self.file[key] = null;
+                                });
+
+                                // удаляем UI загрузки
+                                var index = self.files_to_upload.indexOf(data.file);
+                                if (index >= 0) { self.files_to_upload.splice(index, 1); }
+                            },
+                            renderError: function(error) {
+                                var self = this;
+                                self.errors.push(error);
                             }
-                        }
-                    },
-                    getSkuModAvailableTitle: function() {
-                        var self = this;
-
-                        return function(sku, locales) {
-                            var state = self.getSkuModAvailableState(sku),
-                                result = "";
-
-                            if (state === "all") {
-                                result = locales[2];
-                            } else if (state === "part") {
-                                result = locales[1];
-                            } else {
-                                result = locales[0];
-                            }
-
-                            return result;
+                        },
+                        mounted: function() {
+                            var self = this;
                         }
                     }
+                },
+                computed: {
                 },
                 methods: {
                     removeError: function(error_id) {
@@ -1254,7 +1350,7 @@
                         var clone_selectable_features = JSON.parse(JSON.stringify(that.selectable_features));
 
                         $.waDialog({
-                            html: that.templates["select_selectable_features_dialog"],
+                            html: that.templates["dialog_select_selectable_features"],
                             options: {
                                 selectable_features: clone_selectable_features,
                                 onSuccess: function(selectable_features) {
@@ -1559,128 +1655,199 @@
                             html: that.templates["dialog_mass_sku_generation"],
                             options: {
                                 vue_model: self,
-                                onSuccess: function(dialog_features) {
-                                    var active_features = dialog_features.filter( function(feature) { return feature.active; });
-                                    var active_features_object = $.wa.construct(active_features, "id");
-
-                                    // 1. update selectable features
-                                    that.selectable_features.forEach( function(feature) {
-                                        if (active_features_object[feature.id]) {
-                                            feature.active = true;
-                                        }
-                                    });
-
-                                    // 2. sort skus/mods
-                                    var sku_features = [];
-                                    var mod_features = [];
-
-                                    active_features.forEach( function(feature) {
-                                        if (feature.use_mod) {
-                                            mod_features.push(feature);
-                                        } else {
-                                            sku_features.push(feature);
-                                        }
-                                    });
-
-                                    // 3. generate skus matrix
-                                    var skus_values_array = [];
-                                    sku_features.forEach( function(feature) {
-                                        var options_array = [];
-
-                                        feature.options.forEach( function(option) {
-                                            if (option.active && option.value.length) {
-                                                option.feature_code = feature.code;
-                                                options_array.push(option);
-                                            }
-                                        });
-
-                                        skus_values_array.push(options_array);
-                                    });
-
-                                    var skus_values = (skus_values_array.length ? doTheJob(skus_values_array) : []);
-
-                                    var new_skus = [];
-                                    if (skus_values.length) {
-                                        skus_values.forEach( function() {
-                                            var new_sku = getNewSku();
-                                            new_skus.push(new_sku);
-                                        });
-                                    } else {
-                                        new_skus.push(getNewSku());
-                                    }
-
-                                    if (!new_skus.length) {
-                                        var new_sku = getNewSku();
-                                        new_skus.push(new_sku);
-                                    }
-
-                                    // 4. generate mods matrix
-                                    if (new_skus.length) {
-                                        var ready_skus = [];
-
-                                        $.each(new_skus, function(i, new_sku) {
-                                            var values_array = [],
-                                                sku_values = (skus_values.length ? skus_values[i] : []);
-
-                                            if (mod_features.length) {
-                                                mod_features.forEach( function(feature) {
-                                                    var options_array = [];
-
-                                                    feature.options.forEach( function(option) {
-                                                        if (option.active && option.value.length) {
-                                                            option.feature_code = feature.code;
-                                                            options_array.push(option);
-                                                        }
-                                                    });
-
-                                                    values_array.push(options_array);
-                                                });
-                                            }
-
-                                            if (sku_values.length) {
-                                                sku_values.forEach( function(sku_value) {
-                                                    values_array.unshift([sku_value]);
-                                                });
-                                            }
-
-                                            var mods_values = doTheJob(values_array);
-
-                                            mods_values.forEach( function(mod_values) {
-                                                var new_sku_mod = getNewSkuMod(new_sku);
-                                                var mod_features_object = $.wa.construct(new_sku_mod.features, "code");
-
-                                                mod_values.forEach( function(option_value) {
-                                                    var feature = mod_features_object[option_value.feature_code];
-                                                    if (feature) {
-                                                        var options_object = $.wa.construct(feature.options, "value");
-                                                        var option = options_object[option_value.value];
-                                                        if (option) {
-                                                            option.active = option_value.active;
-                                                            feature.active_option = option;
-                                                        }
-                                                    }
-                                                });
-
-                                                new_sku.modifications.push(new_sku_mod);
-                                            });
-
-                                            ready_skus.push(new_sku);
-                                        });
-
-                                        ready_skus.reverse().forEach( function(sku) {
-                                            that.product.skus.unshift(sku);
-                                        });
-                                    }
-
-                                    that.updateModificationSelectableFeatures();
-
-                                    that.product.normal_mode = true;
-                                }
+                                onSuccess: onSuccess
                             },
                             onOpen: function($dialog, dialog) {
                                 that.initMassSkuGenerationDialog($dialog, dialog);
                             }
                         });
+
+                        function onSuccess(dialog_features, dialog_prices, dialog_currency) {
+                            var active_features = dialog_features.filter( function(feature) { return feature.active; });
+                            var active_features_object = $.wa.construct(active_features, "id");
+
+                            // 1. update selectable features
+                            that.selectable_features.forEach( function(feature) {
+                                if (active_features_object[feature.id]) {
+                                    feature.active = true;
+                                }
+                            });
+
+                            // 2. sort skus/mods
+                            var sku_features = [];
+                            var mod_features = [];
+
+                            active_features.forEach( function(feature) {
+                                if (feature.use_mod) {
+                                    mod_features.push(feature);
+                                } else {
+                                    sku_features.push(feature);
+                                }
+                            });
+
+                            // 3.1 generate skus matrix
+                            var skus_values_array = [];
+                            sku_features.forEach( function(feature) {
+                                var options_array = getFormattedOptions(feature);
+                                if (options_array.length) {
+                                    skus_values_array.push(options_array);
+                                }
+                            });
+
+                            var skus_values = (skus_values_array.length ? doTheJob(skus_values_array) : []);
+
+                            // 3.2 create new skus matrix
+                            var new_skus = [];
+                            if (skus_values.length) {
+                                skus_values.forEach( function() {
+                                    var new_sku = getNewSku();
+                                    new_skus.push(new_sku);
+                                });
+                            } else {
+                                new_skus.push(getNewSku());
+                            }
+
+                            if (!new_skus.length) {
+                                var new_sku = getNewSku();
+                                new_skus.push(new_sku);
+                            }
+
+                            // 4. generate mods matrix
+                            if (new_skus.length) {
+                                var ready_skus = [];
+
+                                $.each(new_skus, function(i, new_sku) {
+                                    var values_array = [],
+                                        sku_values = (skus_values.length ? skus_values[i] : []);
+
+                                    if (mod_features.length) {
+                                        mod_features.forEach( function(feature) {
+                                            var options_array = getFormattedOptions(feature);
+                                            if (options_array.length) {
+                                                values_array.push(options_array);
+                                            }
+                                        });
+                                    }
+
+                                    if (sku_values.length) {
+                                        sku_values.forEach( function(sku_value) {
+                                            values_array.unshift([sku_value]);
+                                        });
+                                    }
+
+                                    var mods_values = doTheJob(values_array);
+                                    mods_values.forEach( function(mod_values) {
+                                        var new_sku_mod = getNewSkuMod(new_sku);
+                                        var mod_features_object = $.wa.construct(new_sku_mod.features, "code");
+
+                                        new_sku_mod.price = dialog_prices.price;
+                                        new_sku_mod.compare_price = dialog_prices.compare_price;
+                                        new_sku_mod.purchase_price = dialog_prices.purchase_price;
+
+                                        mod_values.forEach( function(option_value) {
+                                            var feature = mod_features_object[option_value.feature.source.code];
+                                            if (feature) {
+                                                switch(feature.render_type) {
+                                                    case "textarea":
+                                                        // значение поля
+                                                        feature.value = option_value.option.value;
+                                                        break;
+                                                    case "field":
+                                                    case "field.date":
+                                                    case "color":
+                                                        var option = feature.options[0];
+                                                        // значение поля
+                                                        option.value = option_value.option.value;
+                                                        // значение цвета
+                                                        if (option_value.option.code) {
+                                                            option.code = option_value.option.code;
+                                                        }
+                                                        // ед. измерения
+                                                        if (feature.units && option_value.feature.source.active_unit) {
+                                                            var units_object = $.wa.construct(feature.units, "value");
+                                                            var unit = units_object[option_value.feature.source.active_unit.value];
+                                                            if (unit) {
+                                                                feature.active_unit = unit;
+                                                            }
+                                                        }
+                                                        break;
+                                                    case "checkbox":
+                                                    case "select":
+                                                        // активный пункт
+                                                        var options_object = $.wa.construct(feature.options, "value");
+                                                        var option = options_object[option_value.option.value];
+                                                        if (option) {
+                                                            option.active = option_value.option.active;
+                                                            feature.active_option = option;
+                                                        }
+                                                        break;
+                                                }
+                                            }
+                                        });
+
+                                        new_sku.modifications.push(new_sku_mod);
+                                    });
+
+                                    ready_skus.push(new_sku);
+                                });
+
+                                ready_skus.reverse().forEach( function(sku) {
+                                    that.product.skus.unshift(sku);
+                                });
+
+                                that.product.currency = dialog_currency;
+                            }
+
+                            // 5. Update model
+                            that.updateModificationSelectableFeatures();
+
+                            that.product.normal_mode = true;
+
+                            //
+
+                            function getFormattedOptions(feature) {
+                                var options_array = [];
+
+                                switch (feature.source.render_type) {
+                                    case "textarea":
+                                        if (feature.source.value) {
+                                            options_array.push({
+                                                option: {
+                                                    name  : "",
+                                                    value : feature.source.value
+                                                },
+                                                feature: feature
+                                            });
+                                        }
+                                        break;
+                                    case "field":
+                                    case "field.date":
+                                    case "color":
+                                        feature.source.options.forEach( function(option) {
+                                            if (option.value.length) {
+                                                options_array.push({
+                                                    option: option,
+                                                    feature: feature
+                                                });
+                                            }
+                                        });
+                                        break;
+                                    case "checkbox":
+                                    case "select":
+                                        feature.source.options.forEach( function(option) {
+                                            if (option.active && option.value.length) {
+                                                options_array.push({
+                                                    option: option,
+                                                    feature: feature
+                                                });
+                                            }
+                                        });
+                                        break;
+                                }
+
+                                return options_array;
+                            }
+                        }
 
                         function doTheJob(feature_values, combinations_done) {
                             feature_values = [].concat(feature_values);
@@ -1861,10 +2028,10 @@
                         }
                     },
                     skuStatusToggle: function(sku, sku_index) {
-                        var is_active = !!(sku.modifications.filter( function(sku_mod) { return (sku_mod.status === 'enabled'); }).length);
+                        var is_active = !!(sku.modifications.filter( function(sku_mod) { return (sku_mod.status); }).length);
 
                         $.each(sku.modifications, function(i, sku_mod) {
-                            sku_mod.status = (is_active ? "disabled" : "enabled");
+                            sku_mod.status = !is_active;
                         });
 
                         that.$wrapper.trigger("change");
@@ -2007,7 +2174,7 @@
                         }
                     },
                     modificationStatusToggle: function(sku_mod, sku_mod_index, sku, sku_index) {
-                        sku_mod.status = (sku_mod.status === "enabled" ? "disabled" : "enabled");
+                        sku_mod.status = !sku_mod.status;
                         that.$wrapper.trigger("change");
                     },
                     modificationAvailableToggle: function(sku_mod, sku_mod_index, sku, sku_index) {
@@ -2016,6 +2183,85 @@
                     },
                     modificationStocksToggle: function(sku_mod, expanded) {
                         sku_mod.stocks_expanded = (typeof expanded === "boolean" ? expanded : !sku_mod.stocks_expanded);
+                    },
+                    getSkuModAvailableState: function(sku, target_state) {
+                        var self = this;
+
+                        var sku_mods_count = sku.modifications.length,
+                            active_sku_mods_count = sku.modifications.filter( function(sku_mod) {
+                                return sku_mod.available;
+                            }).length;
+
+                        var state = "";
+
+                        if (sku_mods_count === active_sku_mods_count) {
+                            state = "all";
+                        } else if (active_sku_mods_count === 0) {
+                            state = "none";
+                        } else {
+                            state = "part";
+                        }
+
+                        if (typeof target_state === "string") {
+                            return (target_state === state);
+                        } else {
+                            return state;
+                        }
+                    },
+                    getSkuModAvailableTitle: function(sku, locales) {
+                        var self = this;
+
+                        var state = self.getSkuModAvailableState(sku),
+                            result = "";
+
+                        if (state === "all") {
+                            result = locales[2];
+                        } else if (state === "part") {
+                            result = locales[1];
+                        } else {
+                            result = locales[0];
+                        }
+
+                        return result;
+                    },
+                    getSkuModStatusState: function(sku, target_state) {
+                        var self = this;
+
+                        var sku_mods_count = sku.modifications.length,
+                            active_sku_mods_count = sku.modifications.filter( function(sku_mod) {
+                                return sku_mod.status;
+                            }).length;
+
+                        var state = "";
+
+                        if (sku_mods_count === active_sku_mods_count) {
+                            state = "all";
+                        } else if (active_sku_mods_count === 0) {
+                            state = "none";
+                        } else {
+                            state = "part";
+                        }
+
+                        if (typeof target_state === "string") {
+                            return (target_state === state);
+                        } else {
+                            return state;
+                        }
+                    },
+                    getSkuModStatusTitle: function(sku, locales) {
+                        var self = this;
+
+                        var state = self.getSkuModStatusState(sku),
+                            result = "";
+
+                        if (state === "all") {
+                            result = locales[2];
+                        } else if (state === "part") {
+                            result = locales[1];
+                        } else {
+                            result = locales[0];
+                        }
+                        return result;
                     },
                     getStockTitle: function(stock) {
                         var result = "";
@@ -2035,7 +2281,6 @@
 
                         return result;
                     },
-
                     // OTHER
                     validate: function(event, type, data, key) {
                         var self = this,
@@ -2891,6 +3136,8 @@
                     }
                 });
 
+                setSessionData();
+
                 sendRequest()
                     .done( function() {
                         if (options.redirect_url) {
@@ -2923,6 +3170,27 @@
                             $(window).scrollTop(0);
                         }
                     });
+
+                function setSessionData() {
+                    var scroll_top = $(window).scrollTop();
+                    var mods = {};
+
+                    $.each(that.product.skus, function(i, sku) {
+                        $.each(sku.modifications, function(i, sku_mod) {
+                            mods[sku_mod.id] = {
+                                "id": sku_mod.id,
+                                "expanded": sku_mod.expanded
+                            }
+                        });
+                    });
+
+                    var json_data = JSON.stringify({
+                        mods: mods,
+                        scroll_top: scroll_top
+                    });
+
+                    sessionStorage.setItem("product_sku_page_data", json_data);
+                }
             });
 
             function sendRequest() {
@@ -2989,15 +3257,15 @@
                             var prefix = "product[skus][" + sku_mod.id + "]";
                             data.push({
                                 name: prefix + "[name]",
-                                value: sku_mod.name
+                                value: sku.name
                             });
                             data.push({
                                 name: prefix + "[sku]",
-                                value: sku_mod.sku
+                                value: sku.sku
                             });
                             data.push({
                                 name: prefix + "[status]",
-                                value: sku_mod.status
+                                value: (sku_mod.status ? 1 : 0)
                             });
                             data.push({
                                 name: prefix + "[available]",
@@ -3019,6 +3287,13 @@
                                 name: prefix + "[purchase_price]",
                                 value: sku_mod.purchase_price
                             });
+
+                            if (sku_mod.file && sku_mod.file.id) {
+                                data.push({
+                                    name: prefix + "[file_description]",
+                                    value: sku_mod.file.description
+                                });
+                            }
 
                             setFeatures(sku_mod.features_selectable, prefix + "[features]");
                             setFeatures(sku_mod.features, prefix + "[features]");
@@ -3325,8 +3600,6 @@
         Section.prototype.initMassSkuGenerationDialog = function($dialog, dialog) {
             var that = this;
 
-            var root_vue_model = dialog.options.vue_model;
-
             var $vue_section = $dialog.find("#vue-generator-section");
 
             var timer = 0;
@@ -3336,17 +3609,206 @@
                 data: {
                     use_values: true,
                     prices: {
-                        price: null,
-                        compare_price: null,
-                        purchase_price: null
+                        price: 0,
+                        compare_price: 0,
+                        purchase_price: 0
                     },
-                    features: getFeatures(root_vue_model),
+                    features: getFeatures(),
                     skus: [],
                     modifications: [],
                     currency: that.product.currency,
-                    currencies: that.currencies
+                    currencies: that.currencies,
+                    errors: {}
                 },
                 delimiters: ['{ { ', ' } }'],
+                components: {
+                    "component-generator-feature": {
+                        props: ["feature", "is_sku"],
+                        template: that.components["component-generator-feature"],
+                        delimiters: ['{ { ', ' } }'],
+                        components: {
+                            "component-flex-textarea": {
+                                props: ["value", "placeholder"],
+                                template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-on:input="$emit(\'input\', $event.target.value)"></textarea>',
+                                delimiters: ['{ { ', ' } }'],
+                                updated: function() {
+                                    var self = this;
+                                    var $textarea = $(self.$el);
+
+                                    $textarea.css("min-height", 0);
+                                    var scroll_h = $textarea[0].scrollHeight;
+                                    $textarea.css("min-height", scroll_h + "px");
+                                },
+                                mounted: function() {
+                                    var self = this;
+                                    var $textarea = $(self.$el);
+
+                                    $textarea.css("min-height", 0);
+                                    var scroll_h = $textarea[0].scrollHeight;
+                                    $textarea.css("min-height", scroll_h + "px");
+                                }
+                            }
+                        },
+                        methods: {
+                            addFeatureOption: function(event) {
+                                var self = this;
+
+                                var $button = $(event.currentTarget),
+                                    $list = $button.closest(".s-options-list");
+
+                                $button.hide();
+
+                                var $form = $(that.templates["add-feature-value-form"]).insertAfter($list);
+
+                                initForm($form)
+                                    .always( function() {
+                                        $form.remove();
+                                        $button.show();
+                                    })
+                                    .done( function(data) {
+                                        // add data to root model
+                                        that.addFeatureValueToModel(self.feature, data.option);
+
+                                        // add data to dialog model
+                                        self.feature.source.options.push({
+                                            name: data.option.name,
+                                            value: data.option.value,
+                                            active: true
+                                        });
+                                    });
+
+                                function initForm($form) {
+                                    var deferred = $.Deferred();
+
+                                    var $submit_button = $form.find(".js-submit-button"),
+                                        $field = $form.find(".js-field"),
+                                        $icon = $submit_button.find(".s-icon");
+
+                                    var loading = "<span class=\"icon\"><i class=\"fas fa-spinner fa-spin\"></i></span>";
+
+                                    var is_locked = false;
+
+                                    $field.val("").trigger("focus");
+
+                                    //
+
+                                    $submit_button.on("click", function(event) {
+                                        event.preventDefault();
+
+                                        var value = $.trim($field.val());
+                                        if (!value.length) { return false; }
+
+                                        if (!is_locked) {
+                                            is_locked = true;
+
+                                            var $loading = $(loading).insertAfter( $icon.hide() );
+                                            $submit_button.attr("disabled", true);
+
+                                            var data = {
+                                                "feature_id": self.feature.id,
+                                                "value": value
+                                            };
+
+                                            that.addFeatureValueRequest(data)
+                                                .always( function() {
+                                                    $submit_button.attr("disabled", false);
+                                                    $loading.remove();
+                                                    $icon.show();
+                                                    is_locked = false;
+                                                })
+                                                .done( function(data) {
+                                                    deferred.resolve(data);
+                                                });
+                                        }
+                                    });
+
+                                    $form.on("click", ".js-cancel", function(event) {
+                                        event.preventDefault();
+                                        deferred.reject();
+                                    });
+
+                                    //
+
+                                    return deferred.promise();
+                                }
+
+                            }
+                        },
+                        updated: function() {
+                            var self = this;
+
+                            self.$emit("feature_updated");
+                        },
+                        computed: {
+                            getActiveOptionsCount: function() {
+                                var self = this,
+                                    result = 0;
+
+                                switch (self.feature.render_type) {
+                                    case "textarea":
+                                        result = (self.feature.source.value.length ? 1 : 0);
+                                        break;
+                                    case "field":
+                                    case "field.date":
+                                    case "color":
+                                        result = (self.feature.source.options[0].value.length ? 1 : 0);
+                                        break;
+                                    case "select":
+                                    case "checkbox":
+                                        var active_options = self.feature.source.options.filter( function(option) {
+                                            return !!option.value.length && option.active;
+                                        });
+                                        result = active_options.length;
+                                        break;
+                                }
+
+                                return result;
+                            }
+                        },
+                        mounted: function() {
+                            var self = this;
+                        }
+                    }
+                },
+                computed: {
+                    start_generation_enabled: function() {
+                        var self = this;
+
+                        var has_errors = !!Object.keys(self.errors).length,
+                            has_sku_mods = (self.getCount(false) > 0);
+
+                        return (!has_errors && has_sku_mods);
+                    },
+                    smart_string_html: function() {
+                        var self = this;
+
+                        var sku_count = self.getCount(false),
+                            sku_mod_count = self.getCount(true),
+                            total_sku_mod_count = sku_count * sku_mod_count;
+
+                        var string = $.wa.locale_plural(sku_count, that.locales["sku_generation_sku_forms"], false);
+                        string = string.replace("%d", '<span class="s-counter is-green">' + sku_count + '</span>');
+
+                        /* кейс для РУ локали, 2 артикула ПО 1 модификациИ */
+                        var ru_correct_count = (sku_count > 1 && sku_mod_count === 1 ? 2 : sku_mod_count);
+
+                        var sku_mod_string = $.wa.locale_plural(ru_correct_count, that.locales["sku_generation_sku_mod_forms"], false);
+                        sku_mod_string = sku_mod_string.replace("%d", '<span class="s-counter">' + sku_mod_count + '</span>');
+                        string = string.replace("%s", sku_mod_string);
+
+                        var string_2 = "";
+                        if (sku_count > 1) {
+                            var string_2_base = that.locales["total_sku_mods"],
+                                string_2_numbers = sku_count + "&nbsp;&times;&nbsp;" + sku_mod_count + "&nbsp;=&nbsp;" + total_sku_mod_count,
+                                string_2_text = $.wa.locale_plural(total_sku_mod_count, that.locales["sku_generation_sku_mod_forms"], false);
+
+                            string_2_text = string_2_text.replace("%d", '<span class="s-counter">' + string_2_numbers + '</span>');
+                            string_2 = string_2_base.replace("%s", string_2_text);
+                        }
+
+                        return [string, string_2].join(" ");
+                    }
+                },
                 methods: {
                     getActiveFeatures: function(use_mod) {
                         var self = this;
@@ -3374,24 +3836,14 @@
                             mods_count = 0;
 
                         $.each(sku_features, function(i, feature) {
-                            var active_options_count = 0;
-
-                            feature.options.forEach( function(option) {
-                                if (option.active && option.value.length) { active_options_count += 1; }
-                            });
-
+                            var active_options_count = getFeatureCount(feature);
                             if (active_options_count) {
                                 sku_count = ( sku_count ? sku_count * active_options_count : active_options_count);
                             }
                         });
 
                         $.each(mods_features, function(i, feature) {
-                            var active_options_count = 0;
-
-                            feature.options.forEach( function(option) {
-                                if (option.active && option.value.length) { active_options_count += 1; }
-                            });
-
+                            var active_options_count = getFeatureCount(feature);
                             if (active_options_count) {
                                 mods_count = (mods_count ? mods_count * active_options_count : active_options_count);
                             }
@@ -3404,30 +3856,89 @@
                         }
 
                         return (return_mods ? mods_count : sku_count);
-                    },
-                    getLocale: function(count, locales) {
-                        if (count === 1) {
-                            return locales[0];
-                        } else {
-                            return locales[1];
+
+                        function getFeatureCount(feature) {
+                            var result = 0;
+
+                            switch (feature.render_type) {
+                                case "textarea":
+                                    result += (feature.source.value.length ? 1 : 0);
+                                    break;
+                                case "field":
+                                case "field.date":
+                                case "color":
+                                    result += (feature.source.options[0].value.length ? 1 : 0);
+                                    break;
+                                case "select":
+                                case "checkbox":
+                                    var active_options = feature.source.options.filter( function(option) {
+                                        return !!option.value.length && option.active;
+                                    });
+                                    result += active_options.length;
+                                    break;
+                            }
+
+                            return result;
                         }
                     },
                     startGenerator: function() {
                         var self = this;
-                        dialog.options.onSuccess(self.features);
+                        dialog.options.onSuccess(self.features, self.prices, self.currency);
                         dialog.close();
                     },
                     onFeatureUpdated: function() {
-                        dialog.resize();
+                        var $content = $dialog.find(".dialog-content:first");
+                        if ($content.length) {
+                            var top = $content.scrollTop();
+                            dialog.resize();
+                            $content.scrollTop(top);
+                        }
+                    },
+
+                    // OTHER
+                    validate: function(event, type, data, key) {
+                        var self = this,
+                            $field = $(event.target),
+                            target_value = $field.val(),
+                            value = (typeof target_value === "string" ? target_value : "" + target_value);
+
+                        switch (type) {
+                            case "price":
+                                value = $.wa.validate("number", value);
+
+                                var limit_body = 11,
+                                    limit_tail = 3,
+                                    parts = value.replace(",", ".").split(".");
+
+                                var error_key = key;
+
+                                if (parts[0].length > limit_body || (parts[1] && parts[1].length > limit_tail)) {
+                                    self.$set(self.errors, error_key, {
+                                        id: error_key,
+                                        text: "price_error"
+                                    });
+                                } else {
+                                    if (self.errors[error_key]) {
+                                        self.$delete(self.errors, error_key);
+                                    }
+                                }
+
+                                break;
+                            default:
+                                value = $.wa.validate(type, value);
+                                break;
+                        }
+
+                        // set
+                        set(value);
+
+                        function set(value) {
+                            Vue.set(data, key, value);
+                        }
                     }
                 },
                 created: function () {
                     $vue_section.css("visibility", "");
-                },
-                updated: function() {
-                    var self = this;
-
-                    dialog.resize();
                 },
                 mounted: function () {
                     var self = this;
@@ -3466,26 +3977,50 @@
                 }
             });
 
-            function getFeatures(root_vue_model) {
-                var all_features_object = $.wa.construct( root_vue_model.product.features, "id"),
-                    features = clone(root_vue_model.selectable_features),
+            function getFeatures() {
+                var root_features_object = $.wa.construct(that.product.features, "id"),
                     result = [];
 
-                $.each(features, function(i, feature) {
-                    if (all_features_object[feature.id]) {
-                        feature.options = clone(all_features_object[feature.id].options);
-                        feature.options.forEach( function(option) {
-                            option.active = false;
-                        });
-                        feature.code = all_features_object[feature.id].code;
-                        feature.use_mod = true;
-                        feature.expanded = false;
-                        feature.dropdown_active = (typeof feature.active === "boolean" ? feature.active : false);
-                        result.push(feature);
+                $.each(that.selectable_features, function(i, selectable_feature) {
+                    if (root_features_object[selectable_feature.id]) {
+                        var root_feature = root_features_object[selectable_feature.id],
+                            formatted_feature = formatFeature(root_feature, selectable_feature);
+                        result.push(formatted_feature);
                     }
                 });
 
                 return result;
+
+                function formatFeature(root_feature, selectable_feature) {
+                    var feature = clone(selectable_feature);
+                    // Различные поля для рендера и окружения
+                    feature.code = root_feature.code;
+                    feature.use_mod = true;
+                    feature.expanded = false;
+                    feature.dropdown_active = (typeof feature.active === "boolean" ? feature.active : false);
+
+                    // Ресурсы характеристики
+                    feature.source = clone(root_feature);
+                    if (feature.source.options) {
+                        feature.source.options.forEach( function(option) {
+                            if (['select', 'checkbox'].indexOf(feature.render_type) >= 0) {
+                                option.active = false;
+                            } else {
+                                option.value = "";
+                            }
+                        });
+                    }
+                    if (feature.source.units) {
+                        feature.source.units.forEach( function(option) {
+                            option.active = false;
+                        });
+                    }
+                    if (feature.source.value) {
+                        feature.source.value = "";
+                    }
+
+                    return feature;
+                }
             }
 
             function initDragAndDrop(vue) {

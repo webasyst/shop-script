@@ -31,7 +31,6 @@
                 </span>
             </a>
         </li>
-        {*
         <li>
             <a href="{$wa_app_url}products/{$id|escape}/seo/">
                 <span>[`SEO`]</span>
@@ -40,17 +39,6 @@
                         <i class="s-icon fas fa-question-circle"></i>
                     </span>
                 </span>
-            </a>
-        </li>
-        *}
-        <li class="disabled">
-            <a class="flexbox" href="javascript:void(0);">
-                <div class="wa-tooltip custom top wide">
-                    <div>[`SEO`]</div>
-                    <div class="tooltip-text">
-                        <p>[`This section is not available yet, we are still working on it.`]</p>
-                    </div>
-                </div>
             </a>
         </li>
         <li class="disabled">
@@ -73,9 +61,8 @@
                 </div>
             </a>
         </li>
-        <li class="disabled">
-{*
-            <a href="{$wa_app_url}products/{$id|escape}/recommendations/">
+        <li>
+            <a href="{$wa_app_url}products/{$id|escape}/related/">
                 <span>[`Related products`]</span>
                 <span class="count">
                     <span class="wa-tooltip bottom-left" data-title="{_w("Related products")|escape}">
@@ -83,7 +70,8 @@
                     </span>
                 </span>
             </a>
-*}
+
+            {*
             <a class="flexbox" href="javascript:void(0);">
                 <div class="wa-tooltip custom top wide">
                     <div>[`Related products`]</div>
@@ -92,6 +80,7 @@
                     </div>
                 </div>
             </a>
+            *}
         </li>
         <li class="disabled">
 {*

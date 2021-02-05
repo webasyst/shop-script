@@ -8,7 +8,7 @@ class shopOrderItemCodesModel extends waModel
      *
      * @param array $order_items   rows from shop_order_items indexed by their ids
      * @param array $products      rows from shop_product indexed by their id (we take 'type_id' key from there)
-     * @return a copy of $order_items witn additional key 'product_codes' added to every item
+     * @return array - copy of $order_items witn additional key 'product_codes' added to every item
      */
     public function extendOrderItems($order_items, $products=null)
     {

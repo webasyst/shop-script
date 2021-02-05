@@ -13,6 +13,12 @@
 {if !empty($_use_adaptive_styles)}
     {$_form_classes[] = "with-adaptive"}
 {/if}
+{if $wa->locale() == 'ru_RU' || $wa->locale() == 'en_US'}
+    {$locale_file_exist = true}
+{else}
+    {$locale_file = "{$root_path}/wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js"}
+    {$locale_file_exist = file_exists($locale_file)}
+{/if}
 
 <div class="wa-order-form-wrapper is-not-ready {$_form_classes|join:" "}" id="wa-order-form-wrapper">
     <script>
@@ -74,7 +80,8 @@
     <script>
         ( function($) { "use strict";
 
-            var locale = {$wa->locale()|substr:0:2|json_encode};
+            var locale = {$wa->locale()|substr:0:2|json_encode},
+                locale_file_exist = {$locale_file_exist|json_encode};
 
             {* used for pickup dialog and geolink at "details" section. required. async. *}
             load([
@@ -109,11 +116,11 @@
                     uri: "{$wa_app_static_url}css/frontend/order/form.css?v={$wa->version()}"
                 }
             ]).then( function() {
-                if (locale === "ru") {
+                if (locale !== "en" && locale_file_exist) {
                     load([{
                         id: "wa-content-jquery-ui-locale-js",
                         type: "js",
-                        uri: "{$wa_url}wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-ru_RU.js?v={$wa->version(true)}"
+                        uri: "{$wa_url}wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js?v={$wa->version(true)}"
                     }]).then(init);
 
                 } else {

@@ -126,10 +126,9 @@ if (typeof ($) != 'undefined') {
                 this[method.name].apply(this, method.params);
             } else {
                 var $content = $('#s-settings-content');
-                $content.find('#s-settings-shipping-params').show();
-                $content.find('#s-settings-shipping-rounding').show();
-                $content.find('#s-shipping-menu').show();
-                $content.find('#s-settings-shipping').show();
+                $content.find('#s-settings-shipping-params, #s-settings-shipping-rounding,' +
+                              '#s-shipping-menu, #s-settings-shipping, #s-settings-shipping-cron,' +
+                              '#shipping-methods-title').show();
 
 
                 $content.find('#s-settings-shipping #s-settings-shipping-params div.field-group').slideUp();
@@ -259,9 +258,9 @@ if (typeof ($) != 'undefined') {
         shippingPluginShow: function (plugin_id, callback) {
             var $content = $('#s-settings-content'),
                 that = this;
-            $content.find('#s-shipping-menu').hide();
-            $content.find('#s-settings-shipping-params').hide();
-            $content.find('#s-settings-shipping-rounding').hide();
+            $content.find('#s-shipping-menu, #s-settings-shipping-params, #s-settings-shipping-rounding,' +
+                          '#s-settings-shipping-cron, #shipping-methods-title').hide();
+
             var $plugins = $content.find('#s-settings-shipping');
             $plugins.hide();
             var url = '?module=settings&action=shippingSetup&plugin_id=' + plugin_id;

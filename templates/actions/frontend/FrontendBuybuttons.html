@@ -11,7 +11,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link href="{$wa_url}wa-content/font/ruble/arial/fontface.css" rel="stylesheet" />
+{*    <link href="{$wa_url}wa-content/font/ruble/arial/fontface.css" rel="stylesheet" />*}
     <style>{include file="../../../css/buyButton.css" inline}</style>
     <script src="{$wa_url}wa-content/js/jquery/jquery-1.11.1.min.js"></script>
     <style>
@@ -71,7 +71,9 @@
                             {elseif count($product.skus) > 1}
                                 <select class="wa-sku-selector" name="buybutton[sku_id]">
                                     {foreach $product.skus as $sku}
-                                        <option {if $sku.id == $product.sku_id} selected="selected"{/if} {if !$sku.orig_available}disabled="disabled"{/if} value="{$sku.id}">{$sku.name|escape}</option>
+                                        {if $sku.available}
+                                            <option {if $sku.id == $product.sku_id} selected="selected"{/if} {if !$sku.orig_available}disabled="disabled"{/if} value="{$sku.id}">{$sku.name|escape}</option>
+                                        {/if}
                                     {/foreach}
                                 </select>
                             {/if}

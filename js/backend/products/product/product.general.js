@@ -90,7 +90,7 @@
                         formatModification(sku_mod);
 
                         if (!product.normal_mode) {
-                            sku_mod.expanded = true;
+                            sku_mod.expanded = false;
                         }
                     });
                 });
@@ -165,6 +165,8 @@
 
             initAreaAutoHeight();
 
+            initSimulateFocus();
+
             that.initStorefrontsSection();
 
             that.initStatusSection();
@@ -188,18 +190,32 @@
             function initAreaAutoHeight() {
                 that.$wrapper.find("textarea.js-auto-height").each( function() {
                     var $textarea = $(this);
+                    var offset = $textarea[0].offsetHeight - $textarea[0].clientHeight,
+                        start_height = $textarea.outerHeight();
+
                     toggleHeight($textarea);
 
-                    $textarea.on("keyup", function(event) {
+                    $textarea.on("keyup", function() {
                         toggleHeight($textarea);
                     });
+
+                    function toggleHeight($textarea) {
+                        var textarea = $textarea[0];
+                        textarea.style.minHeight = "";
+                        var scroll_top = textarea.scrollHeight + offset;
+                        textarea.style.minHeight = scroll_top + "px";
+                    }
+                });
+            }
+
+            function initSimulateFocus() {
+                that.$wrapper.on("focus", ".js-simulate-border-lighting, .tagsinput", function(event) {
+                    $(this).addClass("is-focus");
                 });
 
-                function toggleHeight($textarea) {
-                    $textarea.css("min-height", 0);
-                    var scroll_h = $textarea[0].scrollHeight;
-                    $textarea.css("min-height", scroll_h + "px");
-                }
+                that.$wrapper.on("blur", ".js-simulate-border-lighting, .tagsinput", function(event) {
+                    $(this).removeClass("is-focus");
+                });
             }
 
             $.each(that.tooltips, function(i, tooltip) {
@@ -597,6 +613,232 @@
                                 var scroll_h = $textarea[0].scrollHeight;
                                 $textarea.css("min-height", scroll_h + "px");
                             }
+                        }
+                    },
+                    "component-file-manager": {
+                        props: ["sku_mod"],
+                        data: function() {
+                            var self = this;
+                            return {
+                                file: self.sku_mod.file,
+                                files_to_upload: [],
+                                is_locked: false,
+                                errors: []
+                            };
+                        },
+                        template: that.templates["component-file-manager"],
+                        components: {
+                            "component-flex-textarea": {
+                                props: ["value", "placeholder"],
+                                template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-on:input="$emit(\'input\', $event.target.value)"></textarea>',
+                                delimiters: ['{ { ', ' } }'],
+                                updated: function() {
+                                    var self = this;
+                                    var $textarea = $(self.$el);
+
+                                    $textarea.css("min-height", 0);
+                                    var scroll_h = $textarea[0].scrollHeight;
+                                    $textarea.css("min-height", scroll_h + "px");
+                                },
+                                mounted: function() {
+                                    var self = this;
+                                    var $textarea = $(self.$el);
+
+                                    $textarea.css("min-height", 0);
+                                    var scroll_h = $textarea[0].scrollHeight;
+                                    $textarea.css("min-height", scroll_h + "px");
+                                }
+                            },
+                            "component-loading-file": {
+                                props: ["file", "sku_mod"],
+                                template: '<div class="vue-component-loading-file"><div class="wa-progressbar"></div></div>',
+                                mounted: function() {
+                                    var self = this;
+
+                                    var $bar = $(self.$el).find(".wa-progressbar").waProgressbar({}),
+                                        instance = $bar.data("progressbar");
+
+                                    loadFile(self.file)
+                                        .done( function(response) {
+                                            if (response.status === "ok") {
+                                                self.$emit("file_load_success", {
+                                                    file: self.file,
+                                                    file_data: response.data
+                                                });
+                                            } else if (response.errors) {
+                                                self.$emit("file_load_fail", {
+                                                    file: self.file,
+                                                    errors: response.errors
+                                                });
+                                            }
+                                        });
+
+                                    function loadFile(file) {
+                                        var formData = new FormData();
+
+                                        formData.append("product_id", that.product.id);
+                                        formData.append("sku_id", self.sku_mod.id);
+                                        formData.append("files", file);
+
+                                        // Ajax request
+                                        return $.ajax({
+                                            xhr: function() {
+                                                var xhr = new window.XMLHttpRequest();
+                                                xhr.upload.addEventListener("progress", function(event){
+                                                    if (event.lengthComputable) {
+                                                        var percent = parseInt( (event.loaded / event.total) * 100 );
+                                                        instance.set({ percentage: percent });
+                                                    }
+                                                }, false);
+                                                return xhr;
+                                            },
+                                            url: that.urls["sku_file_upload"],
+                                            data: formData,
+                                            cache: false,
+                                            contentType: false,
+                                            processData: false,
+                                            type: 'POST'
+                                        });
+                                    }
+                                }
+                            }
+                        },
+                        delimiters: ['{ { ', ' } }'],
+                        computed: {},
+                        methods: {
+                            fileDelete: function(event) {
+                                var self = this;
+                                if (!self.is_locked) {
+                                    var loading = "<span class=\"icon color-gray\"><i class=\"fas fa-spinner fa-spin\"></i></span>";
+
+                                    var $icon = $(event.currentTarget).find(".s-icon"),
+                                        $loading = $(loading).insertAfter( $icon.hide() );
+
+                                    self.is_locked = true;
+                                    showDeleteConfirm()
+                                        .always( function() {
+                                            self.is_locked = false;
+                                            $loading.remove();
+                                            $icon.show();
+                                        })
+                                        .done( function() {
+                                            var data = {
+                                                sku_id: self.sku_mod.id,
+                                                product_id: that.product.id
+                                            };
+
+                                            $.post(that.urls["sku_file_delete"], data, "json")
+                                                .done( function() {
+                                                    $.each(Object.keys(self.file), function(i, key) {
+                                                        self.file[key] = null;
+                                                    });
+                                                    that.$wrapper.trigger("change");
+                                                });
+                                        });
+                                }
+
+                                function showDeleteConfirm() {
+                                    var deferred = $.Deferred();
+                                    var is_success = false;
+
+                                    $.waDialog({
+                                        html: that.templates["sku-file-delete-confirm-dialog"],
+                                        onOpen: function($dialog, dialog) {
+
+                                            var $section = $dialog.find(".js-vue-node-wrapper");
+
+                                            new Vue({
+                                                el: $section[0],
+                                                delimiters: ['{ { ', ' } }'],
+                                                created: function() {
+                                                    $section.css("visibility", "");
+                                                },
+                                                mounted: function() {
+                                                    dialog.resize();
+                                                }
+                                            });
+
+                                            $dialog.on("click", ".js-success-action", function(event) {
+                                                event.preventDefault();
+                                                is_success = true;
+                                                dialog.close();
+                                            });
+                                        },
+                                        onClose: function() {
+                                            if (is_success) {
+                                                deferred.resolve();
+                                            } else {
+                                                deferred.reject();
+                                            }
+                                        }
+                                    });
+
+                                    return deferred.promise();
+                                }
+                            },
+                            onFileChange: function(event) {
+                                var self = this,
+                                    files = event.target.files;
+
+                                if (files.length) {
+                                    // $.each(files, function(i, file) {
+                                    self.loadFile(files[0]);
+                                    // });
+                                }
+
+                                // clear
+                                $(event.target).val("");
+                                self.errors.splice(0, self.errors.length);
+                            },
+                            loadFile: function(file) {
+                                var self = this,
+                                    file_size = file.size;
+
+                                if (file_size >= that.max_file_size) {
+                                    self.renderError({ id: "big_size", text: "ERROR: big file size" });
+                                } else if (file_size >= that.max_post_size) {
+                                    self.renderError({ id: "big_post", text: "ERROR: big POST file size" });
+                                } else {
+                                    self.files_to_upload.push(file);
+                                }
+                            },
+                            onFileLoadSuccess: function(data) {
+                                var self = this;
+
+                                self.file.id = data.file_data.id;
+                                self.file.url = data.file_data.url;
+                                self.file.name = data.file_data.name;
+                                self.file.size = data.file_data.size;
+                                self.file.description = data.file_data.description;
+
+                                // удаляем UI загрузки
+                                var index = self.files_to_upload.indexOf(data.file);
+                                if (index >= 0) { self.files_to_upload.splice(index, 1); }
+                            },
+                            onFileLoadFail: function(data) {
+                                var self = this;
+
+                                // Показываем ошибки
+                                $.each(data.errors, function(i, error) {
+                                    self.renderError(error);
+                                });
+
+                                // Убираем загрузку
+                                $.each(Object.keys(self.file), function(i, key) {
+                                    self.file[key] = null;
+                                });
+
+                                // удаляем UI загрузки
+                                var index = self.files_to_upload.indexOf(data.file);
+                                if (index >= 0) { self.files_to_upload.splice(index, 1); }
+                            },
+                            renderError: function(error) {
+                                var self = this;
+                                self.errors.push(error);
+                            }
+                        },
+                        mounted: function() {
+                            var self = this;
                         }
                     }
                 },
@@ -1806,6 +2048,13 @@
                                         name: prefix + "[purchase_price]",
                                         value: sku_mod.purchase_price
                                     });
+
+                                    if (sku_mod.file && sku_mod.file.id) {
+                                        data.push({
+                                            name: prefix + "[file_description]",
+                                            value: sku_mod.file.description
+                                        });
+                                    }
 
                                     setStocks(sku_mod, prefix);
                                 });

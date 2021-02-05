@@ -12,6 +12,7 @@ class shopProductSkuSettingsAction extends waViewAction
             $sku = array(
                 'image_id'       => '',
                 'available'      => 1,
+                'status'         => 1,
                 'purchase_price' => null,
                 'compare_price'  => null,
             );

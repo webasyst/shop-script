@@ -40,7 +40,7 @@ class shopNotifications
          */
         $event_params = [
             'event' => $event,
-            'notifications' => $notifications,
+            'notifications' => &$notifications,
             'data'  => &$data,
         ];
         wa('shop')->event('notifications_send.before', $event_params);
@@ -106,7 +106,7 @@ class shopNotifications
          */
         $event_params = [
             'event' => $event,
-            'notifications' => $notifications,
+            'notifications' => &$notifications,
             'data'  => &$data,
             'send_results' => $send_results
         ];
@@ -142,9 +142,9 @@ class shopNotifications
          */
         $event_params = [
             'id' => $id,
-            'notifications' => $n,
+            'notifications' => &$n,
             'data'  => &$data,
-            'to' => $to,
+            'to' => &$to,
         ];
         wa('shop')->event('notifications_send_one.before', $event_params);
 
@@ -180,9 +180,9 @@ class shopNotifications
          */
         $event_params = [
             'id' => $id,
-            'notifications' => $n,
+            'notifications' => &$n,
             'data'  => &$data,
-            'to' => $to,
+            'to' => &$to,
         ];
 
         wa('shop')->event('notifications_send_one.after', $event_params);
@@ -517,8 +517,11 @@ SQL;
         /**
          * @var waContact $customer
          */
-        $customer = $data['customer'];
+        $customer = ifset($data['customer']);
+        $locale = null;
+        $old_locale = null;
         if ($n['to'] == 'customer') {
+            $locale = $customer->getLocale();
             $email = $customer->get('email', 'default');
             if (!$email) {
                 return $fail_result;
@@ -534,6 +537,11 @@ SQL;
         } else {
             $to = explode(',', $n['to']);
             $log = sprintf(_w("Notification <strong>%s</strong> sent to %s."), $n['name'], $n['to']);
+        }
+
+        if ($locale) {
+            $old_locale = wa()->getLocale();
+            wa()->setLocale($locale);
         }
 
         foreach (array('shipping', 'billing') as $k) {
@@ -595,6 +603,10 @@ SQL;
                 }
             }
             $message->setFrom($from, $from_name);
+        }
+
+        if ($old_locale) {
+            wa()->setLocale($old_locale);
         }
 
         if (!$message->send()) {

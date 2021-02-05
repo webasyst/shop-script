@@ -84,6 +84,65 @@
 {/capture}
 {$_templates["component-product-badge-form"] = $_component_product_badge_form}
 
+{capture assign="_component_file_manager"}
+    <div class="component-file-manager">
+        <div class="s-load-wrapper" v-if="!sku_mod.file.id">
+            <div class="s-button-wrapper" v-if="!files_to_upload.length">
+                <button class="wa-button wa-small gray" type="button">
+                    <span class="s-icon"><i class="fas fa-upload"></i></span>
+                    &nbsp;
+                    <span class="s-name">[`Загрузить файл`]</span>
+                </button>
+                <input class="js-file-field cursor-pointer" type="file" v-on:change="onFileChange($event)" title="">
+            </div>
+
+            <div class="s-loading-wrapper" v-if="files_to_upload.length">
+                <template v-for="file_to_upload in files_to_upload">
+                    <component-loading-file v-bind:file="file_to_upload"
+                                            v-bind:sku_mod="sku_mod"
+                                            v-on:file_load_fail="onFileLoadFail"
+                                            v-on:file_load_success="onFileLoadSuccess"></component-loading-file>
+                </template>
+            </div>
+
+            <template v-if="errors.length">
+                <div class="wa-error-text" v-for="error in errors">{ { error.text } }</div>
+            </template>
+        </div>
+
+        <div class="s-file-wrapper flexbox space-12 wrap baseline" v-if="sku_mod.file.id">
+            <a class="s-file-url" v-bind:href="file.url" target="_blank">
+                <span class="s-icon"><i class="fas fa-download"></i></span>
+                &nbsp;
+                <span class="s-name" v-text="file.name"></span>
+            </a>
+
+            <div class="s-file-size" v-text="file.size"></div>
+
+            <div class="s-file-delete" v-on:click.prevent="fileDelete">
+                <span class="s-icon"><i class="fas fa-trash-alt"></i></span>
+                &nbsp;
+                <span class="s-name">[`Delete`]</span>
+            </div>
+        </div>
+
+        <div class="s-hint-wrapper">
+            <p class="hint">[`Ссылка на загрузку файла будет отправлена покупателю в уведомлении о заказе и будет работать только в случае, если заказ был оплачен. Удобный способ доставки электронных товаров.`]</p>
+        </div>
+
+        <div class="s-description-wrapper" v-if="sku_mod.file.id">
+            <div class="s-title">[`Комментарий к прикрепленному файлу (необязательно):`]</div>
+            <component-flex-textarea v-bind:class="'wide wa-small'" v-model="sku_mod.file.description"></component-flex-textarea>
+        </div>
+    </div>
+{/capture}
+{$_templates["component-file-manager"] = $_component_file_manager|trim}
+
+{capture assign="_sku_file_delete_confirm_dialog"}{include file="./dialogs/sku_file_delete_confirm.html" inline}{/capture}
+{$_templates["sku-file-delete-confirm-dialog"] = $_sku_file_delete_confirm_dialog|trim}
+
+{* LOCALES *}
+
 {$_locales = [
     "add_tag" => _w("Add a tag"),
     "select_category" => _w("Please select a category"),
@@ -132,7 +191,7 @@
                                     <div class="tablebox space-8 middle">
                                         <div class="s-column-name wide">
 
-                                            <div class="s-url-field-wrapper">
+                                            <div class="s-url-field-wrapper js-simulate-border-lighting">
                                                 <span class="s-tail">{ifset($url_template, 'base', '')|escape}</span>
                                                 <input class="s-field js-product-url-field" type="text" name="product[url]" value="{$product.url|escape}">
                                             </div>
@@ -553,22 +612,51 @@
                                                 </div>
                                                 {/strip}
 
-                                                <div class="s-other-fields wa-fields space-24">
-                                                    <div class="wa-field">
-                                                        <div class="name unshifted">
-
-                                                            <div class="flexbox space-10">
-                                                                <span class="s-name">[`SKU ID`]</span>
-                                                                <span class="wa-tooltip right" data-title="{_w("Numeric ID of this variant stored in the database.")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
+                                                <div class="s-extended-content">
+                                                    <div class="s-visible-content">
+                                                        <div class="s-toggle" v-on:click.prevent="sku_mod.expanded = !sku_mod.expanded">
+                                                            <span class="s-text">{_w("Custom parameters")}</span>
+                                                            <span class="s-icon" v-show="!sku_mod.expanded"><i class="fas fa-angle-down"></i></span>
+                                                            <span class="s-icon" v-show="sku_mod.expanded"><i class="fas fa-angle-up"></i></span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="s-hidden-content" v-if="sku_mod.expanded">
+                                                        <div class="s-other-fields wa-fields space-24">
+                                                            <div class="wa-field">
+                                                                <div class="name unshifted">
+                                                                    <div class="flexbox space-10">
+                                                                        <div class="s-name wide">[`Прикреплённый файл`]</div>
+                                                                        <div>
+                                                                            <span class="wa-tooltip right" data-title="{_w("Прикреплённый файл")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="value">
+                                                                    <template v-if="parseInt(sku_mod.id) > 0">
+                                                                        <component-file-manager v-bind:sku_mod="sku_mod"></component-file-manager>
+                                                                    </template>
+                                                                    <template v-else>
+                                                                        <p>[`Сохраните информацию о товаре, чтобы прикрепить файл.`]</p>
+                                                                    </template>
+                                                                </div>
                                                             </div>
 
-                                                        </div>
-                                                        <div class="value middle">
-                                                            <span class="s-ident" v-bind:class="{ 'hint': sku_mod.id < 0 }">{ { sku_mod.id < 0 ? "[`An ID will be shown after saving.`]" : sku_mod.id } }</span>
+                                                            <div class="wa-field">
+                                                                <div class="name unshifted">
+
+                                                                    <div class="flexbox space-10">
+                                                                        <span class="s-name">[`SKU ID`]</span>
+                                                                        <span class="wa-tooltip right" data-title="{_w("Numeric ID of this variant stored in the database.")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
+                                                                    </div>
+
+                                                                </div>
+                                                                <div class="value middle">
+                                                                    <span class="s-ident" v-bind:class="{ 'hint': sku_mod.id < 0 }">{ { sku_mod.id < 0 ? "[`An ID will be shown after saving.`]" : sku_mod.id } }</span>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-
                                             </div>
 
                                             <div class="s-column-stocks">
@@ -1159,8 +1247,10 @@
                         "create_category": "{$wa_app_url}?module=category&action=add",
                         "product_url_checker": "{$wa_app_url}?module=prod&action=checkUrlInUse",
                         "add_product_image": "{$wa_app_url}?module=prod&action=imageUpload",
-                        "change_image_description": "{$wa_app_url}?module=product&action=imageSave",
-                        "delete_image": "{$wa_app_url}?module=product&action=ImageDelete"
+                        "change_image_description": "{$wa_app_url}?module=prod&action=saveImageDetails",
+                        "delete_image": "{$wa_app_url}?module=prod&action=deleteImage",
+                        "sku_file_upload": "{$wa_app_url}?module=prod&action=addSkuFile",
+                        "sku_file_delete": "{$wa_app_url}?module=prod&action=deleteSkuFile"
                     },
                     lang: {$_lang|json_encode},
 

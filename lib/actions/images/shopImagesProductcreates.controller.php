@@ -80,7 +80,8 @@ class shopImagesProductcreatesController extends waJsonController
                 'name' => '',
                 'sku' => '',
                 'price' => $product['price'],
-                'available' => 1
+                'available' => 1,
+                'status' => 1,
             );
 
         return $product;

@@ -829,9 +829,26 @@ SQL;
     }
 
 
+    /**
+     * @param $id
+     * @return shopProduct
+     * @throws waException
+     */
     public function product($id)
     {
-        return new shopProduct($id, true);
+        /**
+         * Output product in the smarty template.
+         * @param $id
+         * @event view_product
+         */
+        $product = new shopProduct($id, true);
+
+        $is_from_template = waConfig::get('is_template');
+        waConfig::set('is_template', null);
+        wa('shop')->event('view_product', $product);
+        waConfig::set('is_template', $is_from_template);
+
+        return $product;
     }
 
     /**

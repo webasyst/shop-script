@@ -568,7 +568,7 @@ class shopProductModel extends waModel
                 JOIN (
                     SELECT s.product_id id, SUM(IF(s.count < 0, 0, s.count)) count_of_skus, SUM(s.count IS NULL) has_infinity_count
                     FROM shop_product_skus s
-                    WHERE s.available > 0
+                    WHERE s.available > 0 AND s.status > 0
                     GROUP BY s.product_id
                 ) t ON p.id = t.id
             SET p.count = IF(has_infinity_count, NULL, count_of_skus)
@@ -922,7 +922,7 @@ class shopProductModel extends waModel
 
         $available_sku_count = 0;
         foreach ($skus as $sku) {
-            if ($sku['available']) {
+            if ($sku['available'] && $sku['status']) {
                 $available_sku_count++;
             }
 
@@ -948,7 +948,7 @@ class shopProductModel extends waModel
             }
 
             // maintain product_count invariant. See above
-            if ($sku['available']) {
+            if ($sku['available'] && $sku['status']) {
                 if ($sku_count === null) {
                     $product_count = null;
                 } elseif ($product_count !== null) {

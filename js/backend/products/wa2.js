@@ -1067,10 +1067,10 @@
 
             if (that.type === "line") {
                 that.$wrapper.html("");
-                that.$bar_wrapper = $("<div class=\"progressbar-line-wrapper\" />");
-                that.$bar_outer = $("<div class=\"progressbar-outer\" />");
-                that.$bar_inner = $("<div class=\"progressbar-inner\" />");
-                that.$text = $("<div class=\"progressbar-text\" />");
+                that.$bar_wrapper = $("<div class=\"wa-progressbar-line-wrapper\" />");
+                that.$bar_outer = $("<div class=\"wa-progressbar-outer\" />");
+                that.$bar_inner = $("<div class=\"wa-progressbar-inner\" />");
+                that.$text = $("<div class=\"wa-progressbar-text\" />");
 
                 if (that.color) {
                     that.$bar_inner.css("background-color", that.color);
@@ -1084,11 +1084,11 @@
 
             } else if (that.type === "circle") {
 
-                that.$bar_wrapper = $("<div class=\"progressbar-circle-wrapper\" />");
+                that.$bar_wrapper = $("<div class=\"wa-progressbar-circle-wrapper\" />");
                 that.$svg = $(document.createElementNS("http://www.w3.org/2000/svg", "svg"));
                 that.$bar_outer = $(document.createElementNS('http://www.w3.org/2000/svg',"circle"));
                 that.$bar_inner = $(document.createElementNS('http://www.w3.org/2000/svg',"path"));
-                that.$text = $("<div class=\"progressbar-text\" />");
+                that.$text = $("<div class=\"wa-progressbar-text\" />");
 
                 that.$svg.append(that.$bar_outer).append(that.$bar_inner);
                 that.$bar_wrapper
@@ -3420,6 +3420,41 @@ $.wa = $.extend($.wa || {}, {
         }
 
         return result;
+    },
+
+    /**
+     * @param {String} type
+     * @param {Number|String} value
+     * @return {Boolean}
+     * */
+    isValid: function (type, value) {
+        var result = false;
+
+        if (!type)
+        console.error("TYPE is required");
+
+        switch (type) {
+            case "url":
+                result = isURL(value);
+                break;
+        }
+
+        return result;
+
+        /**
+         * @param {String} string
+         * @return {Boolean}
+         * */
+        function isURL(string) {
+            var result = false,
+                regexp = /^(http:\/\/|https:\/\/)?.+\.+.+$/i;
+
+            if (string.length > 0 && (string.match(regexp) || []).length >= 1) {
+                result = true;
+            }
+
+            return result;
+        }
     },
 
     /**

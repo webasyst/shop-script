@@ -200,6 +200,7 @@ return array(
         'hash' => array('text'),
         'create_datetime' => array('datetime', 'null' => 0),
         'contact_id' => array('int', 11, 'null' => 0),
+        'mass_edit' => array('int', 11, 'null' => 1),
         'icon' => array('varchar', 255, 'null' => 1),
         ':keys' => array(
             'PRIMARY' => 'id',
@@ -743,6 +744,7 @@ return array(
         'compare_price' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         'count' => array('int', 11),
         'available' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
+        'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
         'dimension_id' => array('int', 11),
         'file_name' => array('varchar', 255, 'null' => 0, 'default' => ''),
         'file_size' => array('int', 11, 'null' => 0, 'default' => '0'),

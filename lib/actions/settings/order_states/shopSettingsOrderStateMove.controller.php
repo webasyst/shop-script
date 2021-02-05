@@ -48,7 +48,7 @@ class shopSettingsOrderStateMoveController extends waJsonController
         }
 
         if (!shopWorkflow::setConfig($config)) {
-            $this->errors[] = _w("Error when save config");
+            $this->errors[] = _w("Error on configuration saving.");
         }
     }
 }

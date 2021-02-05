@@ -18,7 +18,6 @@ class shopProdDeleteImageController extends waJsonController
             'deleted' => 0,
         ];
 
-        $deleted_count = 0;
         $product_rights_ok = [];
         foreach($images as $image) {
             if (!isset($product_rights_ok[$image['product_id']])) {

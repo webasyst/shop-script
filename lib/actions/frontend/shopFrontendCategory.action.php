@@ -96,7 +96,6 @@ class shopFrontendCategoryAction extends shopFrontendAction
     public function execute()
     {
         $category = $this->getCategory();
-        $this->addCanonical();
         // breadcrumbs
         $root_category_id = $category['id'];
         if ($category['parent_id']) {
@@ -336,10 +335,6 @@ class shopFrontendCategoryAction extends shopFrontendAction
             'category_url' => $category[$url_field],
         ], true);
 
-        $page_number = max(1, $this->getRequest()->get('page', 1, waRequest::TYPE_INT));
-        if ($page_number > 1) {
-            $canonical_url .= '?page=' . $page_number;
-        }
         $this->getResponse()->setCanonical($canonical_url);
 
         /**

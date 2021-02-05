@@ -87,6 +87,9 @@ return array(
     'order_message' => array(
         'name' => /*_w*/('sent a message to customer')
     ),
+    'order_custom' => array(
+        'name' => /*_w*/('performed a custom action (%s) with an order')
+    ),
 
     'affiliate_credit' => array(
         'name' => /*_w*/('added an affiliate credit')

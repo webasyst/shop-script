@@ -677,10 +677,14 @@ $.order_edit = {
                     $coupon_id.val(ui.item.value);
                     $coupon_code_label.html(ui.item.label).show();
                     $js_edit_coupon.add($js_coupon_icon).add($js_delete_coupon).show();
-                    $('.s-order-edit-coupon').attr('href', $('.s-order-edit-coupon').data('href') + ui.item.value);
-                    if (ui.item.value.length != 0) {
+                    if (ui.item.data.right) {
+                        $('.s-order-edit-coupon').attr('href', $('.s-order-edit-coupon').data('href') + ui.item.value);
+                        if (ui.item.value.length != 0) {
+                            $update_discount_button.click();
+                            $('.s-order-edit-coupon').removeClass('disabled-link');
+                        }
+                    } else if (ui.item.value.length != 0) {
                         $update_discount_button.click();
-                        $('.s-order-edit-coupon').removeClass('disabled-link');
                     }
                     $js_close_coupon.hide();
                 } else {

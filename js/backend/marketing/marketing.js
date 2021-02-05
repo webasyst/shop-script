@@ -380,7 +380,7 @@
             'fraction_size': 2,
             'group_divider': ' ',
             'group_size': 3,
-            'pattern_html': '%s <span class="ruble">Р</span>',
+            'pattern_html': '%s <span class="ruble">₽</span>',
             'pattern_text': '%s руб.',
             'is_primary': true,
             'rate': 1.0,

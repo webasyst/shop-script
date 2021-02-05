@@ -306,7 +306,7 @@ class shopWorkflowRefundAction extends shopWorkflowAction
         $order_items = $this->workupOrderItems($order, $transaction_data ? $plugin : null, $order_items);
         foreach ($order_items as &$item) {
             $order_items_count += intval($item['quantity']);
-            if ($item['quantity']) {
+            if ((float)$item['quantity']) {
                 $item['price_with_discount'] = $item['price'] - $item['total_discount'] / $item['quantity'];
             } else {
                 $item['price_with_discount'] = $item['price'];

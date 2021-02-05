@@ -72,13 +72,26 @@ class shopProdSaveSkuController extends waJsonController
             unset($features, $feature, $codes, $code);
         }
 
-        if (isset($product_data['skus']) && is_array($product_data['skus'])) {
+        $main_sku_id = ifset($product_data['sku_id'], null);
+        if ($main_sku_id && empty($product_data['skus'][$main_sku_id]['status'])) {
+            $this->errors[] = [
+                'id' => 'general',
+                'text' => _w('Основной артикул не может быть скрыт. Выберете другой артикул основным или включите видимость у основного артикула'),
+            ];
+        }
+
+        if (empty($this->errors) && isset($product_data['skus']) && is_array($product_data['skus'])) {
 
             // Validate SKU prices. They must not exceet certain length
+            $count_status = 0;
             foreach ($product_data['skus'] as $sku_id => &$sku) {
                 if (!is_array($sku)) {
                     unset($product_data['skus'][$sku_id]);
                     continue;
+                }
+
+                if (!empty($sku['status'])) {
+                    $count_status++;
                 }
 
                 foreach (['price', 'purchase_price', 'compare_price'] as $field) {
@@ -95,6 +108,13 @@ class shopProdSaveSkuController extends waJsonController
                 }
             }
             unset($sku);
+
+            if (!empty($product_data['skus']) && empty($count_status)) {
+                $this->errors[] = [
+                    'id' => 'general',
+                    'text' => _w('Хотя бы один артикул должен быть виден на витрине'),
+                ];
+            }
 
             // Mark SKUs for deletion if data for sku_id is missing
             // shopProduct does not touch SKUs when data is not provided
@@ -232,14 +252,18 @@ class shopProdSaveSkuController extends waJsonController
                             continue; // feature value for this sku is empty, nothing to append to name
                         }
 
-                        if (is_array($value) && isset($value['unit'])) {
-                            // For features of dimension type we need full formatting.
+                        // For features of some types we need full formatting:
+                        // Dimensions, dates and booleans.
+                        $full_formatting_needed = is_array($value) && isset($value['unit']);
+                        $full_formatting_needed = $full_formatting_needed || $feature['type'] == 'date' || $feature['type'] == 'boolean';
+
+                        if ($full_formatting_needed) {
                             // $value_formatted is an object convertable to string.
                             $value_id = $feature_model->getValueId($feature, $value, true);
                             $value_formatted = $feature_model->getValuesModel($feature['type'])->getFeatureValue($value_id);
                             $sku_name_parts[] = (string) $value_formatted;
                         } else {
-                            // For everythinng else other than dimensions, we already have the sting in the data
+                            // For everythinng else we already have the sting in the data
                             if (is_array($value)) {
                                 $sku_name_parts[] = (string) $value['value'];
                             } else {

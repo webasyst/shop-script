@@ -55,13 +55,15 @@ class shopSettingsTypefeatFeatureDuplicateController extends waJsonController
         $type_features_model->updateByFeature($feature['id'], array_keys($old_feature['types']));
 
         // Fix ordering in all types so that copy appears to be where original is
-        foreach($old_feature['sort'] as $type_id => $sort) {
-            $type_features_model->updateByField([
-                'feature_id' => $saved_feature_id,
-                'type_id' => $type_id,
-            ], [
-                'sort' => $sort,
-            ]);
+        if (!empty($old_feature['sort'])) {
+            foreach($old_feature['sort'] as $type_id => $sort) {
+                $type_features_model->updateByField([
+                    'feature_id' => $saved_feature_id,
+                    'type_id' => $type_id,
+                ], [
+                    'sort' => $sort,
+                ]);
+            }
         }
 
         $this->response = [

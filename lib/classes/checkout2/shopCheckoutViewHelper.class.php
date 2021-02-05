@@ -264,7 +264,7 @@ class shopCheckoutViewHelper
                 'can_be_ordered' => false,
             ]);
             $item['stock_count'] = $item_data['count'];
-            $item['sku_available'] = (bool)$item_data['available'] && $item_data['status'] > 0;
+            $item['sku_available'] = (bool)$item_data['available'] && (bool)$item_data['sku_status'] && $item_data['status'] > 0;
             $item['can_be_ordered'] = (bool)$item_data['can_be_ordered'];
             if (!$item['can_be_ordered']) {
                 $name = $item['name'];

@@ -228,6 +228,9 @@ HTML;
             $data['params']['actor_courier_id'] = $courier['id'];
         }
 
+        if (empty($this->original)) {
+            $this->waLog('order_custom', array('id' => $order_id, 'custom_action_name' => $this->name));
+        }
         $data['id'] = $this->order_log_model->add($data);
 
         $update = isset($result['update']) ? $result['update'] : array();

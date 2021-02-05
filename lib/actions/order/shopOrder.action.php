@@ -59,6 +59,10 @@ class shopOrderAction extends waViewAction
         $order_data_array['coupon'] = $_order['coupon'];
         $order_data_array['state'] = $_order['state'];
         $order_data_array['items'] = $order_items;
+        if (!empty($order_data_array['coupon'])) {
+            $user = wa()->getUser();
+            $order_data_array['coupon']['right'] = !!$user->getRights('shop', 'marketing');
+        }
 
         // Only show billing address if enabled in checkout settings
         $billing_address_html = null;
@@ -265,6 +269,7 @@ class shopOrderAction extends waViewAction
             // product and existing sku
             if ($item['type'] === 'product' && isset($skus[$item['sku_id']])) {
                 $s = $skus[$item['sku_id']];
+                $all_balance_stocks = $s['count'];
 
                 // for that counts that lower than low_count-thresholds show icon
 
@@ -272,7 +277,7 @@ class shopOrderAction extends waViewAction
                     if (isset($sku_stocks[$s['id']][$item['stock']['id']])) {
                         $count = $sku_stocks[$s['id']][$item['stock']['id']]['count'];
                         if ($count <= $item['stock']['low_count']) {
-                            $item['stock_icon'] = shopHelper::getStockCountIcon($count, $item['stock']['id'], true);
+                            $item['stock_icon'] = shopHelper::getStockCountIcon($count, $item['stock']['id'], true, $all_balance_stocks);
                         }
                     }
                 } elseif ($s['count'] !== null && $s['count'] <= shopStockModel::LOW_DEFAULT) {

@@ -551,16 +551,13 @@ msgid "Automatically assign all orders set to %s state to"
 msgstr "Автоматически назначать ответственным за все заказы в статусе %s"
 
 msgid "Whoever is more free (has less orders)"
-msgstr "Того, кто более свободен (пользователя с меньшим кол-вом заказов)"
+msgstr "Того, кто более свободен (пользователя с меньшим количеством заказов)"
 
 msgid "Order States"
 msgstr "Статусы заказов"
 
 msgid "Order confirmation"
 msgstr "Подтверждение заказа"
-
-msgid "New order nofication"
-msgstr "Уведомление о новом заказе"
 
 msgid "Price change"
 msgstr "Изменение цены"
@@ -691,7 +688,7 @@ msgstr "Все остальные страны"
 msgid "County taxes"
 msgstr "Местные налоги"
 
-msgid "If your jurisdiction require you to charge additional county taxes, define taxing rules by ZIP (postal) code. Use asteryx (*) for wildcard. For example, mask 12* is applicable for all ZIP codes with 12 as first two symbols, e.g. 12365, 12963, 12AB7, 12 QN93 and so on (wildcard is ok for both letters and numbers). ZIP code rules are processed one by one in the given order. Applied is the first rule matching the user ZIP code (only one matching rule is applied at a time). County tax rules are of a higher priority than state tax rules (if matched, county tax rate replaces the state tax rule when calculated during the checkout), which means that combined county rates must be provided."
+msgid "If your jurisdiction require you to charge additional county taxes, define taxing rules by ZIP (postal) code. Use asterisk (*) for wildcard. For example, mask 12* is applicable for all ZIP codes with 12 as first two symbols, e.g. 12365, 12963, 12AB7, 12 QN93 and so on (wildcard is OK for both letters and numbers). ZIP code rules are processed one by one in the given order. Applied is the first rule matching the user ZIP code (only one matching rule is applied at a time). County tax rules are of a higher priority than state tax rules (if matched, county tax rate replaces the state tax rule when calculated during the checkout), which means that combined county rates must be provided."
 msgstr "Если ваше законодательство требует взимания дополнительных местных налогов, добавьте налоговые ставки для отдельных почтовых индексов. В качестве маски используйте символ звездочки (*). Например, маска 12* обозначает все почтовые индексы, начинающиеся с цифр 12: 123654, 12963, 12AB7, 12 QN93 и т. д. (маска действует для цифр и букв). Правила для почтовых индексов обрабатываются в заданном порядке. Применяется первое правило, соответствующее почтовому индексу покупателя (применяется только одно, первое, правило). Правила расчета местных налогов имеют более высокий приоритет, чем правила налогов регионов (в случае срабатывания обоих правил местный налог используется вместо налога региона во время оформления заказа); это означает, что следует указывать объединенные местные налоговые ставки."
 
 msgid "ZIP code mask"
@@ -723,9 +720,6 @@ msgstr "Пожалуйста, исправьте ошибки"
 
 msgid "This will remove field and all its data from all existing contacts. Are you sure?"
 msgstr "Будет удалено это поле и связанные с ним данные у всех контактов. Удалить?"
-
-msgid "There no printforms"
-msgstr "Печатные формы отсутствуют"
 
 msgid "<a href=\"%s\">Browse for new plugins</a> and install them using the Installer app."
 msgstr "<a href=\"%s\">Найдите нужные плагины</a> и установите их с помощью «Инсталлера»."
@@ -922,10 +916,10 @@ msgstr "Все оставшиеся товары будут списаны с э
 msgid "Delete stock and transfer products"
 msgstr "Удалить склад и перенести товары"
 
-msgid "All rest products belonging to this stock will be transfered to another stock"
+msgid "All products available on this stock will be transferred to another stock."
 msgstr "Все оставшиеся товары будут перенесены с этого склада в другой склад"
 
-msgid "All rest products belonging to this stock will be saved on balance of corresponding skus"
+msgid "All products available on this stock will be saved on the balance of corresponding SKUs."
 msgstr "Все оставшиеся на этом складе товары будут сохранены на балансе соответствующих артикулов"
 
 msgid "Value must be a positive number"
@@ -967,7 +961,7 @@ msgstr "Типы товаров позволяют ограничить дост
 msgid "Edit product type"
 msgstr "Редактировать тип товаров"
 
-msgid "This will delete the entire product type, leaving all its products untyped. Are you sure?"
+msgid "This product type will be deleted and all its products will remain without a type. Are you sure?"
 msgstr "Этот тип товаров будет удален; все товары этого типа останутся без определенного типа. Удалить?"
 
 msgid "New feature"
@@ -1831,7 +1825,7 @@ msgstr "Показать еще"
 msgid "This will delete the entire customer category (customers will not be deleted). Are you sure?"
 msgstr "Будет удалена категория покупателей (покупатели удалены не будут). Продолжить?"
 
-msgid "Category has beed deleted."
+msgid "The category has been deleted."
 msgstr "Категория удалена."
 
 msgid "New customer category"
@@ -1972,9 +1966,6 @@ msgstr "Флажок"
 msgid "Unknown stock"
 msgstr "Неизвестный склад"
 
-msgid "Unknow destination stock"
-msgstr "Неизвестный склад назначения"
-
 msgid "Error when deleting"
 msgstr "Ошибка при удалении"
 
@@ -1999,7 +1990,7 @@ msgstr "равно"
 msgid "is not same"
 msgstr "не равно"
 
-msgid "Error when save config"
+msgid "Error on configuration saving."
 msgstr "Ошибка при сохранении конфигурации"
 
 msgid "Unknown currency"
@@ -2026,12 +2017,6 @@ msgstr "Неизвестное родительское поле"
 msgid "Product feature not found"
 msgstr "Характеристика не найдена"
 
-msgid "Unkown offset"
-msgstr "Неизвестное смещение"
-
-msgid "Unkown count"
-msgstr "Неизвестное количество"
-
 msgid "Unknown product"
 msgstr "Неизвестный товар"
 
@@ -2041,7 +2026,7 @@ msgstr "Ошибка при переносе"
 msgid "Unknown image"
 msgstr "Неизвестное изображение"
 
-msgid "Coudn’t delete image"
+msgid "Image deletion has failed."
 msgstr "Не удалось удалить изображение"
 
 msgid "Error while rebuild thumbnails"
@@ -2050,19 +2035,16 @@ msgstr "Ошибка при обновлении эскизов"
 msgid "Error saving product page"
 msgstr "Ошибка при сохранении страницы товара"
 
-msgid "Unkown service"
-msgstr "Неизвестная услуга"
-
 msgid "Error while rotate. I/O error"
 msgstr "Ошибка при выполнении поворота. Ошибка ввода-вывода."
 
 msgid "Error while rotate. Operation canceled"
 msgstr "Ошибка при выполнении поворота. Отмена операции."
 
-msgid "Error while rotate. Original file corupted but backuped"
+msgid "Error while rotate. The original file is corrupted but backed up."
 msgstr "Ошибка при выполнении поворота. Оригинальный файл поврежден, но сохранен."
 
-msgid "Error when delete: unknown sku"
+msgid "Deletion error: unknown SKU."
 msgstr "Ошибка удаления: неизвестный артикул"
 
 msgid "Error when delete: unknown product"
@@ -2559,9 +2541,6 @@ msgstr "Добавить способ оплаты"
 
 msgid "No payment options are defined."
 msgstr "Не определено ни одного способа оплаты."
-
-msgid "http://www.webasyst.net/support/help/payment-shipping-icons.html"
-msgstr "http://old.webasyst.ru/support/help/payment-shipping-icons.html"
 
 msgid "Your online store base country."
 msgstr "Страна, в которой располагается ваш интернет-магазин."
@@ -5392,23 +5371,23 @@ msgstr[0] "%d артикул будет обновлен"
 msgstr[1] "%d артикула будут обновлены"
 msgstr[2] "%d артикулов будут обновлены"
 
-msgid "Excessive declaration for a category on %d line"
-msgid_plural "Excessive declaration for a category on %d lines"
-msgstr[0] "Избыточное описание категорий на %d строке файла"
-msgstr[1] "Избыточное описание категорий на %d строках файла"
-msgstr[2] "Избыточное описание категорий на %d строках файла"
+msgid "Duplicate category entries on %d line"
+msgid_plural "Duplicate category entries on %d lines"
+msgstr[0] "Дублирующиеся записи категорий на %d строке"
+msgstr[1] "Дублирующиеся записи категорий на %d строках"
+msgstr[2] "Дублирующиеся записи категорий на %d строках"
 
-msgid "Identical product declaration on %d line. All lines declaring the same product will be grouped and merged"
-msgid_plural "Identical product declaration on %d lines. All lines declaring the same product will be grouped and merged"
-msgstr[0] "Избыточное описание товаров на %d строке файла"
-msgstr[1] "Избыточное описание товаров на %d строках файла"
-msgstr[2] "Избыточное описание товаров на %d строках файла"
+msgid "Duplicate product entries on %d line"
+msgid_plural "Duplicate product entries on %d lines"
+msgstr[0] "Дублирующиеся записи товаров на %d строке"
+msgstr[1] "Дублирующиеся записи товаров на %d строках"
+msgstr[2] "Дублирующиеся записи товаров на %d строках"
 
-msgid "Excessive declaration for a SKU on %d line"
-msgid_plural "Excessive declaration for a SKU on %d lines"
-msgstr[0] "Избыточное описание артикулов на %d строке файла"
-msgstr[1] "Избыточное описание артикулов на %d строках файла"
-msgstr[2] "Избыточное описание артикулов на %d строках файла"
+msgid "Duplicate SKU entries on %d line"
+msgid_plural "Duplicate SKU entries on %d lines"
+msgstr[0] "Дублирующиеся записи артикулов на %d строке"
+msgstr[1] "Дублирующиеся записи артикулов на %d строках"
+msgstr[2] "Дублирующиеся записи артикулов на %d строках"
 
 msgid "Added %d category"
 msgid_plural "Added %d categories"
@@ -6355,6 +6334,9 @@ msgstr "Сообщение отправлено"
 msgid "sent a message to customer"
 msgstr "отправил сообщение покупателю"
 
+msgid "performed a custom action (%s) with an order"
+msgstr "выполнил пользовательское действие (%s) с заказом"
+
 msgid "Select from a list of values (select)"
 msgstr "Выбор значения из списка (select)"
 
@@ -6643,8 +6625,8 @@ msgstr "Новая акция"
 msgid "Promos is an efficient and super easy way to display your custom offers and specials on your online store homepage. Every promo card has a picture, a title, and a custom link."
 msgstr "Промокарточки — это эффективный и очень простой способ представления акций и специальных предложений на главной странице интернет-магазина. Каждая промокарточка представляет собой изображение, заголовок и ссылку."
 
-msgid "Automated assignment of guest orders to existing customers will not work on following sites: <strong>%s</strong>. Due to privacy considerations, auto order assignment requires enabling “Confirm signup” option in <em>Site app > select your domain > Personal > Login and signup settings</em>."
-msgstr "Автоматическое прикрепление заказов к существующим покупателям не будет работать на следующих сайтах: <strong>%s</strong>. Из соображений конфиденциальности функциональность автоматического прикрепления заказов будет работать, только если для сайта включена настройка «Подтверждать регистрацию» в приложении «Сайт» в разделе <em>Личный кабинет > Настройки входа и регистрации</em>."
+msgid "Automated assignment of guest orders to existing customers will not work on the following websites: <strong>%s</strong>. Due to privacy considerations, automatic order assignment requires enabling “<strong>Confirm signup</strong>” option at <em>Site app → [select your domain] → Personal → Login and signup settings</em>. The “Confirm signup” option is available only if the option “<strong>A user enters a password during signup</strong>” is selected for the “Passwords type” setting."
+msgstr "Автоматическое прикрепление заказов к существующим покупателям не будет работать на следующих сайтах: <strong>%s</strong>. Из соображений конфиденциальности функциональность автоматического прикрепления заказов будет работать, только если для сайта включена настройка «<strong>Подтверждать регистрацию</strong>» в приложении «Сайт» в разделе <em>Личный кабинет → Настройки входа и регистрации</em>. Настройка «Подтверждать регистрацию» доступна, когда выбран вариант «<strong>Пользователь вводит свой пароль при регистрации</strong>» для настройки «Система паролей»."
 
 msgid "Latest blog updates"
 msgstr "Новые записи в блоге"
@@ -7429,8 +7411,8 @@ msgstr "В пути"
 msgid "Maximum of %d orders is allowed for bulk form printing."
 msgstr "Максимальное количество заказов, которые можно распечатать за раз — %d."
 
-msgid "Simply copy-and-paste the URL of product video on YouTube or Vimeo."
-msgstr "Просто скопируйте в это поле адрес видео на YouTube или Vimeo."
+msgid "Copy and paste the URL of a product video from the YouTube or Vimeo website."
+msgstr "Скопируйте в это поле адрес видеоролика товара с сайта YouTube или Vimeo."
 
 msgid "Virtual stock must include at least one real stock."
 msgstr "Выберите хотя бы один реальный склад для этого виртуального склада."
@@ -9381,6 +9363,9 @@ msgstr "Вам больше не нужно подтверждать это зн
 msgid "You cannot use these values."
 msgstr "Вы не можете использовать эти данные."
 
+msgid "You cannot use these values because they belong to another customer. To use them during the checkout, please log out and log in again with these contact data."
+msgstr "Вы не можете использовать эти данные, потому что они относятся к другому покупателю. Чтобы использовать их при оформлении заказа, выйдите и войдите снова с этими контактными данными."
+
 msgid "Please confirm your contact data."
 msgstr "Необходимо подтвердить свои контактные данные."
 
@@ -10485,7 +10470,7 @@ msgstr "Список товаров с идентификатором «%s» п�
 msgid "Start by <a href=\"%s\">creating a product</a> in your store backend."
 msgstr "Начните с <a href=\"%s\">создания товара</a> в бекенде интернет-магазина."
 
-msgid "Product type adding error"
+msgid "Product type adding error."
 msgstr "Ошибка создания типа товара"
 
 msgid "Yes/No toggle"
@@ -11205,8 +11190,8 @@ msgstr "Добавить артикул"
 msgid "Generate multiple SKUs"
 msgstr "Сгенерировать несколько артикулов"
 
-msgid "The SKU generation form is not available yet, we are still working on it."
-msgstr "Форма генерации артикулов еще недоступна, мы пока работаем над ней."
+msgid "Automatically create product SKUs matching all selected feature settings."
+msgstr "Автоматически создайте артикулы товара, соответствующие выбранным значениям характеристик."
 
 msgid "Variant ID"
 msgstr "ID модификации"
@@ -11789,3 +11774,9 @@ msgid_plural "%d characters."
 msgstr[0] "%d символ."
 msgstr[1] "%d символа."
 msgstr[2] "%d символов."
+
+msgid "Cannot save the value of the “GTIN” feature for this product."
+msgstr "Не удалось сохранить значение характеристики «GTIN» для этого товара."
+
+msgid "Cannot save the value of the “GTIN” feature for an SKU of this product."
+msgstr "Не удалось сохранить значение характеристики «GTIN» для артикула этого товара."

@@ -21,37 +21,42 @@
                         <input type="text" class="large long" name="filter[name]" value="{$filter.name|escape}" placeholder="[`Filter name`]">
                     </div>
                 </div>
+                {$can_edit = $filter.mass_edit == 0 || $filter.mass_edit == $wa->user()->getId()}
                 <div class="field">
                     <div class="name">
                         [`Visibility`]
                     </div>
-                    {if $is_admin}
-
-                        <div class="value no-shift s-ibutton-checkbox">
-                            <ul class="menu-h">
-                                <li><label for="s-filter-visibility"><span class="s-unselected">[`Only me`]</span></label></li>
-                                <li><input type="checkbox"{if $filter.contact_id <= 0} checked="checked"{/if} id="s-filter-visibility"></li>
-                                <li><label for="s-filter-visibility"><span>[`Everybody`]</span></label></li>
-                            </ul>
-                        </div>
-
-                        <!-- PUBLIC FILTER details -->
-                        <div class="value no-shift">
-                            <p class="small">
-                                [`Limit visibility only to the selected user groups`]:
-                                <select name="filter[contact_id]">
-                                    <option value="0" {if $filter.contact_id==0} selected="selected"{/if}>[`Everybody`]</option>
-                                    {foreach $groups as $group_id => $group}
-                                        <option value="-{$group_id}" {if $filter.contact_id == -$group_id} selected="selected"{/if}>{$group|escape}</option>
-                                    {/foreach}
-                                </select>
-                            </p>
-                        </div>
-                    {else}
-                        <div class="value no-shift">
-                            [`Only me`] <i class="icon10 lock-bw"></i>
-                        </div>
-                    {/if}
+                    <div class="value no-shift s-ibutton-checkbox">
+                        <ul class="menu-h">
+                            <li><label for="s-filter-visibility"><span class="s-unselected">[`Only me`]</span></label></li>
+                            <li><input type="checkbox" id="s-filter-visibility" {if $filter.contact_id < 1}checked="checked"{/if} {if !$can_edit}disabled{/if}></li>
+                            <li><label for="s-filter-visibility"><span>[`Everybody`]</span></label></li>
+                        </ul>
+                    </div>
+                    <!-- PUBLIC FILTER details -->
+                    <div class="value no-shift">
+                        <p class="small">
+                            [`Limit visibility only to the selected user groups`]:
+                            <select name="filter[contact_id]" {if !$can_edit}disabled{/if}>
+                                <option value="0" {if $filter.contact_id == 0} selected="selected"{/if}>[`Everybody`]</option>
+                                {foreach $groups as $group_id => $group}
+                                    <option value="-{$group_id}" {if $filter.contact_id == -$group_id} selected="selected"{/if}>{$group|escape}</option>
+                                {/foreach}
+                            </select>
+                        </p>
+                    </div>
+                </div>
+                <div class="field" id="dependent-field" {if $filter.contact_id > 0}style="display:none"{/if}>
+                    <div class="name">
+                        [`Кто может редактировать`]
+                    </div>
+                    <div class="value no-shift s-ibutton-checkbox">
+                        <ul class="menu-h">
+                            <li><label for="s-filter-editable"><span class="s-unselected">[`Только я`]</span></label></li>
+                            <li><input type="checkbox" id="s-filter-editable" name="filter[mass_edit]" {if $filter.mass_edit == 0}checked="checked"{/if}  {if !$can_edit}disabled{/if}></li>
+                            <li><label for="s-filter-editable"><span>[`Другие пользователи`]</span></label></li>
+                        </ul>
+                    </div>
                 </div>
                 <div class="field">
                     <div class="name">
@@ -95,11 +100,41 @@
         var init = function(container) {
 
             (function(checkbox) {
-                var duration = 0;
-                var wrapper = checkbox.closest('div.value');
-                var related = wrapper.next('div.value');
-                var label_only_me = wrapper.find('li span').first();
-                var label_everybody = wrapper.find('li span').last();
+                var duration = 0,
+                    $filter_editable = $('#dependent-field'),
+                    wrapper = checkbox.closest('div.value'),
+                    related = wrapper.nextAll('div.value'),
+                    label_only_me = wrapper.find('li span').first(),
+                    label_everybody = wrapper.find('li span').last();
+
+                checkbox.change(function () {
+                    if (this.checked) {
+                        related.find(':input').prop('disabled', false);
+                        related.slideDown(duration);
+                        $filter_editable.slideDown(duration);
+                        label_everybody.removeClass('s-unselected');
+                        label_only_me.addClass('s-unselected');
+                    } else {
+                        related.find(':input').prop('disabled', true);
+                        related.slideUp(duration);
+                        $filter_editable.slideUp(duration);
+                        label_everybody.addClass('s-unselected');
+                        label_only_me.removeClass('s-unselected');
+                    }
+                }).change().iButton({
+                    labelOn: '',
+                    labelOff: '',
+                    className: 'mini'
+                });
+            })($('#s-filter-visibility'));
+
+            (function(checkbox) {
+                var duration = 0,
+                    wrapper = checkbox.closest('div.value'),
+                    related = wrapper.next('div.value'),
+                    label_only_me = wrapper.find('li span').first(),
+                    label_everybody = wrapper.find('li span').last();
+
                 checkbox.change(function () {
                     if (this.checked) {
                         related.find(':input').prop('disabled', false);
@@ -117,7 +152,7 @@
                     labelOff: '',
                     className: 'mini'
                 });
-            })($('#s-filter-visibility'));
+            })($('#s-filter-editable'));
 
             (function(icons) {
                 icons.on('click', 'li a', function() {

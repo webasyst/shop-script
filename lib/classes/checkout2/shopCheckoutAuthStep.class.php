@@ -228,10 +228,11 @@ class shopCheckoutAuthStep extends shopCheckoutStep
 
             if ($raw_errors) {
                 foreach ($raw_errors as $field => $value) {
+                    $error_message = empty(wa()->getUser()->getId()) ? _w("You cannot use these values.") : _w("You cannot use these values because they belong to another customer. To use them during the checkout, please log out and log in again with these contact data.");
                     $errors[] = [
                         'name' => "auth[data][$field]",
                         'id'   => $error_type,
-                        'text' => _w("You cannot use these values.")
+                        'text' => $error_message
                     ];
                 }
                 break;

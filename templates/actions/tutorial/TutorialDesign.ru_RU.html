@@ -18,22 +18,33 @@
 <div class="s-unboarding-wrapper">
     <h1>Выберите и настройте тему дизайна</h1>
 
-    <p>
-        {if !empty($_themes)}
+    <div class="s-tutorial-block">
+        <p>
+            {if !empty($_themes)}
             В вашем магазине уже установлен{$letter} тем{$letter} дизайна <strong>«{$_themes}»</strong><br/>
             Настройте ее как вам нужно на вкладке «Оформление» в разделе «Магазин → Витрина».
-        {else}
+            {else}
             В вашем магазине еще не установлены темы дизайна.
-        {/if}
-    </p>
+            {/if}
+        </p>
 
-    <p><img src="{$wa_app_static_url}img/backend/tutorial/ru/step-3-1.png"></p>
+        <p><img src="{$wa_app_static_url}img/backend/tutorial/ru/step-3-1.png"></p>
+    </div>
 
-    <p>Если вам нужен совсем другой дизайн, выберите и установите любую тему дизайна из магазина Webasyst на вкладке «Темы дизайна». Темы есть бесплатные и платные. Все они устанавливаются автоматически — одной кнопкой.</p>
+    <div class="s-tutorial-block">
+        <p>Если вам нужен совсем другой дизайн, выберите и установите любую тему дизайна из магазина Webasyst на вкладке «Темы дизайна». Темы есть бесплатные и платные. Все они устанавливаются автоматически — одной кнопкой.</p>
 
-    <p><img src="{$wa_app_static_url}img/backend/tutorial/ru/step-3-2.png"></p>
+        <p><img src="{$wa_app_static_url}img/backend/tutorial/ru/step-3-2.png"></p>
 
-    <p>После установки новой темы дизайна выберите ее в разделе «Магазин → Витрина» на вкладке «Настройки».</p>
+        <p>После установки новой темы дизайна выберите ее в разделе «Магазин → Витрина» на вкладке «Настройки».</p>
+
+        <div class="video-links">
+            Посмотрите видеоурок
+            <ul class="menu-v compact">
+                <li><a href="https://www.youtube.com/watch?v=cbZa8wykuYA&list=PL3TRPSqkoZRlZ7FcxdpmykLtVDKPUGpKz&index=8" target="_blank">Как настраивать дизайн витрины <i class="icon16 new-window"></i></a></li>
+            </ul>
+        </div>
+    </div>
 
     <div class="s-actions-wrapper">
         <a href="{if isset($prev_step) && $actions[$prev_step]}{$actions[$prev_step]['href']}{else}javascript:void(0){/if}" class="button yellow">&larr; Назад</a>

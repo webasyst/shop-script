@@ -535,7 +535,7 @@ msgstr ""
 msgid "This will delete the entire customer category (customers will not be deleted). Are you sure?"
 msgstr ""
 
-msgid "Category has beed deleted."
+msgid "The category has been deleted."
 msgstr ""
 
 msgid "All customers"
@@ -1831,7 +1831,7 @@ msgstr ""
 msgid "Edit product type"
 msgstr ""
 
-msgid "This will delete the entire product type, leaving all its products untyped. Are you sure?"
+msgid "This product type will be deleted and all its products will remain without a type. Are you sure?"
 msgstr ""
 
 msgid "Feature type and values"
@@ -2410,9 +2410,6 @@ msgstr ""
 msgid "Allowed shipping options"
 msgstr ""
 
-msgid "There no printforms"
-msgstr ""
-
 msgid "Browse plugins"
 msgstr ""
 
@@ -2596,7 +2593,7 @@ msgstr ""
 msgid "Delete stock"
 msgstr ""
 
-msgid "All rest products belonging to this stock will be saved on balance of corresponding skus"
+msgid "All products available on this stock will be saved on the balance of corresponding SKUs."
 msgstr ""
 
 msgid "Delete stock and write off products"
@@ -2608,7 +2605,7 @@ msgstr ""
 msgid "Delete stock and transfer products"
 msgstr ""
 
-msgid "All rest products belonging to this stock will be transfered to another stock"
+msgid "All products available on this stock will be transferred to another stock."
 msgstr ""
 
 msgid "Value must be a positive number"
@@ -2686,7 +2683,7 @@ msgstr ""
 msgid "County taxes"
 msgstr ""
 
-msgid "If your jurisdiction require you to charge additional county taxes, define taxing rules by ZIP (postal) code. Use asteryx (*) for wildcard. For example, mask 12* is applicable for all ZIP codes with 12 as first two symbols, e.g. 12365, 12963, 12AB7, 12 QN93 and so on (wildcard is ok for both letters and numbers). ZIP code rules are processed one by one in the given order. Applied is the first rule matching the user ZIP code (only one matching rule is applied at a time). County tax rules are of a higher priority than state tax rules (if matched, county tax rate replaces the state tax rule when calculated during the checkout), which means that combined county rates must be provided."
+msgid "If your jurisdiction require you to charge additional county taxes, define taxing rules by ZIP (postal) code. Use asterisk (*) for wildcard. For example, mask 12* is applicable for all ZIP codes with 12 as first two symbols, e.g. 12365, 12963, 12AB7, 12 QN93 and so on (wildcard is OK for both letters and numbers). ZIP code rules are processed one by one in the given order. Applied is the first rule matching the user ZIP code (only one matching rule is applied at a time). County tax rules are of a higher priority than state tax rules (if matched, county tax rate replaces the state tax rule when calculated during the checkout), which means that combined county rates must be provided."
 msgstr ""
 
 msgid "No county taxes are defined."
@@ -3442,19 +3439,13 @@ msgstr ""
 msgid "Unknown product"
 msgstr ""
 
-msgid "Unkown offset"
-msgstr ""
-
-msgid "Unkown count"
-msgstr ""
-
 msgid "Empty code"
 msgstr ""
 
 msgid "Unknown image"
 msgstr ""
 
-msgid "Coudn’t delete image"
+msgid "Image deletion has failed."
 msgstr ""
 
 msgid "Image not found"
@@ -3472,7 +3463,7 @@ msgstr ""
 msgid "Error while rotate. Operation canceled"
 msgstr ""
 
-msgid "Error while rotate. Original file corupted but backuped"
+msgid "Error while rotate. The original file is corrupted but backed up."
 msgstr ""
 
 msgid "Page couldn’t be inserted before itself."
@@ -3487,10 +3478,7 @@ msgstr ""
 msgid "Check at least one feature value"
 msgstr ""
 
-msgid "Unkown service"
-msgstr ""
-
-msgid "Error when delete: unknown sku"
+msgid "Deletion error: unknown SKU."
 msgstr ""
 
 msgid "Error when delete: unknown product"
@@ -3656,7 +3644,7 @@ msgstr ""
 msgid "Cannot delete order status while there are active orders in this status"
 msgstr ""
 
-msgid "Error when save config"
+msgid "Error on configuration saving."
 msgstr ""
 
 msgid "New State"
@@ -3698,9 +3686,6 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "Unknown stock"
-msgstr ""
-
-msgid "Unknow destination stock"
 msgstr ""
 
 msgid "Error when deleting"
@@ -4475,8 +4460,8 @@ msgid_plural "%d SKUs to be updated"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Excessive declaration for a category on %d line"
-msgid_plural "Excessive declaration for a category on %d lines"
+msgid "Duplicate category entries on %d line"
+msgid_plural "Duplicate category entries on %d lines"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -4485,8 +4470,8 @@ msgid_plural "Identical product declaration on %d lines. All lines declaring the
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Excessive declaration for a SKU on %d line"
-msgid_plural "Excessive declaration for a SKU on %d lines"
+msgid "Duplicate SKU entries on %d line"
+msgid_plural "Duplicate SKU entries on %d lines"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -5488,6 +5473,9 @@ msgstr ""
 msgid "sent a message to customer"
 msgstr ""
 
+msgid "performed a custom action (%s) with an order"
+msgstr ""
+
 msgid "Select from a list of values (select)"
 msgstr ""
 
@@ -5740,7 +5728,7 @@ msgstr ""
 msgid "Promos is an efficient and super easy way to display your custom offers and specials on your online store homepage. Every promo card has a picture, a title, and a custom link."
 msgstr ""
 
-msgid "Automated assignment of guest orders to existing customers will not work on following sites: <strong>%s</strong>. Due to privacy considerations, auto order assignment requires enabling “Confirm signup” option in <em>Site app > select your domain > Personal > Login and signup settings</em>."
+msgid "Automated assignment of guest orders to existing customers will not work on the following websites: <strong>%s</strong>. Due to privacy considerations, automatic order assignment requires enabling “<strong>Confirm signup</strong>” option at <em>Site app → [select your domain] → Personal → Login and signup settings</em>. The “Confirm signup” option is available only if the option “<strong>A user enters a password during signup</strong>” is selected for the “Passwords type” setting."
 msgstr ""
 
 msgid "Latest blog updates"
@@ -6607,7 +6595,7 @@ msgstr ""
 msgid "Order data was merged into %s"
 msgstr ""
 
-msgid "Simply copy-and-paste the URL of product video on YouTube or Vimeo."
+msgid "Copy and paste the URL of a product video from the YouTube or Vimeo website."
 msgstr ""
 
 msgid "Product list is empty"
@@ -6623,9 +6611,6 @@ msgid "Transfer ID is already in use"
 msgstr ""
 
 msgid "Not in stock on %s"
-msgstr ""
-
-msgid "New order nofication"
 msgstr ""
 
 msgid "Not round"

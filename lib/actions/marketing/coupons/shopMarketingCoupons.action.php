@@ -2,9 +2,12 @@
 
 class shopMarketingCouponsAction extends shopMarketingViewAction
 {
+    const PAGES_STEP = 50;
+
     public function execute()
     {
         $id = waRequest::param('coupon_id');
+        $page_number = waRequest::get('page', 1, waRequest::TYPE_INT);
 
         if ($id == 'create') {
             $id = null;
@@ -21,7 +24,15 @@ class shopMarketingCouponsAction extends shopMarketingViewAction
         $type_model = new shopTypeModel();
 
         $currencies = $curm->getAll('code');
-        $coupons = $coupm->order('id DESC')->fetchAll('id');
+
+        $pages_count = ceil($coupm->countAll() / self::PAGES_STEP);
+        if ($page_number < 1) {
+            $page_number = 1;
+        } elseif ($pages_count > 0 && $page_number > $pages_count) {
+            $page_number = $pages_count;
+        }
+        $offset = $page_number * self::PAGES_STEP - self::PAGES_STEP;
+        $coupons = $coupm->order('id DESC')->limit($offset . ',' . self::PAGES_STEP)->fetchAll('id');
         foreach ($coupons as &$c) {
             $c['enabled'] = shopCouponModel::isEnabled($c);
             $c['hint'] = shopCouponModel::formatValue($c, $currencies);
@@ -91,6 +102,7 @@ class shopMarketingCouponsAction extends shopMarketingViewAction
         $this->view->assign('overall_discount_formatted', $overall_discount_formatted);
         $this->view->assign('formatted_value', shopCouponModel::formatValue($coupon, $currencies));
         $this->view->assign('is_enabled', shopCouponModel::isEnabled($coupon));
+        $this->view->assign('pages_count', $pages_count);
 
     }
 

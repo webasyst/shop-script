@@ -44,6 +44,10 @@ class shopFrontendProductAction extends shopFrontendAction
         $skus = $product->skus;
 
         foreach ($skus as $sku_id => $sku) {
+            if (empty($sku['status'])) {
+                unset($skus[$sku_id]);
+                continue;
+            }
             // Compare price should be greater than price
             if ($sku['compare_price'] && ($sku['price'] >= $sku['compare_price'])) {
                 $skus[$sku_id]['compare_price'] = 0.0;
@@ -83,6 +87,7 @@ class shopFrontendProductAction extends shopFrontendAction
                     'sku'           => '',
                     'id'            => null,
                     'available'     => false,
+                    'status'        => false,
                     'count'         => 0,
                     'price'         => null,
                     'compare_price' => null,
@@ -134,11 +139,33 @@ class shopFrontendProductAction extends shopFrontendAction
             return;
         }
 
-        $features_selectable = $product->features_selectable;
-        $this->view->assign('features_selectable', $features_selectable);
-
         $product_features_model = new shopProductFeaturesModel();
         $sku_features = $product_features_model->getSkuFeatures($product->id);
+
+        $sku_features_keys = array_keys($sku_features);
+        $product_sku_keys = array_keys($product->skus);
+        $hidden_skus = array_diff($sku_features_keys, $product_sku_keys);
+        $features_selectable = $product->features_selectable;
+        foreach ($hidden_skus as $hidden_sku_id) {
+            foreach ($sku_features[$hidden_sku_id] as $id => $sku_id) {
+                $match = false;
+                foreach ($product_sku_keys as $visible_sku_id) {
+                    foreach ($sku_features[$visible_sku_id] as $v_id => $v_sku_id) {
+                        if ($id == $v_id && $sku_id == $v_sku_id) {
+                            $match = true;
+                        }
+                    }
+                }
+                if ($match == false
+                    && isset($features_selectable[$id]['values'][$sku_id])
+                    && count($features_selectable[$id]['values']) > 1
+                ) {
+                    unset($features_selectable[$id]['values'][$sku_id]);
+                }
+            }
+        }
+
+        $this->view->assign('features_selectable', $features_selectable);
 
         $sku_selectable = array();
         foreach ($sku_features as $sku_id => $sf) {
@@ -155,7 +182,7 @@ class shopFrontendProductAction extends shopFrontendAction
             $sku_selectable[$sku_f] = array(
                 'id'        => $sku_id,
                 'price'     => (float)shop_currency($sku['price'], $product['currency'], null, false),
-                'available' => $product->status && $sku['available'] &&
+                'available' => $product->status && $sku['available'] && $sku['status'] &&
                     ($this->getConfig()->getGeneralSettings('ignore_stock_count') || $sku['count'] === null || $sku['count'] > 0),
                 'image_id'  => (int)$sku['image_id'],
             );
@@ -188,7 +215,6 @@ class shopFrontendProductAction extends shopFrontendAction
         }
 
         $product = new shopProduct($product, true);
-
         if ($product['status'] < 0) {
             // do the redirect when product is in "hidden and not available" status
             $this->handleHiddenAndNotAvailable($product);
@@ -213,8 +239,6 @@ class shopFrontendProductAction extends shopFrontendAction
         if (!$is_cart) {
             $this->getBreadcrumbs($product);
         }
-
-        $this->addCanonical();
 
         // get services
         list($services, $skus_services) = $this->getServiceVars($product);
@@ -277,6 +301,8 @@ class shopFrontendProductAction extends shopFrontendAction
                 wa()->getResponse()->setMeta('description', $meta_fields['meta_description']);
             }
         }
+
+        $this->getResponse()->setCanonical();
 
         $this->setThemeTemplate($is_cart ? 'product.cart.html' : 'product.html');
     }

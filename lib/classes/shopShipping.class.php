@@ -267,7 +267,17 @@ class shopShipping extends waAppShipping
                 $features = $feature_model->getByField((count($dimensions) == 1) ? 'parent_id' : 'id', $dimensions, true);
 
                 if (count($features) == 3) {
-                    $map += array_combine($dimension_fields, array_values($features));
+                    if (count($dimensions) == 1) {
+                        $map += array_combine($dimension_fields, array_values($features));
+                    } else {
+                        // height|width|length => feature_id
+                        $feature_ids = array_combine($dimensions, $dimension_fields);
+                        foreach($features as $f) {
+                            // height|width|length => feature
+                            $map[$feature_ids[$f['id']]] = $f;
+                        }
+                    }
+
                     if (isset($units['dimensions'])) {
                         foreach ($dimension_fields as $field) {
                             $units[$field] = $units['dimensions'];

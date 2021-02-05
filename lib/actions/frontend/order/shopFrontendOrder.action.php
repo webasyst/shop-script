@@ -14,6 +14,14 @@ class shopFrontendOrderAction extends shopFrontendAction
     protected $checkout_config;
     protected $render_default_theme;
 
+    /**
+     * Action constructor should not throw exceptions because
+     * they can not be shown using design theme template.
+     * Yet, we still want to check in constructor for certain things
+     * because layouts should be set in constructor.
+     */
+    protected $constructor_exception = null;
+
     public function __construct($params = null)
     {
         parent::__construct($params);
@@ -21,7 +29,8 @@ class shopFrontendOrderAction extends shopFrontendAction
         // Is new checkout enabled in settlement settings?
         $route = wa()->getRouting()->getRoute();
         if (2 != ifset($route, 'checkout_version', null)) {
-            throw new waException(_ws('Page not found'), 404);
+            $this->constructor_exception = new waException(_ws('Page not found'), 404);
+            return;
         }
 
         // Render page in styles of default theme depending on checkout settings
@@ -39,9 +48,17 @@ class shopFrontendOrderAction extends shopFrontendAction
             // Make sure current theme supports new checkout
             $theme_template_path = $this->getTheme()->path.'/'.self::THEME_FILE;
             if (!file_exists($theme_template_path)) {
-                throw new waException(_w('Page not supported by selected design theme.'), 500);
+                $this->constructor_exception = new waException(_w('Page not supported by selected design theme.'), 500);
+                return;
             }
             $this->setThemeTemplate(self::THEME_FILE);
+        }
+    }
+
+    public function preExecute()
+    {
+        if ($this->constructor_exception) {
+            throw new waException($this->constructor_exception);
         }
     }
 
@@ -71,6 +88,7 @@ class shopFrontendOrderAction extends shopFrontendAction
         return [
             'config' => $this->checkout_config,
             'contact' => wa()->getUser(),
+            'root_path' => wa()->getConfig()->getRootPath()
         ];
     }
 }

@@ -16,7 +16,7 @@ class shopFrontendTagAction extends shopFrontendAction
         $this->view->assign('title', waRequest::param('tag'), true);
         $this->getResponse()->setTitle(htmlspecialchars($tag).' — '.$this->getStoreName());
 
-        $this->addCanonical();
+        $this->getResponse()->setCanonical();
 
         /**
          * @event frontend_search

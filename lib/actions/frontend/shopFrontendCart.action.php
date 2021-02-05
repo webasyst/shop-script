@@ -201,7 +201,7 @@ class shopFrontendCartAction extends shopFrontendAction
             if ($row['sku_name']) {
                 $row['name'] .= ' ('.$row['sku_name'].')';
             }
-            if ($row['available'] && $row['status'] > 0) {
+            if ($row['available'] && $row['sku_status'] && $row['status'] > 0) {
                 if ($row['count'] > 0) {
                     $message = _w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.');
                     $errors[$row['id']] = sprintf($message, $row['count'], $row['name']);

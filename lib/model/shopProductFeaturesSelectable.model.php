@@ -288,6 +288,7 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
             'sku'       => '',
             'virtual'   => 1,
             'available' => 1,
+            'status'    => 1,
             'count'     => null
         );
 
@@ -665,6 +666,7 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
             $data = array(
                 'code' => array(
                     'weight',
+                    'gtin'
                 ),
             );
             $features = $model->select('id')->where('code in (s:code)', $data)->fetchAll('id');

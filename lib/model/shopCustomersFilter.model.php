@@ -8,7 +8,9 @@ class shopCustomersFilterModel extends waModel
     {
         $filter['create_datetime'] = ifempty($filter['create_datetime'], date('Y-m-d H:i:s'));
         $filter['name'] = ifempty($filter['name'], _w('No name filter'));
-        $filter['contact_id'] = ifset($filter['contact_id'], wa()->getUser()->getId());
+        $user_id = wa()->getUser()->getId();
+        $filter['contact_id'] = ifset($filter['contact_id'], $user_id);
+        $filter['mass_edit'] = ifset($filter['mass_edit'], $user_id);
         if (empty($filter['hash'])) {
             $filter['hash'] = null;
         }
@@ -17,8 +19,16 @@ class shopCustomersFilterModel extends waModel
 
     public function update($filter)
     {
-        if (!($item = $this->getById(ifset($filter['id'], 0)))) {
+        $item = $this->getById(ifset($filter['id'], 0));
+        if (!$item) {
             return false;
+        }
+        $user_id = wa()->getUser()->getId();
+        if ($item['mass_edit'] == 0 || $item['mass_edit'] == $user_id) {
+            $filter['contact_id'] = ifset($filter['contact_id'], $user_id);
+            if ($filter['contact_id'] < 1) {
+                $filter['mass_edit'] = ifset($filter['mass_edit'], $user_id);
+            }
         }
         return $this->updateById($item['id'], $filter);
     }
@@ -39,18 +49,14 @@ class shopCustomersFilterModel extends waModel
     public function getFilters()
     {
         $user = wa()->getUser();
-        if ($user->isAdmin()) {
-            return $this->select('*')->order('id')->fetchAll('id');
-        } else {
-            $m = new waUserGroupsModel();
-            $contact_ids = array();
-            foreach ($m->getGroupIds($user->getId()) as $group_id) {
-                $contact_ids[] = -$group_id;
-            }
-            $contact_ids[] = $user->getId();
-            $contact_ids[] = 0;
-            return $this->select('*')->where('contact_id IN(i:contact_id)', array('contact_id' => $contact_ids))->fetchAll();
+        $m = new waUserGroupsModel();
+        $contact_ids = array();
+        foreach ($m->getGroupIds($user->getId()) as $group_id) {
+            $contact_ids[] = -$group_id;
         }
+        $contact_ids[] = $user->getId();
+        $contact_ids[] = 0;
+        return $this->select('*')->where('contact_id IN(i:contact_id)', array('contact_id' => $contact_ids))->fetchAll();
     }
 
     public function getEmptyRow() {

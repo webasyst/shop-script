@@ -137,6 +137,14 @@ class shopPromoModel extends waModel
             $order_by = "ORDER BY p.finish_datetime DESC";
         }
 
+        if (isset($params['show_unattached'])) {
+            $joins['promo_routes'] = [
+                'type'      => 'LEFT JOIN',
+                'condition' => 'shop_promo_routes AS r ON p.id = r.promo_id',
+            ];
+            $cond[] = "r.promo_id IS NULL";
+        }
+
         // Paused
         if (!empty($params['ignore_paused'])) {
             $cond[] = "(p.enabled != 0)";
@@ -219,6 +227,14 @@ class shopPromoModel extends waModel
             $this->workupPromos($promos, $params);
             return $promos;
         }
+    }
+
+    public function countUnattachedStorefronts()
+    {
+        return $this->getList([
+            'show_unattached' => true,
+            'count_results' => 'only',
+        ]);
     }
 
     protected function workupPromos(&$promos, $params)

@@ -74,7 +74,7 @@ class shopSettingsOrderStateSaveController extends waJsonController
 
         if (empty($this->skip_save)) {
             if (!shopWorkflow::setConfig($this->config)) {
-                throw new waException(_w("Error when save config"));
+                throw new waException(_w("Error on configuration saving."));
             }
         }
     }

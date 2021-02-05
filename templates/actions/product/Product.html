@@ -258,7 +258,7 @@
                         <table class="s-product-skus">
                             <tbody>
                                 {foreach $product.skus as $sku_id => $sku}
-                                <tr data-id="{$sku_id}" class="{if empty($sku.available)}grey {/if}{if $sku.virtual}s-sku-virtual{/if}" title="{$sku.sku|escape}">
+                                <tr data-id="{$sku_id}" class="{if empty($sku.available) || empty($sku.status)}grey {/if}{if $sku.virtual}s-sku-virtual{/if}" title="{$sku.sku|escape}">
                                     <td class="s-name">
                                         {$sku.name|escape}
                                         <span class="hint">{$sku.sku|escape}</span>
@@ -304,7 +304,7 @@
                                     {% var stocks = o.stocks || {}; %}
                                     {% sku.stocks = sku.stocks || {}; %}
                                     {% var stock_ids = o.stock_ids; %}
-                                    <tr data-id="{%=sku_id%}" class="{% if(!sku.available) { %}grey {% } %}{% if (sku.virtual == '1') { %}s-sku-virtual{% } %}" title="{%=sku.sku%}">
+                                    <tr data-id="{%=sku_id%}" class="{% if(!sku.available || !sku.status) { %}grey {% } %}{% if (sku.virtual == '1') { %}s-sku-virtual{% } %}" title="{%=sku.sku%}">
                                         <td class="s-name">
                                             {%=sku.name%}
                                             <span class="hint">{%=sku.sku%}</span>
@@ -724,22 +724,23 @@
                                         <i class="icon16 sort"></i>
                                         <input type="radio" name="product[sku_id]" value="{$sku_id}" {if $product.sku_id == $sku.id}checked="checked"{/if}>
                                         <input type="hidden" name="skus[{$sku_id}][available]" value="{intval($sku.available)}">
+                                        <input type="hidden" name="skus[{$sku_id}][status]" value="{intval($sku.status)}">
                                     </td>
                                     <td class="s-sku{if $sku@total > 1} s-sku-big{/if}">
                                         <div class="s-name"{if $sku@total <= 1} style="display: none;"{/if}>
-                                            <input type="text" name="skus[{$sku_id}][name]" value="{$sku.name|escape}" class="bold s-sku-name-input long large{if empty($sku.available)} grey{/if}" placeholder="[`SKU name`]" title="[`SKU name displayed in the storefront`]">
+                                            <input type="text" name="skus[{$sku_id}][name]" value="{$sku.name|escape}" class="bold s-sku-name-input long large{if empty($sku.available) || empty($sku.status)} grey{/if}" placeholder="[`SKU name`]" title="[`SKU name displayed in the storefront`]">
                                         </div>
                                         <input type="text" name="skus[{$sku_id}][sku]" value="{$sku.sku|escape}" placeholder="[`SKU code`]" title="[`Any text code or label identifying this product, e.g. model or serial number`]" class="s-sku-code{if empty($sku.available)} grey{/if}">
                                     </td>
                                     <td class="s-price">
-                                        <input type="text" name="skus[{$sku_id}][purchase_price]" value="{$sku.purchase_price|escape}" class="{if empty($sku.available)} grey{/if}" placeholder="0" title="[`Purchase price`]">
+                                        <input type="text" name="skus[{$sku_id}][purchase_price]" value="{$sku.purchase_price|escape}" class="{if empty($sku.available) || empty($sku.status)} grey{/if}" placeholder="0" title="[`Purchase price`]">
                                     </td>
                                     <td class="s-price">
-                                        <input type="text" name="skus[{$sku_id}][compare_price]" value="{$sku.compare_price|escape}" class="strike {if empty($sku.available)} grey{/if}" placeholder="0" title="[`Compare at price`]">
+                                        <input type="text" name="skus[{$sku_id}][compare_price]" value="{$sku.compare_price|escape}" class="strike {if empty($sku.available) || empty($sku.status)} grey{/if}" placeholder="0" title="[`Compare at price`]">
                                     </td>
                                     <td class="s-price">
                                         <div class="s-price-wrapper">
-                                            <input type="text" name="skus[{$sku_id}][price]" value="{$sku.price|escape}" class="bold large {if empty($sku.available)} grey{/if}" placeholder="0" title="[`Price`]">
+                                            <input type="text" name="skus[{$sku_id}][price]" value="{$sku.price|escape}" class="bold large {if empty($sku.available) || empty($sku.status)} grey{/if}" placeholder="0" title="[`Price`]">
                                             {if $use_product_currency}
                                                 <select class="s-product-currency">
                                                     {foreach $currencies as $code => $currency}
@@ -757,7 +758,7 @@
                                             <span data-stock="0" class="s-product-stock-icon">
                                             {shopHelper::getStockCountIcon($sku.count)}
                                             </span>
-                                            <input class="short{if empty($sku.available)} grey{/if}" type="text" name="skus[{$sku_id}][stock][0]"value="{if $sku.count !== null}{$sku.count}{/if}" placeholder="∞" title="[`In stock`]"> <span class="small">[`items`]</span>
+                                            <input class="short{if empty($sku.available) || empty($sku.status)} grey{/if}" type="text" name="skus[{$sku_id}][stock][0]"value="{if $sku.count !== null}{$sku.count}{/if}" placeholder="∞" title="[`In stock`]"> <span class="small">[`items`]</span>
                                             {if (count($stocks) >= 1)}
                                                 <br><a href="#/product/{$product.id}/edit/main/sku/stock/{$sku_id}/" class="small gray inline-link js-action"><b><i>[`Multiple stocks`]</i></b></a>
                                             </div>
@@ -808,21 +809,22 @@
                                         <i class="icon16 sort"></i>
                                         <input type="radio" name="product[sku_id]" value="{%=sku_id%}" {% if (o.checked) { %}checked="checked"{%}%}>
                                         <input type="hidden" name="skus[{%=sku_id%}][available]" value="{%=sku.available%}">
+                                        <input type="hidden" name="skus[{%=sku_id%}][status]" value="{%=sku.status%}">
                                     </td>
                                     <td class="s-sku s-sku-big">
                                         <div class="s-name">
-                                            <input type="text" name="skus[{%=sku_id%}][name]" value="{%=sku.name%}" class="bold s-sku-name-input long large {% if (empty(sku.available)) { %}grey{% } %}" placeholder="[`SKU name`]">
+                                            <input type="text" name="skus[{%=sku_id%}][name]" value="{%=sku.name%}" class="bold s-sku-name-input long large {% if (empty(sku.available) || empty(sku.status)) { %}grey{% } %}" placeholder="[`SKU name`]">
                                         </div>
-                                        <input type="text" name="skus[{%=sku_id%}][sku]" value="{%=sku.sku%}" class="s-sku-code {% if (empty(sku.available)) { %}grey{% } %}" placeholder="[`SKU code`]">
+                                        <input type="text" name="skus[{%=sku_id%}][sku]" value="{%=sku.sku%}" class="s-sku-code {% if (empty(sku.available) || empty(sku.status)) { %}grey{% } %}" placeholder="[`SKU code`]">
                                     </td>
                                     <td class="s-price">
-                                        <input type="text" name="skus[{%=sku_id%}][purchase_price]" value="{%=sku.purchase_price_loc%}" class="{% if (empty(sku.available)) { %}grey{% } %}" placeholder="0">
+                                        <input type="text" name="skus[{%=sku_id%}][purchase_price]" value="{%=sku.purchase_price_loc%}" class="{% if (empty(sku.available) || empty(sku.status)) { %}grey{% } %}" placeholder="0">
                                     </td>
                                     <td class="s-price">
-                                        <input type="text" name="skus[{%=sku_id%}][compare_price]" value="{%=sku.compare_price_loc%}" class="strike {% if (empty(sku.available)) { %}grey{% } %}" placeholder="0">
+                                        <input type="text" name="skus[{%=sku_id%}][compare_price]" value="{%=sku.compare_price_loc%}" class="strike {% if (empty(sku.available) || empty(sku.status)) { %}grey{% } %}" placeholder="0">
                                     </td>
                                     <td class="s-price">
-                                        <input type="text" name="skus[{%=sku_id%}][price]" value="{%=sku.price_loc%}" class="bold large {% if (empty(sku.available)) { %}grey{% } %}" placeholder="0">
+                                        <input type="text" name="skus[{%=sku_id%}][price]" value="{%=sku.price_loc%}" class="bold large {% if (empty(sku.available) || empty(sku.status)) { %}grey{% } %}" placeholder="0">
                                         {/literal}
                                         {if $use_product_currency}
                                             <select class="s-product-currency">
@@ -841,7 +843,7 @@
                                             <span data-stock="0" class="s-product-stock-icon">
                                             {%# sku.stock_icon[0] %}
                                             </span>
-                                            <input class="short {% if (empty(sku.available)) { %}grey{% } %}" type="text" name="skus[{%=sku_id%}][stock][0]"value="{% if(sku.count !== null) { %}{%=''+sku.count%}{% } %}" placeholder="∞"> <span class="small">[`items`]</span>
+                                            <input class="short {% if (empty(sku.available) || empty(sku.status)) { %}grey{% } %}" type="text" name="skus[{%=sku_id%}][stock][0]"value="{% if(sku.count !== null) { %}{%=''+sku.count%}{% } %}" placeholder="∞"> <span class="small">[`items`]</span>
                                             {% if(!$.isEmptyObject(stocks)) { %}
                                                 <br><a href="#/product/{%=sku.product_id%}/edit/main/sku/stock/{%=sku_id%}/" class="small gray inline-link js-action"><b><i>[`Multiple stocks`]</i></b></a>
                                             </div>

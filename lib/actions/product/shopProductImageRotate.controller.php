@@ -58,7 +58,7 @@ class shopProductImageRotateController extends waJsonController
                 $paths[] = $backup_image_path;
                 if(!waFiles::move($result_image_path, $image_path)) {
                     if(!waFiles::move($backup_image_path, $image_path)) {
-                        throw new waException(_w("Error while rotate. Original file corupted but backuped" ));
+                        throw new waException(_w("Error while rotate. The original file is corrupted but backed up." ));
                     }
                     throw new waException(_w("Error while rotate. Operation canceled"));
                 }

@@ -62,8 +62,8 @@ class shopFrontendCartAddController extends waJsonController
                     }
                 } else {
                     $sku = $sku_model->getById($product['sku_id']);
-                    if (!$sku['available']) {
-                        $sku = $sku_model->getByField(array('product_id' => $product['id'], 'available' => 1));
+                    if (!$sku['available'] || !$sku['status']) {
+                        $sku = $sku_model->getByField(array('product_id' => $product['id'], 'available' => 1, 'status' => 1));
                     }
 
                     if (!$sku) {

@@ -22,7 +22,7 @@ class shopProdSaveVideoController extends waJsonController
         if ($url && !$product->video_url) {
             $this->errors[] = [
                 'id' => 'product_video_add',
-                'text'  => _w('Simply copy-and-paste the URL of product video on YouTube or Vimeo.'),
+                'text'  => _w('Copy and paste the URL of a product video from the YouTube or Vimeo website.'),
             ];
             return;
         }

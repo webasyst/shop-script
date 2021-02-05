@@ -78,7 +78,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
             $sql .= " JOIN ".$this->table." t".$i."
                 ON t".$i.".product_id = s.product_id AND (t".$i.".sku_id IS NULL OR t".$i.".sku_id = s.id)";
         }
-        $sql .= " WHERE s.product_id IN (i:product_ids) AND s.available > 0";
+        $sql .= " WHERE s.product_id IN (i:product_ids) AND s.available > 0 AND s.status > 0";
         if ($in_stock_only) {
             $sql .= ' AND (s.count IS NULL OR s.count > 0)';
         }

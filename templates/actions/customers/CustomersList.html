@@ -193,7 +193,7 @@
                 }
                 $('#s-sidebar li[data-category-id="{$category_id}"]').remove();
                 $.post('?module=customers&action=categoryEditor', { id: '{$category_id}', 'delete': 1 });
-                $('#s-content').html('<div class="triple-padded block">'+"[`Category has beed deleted.`]"+'</div>');
+                $('#s-content').html('<div class="triple-padded block">'+"[`The category has been deleted.`]"+'</div>');
             });
         {/if}
 

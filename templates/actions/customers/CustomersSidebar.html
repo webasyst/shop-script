@@ -16,7 +16,9 @@
 
         <ul class="menu-v with-icons" id="s-customer-filters">
             {foreach $filters as $filter}
-                <li class="s-customer-filter" data-id="{$filter.id}"><a href="#/filter/{$filter.id}/"><i class="icon16 {$filter.icon|default:'funnel'}"></i><span class="s-name">{$filter.name|escape}</span></a></li>
+                {if empty($filter.contact_id) || $filter.contact_id == $wa->user('id')}
+                    <li class="s-customer-filter" data-id="{$filter.id}"><a href="#/filter/{$filter.id}/"><i class="icon16 {$filter.icon|default:'funnel'}"></i><span class="s-name">{$filter.name|escape}</span></a></li>
+                {/if}
             {/foreach}
             <li>
                 <a href="#/searchform/" class="small"><i class="icon10 add"></i>[`New search`]</a>

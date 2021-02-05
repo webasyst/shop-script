@@ -9,7 +9,7 @@ class shopProdSelectSetDialogAction extends waViewAction
         $product_id = waRequest::request('product_id', 0, 'int');
 
         $set_model = new shopSetModel();
-        $sets = $set_model->getAll('id');
+        $sets = $set_model->getByField('type', 0, 'id');
 
         $set_products_model = new shopSetProductsModel();
         $sets_product = $set_products_model->getByProduct($product_id);

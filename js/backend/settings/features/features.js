@@ -1389,7 +1389,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                                     });
 
                                 } else {
-                                    alert($_('Product type adding error'));
+                                    alert($_('Product type adding error.'));
                                 }
 
                             } else {

@@ -118,12 +118,16 @@ class shopOrderEditAction extends waViewAction
 
         $order_data_array = array();
         if ($this->order_data) {
+            $user = wa()->getUser();
             $order_data_array = $this->order->dataArray();
             $order_data_array['contact'] = $this->order->contact_essentials;
             $order_data_array['shipping_id'] = $this->order['shipping_id'];
             $order_data_array['items'] = $this->order_data['items'];
             $order_data_array['items_total_discount'] = $items_total_discount;
             $order_data_array['coupon'] = $this->order->coupon;
+            if (!empty($order_data_array['coupon'])) {
+                $order_data_array['coupon']['right'] = !!$user->getRights('shop', 'marketing');
+            }
             if ($money_on_hold_warning) {
                 $order_data_array['amount_on_hold'] = $this->order['amount_on_hold'];
             }

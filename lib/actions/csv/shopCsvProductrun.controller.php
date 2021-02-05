@@ -668,18 +668,18 @@ SQL;
                 'collision' => array(
                     self::STAGE_CATEGORY => array /*_w*/
                     (
-                                                  'Excessive declaration for a category on %d line',
-                                                  'Excessive declaration for a category on %d lines',
+                                                  'Duplicate category entries on %d line',
+                                                  'Duplicate category entries on %d lines',
                     ),
                     self::STAGE_PRODUCT  => array /*_w*/
                     (
-                                                  'Identical product declaration on %d line. All lines declaring the same product will be grouped and merged',
-                                                  'Identical product declaration on %d lines. All lines declaring the same product will be grouped and merged',
+                                                  'Duplicate product entries on %d line',
+                                                  'Duplicate product entries on %d lines',
                     ),
                     self::STAGE_SKU      => array /*_w*/
                     (
-                                                  'Excessive declaration for a SKU on %d line',
-                                                  'Excessive declaration for a SKU on %d lines',
+                                                  'Duplicate SKU entries on %d line',
+                                                  'Duplicate SKU entries on %d lines',
                     ),
                     'icon'               => 'exclamation',
                 ),
@@ -1114,9 +1114,11 @@ SQL;
             if (!empty($data['skus'])) {
                 $sku = reset($data['skus']);
                 $data['sku_id'] = key($data['skus']);
-                if (!isset($sku['available'])) {
-                    $sku['available'] = true;
-                    $data['skus'][$data['sku_id']] = $sku;
+                foreach (array('available', 'status') as $key) {
+                    if (!isset($sku[$key])) {
+                        $sku[$key] = true;
+                        $data['skus'][$data['sku_id']] = $sku;
+                    }
                 }
             }
             $key .= ':i:'.$this->getKey($fields);
@@ -1509,8 +1511,10 @@ SQL;
                 unset($sku['id']);
 
                 if ($item_sku_id !== false) {
-                    if (($item_sku_id < 0) && !isset($sku['available'])) {
-                        $sku['available'] = true;
+                    foreach (array('available', 'status') as $key) {
+                        if (($item_sku_id < 0) && !isset($sku[$key])) {
+                            $sku[$key] = true;
+                        }
                     }
                     if (!$sku_only && !$product->skus) {
                         $data['sku_id'] = $item_sku_id;

@@ -303,11 +303,11 @@
                             <td class="align-right">
                                 [`Discount`]
                                 {if !empty($order.coupon.code)}
-                                    {if !empty($order.coupon.id)}
+                                    {if !empty($order.coupon.id) && $order.coupon.right}
                                         <a href="{$wa_app_url}marketing/coupons/{$order.coupon.id|escape}/">
                                     {/if}
                                     <i class="icon16 ss coupon"></i><strong>{$order.coupon.code|escape}</strong>
-                                    {if !empty($order.coupon.id)}
+                                    {if !empty($order.coupon.id) && $order.coupon.right}
                                         </a>
                                     {/if}
                                 {/if}

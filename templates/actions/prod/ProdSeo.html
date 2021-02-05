@@ -1,0 +1,502 @@
+{strip}
+
+{* КОМПОНЕНТЫ *}
+
+{$_components = []}
+
+{capture assign="_component_dropdown_variables"}
+    <div class="dropdown s-dropdown-variables">
+        <button class="dropdown-toggle wa-button transparent bold" type="button">{sprintf('{$} %s', _w("Insert variable"))}</button>
+        <div class="dropdown-body left">
+            <div class="dropdown-item" data-id="{'{$name}'}">
+                <span class="s-name"><span class="black">&#123;$name&#125;</span> — название товара</span>
+            </div>
+            <div class="dropdown-item" data-id="{'{$summary}'}">
+                <span class="s-name"><span class="black">&#123;$summary&#125;</span> — краткое описание товара</span>
+            </div>
+            <div class="dropdown-item" data-id="{'{$price}'}">
+                <span class="s-name"><span class="black">&#123;$price&#125;</span> — цена товара или его основной модификации</span>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_components["component-dropdown-variables"] = $_component_dropdown_variables}
+
+{capture assign="_component_image_toggle"}
+    <div class="toggle small">
+        <div data-id="false">
+            <i class="fas fa-images"></i> [`Show uploaded`]
+        </div>
+        <div data-id="true">
+            <i class="fas fa-link"></i> [`URL`]
+        </div>
+    </div>
+{/capture}
+{$_components["component-image-toggle"] = $_component_image_toggle}
+
+{$_globals_components = $wa->globals("components")}
+{if !empty($_globals_components)}
+    {$_components = array_merge($_components, $_globals_components)}
+{/if}
+
+{* ШАБЛОНЫ *}
+
+{$_templates = []}
+
+{capture assign="_sku_delete_photo"}{include file="./dialogs/sku_delete_photo.html" inline}{/capture}
+{$_templates["dialog_sku_delete_photo"] = $_sku_delete_photo}
+
+{capture assign="_photo_manager_dialog"}{include file="./ProdSkuImageDialog.html" inline}{/capture}
+{$_templates["dialog_photo_manager"] = $_photo_manager_dialog}
+
+{* ЛОКАЛИЗАЦИЯ *}
+
+{$_tooltips = [
+    "product-sku-8" => [
+        "id" => "product-sku-8",
+        "html" => _w("Change image")|escape,
+        "class" => "inline"
+    ],
+    "product-image-dialog-1" => [
+        "id" => "product-image-dialog-1",
+        "html" => _w("Drag & drop image files here or click this area to upload files.")|escape,
+        "position" => "top"
+    ]
+]}
+
+{$_locales = [
+    "incorrect_url" => _w("Неправильный формат URL.")
+]}
+
+{$_locales["letter_forms"] = [
+    _w("%d character.", "%d characters.", 1, false),
+    _w("%d character.", "%d characters.", 2, false),
+    _w("%d character.", "%d characters.", 5, false)
+]}
+
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+{/strip}
+
+{* PAGE *}
+<div id="js-product-seo-section-wrapper">
+    {* VUE *}
+    <div class="article s-product-seo-section js-product-seo-section" style="visibility: hidden;">
+        {* HEADER *}
+        <div class="s-section-header">
+            {* GLOBAL ERRORS *}
+            <div class="s-errors-place" id="js-errors-place" v-if="errors_global.length">
+                <template v-for="error in errors_global" v-bind:key="error.id">
+                    <div class="wa-message info flexbox space-8" v-bind:data-id="error.id">
+                        <div class="message-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="message-text wide">{ { error.text } }</div>
+                        <div class="message-actions">
+                            <div class="message-action" v-on:click.prevent="removeError(error.id)">
+                                <i class="fas fa-times message-toggle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        {* BODY *}
+        <div class="s-section-body">
+            {* SEARCH *}
+            <div class="s-search-section s-content-section">
+                <div class="s-section-header">
+                    <h2 class="s-title">[`For search systems`]</h2>
+                </div>
+                <div class="s-section-body">
+                    <div class="wa-message bordered blue flexbox space-8">
+                        <div class="message-icon"><span class="s-icon"><i class="fas fa-info-circle"></i></span></div>
+                        <div class="message-text wide">[`In the TITLE and in the META tags’ values you can use variables &#123;$name&#125;, &#123;$summary&#125;, and &#123;$price&#125;, which are replaced by the product’s name, summary, and price displayed in the storefront.`]</div>
+                    </div>
+
+                    <div class="s-fields-wrapper wa-fields">
+                        <div class="wa-field">
+                            <div class="name">
+
+                                <span>[`How a link to the product will be displayed in search results`]</span>
+
+                            </div>
+                            <div class="value">
+
+                                <div class="s-search-preview-wrapper">
+                                    <a class="s-title" target="_blank"
+                                       v-bind:href="( product.root_front ? product.root_front.url : '' )" v-html="search_preview_title"></a>
+
+                                    <div class="s-url">
+                                        <span class="s-name">{ { product.root_front ? product.root_front.url : "" } }</span>
+                                        <span class="icon baseline size-10"><i class="fas fa-caret-down"></i></span>
+                                    </div>
+
+                                    <div class="s-description" v-if="product.meta_description || product.summary || product.description" v-html="search_preview_description"></div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="wa-field">
+                            <div class="name shift-4">
+
+                                <div>[`Page title`]</div>
+                                <div class="hint">&lt;title&gt;</div>
+
+                            </div>
+                            <div class="value">
+
+                                <div class="s-textarea-wrapper">
+                                    <component-flex-textarea
+                                        v-model="product.meta_title"
+                                        v-bind:placeholder="product.name"
+                                        v-bind:class="'wa-small wide'"></component-flex-textarea>
+                                </div>
+
+                                <div class="s-textarea-details tablebox fixed middle space-16">
+                                    <div class="s-column">
+                                        <component-dropdown-variables v-on:change="addVariable(product, 'meta_title', $event)"></component-dropdown-variables>
+                                    </div>
+                                    <div class="s-column">
+                                        <div class="s-letters-wrapper">
+                                            <span class="s-letters-count" v-html="getLettersHTML(product.meta_title, 55, 75)"></span>
+                                            <span>[`Recommended: 55—75.`]</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wa-field">
+                            <div class="name shift-4">
+
+                                <div>[`Page description`]</div>
+                                <div class="hint">&lt;meta description&gt;</div>
+
+                            </div>
+                            <div class="value">
+
+                                <div class="s-textarea-wrapper">
+                                    <component-flex-textarea
+                                        v-model="product.meta_description"
+                                        v-bind:placeholder="product.summary"
+                                        v-bind:class="'wa-small wide'"></component-flex-textarea>
+                                </div>
+                                <div class="s-textarea-details tablebox fixed middle space-16">
+                                    <div class="s-column">
+                                        <component-dropdown-variables v-on:change="addVariable(product, 'meta_description', $event)"></component-dropdown-variables>
+                                    </div>
+                                    <div class="s-column">
+                                        <div class="s-letters-wrapper">
+                                            <span class="s-letters-count" v-html="getLettersHTML(product.meta_description, 150, 400)"></span>
+                                            <span>[`Recommended: 150–400.`]</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="wa-field">
+                            <div class="name shift-4">
+
+                                <div>[`Keywords`]</div>
+                                <div class="hint">&lt;meta keywords&gt; ([`optional`])</div>
+
+                            </div>
+                            <div class="value">
+
+                                <component-flex-textarea
+                                    v-model="product.meta_keywords"
+                                    v-bind:class="'wa-small wide'"></component-flex-textarea>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {* SOCIAL *}
+            <div class="s-social-section s-content-section">
+                <div class="s-section-header">
+                    <h2 class="s-title">[`For social media`]</h2>
+                </div>
+                <div class="s-section-body">
+                    <p>{sprintf(
+                        _w("Detailed information about the available parameters for social media and their values is published on the %s protocol’s website."),
+                        "<a href=\"https://ogp.me/\" target=\"_blank\">Open Graph</a>")}
+                    </p>
+
+                    <div class="s-fields-wrapper wa-fields">
+                        <div class="wa-field">
+                            <div class="name">
+
+                                <div>[`How a link to the product will be displayed in social media`]</div>
+
+                            </div>
+                            <div class="value">
+
+                                <div class="s-social-preview-wrapper">
+                                    <div class="s-image"
+                                         v-if="social_image_url"
+                                         v-bind:style="{ 'background-image': 'url(' + social_image_url + ')' }"></div>
+
+                                    <div class="s-text-wrapper">
+                                        <div class="s-url">
+                                            <span class="s-name">{ { product.root_front ? product.root_front.url : "" } }</span>
+                                        </div>
+
+                                        <div class="s-title" v-html="social_preview_title"></div>
+
+                                        <div class="s-description" v-if="social.description || product.summary || product.description" v-html="social_preview_description"></div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="wa-field">
+                            <div class="name unshifted">
+
+                                <div>[`Settings`]</div>
+
+                            </div>
+                            <div class="value">
+
+                                <div class="s-switch-wrapper">
+                                    <label class="flexbox space-8 middle">
+                                        <component-switch v-model="social.is_auto" v-bind:class="'wa-small'"></component-switch>
+                                        <span class="s-label">[`Auto mode`]</span>
+                                    </label>
+                                </div>
+
+                                <p class="hint">[`When auto mode is enabled, the product name and summary, or the displaying settings for search systems, if available, are used. In the same fashion the main image and video of a product, or those of its main variant, are used.`]</p>
+
+                                <div class="s-fields-wrapper wa-fields" v-if="!social.is_auto">
+                                    <div class="wa-field">
+                                        <div class="name shift-4">
+                                            <div>[`Title`]</div>
+                                            <div class="hint">og:title</div>
+                                        </div>
+                                        <div class="value">
+
+                                            <div class="s-textarea-wrapper">
+                                                <component-flex-textarea
+                                                    v-model="social.title"
+                                                    v-bind:class="'wa-small wide'"></component-flex-textarea>
+                                            </div>
+
+                                            <div class="s-textarea-details tablebox fixed middle space-16">
+                                                <div class="s-column">
+                                                    <component-dropdown-variables v-on:change="addVariable(social, 'title', $event)"></component-dropdown-variables>
+                                                </div>
+                                                <div class="s-column">
+                                                    <div class="s-letters-wrapper">
+                                                        <span class="s-letters-count" v-html="getLettersHTML(social.title, 55, 75)"></span>
+                                                        <span>[`Recommended: 55—75.`]</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="wa-field">
+                                        <div class="name shift-4">
+
+                                            <div>[`Description`]</div>
+                                            <div class="hint">og:description</div>
+
+                                        </div>
+                                        <div class="value">
+
+                                            <div class="s-textarea-wrapper">
+                                                <component-flex-textarea
+                                                    v-model="social.description"
+                                                    v-bind:placeholder="product.summary"
+                                                    v-bind:class="'wa-small wide'"></component-flex-textarea>
+                                            </div>
+                                            <div class="s-textarea-details tablebox fixed middle space-16">
+                                                <div class="s-column">
+                                                    <component-dropdown-variables v-on:change="addVariable(social, 'description', $event)"></component-dropdown-variables>
+                                                </div>
+                                                <div class="s-column">
+                                                    <div class="s-letters-wrapper">
+                                                        <span class="s-letters-count" v-html="getLettersHTML(social.description, 150, 400)"></span>
+                                                        <span>[`Recommended: 150–400.`]</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="wa-field">
+                                        <div class="name shift-4">
+
+                                            <div>[`Image`]</div>
+                                            <div class="hint">og:image</div>
+
+                                        </div>
+                                        <div class="value">
+
+                                            <div class="s-image-section">
+                                                <div class="s-section-header">
+                                                    <div class="s-toggle-wrapper">
+                                                        <component-image-toggle
+                                                            v-bind:class="'rounded'"
+                                                            v-model="social.use_url"></component-image-toggle>
+                                                    </div>
+                                                </div>
+                                                <div class="s-section-body">
+                                                    <div class="s-image-form">
+                                                        <template v-if="social.use_url">
+
+                                                            <component-flex-textarea
+                                                                v-model="social.image_url"
+                                                                v-bind:placeholder="'https://your-site.ru/image-url'"
+                                                                v-bind:class="{ 'wa-small wide': true, 'wa-error-field': !!errors['social_image_url']}"
+                                                                v-on:input="removeError('social_image_url')"
+                                                                v-on:ready="onUrlBlur($event, 'social_image_url')"
+                                                                v-on:blur="onUrlBlur($event, 'social_image_url')"></component-flex-textarea>
+
+                                                            <template v-if="errors['social_image_url']">
+                                                                <div class="wa-error-text">{ { errors['social_image_url'].text } }</div>
+                                                            </template>
+
+                                                        </template>
+                                                        <template v-else>
+                                                            <div class="s-image-wrapper"
+                                                                 data-tooltip-id="product-sku-8"
+                                                                 v-on:click.prevent="addProductPhoto">
+
+                                                                <div class="s-image-item" v-if="social_image_url"
+                                                                     v-bind:style="{ 'background-image': 'url(' + social_image_url + ')' }"></div>
+
+                                                                <div class="s-image-item" v-else>
+                                                                    <div class="s-icon icon">
+                                                                        <svg><use xlink:href='{$_sprite_url}#empty-image'></use></svg>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <p class="hint">[`If a product has no uploaded images then a social media will automatically pick any image on the product page.`]</p>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="wa-field">
+                                        <div class="name shift-4">
+
+                                            <div>[`Video URL`]</div>
+                                            <div class="hint">og:video</div>
+
+                                        </div>
+                                        <div class="value">
+                                            <component-flex-textarea
+                                                v-model="social.video_url"
+                                                v-bind:placeholder="'https://your-site.ru/video-url'"
+                                                v-bind:class="{ 'wa-small wide': true, 'wa-error-field': !!errors['social_video_url']}"
+                                                v-on:input="removeError('social_video_url')"
+                                                v-on:ready="onUrlBlur($event, 'social_video_url')"
+                                                v-on:blur="onUrlBlur($event, 'social_video_url')"></component-flex-textarea>
+
+                                            <template v-if="errors['social_video_url']">
+                                                <div class="wa-error-text">{ { errors['social_video_url'].text } }</div>
+                                            </template>
+
+                                        </div>
+                                    </div>
+                                    <div class="wa-field">
+                                        <div class="name unshifted">
+
+                                            <div>[`Page type`]</div>
+                                            <div class="hint">og:type</div>
+
+                                        </div>
+                                        <div class="value">
+
+                                            <div class="s-type-wrapper" v-text="social.type"></div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {* STOREFRONT *}
+            <div class="s-storefronts-section s-content-section">
+                <div class="s-section-header">
+                    <h2 class="s-title">[`Storefronts`]</h2>
+                </div>
+                <div class="s-section-body">
+                    <p>[`You can set up multiple storefronts for your online store — for sales in various regions, for several business areas, for sales via social media and other platforms. Each strefront can display its own set of products. Here are shown the storefronts where this particular product is displayed.`]</p>
+                    <p>[`The available storefronts and the products displayed in them can be managed by means of product types (in section “Settings → Product types & Features”) and the storefront settings (in section “Storefront → Settings”). Add new storefronts in section “Structure” of the Site app.`]</p>
+
+                    {if !empty($formatted_product.storefronts)}
+                        <div class="s-fields-wrapper wa-fields">
+                            <div class="wa-field">
+                                <div class="name unshifted">
+                                    <span>{_w('The product is displayed in %d storefront.', 'The product is displayed in %d storefronts.', count($formatted_product.storefronts))}</span>
+                                </div>
+                                <div class="value shift-3">
+                                    <ul class="wa-list space-12 s-storefronts-list js-storefronts-list">
+                                        {foreach $formatted_product.storefronts as $_front}
+                                            <li>
+                                                <a href="{$_front.url|escape}" target="_blank">{$_front.url|escape}</a>
+                                            </li>
+                                        {/foreach}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    {else}
+                        <div class="wa-message bordered blue flexbox space-8">
+                            <div class="message-icon"><span class="s-icon"><i class="fas fa-info-circle"></i></span></div>
+                            <div class="message-text wide">[`This product is not published in any storefront.`]</div>
+                        </div>
+                    {/if}
+                </div>
+            </div>
+        </div>
+
+        {* FOOTER *}
+        {include file="./includes/footer.html" inline}
+    </div>
+
+    {* INIT JS *}
+    <script>
+        ( function($) {
+            var sources = [{
+                id: "vue-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/vue/vue.min.js?v={$wa->version()}"
+            }, {
+                id: "wa-shop-products-product-seo-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/product/product.seo.js?v={$wa->version()}"
+            }];
+
+            $.wa.loadSources(sources).then(init);
+
+            function init() {
+                $.wa_shop_products.init.initProductSeoSection({
+                    $wrapper: $("#js-product-seo-section-wrapper"),
+                    components: {$_components|json_encode},
+                    templates: {$_templates|json_encode},
+                    tooltips: {$_tooltips|json_encode},
+                    locales: {$_locales|json_encode},
+                    urls: {
+                        "save": "{$wa_app_url}?module=prod&action=saveSeo",
+                        "add_product_image": "{$wa_app_url}?module=prod&action=imageUpload",
+                        "change_image_description": "{$wa_app_url}?module=prod&action=saveImageDetails"
+                    },
+
+                    product: {$formatted_product|json_encode},
+                    social: {$social|json_encode}
+                });
+            }
+        })(jQuery);
+    </script>
+</div>

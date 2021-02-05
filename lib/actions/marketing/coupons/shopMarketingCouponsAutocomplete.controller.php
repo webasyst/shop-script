@@ -50,6 +50,8 @@ class shopMarketingCouponsAutocompleteController extends waJsonController
             $product_ids = array_column($products, 'value');
         }
 
+        $user_right = !!wa()->getUser()->getRights('shop', 'marketing');
+
         foreach ($coupons as &$coupon) {
             $coupon['discount_string'] = shopCouponModel::formatValue($coupon);
             if (!empty($coupon['expire_datetime'])) {
@@ -73,7 +75,7 @@ class shopMarketingCouponsAutocompleteController extends waJsonController
             ) {
                 $coupon['valid'] = false;
             }
-
+            $coupon['right'] = $user_right;
             $coupon = [
                 'value' => $coupon['id'],
                 'label' => $coupon['code'],

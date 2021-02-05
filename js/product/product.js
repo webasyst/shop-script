@@ -363,15 +363,14 @@ editClick:(function ($) {
                 sku_type_input_type = 'hidden';
                 sku_type = form.find('input[name="product[sku_type]"]:not(:disabled)').val();
             }
-
             if (sku_type == '1') {
                 var any_checked = $('#s-product-feature-superposition').find('input:checked:first').length;
                 if (!any_checked) {
                     if (sku_type_input_type == 'radio') {
                         sku_type_input.filter('[value=0]').attr('checked', true);
                         $.product.onSkuTypeChange(0);
+                        return false;
                     }
-                    return false;
                 }
             }
 
@@ -474,6 +473,7 @@ editClick:(function ($) {
                     self.refresh('error', textStatus);
                 }
             });
+
             return false;
             // force reload data
             // this.container.data('product-id',this.path.id + '-edited');
@@ -501,7 +501,7 @@ editClick:(function ($) {
                     $input.after($error);
                     is_shown = true;
 
-                    that.refresh('error', $_('Save GTIN feature for product is fail'));
+                    that.refresh('error', $_('Cannot save the value of the “GTIN” feature for this product.'));
                 }
             }
 
@@ -511,7 +511,10 @@ editClick:(function ($) {
                 var $skus_table = $edit_forms.find('.s-product-form.main table.s-product-skus tbody');
 
                 $.each(all_errors.skus, function(sku_id, errors) {
-                    if (errors.features && errors.features.gtin) {
+                    if (sku_id === 'status') {
+                        is_shown = true;
+                        that.refresh('error', $_(errors));
+                    } else if (errors.features && errors.features.gtin) {
                         var $sku_settings = $skus_table.find('.js-sku-settings[data-id="' + sku_id + '"]'),
                             input_name = 'skus[' + sku_id + '][features][gtin]',
                             $input = $sku_settings.find('input[name="' + input_name + '"]');
@@ -522,7 +525,7 @@ editClick:(function ($) {
                             $input.after($error);
                             is_shown = true;
 
-                            that.refresh('error', $_('Save GTIN feature for SKU is fail'));
+                            that.refresh('error', $_('Cannot save the value of the “GTIN” feature for an SKU of this product.'));
                         }
                     }
                 });
@@ -2066,6 +2069,7 @@ editClick:(function ($) {
                     'product_id': $('input:hidden[name="product[id]"]').val() || 'new',
                     'sku': '',
                     'available': 1,
+                    'status': 1,
                     'name': '',
                     'price': '' + price,
                     'price_loc': price_loc,
@@ -2251,7 +2255,7 @@ editClick:(function ($) {
                 url += '&type_id=' + self.helper.type();
                 var $target = $('#s-product-edit-forms .s-product-form.main tr.js-sku-settings[data-id="' + sku_id + '"] > td:first');
                 $target.load(url, function () {
-                    $sku.find(':input[name$="\[available\]"]').remove();
+                    $sku.find(':input[name$="\[available\]"], :input[name$="\[status\]"]').remove();
                     $.product_images && $.product_images.options && $.product_images.options.enable_2x && $.fn.retina && $target.find('.s-product-image-crops img').retina();
                     $.product.initFeatureDate();
 

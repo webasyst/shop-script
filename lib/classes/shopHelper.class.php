@@ -369,6 +369,9 @@ class shopHelper
                         }
                     }
                 }
+                /** отправляем в плагин временную зону магазина */
+                $shop_config = wa('shop')->getConfig()->getSchedule();
+                $shipping_params['shop_time_zone'] = ifset($shop_config['timezone'], date_default_timezone_get());
                 $m['__rates'] = $plugin->getRates($shipping_items, $address, $shipping_params);
             }
 
@@ -1068,9 +1071,10 @@ class shopHelper
      * @param int|null $count SKU stock count; if not specified, normal icon is returned
      * @param int|null $stock_id Id of stock whose limit settings must be taken into account; if not specified, default values 5 and 2 are used
      * @param bool $include_text Whether text '*** items left' must be added to icon
+     * @param int|null $all_balance_stocks Quantity of sku in all stocks
      * @return string
      */
-    public static function getStockCountIcon($count, $stock_id = null, $include_text = false)
+    public static function getStockCountIcon($count, $stock_id = null, $include_text = false, $all_balance_stocks = null)
     {
         static $stocks = array();
         if (!$stocks) {
@@ -1104,7 +1108,16 @@ class shopHelper
                 }
             }
             if ($count !== null && $include_text) {
-                $icon .= "<span class='small s-stock-left-text $warn'>"._w('%d left', '%d left', $count)."</span>";
+                $all_balance_stocks_text = '';
+                if ($stock_id && $all_balance_stocks) {
+                    $all_balance_stocks_text =
+                        "<span class='gray'>" .
+                            _w('(На всех складах: %d)', '(На всех складах: %d)', $all_balance_stocks) .
+                        "</span>";
+                }
+                $icon .=
+                    "<span class='small s-stock-left-text $warn'>" .
+                        _w('%d left', '%d left', $count) . " $all_balance_stocks_text</span>";
             }
         }
 
@@ -1746,7 +1759,7 @@ SQL;
 
             //Convert discount per item
             $item['total_discount'] = ifempty($item['total_discount'], 0.0);
-            if ($item['quantity']) {
+            if ((float)$item['quantity']) {
                 $item_discount = $item['total_discount'] / $item['quantity'];
                 $item_discount = shopHelper::workupValue($item_discount, 'price', $options['currency'], $options['order_currency']);
             } else {
@@ -1797,7 +1810,7 @@ SQL;
                 'weight_unit'     => (string)$options['weight'],
                 'dimensions_unit' => (string)$options['dimensions'],
                 'total_discount'  => (float)$item['total_discount'],
-                'discount'        => (float)($item['quantity'] ? ($item['total_discount'] / $item['quantity']) : 0.0),
+                'discount'        => (float)((float)($item['quantity']) ? ($item['total_discount'] / $item['quantity']) : 0.0),
                 'product_codes'   => $product_codes // see shopOrderItemCodesModel::extendOrderItems for format
             );
         }

@@ -21,4 +21,17 @@ class shopProductRelatedModel extends waModel
         }
         return $result;
     }
+
+    /**
+     * @param $product_id
+     * @param $type
+     * @param $product_ids
+     */
+    public function deleteAllProductsExcept($product_id, $type, $product_ids)
+    {
+        if (!empty($product_ids)) {
+            $sql = "DELETE FROM {$this->getTableName()} WHERE `product_id` = ? AND `type` = ? AND `related_product_id` NOT IN (?)";
+            $this->exec($sql, [$product_id, $type, $product_ids]);
+        }
+    }
 }

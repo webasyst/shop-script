@@ -135,7 +135,7 @@
                     </div>
                     <div class="value no-shift">
 
-                        <p>[`If your jurisdiction require you to charge additional county taxes, define taxing rules by ZIP (postal) code. Use asteryx (*) for wildcard. For example, mask 12* is applicable for all ZIP codes with 12 as first two symbols, e.g. 12365, 12963, 12AB7, 12 QN93 and so on (wildcard is ok for both letters and numbers). ZIP code rules are processed one by one in the given order. Applied is the first rule matching the user ZIP code (only one matching rule is applied at a time). County tax rules are of a higher priority than state tax rules (if matched, county tax rate replaces the state tax rule when calculated during the checkout), which means that combined county rates must be provided.`]</p>
+                        <p>[`If your jurisdiction require you to charge additional county taxes, define taxing rules by ZIP (postal) code. Use asterisk (*) for wildcard. For example, mask 12* is applicable for all ZIP codes with 12 as first two symbols, e.g. 12365, 12963, 12AB7, 12 QN93 and so on (wildcard is OK for both letters and numbers). ZIP code rules are processed one by one in the given order. Applied is the first rule matching the user ZIP code (only one matching rule is applied at a time). County tax rules are of a higher priority than state tax rules (if matched, county tax rate replaces the state tax rule when calculated during the checkout), which means that combined county rates must be provided.`]</p>
 
                         <table id="s-tax-zip-codes-table" class="zebra"><thead>
                             <tr>
@@ -214,7 +214,7 @@
             return false;
         });
     {/if}
-    
+
     {if !$billing_address_required}
         form.find('[name="tax[address_type]"]').change(function() {
             if ($(this).val() == 'billing') {
@@ -224,5 +224,5 @@
             }
         });
     {/if}
-    
+
 })();</script>

@@ -168,8 +168,23 @@ class shopProdSkuAction extends waViewAction
 
         foreach ($product['skus'] as $modification) {
             // TODO: status is a new (planned) option of SKU, not implemented yet
-            $modification["status"] = "enabled";
             $modification["available"] = (boolean)$modification["available"];
+            $modification["status"] = (boolean)$modification["status"];
+
+            if (shopProdDownloadSkuFileController::checkSkuFile($modification['id'], $modification['product_id'])) {
+                $modification["file"] = [
+                    "id" => (!empty($modification["file_name"]) ? $modification["file_name"] : null),
+                    "name" => (!empty($modification["file_name"]) ? $modification["file_name"] : null),
+                    "size" => (!empty($modification["file_size"]) ? waCurrency::formatWithUnit($modification["file_size"]) : null),
+                    "description" => (!empty($modification["file_description"]) ? $modification["file_description"] : ""),
+                    "url" => shopProdDownloadSkuFileController::getSkuFileUrl($modification['id'], $modification['product_id'])
+                ];
+            } else {
+                $modification["file"] = [
+                    "id" => null,
+                ];
+            }
+
 
             // SKU photo
             $modification["photo"] = null;
@@ -240,9 +255,11 @@ class shopProdSkuAction extends waViewAction
 
             $modification["features"] = $_features;
             $modification["features_selectable"] = $_selectable_features;
+            $modification["original_name"] = $modification["name"];
+            $modification["name"] = $modification_name;
 
             // MODIFICATIONS
-            if ($modification['sku'] || $modification['name']) {
+            if ($modification['sku'] || $modification_name) {
                 $sku_key = $modification['sku'].'###'.$modification_name;
                 if (empty($skus[$sku_key])) {
                     $skus[$sku_key] = [
@@ -281,6 +298,14 @@ class shopProdSkuAction extends waViewAction
             if (empty($skus[$sku_key]['modifications'][0]['photo']) && !empty($skus[$sku_key]['modifications'][0])) {
                 $skus[$sku_key]['modifications'][0]['image_id'] = $photo['id'];
                 $skus[$sku_key]['modifications'][0]['photo'] = $photo;
+            }
+        }
+
+        // Корректируем названия модификация, потому что они отличаются (баг) от названий артикулов.
+        foreach ($skus as &$sku) {
+            foreach ($sku["modifications"] as &$sku_mod) {
+                $sku_mod["sku"] = $sku["sku"];
+                $sku_mod["name"] = $sku["name"];
             }
         }
 
@@ -885,7 +910,7 @@ class shopProdSkuAction extends waViewAction
             "count"               => null,
 
             "available"           => true,
-            "status"              => "enabled",
+            "status"              => true,
 
             "features"            => [],
 
