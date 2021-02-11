@@ -15,7 +15,7 @@ class shopProductSkuDeleteController extends waJsonController
 
         $product_skus_model = new shopProductSkusModel();
         if (!$product_skus_model->delete($sku_id)) {
-            $this->setError(_w("Хотя бы один артикул должен быть виден на витрине."));
+            $this->setError(_w("At least one SKU must be visible in the storefront."));
         }
 
         $product_model = new shopProductModel();

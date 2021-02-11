@@ -842,7 +842,7 @@ msgid "Automated product recommendations"
 msgstr "Автоматическая подборка рекомендуемых товаров"
 
 msgid "Cross-selling"
-msgstr "Перекрестные продажи (Cross-selling)"
+msgstr "Перекрестные продажи (cross-selling)"
 
 msgid "Cross-selling is a technique of getting customer to buy related products to the order, e.g. complementary products and accessories. In Shop-Script, cross-selling mechanism works on a customers-who-bought-this-also-bought model. Shop-Script analyses which products are more likely to be bought with a particular product based on what other customers purchased so far. Related products are suggested to customer based on his current order content."
 msgstr "Перекрестные продажи (cross-selling) — это методика предложения покупателям дополнительных товаров, каким-то образом связанных или часто использующихся совместно. В Shop-Script механизм перекрестных продаж использует информацию о том, что заказывали другие покупатели. Shop-Script анализирует, какие товары наиболее вероятно могут быть куплены вместе с данным товаром, на основании того, что покупали ранее другие посетители магазина. Перечень рекомендуемых товаров формируется в зависимости от текущего содержимого корзины покупателя."
@@ -854,7 +854,7 @@ msgid "Off"
 msgstr "Выкл"
 
 msgid "Auto (based on what other customers purchased with a particular product)"
-msgstr "Автоматический (на основании того, что другие покупатели заказывали вместе с данным товаром)"
+msgstr "Автоматически (на основании того, что другие покупатели заказывали вместе с данным товаром)"
 
 msgid "Random products from a category"
 msgstr "Случайно выбранные товары из категории"
@@ -1387,7 +1387,7 @@ msgstr "товары из категории"
 msgid "Select manually"
 msgstr "Выбрать вручную"
 
-msgid "Upselling & Similar"
+msgid "Upselling & similar"
 msgstr "Схожие и альтернативные товары"
 
 msgid "Unknown state"
@@ -6737,7 +6737,7 @@ msgid "Visibility"
 msgstr "Кому виден"
 
 msgid "Only me"
-msgstr "Только мне"
+msgstr "Только я"
 
 msgid "Everybody"
 msgstr "Всем пользователям"
@@ -9162,7 +9162,7 @@ msgstr "Ближайшая дата и время доставки в форма
 msgid "Recommended"
 msgstr "Рекомендуем"
 
-msgid "Configure recommendations (Cross-selling)"
+msgid "Configure recommendations (cross-selling)"
 msgstr "Настроить рекомендации (перекрестные продажи)"
 
 msgid "Your shopping cart is empty"
@@ -11073,7 +11073,7 @@ msgstr "В списке перечислены не все витрины."
 msgid "Open “SEO” tab to view the full list."
 msgstr "Перейдите на вкладку «SEO», чтобы увидеть полный список."
 
-msgid "Visibility in the storefront"
+msgid "Availability in the storefront"
 msgstr "Публикация на сайте"
 
 msgid "The product is not shown among other products in the storefront, is not available for purchase, and can be viewed at its direct URL only."
@@ -11175,8 +11175,8 @@ msgstr "Добавить новое значение"
 msgid "A new value can be specified in the common feature list at the page bottom."
 msgstr "Новое значение можно задать в общем списке характеристик внизу страницы."
 
-msgid "The product contains several SKUs or variants."
-msgstr "Товар состоит из нескольких артикулов или модификаций."
+msgid "The product contains several SKUs or variants"
+msgstr "Товар состоит из нескольких артикулов или модификаций"
 
 msgid "Product versions selection in the storefront"
 msgstr "Способ выбора вариантов товара на витрине"
@@ -11780,3 +11780,138 @@ msgstr "Не удалось сохранить значение характер
 
 msgid "Cannot save the value of the “GTIN” feature for an SKU of this product."
 msgstr "Не удалось сохранить значение характеристики «GTIN» для артикула этого товара."
+
+msgid "Who can edit"
+msgstr "Кто может редактировать"
+
+msgid "Other users"
+msgstr "Другие пользователи"
+
+msgid "No storefronts"
+msgstr "Без витрин"
+
+msgid "Upload file"
+msgstr "Загрузить файл"
+
+msgid "A link to download the file will be sent to a customer in an order notification and will be valid only after payment. A convenient delivery method for digital products."
+msgstr "Ссылка для скачивания файла будет отправлена покупателю в уведомлении о заказе и будет работать только после оплаты заказа. Удобный способ доставки электронных товаров."
+
+msgid "Comment to attached file (optional):"
+msgstr "Комментарий к прикрепленному файлу (необязательно):"
+
+msgid "Attached file"
+msgstr "Прикрепленный файл"
+
+msgid "Save product data to attach a file."
+msgstr "Сохраните информацию о товаре, чтобы прикрепить файл."
+
+msgid "Find and add a product"
+msgstr "Найти и добавить товар"
+
+msgid "Complementary products"
+msgstr "Сопутствующие товары"
+
+msgid "Recommend other products as complementary to the current product, if they were previously ordered with this product or if they are contained in selected categories. For instance, you may recommend cases, protective glasses, and earphones for smartphones."
+msgstr "Рекомендуйте покупателям другие товары, которые ранее были куплены в магазине вместе с этим товаром, или товары из определенных категорий. Например, для телефона можно рекомендовать чехлы, защитные стекла и наушники."
+
+msgid "Use recommendations settings"
+msgstr "Использовать настройки рекомендаций"
+
+msgid "For product type"
+msgstr "Для типа товара"
+
+msgid "Individually for this product"
+msgstr "Отдельно для этого товара"
+
+msgid "Products selected"
+msgstr "Выбрано товаров"
+
+msgid "Recommend products with other prices and features, or products of absolutely different types, matching specified criteria. For instance, for a certain smartphone you may recommend other smartphones of different brands with similar functionality."
+msgstr "Рекомендуйте покупателям товары с другими ценами и характеристиками или вообще другие типы товаров, подходящие под заданные критерии. Например, вместо какого-либо телефона можно рекомендовать телефоны других брендов с такими же характеристиками."
+
+msgid "Recommended complementary products for product type “%s” are not defined."
+msgstr "Рекомендации сопутствующих товаров для типа «%s» не заданы."
+
+msgid "Upselling recommendations for product type “%s” are not defined."
+msgstr "Рекомендации схожих и альтернативных товаров для типа «%s» не заданы."
+
+msgid "%d SKU with %s each."
+msgid_plural "%d SKUs with %s each."
+msgstr[0] "%d артикул, в каждом %s."
+msgstr[1] "%d артикула, в каждом %s."
+msgstr[2] "%d артикулов, в каждом %s."
+
+msgid "%d variant"
+msgid_plural "%d variants"
+msgstr[0] "%d модификация"
+msgstr[1] "%d модификации"
+msgstr[2] "%d модификаций"
+
+msgid "Total: %s."
+msgstr "Всего %s."
+
+msgid "SKU is not visible in the storefront."
+msgstr "Артикул не виден на витрине."
+
+msgid "Some SKU variants are not visible in the storefront."
+msgstr "Некоторые модификации артикула видны на витрине."
+
+msgid "All SKU modifications are visible in the storefront."
+msgstr "Все модификации артикула видны на витрине."
+
+msgid "The SKU variant is visible in the storefront."
+msgstr "Модификация артикула видна на витрине."
+
+msgid "The SKU variant visible in the storefront."
+msgstr "Модификация артикула не видна на витрине."
+
+msgid "Incorrect URL format."
+msgstr "Неправильный формат URL."
+
+msgid "It is not recommended to add too many SKU and variants (over 50) as it may slow down the product editor."
+msgstr "Не рекомендуется добавлять очень много артикулов и модификаций (более 50) — это может замедлить редактор товара."
+
+msgid "The product editor may slow down by several seconds with a large total number of SKU variants (over 50)."
+msgstr "Работа редактора товаров может замедлиться на несколько секунд при большом суммарном количестве модификаций (более 50)."
+
+msgid "Select at least 1 feature value to create product SKUs"
+msgstr "Выберите хотя бы 1 значение характеристики для создания артикулов"
+
+msgid "File deletion confirmation"
+msgstr "Подтверждение удаления файла"
+
+msgid "Do you really want to delete the file?"
+msgstr "Вы действительно хотите удалить файл?"
+
+msgid "Disable some SKUs in the new product editor to be able to edit them here"
+msgstr "Отключите некоторые артикулы в новом редакторе товаров, чтобы можно было редактировать их здесь"
+
+msgid "Visibility in the storefront"
+msgstr "Видимость на витрине"
+
+msgid "Filter is not available."
+msgstr "Фильтр недоступен."
+
+msgid "Disable"
+msgstr "Выключить"
+
+msgid "Manually select recommended products"
+msgstr "Выбрать рекомендуемые товары вручную"
+
+msgid "The main SKU cannot be hidden. Either select another main SKU or make the main SKU visible."
+msgstr "Основной артикул не может быть скрыт. Выберите в качестве основного другой артикул или включите видимость на витрине для основного артикула."
+
+msgid "At least one SKU must be visible in the storefront."
+msgstr "Хотя бы один артикул должен быть виден на витрине"
+
+msgid "Cannot delete the file."
+msgstr "Удаление файла невозможно."
+
+msgid "(On all stocks: %d)"
+msgstr "(На всех складах: %d)"
+
+msgid "Set values"
+msgstr "Установить значения"
+
+msgid "Recommendations defined for product type “%s”:"
+msgstr "Для типа «%s» заданы рекомендации:"

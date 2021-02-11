@@ -394,12 +394,12 @@ class shopProductSaveController extends waJsonController
         }
 
         if (!empty($data['skus']) && empty($status_count)) {
-            $errors['status'] = _w("Хотя бы один артикул должен быть виден на витрине.");
+            $errors['status'] = _w("At least one SKU must be visible in the storefront.");
         }
 
         $main_sku_id = ifset($data['sku_id'], null);
         if ($main_sku_id && empty($errors['status']) && empty($data['skus'][$main_sku_id]['status'])) {
-            $errors['status'] = _w('Основной артикул не может быть скрыт. Выберете другой артикул основным или включите видимость у основного артикула');
+            $errors['status'] = _w('The main SKU cannot be hidden. Either select another main SKU or make the main SKU visible.');
         }
 
         return $errors;

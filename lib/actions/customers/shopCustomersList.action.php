@@ -39,7 +39,7 @@ class shopCustomersListAction extends waViewAction
         ));
         if (($filter['contact_id'] > 0 && $filter['contact_id'] != wa()->getUser()->getId())
             || ($filter['contact_id'] < 1 && array_search($filter['contact_id'], wa()->getUser()->getGroupIds()) === false)) {
-            throw new waException(_w('Filter not available'), 403);
+            throw new waException(_w('Filter is not available.'), 403);
         }
 
         $this->view->assign(array(

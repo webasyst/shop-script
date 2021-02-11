@@ -62,7 +62,7 @@
 {$_templates["dialog_feature_used_values"] = $_feature_used_values}
 
 {* КОМПОНЕНТЫ *}
-{* Они могуут добавляться внутри шаблонов через globals. Не удалять. *}
+{* Они могут добавляться внутри шаблонов через globals. Не удалять. *}
 
 {$_components = []}
 {$_globals_components = $wa->globals("components")}
@@ -77,16 +77,16 @@
     "sku_required" => _w("An SKU code is required for grouping."),
     "sku_unique_error" => _w("An SKU name must be unique."),
     "stock_title" => _w("The quantity on this virtual stock is the sum of quantities on physical stocks — %s. You can change the list of stocks in “Settings” section."),
-    "total_sku_mods" => _w("Всего %s"),
+    "total_sku_mods" => _w("Total: %s."),
     "sku_generation_sku_forms" => [
-        _w("В %d артикуле %s.", "В %d артикуле %s.", 1, false),
-        _w("В %d артикулах %s.", "В %d артикулах по %s.", 2, false),
-        _w("В %d артикулах %s.", "В %d артикулах по %s.", 5, false)
+        _w("%d SKU with %s each.", "%d SKUs with %s each.", 1, false),
+        _w("%d SKU with %s each.", "%d SKUs with %s each.", 2, false),
+        _w("%d SKU with %s each.", "%d SKUs with %s each.", 5, false)
     ],
     "sku_generation_sku_mod_forms" => [
-        _w("%d модификация", "%d модификация", 1, false),
-        _w("%d модификации", "%d модификации", 2, false),
-        _w("%d модификаций", "%d модификаций", 5, false)
+        _w("%d variant", "%d variants", 1, false),
+        _w("%d variant", "%d variants", 2, false),
+        _w("%d variant", "%d variants", 5, false)
     ]
 ]}
 
@@ -738,7 +738,7 @@
                 <button class="wa-button wa-small gray" type="button">
                     <span class="s-icon"><i class="fas fa-upload"></i></span>
                     &nbsp;
-                    <span class="s-name">[`Загрузить файл`]</span>
+                    <span class="s-name">[`Upload file`]</span>
                 </button>
                 <input class="js-file-field cursor-pointer" type="file" v-on:change="onFileChange($event)" title="">
             </div>
@@ -774,11 +774,11 @@
         </div>
 
         <div class="s-hint-wrapper">
-            <p class="hint">[`Ссылка на загрузку файла будет отправлена покупателю в уведомлении о заказе и будет работать только в случае, если заказ был оплачен. Удобный способ доставки электронных товаров.`]</p>
+            <p class="hint">[`A link to download the file will be sent to a customer in an order notification and will be valid only after payment. A convenient delivery method for digital products.`]</p>
         </div>
 
         <div class="s-description-wrapper" v-if="sku_mod.file.id">
-            <div class="s-title">[`Комментарий к прикрепленному файлу (необязательно):`]</div>
+            <div class="s-title">[`Comment to attached file (optional):`]</div>
             <component-flex-textarea v-bind:class="'wide wa-small'" v-model="sku_mod.file.description"></component-flex-textarea>
         </div>
     </div>
@@ -861,7 +861,7 @@
 
                                 <div class="wa-label">
                                     <div class="flexbox space-10">
-                                        <span class="s-name">[`The product contains several SKUs or variants.`]</span>
+                                        <span class="s-name">[`The product contains several SKUs or variants`]</span>
                                         <span class="wa-tooltip right" data-title="{_w("Enable to offer customers several versions of the product.")|escape}">
                                             <i class="fas fa-question-circle s-icon gray"></i>
                                         </span>
@@ -1047,7 +1047,7 @@
                                                 </button>
                                                 <button class="wa-button transparent" v-on:click.prevent="skuStatusToggle(sku, sku_index)"
                                                         v-on:click.prevent="skuStatusToggle(sku, sku_index)"
-                                                        v-bind:title="getSkuModStatusTitle(sku, ['{_w("Артикул не виден на витрине.")|escape}', '{_w("Некоторые модификации артикула видны на витрине.")|escape}', '{_w("Все модификации артикула видны на витрине.")|escape}'])">
+                                                        v-bind:title="getSkuModStatusTitle(sku, ['{_w("SKU is not visible in the storefront.")|escape}', '{_w("Some SKU variants are not visible in the storefront.")|escape}', '{_w("All SKU modifications are visible in the storefront.")|escape}'])">
                                                     <span class="s-icon color-blue" v-show="sku.modifications.filter(sku_mod => sku_mod.status).length"><i class="fas fa-eye"></i></span>
                                                     <span class="s-icon color-gray-light" v-show="!sku.modifications.filter(sku_mod => sku_mod.status).length"><i class="fas fa-eye-slash"></i></span>
                                                 </button>
@@ -1179,13 +1179,13 @@
 
                                                     {strip}
                                                     <div class="s-actions nowrap" v-if="product.normal_mode_switch">
-                                                        <button class="wa-button transparent-gray" v-on:click.prevent="modificationMainToggle(sku_mod, sku_mod_index, sku, sku_index);"
+                                                        <button class="wa-button transparent-gray" v-on:click.prevent="modificationMainToggle(sku_mod, sku)"
                                                                 v-bind:data-tooltip-id="( sku.sku_id === sku_mod.id ? 'product-sku-15': 'product-sku-16')">
 
                                                             <span class="s-icon" v-bind:class="{ 'color-orange': sku.sku_id === sku_mod.id, 'color-gray-light': sku.sku_id !== sku_mod.id }"><i class="fas fa-check-circle"></i></span>
                                                         </button>
                                                         <button class="wa-button transparent-gray" v-on:click.prevent="modificationStatusToggle(sku_mod, sku_mod_index, sku, sku_index)"
-                                                                v-bind:title="( sku_mod.status ? '{_w("Модификация видна на витрине.")|escape}': '{_w("Модификация не видна на витрине.")|escape}')">
+                                                                v-bind:title="( sku_mod.status ? '{_w("The SKU variant is visible in the storefront.")|escape}': '{_w("The SKU variant visible in the storefront.")|escape}')">
                                                             <span class="s-icon color-blue" v-show="(sku_mod.status)"><i class="fas fa-eye"></i></span>
                                                             <span class="s-icon color-gray-light" v-show="(!sku_mod.status)"><i class="fas fa-eye-slash"></i></span>
                                                         </button>
@@ -1283,9 +1283,9 @@
                                                                 <div class="wa-field">
                                                                     <div class="name unshifted">
                                                                         <div class="flexbox space-10">
-                                                                            <div class="s-name wide">[`Прикреплённый файл`]</div>
+                                                                            <div class="s-name wide">[`Attached file`]</div>
                                                                             <div>
-                                                                                <span class="wa-tooltip right" data-title="{_w("Прикреплённый файл")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
+                                                                                <span class="wa-tooltip right" data-title="{_w("Attached file")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -1294,7 +1294,7 @@
                                                                             <component-file-manager v-bind:sku_mod="sku_mod"></component-file-manager>
                                                                         </template>
                                                                         <template v-else>
-                                                                            <p>[`Сохраните информацию о товаре, чтобы прикрепить файл.`]</p>
+                                                                            <p>[`Save product data to attach a file.`]</p>
                                                                         </template>
                                                                     </div>
                                                                 </div>

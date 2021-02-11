@@ -80,9 +80,9 @@
                     $.each(sku.modifications, function(i, sku_mod) {
                         that.formatModification(sku_mod);
 
-                        if (!product.normal_mode) {
-                            sku_mod.expanded = true;
-                        }
+                        // if (!product.normal_mode) {
+                        //     sku_mod.expanded = true;
+                        // }
 
                         if (session_data && session_data.mods[sku_mod.id]) {
                             var session_sku_mod = session_data.mods[sku_mod.id];
@@ -1333,7 +1333,7 @@
 
                             $.each(sku.modifications, function(i, sku_mod) {
                                 sku_mod.sku = sku.sku;
-                                sku_mod.expanded = !active;
+                                // sku_mod.expanded = !active;
                             });
                         });
 
@@ -1953,6 +1953,8 @@
                         that.$wrapper.trigger("change");
                     },
                     removeSKU: function(event, sku, sku_index) {
+                        var self = this;
+
                         if (!is_root_locked) {
                             var loading = "<span class=\"icon color-gray\"><i class=\"fas fa-spinner fa-spin\"></i></span>";
 
@@ -1971,6 +1973,10 @@
 
                                     if (that.product.skus.length === 1 && that.product.skus[0].modifications.length === 1) {
                                         that.product.normal_mode = false;
+                                    }
+
+                                    if (sku.sku_id === that.product.sku_id && that.product.skus.length > 0) {
+                                        self.skuMainToggle(that.product.skus[0]);
                                     }
 
                                     that.validate();
@@ -2011,7 +2017,7 @@
                     },
 
                     // MODIFICATIONS
-                    skuMainToggle: function(sku, sku_index) {
+                    skuMainToggle: function(sku) {
                         if (sku.sku_id !== that.product.sku_id) {
                             $.each(that.product.skus, function(i, _sku) {
                                 if (_sku !== sku) {
@@ -2070,6 +2076,8 @@
                         that.$wrapper.trigger("change");
                     },
                     removeModification: function(event, sku_mod, sku_mod_index, sku, sku_index) {
+                        var self = this;
+
                         if (sku.modifications.length > 1) {
                             if (!is_root_locked) {
                                 var loading = "<span class=\"icon color-gray\"><i class=\"fas fa-spinner fa-spin\"></i></span>";
@@ -2084,11 +2092,17 @@
                                         $loading.remove();
                                         $icon.show();
                                     })
-                                    .done( function () {
-                                        that.product.skus[sku_index].modifications.splice(sku_mod_index, 1);
+                                    .done( function() {
+                                        var mods = sku.modifications;
+
+                                        mods.splice(sku_mod_index, 1);
 
                                         if (that.product.skus.length === 1 && that.product.skus[0].modifications.length === 1) {
                                             that.product.normal_mode = false;
+                                        }
+
+                                        if (sku.sku_id === that.product.sku_id && mods.length > 0) {
+                                            self.modificationMainToggle(mods[0], sku);
                                         }
                                     });
 
@@ -2159,7 +2173,7 @@
                             this.modificationStocksToggle(sku_mod, true);
                         }
                     },
-                    modificationMainToggle: function(sku_mod, sku_mod_index, sku, sku_index) {
+                    modificationMainToggle: function(sku_mod, sku) {
                         if (sku.sku_id !== sku_mod.id) {
                             $.each(that.product.skus, function(i, _sku) {
                                 if (_sku !== sku) {
@@ -2634,6 +2648,10 @@
                     features = features.concat(sku_mod.features);
                 });
             });
+
+            // Добавить новые значения в "болванку" модификацию.
+            features = features.concat(that.new_modification.features_selectable);
+            features = features.concat(that.new_modification.features);
 
             $.each(features, function(i, _feature) {
                 var active_option = {
@@ -3790,9 +3808,9 @@
                         string = string.replace("%d", '<span class="s-counter is-green">' + sku_count + '</span>');
 
                         /* кейс для РУ локали, 2 артикула ПО 1 модификациИ */
-                        var ru_correct_count = (sku_count > 1 && sku_mod_count === 1 ? 2 : sku_mod_count);
+                        // var ru_correct_count = (sku_count > 1 && sku_mod_count === 1 ? 2 : sku_mod_count);
 
-                        var sku_mod_string = $.wa.locale_plural(ru_correct_count, that.locales["sku_generation_sku_mod_forms"], false);
+                        var sku_mod_string = $.wa.locale_plural(sku_mod_count, that.locales["sku_generation_sku_mod_forms"], false);
                         sku_mod_string = sku_mod_string.replace("%d", '<span class="s-counter">' + sku_mod_count + '</span>');
                         string = string.replace("%s", sku_mod_string);
 

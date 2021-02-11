@@ -8863,7 +8863,7 @@ msgstr ""
 msgid "Show order items’ and total order weight"
 msgstr ""
 
-msgid "Configure recommendations (Cross-selling)"
+msgid "Configure recommendations (cross-selling)"
 msgstr ""
 
 msgid "Selected country and region will be visible to customers but not available for changing."

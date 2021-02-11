@@ -1,20 +1,20 @@
 <div class="s-product-edit-related-page">
     <div class="s-content-section s-cross-selling-section">
         <div class="s-section-header">
-            <h2 class="s-title">[`Сопутствующие товары`] (Cross-selling)</h2>
+            <h2 class="s-title">[`Complementary products`] (Cross-selling)</h2>
         </div>
         <div class="s-section-body">
-            <div class="s-description">[`Рекомендуйте покупателям товары, которые до этого заказывались в магазине вместе с этим товаром, или товары из определенных категорий. Например, к телефону могут рекомендоваться чехлы, защитные стёкла и наушники.`]</div>
+            <div class="s-description">[`Recommend other products as complementary to the current product, if they were previously ordered with this product or if they are contained in selected categories. For instance, you may recommend cases, protective glasses, and earphones for smartphones.`]</div>
 
             <div class="field">
                 <div class="name">
-                    <span>[`Использовать настройки рекомендаций`]</span>
+                    <span>[`Use recommendations settings`]</span>
                 </div>
                 <div class="value">
                     <div class="s-variants-list">
                         <div class="s-variant-section {if $product.cross_selling == 1}is-active{/if}">
                             <div class="s-section-header">
-                                <label><input class="s-variant-radio" type="radio" name="cross_selling.view_type" value="auto" {if $product.cross_selling == 1}checked{/if}>&nbsp;[`Типа товаров`]</label>
+                                <label><input class="s-variant-radio" type="radio" name="cross_selling.view_type" value="auto" {if $product.cross_selling == 1}checked{/if}>&nbsp;[`Product types`]</label>
                             </div>
                             <div class="s-section-body">
                                 {if $type.cross_selling}
@@ -24,7 +24,7 @@
                         </div>
                         <div class="s-variant-section {if $product.cross_selling != 1}is-active{/if}">
                             <div class="s-section-header">
-                                <label><input class="s-variant-radio" type="radio" name="cross_selling.view_type" value="manual" {if $product.cross_selling != 1}checked{/if}>&nbsp;[`Этого товара отдельно`]</label>
+                                <label><input class="s-variant-radio" type="radio" name="cross_selling.view_type" value="manual" {if $product.cross_selling != 1}checked{/if}>&nbsp;[`Individually for this product`]</label>
                             </div>
                             <div class="s-section-body">
                                 <div class="s-options-list">
@@ -66,20 +66,20 @@
     </div>
     <div class="s-content-section">
         <div class="s-section-header">
-            <h2 class="s-title">[`Схожие и альтернативные товары`] (Upselling)</h2>
+            <h2 class="s-title">[`Upselling & similar`] (upselling)</h2>
         </div>
         <div class="s-section-body">
-            <div class="s-description">[`Рекомендуйте покупателям товары с другими ценами и характеристиками, или вообще другие типы товаров, подходящие под заданные критерии. Например, вместо одного телефона могут рекомендоваться телефоны других брендов с такими же характеристиками.`]</div>
+            <div class="s-description">[`Recommend products with other prices and features, or products of absolutely different types, matching specified criteria. For instance, for a certain smartphone you may recommend other smartphones of different brands with similar functionality.`]</div>
 
             <div class="field">
                 <div class="name">
-                    <span>[`Использовать настройки рекомендаций`]</span>
+                    <span>[`Use recommendations settings`]</span>
                 </div>
                 <div class="value">
                     <div class="s-variants-list">
                         <div class="s-variant-section {if $product.upselling == 1}is-active{/if}">
                             <div class="s-section-header">
-                                <label><input class="s-variant-radio" type="radio" name="upselling.view_type" value="auto" {if $product.upselling == 1}checked{/if} {if !$type.upselling}disabled{/if}>&nbsp;[`Типа товаров`]</label>
+                                <label><input class="s-variant-radio" type="radio" name="upselling.view_type" value="auto" {if $product.upselling == 1}checked{/if} {if !$type.upselling}disabled{/if}>&nbsp;[`Product types`]</label>
                             </div>
                             <div class="s-section-body">
                                 {if !$type.upselling}
@@ -99,7 +99,7 @@
                         </div>
                         <div class="s-variant-section {if $product.upselling != 1}is-active{/if}">
                             <div class="s-section-header">
-                                <label><input class="s-variant-radio" type="radio" name="upselling.view_type" value="manual" {if $product.upselling != 1}checked{/if}>&nbsp;[`Этого товара отдельно`]</label>
+                                <label><input class="s-variant-radio" type="radio" name="upselling.view_type" value="manual" {if $product.upselling != 1}checked{/if}>&nbsp;[`Individually for this product`]</label>
                             </div>
                             <div class="s-section-body">
                                 <div class="s-options-list">

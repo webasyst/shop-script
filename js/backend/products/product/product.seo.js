@@ -200,6 +200,7 @@
                         var self = this;
 
                         return function(letters, min, max) {
+                            letters = letters || '';
                             var count = letters.length;
                             var locale = $.wa.locale_plural(count, that.locales["letter_forms"], false);
 

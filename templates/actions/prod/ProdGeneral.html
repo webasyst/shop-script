@@ -91,7 +91,7 @@
                 <button class="wa-button wa-small gray" type="button">
                     <span class="s-icon"><i class="fas fa-upload"></i></span>
                     &nbsp;
-                    <span class="s-name">[`Загрузить файл`]</span>
+                    <span class="s-name">[`Upload file`]</span>
                 </button>
                 <input class="js-file-field cursor-pointer" type="file" v-on:change="onFileChange($event)" title="">
             </div>
@@ -127,11 +127,11 @@
         </div>
 
         <div class="s-hint-wrapper">
-            <p class="hint">[`Ссылка на загрузку файла будет отправлена покупателю в уведомлении о заказе и будет работать только в случае, если заказ был оплачен. Удобный способ доставки электронных товаров.`]</p>
+            <p class="hint">[`A link to download the file will be sent to a customer in an order notification and will be valid only after payment. A convenient delivery method for digital products.`]</p>
         </div>
 
         <div class="s-description-wrapper" v-if="sku_mod.file.id">
-            <div class="s-title">[`Комментарий к прикрепленному файлу (необязательно):`]</div>
+            <div class="s-title">[`Comment to attached file (optional):`]</div>
             <component-flex-textarea v-bind:class="'wide wa-small'" v-model="sku_mod.file.description"></component-flex-textarea>
         </div>
     </div>
@@ -246,7 +246,7 @@
 
                             <div class="wa-label">
                                 <div>
-                                    [`Visibility in the storefront`]
+                                    [`Availability in the storefront`]
                                 </div>
                             </div>
 
@@ -432,7 +432,7 @@
 
                                 <div class="wa-label">
                                     <div class="flexbox space-10">
-                                        <span class="s-name">[`The product contains several SKUs or variants.`]</span>
+                                        <span class="s-name">[`The product contains several SKUs or variants`]</span>
                                         <span class="wa-tooltip right" data-title="{_w("Enable to offer customers several versions of the product.")|escape}">
                                             <i class="fas fa-question-circle s-icon gray"></i>
                                         </span>
@@ -625,9 +625,9 @@
                                                             <div class="wa-field">
                                                                 <div class="name unshifted">
                                                                     <div class="flexbox space-10">
-                                                                        <div class="s-name wide">[`Прикреплённый файл`]</div>
+                                                                        <div class="s-name wide">[`Attached file`]</div>
                                                                         <div>
-                                                                            <span class="wa-tooltip right" data-title="{_w("Прикреплённый файл")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
+                                                                            <span class="wa-tooltip right" data-title="{_w("Attached file")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -636,7 +636,7 @@
                                                                         <component-file-manager v-bind:sku_mod="sku_mod"></component-file-manager>
                                                                     </template>
                                                                     <template v-else>
-                                                                        <p>[`Сохраните информацию о товаре, чтобы прикрепить файл.`]</p>
+                                                                        <p>[`Save product data to attach a file.`]</p>
                                                                     </template>
                                                                 </div>
                                                             </div>

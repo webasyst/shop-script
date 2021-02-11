@@ -240,7 +240,7 @@
                         <a class="inline-link" href="javascript:void(0);">
                             <b><i class="s-text">
                                 {if !empty($unattached_active)}
-                                    [`Без витрин`]
+                                    [`No storefronts`]
                                 {elseif !empty($active_storefront)}
                                     {waIdna::dec($active_storefront)}
                                 {else}
@@ -254,7 +254,7 @@
                             </li>
                             {if !empty($show_unatt_storefronts) || !empty($unattached_active)}
                                 <li class="{if !empty($unattached_active)}selected{/if}">
-                                    <a class="s-ellipsis" href="{$marketing_url}?storefront=_unattached_{if $status}&status={$status}{/if}" title="[`Без витрин`]">[`Без витрин`]</a>
+                                    <a class="s-ellipsis" href="{$marketing_url}?storefront=_unattached_{if $status}&status={$status}{/if}" title="[`No storefronts`]">[`No storefronts`]</a>
                                 </li>
                             {/if}
 

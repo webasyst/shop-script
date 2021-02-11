@@ -48,13 +48,13 @@
                 </div>
                 <div class="field" id="dependent-field" {if $filter.contact_id > 0}style="display:none"{/if}>
                     <div class="name">
-                        [`Кто может редактировать`]
+                        [`Who can edit`]
                     </div>
                     <div class="value no-shift s-ibutton-checkbox">
                         <ul class="menu-h">
-                            <li><label for="s-filter-editable"><span class="s-unselected">[`Только я`]</span></label></li>
+                            <li><label for="s-filter-editable"><span class="s-unselected">[`Only me`]</span></label></li>
                             <li><input type="checkbox" id="s-filter-editable" name="filter[mass_edit]" {if $filter.mass_edit == 0}checked="checked"{/if}  {if !$can_edit}disabled{/if}></li>
-                            <li><label for="s-filter-editable"><span>[`Другие пользователи`]</span></label></li>
+                            <li><label for="s-filter-editable"><span>[`Other users`]</span></label></li>
                         </ul>
                     </div>
                 </div>

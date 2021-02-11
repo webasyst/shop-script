@@ -33,7 +33,7 @@ class shopProdDeleteSkuFileController extends waJsonController
         } catch (waException $e) {
             $this->errors = array(
                 'id' => 'file_delete',
-                'text' => _w('Unable to delete file')
+                'text' => _w('Cannot delete the file.')
             );
         }
     }

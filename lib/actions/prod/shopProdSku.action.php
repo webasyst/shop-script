@@ -388,6 +388,8 @@ class shopProdSkuAction extends waViewAction
                         if ($value instanceof shopColorValue) {
                             if ( !empty($value["code"]) ) {
                                 $_option["code"] = $value['hex'];
+                            } else {
+                                $_option["code"] = "#000000";
                             }
                         }
 
@@ -414,6 +416,8 @@ class shopProdSkuAction extends waViewAction
                         if ($value instanceof shopColorValue) {
                             if ( !empty($value["code"]) ) {
                                 $_option["code"] = $value['hex'];
+                            } else {
+                                $_option["code"] = "#000000";
                             }
                         }
 
@@ -736,6 +740,8 @@ class shopProdSkuAction extends waViewAction
                             }
                             if ( !empty($_feature_value["code"]) ) {
                                 $feature["options"][0]["code"] = $_feature_value['hex'];
+                            } else {
+                                $feature["options"][0]["code"] = "#000000";
                             }
                         }
                     }

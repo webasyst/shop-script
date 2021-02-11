@@ -124,7 +124,7 @@
                     <div class="message-text wide">
                         <p>[`Please select and arrange features and their values to be used for the variants generation.`]</p>
                         <p>[`To create several SKUs, drag & drop a feature to “SKUs”, each of whose values will correspond to an individual SKU.`]</p>
-                        <p>[`ВОТ ТУТ текст про то что нельзя создавать много артикулов/модификаций разом (не более 30-50), браузер может повиснуть.`]</p>
+                        <p>[`It is not recommended to add too many SKU and variants (over 50) as it may slow down the product editor.`]</p>
                     </div>
                 </div>
 
@@ -133,7 +133,7 @@
                         <div class="s-column-header">
                             <div class="s-header">
                                 <span class="s-icon"><i class="fas fa-sitemap"></i></span>
-                                <span class="s-name">[`Характеристики`]</span>
+                                <span class="s-name">[`Features`]</span>
                             </div>
 
                             <div class="dropdown s-features-dropdown js-features-dropdown">
@@ -203,7 +203,7 @@
                             <div class="s-switch">
                                 <component-switch v-model="use_values"></component-switch>
                             </div>
-                            <div class="s-name">Установить значения</div>
+                            <div class="s-name">[`Set values`]</div>
                         </div>
                         {/strip}
 
@@ -285,7 +285,7 @@
                         <i class="fas fa-info-circle"></i>
                     </div>
                     <div class="message-text wide">
-                        <p>[`Сообщение про то что, при большом кол-ве артикулов/модификаций браузер может подвиснуть на какое-то кол-во секунд. Сообщение появляется при суммарном кол-ве модификаций более 50 (артикулы умножить на модификации)`]</p>
+                        <p>[`The product editor may slow down by several seconds with a large total number of SKU variants (over 50).`]</p>
                     </div>
                 </div>
 
@@ -301,8 +301,8 @@
 
                 <button class="js-submit-button wa-button blue" type="button"
                     v-on:click.prevent="startGenerator"
-                    v-bind:title="getCount(false) > 0 ? '{_w("Создать")|escape}' : '{_w("Нужно выбрать хотя бы одно значение характеристики для генерации")|escape}'"
-                    v-bind:disabled="!start_generation_enabled">[`Создать`]</button>
+                    v-bind:title="getCount(false) > 0 ? '{_w("Create")|escape}' : '{_w("Select at least 1 feature value to create product SKUs")|escape}'"
+                    v-bind:disabled="!start_generation_enabled">[`Create`]</button>
 
                 <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
             </div>

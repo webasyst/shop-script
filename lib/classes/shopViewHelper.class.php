@@ -921,7 +921,8 @@ SQL;
         } elseif ($name == 'customer') {
             return $this->customer();
         }
-        return null;
+
+        return parent::__get($name);
     }
 
     public function compare()

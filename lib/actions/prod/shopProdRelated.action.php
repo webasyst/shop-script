@@ -82,7 +82,7 @@ class shopProdRelatedAction extends waViewAction
         }
 
         $auto_enabled = !!$type["cross_selling"];
-        $description = ($type["cross_selling"] ? _w("Автоматический (на основании того, что другие покупатели заказывали вместе с данным товаром)") : null);;
+        $description = ($type["cross_selling"] ? _w("Auto (based on what other customers purchased with a particular product)") : null);;
 
         return [
             "view_type" => $view_type,
@@ -93,14 +93,14 @@ class shopProdRelatedAction extends waViewAction
             "options" => [
                 [
                     "id"          => "off",
-                    "name"        => _w( "Выключить" ),
+                    "name"        => _w( "Disable" ),
                     "value"       => "0",
                     "description" => "",
                     "disabled"    => false
                 ],
                 [
                     "id"          => "manual",
-                    "name"        => _w( "Выбрать рекомендуемые товары вручную" ),
+                    "name"        => _w( "Manually select recommended products" ),
                     "value"       => "2",
                     "description" => "",
                     "disabled"    => false
@@ -155,14 +155,14 @@ class shopProdRelatedAction extends waViewAction
             "options" => [
                 [
                     "id"          => "off",
-                    "name"        => _w( "Выключить" ),
+                    "name"        => _w( "Disable" ),
                     "value"       => "0",
                     "description" => "",
                     "disabled"    => false
                 ],
                 [
                     "id"          => "manual",
-                    "name"        => _w( "Выбрать рекомендуемые товары вручную" ),
+                    "name"        => _w( "Manually select recommended products" ),
                     "value"       => "2",
                     "description" => "",
                     "disabled"    => false

@@ -7,7 +7,7 @@
 {capture assign="_component_products_list"}
     <div class="vue-component-products-list">
         <div class="s-add-product-form flexbox middle space-12">
-            <span class="s-title">[`Найти и добавить товар`]</span>
+            <span class="s-title">[`Find and add a product`]</span>
             <component-add-product v-bind:class="'wide'" v-bind:placeholder="'{_w("Start typing product name or SKU")|escape}'" v-on:add_product="addProduct($event, products)"></component-add-product>
         </div>
         <div class="s-products-list" v-if="products.length">
@@ -33,7 +33,7 @@
                             v-on:click.prevent="removeProduct(product, products)">
                         <span class="s-icon icon baseline shift-2 size-12"><i class="fas fa-times"></i></span>
                         &nbsp;
-                        <span class="s-name">[`Убрать`]</span>
+                        <span class="s-name">[`Remove`]</span>
                     </button>
                 </div>
             </div>
@@ -52,15 +52,15 @@
         <div class="s-section-body">
             <div class="s-content-section s-cross-selling-section">
                 <div class="s-section-header">
-                    <h5 class="s-title">[`Сопутствующие товары`] (Cross-selling)</h5>
+                    <h5 class="s-title">[`Complementary products`] (cross-selling)</h5>
                 </div>
                 <div class="s-section-body">
-                    <p>[`Рекомендуйте покупателям товары, которые до этого заказывались в магазине вместе с этим товаром, или товары из определенных категорий. Например, к телефону могут рекомендоваться чехлы, защитные стёкла и наушники.`]</p>
+                    <p>[`Recommend other products as complementary to the current product, if they were previously ordered with this product or if they are contained in selected categories. For instance, you may recommend cases, protective glasses, and earphones for smartphones.`]</p>
 
                     <div class="wa-fields">
                         <div class="wa-field">
                             <div class="name unshifted size-small">
-                                <span>[`Использовать настройки рекомендаций`]</span>
+                                <span>[`Use recommendations settings`]</span>
                             </div>
                             <div class="value">
                                 <div class="s-variants-list">
@@ -70,7 +70,7 @@
                                                 <span class="wa-radio baseline shift-2">
                                                     <input type="radio" value="auto" v-model="cross_selling.view_type" v-on:change="onTypeChange(cross_selling)"><span></span>
                                                 </span>
-                                                <span class="s-title">[`Типа товаров`]</span>
+                                                <span class="s-title">[`For product type`]</span>
                                             </label>
                                         </div>
                                         <div class="s-section-body">
@@ -84,16 +84,16 @@
                                                 </div>
                                                 <div class="message-body wide">
                                                     {if !empty($cross_selling.description)}
-                                                        <p class="italic color-gray">[`Для типа «Подарки и сувениры» заданы рекомендации:`]</p>
+                                                        <p class="italic color-gray">{sprintf(_w( "Recommendations defined for product type “%s”:" ), $product["type"]["name"]|default:"")}</p>
                                                         <p class="italic color-black-light">{$cross_selling.description}</p>
                                                     {else}
-                                                        <p class="italic">{sprintf(_w( "Рекомендации сопутствующих товаров для типа «%s» не заданы." ), $product["type"]["name"]|default:"")}</p>
+                                                        <p class="italic">{sprintf(_w( "Recommended complementary products for product type “%s” are not defined." ), $product["type"]["name"]|default:"")}</p>
                                                     {/if}
                                                 </div>
                                                 <div class="message-actions">
                                                     <a class="wa-button wa-small gray" href="{$wa_app_url}marketing/recommendations/" target="_blank">
                                                         <span class="s-icon"><i class="fas fa-cog"></i></span>
-                                                        <span class="s-name">[`Настроить`]</span>
+                                                        <span class="s-name">[`Options`]</span>
                                                         <span class="s-icon" style="font-size: 12px;"><i class="fas fa-external-link-square-alt"></i></span>
                                                     </a>
                                                 </div>
@@ -106,7 +106,7 @@
                                                 <span class="wa-radio baseline shift-2">
                                                     <input type="radio" value="manual" v-model="cross_selling.view_type" v-on:change="onTypeChange(cross_selling)"><span></span>
                                                 </span>
-                                                <span class="s-title">[`Этого товара отдельно`]</span>
+                                                <span class="s-title">[`Individually for this product`]</span>
                                             </label>
                                         </div>
                                         <div class="s-section-body">
@@ -131,13 +131,13 @@
                                                         <template v-if="option.value === '2'">
                                                             <div class="s-products-header flexbox space-8 middle wrap">
                                                                 <div class="s-count-wrapper">
-                                                                    <span class="s-label">[`Выбрано товаров`]:</span>
+                                                                    <span class="s-label">[`Products selected`]:</span>
                                                                     <span class="s-count bold">{ { cross_selling.products.length } }</span>
                                                                 </div>
                                                                 <button class="wa-button wa-small transparent s-form-toggle-button"
                                                                         v-on:click.prevent="cross_selling.show_form = !cross_selling.show_form">
                                                                     <span class="s-icon" style="font-size: 12px;"><i class="fas fa-pen"></i></span>
-                                                                    <span class="s-name">[`Изменить`]</span>
+                                                                    <span class="s-name">[`Change`]</span>
                                                                     <span class="s-icon" v-show="!cross_selling.show_form" style="display: inline-block; transform: translate(0, -12.5%)"><i class="fas fa-sort-down"></i></span>
                                                                     <span class="s-icon" v-show="cross_selling.show_form" style="display: inline-block; transform: translate(0, 25%)"><i class="fas fa-sort-up"></i></span>
                                                                 </button>
@@ -178,15 +178,15 @@
 
             <div class="s-content-section s-upselling-section">
                 <div class="s-section-header">
-                    <h5 class="s-title">[`Схожие и альтернативные товары`] (Upselling)</h5>
+                    <h5 class="s-title">[`Upselling & similar`] (upselling)</h5>
                 </div>
                 <div class="s-section-body">
-                    <p>[`Рекомендуйте покупателям товары с другими ценами и характеристиками, или вообще другие типы товаров, подходящие под заданные критерии. Например, вместо одного телефона могут рекомендоваться телефоны других брендов с такими же характеристиками.`]</p>
+                    <p>[`Recommend products with other prices and features, or products of absolutely different types, matching specified criteria. For instance, for a certain smartphone you may recommend other smartphones of different brands with similar functionality.`]</p>
 
                     <div class="wa-fields">
                         <div class="wa-field">
                             <div class="name unshifted size-small">
-                                <span>[`Использовать настройки рекомендаций`]</span>
+                                <span>[`Use recommendations settings`]</span>
                             </div>
                             <div class="value">
                                 <div class="s-variants-list">
@@ -196,7 +196,7 @@
                                                 <span class="wa-radio baseline shift-2">
                                                     <input type="radio" value="auto" v-model="upselling.view_type" v-on:change="onTypeChange(upselling)"><span></span>
                                                 </span>
-                                                <span class="s-title">[`Типа товаров`]</span>
+                                                <span class="s-title">[`For product type`]</span>
                                             </label>
                                         </div>
                                         <div class="s-section-body">
@@ -210,16 +210,16 @@
                                                 </div>
                                                 <div class="message-body wide">
                                                     {if !empty($upselling.description)}
-                                                        <p class="italic color-gray">[`Для типа «Подарки и сувениры» заданы рекомендации:`]</p>
+                                                        <p class="italic color-gray">{sprintf(_w( "Recommendations defined for product type “%s”:" ), $product["type"]["name"]|default:"")}</p>
                                                         <p class="italic color-black-light">{$upselling.description}</p>
                                                     {else}
-                                                        <p class="italic">{sprintf(_w( "Рекомендации схожих и альтернативных товаров для типа «%s» не заданы." ), $product["type"]["name"]|default:"")}</p>
+                                                        <p class="italic">{sprintf(_w( "Upselling recommendations for product type “%s” are not defined." ), $product["type"]["name"]|default:"")}</p>
                                                     {/if}
                                                 </div>
                                                 <div class="message-actions">
                                                     <a class="wa-button wa-small gray" href="{$wa_app_url}marketing/recommendations/" target="_blank">
                                                         <span class="s-icon"><i class="fas fa-cog"></i></span>
-                                                        <span class="s-name">[`Настроить`]</span>
+                                                        <span class="s-name">[`Options`]</span>
                                                         <span class="s-icon" style="font-size: 12px;"><i class="fas fa-external-link-square-alt"></i></span>
                                                     </a>
                                                 </div>
@@ -232,7 +232,7 @@
                                                 <span class="wa-radio baseline shift-2">
                                                     <input type="radio" value="manual" v-model="upselling.view_type" v-on:change="onTypeChange(upselling)"><span></span>
                                                 </span>
-                                                <span class="s-title">[`Этого товара отдельно`]</span>
+                                                <span class="s-title">[`Individually for this product`]</span>
                                             </label>
                                         </div>
                                         <div class="s-section-body">
@@ -257,13 +257,13 @@
                                                         <template v-if="option.value === '2'">
                                                             <div class="s-products-header flexbox space-8 middle wrap">
                                                                 <div class="s-count-wrapper">
-                                                                    <span class="s-label">[`Выбрано товаров`]:</span>
+                                                                    <span class="s-label">[`Products selected`]:</span>
                                                                     <span class="s-count bold">{ { upselling.products.length } }</span>
                                                                 </div>
                                                                 <button class="wa-button wa-small transparent s-form-toggle-button"
                                                                         v-on:click.prevent="upselling.show_form = !upselling.show_form">
                                                                     <span class="s-icon" style="font-size: 12px;"><i class="fas fa-pen"></i></span>
-                                                                    <span class="s-name">[`Изменить`]</span>
+                                                                    <span class="s-name">[`Change`]</span>
                                                                     <span class="s-icon" v-show="!upselling.show_form" style="display: inline-block; transform: translate(0, -12.5%)"><i class="fas fa-sort-down"></i></span>
                                                                     <span class="s-icon" v-show="upselling.show_form" style="display: inline-block; transform: translate(0, 25%)"><i class="fas fa-sort-up"></i></span>
                                                                 </button>
