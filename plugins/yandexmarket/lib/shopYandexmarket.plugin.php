@@ -1210,10 +1210,18 @@ HTML;
         return $stats;
     }
 
+    /**
+     * https://yandex.ru/dev/market/partner/doc/dg/reference/get-campaigns-id-outlets.html
+     *
+     * @param $campaign_id
+     * @param null $region_id
+     * @return array
+     * @throws waException
+     */
     private function getRawOutlets($campaign_id, $region_id = null)
     {
         $params = array(
-            'page'     => 0,
+            'page'     => 1,
             'pageSize' => 50,
         );
         if ($region_id) {

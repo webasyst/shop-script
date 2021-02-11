@@ -213,38 +213,37 @@ class shopYandexmarketPluginSettingsActions extends waViewActions
 
     public function outletsAction()
     {
-        return;
-//        $campaign_id = max(0, waRequest::get('campaign_id', 0, waRequest::TYPE_INT));
-//        $campaign = null;
-//        if ($campaign_id) {
-//            $model = new shopYandexmarketCampaignsModel();
-//            $campaign = $model->get($campaign_id);
-//
-//            $cron_template = 'php %s/cli.php shop yandexmarketPluginCache %d';
-//            $cron_command = sprintf($cron_template, wa()->getConfig()->getRootPath(), $campaign_id);
-//
-//            $ttl = round(shopYandexmarketPlugin::getTTL() / 2);
-//            $api_available = $this->plugin->checkApi();
-//
-//            try {
-//                $outlets = $this->plugin->getOutlets($campaign_id);
-//            } catch (waException $ex) {
-//                $error = $ex->getMessage();
-//                $error_code = $ex->getCode();
-//            }
-//
-//            try {
-//                if ($api_available && ($region = $this->plugin->getCampaignRegion($campaign_id))) {
-//                    $address = shopYandexmarketPluginOrder::parseAddress($region, null, true);
-//                    $this->view->assign('address', $address);
-//                    $shipping_methods = $this->getShippingMethods($address);
-//                }
-//            } catch (waException $ex) {
-//                $this->view->assign('address_error', $ex->getMessage());
-//            }
-//        }
-//
-//        $this->view->assign(compact('campaign_id', 'campaign', 'outlets', 'shipping_methods', 'cron_command', 'ttl', 'error', 'error_code'));
+        $campaign_id = max(0, waRequest::get('campaign_id', 0, waRequest::TYPE_INT));
+        $campaign = null;
+        if ($campaign_id) {
+            $model = new shopYandexmarketCampaignsModel();
+            $campaign = $model->get($campaign_id);
+
+            $cron_template = 'php %s/cli.php shop yandexmarketPluginCache %d';
+            $cron_command = sprintf($cron_template, wa()->getConfig()->getRootPath(), $campaign_id);
+
+            $ttl = round(shopYandexmarketPlugin::getTTL() / 2);
+            $api_available = $this->plugin->checkApi();
+
+            try {
+                $outlets = $this->plugin->getOutlets($campaign_id);
+            } catch (waException $ex) {
+                $error = $ex->getMessage();
+                $error_code = $ex->getCode();
+            }
+
+            try {
+                if ($api_available && ($region = $this->plugin->getCampaignRegion($campaign_id))) {
+                    $address = shopYandexmarketPluginOrder::parseAddress($region, null, true);
+                    $this->view->assign('address', $address);
+                    $shipping_methods = $this->getShippingMethods($address);
+                }
+            } catch (waException $ex) {
+                $this->view->assign('address_error', $ex->getMessage());
+            }
+        }
+
+        $this->view->assign(compact('campaign_id', 'campaign', 'outlets', 'shipping_methods', 'cron_command', 'ttl', 'error', 'error_code'));
     }
 
     protected function getTemplate()

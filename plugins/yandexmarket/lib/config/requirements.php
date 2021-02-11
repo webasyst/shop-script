@@ -6,7 +6,7 @@ return array(
     ),
     'app.shop'      => array(
         'strict'  => true,
-        'version' => '8.4.6',
+        'version' => 'latest',
     ),
     'app.installer' => array(
         'strict'  => true,

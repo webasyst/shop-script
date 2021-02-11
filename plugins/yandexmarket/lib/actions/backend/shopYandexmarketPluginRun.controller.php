@@ -11,6 +11,7 @@
  * Далее проход по шагам (step). Каждый шаг может делиться на чанки (chunks).
  * Между чанками сформированный DOM XML сохраняется во временный файл.
  * - На шаге stepCategory() формируется (заполняется) соответствующая секция <categories>
+ * - На шаге stepPreparePromos() производится подготовка всех товаров участвующих в экспортируемых промо-акциях
  * - На шаге stepProduct() заполняется секция <offers> с доступными товарами магазина
  * - На шаге stepGifts() заполняется секция <gifts> с доступными подарками магазина
  * - Шаг completeGifts() выполняет инструкции один раз, после обработки секции с подарками
@@ -19,14 +20,14 @@
  */
 class shopYandexmarketPluginRunController extends waLongActionController
 {
-    /** @var int минимальная скидка для купона */
-    const COUPON_PERCENT_LEFT = 5 / 100;
+    /** @var int минимальная скидка для промо-акции */
+    const PERCENT_LEFT = 5 / 100;
 
-    /** @var int максимальная скидка для купона */
-    const COUPON_PERCENT_RIGHT = 95 / 100;
+    /** @var int максимальная скидка для промо-акции */
+    const PERCENT_RIGHT = 95 / 100;
 
-    /** @var int порог значения скидки по купону */
-    const COUPON_DISCOUNT_LIMIT = 500;
+    /** @var int порог значения скидки для промо-акции */
+    const DISCOUNT_LIMIT = 500;
 
     /** @deprecated */
     const PRODUCT_PER_REQUEST = 500;
@@ -35,10 +36,10 @@ class shopYandexmarketPluginRunController extends waLongActionController
     private $encoding = 'utf-8'; //windows-1251
 
     /** @var shopProductsCollection */
-    private $collection;
+    protected $collection;
 
     /** @var DOMDocument */
-    private $dom;
+    protected $dom;
 
     protected function preExecute()
     {
@@ -46,7 +47,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
         $this->getResponse()->sendHeaders();
     }
 
-    private function initRouting($profile_config = null)
+    protected function initRouting($profile_config = null)
     {
         if ($profile_config) {
             $this->data['domain'] = $profile_config['domain'];
@@ -289,7 +290,6 @@ class shopYandexmarketPluginRunController extends waLongActionController
             if (!isset($this->data['categories'])) {
                 $this->data['categories'] = array();
             }
-            $this->data['prod_promo_skip'] = [];
             $this->data['export']          = $profile_config['export'];
             $this->data['force_update']    = !empty($profile_config['force_update']);
             $this->data['trace']           = !empty($profile_config['trace']);
@@ -302,7 +302,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
             $this->createDom($profile_config);
             $this->loadDom();
         } catch (waException $ex) {
-            if (class_exists('shopYandexmarketPluginExportCli', false)) {
+            if ($this->isCliMode()) {
                 throw $ex;
             } else {
                 $this->error($ex->getMessage());
@@ -312,7 +312,18 @@ class shopYandexmarketPluginRunController extends waLongActionController
         }
     }
 
-    private function initProfile($profile_id = null)
+    protected function isCliMode()
+    {
+        return class_exists('shopYandexmarketPluginExportCli', false);
+    }
+
+    /** @return shopImportexportHelper */
+    protected function getImportexportHelper()
+    {
+        return new shopImportexportHelper('yandexmarket');
+    }
+
+    protected function initProfile($profile_id = null)
     {
         $default_export_config = array(
             'zero_stock'        => 0,
@@ -328,9 +339,9 @@ class shopYandexmarketPluginRunController extends waLongActionController
         );
 
         $backend = (wa()->getEnv() == 'backend');
-        $profiles = new shopImportexportHelper('yandexmarket');
+        $profiles = $this->getImportexportHelper();
         if ($backend && empty($profile_id)) {
-            $hash = shopImportexportHelper::getCollectionHash();
+            $hash = $profiles->getCollectionHash();
             $profile_config = array(
                 'hash'             => $hash['hash'],
                 'domain'           => waRequest::post('domain'),
@@ -635,7 +646,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
         }
     }
 
-    private function createDom($profile_config, $fast = false)
+    protected function createDom($profile_config, $fast = false)
     {
         if (!class_exists('DOMDocument')) {
             throw new waException(_wp('Необходимо PHP-расширение DOM'));
@@ -848,20 +859,21 @@ XML;
             }
             $shop->appendChild($this->dom->createElement('promos'));
         }
-
         if (!$fast) {
-            $this->data['path'] = [
-                'offers' => shopYandexmarketPlugin::path($profile_config['profile_id'].'.xml'),
-            ];
-            $this->save();
-            $this->dom = null;
+            $this->saveInitialDom($profile_config);
         }
     }
 
-    /**
-     * @throws waException
-     */
-    private function initCount()
+    protected function saveInitialDom($profile_config)
+    {
+        $this->data['path'] = [
+            'offers' => shopYandexmarketPlugin::path($profile_config['profile_id'].'.xml'),
+        ];
+        $this->save();
+        $this->dom = null;
+    }
+
+    protected function initCountCategories()
     {
         $model = new shopCategoryModel();
         if (empty($this->data['export']['hidden_categories'])) {
@@ -889,33 +901,28 @@ WHERE
 
 SQL;
         }
-
         $params = [
             'route' => $this->data['domain'],
             'type'  => shopCategoryModel::TYPE_STATIC,
         ];
+        return (int) $model->query($sql, $params)->fetchField('cnt');
+    }
 
+    /**
+     * @throws waException
+     */
+    protected function initCount()
+    {
+        $promos_count = count(array_filter($this->data['export']['promo_rules']));
+        /** стадии (шаги) и количество итераций на каждом из них */
         $this->data['count'] = [
-            'category'         => (int) $model->query($sql, $params)->fetchField('cnt'),
+            'prepare_promos'   => $promos_count,
+            'category'         => $this->initCountCategories(),
             'delivery_options' => 0,
             'product'          => $this->getCollection()->count(),
             'gifts'            => 0,
-            'promo_rules'      => count(array_filter($this->data['export']['promo_rules'])),
-            'skip_product'     => 0
+            'promo_rules'      => $promos_count,
         ];
-
-        if ($this->data['count']['promo_rules']) {
-            $promo_rules = array_keys($this->data['export']['promo_rules']);
-
-            foreach ($promo_rules as $promo_rule_id) {
-                $promo_rule = $this->getPromoRule($promo_rule_id);
-                $this->setCountPromoProduct($promo_rule);
-                if ($promo_rule['type'] === shopImportexportHelper::PROMO_TYPE_GIFT) {
-                    ++$this->data['count']['gifts'];
-                    $this->data['gifts_map'] = array();
-                }
-            }
-        }
 
         $stages                        = array_keys($this->data['count']);
         $this->data['current']         = array_fill_keys($stages, 0);
@@ -924,9 +931,20 @@ SQL;
         $this->data['stage_name']      = $this->getStageName($this->data['stage']);
         $this->data['memory']          = memory_get_peak_usage();
         $this->data['memory_avg']      = memory_get_usage();
+        $this->data['added_offers']    = [];
+        $this->data['promo_products']  = [];
+        $this->data['promo_rules']     = [];
 
-        if (!empty($this->data['count']['promo_rules'])) {
-            $this->data['offers_map'] = array();
+        if ($this->data['count']['promo_rules']) {
+            $promo_rules = array_keys($this->data['export']['promo_rules']);
+            foreach ($promo_rules as $promo_rule_id) {
+                $promo_rule = $this->getPromoRule($promo_rule_id);
+                $this->data['promo_rules'][] = $promo_rule;
+                if ($promo_rule['type'] === shopImportexportHelper::PROMO_TYPE_GIFT) {
+                    ++$this->data['count']['gifts'];
+                    $this->data['gifts_map'] = array();
+                }
+            }
         }
     }
 
@@ -934,6 +952,9 @@ SQL;
     {
         $name = '';
         switch ($stage) {
+            case 'prepare_promos':
+                $name = 'Подготовка';
+                break;
             case 'category':
                 $name = 'Дерево категорий';
                 break;
@@ -947,7 +968,7 @@ SQL;
                 $name = 'Подарки';
                 break;
             case 'promo_rules':
-                $name = 'Промоакции';
+                $name = 'Промо-акции';
                 break;
         }
         return $name;
@@ -1083,6 +1104,7 @@ SQL;
 
     /**
      * @uses shopYandexmarketPluginRunController::stepCategory()
+     * @uses shopYandexmarketPluginRunController::stepPreparePromos()
      * @uses shopYandexmarketPluginRunController::stepProduct()
      * @uses shopYandexmarketPluginRunController::stepGifts()
      * @uses shopYandexmarketPluginRunController::completeGifts()
@@ -1343,7 +1365,7 @@ SQL;
         return $report;
     }
 
-    private function loadDom($path = null)
+    protected function loadDom($path = null)
     {
         switch ($this->encoding) {
             case 'windows-1251':
@@ -1375,7 +1397,7 @@ SQL;
         $this->collection = null;
     }
 
-    private function getCommonCollection($hash)
+    protected function getCommonCollection($hash)
     {
         $options = array(
             'frontend'           => true,
@@ -1395,7 +1417,7 @@ SQL;
      * @return shopProductsCollection
      * @throws waException
      */
-    private function getCollection()
+    protected function getCollection()
     {
         if (!$this->collection) {
             $options = array(
@@ -1473,13 +1495,121 @@ SQL;
     }
 
     /**
+     * Подготовка всех товаров участвующих в экспортируемых промо-акциях.
+     * Если товар в массиве $this->data['promo_products'], то он участвует в промо-акции
+     * Если экспорт с SKU, то ключи sku_id, если нет, то product_id
+     *
+     * @param $current_stage
+     * @param $count
+     * @param $processed
+     * @throws waException
+     */
+    private function stepPreparePromos(&$current_stage, &$count, &$processed)
+    {
+        $promo_products = $this->data['promo_products'];
+        if (!empty($this->data['promo_rules'])) {
+            $promo_rule = $this->data['promo_rules'][$current_stage];
+
+            /** пропускаем если промо-акция не экспортируется */
+            if (!empty($this->data['export']['promo_rules'][$promo_rule['id']])) {
+                $sku_export = !empty($this->data['export']['sku']);
+                $collection = $this->getCommonCollection($promo_rule['hash']);
+                $fields     = 'id,price'.($sku_export ? ',skus_filtered' : ',compare_price,primary_price');
+                $_count     = $collection->count();
+                $limit      = 100;
+                $loops      = intval(ceil($_count / $limit));
+                $promo_id   = $promo_rule['id'];
+
+                /** разбиваем на части, иначе превышение лимита памяти при большом количестве товара */
+                for ($i = 0; $i < $loops; $i++) {
+                    try {
+                        $offset   = $limit * $i;
+                        $products = $collection->getProducts($fields, $offset, $limit, false);
+
+                        foreach ($products as $product) {
+                            if ($sku_export) {
+                                /** экспорт с SKU */
+                                foreach ($product['skus'] as $sku_id => $sku) {
+                                    if (isset($promo_products[$sku_id]['promo_list'])) {
+                                        /** к продукту применена уже промо-акция */
+                                        $promo_products[$sku_id]['promo_list'][] = $promo_id;
+                                    } else {
+                                        if ($promo_rule['type'] === shopImportexportHelper::PROMO_TYPE_FLASH_DISCOUNT) {
+                                            if (strpos($promo_id, 'shop.promos') !== false && empty($sku['is_promo'])) {
+                                                /** случай если товар участвует в акции, но конкретный SKU этого товара не участвует */
+                                                continue;
+                                            }
+                                            $price = (empty($sku['compare_price']) ? $sku['raw_price'] : $sku['compare_price']);
+                                        } else {
+                                            $price = $product['price'];
+                                        }
+                                        if (
+                                            $promo_rule['type'] === shopImportexportHelper::PROMO_TYPE_FLASH_DISCOUNT
+                                            && !$this->requirementPromo($price - $sku['price'], $price, $sku_id, $promo_id)
+                                        ) {
+                                            /** случай неудовлетворения условиям скидки, только для промо-акции "Специальная цена" */
+                                            continue;
+                                        }
+
+                                        $promo_products[$sku_id] = [
+                                            'id'            => $sku['product_id'].'s'.$sku_id,
+                                            'product_id'    => $sku['product_id'],
+                                            'promo_price'   => $sku['price'],
+                                            'price'         => $price,
+                                            'currency'      => $sku['currency'],
+                                            'main_sku'      => ($product['sku_id'] == $sku_id),
+                                            'promo_type'    => $promo_rule['type'],
+                                            'promo_list'    => [$promo_id]
+                                        ];
+                                    }
+                                }
+                            }
+                            else {
+                                /** экспорт без SKU */
+                                if (isset($promo_products[$product['id']]['promo_list'])) {
+                                    /** к продукту применена уже промо-акция */
+                                    $promo_products[$product['id']]['promo_list'][] = $promo_id;
+                                } else {
+                                    if ($promo_rule['type'] === shopImportexportHelper::PROMO_TYPE_FLASH_DISCOUNT) {
+                                        $price = (empty($product['raw_price']) ? $product['compare_price'] : $product['raw_price']);
+                                    } else {
+                                        $price = $product['price'];
+                                    }
+
+                                    $promo_products[$product['id']] = [
+                                        'id'            => $product['id'],
+                                        'product_id'    => $product['id'],
+                                        'promo_price'   => $product['price'],
+                                        'price'         => $price,
+                                        'currency'      => $product['currency'],
+                                        'main_sku'      => true,
+                                        'promo_type'    => $promo_rule['type'],
+                                        'promo_list'    => [$promo_id]
+                                    ];
+                                }
+                            }
+                        }
+                    } catch (waException $ex) {
+                        $error = $ex->getMessage();
+                        $this->error(_wp('Произошла ошибка в %s: %s'), __METHOD__, $error);
+                    }
+                }
+            }
+            $this->data['promo_products'] = $promo_products;
+            unset($promo_products);
+            ++$current_stage;
+            ++$processed;
+        }
+    }
+
+    /**
      * @param $current_stage
      * @param $count
      * @param $processed
      *
      * @usedby shopYandexmarketPluginRunController::step()
      */
-    private function stepCategory(&$current_stage, &$count, &$processed)
+    protected function stepCategory(&$current_stage, &$count, &$processed)
     {
         static $categories = null;
         static $model;
@@ -1506,6 +1636,20 @@ SQL;
                     unset($categories[$id]);
                 }
             }
+
+            $params = [
+                'categories' => &$categories,
+                'type'     => 'YML',
+            ];
+
+            /**
+             *
+             * @param array $categories
+             * @param string $type
+             *
+             * @event categories_export
+             */
+            wa('shop')->event('categories_export', $params);
 
             if ($current_stage) {
                 $categories = array_slice($categories, $current_stage);
@@ -1567,7 +1711,7 @@ SQL;
         return wa()->getTempPath('plugins/yandexmarket/', 'shop').$file;
     }
 
-    private function getProductFields()
+    protected function getProductFields()
     {
         if (empty($this->data['fields'])) {
             $fields = array(
@@ -1612,9 +1756,7 @@ SQL;
                 }
             }
             $this->data['stock_map'] = array_filter($this->data['stock_map']);
-            if (in_array('stock_counts', $fields)) {
-                unset($fields[array_search('stock_counts', $fields)]);
-            }
+            $fields[] = 'stock_counts';
             if (!empty($this->data['export']['sku'])) {
                 $fields[] = 'skus';
             }
@@ -1661,8 +1803,7 @@ SQL;
              * - параметр "used_promo_ids" присутствует в массиве товара всегда (но не гарантируется). Содержит в себе
              *   простой массив со строковыми идентификаторами промоакций примененных к товару. Для сторонних плагинов
              *   строковый идентификатор формируется так: "plugins.PLUGIN_ID.ID", где PLUGIN_ID - имя плагина (plugin id),
-             *   ID число из параметра "used_promo_id". В массив идентификаторы ТОЛЬКО добавляются. В итоге получится
-             *   параметр по которому можно определить сколько и какие промоакции применено к товару;
+             *   ID число из параметра "used_promo_id".
              */
 
             $products = $this->getCollection()->getProducts($this->getProductFields(), $current_stage, (int) shopYandexmarketPlugin::getConfigParam('products_per_request'), false);
@@ -1676,30 +1817,36 @@ SQL;
                     $sku_model = new shopProductSkusModel();
                 }
 
-                $unset_product_ids = [];
-                foreach ($products as $item) {
-                    if (is_array($item['skus'])) {
-                        $skus = $skus + $item['skus'];
+                $ids = array_keys($products);
+                foreach ($ids as $product_id) {
+                    $item_skus = $products[$product_id]['skus'];
+                    if (!is_array($item_skus)) {
+                        continue;
                     }
-                    if (($promo_list = $this->isMultiPromo($item['id'])) && is_array($item['skus'])) {
-                        $error_message = sprintf(
-                            _wp("Ошибка #88769: предложение с id #%s (sku: %s) пропущено, потому что оно используется в нескольких промоакциях [%s]"),
-                            $item['id'],
-                            implode(', ', array_column($item['skus'], 'id')),
-                            implode(', ', $promo_list)
-                        );
-                        $this->data['error'][] = ['message' => $error_message];
-                        $this->error($error_message);
-                        $unset_product_ids[] = $item['id'];
-                        $this->data['count']['skip_product'] += count($item['skus']);
-                        ++$current_stage;
-                    }
-                }
+                    foreach ($item_skus as $sku_id => $item) {
+                        if (array_key_exists($sku_id, $this->data['promo_products'])) {
+                            /** случай когда товар участвует в промо-акции */
 
-                foreach ($unset_product_ids as $unset_id) {
-                    /** удаляем из экспорта товары к которым применены несколько промоакций "Специальная цена" */
-                    if (isset($products[$unset_id])) {
-                        unset($products[$unset_id]);
+                            if (count($this->data['promo_products'][$sku_id]['promo_list']) === 1) {
+                                /** меняем в товарах параметры на которые влияет промо-акция */
+                                $item['price']     = $this->data['promo_products'][$sku_id]['price'];
+                                $item['raw_price'] = $this->data['promo_products'][$sku_id]['price'];
+                            } else {
+                                $error_message = sprintf(
+                                    _wp("Ошибка #88769: предложение с id #%s (sku: %s) пропущено, потому что оно используется в нескольких промоакциях [%s]"),
+                                    $item['product_id'],
+                                    $sku_id,
+                                    implode(', ', $this->data['promo_products'][$sku_id]['promo_list'])
+                                );
+                                $this->data['error'][] = ['message' => $error_message];
+                                $this->error($error_message);
+
+                                /** удаляем из экспорта товары к которым применены несколько промо-акций "Специальная цена" */
+                                unset($products[$product_id]['skus'][$sku_id]);
+                                continue;
+                            }
+                        }
+                        $skus[$item['id']] = $item;
                     }
                 }
 
@@ -1826,28 +1973,35 @@ SQL;
                     $products[$id]['file_name'] = $file_name;
                 }
 
-                $available = $sku_model->select('DISTINCT product_id, available')->where("product_id IN (i:product_id) AND available", $sql_params)->fetchAll('product_id', true);
+                $available = $sku_model->select('DISTINCT product_id, available, status')->where("product_id IN (i:product_id) AND available AND status", $sql_params)->fetchAll('product_id', true);
 
                 $unset_product_ids = [];
                 foreach ($products as $id => &$product) {
                     $product['available'] = !empty($available[$id]);
-                    if ($promo_list = $this->isMultiPromo($id)) {
-                        $error_message = sprintf(
-                            _wp("Ошибка #88771: предложение с id #%s пропущено, потому что оно используется в нескольких промоакциях [%s]"),
-                            $product['id'],
-                            implode(', ', $promo_list)
-                        );
-                        $this->data['error'][] = ['message' => $error_message];
-                        $this->error($error_message);
-                        $unset_product_ids[] = $id;
-                        ++$current_stage;
+                    if (array_key_exists($id, $this->data['promo_products'])) {
+                        /** случай когда товар участвует в промо-акции */
+                        if (count($this->data['promo_products'][$id]['promo_list']) === 1) {
+                            /** меняем в товарах параметры на которые влияет промо-акция */
+                            $product['price']     = $this->data['promo_products'][$id]['price'];
+                            $product['raw_price'] = $this->data['promo_products'][$id]['price'];
+                        } else {
+                            /** случай когда товар участвует в нескольких промо-акциях */
+                            $error_message = sprintf(
+                                _wp("Ошибка #88771: предложение с id #%s пропущено, потому что оно используется в нескольких промо-акциях [%s]"),
+                                $product['id'],
+                                implode(', ', $this->data['promo_products'][$id]['promo_list'])
+                            );
+                            $this->data['error'][] = ['message' => $error_message];
+                            $this->error($error_message);
+                            $unset_product_ids[] = $id;
+                            ++$current_stage;
+                        }
+                        unset($product);
                     }
-                    unset($product);
                 }
 
-                $this->data['count']['skip_product'] += count($unset_product_ids);
                 foreach ($unset_product_ids as $unset_id) {
-                    /** удаляем из экспорта товары к которым применены несколько промоакций "Специальная цена" */
+                    /** удаляем из экспорта товары к которым применены несколько промо-акций */
                     if (isset($products[$unset_id])) {
                         unset($products[$unset_id]);
                     }
@@ -1935,16 +2089,12 @@ SQL;
                     foreach ($skus as $sku) {
                         //TODO use min_price && convert into default currency
                         $check_sku_price = $this->checkMinPrice($sku['primary_price']);
-                        $check_available = !empty($sku['available']);
+                        $check_available = !empty($sku['available']) && !empty($sku['status']);
                         $check_count     = ($check_stock || $sku['count'] === null || $sku['count'] > 0);
                         if ($check_available && $check_sku_price && $check_count) {
                             if (count($skus) == 1) {
                                 if (isset($sku['raw_price'])) {
                                     $product['raw_price'] = $sku['raw_price'];
-                                }
-                                if (isset($sku['used_promo_id'])) {
-                                    /** отмечаем товар, если к нему применена промоакция */
-                                    $product['used_promo_id'] = $sku['used_promo_id'];
                                 }
                                 $product['price']          = $sku['price'];
                                 $product['compare_price']  = $sku['compare_price'];
@@ -1979,15 +2129,30 @@ SQL;
         }
     }
 
+    /**
+     * Добавление подарков в секцию <gifts>
+     * В элементе gifts укажите подарки для акции «Подарок при покупке» (товары, которые не размещаются на Маркете).
+     *
+     * @param $current_stage
+     * @param $count
+     * @param $processed
+     * @throws waException
+     */
     private function stepGifts(&$current_stage, &$count, &$processed)
     {
-        $promo_rule = null;
+        $gift_promos = [];
         $id = sprintf('#%d', $current_stage);
-        $promo_rules = array_keys($this->data['export']['promo_rules']);
-        if (isset($promo_rules[$current_stage])) {
-            $id = $promo_rules[$current_stage];
-            $promo_rule = $this->getPromoRule($id);
+        foreach ($this->data['promo_rules'] as $promo) {
+            if ($promo['type'] === shopImportexportHelper::PROMO_TYPE_GIFT) {
+                /**
+                 * на этом шаге "количество шагов" = "количество промо-акций с подарками"
+                 * $current_stage будет меньше чем количество всех промо-акций,
+                 * поэтому отсчет $current_stage ведем только по "промо-акциям с подарками"
+                 */
+                $gift_promos[] = $promo;
+            }
         }
+        $promo_rule = (array_key_exists($current_stage, $gift_promos) ? $gift_promos[$current_stage] : null);
 
         if ($promo_rule) {
             if ($promo_rule['valid'] && $promo_rule['type'] === shopImportexportHelper::PROMO_TYPE_GIFT) {
@@ -2025,11 +2190,11 @@ SQL;
      * @return false|mixed
      * @throws waException
      */
-    private function getPromoRule($id)
+    protected function getPromoRule($id)
     {
         static $promo_rules;
         if (!isset($promo_rules)) {
-            $profile_helper = new shopImportexportHelper('yandexmarket');
+            $profile_helper = $this->getImportexportHelper();
             if (method_exists($profile_helper, 'getPromoRules')) {
                 $promo_rules = $profile_helper->getPromoRules();
                 foreach ($promo_rules as $rule_id => &$promo_rule) {
@@ -2192,34 +2357,15 @@ SQL;
                                 }
                             }
                             break;
-                        case 'price':
-                            $_rule_id = null;
-                            if (
-                                isset($product['used_promo_ids'])
-                                && 1 === count($product['used_promo_ids'])
-                                && !empty($product['raw_price'])
-                            ) {
-                                /** если к товару применена промоакция и у него есть "старая" цена */
-                                $_rule_id = reset($product['used_promo_ids']);
-                            }
-
-                            if ($_rule_id && !empty($this->data['export']['promo_rules'][$_rule_id])) {
-                                /** если известен ID промоакции и эта промоакция экспортируется */
-                                $value = array(
-                                    'value'     => isset($product[$param]) ? $product[$param] : null,
-                                    'raw_price' => isset($product['raw_price']) ? $product['raw_price'] : null,
-                                );
-                            } else {
-                                $value = isset($product[$param]) ? $product[$param] : null;
-                            }
-                            break;
                         case 'compare_price':
-                            if (empty($this->data['prod_promo_skip'][$product['id']]['count'])) {
-                                $value = isset($product[$param]) ? $product[$param] : null;
-                            } else {
+                            if (array_key_exists($product['id'], $this->data['promo_products'])) {
+                                /** oldprice должен отсутствовать, если на товар действует промо-акция */
                                 $value = null;
+                            } else {
+                                $value = isset($product[$param]) ? $product[$param] : null;
                             }
                             break;
+                        case 'price':
                         default:
                             $value = isset($product[$param]) ? $product[$param] : null;
                             break;
@@ -2255,34 +2401,15 @@ SQL;
                                 $value = empty($value) ? null : 'true';
                             }
                             break;
-                        case 'price':
-                            $_rule_id = null;
-                            if (
-                                isset($product['used_promo_ids'])
-                                && 1 === count($sku['used_promo_ids'])
-                                && !empty($sku['raw_price'])
-                            ) {
-                                /** если к товару применена только одна промоакция и у него есть "старая" цена */
-                                $_rule_id = reset($sku['used_promo_ids']);
-                            }
-
-                            if ($_rule_id && !empty($this->data['export']['promo_rules'][$_rule_id])) {
-                                /** если известен ID промоакции и эта промоакция экспортируется */
-                                $value = array(
-                                    'value'     => isset($sku[$param]) ? $sku[$param] : null,
-                                    'raw_price' => isset($sku['raw_price']) ? $sku['raw_price'] : null,
-                                );
-                            } else {
-                                $value = ifset($sku[$param], $value);
-                            }
-                            break;
                         case 'compare_price':
-                            if (empty($this->data['prod_promo_skip'][$sku['product_id']]['count'])) {
-                                $value = isset($sku[$param]) ? $sku[$param] : null;
-                            } else {
+                            if (array_key_exists($sku['product_id'], $this->data['promo_products'])) {
+                                /** oldprice должен отсутствовать, если на товар действует промо-акция */
                                 $value = null;
+                            } else {
+                                $value = isset($sku[$param]) ? $sku[$param] : null;
                             }
                             break;
+                        case 'price':
                         case 'count':
                         case 'sku':
                         case 'group_id':
@@ -2532,63 +2659,60 @@ SQL;
     }
 
     /**
-     * проверка промокодов (купонов) на
+     * проверка промо-акций на
      * соответствия требованиям Яндекс.Маркета
      *
-     * @param $promo
+     * @param $discount_value
      * @param $price
      * @param $product_id
+     * @param $promo_id
      * @return bool
      * @throws waException
      */
-    private function couponValidate($promo, $price, $product_id)
+    private function requirementPromo($discount_value, $price, $product_id, $promo_id)
     {
         $message = '';
         $valid   = true;
 
-        if ('%' !== $promo['discount_unit']) {
-            $curr_discount = $promo['discount_value'];
+        /** $min_discount 5% от стоимости товара */
+        $min_discount = (float) $price * shopYandexmarketPluginRunController::PERCENT_LEFT;
 
-            /** $min_discount 5% от стоимости товара */
-            $min_discount = (float) $price * shopYandexmarketPluginRunController::COUPON_PERCENT_LEFT;
+        /** $max_discount 95% от стоимости товара */
+        $max_discount = (float) $price * shopYandexmarketPluginRunController::PERCENT_RIGHT;
 
-            /** $max_discount 95% от стоимости товара */
-            $max_discount = (float) $price * shopYandexmarketPluginRunController::COUPON_PERCENT_RIGHT;
-
-            if ($curr_discount < shopYandexmarketPluginRunController::COUPON_DISCOUNT_LIMIT) {
-                /** если скидка меньше 500 руб., то она должна быть не меньше 5% от стоимости товара */
-                if ($curr_discount < $min_discount) {
-                    $valid   = false;
-                    $message = _wp('Скидка должна быть не меньше 5%% от стоимости товара, если размер скидки меньше 500 руб.');
-                }
-            } elseif ($min_discount >= shopYandexmarketPluginRunController::COUPON_DISCOUNT_LIMIT) {
-                /** если 5% от стоимости товара больше 500 руб., то скидка должна быть не меньше 500 руб. */
-                if ($curr_discount < shopYandexmarketPluginRunController::COUPON_DISCOUNT_LIMIT) {
-                    $valid   = false;
-                    $message = _wp('Скидка должна быть не меньше 500 руб., если 5%% от стоимости товара больше 500 руб.');
-                }
-            }
-
-            if ($curr_discount > $max_discount) {
-                /** если скидка превысила 95% от стоимости товара */
+        if ($discount_value < shopYandexmarketPluginRunController::DISCOUNT_LIMIT) {
+            /** если скидка меньше 500 руб., то она должна быть не меньше 5% от стоимости товара */
+            if ($discount_value < $min_discount) {
                 $valid   = false;
-                $message = _wp('Скидка должна быть не более 95%% от стоимости товара');
+                $message = _wp('Скидка должна быть не меньше 5%% от стоимости товара, если размер скидки меньше 500 руб.');
             }
+        } elseif ($min_discount >= shopYandexmarketPluginRunController::DISCOUNT_LIMIT) {
+            /** если 5% от стоимости товара больше 500 руб., то скидка должна быть не меньше 500 руб. */
+            if ($discount_value < shopYandexmarketPluginRunController::DISCOUNT_LIMIT) {
+                $valid   = false;
+                $message = _wp('Скидка должна быть не меньше 500 руб., если 5%% от стоимости товара больше 500 руб.');
+            }
+        }
+
+        if ($discount_value > $max_discount) {
+            /** если скидка превысила 95% от стоимости товара */
+            $valid   = false;
+            $message = _wp('Скидка должна быть не более 95%% от стоимости товара');
         }
 
         if (!$valid) {
             $error_message = sprintf(
-                _wp("Ошибка #88757: купон [%s] для товара %s не соответствует требованиям. ").$message,
-                $promo['id'],
+                _wp("Ошибка #88757: промо-акция [%s] для товара %s не соответствует требованиям. ").$message,
+                $promo_id,
                 $product_id
             );
             $this->data['error'][] = ['message' => $error_message];
 
             /** оставляем чуть подробную запись в логе */
             $error_message .= ' Цена товара: '.$price;
-            $error_message .= ', размер скидки: '.(!empty($curr_discount) ? $curr_discount : '-').' '.$promo['discount_unit'];
-            $error_message .= ', мин. скидка: '.(!empty($min_discount) ? $min_discount : '-').' '.$promo['discount_unit'];
-            $error_message .= ', макс. скидка: '.(!empty($max_discount) ? $max_discount : '-').' '.$promo['discount_unit'];
+            $error_message .= ', размер скидки: '.$discount_value;
+            $error_message .= ', мин. скидка: '.(!empty($min_discount) ? $min_discount : '-');
+            $error_message .= ', макс. скидка: '.(!empty($max_discount) ? $max_discount : '-');
             $this->error($error_message);
         }
 
@@ -2596,109 +2720,34 @@ SQL;
     }
 
     /**
+     * Для отслеживания экспортированных товаров.
+     * Если товар в массиве $this->data['added_offers'], то он экспортирован
+     *
      * @param $offer
      * @param $product
      * @param $sku
      */
     private function setOffer($offer, $product, $sku)
     {
-        if (isset($this->data['offers_map'])) {
-            $promo_id = null;
-            if (!empty($sku['used_promo_ids'])) {
-                $promo_id = reset($sku['used_promo_ids']);
-            } elseif (empty($sku) && !empty($product['used_promo_id'])) {
-                $promo_id = reset($product['used_promo_ids']);
-            }
-            if (strpos($offer['id'], 's')) {
-                list($id, $sku_id) = explode('s', $offer['id'], 2);
-            } else {
-                $sku_id = 0;
-                $id = $offer['id'];
-            }
+        if (!empty($this->data['export']['promo_rules']) && is_array($offer) && is_array($product)) {
+            /** отслеживаем только при экспорте промо-акций */
 
-            if (isset($offer['price.raw']) && is_array($offer['price.raw'])) {
-                if (isset($offer['price.raw']['value'])) {
-                    $price = $offer['price.raw']['value'];
-                } else {
-                    $price = reset($offer['price.raw']);
-                }
-            } else {
-                $price = $offer['price'];
-            }
-
-            if (!isset($this->data['offers_map'][$id])) {
-                $this->data['offers_map'][$id] = [
-                    'currency'      => $offer['currencyId'],
-                    'used_promo_id' => [$sku_id => $promo_id],
-                    'price'         => [$sku_id => $price],
+            if (empty($this->data['export']['sku'])) {
+                /** экспорт БЕЗ sku */
+                $this->data['added_offers'][$product['id']] = [
+                    'offer_id'   => $offer['id'],
+                    'product_id' => $product['id'],
+                    'sku_id'     => 0
                 ];
-            } elseif ($sku_id) {
-                $this->data['offers_map'][$id]['price'][$sku_id] = $price;
-                $this->data['offers_map'][$id]['used_promo_id'][$sku_id] = $promo_id;
+            } else {
+                /** экспорт С sku */
+                $this->data['added_offers'][$sku['id']] = [
+                    'offer_id'   => $offer['id'],
+                    'product_id' => $sku['product_id'],
+                    'sku_id'     => $sku['id']
+                ];
             }
         }
-    }
-
-    /**
-     * Удаление товара из дерева по его ID в дереве
-     *
-     * @param $product_id
-     * @return DOMNode|null
-     */
-    private function unsetProductDom($product_id)
-    {
-        $x_path = new DOMXPath($this->dom);
-        $node   = $x_path->query("//*[@id='{$product_id}']");
-        if ($node->length) {
-            $element = $node->item(0);
-            return $element->parentNode->removeChild($element);
-        }
-
-        return null;
-    }
-
-    /**
-     * Обновление поля с ценой в DOM экспортируемого файла
-     *
-     * @param $product_id
-     * @param $price
-     * @return bool
-     */
-    private function updatePriceDom($product_id, $price)
-    {
-        if (
-            empty($product_id)
-            && empty($price)
-            && (int) $product_id <= 0
-            && (int) $price <= 0
-        ) {
-            return false;
-        }
-        $x_path = new DOMXPath($this->dom);
-        $node   = $x_path->query("//*[@id='{$product_id}']");
-        if ($node->length) {
-            /** обновляем ценник на уже добавленный продукт */
-            $element = $node->item(0);
-            /** @var DOMElement $element */
-            $element->getElementsByTagName('price')->item(0)->nodeValue = $price;
-            return true;
-        }
-
-        return false;
-    }
-
-    private function getOffer($id)
-    {
-        $offer = null;
-        if ($pos = strpos($id, 's')) {
-            $id = intval(substr($id, 0, $pos));
-        }
-
-        if (isset($this->data['offers_map'][$id])) {
-            $offer = $this->data['offers_map'][$id];
-            $offer += compact('id');
-        }
-        return $offer;
     }
 
     private function setGift($gift)
@@ -2764,11 +2813,15 @@ SQL;
         $count = 0;
         if (isset($this->data['promos_map'][$type]) && ($type === shopImportexportHelper::PROMO_TYPE_GIFT)) {
             try {
+                $limit      = 12;
+                $sku_export = !empty($this->data['export']['sku']);
+                $fields     = 'id, name, images';
+                $fields    .= ($sku_export ? ', skus' : '');
                 $collection = $this->getCommonCollection($promo_rule['gifts_hash']);
-                $limit = 12;
-                $gifts = $collection->getProducts('id, name, images', 0, $limit, false);
+                $gifts      = $collection->getProducts($fields, 0, $limit, false);
                 foreach ($gifts as $gift) {
-                    if ($this->getOffer($gift['id'])) {
+                    $gift_offer = ($sku_export ? reset($gift['skus']) : $gift);
+                    if (array_key_exists($gift_offer['id'], $this->data['added_offers'])) {
                         $this->trace(_wp('Подарок %d уже существует как предложение'), $gift['id']);
                     } elseif ($this->getGift($gift['id'])) {
                         $this->trace(_wp('Подарок %d уже существует как подарок'), $gift['id']);
@@ -3173,7 +3226,10 @@ SQL;
                         $rate = $_price / $value;
 
                         /** Скидка в процентах не меньше 5% и не больше 95%. Требования Маркета */
-                        if (($rate < 0.05) || ($rate > 0.95)) {
+                        if (
+                            $rate < shopYandexmarketPluginRunController::PERCENT_LEFT
+                            || $rate > shopYandexmarketPluginRunController::PERCENT_RIGHT
+                        ) {
                             $value = null;
                         }
                     }
@@ -3213,7 +3269,7 @@ SQL;
                 }
                 break;
             case 'available':
-                if (!empty($sku_data) && isset($sku_data['available']) && empty($sku_data['available'])) {
+                if (!empty($sku_data) && empty($sku_data['available']) || empty($sku_data['status'])) {
                     $value = 'false';
                 }
                 if (is_object($value)) {
@@ -3250,7 +3306,7 @@ SQL;
                 }
                 break;
             case 'booking':
-                if (!empty($sku_data) && isset($sku_data['available']) && empty($sku_data['available'])) {
+                if (!empty($sku_data) && empty($sku_data['available']) || empty($sku_data['status'])) {
                     $value = 'false';
                 }
                 if (is_object($value)) {
@@ -3788,31 +3844,10 @@ SQL;
                     foreach ($products as $product) {
                         if (isset($product['&offer'])) {
                             $offer = $product['&offer'];
-                            if (preg_match('@^spromos(\d+)$@', $data['id'], $matches)) {
-                                if (empty($offer['used_promo_id'])) {
-                                    $promo_id = null;
-                                } else {
-                                    $promo_id = $this->formatPromo('id', $offer['used_promo_id']);
-                                }
-
-                                if (empty($promo_id) || ($promo_id !== $data['id'])) {
-                                    if (!empty($this->data['trace'])) {
-                                        $this->trace(
-                                            _wp("Предложение #%s в промоакции [%s] пропущено, потому что она не применяется — использован promo_id = [%s]\n\tOFFER:%s"),
-                                            $product['offer-id'],
-                                            $data['id'],
-                                            var_export($promo_id, true),
-                                            var_export($product, true)
-                                        );
-                                    }
-                                    continue;
-                                }
-                            }
-
                             unset($product['&offer']);
                             $product['@discount-price'] = [
                                 'currency' => $offer['currency'],
-                                'value'    => $offer['price'],
+                                'value'    => $offer['promo_price'],
                             ];
                             $value[] = $product;
                         } else {
@@ -3820,134 +3855,58 @@ SQL;
                         }
                     }
                 } else {
-                    $params      = [];
-                    $hash        = $value;
-                    $value       = [];
-                    $parsed_hash = shopImportexportHelper::parseHash($hash, $params);
-                    switch ($parsed_hash['type']) {
-                        case 'id':
-                            $collection = $this->getCommonCollection($hash);
-                            //TODO use steps;
-                            $fields  = 'id';
-                            $fields .= (empty($this->data['export']['sku']) ? ',price' : ',price,skus_filtered');
-                            $limit   = $collection->count();
+                    $value = [];
+                    $promo_products = $this->data['promo_products'];
+                    foreach ($this->data['added_offers'] as $offer_id => $offer) {
+                        /** экспортируем только те промо-товары, которые есть в основной секции <products> */
 
-                            $products = $collection->getProducts($fields, 0, $limit, false);
-                            foreach ($products as $product) {
-                                if ($offer = $this->getOffer($product['id'])) {
-                                    foreach ($offer['price'] as $sku_id => $price) {
-                                        if ('code' === $data['type'] && !$this->couponValidate($data, $price, $offer['id'])) {
-                                            /** пропуск купона который не подходит по условиям */
-                                            continue;
-                                        }
-                                        $_offer                  = $offer;
-                                        $_offer['raw_offer']     = $offer;
-                                        $_offer['price']         = $price;
-                                        $_offer['used_promo_id'] = ifset($offer, 'used_promo_id', $sku_id, false);
-                                        if ($sku_id) {
-                                            $_offer['id'] .= 's'.$sku_id;
-                                        }
-                                        $value[] = [
-                                            'offer-id' => $_offer['id'],
-                                            '&offer'   => $_offer,
-                                        ];
-                                    }
+                        if (!array_key_exists($offer_id, $promo_products)) {
+                            continue;
+                        }
+                        $promo_product = $promo_products[$offer_id];
+                        if (count($promo_product['promo_list']) === 1) {
+                            $offer_id = ($promo_product['main_sku'] ? $promo_product['product_id'] : $promo_product['id']);
+                            if ($data['type'] === shopImportexportHelper::PROMO_TYPE_PROMO_CODE) {
+                                /** пропуск товара, купон на который не подходит по условиям */
+                                if (
+                                    $data['type'] === shopImportexportHelper::PROMO_TYPE_PROMO_CODE
+                                    && $data['discount_unit'] !== '%'
+                                    && !$this->requirementPromo($data['discount_value'], $promo_product['price'], $offer_id, $data['id'])
+                                ) {
+                                    continue;
                                 }
                             }
-                            break;
-                        case 'category':
-                        default:
-                            try {
-                                $collection = $this->getCommonCollection($hash);
-                                //TODO use steps;
-                                $fields  = 'id';
-                                $fields .= (empty($this->data['export']['sku']) ? ',price' : ',price,skus_filtered');
-                                $limit   = $collection->count();
-
-                                /**
-                                 * из коллекции дергаются цены продуктов с учетом скидки по Акциям из "Маркетинг->Все акции",
-                                 * если таковы конечно имеются для текущих продуктов. Они же влияют на экспорт в маркет
-                                 * даже если отключены (сняты галочки). Делается это для совпадения цен на витрине магазина
-                                 * с ценами экспортируемыми в Яндекс маркет
-                                 */
-                                $products = $collection->getProducts($fields, 0, $limit, false);
-                                foreach ($products as $product) {
-                                    if ($offer = $this->getOffer($product['id'])) {
-                                        foreach ($offer['price'] as $sku_id => $price) {
-                                            if ('code' === $data['type'] && !$this->couponValidate($data, $price, $offer['id'])) {
-                                                /** пропуск купона который не подходит по условиям */
-                                                continue;
-                                            }
-
-                                            $_offer = $offer;
-                                            $_offer['price'] = $price;
-
-                                            if ($sku_id) {
-                                                $_offer['id'] .= 's'.$sku_id;
-                                                if (!isset($product['skus'][$sku_id])) {
-                                                    continue;
-                                                }
-                                            }
-
-                                            if ('discount' === $data['type']) {
-                                                /** только для промо "Специальная цена" */
-
-                                                /** Так как в БД стоимость хранится в RUB, а товар может быть в иной валюте
-                                                 *  и на момент формирования секции <products> в нее попадает стоимость товара
-                                                 *  в этой иной валюте, что правильно. Но как только товар участвует в промо
-                                                 *  в секции <products> должна быть обычная стоимость, "Не по промо-акции".
-                                                 *  Поэтому меняем стоимость в <products> предварительно сконвертировав
-                                                 *  с учетом валюты товара */
-                                                if (isset($product['skus'])) {
-                                                    /** если у товара есть SKU и SKU = 0, то берем первый артикул товара */
-                                                    $curr_sku = ($sku_id === 0 ? reset($product['skus']) : $product['skus'][$sku_id]);
-                                                    $value_price = shop_currency($curr_sku['compare_price'], $product['currency'], $_offer['currency'], false);
-                                                    $this->updatePriceDom($_offer['id'], $value_price);
-                                                } elseif (isset($product['raw_price'])) {
-                                                    $value_price = shop_currency($product['raw_price'], $product['currency'], $_offer['currency'], false);
-                                                    $this->updatePriceDom($_offer['id'], $value_price);
-                                                } elseif (isset($product['compare_price'])) {
-                                                    $value_price = shop_currency($product['compare_price'], $product['currency'], $_offer['currency'], false);
-                                                    $this->updatePriceDom($_offer['id'], $value_price);
-                                                }
-                                            }
-
-                                            $value[] = [
-                                                'offer-id' => $_offer['id'],
-                                                '&offer'   => $_offer
-                                            ];
-                                        }
-                                    }
-                                }
-                            } catch (waException $ex) {
-                                $error = $ex->getMessage();
-                                $this->error(_wp('Произошла ошибка в %s: %s'), __METHOD__, $error);
+                            if ($data['id'] === reset($promo_product['promo_list'])) {
+                                $value[] = [
+                                    'offer-id' => $offer_id,
+                                    '&offer'   => $promo_product
+                                ];
                             }
-                            break;
+                        }
                     }
+                    unset($promo_products);
                 }
                 break;
             case 'promo-gift':
-                $hash = $value;
+                $hash  = $value;
                 $value = array();
+                $sku_export = !empty($this->data['export']['sku']);
+
                 try {
-                    $collection = $this->getCommonCollection($hash);
-                    $limit = 12;
                     //TODO allow per SKU gifts
-                    $products = $collection->getProducts('id', 0, $limit, false);
+                    $limit      = 12;
+                    $fields     = ($sku_export ? 'id,skus' : 'id');
+                    $collection = $this->getCommonCollection($hash);
+                    $products   = $collection->getProducts($fields, 0, $limit, false);
+
                     foreach ($products as $product) {
-                        if ($offer = $this->getOffer($product['id'])) {
-                            foreach ($offer['price'] as $sku_id => $price) {
-                                $_value = $offer;
-                                if ($sku_id) {
-                                    $_value['id'] .= 's'.$sku_id;
-                                }
-                                if (--$limit >= 0) {
-                                    $value[] = array(
-                                        'offer-id' => $_value['id'],
-                                    );
-                                }
-                                unset($_value);
+                        $gift_offer = ($sku_export ? reset($product['skus']) : $product);
+                        if (array_key_exists($gift_offer['id'], $this->data['added_offers'])) {
+                            $offer = $this->data['added_offers'][$gift_offer['id']];
+                            if (--$limit >= 0) {
+                                $value[] = array(
+                                    'offer-id' => $offer['offer_id'],
+                                );
                             }
                         } elseif ($gift = $this->getGift($product['id'])) {
                             if (--$limit >= 0) {
@@ -4154,55 +4113,5 @@ SQL;
             }
         }
         return $this->data['config']['__image_size'];
-    }
-
-    /**
-     * Подсчет количества примененных
-     * промоакций "Специальная цена" к товару
-     *
-     * @param $promo_rule
-     * @return null
-     * @throws waException
-     */
-    private function setCountPromoProduct($promo_rule)
-    {
-        /** пропускаем если промоакция не "Специальная цена" или не экспортируется */
-        if ($promo_rule['type'] !== 'discount' || empty($this->data['export']['promo_rules'][$promo_rule['id']])) {
-            return null;
-        }
-
-        /** @var $promo_products array товары на которые действует текущая промоакция */
-        $promo_products = $this->getCommonCollection($promo_rule['hash'])->getProducts();
-        foreach (array_keys($promo_products) as $id) {
-            /** заполняем массив id товара и количеством примененных к нему промоакций */
-            if (isset($this->data['prod_promo_skip'][$id]['count'])) {
-                ++$this->data['prod_promo_skip'][$id]['count'];
-                $this->data['prod_promo_skip'][$id]['promo_list'][] = $promo_rule['id'];
-            } else {
-                $this->data['prod_promo_skip'][$id] = ['count' => 1, 'promo_list' => [$promo_rule['id']]];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Проверка товара на участие в нескольких
-     * экспортируемых промоакциях "Специальная цена"
-     *
-     * @param $product_id
-     * @return array
-     */
-    private function isMultiPromo($product_id)
-    {
-        if (
-            $this->data['export']['promo_rules']
-            && isset($this->data['prod_promo_skip'][$product_id])
-            && $this->data['prod_promo_skip'][$product_id]['count'] > 1
-        ) {
-            return $this->data['prod_promo_skip'][$product_id]['promo_list'];
-        }
-
-        return [];
     }
 }
