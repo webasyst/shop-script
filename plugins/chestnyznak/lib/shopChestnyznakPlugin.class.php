@@ -139,7 +139,7 @@ EOF;
                 }
 
                 if ($parse_result['status'] && $parse_result['details']['is_separator_missed']) {
-                    $res['warnings']['separator_missed'] = 'Шрихкод GS1 DataMatrix сформирован не правильно - в нем отсуствую разделители (group separator). В следствии этого сейриный номер может определен не правильно, а значит может неправильно передан в облачные и/или онлайн кассы!';
+                    $res['warnings']['separator_missed'] = 'Штрихкод GS1 DataMatrix сформирован неправильно: в нем отсуствуют разделители (group separator). Из-за этого серийный номер может быть неправильно определен и передан в онлайн-кассы.';
                 }
 
                 $result[$order_item_id][$sort] = $res;
