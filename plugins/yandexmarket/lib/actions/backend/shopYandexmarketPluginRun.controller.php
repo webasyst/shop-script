@@ -3269,7 +3269,7 @@ SQL;
                 }
                 break;
             case 'available':
-                if (!empty($sku_data) && empty($sku_data['available']) || empty($sku_data['status'])) {
+                if (!empty($sku_data) && (empty($sku_data['available']) || empty($sku_data['status']))) {
                     $value = 'false';
                 }
                 if (is_object($value)) {
@@ -3284,7 +3284,7 @@ SQL;
                 //XXX CPA bloody hack = used complex value
                 if (is_array($value) && isset($value['raw'])) {
                     $value = $value['raw'];
-                } elseif (is_int($value) || (is_string($value) && preg_match('@^\d+$@', $value))) {
+                } elseif (is_int($value) || (is_string($value) && preg_match('@^\d+(\.\d+)?$@', $value))) {
                     $count = intval($value);
                 } elseif (in_array($value, array(null, 'true', ''), true)) {
                     $count = 9999;// 100500;
@@ -3306,7 +3306,7 @@ SQL;
                 }
                 break;
             case 'booking':
-                if (!empty($sku_data) && empty($sku_data['available']) || empty($sku_data['status'])) {
+                if (!empty($sku_data) && (empty($sku_data['available']) || empty($sku_data['status']))) {
                     $value = 'false';
                 }
                 if (is_object($value)) {
