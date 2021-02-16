@@ -1996,8 +1996,8 @@ SQL;
                             $unset_product_ids[] = $id;
                             ++$current_stage;
                         }
-                        unset($product);
                     }
+                    unset($product);
                 }
 
                 foreach ($unset_product_ids as $unset_id) {
