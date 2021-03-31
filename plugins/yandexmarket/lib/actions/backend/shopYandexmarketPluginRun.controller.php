@@ -625,8 +625,10 @@ class shopYandexmarketPluginRunController extends waLongActionController
         $this->data['primary_currency'] = $primary_currency;
 
         if ($this->plugin()->getSettings('convert_currency')) {
+            /** если выбрана настройка "Цены в любой валюте, отличной от основной, будут сконвертированы в основную валюту" */
             $available_currencies = $model->getCurrencies($primary_currency);
         } else {
+            /** "Только цены в валюте, отличной от RUB, UAH, BYR, BYN, KZT, USD и EUR, будут сконвертированы в основную валюту" */
             $available_currencies = $model->getCurrencies(shopYandexmarketPlugin::getConfigParam('currency'));
         }
 
@@ -1397,9 +1399,9 @@ SQL;
         $this->collection = null;
     }
 
-    protected function getCommonCollection($hash)
+    protected function getCommonCollection($hash, $options = [])
     {
-        $options = array(
+        $options += array(
             'frontend'           => true,
             'storefront_context' => rtrim($this->data['domain'], '*'),
         );
@@ -1513,12 +1515,13 @@ SQL;
             /** пропускаем если промо-акция не экспортируется */
             if (!empty($this->data['export']['promo_rules'][$promo_rule['id']])) {
                 $sku_export = !empty($this->data['export']['sku']);
-                $collection = $this->getCommonCollection($promo_rule['hash']);
-                $fields     = 'id,price'.($sku_export ? ',skus_filtered' : ',compare_price,primary_price');
+                $collection = $this->getCommonCollection($promo_rule['hash'], ['round_prices' => false]);
+                $fields     = 'id,price,currency'.($sku_export ? ',skus_filtered' : ',compare_price,primary_price');
                 $_count     = $collection->count();
                 $limit      = 100;
                 $loops      = intval(ceil($_count / $limit));
                 $promo_id   = $promo_rule['id'];
+                $is_convert = (bool) $this->plugin()->getSettings('convert_currency');
 
                 /** разбиваем на части, иначе превышение лимита памяти при большом количестве товара */
                 for ($i = 0; $i < $loops; $i++) {
@@ -1550,13 +1553,16 @@ SQL;
                                             /** случай неудовлетворения условиям скидки, только для промо-акции "Специальная цена" */
                                             continue;
                                         }
-
+                                        if ($is_convert) {
+                                            /** конвертирование в основную валюту */
+                                            $sku['price'] = shop_currency($sku['price'], $product['currency'], $this->data['primary_currency'], false);
+                                        }
                                         $promo_products[$sku_id] = [
                                             'id'            => $sku['product_id'].'s'.$sku_id,
                                             'product_id'    => $sku['product_id'],
                                             'promo_price'   => $sku['price'],
                                             'price'         => $price,
-                                            'currency'      => $sku['currency'],
+                                            'currency'      => ($is_convert ? $this->data['primary_currency'] : $product['currency']),
                                             'main_sku'      => ($product['sku_id'] == $sku_id),
                                             'promo_type'    => $promo_rule['type'],
                                             'promo_list'    => [$promo_id]
@@ -1574,6 +1580,13 @@ SQL;
                                         $price = (empty($product['raw_price']) ? $product['compare_price'] : $product['raw_price']);
                                     } else {
                                         $price = $product['price'];
+                                    }
+
+                                    if ($is_convert) {
+                                        /** конвертирование в основную валюту */
+                                        $product['currency'] = $this->data['primary_currency'];
+                                    } else {
+                                        $product['price'] = shop_currency($product['price'], $this->data['primary_currency'], $product['currency'], false);
                                     }
 
                                     $promo_products[$product['id']] = [
@@ -1784,6 +1797,7 @@ SQL;
         static $sku_model;
         static $categories;
         static $stocks_model;
+
         if (!$products) {
             /**
              * Получаем товары из коллекции. В коллекции вызывается хук "frontend_products" которым
@@ -1805,8 +1819,13 @@ SQL;
              *   строковый идентификатор формируется так: "plugins.PLUGIN_ID.ID", где PLUGIN_ID - имя плагина (plugin id),
              *   ID число из параметра "used_promo_id".
              */
-
-            $products = $this->getCollection()->getProducts($this->getProductFields(), $current_stage, (int) shopYandexmarketPlugin::getConfigParam('products_per_request'), false);
+            $products_per_request = (empty($this->data['export']['products_per']) ? shopYandexmarketPlugin::getConfigParam('products_per_request') : $this->data['export']['products_per']);
+            $products = $this->getCollection()->getProducts(
+                $this->getProductFields(),
+                $current_stage,
+                (int) $products_per_request,
+                false
+            );
             if (!$products) {
                 $current_stage = $count['product'];
             }
@@ -1828,6 +1847,9 @@ SQL;
                             /** случай когда товар участвует в промо-акции */
 
                             if (count($this->data['promo_products'][$sku_id]['promo_list']) === 1) {
+                                if ($this->data['promo_products'][$sku_id]['promo_type'] !== shopImportexportHelper::PROMO_TYPE_FLASH_DISCOUNT) {
+                                    continue;
+                                }
                                 /** меняем в товарах параметры на которые влияет промо-акция */
                                 $item['price']     = $this->data['promo_products'][$sku_id]['price'];
                                 $item['raw_price'] = $this->data['promo_products'][$sku_id]['price'];
@@ -3262,9 +3284,10 @@ SQL;
                 break;
             case 'rate':
                 if (!in_array($value, array('CB', 'CBRF', 'NBU', 'NBK'))) {
-                    $value = round($value, 4);
-                    $chunk = preg_replace('@[0]+$@', '', abs($value - floor($value)) * 10000);
-                    $chunk = mb_strlen($chunk);
+                    $accuracy = 10000;
+                    $value    = round($value, 4);
+                    $chunk    = $accuracy * abs($value - floor($value));
+                    $chunk    = (empty($chunk) ? 0 : mb_strlen($accuracy) - mb_strlen($chunk));
                     $info['format'] = $chunk ? sprintf('%%0.%df', $chunk) : '%d';
                 }
                 break;
@@ -3845,6 +3868,7 @@ SQL;
                         if (isset($product['&offer'])) {
                             $offer = $product['&offer'];
                             unset($product['&offer']);
+
                             $product['@discount-price'] = [
                                 'currency' => $offer['currency'],
                                 'value'    => $offer['promo_price'],
@@ -3856,7 +3880,9 @@ SQL;
                     }
                 } else {
                     $value = [];
-                    $promo_products = $this->data['promo_products'];
+                    $promo_products  = $this->data['promo_products'];
+                    $is_convert_curr = (bool) $this->plugin()->getSettings('convert_currency');
+
                     foreach ($this->data['added_offers'] as $offer_id => $offer) {
                         /** экспортируем только те промо-товары, которые есть в основной секции <products> */
 
@@ -3867,13 +3893,30 @@ SQL;
                         if (count($promo_product['promo_list']) === 1) {
                             $offer_id = ($promo_product['main_sku'] ? $promo_product['product_id'] : $promo_product['id']);
                             if ($data['type'] === shopImportexportHelper::PROMO_TYPE_PROMO_CODE) {
-                                /** пропуск товара, купон на который не подходит по условиям */
-                                if (
-                                    $data['type'] === shopImportexportHelper::PROMO_TYPE_PROMO_CODE
-                                    && $data['discount_unit'] !== '%'
-                                    && !$this->requirementPromo($data['discount_value'], $promo_product['price'], $offer_id, $data['id'])
-                                ) {
-                                    continue;
+                                /** пропуск товара, на который валютный купон не подходит по условиям */
+
+                                if ($data['discount_unit'] !== '%') {
+                                    if ($is_convert_curr && $data['discount_unit'] !== $this->data['primary_currency']) {
+                                        /** пропускаем купон целиком, если он не в основной валюте */
+                                        $error_message = sprintf(
+                                            _wp("Уведомление #88710: валюта купона [%s] отличается от основной валюты. Купон не экспортирован."),
+                                            $data['id']
+                                        );
+                                        $this->data['error'][] = ['message' => $error_message];
+                                        break;
+                                    } elseif ($data['discount_unit'] !== $promo_product['currency']) {
+                                        /** пропускаем предложения если они не в валюте купона */
+                                        $error_message = sprintf(
+                                            _wp("Уведомление #88711: валюта купона [%s] отличается от валюты товара %s. Купон не добавлен к товару."),
+                                            $data['id'],
+                                            $promo_product['id']
+                                        );
+                                        $this->data['error'][] = ['message' => $error_message];
+                                        continue;
+                                    }
+                                    if (!$this->requirementPromo($data['discount_value'], $promo_product['promo_price'], $offer_id, $data['id'])) {
+                                        continue;
+                                    }
                                 }
                             }
                             if ($data['id'] === reset($promo_product['promo_list'])) {
