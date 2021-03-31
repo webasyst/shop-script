@@ -3,6 +3,7 @@
 {$_errors = []}
 {if !empty($error_step_id) && $error_step_id === "shipping"}{$_errors = $errors}{/if}
 {$_error_text = null}
+{$fast_render = reset($_errors)}
 
 {$_types_sort = ["todoor", "pickup", "post"]}
 
@@ -34,6 +35,35 @@
     <div class="wa-section-body">
 
     <form>
+        {if !empty($shipping.possible_addresses)}
+            {* VARIANTS *}
+            <div class="wa-possible-addresses-section" id="js-possible-addresses-section">
+                <div class="wa-header">
+                    <span class="wa-tooltip is-inline top" data-title="[`Required field`]">
+                        [`Уточните адрес`]<span class="wa-required"></span>
+                    </span>
+                </div>
+
+                <div class="wa-dropdown full-line js-possible-address-select">
+                    <div class="wa-dropdown-toggle">[`Уточните адрес`]</div>
+                    <div class="wa-dropdown-area">
+                        {foreach $shipping.possible_addresses as $_possible_address}
+                            <div class="wa-dropdown-item" data-index="{$_possible_address@index}">
+                                <div class="wa-address-variant">
+                                    <div class="wa-name">
+                                        {if !empty($_possible_address.image)}
+                                            <span class="wa-image" style="background-image: url('{$_possible_address.image|escape}');"></span>
+                                        {/if}
+                                        {$_possible_address.name|escape}
+                                    </div>
+                                </div>
+                            </div>
+                        {/foreach}
+                    </div>
+                </div>
+            </div>
+        {/if}
+
         {if empty($shipping.disabled)}
             {if !empty($shipping.types)}
 
@@ -269,7 +299,7 @@
                     </div>
                 {/if}
 
-            {else}
+            {elseif empty($fast_render.fast_render)}
                 {$_error_text = "[`There are no shipping options available for specified location.`]<br>[`Please check values in location fields or contact us.`]"}
             {/if}
 
@@ -319,13 +349,16 @@
                 $wrapper = $("#wa-order-form-wrapper");
 
             var ready_promise = $wrapper.data("ready").promise();
-            ready_promise.then( function(controller) {
+            ready_promise.then(function (controller) {
+                let errors = {$_errors|json_encode};
+                let error  = (Array.isArray(errors) ? errors.shift() : []);
                 controller.initShipping({
                     $wrapper: $section,
                     map: {$_map|json_encode},
                     variants_count: {$_variants_count|escape},
                     disabled: {if !empty($shipping.disabled)}true{else}false{/if},
                     errors: {$_errors|json_encode},
+                    possible_addresses: {$shipping.possible_addresses|default:[]|json_encode},
                     urls: {
                         variants_dialog: {$wa->getUrl('shop/frontendOrder/shippingDialog')|json_encode}
                     },
@@ -334,6 +367,10 @@
                         variant_required: {_w("Select a shipping option.")|json_encode}
                     }
                 });
+
+                if (error !== undefined && error.hasOwnProperty('fast_render') && error.fast_render) {
+                    controller.update(error);
+                }
             });
         })(jQuery);
     </script>

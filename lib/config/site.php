@@ -25,6 +25,21 @@ foreach (shopHelper::getStocks() as $stock_id => $s) {
         $public_stocks[$stock_id] = $s['name'];
     }
 }
+if (count($stocks) === 0) {
+    $stocks_form = array(
+        'name'        => _w('Default stock'),
+        'description' => _w('Нет складов, доступных для выбора. Настройте склады в разделе «Магазин → Настройки → Склады».'),
+        'type'        => 'help',
+    );
+} else {
+    $stocks_form = array(
+        'name'        => _w('Default stock'),
+        'description' => _w('Select primary stock to which this storefront is associated with. When you process orders from placed via this storefront, selected stock will be automatically offered for product stock update.'),
+        'type'        => 'select',
+        'items'       => $stocks
+    );
+}
+
 
 $view = wa()->getView();
 $template = wa()->getAppPath('templates/includes/checkoutVersionRouteMoveSetting.html', 'shop');
@@ -141,12 +156,7 @@ return array(
             'type'  => 'select',
             'items' => $currencies
         ),
-        'stock_id'          => array(
-            'name'        => _w('Default stock'),
-            'description' => _w('Select primary stock to which this storefront is associated with. When you process orders from placed via this storefront, selected stock will be automatically offered for product stock update.'),
-            'type'        => 'select',
-            'items'       => $stocks
-        ),
+        'stock_id'          => $stocks_form,
         'public_stocks'     => array(
             'name'  => _w('Visible stocks'),
             'type'  => 'radio_checkbox',

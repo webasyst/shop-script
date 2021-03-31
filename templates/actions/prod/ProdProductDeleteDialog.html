@@ -5,6 +5,11 @@
             <h2>[`Confirm product deletion`]</h2>
         </div>
         <div class="dialog-content">
+
+            <!-- plugin hook: 'backend_prod_dialog.top' -->
+            {* @event backend_prod_dialog.%plugin_id%.top *}
+            {if !empty($backend_prod_dialog_event)}{foreach $backend_prod_dialog_event as $_}{ifset($_.top)}{/foreach}{/if}
+
             {if $orders_count > 0}
                 {$message = sprintf(
                     _w(
@@ -27,6 +32,11 @@
                 <p>{sprintf_wp('No orders containing product “%s”.', $product.name|escape)}</p>
                 <p>[`Delete`]</p>
             {/if}
+
+            <!-- plugin hook: 'backend_prod_dialog.bottom' -->
+            {* @event backend_prod_dialog.%plugin_id%.bottom *}
+            {if !empty($backend_prod_dialog_event)}{foreach $backend_prod_dialog_event as $_}{ifset($_.bottom)}{/foreach}{/if}
+
         </div>
         <div class="dialog-footer">
             <button class="js-success-action wa-button red" type="button">[`Delete`]</button>

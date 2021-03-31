@@ -2937,12 +2937,18 @@ var Tooltip = ( function($) {
         Observer.prototype.init = function() {
             var that = this;
 
-            $(document).on("mouseenter", "[data-tooltip-id]", function(event) {
+            $(document).on("mouseenter", "[data-tooltip-id]", function(event, force_show) {
                 var $target = $(this),
-                    tooltip_id = $target.attr("data-tooltip-id");
+                    tooltip_id = $.trim($target.attr("data-tooltip-id"));
+
+                if (!tooltip_id.length) { return false; }
 
                 if (tooltips[tooltip_id]) {
                     var tooltip = tooltips[tooltip_id];
+
+                    var start_time = tooltip.start_time,
+                        hide_time = tooltip.hide_time,
+                        animate = tooltip.animate;
 
                     // Принудительно закрываем другие подсказки если они показаны
                     $.each(tooltips, function(id, _tooltip) {
@@ -2951,11 +2957,39 @@ var Tooltip = ( function($) {
                         }
                     });
 
+                    $target.on("click change", updateTooltip);
+
+                    if (force_show) {
+                        tooltip.start_time = 0;
+                        tooltip.animate = false;
+                    }
+
                     tooltip.show($target);
 
-                    $target.one("mouseleave", function(event) {
+                    tooltip.animate = animate;
+                    tooltip.start_time = start_time;
+
+                    $target.one("mouseleave", function(event, force_hide) {
+                        $target.off("click change", updateTooltip);
+                        if (force_hide) {
+                            tooltip.hide_time = 0;
+                            tooltip.animate = false;
+                        }
+
                         tooltip.hide();
+
+                        tooltip.animate = animate;
+                        tooltip.hide_time = hide_time;
                     });
+
+                    function updateTooltip() {
+                        var new_tooltip_id = $.trim($target.attr("data-tooltip-id"));
+                        if (tooltip_id !== new_tooltip_id) {
+                            $target
+                                .trigger("mouseleave", true)
+                                .trigger("mouseenter", true);
+                        }
+                    }
 
                 } else {
                     console.error("Tooltip is not found.");
@@ -2993,7 +3027,7 @@ var Tooltip = ( function($) {
             that.class = (typeof options["class"] === "string" ? options["class"] : null);
             that.animate = (typeof options["animate"] === "boolean" ? options["animate"] : false);
             that.position = (typeof options["position"] === "string" ? options["position"] : "right");
-            that.start_time = (typeof options["hide_time"] === "number" ? options["hide_time"] : 500);
+            that.start_time = (typeof options["start_time"] === "number" ? options["start_time"] : 500);
             that.hide_time = (typeof options["hide_time"] === "number" ? options["hide_time"] : 500);
 
             // DOM
@@ -3146,10 +3180,7 @@ var Tooltip = ( function($) {
         Tooltip.prototype.setPosition = function($target) {
             var that = this;
 
-            var target_position = $target.attr("data-tooltip-position");
-            target_position = (typeof target_position === "string" ? target_position : null);
-
-            var position = (target_position ? target_position : that.position);
+            var position = that.position;
 
             // hack для того чтобы узнать реальные размеры после рендера
             that.$tooltip[0].offsetHeight;
@@ -3208,6 +3239,10 @@ var Tooltip = ( function($) {
                     case "left":
                         top = target_top + (target_h/2) - (tooltip_h/2);
                         left = target_left - tooltip_w - indent;
+                        break;
+                    case "middle":
+                        top = target_top + (target_h/2) - (tooltip_h/2);
+                        left = target_left + (target_w/2) - (tooltip_w/2);
                         break;
                 }
 
@@ -3434,6 +3469,10 @@ $.wa = $.extend($.wa || {}, {
         console.error("TYPE is required");
 
         switch (type) {
+            case "price":
+                result = isPrice(value);
+                break;
+
             case "url":
                 result = isURL(value);
                 break;
@@ -3452,6 +3491,34 @@ $.wa = $.extend($.wa || {}, {
             if (string.length > 0 && (string.match(regexp) || []).length >= 1) {
                 result = true;
             }
+
+            return result;
+        }
+
+        /**
+         * @param {String} string
+         * @return {Boolean}
+         * */
+        function isPrice(string) {
+            var result = true,
+                divider_exist = false;
+
+            var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", ","];
+            $.each(string.split(""), function(i, letter) {
+                if (letter === "." || letter === ",") {
+                    if (!divider_exist) {
+                        divider_exist = true;
+                    } else {
+                        result = false;
+                        return false;
+                    }
+                } else {
+                    if (white_list.indexOf(letter) < 0) {
+                        result = false;
+                        return false;
+                    }
+                }
+            });
 
             return result;
         }

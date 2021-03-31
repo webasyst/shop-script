@@ -13,6 +13,8 @@ class shopCouponModel extends waModel
     //
     protected $table = 'shop_coupon';
 
+    const PAGES_STEP = 50;
+
     public function useOne($id)
     {
         $sql = "UPDATE {$this->table} SET used = used + 1 WHERE id = :id";
@@ -124,5 +126,19 @@ SQL;
             // Coupon of unknown type. Possibly from a plugin?..
             return '';
         }
+    }
+
+    public function getPageNumber($coupon_id, $coupon_name)
+    {
+        $coupon_id = (int)$coupon_id;
+        $pages_count = $this->select('COUNT(*) AS `count`')
+            ->where("`id` >= {$coupon_id} AND `code` LIKE ?", ['%' . $coupon_name . '%'])
+            ->order('id')->fetchField('count');
+        $page_number = ceil($pages_count / self::PAGES_STEP);
+        if ($page_number < 1) {
+            $page_number = 1;
+        }
+
+        return (int)$page_number;
     }
 }

@@ -143,6 +143,9 @@
                                 if (!isNaN(sub_stock_value)) {
                                     if (!value) { value = 0; }
                                     value += sub_stock_value;
+                                } else {
+                                    value = "";
+                                    return false;
                                 }
                             });
                         }
@@ -221,6 +224,9 @@
             $.each(that.tooltips, function(i, tooltip) {
                 $.wa.new.Tooltip(tooltip);
             });
+
+            var ready_promise = that.$wrapper.data("ready");
+            ready_promise.resolve(that);
         };
 
         Section.prototype.renderErrors = function(errors) {
@@ -233,6 +239,10 @@
             $errors_place.html("");
 
             $.each(errors, function(index, item) {
+                if (!item || !item.text) {
+                    return;
+                }
+
                 var $message = getMessage(item.text);
 
                 // if (item.name) {
@@ -1066,6 +1076,7 @@
                     },
                     changeSkuModStocks: function(sku_mod) {
                         var stocks_count = 0,
+                            is_infinite = false,
                             is_set = false;
 
                         var virtual_stocks = [];
@@ -1075,6 +1086,7 @@
                                 is_set = true;
                                 stocks_count += value;
                             } else {
+                                is_infinite = true;
                                 value = "";
                             }
                             sku_mod.stock[stock_id] = value;
@@ -1095,6 +1107,9 @@
                                     if (!isNaN(sub_stock_value)) {
                                         if (!value) { value = 0; }
                                         value += sub_stock_value;
+                                    } else {
+                                        value = "";
+                                        return false;
                                     }
                                 });
                             }
@@ -1103,7 +1118,7 @@
                         });
 
                         sku_mod.stocks_mode = is_set;
-                        sku_mod.count = (is_set ? stocks_count : "");
+                        sku_mod.count = (is_set && !is_infinite ? stocks_count : "");
 
                         that.updateModificationStocks(sku_mod);
                     },
@@ -1921,7 +1936,10 @@
                     that.is_locked = true;
 
                     var form_data = getData();
-                    if (form_data.errors.length) {
+
+                    var no_errors = beforeSavePluginHook(form_data);
+
+                    if (!no_errors || form_data.errors.length) {
                         that.renderErrors(form_data.errors);
                         that.is_locked = false;
 
@@ -1930,18 +1948,31 @@
                         var $loading = $(loading).appendTo($submit_button.attr("disabled", true));
 
                         request(that.urls["save"], form_data.data)
-                            .done( function() {
+                            .done( function(server_data) {
                                 if (options.redirect_url) {
-                                    $.wa_shop_products.router.load(options.redirect_url);
+                                    $.wa_shop_products.router.load(options.redirect_url).fail( function() {
+                                        location.href = options.redirect_url;
+                                    });
                                 } else {
                                     $.wa_shop_products.router.reload();
                                 }
+
+                                afterSavePluginHook(form_data.data, server_data);
                             })
-                            .fail( function() {
+                            .fail(function(reason, errors) {
                                 $loading.remove();
                                 $submit_button.attr("disabled", false);
                                 that.is_locked = false;
+
+                                afterSaveFailPluginHook(form_data.data, reason == 'errors' ? errors : []);
+
+                                if (reason == 'errors' && errors && errors.length) {
+                                    that.renderErrors(errors);
+                                }
                             });
+
+                        savePluginHook(form_data);
+
                     }
                 }
 
@@ -2092,6 +2123,97 @@
                     }
                 }
 
+                /**
+                 * Event allows to perform validation before sending data to server.
+                 * To show a generic message below the form:
+
+                   event.form_errors.push({
+                     text: 'Please correct errors'
+                   })
+
+                 * `event` being jQuery event that triggered the hook.
+                 *
+                 * You may show validation message directly below your fields, too.
+                 * In this case, if you choose not to add data.errors, cancel form submit like this:
+
+                   event.preventDefault();
+
+                 *
+                 * You may add data to be sent to ProdSaveGeneral controller like this example:
+
+                   event.form_data.push({
+                        name: "yourplugin[key]",
+                        value: "value"
+                   });
+
+                 * You may use any name. Whatever you send has to be processed on the server,
+                 * see PHP hooks `backend_prod_presave`, `backend_prod_save`
+                 */
+                function beforeSavePluginHook(data) {
+                    return triggerHook($.Event('wa_before_save', {
+                        product_id: that.product.id,
+                        section_controller: that,
+                        form_errors: data.errors,
+                        form_data: data.data
+                    }));
+                }
+
+                /**
+                 * Triggered just after form data are sent to server (ProdSaveGeneral controller).
+                 * This may be a good place to send data to your own plugin PHP controller.
+                 * Note that for new products, product_id may not be known at this time.
+                 */
+                function savePluginHook(data) {
+                    triggerHook($.Event('wa_save', {
+                        product_id: that.product.id,
+                        section_controller: that,
+                        form_data: data.data
+                    }));
+                }
+
+                /**
+                 * Triggers `wa_after_save` after a successfull save (ProdSaveGeneral controller).
+                 *
+                 * Successfull event contains `server_data` and contains no `server_errors`.
+                 *
+                 * Can be used to send additional data to plugin's own controllers.
+                 * Product_id is always known at this time, even for new products.
+                 */
+                function afterSavePluginHook(form_data, server_data) {
+                    triggerHook($.Event('wa_after_save', {
+                        product_id: that.product.id || (server_data && server_data.data && server_data.data.id),
+                        section_controller: that,
+                        server_data: server_data,
+                        form_data: form_data
+                    }));
+                }
+
+                /**
+                 * Triggers `wa_after_save` when server controller returned validation errors.
+                 *
+                 * Unsuccessfull event contains `server_errors` and contains no `server_data` key.
+                 *
+                 * Successfull event will contain `server_data` and contain no `server_errors`.
+                 * Use this to show custom validation message returned by your plugin via `backend_prod_presave`.
+                 */
+                function afterSaveFailPluginHook(form_data, server_errors) {
+                    triggerHook($.Event('wa_after_save', {
+                        product_id: that.product.id,
+                        section_controller: that,
+                        server_errors: server_errors,
+                        form_data: form_data
+                    }));
+                }
+
+                function triggerHook(event) {
+                    try {
+                        $('#js-product-general-section').trigger(event);
+                    } catch(e) {
+                        console.log(e);
+                    }
+                    return !event.isDefaultPrevented();
+                }
+
                 function request(href, data) {
                     var deferred = $.Deferred();
 
@@ -2099,11 +2221,7 @@
                         .done( function(response) {
                             if (response.status === "ok") {
                                 deferred.resolve(response.data);
-
                             } else {
-                                if (response.errors) {
-                                    that.renderErrors(response.errors);
-                                }
                                 deferred.reject("errors", (response.errors ? response.errors: null));
                             }
                         })
@@ -2159,6 +2277,9 @@
                         } else {
                             is_critical = true;
                         }
+                    } else {
+                        is_set = false;
+                        return false;
                     }
                 });
 

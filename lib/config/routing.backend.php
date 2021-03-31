@@ -47,11 +47,14 @@ return array(
     //
 
     'products/?'                           => 'prod/list',
+    'products/<id:\d+>/services/?'         => 'prod/services',
     'products/<id:\d+>/related/?'          => 'prod/related',
+    'products/<id:\d+>/reviews/?'          => 'prod/reviews',
     'products/<id:\d+>/seo/?'              => 'prod/seo',
     'products/<id:\d+>/media/?'            => 'prod/media',
     'products/<id:\d+>/general/?'          => 'prod/general',
     'products/<id:\d+>/sku/?'              => 'prod/sku',
+    'products/<id:\d+>/pages/?'            => 'prod/pages',
     'products/<id:\d+>/?'                  => 'prod/',
 
     // everything else uses old routing via ?module=&action=

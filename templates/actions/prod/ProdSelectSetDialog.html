@@ -12,6 +12,10 @@
         </div>
         <div class="dialog-content">
 
+            <!-- plugin hook: 'backend_prod_dialog.top' -->
+            {* @event backend_prod_dialog.%plugin_id%.top *}
+            {if !empty($backend_prod_dialog_event)}{foreach $backend_prod_dialog_event as $_}{ifset($_.top)}{/foreach}{/if}
+
             <div class="s-sets-section">
                 <div class="s-filter-section">
                     <div class="s-filter-form">
@@ -43,6 +47,10 @@
                     {/foreach}
                 </div>
             </div>
+
+            <!-- plugin hook: 'backend_prod_dialog.bottom' -->
+            {* @event backend_prod_dialog.%plugin_id%.bottom *}
+            {if !empty($backend_prod_dialog_event)}{foreach $backend_prod_dialog_event as $_}{ifset($_.bottom)}{/foreach}{/if}
 
         </div>
         <div class="dialog-footer">

@@ -127,6 +127,11 @@ class shopBackendAutocompleteController extends waController
             $products = $product_model->select($fields)
                 ->where("id = $product_id")
                 ->fetchAll('id');
+
+            foreach ($products as &$product) {
+                $product['label'] = $this->prepare($product['value'] . " (id=$product_id)", $product_id);
+            }
+            unset($product);
         }
 
         $products += $product_model->select($fields)

@@ -29,7 +29,8 @@
             var that = this;
 
             var $form = $('#coupon-editor-form'),
-                $submit_button = $form.find('.js-submit-button');
+                $submit_button = $form.find('.js-submit-button'),
+                $coupon_name = that.$wrapper.find('#coupon-name');
 
             $.importexport.products.init($form);
 
@@ -37,6 +38,23 @@
             $form.find('[name="coupon[code]"]').keyup(function() {
                 $form.siblings('h1').text($(this).val());
             });
+
+            if ($coupon_name.length) {
+                $coupon_name.on("change", function() {
+                    var coupon_name = $.trim($(this).val());
+                    var href = that.urls["first_page"];
+
+                    if (coupon_name.length) {
+                        href = that.urls["coupons"].replace("%page_number%", 1).replace("%coupon_name%", coupon_name);
+                    }
+
+                    $.shop.marketing.content.load(href);
+                });
+
+                $coupon_name.on("search", function() {
+                    $(this).trigger("change");
+                });
+            }
 
             // When user changes type, change how value input looks
             $('select[name="coupon[type]"]').change(function() {
@@ -114,14 +132,28 @@
 
                         $submit_button.attr('disabled', true);
 
-                        $.post($form.attr('action'), $form.serialize())
+                        var form_data = $form.serializeArray();
+
+                        if ($coupon_name.length) {
+                            var coupon_name = $.trim($coupon_name.val());
+                            if (coupon_name) {
+                                form_data.push({
+                                    name: "coupon_name",
+                                    value: coupon_name
+                                });
+                            }
+                        }
+
+                        $.post($form.attr('action'), form_data)
                             .always( function() {
                                 $submit_button.attr('disabled', false);
                                 is_locked = false;
                             })
                             .done( function(response) {
                                 if (response.status === "ok") {
-                                    var href = that.urls["coupon"].replace("%id%", response.data.id);
+                                    var href = that.urls["coupon"].replace("%id%", response.data.id)
+                                        .replace("%page_number%", response.data.page_number)
+                                        .replace("&coupon_name=%coupon_name%", response.data.coupon_name ? "&coupon_name=" + response.data.coupon_name : "");
                                     $.shop.marketing.content.load(href);
                                 } else if (response.errors) {
                                     renderErrors(response.errors);
@@ -152,13 +184,19 @@
                             "delete": 1
                         };
 
+                    var coupon_name = $.trim($coupon_name.val());
+                    if (coupon_name) {
+                        data.coupon_name = coupon_name;
+                    }
+
                     $.post(href, data)
                         .always( function() {
                             is_locked = false;
                         })
                         .done( function(response) {
                             if (response.status === "ok") {
-                                var href = that.urls["coupons"];
+                                var href = that.urls["coupons"].replace("%page_number%", response.data.page_number)
+                                    .replace("&coupon_name=%coupon_name%", response.data.coupon_name ? "&coupon_name=" + response.data.coupon_name : "");
                                 $.shop.marketing.content.load(href);
                             } else if (response.errors) {
                                 renderErrors(response.errors);

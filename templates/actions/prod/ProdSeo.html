@@ -87,7 +87,7 @@
             {* GLOBAL ERRORS *}
             <div class="s-errors-place" id="js-errors-place" v-if="errors_global.length">
                 <template v-for="error in errors_global" v-bind:key="error.id">
-                    <div class="wa-message info flexbox space-8" v-bind:data-id="error.id">
+                    <div class="wa-message wa-small info flexbox space-8" v-bind:data-id="error.id">
                         <div class="message-icon">
                             <i class="fas fa-info-circle"></i>
                         </div>
@@ -110,7 +110,7 @@
                     <h2 class="s-title">[`For search systems`]</h2>
                 </div>
                 <div class="s-section-body">
-                    <div class="wa-message bordered blue flexbox space-8">
+                    <div class="wa-message wa-small white flexbox space-8">
                         <div class="message-icon"><span class="s-icon"><i class="fas fa-info-circle"></i></span></div>
                         <div class="message-text wide">[`In the TITLE and in the META tags’ values you can use variables &#123;$name&#125;, &#123;$summary&#125;, and &#123;$price&#125;, which are replaced by the product’s name, summary, and price displayed in the storefront.`]</div>
                     </div>
@@ -452,7 +452,7 @@
                             </div>
                         </div>
                     {else}
-                        <div class="wa-message bordered blue flexbox space-8">
+                        <div class="wa-message wa-small white flexbox space-8">
                             <div class="message-icon"><span class="s-icon"><i class="fas fa-info-circle"></i></span></div>
                             <div class="message-text wide">[`This product is not published in any storefront.`]</div>
                         </div>
@@ -496,6 +496,8 @@
                     product: {$formatted_product|json_encode},
                     social: {$social|json_encode}
                 });
+
+                $(document).trigger("wa_product_section_change", "product-seo");
             }
         })(jQuery);
     </script>

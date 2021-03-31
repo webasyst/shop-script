@@ -298,7 +298,15 @@ class shopCheckoutRegionStep extends shopCheckoutStep
                 'section' => $this->getId(),
             ];
         }
-        if (!empty($cfg['shipping']['ask_zip']) && empty($selected_values['zip'])) {
+        $ask_zip = $cfg['shipping']['ask_zip'];
+        if (empty($ask_zip)) {
+            $detail_zip = ifset($data, 'input', 'details', 'shipping_address', 'zip', null);
+            $zip = !empty($address['zip']) ? $address['zip'] : $detail_zip;
+            if ($zip) {
+                $selected_values['zip'] = trim($zip);
+                $ask_zip = true;
+            }
+        } elseif (empty($selected_values['zip'])) {
             $errors[] = [
                 'name'    => 'region[zip]',
                 'text'    => _w('This field is required.'),
@@ -306,10 +314,14 @@ class shopCheckoutRegionStep extends shopCheckoutStep
             ];
         }
 
+        $is_fixed_delivery_city = !empty($cfg['shipping']['fixed_delivery_area']['city']);
+
         $result = $this->addRenderedHtml([
-            'selected_values' => $selected_values,
-            'locations'       => array_values($locations),
-            'countries'       => array_values($countries),
+            'selected_values'        => $selected_values,
+            'locations'              => array_values($locations),
+            'countries'              => array_values($countries),
+            'is_fixed_delivery_city' => $is_fixed_delivery_city,
+            'ask_zip'                => $ask_zip,
         ], $data, $errors);
 
         return array(
@@ -406,6 +418,15 @@ class shopCheckoutRegionStep extends shopCheckoutStep
         return $result;
     }
 
+    /**
+     * @param $cfg shopCheckoutConfig
+     * @param $cfg_locations
+     * @param $location_id
+     * @param $default_location_id
+     * @param $address
+     * @return array
+     * @throws waException
+     */
     protected function getSelectedValues($cfg, $cfg_locations, $location_id, $default_location_id, $address)
     {
         // Is location properly selected?

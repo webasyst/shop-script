@@ -1,0 +1,44 @@
+<div class="wa-dialog s-product-services-manager-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-wrapper" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3>[`Выберите дополнительные услуги для данного товара`]</h3>
+            </div>
+            <div class="dialog-content">
+                <p>{sprintf(_w("Добавить новую услугу можно в разделе «<a href=\"%s\">Услуг</a>»."), "{$wa_app_url}?action=products#services/")}</p>
+
+                <div class="s-filter-section">
+                    <div class="s-filter-form">
+                        <span class="s-button"><i class="fas fa-search"></i></span>
+                        <input class="s-field wa-small" type="text"
+                               placeholder="{_w("Search")|escape}"
+                               v-on:input="filterServices($event.target.value)">
+                    </div>
+                </div>
+
+                <div class="s-services-list">
+                    <template v-for="service in services">
+                        <div class="s-service-wrapper"
+                             v-bind:class="{ 'is-disabled': service.is_disabled }">
+                            <component-switch
+                                v-model="service.is_enabled"
+                                v-bind:disabled="service.is_disabled"
+                                v-bind:class="'wa-small'"
+                                v-bind:data-tooltip-id="(service.is_disabled ? 'product-services-15' : '')"
+                                v-on:change="switchService(service)"></component-switch>
+                            <span class="s-name">{ { service.name } }</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button" type="button"
+                        v-bind:class="{ 'yellow' : states.changed }"
+                        v-on:click.prevent="onSuccess">[`Save`]</button>
+
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+</div>

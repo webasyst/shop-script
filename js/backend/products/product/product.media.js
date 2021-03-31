@@ -46,6 +46,9 @@
 
             that.initSave();
 
+            var ready_promise = that.$wrapper.data("ready");
+            ready_promise.resolve(that);
+
             $.each(that.tooltips, function(i, tooltip) {
                 $.wa.new.Tooltip(tooltip);
             });
@@ -787,7 +790,9 @@
                 sendRequest()
                     .done( function() {
                         if (options.redirect_url) {
-                            $.wa_shop_products.router.load(options.redirect_url);
+                            $.wa_shop_products.router.load(options.redirect_url).fail( function() {
+                                location.href = options.redirect_url;
+                            });
                         } else {
                             $.wa_shop_products.router.reload();
                         }

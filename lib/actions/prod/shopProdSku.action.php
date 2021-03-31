@@ -20,8 +20,11 @@ class shopProdSkuAction extends waViewAction
         $features_selectable_model = new shopProductFeaturesSelectableModel();
         $selected_selectable_feature_ids = $features_selectable_model->getProductFeatureIds($product['id']);
 
+        $plugin_fields = $this->pluginFieldsEvent($product);
+
         $formatted_features = $this->formatFeatures($features);
         $formatted_product = $this->formatProduct($product, array(
+            "plugin_fields"                   => $plugin_fields,
             "features"                        => $formatted_features,
             "skus_features_values"            => $skus_features_values,
             "selected_selectable_feature_ids" => $selected_selectable_feature_ids
@@ -29,6 +32,8 @@ class shopProdSkuAction extends waViewAction
         $formatted_selectable_features = $this->formatSelectableFeatures($formatted_features, $selected_selectable_feature_ids);
 
         $frontend_urls = shopProdGeneralAction::getFrontendUrls($product)[0];
+
+        $backend_prod_content_event = $this->throwEvent($product);
 
         $this->view->assign([
             'product'                       => $product,
@@ -38,16 +43,19 @@ class shopProdSkuAction extends waViewAction
             'frontend_urls'                 => $frontend_urls,
 
             'product_sku_types'             => $this->getProductSkuTypes(),
-            'new_modification'              => $this->getEmptyModification($product, $formatted_features),
+            'new_modification'              => $this->getEmptyModification($product, $formatted_features, array( "plugin_fields" => $plugin_fields)),
             'new_sku'                       => $this->getEmptySku(),
 
             'formatted_product'             => $formatted_product,
             'formatted_features'            => $formatted_features,
             'formatted_selectable_features' => $formatted_selectable_features,
+
+            'backend_prod_content_event' => $backend_prod_content_event,
         ]);
 
         $this->setLayout(new shopBackendProductsEditSectionLayout([
             'product' => $product,
+            'content_id' => 'sku',
         ]));
     }
 
@@ -103,6 +111,16 @@ class shopProdSkuAction extends waViewAction
         $features = (!empty($options["features"]) ? $options["features"] : []);
         $selected_selectable_feature_ids = (!empty($options["selected_selectable_feature_ids"]) ? $options["selected_selectable_feature_ids"] : []);
         $skus_features_values = (!empty($options["skus_features_values"]) ? $options["skus_features_values"] : []);
+        $plugin_fields = ifset($options, "plugin_fields", ['price' => [], 'additional' => []]);
+
+        $_product_params = [];
+        if ($product->params) {
+            foreach ($product->params as $k => $v) {
+                if ($k != 'order' && $k != 'multiple_sku') {
+                    $_product_params[] = $k. "=". $v;
+                }
+            }
+        }
 
         $skus = [];
 
@@ -258,6 +276,32 @@ class shopProdSkuAction extends waViewAction
             $modification["original_name"] = $modification["name"];
             $modification["name"] = $modification_name;
 
+            // Additional price fields from plugins
+            $modification["additional_prices"] = [];
+            foreach($plugin_fields['price'] as $additional_field) {
+                $additional_field['value'] = ifset($additional_field, 'sku_values', $modification["id"], $additional_field['value']);
+                unset($additional_field['sku_values']);
+                $modification["additional_prices"][] = $additional_field;
+            }
+
+            // Other additional fields from plugins
+            $modification["additional_fields"] = [];
+            foreach($plugin_fields['additional'] as $additional_field) {
+                $additional_field['value'] = ifset($additional_field, 'sku_values', $modification["id"], $additional_field['value']);
+                unset($additional_field['sku_values']);
+
+                if ($additional_field['render_type'] == 'select' && !empty($additional_field['options']) && is_scalar($additional_field['value'])) {
+                    foreach($additional_field['options'] as $opt) {
+                        if ((string)ifset($opt, 'value', '') === (string)$additional_field['value']) {
+                            $additional_field['active_option'] = $opt;
+                            break;
+                        }
+                    }
+                }
+
+                $modification["additional_fields"][] = $additional_field;
+            }
+
             // MODIFICATIONS
             if ($modification['sku'] || $modification_name) {
                 $sku_key = $modification['sku'].'###'.$modification_name;
@@ -301,7 +345,7 @@ class shopProdSkuAction extends waViewAction
             }
         }
 
-        // Корректируем названия модификация, потому что они отличаются (баг) от названий артикулов.
+        // Корректируем названия модификаций, потому что они отличаются (баг) от названий артикулов.
         foreach ($skus as &$sku) {
             foreach ($sku["modifications"] as &$sku_mod) {
                 $sku_mod["sku"] = $sku["sku"];
@@ -310,20 +354,21 @@ class shopProdSkuAction extends waViewAction
         }
 
         return [
-            "id"              => $product["id"],
-            "name"            => $product["name"],
-            "badges"          => array_values($badges),
-            "badge_id"        => $badge_id,
-            "sku_id"          => $product["sku_id"],
-            "sku_type"        => $product["sku_type"],
-            "currency"        => $product["currency"],
-            "skus"            => array_values($skus),
-            "image_id"        => $product["image_id"],
-            "photo"           => $photo,
-            "photos"          => array_values($photos),
+            "id"                 => $product["id"],
+            "name"               => $product["name"],
+            "badges"             => array_values( $badges ),
+            "badge_id"           => $badge_id,
+            "sku_id"             => $product["sku_id"],
+            "sku_type"           => $product["sku_type"],
+            "currency"           => $product["currency"],
+            "skus"               => array_values( $skus ),
+            "image_id"           => $product["image_id"],
+            "photo"              => $photo,
+            "photos"             => array_values( $photos ),
+            "params"             => implode(PHP_EOL, $_product_params),
 
             // Feature values saved for product: feature code => value (format depends on feature type)
-            "features" => self::formatFeaturesValues($features, $product['features']),
+            "features"           => self::formatFeaturesValues($features, $product['features']),
 
             // front-side options
             "normal_mode"        => $_normal_mode,
@@ -902,8 +947,10 @@ class shopProdSkuAction extends waViewAction
         ];
     }
 
-    protected function getEmptyModification($product, $features)
+    protected function getEmptyModification($product, $features, $options)
     {
+        $plugin_fields = ifset($options, "plugin_fields", ['price' => [], 'additional' => []]);
+
         $result = [
             "id"                  => null,
             "product_id"          => $product["id"],
@@ -919,6 +966,9 @@ class shopProdSkuAction extends waViewAction
             "status"              => true,
 
             "features"            => [],
+
+            'additional_fields' => $plugin_fields['additional'],
+            'additional_prices' => $plugin_fields['price'],
 
             // will be set at front
             "stock"               => [],
@@ -949,4 +999,160 @@ class shopProdSkuAction extends waViewAction
             ],
         ];
     }
+
+    /**
+     * Throw 'backend_prod_content' event
+     * @param shopProduct $product
+     * @return array
+     * @throws waException
+     */
+    protected function throwEvent($product)
+    {
+        /**
+         * @event backend_prod_content
+         * @since 8.18.0
+         *
+         * @param shopProduct $product
+         * @param string $content_id
+         *       Which page (tab) is shown
+         */
+        $params = [
+            'product' => $product,
+            'content_id' => 'sku',
+        ];
+        return wa('shop')->event('backend_prod_content', $params);
+    }
+
+    protected function pluginFieldsEvent($product)
+    {
+        /*
+
+        Field description expected from plugin via backend_prod_sku_fields event:
+
+        [
+            'type' => 'price',// |input|textarea|select
+            'id' => 'zzzz',
+            'name' => '',
+            'default_value' => '', // used for new sku
+            'tooltip' => '',
+            'css_class' => '',
+            'validate' => [
+                'required' => false,
+                'numbers' => false, // price only
+            ],
+            'placement' => 'top', // |bottom; ignored for price
+            'options' => [ // select only
+                [ 'name' => '', 'value' => '' ],
+            ],
+            'sku_values' => [
+                sku_id => value
+            ],
+        ]
+
+        */
+
+        /**
+         * @event backend_prod_sku_fields
+         * @since 8.18.0
+         *
+         * @param shopProduct $product
+         */
+        $params = [
+            'product' => $product,
+        ];
+        $result = [
+            'price' => [],
+            'additional' => [],
+        ];
+        $raw_plugin_fields = wa('shop')->event('backend_prod_sku_fields', $params);
+
+        $sku_default_values = array_fill_keys(array_keys($product['skus']), null);
+
+        foreach($raw_plugin_fields as $fields)
+        {
+            if (!is_array($fields)) {
+                continue;
+            }
+            foreach($fields as $raw_field) {
+                if (empty($raw_field['type']) || !is_string($raw_field['type']) || empty($raw_field['id']) || !is_string($raw_field['id'])) {
+                    continue;
+                }
+                $field = [
+                    'render_type' => 'field',
+                    'id' => $raw_field['id'],
+                    'name' => ifset($raw_field, 'name', null),
+                    'value' => ifset($raw_field, 'default_value', null),
+                    'tooltip' => ifset($raw_field, 'tooltip', null),
+                    'css_class'   => ifset($raw_field, 'css_class', null),
+                    'validate'    => [
+                        'required' => ifset($raw_field, 'validate', 'required', false),
+                    ],
+                    'sku_values' => ifset($raw_field, 'sku_values', []),
+                ];
+
+                if ($raw_field['type'] == 'select') {
+                    // check select options, gather available values
+                    $available_values = [];
+                    $field['options'] = ifset($raw_field, 'options', []);
+                    if (!is_array($field['options'])) {
+                        $field['options'] = [];
+                    }
+                    foreach($field['options'] as $i => $o) {
+                        if (!is_array($o) || !isset($o['name']) || !isset($o['value'])) {
+                            unset($field['options'][$i]);
+                            continue;
+                        }
+                        $available_values[$o['value']] = $o['value'];
+                    }
+                    $field['options'] = array_values($field['options']);
+
+                    // check default value
+                    if (!isset($available_values[$field['value']])) {
+                        $field['value'] = reset($available_values);
+                    }
+                }
+
+                if (!is_array($field['sku_values'])) {
+                    $field['sku_values'] = [];
+                } else {
+                    $field['sku_values'] = array_intersect_key($field['sku_values'], $sku_default_values);
+                    foreach(array_keys($sku_default_values) as $sku_id) {
+                        if (!isset($field['sku_values'][$sku_id])) {
+                            $field['sku_values'][$sku_id] = $field['value'];
+                        }
+                    }
+                }
+
+                if ($raw_field['type'] == 'price') {
+                    $field['validate']['numbers'] = ifset($raw_field, 'validate', 'numbers', false);
+                    $result['price'][] = $field;
+                } else {
+                    $field['placement'] = ifset($raw_field, 'placement', 'top') == 'top' ? 'top' : 'bottom';
+                    switch ($raw_field['type']) {
+                        case 'textarea':
+                            $field['render_type'] = 'textarea';
+                            break;
+                        case 'select':
+                            $field['render_type'] = 'select';
+
+                            // check sku values
+                            foreach($field['sku_values'] as $sku_id => $value) {
+                                if (isset($value) && !isset($available_values[$value])) {
+                                    $field['sku_values'][$sku_id] = null;
+                                }
+                            }
+                            break;
+                        case 'input':
+                        default:
+                            // nothing to do
+                            break;
+                    }
+                    $result['additional'][] = $field;
+                }
+            }
+        }
+
+        return $result;
+    }
+
 }

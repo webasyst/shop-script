@@ -1532,6 +1532,7 @@
             that.$form = that.$wrapper.find("form:first");
 
             // VARS
+            that.possible_addresses = options["possible_addresses"];
             that.map = options["map"];
             that.templates = options["templates"];
             that.disabled = options["disabled"];
@@ -1676,6 +1677,54 @@
                         });
                     }
                 });
+            }
+
+            var $possible_addresses_section = that.$wrapper.find("#js-possible-addresses-section");
+            if ($possible_addresses_section.length) {
+                var dropdown = new window.waOrder.ui.Dropdown({
+                    $wrapper: $possible_addresses_section.find(".js-possible-address-select"),
+                    hover: false,
+                    change_title: false,
+                    change_selector: ".wa-dropdown-item",
+                    open: function(dropdown) {
+                    },
+                    change: function(event, target, dropdown) {
+                        var $target = $(target),
+                            name = $target.find(".wa-name").text(),
+                            index = $target.attr("data-index");
+
+                        var possible_address = that.possible_addresses[parseInt(index)];
+                        if (possible_address) {
+                            dropdown.setTitle(name);
+
+                            var $region = waOrder.form.sections["region"].$wrapper,
+                                address = possible_address.address;
+
+                            if (address.region) {
+                                var $region_field = $region.find("input.js-region-field-value");
+                                if ($region_field.length) {
+                                    $region_field.val(address.region);
+                                }
+                            }
+                            if (address.city) {
+                                var $city_field = $region.find("input.js-city-field, input[name=\"region[city]\"]");
+                                if ($city_field.length) {
+                                    $city_field.val(address.city);
+                                }
+                            }
+                            if (address.zip) {
+                                var $zip_field = $region.find("input.js-zip-field, input[name=\"region[zip]\"]");
+                                if ($zip_field.length) {
+                                    $zip_field.val(address.zip);
+                                }
+                            }
+
+                            that.update({ reload: true });
+                        }
+                    }
+                });
+
+                console.log( dropdown );
             }
 
             function showPickupDialog(dropdown, show_map) {

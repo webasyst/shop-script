@@ -16,8 +16,12 @@ class shopProdSaveVideoController extends waJsonController
             throw new waException(_w("Access denied"));
         }
 
+        $data = ['video_url' => $url];
+
         $product = new shopProduct($id);
-        $product->save(['video_url' => $url]);
+        $this->throwPreSaveEvent($product, $data);
+
+        $product->save($data);
 
         if ($url && !$product->video_url) {
             $this->errors[] = [
@@ -27,11 +31,60 @@ class shopProdSaveVideoController extends waJsonController
             return;
         }
 
+        $this->throwSaveEvent($product, $data);
+
         $this->response = [
             'product' => [
                 'video_url' => $product->video_url,
                 'video' => $product['video'],
             ],
         ];
+    }
+
+    /**
+     * @param shopProduct $product
+     * @param array &$data - data could be mutated
+     * @throws waException
+     */
+    protected function throwPreSaveEvent($product, array &$data)
+    {
+        /**
+         * @event backend_prod_presave
+         * @since 8.18.0
+         *
+         * @param shopProduct $product
+         * @param array &$data
+         *      Raw data from form posted - data could be mutated
+         * @param string $content_id
+         *       Which page is being saved
+         */
+        $params = [
+            'product' => $product,
+            'data' => &$data,
+            'content_id' => 'media_video',
+        ];
+
+        wa('shop')->event('backend_prod_presave', $params);
+    }
+
+    protected function throwSaveEvent($product, array $data)
+    {
+        /**
+         * @event backend_prod_save
+         * @since 8.18.0
+         *
+         * @param shopProduct $product
+         * @param array $data
+         *      Product data that was saved
+         * @param string $content_id
+         *       Which page is being saved
+         */
+        $params = [
+            'product' => $product,
+            'data' => $data,
+            'content_id' => 'media_video',
+        ];
+
+        wa('shop')->event('backend_prod_save', $params);
     }
 }

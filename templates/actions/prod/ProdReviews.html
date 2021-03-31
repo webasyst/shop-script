@@ -1,0 +1,370 @@
+{strip}
+
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+{* TEMPLATES *}
+
+{$_templates = []}
+
+{capture assign="_dialog_review_delete"}{include file="./dialogs/reviews_review_delete_confirm.html" inline}{/capture}
+{$_templates["dialog-review-delete"] = $_dialog_review_delete|trim}
+
+{capture assign="_dialog_image_delete"}{include file="./dialogs/reviews_image_delete_confirm.html" inline}{/capture}
+{$_templates["dialog-image-delete"] = $_dialog_image_delete|trim}
+
+{* COMPONENTS *}
+
+{$_components = []}
+
+{capture assign="_component_dropdown"}
+    <div class="dropdown">
+        <button class="dropdown-toggle wa-button" type="button"
+                v-bind:class="button_class">{ { active_item.name } }</button>
+        <div class="dropdown-body"
+             v-bind:class="body_class"
+             v-bind:style="{ 'width' : body_width }">
+            <template v-for="item in items">
+                <div class="dropdown-item"
+                     v-bind:data-id="item.id"
+                     v-bind:class="{ 'selected': item.id === active_item.id }">{ { item.name } }</div>
+            </template>
+        </div>
+    </div>
+{/capture}
+{$_components["component-dropdown"] = $_component_dropdown|trim}
+
+{capture assign="_component_pagination"}
+    <ul class="vue-component-pagination wa-paging">
+        <template v-if="page > 1">
+            <li><span v-on:click.prevent="changePage(page-1)">&nbsp;<i class="fas fa-angle-left"></i>&nbsp;</span></li>
+        </template>
+        <template v-for="page_number in available_pages">
+            <li v-bind:class="{ 'selected' : (page === page_number) }" v-bind:key="page_number">
+                <span v-on:click.prevent="changePage(page_number)">{ { page_number } }</span>
+            </li>
+        </template>
+        <template v-if="page < pages">
+            <li><span v-on:click.prevent="changePage(page+1)">&nbsp;<i class="fas fa-angle-right"></i>&nbsp;</span></li>
+        </template>
+    </ul>
+{/capture}
+{$_components["component-pagination"] = $_component_pagination|trim}
+
+{/strip}
+{capture assign="_component_review"}
+    <div class="vue-component-review"
+         v-bind:class="{ 'is-locked' : states.is_delete, 'is-new' : review.is_new }">
+
+        <div class="tablebox space-16">
+            <div class="s-column-status-switch"
+                 v-bind:style="{ 'visibility' : (review.status === '{$review_states["deleted"]}' ? 'hidden' : '') }">
+                <component-switch
+                    v-bind:key="states.reload_key"
+                    v-bind:disabled="review.disabled"
+                    v-bind:value="review.status_model"
+                    v-bind:onChange="onReviewStatusChange"></component-switch>
+            </div>
+            <div class="s-column-body wide">
+                {* STATUS *}
+                <div class="s-status-wrapper tablebox middle space-24">
+                    <div class="s-column-status">
+                        <span class="color-red bold"
+                              v-if="review.status === '{$review_states["deleted"]}'">[`Deleted`]</span>
+                        <span class="color-green-dark bold"
+                              v-if="review.status === '{$review_states["published"]}'">[`Published`]</span>
+                        <span class="color-orange bold"
+                              v-if="review.status === '{$review_states["moderation"]}'">[`На модерации`]</span>
+                    </div>
+                    <div class="s-column-actions align-right">
+                        <button class="wa-button wa-small wa-short transparent-red"
+                                v-if="!states.is_deleted"
+                                v-on:click.prevent="reviewDelete">
+                            <span class="s-icon" v-if="!states.is_wait" v-bind:key="1"><i class="fas fa-trash-alt"></i></span>
+                            <span class="s-icon" v-if="states.is_wait" v-bind:key="2"><i class="fas fa-spinner fa-spin"></i></span>
+                            <span class="s-name">[`Delete`]</span>
+                        </button>
+                        <button class="wa-button wa-small wa-short transparent"
+                                v-if="states.is_deleted"
+                                v-on:click.prevent="reviewRestore">
+                            <span class="s-icon icon size-16 color-green-dark" v-if="!states.is_wait" v-bind:key="1"><svg><use xlink:href='{$_sprite_url}#trash-alt-slash'></use></svg></span>
+                            <span class="s-icon color-green-dark" v-if="states.is_wait" v-bind:key="2"><i class="fas fa-spinner fa-spin"></i></span>
+                            <span class="s-name color-green-dark">[`Restore`]</span>
+                        </button>
+                    </div>
+                </div>
+
+                {* AUTHOR *}
+                <div class="s-review-author tablebox middle space-12">
+                    <div class="s-author-image">
+                        <template v-if="review.author.photo_url_50">
+                            <span class="icon s-image"><i v-bind:style="{ 'background-image' : 'url(' + review.author.photo_url_50 + ')' }"></i></span>
+                        </template>
+                        <template v-else>
+                            <span class="icon s-image"><i class="fas fa-user-circle"></i></span>
+                        </template>
+                    </div>
+                    <div class="s-author-details wide">
+                        {strip}
+                        <div class="s-name-wrapper">
+                            <template v-if="review.contact_id">
+                                <a class="s-author-name"
+                                   v-bind:href="'{$wa_backend_url}contacts/#/contact/'+review.author.id">{ { review.author.name } }</a>
+                            </template>
+                            <template v-else-if="review.site">
+                                <a class="s-author-name"
+                                   v-bind:href="review.site">{ { review.author.name } }</a>
+                            </template>
+                            <template v-else>
+                                <span class="s-author-name">{ { review.author.name|escape } }</span>
+                                <template v-if="review.author.email">
+                                    ,&nbsp;<span class="s-author-email">{ { review.author.email } }</span>
+                                </template>
+                            </template>
+                        </div>
+                        <div class="s-review-date">{ { review.humandatetime } }</div>
+                        {/strip}
+                    </div>
+                </div>
+
+                {* TITLE *}
+                <div class="s-review-title">
+                    <div class="s-rating">
+                        <template v-for="(n, index) in 5">
+                            <template v-if="n <= review.rate">
+                                <span class="icon baseline top s-star color-yellow" v-bind:key="n"><i class="fas fa-star"></i></span>
+                            </template>
+                            <template v-else-if="(n - review.rate) > 0 && (n - review.rate) < 1">
+                                <span class="icon baseline top s-star color-yellow" v-bind:key="n"><i class="fas fa-star-half-alt"></i></span>
+                            </template>
+                            <template v-else>
+                                <span class="icon baseline top s-star color-gray-light" v-bind:key="n"><i class="fas fa-star"></i></span>
+                            </template>
+                        </template>
+                    </div>
+                    <div class="s-title">{ { review.title } }</div>
+                </div>
+
+                {* TEXT *}
+                <div class="s-review-text" v-html="review.text"></div>
+
+                {* IMAGES *}
+                <div class="s-review-images">
+                    <div class="s-images-list flexbox wrap">
+                        <template v-for="image in review.images">
+                            <div class="s-image-wrapper"
+                                 v-bind:class="{ 'is-locked' : image.states.is_delete }"
+                                 v-bind:key="image.id">
+                                <div class="s-image cursor-pointer"
+                                     v-bind:data-title="(image.title ? image.title : '')"
+                                     v-bind:data-tooltip-id="(image.title ? 'product-review-image-title' : '')"
+                                     v-on:click.prevent="imageView(image)"
+                                     v-bind:style="{ 'background-image' : 'url(' + image.thumb + ')' }"></div>
+
+                                <div class="s-image-action"
+                                     v-on:click.prevent="imageDelete(image)">
+                                    <span class="icon size-12" v-if="!image.states.is_delete" v-bind:key="1"><i class="fas fa-trash-alt"></i></span>
+                                    <span class="icon size-12" v-if="image.states.is_delete" v-bind:key="2"><i class="fas fa-spinner fa-spin"></i></span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <div class="s-review-actions">
+                    <button class="wa-button wa-small wa-short bold transparent"
+                            v-on:click.prevent="formToggle(true)">
+                        <span class="s-name">[`Ответить`]</span>
+                    </button>
+                </div>
+
+                <div class="s-form-wrapper" v-if="review.form.is_active"
+                     v-bind:class="{ 'is-locked' : review.form.is_locked }">
+                    <div class="s-form-description">
+                        <component-flex-textarea
+                            v-model="review.form.description"
+                            v-bind:class="'wa-small wide'"></component-flex-textarea>
+                    </div>
+
+                    <div class="s-form-actions flexbox middle space-8">
+                        <button class="wa-small wa-button blue js-submit-button" type="button"
+                                v-bind:disabled="review.form.is_locked"
+                                v-on:click.prevent="formAdd">
+                            <span class="s-icon" v-if="review.form.is_locked" v-bind:key="1"><i class="fas fa-spinner fa-spin"></i></span>
+                            <span class="s-name">[`Ответить`]</span>
+                        </button>
+                        <button class="wa-small wa-button top gray js-cancel" type="button"
+                                v-bind:disabled="review.form.is_locked"
+                                v-on:click.prevent="formToggle(false)">
+                            <span class="s-icon"><i class="fas fa-times"></i></span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="s-inner-reviews" v-if="review.reviews.length">
+                    <template v-for="inner_review in review.reviews">
+                        <div class="s-review-section" v-bind:key="inner_review.id">
+                            <component-review v-bind:review="inner_review"></component-review>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{/capture}
+{$_components["component-review"] = $_component_review|trim}
+{strip}
+
+{* LOCALES *}
+
+{$_locales = []}
+
+{* TOOLTIPS *}
+
+{$_tooltips = [
+    "product-review-image-title" => [
+        "id" => "product-review-image-title",
+        "position" => "top"
+    ]
+]}
+
+{/strip}
+
+<div id="js-product-reviews-section-wrapper">
+    <div class="article s-product-reviews-section js-product-reviews-section" style="visibility: hidden;">
+
+        {* HEADER *}
+        <div class="s-section-header">
+            <div class="tablebox middle space-24">
+                {* TITLE *}
+                <div class="s-column">
+                    <h4 class="s-title">[`Reviews`]</h4>
+                </div>
+
+                {* FILTERS *}
+                <div class="s-column">
+                    <div class="s-filters-list flexbox middle right space-16">
+                        {* PHOTO *}
+                        <div class="s-filter-section">
+                            <span class="s-label">[`Photos`]:</span>
+                            <component-dropdown
+                                v-bind:items="filters['images_count']"
+                                v-bind:active_item_id="active_filters['images_count']"
+                                v-bind:button_class="'wa-small transparent bold'"
+                                v-on:change="onChangeFilter('images_count', $event)"></component-dropdown>
+                        </div>
+
+                        {* MODERATION *}
+                        <div class="s-filter-section">
+                            <span class="s-label">[`Moderation`]:</span>
+                            <component-dropdown
+                                v-bind:items="filters['status']"
+                                v-bind:active_item_id="active_filters['status']"
+                                v-bind:button_class="'wa-small transparent bold'"
+                                v-on:change="onChangeFilter('status', $event)"></component-dropdown>
+                        </div>
+
+                        {* SORT *}
+                        <div class="s-filter-section">
+                            <span class="s-label">[`Order by`]:</span>
+                            <component-dropdown
+                                v-bind:items="filters['sort']"
+                                v-bind:active_item_id="active_filters['sort_order']"
+                                v-bind:button_class="'wa-small transparent bold'"
+                                v-on:change_item="onChangeFilter('sort_order', $event)"></component-dropdown>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {* CONTENT *}
+        <div class="s-section-body">
+
+            <div class="s-reviews-list">
+                <template v-if="reviews.length">
+                    <template v-for="review in reviews">
+                        <div class="s-review-section" v-bind:key="review.id">
+                            <component-review v-bind:review="review"></component-review>
+                        </div>
+                    </template>
+                </template>
+                <template v-else>
+                    <p>[`Отзывы не найдены.`]</p>
+                </template>
+            </div>
+
+            <div class="s-pagination-section">
+                {if $reviews_count > 10}
+                    <div class="s-pagination-limit">
+                        <span class="s-label">[`Отзывов на странице:`]</span>
+                        <component-dropdown
+                            v-bind:body_width="'60px'"
+                            v-bind:body_class="'top right'"
+                            v-bind:items="filters['limit']"
+                            v-bind:active_item_id="active_filters['limit']"
+                            v-bind:button_class="'wa-small gray-field'"
+                            v-on:change="onChangeFilter('limit', $event)"></component-dropdown>
+                    </div>
+                {/if}
+
+                <div class="s-pagination-wrapper" v-if="pagination.pages > 1">
+                    <component-pagination
+                        v-on:change="onChangeFilter('page', $event)"
+                        v-bind:pagination="pagination"></component-pagination>
+                </div>
+            </div>
+
+        </div>
+
+        {include file="./includes/footer.html" hide_save=true inline}
+    </div>
+
+    <script>
+        ( function($) {
+            var sources = [{
+                id: "vue-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/vue/vue.min.js?v={$wa->version()}"
+            }, {
+                id: "wa-shop-products-product-reviews-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/product/product.reviews.js?v={$wa->version()}"
+            }, {
+                id: "wa-swipebox-css",
+                type: "css",
+                uri: "{$wa_app_static_url}js/swipebox/css/swipebox.css?v={$wa->version()}"
+            }, {
+                id: "wa-swipebox-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/swipebox/js/jquery.swipebox.js?v={$wa->version()}"
+            }];
+
+            $.wa.loadSources(sources).then(init);
+
+            function init() {
+                $.wa_shop_products.init.initProductReviewsSection({
+                    $wrapper  : $("#js-product-reviews-section-wrapper"),
+                    locales   : {$_locales|json_encode},
+                    tooltips  : {$_tooltips|json_encode},
+                    templates : {$_templates|json_encode},
+                    components: {$_components|json_encode},
+
+                    urls: {
+                        "reviews_section": "{$wa_app_url}products/{$formatted_product.id}/reviews/",
+                        "image_delete": "{$wa_app_url}?module=prod&action=reviewsRemoveImage",
+                        "add": "{$wa_app_url}?module=prod&action=reviewsAdd",
+                        "delete": "{$wa_app_url}?module=prod&action=reviewsStatus"
+                    },
+
+                    product       : {$formatted_product|json_encode},
+                    reviews       : {$reviews|json_encode},
+                    review_states : {$review_states|json_encode},
+                    pagination    : {$pagination|json_encode},
+                    filters       : {$filters|json_encode},
+                    active_filters: {$active_filters|json_encode}
+                });
+            }
+        })(jQuery);
+    </script>
+</div>

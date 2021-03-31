@@ -14,9 +14,36 @@ class shopProdSelectSetDialogAction extends waViewAction
         $set_products_model = new shopSetProductsModel();
         $sets_product = $set_products_model->getByProduct($product_id);
 
+        $backend_prod_dialog_event = $this->throwEvent($product_id);
+
         $this->view->assign([
             'sets' => $sets,
             'sets_product' => $sets_product,
+            'backend_prod_dialog_event' => $backend_prod_dialog_event,
         ]);
+    }
+
+    /**
+     * Throw 'backend_prod_dialog' event
+     * @param int $id
+     *      Product ID
+     * @return array
+     * @throws waException
+     */
+    protected function throwEvent($id)
+    {
+        /**
+         * @event select_set
+         * @since 8.18.0
+         *
+         * @param shopProduct $product
+         * @param string $dialog_id
+         *       Which dialog is shown
+         */
+        $params = [
+            'product' => new shopProduct($id),
+            'dialog_id' => 'select_set',
+        ];
+        return wa('shop')->event('backend_prod_dialog', $params);
     }
 }

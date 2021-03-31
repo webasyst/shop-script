@@ -49,7 +49,8 @@ class shopProductOrdersAction extends waViewAction
         }
         $contact_ids = array_unique($contact_ids);
         $col = new waContactsCollection('id/'.implode(',', $contact_ids ? $contact_ids : array(0)));
-        $contacts = $col->getContacts('id,name,firstname,lastname,middlename');
+        $limit = !empty($contact_ids) ? count($contact_ids) : 0;
+        $contacts = $col->getContacts('id,name,firstname,lastname,middlename', 0, $limit);
         foreach ($orders as &$o) {
             $o['contact'] = ifset($contacts[$o['contact_id']], array(
                 'id'   => $o['contact_id'],

@@ -15,7 +15,7 @@
                 </h1>
 
                 <div class="s-page-description" style="margin: 0 0 2em;">
-                    {$_storefront_settings_path = sprintf("?action=storefronts#/design/theme=%s&domain=%s&route=%s&action=settings", $route.theme|urlencode, waIdna::enc($route.domain)|urlencode, $route.route_id|urlencode)}
+                    {$_storefront_settings_path = sprintf("?action=storefronts#/design/theme=%s&domain=%s&route=%s&action=settings", $route.theme|default:'default'|urlencode, waIdna::enc($route.domain)|urlencode, $route.route_id|urlencode)}
                     <div>
                         <a href="[`https://www.shop-script.com/help/29577/in-cart-checkout-settings/`]" target="_blank"><i class="icon16 info"></i>[`Setup instructions`]</a>
                     </div>

@@ -93,40 +93,52 @@
 
             that.initAnimation();
 
+            $(function() { "use strict";
+                that.trigger("wa_loaded", [{
+                    content_url: window.location.origin + window.location.pathname,
+                    data: {},
+                    section: that.active_section
+                }]);
+            });
+
             function confirmLoad(content_url) {
                 var deferred = $.Deferred(),
                     is_success = false;
 
-                $.waDialog({
-                    html: that.templates["confirm_dialog"],
-                    onOpen: function($wrapper, dialog) {
-                        $wrapper.on("click", ".js-leave-button", function(event) {
-                            event.preventDefault();
-                            is_success = true;
-                            dialog.close();
-                        });
+                // Если в секции контента подключен футер с кнопками сохранения, то показываем диалог с действиями
+                var $footer_save_button = $(".js-router-submit-button:first");
+                if ($footer_save_button.length) {
+                    $.waDialog({
+                        html: that.templates["confirm_dialog"],
+                        onOpen: function($wrapper, dialog) {
+                            $wrapper.on("click", ".js-leave-button", function(event) {
+                                event.preventDefault();
+                                is_success = true;
+                                dialog.close();
+                            });
 
-                        $wrapper.on("click", ".js-save-button", function(event) {
-                            event.preventDefault();
+                            $wrapper.on("click", ".js-save-button", function(event) {
+                                event.preventDefault();
 
-                            var $footer_save_button = $(".js-router-submit-button:first");
-                            if ($footer_save_button.length) {
                                 $footer_save_button.trigger("click", {
                                     redirect_url: content_url
                                 });
-                            }
 
-                            dialog.close();
-                        });
-                    },
-                    onClose: function() {
-                        if (is_success) {
-                            deferred.resolve();
-                        } else {
-                            deferred.reject();
+                                dialog.close();
+                            });
+                        },
+                        onClose: function() {
+                            if (is_success) {
+                                deferred.resolve();
+                            } else {
+                                deferred.reject();
+                            }
                         }
-                    }
-                });
+                    });
+                // Если нет, то молчаливо уходим в новый раздел
+                } else {
+                    deferred.resolve();
+                }
 
                 return deferred.promise();
             }
@@ -153,12 +165,16 @@
             if (that.xhr) { that.xhr.abort(); }
 
             var data = {};
-            var is_new_section = (section.id !== that.active_section.id);
+            var is_new_section = (that.active_section === null || section.id !== that.active_section.id);
             if (is_new_section) {
                 data["section"] = "1"
             }
 
-            that.trigger("wa_before_load");
+            that.trigger("wa_before_load", [{
+                content_url: content_url,
+                data: $.extend({}, data),
+                section: section,
+            }]);
 
             that.xhr = $.ajax({
                     method: 'GET',
@@ -193,7 +209,11 @@
                     }
 
                     that.setContent(html, section);
-                    that.trigger("wa_loaded");
+                    that.trigger("wa_loaded", [{
+                        content_url: content_url,
+                        data: $.extend({}, data),
+                        section: section,
+                    }]);
                     that.is_changed = false;
                     deferred.resolve();
                 })
@@ -218,7 +238,7 @@
         ContentRouter.prototype.setContent = function(html, section) {
             var that = this;
 
-            var is_new_section = (section.id !== that.active_section.id);
+            var is_new_section = (that.active_section === null || section.id !== that.active_section.id);
             if (is_new_section) {
                 that.$wrapper.html(html);
                 that.trigger("wa_updated");
@@ -281,8 +301,9 @@
             var that = this,
                 result = null;
 
-            var absolute_main_url = window.location.origin + that.main_url,
-                relative_url = absolute_url.replace(absolute_main_url, "/");
+            var url_data = new URL(absolute_url),
+                pathname = url_data.pathname,
+                relative_url = pathname.replace(that.main_url, "/");
 
             $.each(that.routes, function(route, section) {
                 route = route.replace(/\//g, "\\/");

@@ -206,6 +206,15 @@ class shopWorkflowEditAction extends shopWorkflowAction
             unset($data['text']);
         }
 
+        $edited_sku_ids = array();
+        foreach ($data['items'] as $item) {
+            if (!empty($item['sku_id'])) {
+                $edited_sku_ids[] = $item['sku_id'];
+            }
+        }
+        $order_items_codes_model = new shopOrderItemCodesModel();
+        $order_items_codes_model->clearValues($data['id'], $edited_sku_ids);
+
         // SAVE ORDER ITEMS
         $this->order_model->update($data, $data['id']);
 

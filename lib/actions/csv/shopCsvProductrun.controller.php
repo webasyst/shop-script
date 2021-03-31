@@ -1590,27 +1590,29 @@ SQL;
                 $feature_model = new shopFeatureModel();
                 $dimension_features = $feature_model->getByCode($feature_codes);
             }
-            foreach (ifset($data, 'features', []) as $code => &$value) {
-                if (!is_array($value)) {
-                    $last_piece = substr($value, strrpos($value, ' ') + 1);
-                    if ((empty($last_piece) || is_numeric($last_piece))
-                        && !empty($dimension_features[$code]['default_unit'])
-                    ) {
-                        $value = $value . ' ' . $dimension_features[$code]['default_unit'];
-                    }
-                } else {
-                    foreach ($value as &$val) {
-                        $last_piece = substr($val, strrpos($val, ' ') + 1);
+            if (isset($data['features']) && is_array($data['features'])) {
+                foreach ($data['features'] as $code => &$value) {
+                    if (!is_array($value)) {
+                        $last_piece = substr($value, strrpos($value, ' ') + 1);
                         if ((empty($last_piece) || is_numeric($last_piece))
                             && !empty($dimension_features[$code]['default_unit'])
                         ) {
-                            $val = $val . ' ' . $dimension_features[$code]['default_unit'];
+                            $value = $value . ' ' . $dimension_features[$code]['default_unit'];
                         }
+                    } else {
+                        foreach ($value as &$val) {
+                            $last_piece = substr($val, strrpos($val, ' ') + 1);
+                            if ((empty($last_piece) || is_numeric($last_piece))
+                                && !empty($dimension_features[$code]['default_unit'])
+                            ) {
+                                $val = $val . ' ' . $dimension_features[$code]['default_unit'];
+                            }
+                        }
+                        unset($val);
                     }
-                    unset($val);
                 }
+                unset($value);
             }
-            unset($value);
 
             shopProductStocksLogModel::setContext(shopProductStocksLogModel::TYPE_IMPORT);
             if ($sku_only || ($this->data['primary'] === null)) {

@@ -11301,8 +11301,8 @@ msgstr "Модификации"
 msgid "An SKU code is required for grouping."
 msgstr "Код артикула обязателен для группировки."
 
-msgid "An SKU name must be unique."
-msgstr "Название артикула должно быть уникальным."
+msgid "The SKU code must be unique."
+msgstr "Код артикула должен быть уникальным."
 
 msgid "Select one or several values of feature “%s”"
 msgstr "Выберите одно или несколько значений для характеристики «%s»"
@@ -11902,7 +11902,7 @@ msgid "The main SKU cannot be hidden. Either select another main SKU or make the
 msgstr "Основной артикул не может быть скрыт. Выберите в качестве основного другой артикул или включите видимость на витрине для основного артикула."
 
 msgid "At least one SKU must be visible in the storefront."
-msgstr "Хотя бы один артикул должен быть виден на витрине"
+msgstr "Хотя бы один артикул должен быть виден на витрине."
 
 msgid "Cannot delete the file."
 msgstr "Удаление файла невозможно."
@@ -11915,3 +11915,6 @@ msgstr "Установить значения"
 
 msgid "Recommendations defined for product type “%s”:"
 msgstr "Для типа «%s» заданы рекомендации:"
+
+msgid "If you have not found a certain product, enter a more detailed search query to see more exact results."
+msgstr "Если вы не нашли какой-то товар, введите более подробный поисковый запрос, чтобы получить более точные результаты."

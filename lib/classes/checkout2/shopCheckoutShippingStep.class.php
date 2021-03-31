@@ -8,6 +8,14 @@ class shopCheckoutShippingStep extends shopCheckoutStep
 {
     public function process($data, $prepare_result)
     {
+        if (!empty($data['input']['fast_render'])) {
+            /** для ускоренного доступа покупателя к странице оформления заказа */
+            $errors[] = ['fast_render' => true];
+            return [
+                'errors' => $errors
+            ];
+        }
+
         // Is shipping step disabled altogether?
         $config = $this->getCheckoutConfig();
         if (empty($config['shipping']['used'])) {
@@ -29,33 +37,13 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             'city'    => ifset($data, 'result', 'region', 'selected_values', 'city_id',
                 ifset($data, 'result', 'region', 'selected_values', 'city', null)
             ),
-            'zip'     => ifset($data, 'result', 'region', 'selected_values', 'zip', null),
         ];
 
-        $errors = [];
-        if (!$config['shipping']['ask_zip']) {
-            unset($address['zip']);
-
-            //
-            // When checkout is set up not to ask ZIP code at Region step,
-            // but user already entered it at Details step,
-            // use that ZIP code to calculate list of shipping variants.
-            //
-
-            // Try to get ZIP code from Details step data
-            $zip_from_future = ifset($data, 'input', 'details', 'shipping_address', 'zip', null);
-
-            // Try to get ZIP code from session storage
-            if (!$zip_from_future) {
-                $storage = $this->getCheckoutConfig()->getStorage();
-                $stored_address = $storage->get('details_address');
-                $zip_from_future = ifset($stored_address, 'zip', null);
-            }
-
-            if ($zip_from_future) {
-                $address['zip'] = $zip_from_future;
-            }
+        if (isset($data['result']['region']['selected_values']['zip'])) {
+            $address['zip'] = $data['result']['region']['selected_values']['zip'];
         }
+
+        $errors = [];
 
         if (empty($address['country']) || empty($address['region']) || empty($address['city'])) {
             // This cannot happen. It means previous step did not properly validate shipping region selection,
@@ -102,7 +90,40 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         // Ask them to provide shipping variants using $address given
         $services_flat = array();
         $rates = $config->getShippingRates($address, $items, $customer_type);
+        $possible_addresses = array();
         foreach ($rates as $id => $rate) {
+            // Shipping plugin may ask to elaborate region selected by user.
+            // Plugin returns several options user may choose from.
+            // Selecting one of the options changes address previously selected by user.
+            if (!empty($rate['possible_addresses']) && !$data['result']['region']['is_fixed_delivery_city']) {
+                if (is_array($rate['possible_addresses'])) {
+                    // $exact_address is an array containing address parts, like shown below.
+                    // May also contain 'value' which is a human-readable formatted string with all parts glued together
+                    $defaults = [
+                        'region' => null,
+                        'city' => null,
+                        'zip' => null,
+                    ];
+                    foreach($rate['possible_addresses'] as $exact_address) {
+                        if (empty($exact_address) || !is_array($exact_address)) {
+                            continue;
+                        }
+                        if (empty($exact_address['value'])) {
+                            $exact_address['value'] = join(', ', $exact_address);
+                        }
+                        $possible_addresses[] = [
+                            'image' => ifempty($rate, 'img', null),
+                            'name' => $exact_address['value'],
+                            'address' => array_intersect_key($exact_address, $defaults) + $defaults,
+                            'plugin_name' => ifset($rate['plugin_name']),
+                            'plugin_id' => ifset($rate['plugin']),
+                            //'variant' => array_diff_key($rate, ['possible_addresses' => 1]),
+                        ];
+                    }
+                }
+                unset($rates[$id]);
+                continue;
+            }
             if (isset($rate['type'])) {
                 $services_flat[$id] = $rate;
             }
@@ -116,7 +137,9 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             ];
             return array(
                 'data'         => $data,
-                'result'       => $this->addRenderedHtml([], $data, $errors),
+                'result'       => $this->addRenderedHtml([
+                    'possible_addresses' => $possible_addresses,
+                ], $data, $errors),
                 'errors'       => $errors,
                 'can_continue' => false,
             );
@@ -301,10 +324,6 @@ class shopCheckoutShippingStep extends shopCheckoutStep
                 'section' => $this->getId(),
             ];
         } else {
-            if (!$config['shipping']['ask_zip']) {
-                unset($address['zip']);
-            }
-
             // This is used by Details step later
             $data['shipping']['items'] = $items;
             $data['shipping']['address'] = $address;
@@ -333,6 +352,7 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         ];
 
         $result = $this->addRenderedHtml([
+            'possible_addresses'  => $possible_addresses,
             'selected_type_id'    => $selected_type_id,
             'selected_variant_id' => $selected_variant_id,
             'types'               => $shipping_types,

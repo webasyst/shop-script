@@ -6,9 +6,12 @@
 
 {capture assign="_component_products_list"}
     <div class="vue-component-products-list">
-        <div class="s-add-product-form flexbox middle space-12">
+        <div class="s-add-product-form flexbox space-12">
             <span class="s-title">[`Find and add a product`]</span>
-            <component-add-product v-bind:class="'wide'" v-bind:placeholder="'{_w("Start typing product name or SKU")|escape}'" v-on:add_product="addProduct($event, products)"></component-add-product>
+            <div class="wide">
+                <component-add-product v-bind:class="'wide'" v-bind:placeholder="'{_w("Start typing product name or SKU")|escape}'" v-on:add_product="addProduct($event, products)"></component-add-product>
+                <div class="hint"><i class="fas fa-info-circle"></i>&nbsp;[`If you have not found a certain product, enter a more detailed search query to see more exact results.`]</div>
+            </div>
         </div>
         <div class="s-products-list" v-if="products.length">
             <div class="s-product-wrapper flexbox middle space-8" v-for="product in products"
@@ -74,7 +77,7 @@
                                             </label>
                                         </div>
                                         <div class="s-section-body">
-                                            <div class="wa-message wa-small white flexbox space-8">
+                                            <div class="wa-message wa-small gray flexbox space-8">
                                                 <div class="message-icon">
                                                     {if !empty($cross_selling.description)}
                                                         <i class="fas fa-check color-green"></i>
@@ -90,7 +93,7 @@
                                                         <p class="italic">{sprintf(_w( "Recommended complementary products for product type “%s” are not defined." ), $product["type"]["name"]|default:"")}</p>
                                                     {/if}
                                                 </div>
-                                                <div class="message-actions">
+                                                <div class="message-actions middle">
                                                     <a class="wa-button wa-small gray" href="{$wa_app_url}marketing/recommendations/" target="_blank">
                                                         <span class="s-icon"><i class="fas fa-cog"></i></span>
                                                         <span class="s-name">[`Options`]</span>
@@ -200,7 +203,7 @@
                                             </label>
                                         </div>
                                         <div class="s-section-body">
-                                            <div class="wa-message wa-small white flexbox space-8">
+                                            <div class="wa-message wa-small gray flexbox space-8">
                                                 <div class="message-icon">
                                                     {if !empty($upselling.description)}
                                                         <i class="fas fa-check color-green"></i>
@@ -216,7 +219,7 @@
                                                         <p class="italic">{sprintf(_w( "Upselling recommendations for product type “%s” are not defined." ), $product["type"]["name"]|default:"")}</p>
                                                     {/if}
                                                 </div>
-                                                <div class="message-actions">
+                                                <div class="message-actions middle">
                                                     <a class="wa-button wa-small gray" href="{$wa_app_url}marketing/recommendations/" target="_blank">
                                                         <span class="s-icon"><i class="fas fa-cog"></i></span>
                                                         <span class="s-name">[`Options`]</span>
@@ -319,6 +322,8 @@
                     upselling: {$upselling|json_encode},
                     product: {$product|json_encode}
                 });
+
+                $(document).trigger("wa_product_section_change", "product-related");
             }
         })(jQuery);
     </script>

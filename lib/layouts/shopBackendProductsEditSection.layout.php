@@ -18,8 +18,16 @@ class shopBackendProductsEditSectionLayout extends shopBackendProductsLayout
     /** @var shopProduct */
     public $product;
 
+    /**
+     * shopBackendProductsEditSectionLayout constructor.
+     * @param array $options
+     *      shopProduct $options['product']
+     *      string      $options['content_id'] - ID of page 'media', 'general', 'sku', etc
+     */
     public function __construct($options)
     {
+        $options = is_array($options) ? $options : [];
+        $options['content_id'] = isset($options['content_id']) && is_scalar($options['content_id']) ? strval($options['content_id']) : '';
         $this->options = $options;
         parent::__construct();
     }
@@ -56,9 +64,16 @@ class shopBackendProductsEditSectionLayout extends shopBackendProductsLayout
     /** Part of execute() that assigns vars for wrapper template (including sidebar) */
     public function assignWrapperVars()
     {
-        $this->executeAction('sidebar', new shopProdSidebarAction($this->getProduct()->id));
+        $backend_prod_event = $this->throwEvent();
+
+        $this->executeAction('sidebar', new shopProdSidebarAction([
+            'product_id' => $this->getProduct()->id,
+            'backend_prod_event' => $backend_prod_event
+        ]));
+
         $this->view->assign([
             'product' => $this->getProduct(),
+            'backend_prod_event' => $backend_prod_event
         ]);
     }
 
@@ -75,5 +90,35 @@ class shopBackendProductsEditSectionLayout extends shopBackendProductsLayout
             }
         }
         return $this->product;
+    }
+
+
+    /**
+     * Throw 'backend_prod' event
+     * @return array
+     * @throws waException
+     */
+    protected function throwEvent()
+    {
+        $product = $this->getProduct();
+
+        /**
+         * @event backend_prod
+         *
+         * @param shopProduct $product
+         * @param string $section_id
+         */
+        $params = [
+            'product' => $product,
+            'section_id' => 'product',
+
+            // Even though we know content_id here, it is misleading in this place.
+            // backend_prod event is not called when user switches between tabs in a single section.
+            // If a plugin tries to show different content in backend_prod depending on content_id,
+            // it will work part of the time (just after full refresh F5) but will leave stale content
+            // if user clicks on a link in sidebar.
+            //'content_id' => $this->options['content_id'],
+        ];
+        return wa('shop')->event('backend_prod', $params);
     }
 }

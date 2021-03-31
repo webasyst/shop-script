@@ -9,6 +9,7 @@ class shopMarketingCouponSaveController extends waJsonController
         $coupon = $coupm->getEmptyRow();
 
         $post_coupon = waRequest::post('coupon');
+        $coupon_name = waRequest::post('coupon_name', '', waRequest::TYPE_STRING_TRIM);
 
         if (!is_array($post_coupon)) {
             $this->addError('id', 'coupon', _w('Invalid data'));
@@ -58,8 +59,13 @@ class shopMarketingCouponSaveController extends waJsonController
                 $post_coupon['create_datetime'] = date('Y-m-d H:i:s');
                 $coupon_id = $coupm->insert($post_coupon);
             }
+            $page_number = $coupm->getPageNumber($coupon_id, $coupon_name);
 
-            $this->response = array('id' => $coupon_id);
+            $this->response = array(
+                'id' => $coupon_id,
+                'page_number' => $page_number,
+                'coupon_name' => $coupon_name,
+            );
 
         } catch (waDbException $ex) {
 

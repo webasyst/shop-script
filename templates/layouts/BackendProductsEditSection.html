@@ -42,7 +42,7 @@
                     </span>
                 </button>
 
-                <a class="s-button wa-button pink rounded outlined" href="{$wa_app_url|escape}?action=products#/product/{$product.id|escape}/edit/" title="{_w("Return to the old product editor version.")|escape}">
+                <a class="s-button wa-button pink rounded outlined" id="js-return-link" href="{$wa_app_url|escape}?action=products#/product/{$product.id|escape}/" title="{_w("Return to the old product editor version.")|escape}">
                     <span>
                         <span class="s-icon"><i class="fas fa-toggle-on"></i></span>
                         <span class="s-name">[`Return to old editor`]</span>
@@ -52,6 +52,11 @@
 
                 <span class="s-ident gray">id: {$product.id|default:_w('Product ID')}</span>
             </div>
+
+            <!-- plugin hook: 'backend_prod.header' -->
+            {* @event backend_prod.%plugin_id%.header *}
+            {if !empty($backend_prod_event)}{foreach $backend_prod_event as $_}{ifset($_.header)}{/foreach}{/if}
+
         </div>
     </header>
 
@@ -66,6 +71,42 @@
     <script>
         ( function($) {
 
+            function initReturnButton() {
+                var $button = $("#js-return-link"),
+                    href = "{$wa_app_url|escape}?action=products#/product/{$product.id|escape}/";
+
+                $(document).on("wa_product_section_change", function(event, section_id) {
+                    var new_href = null;
+
+                    switch (section_id) {
+                        case "product-general":
+                            new_href = href + "edit/";
+                            break;
+                        case "product-seo":
+                            new_href = href + "edit/descriptions/";
+                            break;
+                        case "product-media":
+                            new_href = href + "edit/images/";
+                            break;
+                        case "product-sku":
+                            new_href = href + "edit/features/";
+                            break;
+                        case "product-services":
+                            new_href = href + "edit/services/";
+                            break;
+                        case "product-related":
+                            new_href = href + "edit/related/";
+                            break;
+                        case "product-pages":
+                            new_href = href + "edit/pages/";
+                            break;
+                    }
+
+                    if (new_href) { $button.attr("href", new_href); }
+                });
+            }
+            initReturnButton();
+
             var sources = [{
                 id: "wa-shop-products-product-sidebar-js",
                 type: "js",
@@ -78,7 +119,7 @@
 
             $.wa.loadSources(sources).done( function() {
                 $.wa_shop_products.init.initProductPage({
-                    $wrapper: $("#js-product-page").removeAttr("id"),
+                    $wrapper: $("#js-product-page"),
                     product_uri: "{$wa_app_url|escape}products/{$product.id|escape}/",
                     product_id: "{$product.id|escape}",
                     templates: {$_templates|json_encode},
@@ -94,4 +135,9 @@
 
         })(jQuery);
     </script>
+
+    <!-- plugin hook: 'backend_prod.bottom' -->
+    {* @event backend_prod.%plugin_id%.bottom *}
+    {if !empty($backend_prod_event)}{foreach $backend_prod_event as $_}{ifset($_.bottom)}{/foreach}{/if}
+
 </div>

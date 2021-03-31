@@ -36,6 +36,8 @@ class shopProdSkuDeleteDialogAction extends waViewAction
         $collection = new shopOrdersCollection('search/items.sku_id='.implode('||', array_keys($skus)));
         $count = $collection->count();
 
+        $backend_prod_dialog_event = $this->throwEvent($product, $sku_id);
+
         $this->view->assign([
             'skus' => $skus,
             'product' => $product,
@@ -43,6 +45,7 @@ class shopProdSkuDeleteDialogAction extends waViewAction
             'sku_name' => $this->formatSkuName($product, $skus),
             'orders_list_url' => $this->getOrdersListUrl($product_id, $skus),
             'orders_count' => $count,
+            'backend_prod_dialog_event' => $backend_prod_dialog_event,
         ]);
     }
 
@@ -64,5 +67,31 @@ class shopProdSkuDeleteDialogAction extends waViewAction
             return $sku['sku'];//.' ('.$sku['id'].')';
         }
         return $sku['id'];
+    }
+
+    /**
+     * Throw 'backend_prod_dialog' event
+     * @param shopProduct $product
+     * @param int $sku_id
+     * @return array
+     * @throws waException
+     */
+    protected function throwEvent($product, $sku_id)
+    {
+        /**
+         * @event backend_prod_dialog
+         * @since 8.18.0
+         *
+         * @param int $sku_id
+         * @param shopProduct $product
+         * @param string $dialog_id
+         *       Which dialog is shown
+         */
+        $params = [
+            'sku_id' => $sku_id,
+            'product' => $product,
+            'dialog_id' => 'sku_delete',
+        ];
+        return wa('shop')->event('backend_prod_dialog', $params);
     }
 }

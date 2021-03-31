@@ -23,7 +23,8 @@ class shopProdSeoAction extends waViewAction
         ]);
 
         $this->setLayout(new shopBackendProductsEditSectionLayout([
-            'product' => $product
+            'product' => $product,
+            'content_id' => 'seo',
         ]));
     }
 

@@ -15,6 +15,13 @@ class shopProdSaveSkuController extends waJsonController
 
         $product_data = $this->prepareProductData($product, $product_raw_data);
 
+        $backend_prod_pre_save = $this->throwPreSaveEvent($product, $product_data);
+        foreach ($backend_prod_pre_save as $plugin_id => $result) {
+            if ($result['errors']) {
+                $this->errors = array_merge($this->errors, $result['errors']);
+            }
+        }
+
         if ($product_data && !$this->errors) {
             $product = $this->saveProduct($product, $product_data);
         }
@@ -34,6 +41,8 @@ class shopProdSaveSkuController extends waJsonController
      */
     protected function prepareProductData(shopProduct $product, array $product_raw_data)
     {
+        $params_string = str_replace(' ', '', ifset($product_raw_data, 'params_string', ''));
+
         $product_data = array_intersect_key($product_raw_data, [
             'badge' => true,
             'sku_id' => true,
@@ -139,6 +148,18 @@ class shopProdSaveSkuController extends waJsonController
             $product_data['sku_type'] = $new_sku_type;
         }
 
+        $divided_params = explode("\n", $params_string);
+        if (is_array($divided_params)) {
+            foreach ($divided_params as $param) {
+                $param_key_value = explode('=', $param);
+                if (is_array($param_key_value) && count($param_key_value) == 2
+                    && strlen($param_key_value[0]) && !isset($product_data['params'][$param_key_value[0]])
+                ) {
+                    $product_data['params'][$param_key_value[0]] = $param_key_value[1];
+                }
+            }
+        }
+
         return $product_data;
     }
 
@@ -203,6 +224,7 @@ class shopProdSaveSkuController extends waJsonController
      */
     protected function saveProduct(shopProduct $product, array $product_data)
     {
+        $errors = null;
         try {
             // Save selectable features separately, not via shopProduct class
             // because 'features_selectable' key of shopProduct generates SKUs on the fly,
@@ -303,11 +325,16 @@ class shopProdSaveSkuController extends waJsonController
                 'text' => _w('Unable to save product.').' '.$message,
             ];
         }
+
         if ($errors) {
             $this->errors[] = [
                 'id' => "general",
                 'text' => _w('Unable to save product.').' '.wa_dump_helper($errors),
             ];
+        }
+
+        if (!$this->errors) {
+            $this->throwSaveEvent($product, $product_data);
         }
 
         return $product;
@@ -318,5 +345,69 @@ class shopProdSaveSkuController extends waJsonController
         return [
             'id' => $product['id'],
         ];
+    }
+
+    /**
+     * @param int $product_id
+     * @param array &$data - data could be mutated
+     * @return array
+     * @throws waException
+     */
+    protected function throwPreSaveEvent($product, &$data)
+    {
+        /**
+         * @event backend_prod_presave
+         * @since 8.18.0
+         *
+         * @param shopProduct $product
+         * @param array &$data
+         *      Raw data from form posted - data could be mutated
+         * @param string $content_id
+         *       Which page is being saved
+         * @return array
+         *      array[string]array $return[%plugin_id%]['errors'] - validation errors
+         */
+        $params = [
+            'product' => $product,
+            'data' => &$data,
+            'content_id' => 'sku',
+        ];
+
+        $backend_prod_pre_save = wa('shop')->event('backend_prod_presave', $params);
+
+        // typecast plugin responses a little bit
+        foreach ($backend_prod_pre_save as $plugin_id => &$result) {
+            if (!$result || !is_array($result)) {
+                unset($backend_prod_pre_save[$plugin_id]);
+                continue;
+            }
+            if (!isset($result['errors']) || !is_array($result['errors'])) {
+                $result['errors'] = [];
+            }
+        }
+        unset($data);
+
+        return $backend_prod_pre_save;
+    }
+
+    protected function throwSaveEvent($product, array $data)
+    {
+        /**
+         * @event backend_prod_save
+         * @since 8.18.0
+         *
+         * @param shopProduct $product
+         * @param array $data
+         *      Product data that was saved
+         * @param string $content_id
+         *       Which page is being saved
+         */
+        $params = [
+            'product' => $product,
+            'data' => $data,
+            'content_id' => 'sku',
+        ];
+
+        wa('shop')->event('backend_prod_save', $params);
     }
 }

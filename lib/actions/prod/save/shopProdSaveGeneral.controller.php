@@ -8,13 +8,21 @@ class shopProdSaveGeneralController extends waJsonController
     {
         $product_raw_data = waRequest::post('product', null, waRequest::TYPE_ARRAY);
         $product_id = ifempty($product_raw_data, 'id', null);
+        $product = new shopProduct($product_id);
 
         $product_data = $this->prepareProductData($product_raw_data);
         $this->checkRights($product_id, $product_data);
 
+        $backend_prod_pre_save = $this->throwPreSaveEvent($product, $product_data);
+        foreach ($backend_prod_pre_save as $plugin_id => $result) {
+            if ($result['errors']) {
+                $this->errors = array_merge($this->errors, $result['errors']);
+            }
+        }
+
         if (!$this->errors) {
             /** @var shopProduct $product */
-            $product = $this->saveProduct($product_id, $product_data);
+            $product = $this->saveProduct($product, $product_data);
         }
 
         if (!$this->errors) {
@@ -115,17 +123,80 @@ class shopProdSaveGeneralController extends waJsonController
     }
 
     /**
+     * @param shopProduct $product
+     * @param array &$data - data could be mutated
+     * @return array
+     * @throws waException
+     */
+    protected function throwPreSaveEvent($product, &$data)
+    {
+        /**
+         * @event backend_prod_presave
+         * @since 8.18.0
+         *
+         * @param shopProduct $product
+         * @param array &$data
+         *      Raw data from form posted - data could be mutated
+         * @param string $content_id
+         *       Which page is being saved
+         * @return array
+         *      array[string]array $return[%plugin_id%]['errors'] - validation errors
+         */
+        $params = [
+            'product' => $product,
+            'data' => &$data,
+            'content_id' => 'general',
+        ];
+
+        $backend_prod_pre_save = wa('shop')->event('backend_prod_presave', $params);
+
+        // typecast plugin responses a little bit
+        foreach ($backend_prod_pre_save as $plugin_id => &$result) {
+            if (!$result || !is_array($result)) {
+                unset($backend_prod_pre_save[$plugin_id]);
+                continue;
+            }
+            if (!isset($result['errors']) || !is_array($result['errors'])) {
+                $result['errors'] = [];
+            }
+        }
+        unset($data);
+
+        return $backend_prod_pre_save;
+    }
+
+    protected function throwSaveEvent($product, array $data)
+    {
+        /**
+         * @event backend_prod_save
+         * @since 8.18.0
+         *
+         * @param shopProduct $product
+         * @param array $data
+         *      Product data that was saved
+         * @param string $content_id
+         *       Which page is being saved
+         */
+        $params = [
+            'product' => $product,
+            'data' => $data,
+            'content_id' => 'general',
+        ];
+
+        wa('shop')->event('backend_prod_save', $params);
+    }
+
+    /**
      * Takes product id (null for new products) and data prepared by $this->prepareProductData()
      * Saves to DB and returns shopProduct just saved.
      * If something goes wrong, writes errors into $this->errors and returns null.
-     * @param int|null $product_id
+     * @param shopProduct $product
      * @param array $product_data
      * @return shopProduct or null
+     * @throws waException
      */
-    protected function saveProduct($product_id, array $product_data)
+    protected function saveProduct($product, array $product_data)
     {
-        $product = new shopProduct($product_id);
-
         if (isset($product_data['params']) && is_array($product_data['params'])) {
             // should not remove params we don't explicitly set
             $product_data['params'] += $product['params'];
@@ -143,6 +214,8 @@ class shopProdSaveGeneralController extends waJsonController
             ];
             return null;
         }
+
+        $this->throwSaveEvent($product, $product_data);
 
         return $product;
     }

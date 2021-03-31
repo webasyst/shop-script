@@ -67,7 +67,7 @@
 {/function}
 
 {capture assign="_zip_field"}
-    {if !empty($_config.ask_zip)}
+    {if !empty($region.ask_zip)}
         <div class="wa-field-wrapper wa-zip-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MINI}">
             <label class="wa-label">{_render_label _label=$_system_address_field_names.zip _required=!empty($_is_zip_required)}</label>
             <input class="wa-input js-zip-field" autocomplete="false" name="region[zip]" type="text" value="{$region.selected_values.zip|default:""|escape}" {if !empty($_is_zip_required)}required{/if}>
@@ -89,7 +89,7 @@
     {if $_is_minimal_mode && count($region.locations) === 1}
         {if !empty($_active_location.country_id) &&
             !(empty($_active_location.region_id) && empty($_active_location.region) ) &&
-            !(empty($_active_location.city_id) && empty($_active_location.city) ) && empty($_config.ask_zip)}
+            !(empty($_active_location.city_id) && empty($_active_location.city) ) && empty($region.ask_zip)}
 
             {$_nothing_to_change = true}
         {/if}
@@ -160,7 +160,7 @@
                                         {$_active_region_id = $region.selected_values.region_id}
                                     {/if}
 
-                                    <select class="wa-select js-region-field" name="region[region]" {if !empty($_is_region_required)}required{/if}>
+                                    <select class="wa-select js-region-field js-region-field-id" name="region[region]" {if !empty($_is_region_required)}required{/if}>
                                         <option value="" disabled {if empty($_active_region_id)}selected{/if}>[`Select a region`]</option>
 
                                         {$_is_active_set = false}
@@ -186,7 +186,7 @@
                                         {$_region_value = $region.selected_values.region}
                                     {/if}
 
-                                    <input class="wa-input js-region-field" autocomplete="false" name="region[region]" type="text" value="{$_region_value|default:""|escape}" {if !empty($_is_region_required)}required{/if}>
+                                    <input class="wa-input js-region-field js-region-field-value" autocomplete="false" name="region[region]" type="text" value="{$_region_value|default:""|escape}" {if !empty($_is_region_required)}required{/if}>
                                 {/if}
 
                             {else}
@@ -208,12 +208,12 @@
                                     {/foreach}
 
                                     <input class="wa-input" type="text" value="{$_active_region.name|escape}" disabled>
-                                    <input name="region[region]" type="hidden" value="{$_active_region_id|default:""|escape}">
+                                    <input class="js-region-field-id" name="region[region]" type="hidden" value="{$_active_region_id|default:""|escape}">
 
                                 {else}
 
                                     <input class="wa-input" type="text" value="{$_region_value|escape}" disabled>
-                                    <input name="region[region]" type="hidden" value="{$_region_value|default:""|escape}">
+                                    <input class="js-region-field-value" name="region[region]" type="hidden" value="{$_region_value|default:""|escape}">
                                 {/if}
                             {/if}
                         </div>
@@ -362,10 +362,10 @@
                         {$_active_region_id = $_active_location.region_id}
                         {$_active_region_value = $_active_location.region}
                         {if !empty($_active_region_id)}
-                            <input class="js-region-field" name="region[region]" type="hidden" value="{$_active_region_id|default:""|escape}">
+                            <input class="js-region-field js-region-field-id" name="region[region]" type="hidden" value="{$_active_region_id|default:""|escape}">
 
                         {elseif !empty($_active_region_value)}
-                            <input class="js-region-field" name="region[region]" type="hidden" value="{$_active_region_value|default:""|escape}">
+                            <input class="js-region-field js-region-field-value" name="region[region]" type="hidden" value="{$_active_region_value|default:""|escape}">
 
                         {else}
                             <div class="wa-field-wrapper wa-region-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
@@ -377,7 +377,7 @@
                                         {$_active_region_id = $region.selected_values.region_id}
                                     {/if}
 
-                                    <select class="wa-select js-region-field" name="region[region]" {if !empty($_is_region_required)}required{/if}>
+                                    <select class="wa-select js-region-field js-region-field-id" name="region[region]" {if !empty($_is_region_required)}required{/if}>
                                         <option value="" disabled {if empty($_active_region_id)}selected{/if}>[`Select a region`]</option>
 
                                         {$_is_active_set = false}
@@ -403,7 +403,7 @@
                                         {$_region_value = $region.selected_values.region}
                                     {/if}
 
-                                    <input class="wa-input js-region-field" autocomplete="false" name="region[region]" type="text" value="{$_region_value|default:""|escape}" {if !empty($_is_region_required)}required{/if}>
+                                    <input class="wa-input js-region-field js-region-field-value" autocomplete="false" name="region[region]" type="text" value="{$_region_value|default:""|escape}" {if !empty($_is_region_required)}required{/if}>
                                 {/if}
                             </div>
 

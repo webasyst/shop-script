@@ -274,6 +274,7 @@ class shopHelper
                         'rate'                 => false,
                         'currency'             => $params['currency'],
                         'external'             => !empty($plugin_info['external']),
+                        'possible_addresses'   => false,
                     );
                     continue;
                 }
@@ -449,6 +450,7 @@ class shopHelper
                                 'currency'             => $currency,
                                 'external'             => !empty($plugin_info['external']),
                                 'type'                 => ifset($info, 'type', ifset($plugin_info, 'type', null)),
+                                'possible_addresses'   => ifset($info, 'possible_addresses', false),
                             );
 
                             if ($rate === null) {
@@ -516,6 +518,7 @@ class shopHelper
                         'rate'                 => false,
                         'currency'             => $params['currency'],
                         'external'             => !empty($plugin_info['external']),
+                        'possible_addresses'   => false,
                     );
                 } elseif (($rates === false) && in_array($m['id'], $params['allow_external_for'])) {
                     $result[$method_id] = array(
@@ -530,6 +533,7 @@ class shopHelper
                         'rate'                 => false,
                         'currency'             => $params['currency'],
                         'external'             => !empty($plugin_info['external']),
+                        'possible_addresses'   => false,
                     );
                 }
 

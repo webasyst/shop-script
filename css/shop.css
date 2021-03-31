@@ -404,6 +404,9 @@ ul.menu-v.s-inline-links a { display: inline-block; }
 .s-coupon-margin { margin-left: 25px; display: inline-block; }
 .s-coupon-border { border: 1px dashed #efded6; border-radius: 2px; }
 .s-coupon-value { background: #ae6a5a; color: #fff; padding: 5px; font-size: 1.5em; font-weight: bold; }
+ul.menu-v li.s-coupon-search { padding-left: 2px; }
+ul.menu-v li.s-coupon-search .s-coupon-field { width: 100%; box-sizing: border-box; padding-left: 24px; }
+ul.menu-v li.s-coupon-search .s-icon { position: absolute; left: 6px; top: 8px; margin: 0; cursor: pointer; }
 
 .s-courier { background: #eeeedd; border-radius: 2px; padding: 5px; }
 .s-courier-block { margin-left: 25px; }
@@ -499,6 +502,8 @@ table.zebra.s-customer-orders td { vertical-align: top; line-height: 1.3em; }
 .s-customer-contact-summary { margin: 10px 0; }
 .s-customer-contact-summary .field .name { float: none; padding-bottom: 5px; color: #aaa; font-size: 0.8em; }
 .s-customer-contact-summary .field .value { margin-left: 0; margin-bottom: 10px; }
+.s-customer-contact-summary .s-customer-map-wrapper:not(:first-child) { margin-top: 20px; }
+.s-customer-contact-summary .s-customer-map-wrapper .s-map-image { margin-top: 6px; overflow: hidden }
 
 .s-category-icons { max-width: 350px; }
 

@@ -56,11 +56,21 @@
 {/strip}
 
 <div id="js-product-media-section-wrapper">
+    <script>
+        ( function($) {
+            $("#js-product-media-section-wrapper").data("ready", $.Deferred());
+        })(jQuery);
+    </script>
+
+    <!-- plugin hook: 'backend_prod_content.top' -->
+    {* @event backend_prod_content.%plugin_id%.top *}
+    {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.top)}{/foreach}{/if}
+
     <div class="s-product-media-section js-product-media-section" style="visibility: hidden;">
         <div class="s-section-header">
             <div class="s-errors-place" id="js-errors-place" v-if="errors.global.length">
                 <template v-for="error in errors.global" v-bind:key="error.id">
-                    <div class="wa-message info flexbox space-8" v-bind:data-id="error.id">
+                    <div class="wa-message wa-small info flexbox space-8" v-bind:data-id="error.id">
                         <div class="message-icon">
                             <i class="fas fa-info-circle"></i>
                         </div>
@@ -286,6 +296,10 @@
         {include file="./includes/footer.html" inline}
     </div>
 
+    <!-- plugin hook: 'backend_prod_content.bottom' -->
+    {* @event backend_prod_content.%plugin_id%.bottom *}
+    {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.bottom)}{/foreach}{/if}
+
     <script>
         ( function($) {
             var sources = [{
@@ -340,6 +354,8 @@
 
                     product: {$formatted_product|json_encode}
                 });
+
+                $(document).trigger("wa_product_section_change", "product-media");
             }
         })(jQuery);
     </script>

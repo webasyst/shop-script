@@ -1,0 +1,202 @@
+{strip}
+
+{* КОМПОНЕНТЫ *}
+
+{$_lang = substr($wa->locale(), 0, 2)}
+
+{$_components = []}
+
+{$_globals_components = $wa->globals("components")}
+{if !empty($_globals_components)}
+    {$_components = array_merge($_components, $_globals_components)}
+{/if}
+
+{* ШАБЛОНЫ *}
+
+{$_templates = []}
+
+{capture assign="_delete_confirm_dialog"}{include file="./dialogs/pages_delete_page_confirm.html" inline}{/capture}
+{$_templates["delete-confirm-dialog"] = $_delete_confirm_dialog|trim}
+
+{capture assign="_edit_page_dialog"}{include file="./dialogs/pages_edit_page.html" inline}{/capture}
+{$_templates["edit-page-dialog"] = $_edit_page_dialog|trim}
+
+{capture assign="_unsaved_confirm_dialog"}{include file="./dialogs/pages_unsaved_changes_confirm.html" inline}{/capture}
+{$_templates["unsaved-confirm-dialog"] = $_unsaved_confirm_dialog|trim}
+
+{* ЛОКАЛИЗАЦИЯ *}
+
+{$_tooltips = [
+    "product-pages-1" => [
+        "id" => "product-pages-1",
+        "html" => _w("Change image")|escape,
+        "class" => "inline"
+    ]
+]}
+
+{$_locales = [
+    "incorrect_url" => _w("Неправильный формат URL."),
+    "modification_wysiwyg_message" => _ws('WYSIWYG editor may change your HTML code. It is necessary for correct text formatting. Smarty code may be broken and outdated HTML tags may be replaced with modern ones. Are you sure to switch to WYSIWYG editor?')
+]}
+
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+{/strip}
+
+{* PAGE *}
+<div id="js-product-pages-section-wrapper">
+    {* VUE *}
+    <div class="article s-product-pages-section js-product-pages-section" style="visibility: hidden;">
+        {* HEADER *}
+        <div class="s-section-header">
+            <h4>[`Подстраницы`]</h4>
+            <p>[`Подстраницы позволяют дополнить информацию о товаре сопутствующим материалом, таким как руководства, фотографии, обзоры и т. п.`]</p>
+
+            {* GLOBAL ERRORS *}
+            <div class="s-errors-place" id="js-errors-place" v-if="errors_global.length">
+                <template v-for="error in errors_global" v-bind:key="error.id">
+                    <div class="wa-message wa-small info flexbox space-8" v-bind:data-id="error.id">
+                        <div class="message-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="message-text wide">{ { error.text } }</div>
+                        <div class="message-actions">
+                            <div class="message-action" v-on:click.prevent="removeError(error.id)">
+                                <i class="fas fa-times message-toggle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        {* BODY *}
+        <div class="s-section-body">
+
+            <div class="s-pages-wrapper">
+                <div class="s-section-header">
+                    <button class="wa-button wa-small wa-short transparent" type="button"
+                            v-on:click.prevent="createPage">
+                        <span class="s-icon color-green-dark"><i class="fas fa-plus-circle"></i></span>
+                        <span class="s-name bold">[`New page`]</span>
+                    </button>
+                </div>
+
+                <div class="s-pages-list" v-if="pages.length">
+                    <template v-for="page in pages">
+                        <div class="s-page-wrapper"
+                             v-bind:key="page.id"
+                             v-bind:class="{ 'is-moving' : page.is_moving }"
+                             v-bind:data-id="page.id">
+                            <div class="s-column-move-actions nowrap" v-bind:style="{ 'opacity': (is_locked || page.is_locked) ? .5 : '' }">
+                                <div class="s-toggle-move" draggable="true" v-bind:class="{ 'cursor-move js-page-move-toggle' : !is_locked }">
+                                    <i class="icon baseline shift-2"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></i>
+                                </div>
+                            </div>
+                            <div class="s-column-name wide">
+                                <span class="s-name" v-bind:class="{ 'is-draft' : !page.status }">{ { page.name } }</span>
+                            </div>
+                            <div class="s-column-status nowrap">
+                                <span class="s-status" v-if="page.status">[s`Published`]</span>
+                                <span class="s-status is-draft" v-else>[s`Draft`]</span>
+                            </div>
+                            <div class="s-column-url nowrap">
+                                {if !empty($frontend_urls)}
+                                    {$_front = reset($frontend_urls)}
+                                    <a class="s-url" v-bind:href="'{$_front.url|escape}' + page.url + '/' + (page.status ? '' : '?preview={$preview_hash}')" target="_blank">../{ { page.url } }/&nbsp;<i class="fas fa-external-link-square-alt"></i></a>
+                                {else}
+                                    <span class="s-url">{ { page.url } }</span>
+                                {/if}
+                            </div>
+                            <div class="s-column-actions nowrap"
+                                 v-bind:style="{ 'opacity': (is_locked || page.is_locked) ? .5 : '' }">
+                                <button class="wa-button wa-small transparent" type="button"
+                                        v-bind:disabled="is_locked || page.is_locked"
+                                        v-on:click.prevent="editPage(page)">
+                                    <span class="s-icon"><i class="fas fa-pen"></i></span>
+                                    <span class="s-name">[`Edit`]</span>
+                                </button>
+                                <button class="wa-button wa-small transparent-gray" type="button"
+                                        v-bind:disabled="is_locked || page.is_locked"
+                                        v-on:click.prevent="deletePage(page)">
+                                    <span class="s-icon"><i class="fas fa-trash-alt"></i></span>
+                                    <span class="s-name">[`Delete`]</span>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <p class="hint" v-else>[`Добавьте новые страницы, чтобы они появились в списке.`]</p>
+            </div>
+
+        </div>
+
+        {include file="./includes/footer.html" hide_save=true inline}
+    </div>
+
+    {* INIT JS *}
+    <script>
+        ( function($) {
+            var sources = [{
+                id: "vue-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/vue/vue.min.js?v={$wa->version()}"
+            }, {
+                id: "ace-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/ace/ace.js?v=={$wa->version(true)}"
+            }, {
+                id: "redactor-2-css",
+                type: "css",
+                uri: "{$wa_url}wa-content/js/redactor/2/redactor.css?v={$wa->version(true)}"
+            }, {
+                id: "redactor-2-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/redactor/2/redactor.min.js?v={$wa->version(true)}"
+            }, {
+                id: "wa-editor-2-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/jquery-wa/editor2.js?v={$wa->version(true)}"
+            }, {
+                id: "wa-shop-products-product-pages-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/product/product.pages.js?v={$wa->version()}"
+            }];
+
+            $.wa.loadSources(sources).then( function() {
+                var is_en = {if $_lang === "en"}true{else}false{/if};
+                if (!is_en) {
+                    $.wa.loadSources([{
+                        id: "redactor-2-{$_lang}-js",
+                        type: "js",
+                        uri: "{$wa_url}wa-content/js/redactor/2/{$_lang}.js?v={$wa->version(true)}"
+                    }]).then(init);
+                } else {
+                    init();
+                }
+            });
+
+            function init() {
+                $.wa_shop_products.init.initProductPagesSection({
+                    $wrapper: $("#js-product-pages-section-wrapper"),
+                    components: {$_components|json_encode},
+                    templates: {$_templates|json_encode},
+                    tooltips: {$_tooltips|json_encode},
+                    locales: {$_locales|json_encode},
+                    urls: {
+                        "save"         : "{$wa_app_url}?module=prod&action=pageSave",
+                        "move"         : "{$wa_app_url}?module=prod&action=pageMove",
+                        "delete"       : "{$wa_app_url}?module=prod&action=pageDelete",
+                        "transliterate": "{$wa_app_url}?action=transliterate"
+                    },
+
+                    pages: {$pages|json_encode},
+                    product: {$formatted_product|json_encode},
+                    empty_page: {$empty_page|json_encode}
+                });
+
+                $(document).trigger("wa_product_section_change", "product-pages");
+            }
+        })(jQuery);
+    </script>
+</div>

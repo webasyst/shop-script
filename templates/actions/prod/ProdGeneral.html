@@ -160,9 +160,21 @@
 {/if}
 
 {/strip}
+
 <div class="article s-product-general-section" id="js-product-general-section" style="visibility: hidden;">
+    <script>
+        ( function($) {
+            $("#js-product-general-section").data("ready", $.Deferred());
+        })(jQuery);
+    </script>
+
+    <!-- plugin hook: 'backend_prod_content.top' -->
+    {* @event backend_prod_content.%plugin_id%.top *}
+    {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.top)}{/foreach}{/if}
+
     <div class="s-section-body">
         <form>
+
             <div class="s-fields-section">
                 <div class="wa-fields space-24">
                     {* NAME *}
@@ -240,6 +252,10 @@
                         </div>
                     </div>
 
+                    <!-- plugin hook: 'backend_prod_content.form_top' -->
+                    {* @event backend_prod_content.%plugin_id%.form_top *}
+                    {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.form_top)}{/foreach}{/if}
+
                     {* STATUS *}
                     <div class="wa-field">
                         <div class="name">
@@ -263,13 +279,13 @@
                                 "0" => [
                                     "id" => "0",
                                     "ident" => "unpublished",
-                                    "icon" => "fas fa-times color-gray",
+                                    "icon" => "fas fa-times color-yellow",
                                     "name" => _w("Hidden")
                                 ],
                                 "-1" => [
                                     "id" => "-1",
                                     "ident" => "hidden",
-                                    "icon" => "fas fa-arrow-right color-blue",
+                                    "icon" => "fas fa-times color-red",
                                     "name" => _w("Unpublished")
                                 ]
                             ]}
@@ -351,8 +367,9 @@
 
                                         <div class="s-redirect-section" data-id="{$_active_redirect_option.id|escape}">
 
-                                            <div class="flexbox middle wrap space-12">
+                                            <div class="s-redirect-select-wrapper flexbox middle wrap space-12">
                                                 <div class="s-label">
+                                                    <span class="fas fa-arrow-right color-blue"></span>
                                                     [`Redirect`]
                                                     <span class="wa-tooltip bottom-left" data-title="{_w("Select an address to which website visitors and search engines will be redirected when attempting to access this product’s URL.")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
                                                 </div>
@@ -373,11 +390,11 @@
                                             </div>
 
                                             <div class="s-custom-url-form">
-                                                <div class="line s-redirect-field">
+                                                <div class="s-redirect-field">
                                                     <input class="full-width" type="text" name="product[params][redirect_url]" value="{$product.params.redirect_url|default:""|escape}" placeholder="http://yoursite.com/category/product-name">
                                                 </div>
 
-                                                <div class="line">
+                                                <div class="">
                                                     <div class="s-label">
                                                         [`Redirect code`]
                                                         <span class="wa-tooltip bottom-left" data-title="{_w("Your server will add this code to its response to web browsers and search engines.")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
@@ -711,13 +728,15 @@
                                                                                         <input class="wa-small s-field full-width is-number" type="text" placeholder="∞"
                                                                                                v-model="sku_mod.stock[stock.id]"
                                                                                                v-bind:readonly="stock.is_virtual"
+                                                                                               v-bind:style="{ 'opacity' : stock.is_virtual ? '.5' : ''}"
                                                                                                v-bind:class="{ 'transparent' : stock.is_virtual }"
                                                                                                v-on:change="changeSkuModStocks(sku_mod)"
                                                                                                v-on:input="validate($event, 'integer', sku_mod.stock, stock.id)">
                                                                                     </div>
                                                                                 </div>
                                                                                 <div class="c-column">
-                                                                                    <span class="cursor-default">{ { stock.name } }</span>
+                                                                                    <span class="cursor-default"
+                                                                                          v-bind:style="{ 'opacity' : stock.is_virtual ? '.5' : '' }">{ { stock.name } }</span>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
@@ -726,7 +745,7 @@
                                                                 </div>
                                                             </div>
                                                             <div class="s-section-footer">
-                                                                <button class="wa-button gray-light" type="button" v-on:click.prevent="modificationStocksToggle(sku_mod, false)">[`Close`]</button>
+                                                                <button class="wa-button wa-small gray-light" type="button" v-on:click.prevent="modificationStocksToggle(sku_mod, false)">[`Close`]</button>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -786,10 +805,12 @@
                         </div>
                     </template>
                     <template v-else>
-                        <div class="s-sku-wrapper">
-                            <div class="s-info-message">
-                                <span class="icon size-16 top color-blue"><i class="fas fa-info-circle"></i></span>
-                                <span class="s-text">{sprintf(_w("Prices are edited in section “%s”."),"<span>{_w("Prices and features")}</span>")}</span>
+                        <div class="s-info-message">
+                            <div class="wa-message wa-small gray flexbox space-8">
+                                <div class="message-icon color-blue">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <div class="message-text wide">{sprintf(_w("Prices are edited in section “%s”."),"<span>{_w("Prices and features")}</span>")}</div>
                             </div>
                         </div>
                     </template>
@@ -1144,6 +1165,10 @@
                             <p class="hint">[`Separate tags with comma (,).`]</p>
                         </div>
                     </div>
+
+                    <!-- plugin hook: 'backend_prod_content.form_bottom' -->
+                    {* @event backend_prod_content.%plugin_id%.form_bottom *}
+                    {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.form_bottom)}{/foreach}{/if}
                 </div>
             </div>
 
@@ -1171,6 +1196,10 @@
             <input type="hidden" name="product[id]" value="{$product.id|default:""}">
         </form>
     </div>
+
+    <!-- plugin hook: 'backend_prod_content.bottom' -->
+    {* @event backend_prod_content.%plugin_id%.bottom *}
+    {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.bottom)}{/foreach}{/if}
 
     {include file="./includes/footer.html" inline}
 
@@ -1261,6 +1290,8 @@
                     product: {$formatted_product|json_encode},
                     currencies: {$currencies|json_encode}
                 });
+
+                $(document).trigger("wa_product_section_change", "product-general");
             }
 
         })(jQuery);

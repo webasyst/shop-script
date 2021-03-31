@@ -1337,7 +1337,7 @@ class shopProduct implements ArrayAccess
                     $i = 0;
                     $new_product_id = $this->model->select('MAX(id) as max_id')->fetchField('max_id') + 1;
                     foreach ($raw as $sku_id => $sku) {
-                        if (isset($sku['sku']) && ifset($options, 'remove_sku', true)) {
+                        if (!empty($sku['sku']) && ifset($options, 'remove_sku', true)) {
                             $sku['sku'] .= '-' . $new_product_id;
                         }
 

@@ -33,6 +33,11 @@
             </h2>
         </div>
         <div class="dialog-content">
+
+            <!-- plugin hook: 'backend_prod_dialog.top' -->
+            {* @event backend_prod_dialog.%plugin_id%.top *}
+            {if !empty($backend_prod_dialog_event)}{foreach $backend_prod_dialog_event as $_}{ifset($_.top)}{/foreach}{/if}
+
             <p class="color-red">
                 {if $_is_sku}
                     {sprintf(
@@ -78,6 +83,11 @@
                     [`Are you sure you want to delete this SKU variant?`]
                 {/if}
             </p>
+
+            <!-- plugin hook: 'backend_prod_dialog.bottom' -->
+            {* @event backend_prod_dialog.%plugin_id%.bottom *}
+            {if !empty($backend_prod_dialog_event)}{foreach $backend_prod_dialog_event as $_}{ifset($_.bottom)}{/foreach}{/if}
+
         </div>
         <div class="dialog-footer">
             <button class="js-success-action wa-button red" type="button">[`Delete`]</button>

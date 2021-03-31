@@ -58,6 +58,10 @@
             </button>
         </div>
         <input type="hidden" name="parent_id" value="%parent_id%">
+
+        <!-- plugin hook: 'backend_prod_dialog_event.add_form' -->
+        {* @event backend_prod_dialog_event.%plugin_id%.add_form *}
+        {if !empty($backend_prod_dialog_event)}{foreach $backend_prod_dialog_event as $_}{ifset($_.add_form)}{/foreach}{/if}
     </form>
 {/capture}
 {$_templates["add_category_form"] = $_add_category_form}
@@ -71,6 +75,10 @@
             <h2>[`Select extra categories`]</h2>
         </div>
         <div class="dialog-content">
+
+            <!-- plugin hook: 'backend_prod_dialog.top' -->
+            {* @event backend_prod_dialog.%plugin_id%.top *}
+            {if !empty($backend_prod_dialog_event)}{foreach $backend_prod_dialog_event as $_}{ifset($_.top)}{/foreach}{/if}
 
             <div class="s-categories-section">
                 <div class="s-filter-section">
@@ -94,6 +102,10 @@
                     {_render_categories_options _categories=$categories_tree}
                 </div>
             </div>
+
+            <!-- plugin hook: 'backend_prod_dialog.bottom' -->
+            {* @event backend_prod_dialog.%plugin_id%.bottom *}
+            {if !empty($backend_prod_dialog_event)}{foreach $backend_prod_dialog_event as $_}{ifset($_.bottom)}{/foreach}{/if}
 
         </div>
         <div class="dialog-footer">

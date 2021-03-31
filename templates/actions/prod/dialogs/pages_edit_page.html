@@ -1,0 +1,169 @@
+<div class="wa-dialog s-product-pages-edit-page-dialog" id="js-product-pages-edit-page-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-node-wrapper" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h2>{ { page.name ? page.name : {_w("Новая страница")|json_encode} } }</h2>
+            </div>
+            <div class="dialog-content">
+                <div class="wa-fields">
+                    {* NAME *}
+                    <div class="wa-field">
+                        <div class="name size-small">
+                            <span>[`Название страницы`]</span>
+                        </div>
+                        <div class="value">
+                            <component-flex-textarea
+                                v-model="page.name"
+                                v-on:input="onChangeName"
+                                v-bind:class="'wa-small wide bold color-black'"></component-flex-textarea>
+                        </div>
+                    </div>
+                    {* STATUS *}
+                    <div class="wa-field">
+                        <div class="name size-small unshifted">
+                            <span>[`Публикация на сайте`]</span>
+                        </div>
+                        <div class="value">
+                            <component-switch v-model="page.status"
+                                              v-on:change="onChangeStatus"
+                                              v-bind:class="'wa-small'"></component-switch>
+                        </div>
+                    </div>
+                    {* URL *}
+                    <div class="wa-field">
+                        <div class="name size-small">
+                            <span>[`URL-адрес страницы`]</span>
+                        </div>
+                        <div class="value">
+                            <div class="s-field-wrapper">
+                                <input class="full-width wa-small" type="text" v-model="page.url"
+                                       v-bind:class="{ 'wa-error-field' : !!errors['url_required'] }"
+                                       v-on:input="onChangeUrl">
+
+                                <div class="wa-error-text" v-if="!!errors['url_required']">
+                                    { { errors['url_required'].text.length ? errors['url_required'].text : "{_w("URL обязателен для сохранения")|escape}" } }
+                                </div>
+                            </div>
+                            <div class="s-url-wrapper">
+                                <span class="s-url">{if !empty($frontend_urls)}{$_front = reset($frontend_urls)}{$_front.url|escape}{/if}{ { page.url ? page.url + "/" : "" } }</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="s-additional-options-wrapper">
+                    <div class="s-additional-options-toggle">
+                        <button class="wa-button wa-small wa-short transparent"
+                                v-on:click.prevent="toggleOptions">
+                            <span class="s-text">{_w("Custom parameters")}</span>
+                            <span class="s-icon icon baseline shift-1 size-12" v-show="page.expanded"><i class="fas fa-caret-down"></i></span>
+                            <span class="s-icon icon baseline shift-1 size-12" v-show="!page.expanded"><i class="fas fa-caret-right"></i></span>
+                        </button>
+                    </div>
+
+                    <div class="wa-fields" v-if="page.expanded">
+                        {* TITLE *}
+                        <div class="wa-field">
+                            <div class="name size-small">
+                                <div>[`Page title`]</div>
+                                <div class="hint">&lt;title&gt;</div>
+                            </div>
+                            <div class="value">
+                                <div class="s-field-wrapper">
+                                    <component-flex-textarea
+                                        v-model="page.title"
+                                        v-bind:class="'wa-small wide'"></component-flex-textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        {* DESCRIPTION *}
+                        <div class="wa-field">
+                            <div class="name size-small">
+                                <div>[`Page description`]</div>
+                                <div class="hint">&lt;meta description&gt;</div>
+                            </div>
+                            <div class="value">
+                                <div class="s-field-wrapper">
+                                    <component-flex-textarea
+                                        v-model="page.description"
+                                        v-bind:class="'wa-small wide'"></component-flex-textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        {* KEYWORDS *}
+                        <div class="wa-field">
+                            <div class="name size-small">
+                                <div>[`Keywords`]</div>
+                                <div class="hint">&lt;meta keywords&gt; ([`optional`])</div>
+                            </div>
+                            <div class="value">
+                                <div class="s-field-wrapper">
+                                    <component-flex-textarea
+                                        v-model="page.keywords"
+                                        v-bind:class="'wa-small wide'"></component-flex-textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="s-editor-section js-editor-section">
+                    <div class="s-section-header">
+                        {strip}
+                        <div class="toggle tabs-mode js-editor-type-toggle">
+                            <span data-id="wysiwyg">[`WYSIWYG`]</span>
+                            <span data-id="html">[`HTML`]</span>
+                        </div>
+                        {/strip}
+                    </div>
+
+                    <div class="s-section-body">
+                        <div class="s-wysiwyg-editor js-wysiwyg-editor">
+                            <textarea class="js-product-description-textarea" name="product[description]" v-bind:value="page.content"></textarea>
+                        </div>
+                        <div class="s-html-editor js-html-editor"></div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="dialog-footer">
+                <div class="tablebox middle space-16">
+                    <div class="s-column">
+                        <button class="js-success-action wa-button" type="button"
+                                v-bind:class="{ 'yellow' : is_changed }"
+                                v-bind:disabled="is_locked"
+                                v-on:click.prevent="save">
+                            <span class="s-icon" v-show="is_locked"><i class="fas fa-spinner fa-spin"></i></span>
+                            <span class="s-name">[`Save`]</span>
+                        </button>
+
+                        <button class="js-dialog-close wa-button gray-light" type="button">
+                            <span class="s-icon" v-show="states.close"><i class="fas fa-spinner fa-spin"></i></span>
+                            <span class="s-name">[`Close`]</span>
+                        </button>
+
+                        {if !empty($frontend_urls)}
+                            {$_front = reset($frontend_urls)}
+                            <template v-if="origin_page && origin_page.id">
+                                <a class="s-url" v-bind:href="'{$_front.url|escape}' + origin_page.url + '/' + (origin_page.status ? '' : '?preview={$preview_hash}')" target="_blank">[`Просмотр`]&nbsp<i class="fas fa-external-link-square-alt"></i></a>
+                            </template>
+                        {/if}
+                    </div>
+                    <div class="s-column align-right">
+                        <button class="wa-button transparent-red" type="button"
+                                v-if="page.id"
+                                v-bind:disabled="is_locked"
+                                v-on:click.prevent="origin_page === null ? deletePage(page) : deletePage(origin_page)">
+                            <span class="s-name icon top" v-show="!is_delete"><i class="fas fa-trash-alt"></i></span>
+                            <span class="s-name icon top" v-show="is_delete"><i class="fas fa-spinner fa-spin"></i></span>
+                            <span class="s-name">[`Delete`]</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

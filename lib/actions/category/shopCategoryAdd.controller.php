@@ -33,6 +33,13 @@ class shopCategoryAddController extends waJsonController
         if ($id = $category_model->add($data, $parent_id)) {
             $new_category = $category_model->getById($id);
             $this->response = $new_category;
+
+            /**
+             * @event category_save
+             * @param array $category
+             * @return void
+             */
+            wa()->event('category_save', $new_category);
         } else {
             $this->errors = 'Category not created';
         }

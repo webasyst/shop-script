@@ -2,12 +2,12 @@
 
 class shopMarketingCouponsAction extends shopMarketingViewAction
 {
-    const PAGES_STEP = 50;
 
     public function execute()
     {
         $id = waRequest::param('coupon_id');
-        $page_number = waRequest::get('page', 1, waRequest::TYPE_INT);
+        $page_number = waRequest::get('page', null, waRequest::TYPE_INT);
+        $coupon_name = waRequest::get('coupon_name', '', waRequest::TYPE_STRING_TRIM);
 
         if ($id == 'create') {
             $id = null;
@@ -25,14 +25,27 @@ class shopMarketingCouponsAction extends shopMarketingViewAction
 
         $currencies = $curm->getAll('code');
 
-        $pages_count = ceil($coupm->countAll() / self::PAGES_STEP);
+        if (strlen($coupon_name)) {
+            $coupons_count = $coupm->select('COUNT(*) AS count')->where("code LIKE ?", ['%' . $coupon_name . '%'])->fetchField('count');
+        } else {
+            $coupons_count = $coupm->countAll();
+        }
+        $pages_count = ceil($coupons_count / $coupm::PAGES_STEP);
+        if ($id && $page_number == null) {
+            $page_number = $coupm->getPageNumber($id, $coupon_name);
+        }
         if ($page_number < 1) {
             $page_number = 1;
-        } elseif ($pages_count > 0 && $page_number > $pages_count) {
+        } elseif ($page_number > $pages_count && $pages_count > 0) {
             $page_number = $pages_count;
         }
-        $offset = $page_number * self::PAGES_STEP - self::PAGES_STEP;
-        $coupons = $coupm->order('id DESC')->limit($offset . ',' . self::PAGES_STEP)->fetchAll('id');
+        $offset = $page_number * $coupm::PAGES_STEP - $coupm::PAGES_STEP;
+
+        if (strlen($coupon_name)) {
+            $coupons = $coupm->where("code LIKE ?", ['%' . $coupon_name . '%'])->order('id DESC')->limit($offset . ',' . $coupm::PAGES_STEP)->fetchAll('id');
+        } else {
+            $coupons = $coupm->order('id DESC')->limit($offset . ',' . $coupm::PAGES_STEP)->fetchAll('id');
+        }
         foreach ($coupons as &$c) {
             $c['enabled'] = shopCouponModel::isEnabled($c);
             $c['hint'] = shopCouponModel::formatValue($c, $currencies);
@@ -103,6 +116,8 @@ class shopMarketingCouponsAction extends shopMarketingViewAction
         $this->view->assign('formatted_value', shopCouponModel::formatValue($coupon, $currencies));
         $this->view->assign('is_enabled', shopCouponModel::isEnabled($coupon));
         $this->view->assign('pages_count', $pages_count);
+        $this->view->assign('page_number', $page_number);
+        $this->view->assign('coupon_name', $coupon_name);
 
     }
 

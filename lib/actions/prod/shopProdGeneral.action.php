@@ -25,6 +25,10 @@ class shopProdGeneralAction extends waViewAction
 
         $type_model = new shopTypeModel();
 
+        $product['skus'];
+
+        $backend_prod_content_event = $this->throwEvent($product);
+
         $this->view->assign([
             'url_template' => $url_template,
             'frontend_urls' => $frontend_urls,
@@ -38,11 +42,13 @@ class shopProdGeneralAction extends waViewAction
 
             'stocks'            => shopProdSkuAction::getStocks(),
             'formatted_product' => shopProdSkuAction::formatProduct($product),
-            'currencies'        => shopProdSkuAction::getCurrencies()
+            'currencies'        => shopProdSkuAction::getCurrencies(),
+            'backend_prod_content_event' => $backend_prod_content_event,
         ]);
 
         $this->setLayout(new shopBackendProductsEditSectionLayout([
             'product' => $product,
+            'content_id' => 'general',
         ]));
     }
 
@@ -150,5 +156,28 @@ class shopProdGeneralAction extends waViewAction
             'template' => $url_template,
             'base' => $url_template_base,
         ]];
+    }
+
+    /**
+     * Throw 'backend_prod_content' event
+     * @param shopProduct $product
+     * @return array
+     * @throws waException
+     */
+    protected function throwEvent($product)
+    {
+        /**
+         * @event backend_prod_content
+         * @since 8.18.0
+         *
+         * @param shopProduct $product
+         * @param string $content_id
+         *       Which page (tab) is shown
+         */
+        $params = [
+            'product' => $product,
+            'content_id' => 'general',
+        ];
+        return wa('shop')->event('backend_prod_content', $params);
     }
 }

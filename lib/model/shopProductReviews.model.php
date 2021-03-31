@@ -533,7 +533,7 @@ class shopProductReviewsModel extends waNestedSetModel
         if ($status == $review['status']) {
             return true;
         }
-        if ($status != self::STATUS_DELETED && $status != self::STATUS_PUBLISHED && $status == shopProductReviewsModel::STATUS_MODERATION) {
+        if ($status != self::STATUS_DELETED && $status != self::STATUS_PUBLISHED && $status != self::STATUS_MODERATION) {
             return false;
         }
         if ($status == self::STATUS_DELETED) {
@@ -770,7 +770,7 @@ class shopProductReviewsModel extends waNestedSetModel
         }
     }
 
-    private function checkForNew(&$items)
+    public function checkForNew(&$items)
     {
         /** @var shopConfig $config */
         $config = wa('shop')->getConfig();

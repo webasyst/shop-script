@@ -411,6 +411,9 @@ class shopCheckoutViewHelper
             $session_checkout = wa()->getStorage()->get('shop/checkout');
             $session_input = (!empty($session_checkout['order']) && is_array($session_checkout['order'])) ? $session_checkout['order'] : [];
 
+            /** флаг предназначен для шага Shipping */
+            $session_input['fast_render'] = true;
+
             /** @var shopOrder $order */
             $order = (new shopFrontendOrderActions())->makeOrderFromCart();
             $process_data = shopCheckoutStep::processAll('form', $order, $session_input);

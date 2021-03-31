@@ -15,14 +15,18 @@ class shopProdMediaAction extends waViewAction
 
         $frontend_urls = shopProdGeneralAction::getFrontendUrls($product)[0];
 
+        $backend_prod_content_event = $this->throwEvent($product);
+
         $this->view->assign([
             'frontend_urls'     => $frontend_urls,
             'product'           => $product,
-            'formatted_product' => self::formatProduct($product)
+            'formatted_product' => self::formatProduct($product),
+            'backend_prod_content_event' => $backend_prod_content_event,
         ]);
 
         $this->setLayout(new shopBackendProductsEditSectionLayout([
-            'product' => $product
+            'product' => $product,
+            'content_id' => 'media',
         ]));
     }
 
@@ -106,6 +110,29 @@ class shopProdMediaAction extends waViewAction
         }
 
         return $result;
+    }
+
+    /**
+     * Throw 'backend_prod_content' event
+     * @param shopProduct $product
+     * @return array
+     * @throws waException
+     */
+    protected function throwEvent($product)
+    {
+        /**
+         * @event backend_prod_content
+         * @since 8.18.0
+         *
+         * @param shopProduct $product
+         * @param string $content_id
+         *       Which page (tab) is shown
+         */
+        $params = [
+            'product' => $product,
+            'content_id' => 'media',
+        ];
+        return wa('shop')->event('backend_prod_content', $params);
     }
 
     public static function formatFileSize($file_size, $decimals=2) {

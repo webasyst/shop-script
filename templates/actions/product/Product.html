@@ -9,8 +9,46 @@
 
         {if !empty($edit_rights)}
             <a class="s-new-product-editor-button float-right" style="{if $product.id === 'new'}display: none{/if}"
+               data-href="{$wa_app_url}products/{if $product.id === 'new'}%product_id%{else}{$product.id|escape}{/if}/"
                href="{$wa_app_url}products/{if $product.id === 'new'}%product_id%{else}{$product.id|escape}{/if}/"
                title="{_w("Try out the new product editor version. The option to return to the old editor will remain.")|escape}">[`Try out new product editor`]</a>
+
+            <script>
+                ( function($) {
+                    var $button = $(".s-new-product-editor-button");
+
+                    $(document).on("wa_product_section_change", function(event, section_id) {
+                        var href = $button.attr("data-href"),
+                            new_href = href;
+
+                        switch (section_id) {
+                            case "product-general":
+                                new_href = href + "general/";
+                                break;
+                            case "product-seo":
+                                new_href = href + "seo/";
+                                break;
+                            case "product-media":
+                                new_href = href + "media/";
+                                break;
+                            case "product-sku":
+                                new_href = href + "sku/";
+                                break;
+                            case "product-services":
+                                new_href = href + "services/";
+                                break;
+                            case "product-related":
+                                new_href = href + "related/";
+                                break;
+                            case "product-pages":
+                                new_href = href + "pages/";
+                                break;
+                        }
+
+                        $button.attr("href", new_href);
+                    });
+                })(jQuery);
+            </script>
         {/if}
 
         <!-- plugin hook: 'backend_product.title_suffix' -->

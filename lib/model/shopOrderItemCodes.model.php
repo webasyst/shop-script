@@ -1,4 +1,5 @@
 <?php
+
 class shopOrderItemCodesModel extends waModel
 {
     protected $table = 'shop_order_item_codes';
@@ -123,5 +124,19 @@ class shopOrderItemCodesModel extends waModel
     {
         $sql = "SELECT COUNT(DISTINCT order_id) FROM {$this->table} WHERE code_id=?";
         return $this->query($sql, [$code_id])->fetchField();
+    }
+
+    /**
+     * @param $order_id
+     * @param $sku_ids
+     */
+    public function clearValues($order_id, $sku_ids)
+    {
+        if (!empty($order_id) && !empty($sku_ids)) {
+            $sql = "DELETE soic FROM {$this->getTableName()} AS soic
+                        JOIN `shop_order_items` soi ON soic.order_id = soi.order_id AND soic.order_item_id = soi.id
+                    WHERE soic.order_id = ? AND soi.sku_id NOT IN (?)";
+            $this->query($sql, [$order_id, $sku_ids]);
+        }
     }
 }

@@ -39,12 +39,20 @@
             $.wa.title.pattern = "%s — {$wa->accountName()|escape}";
         })(jQuery);
     </script>
+
+    <!-- plugin hook: 'backend_prod_layout.head' -->
+    {* @event backend_prod_layout.%plugin_id%.head *}
+    {if !empty($backend_prod_layout_event)}{foreach $backend_prod_layout_event as $_}{ifset($_.head)}{/foreach}{/if}
 </head>
 
 <body>
 <div id="wa">
     {* HEADER *}
     {$wa->header()}
+
+    <!-- plugin hook: 'backend_prod_layout.top' -->
+    {* @event backend_prod_layout.%plugin_id%.top *}
+    {if !empty($backend_prod_layout_event)}{foreach $backend_prod_layout_event as $_}{ifset($_.top)}{/foreach}{/if}
 
     {* APP *}
     <div class="s-app-wrapper" id="wa-app">
@@ -70,6 +78,10 @@
         </div>
     {/capture}
 
+    <!-- plugin hook: 'backend_prod_layout.bottom' -->
+    {* @event backend_prod_layout.%plugin_id%.bottom *}
+    {if !empty($backend_prod_layout_event)}{foreach $backend_prod_layout_event as $_}{ifset($_.bottom)}{/foreach}{/if}
+
     <script>
         ( function($) {
 
@@ -91,7 +103,10 @@
                 "/products/\\d+/sku/"    : sections["product"],
                 "/products/\\d+/media/"  : sections["product"],
                 "/products/\\d+/seo/"    : sections["product"],
-                "/products/\\d+/related/": sections["product"]
+                "/products/\\d+/services/": sections["product"],
+                "/products/\\d+/related/": sections["product"],
+                "/products/\\d+/pages/"  : sections["product"],
+                "/products/\\d+/reviews/": sections["product"]
             }
 
             $.wa_shop_products.init.initContentRouter({

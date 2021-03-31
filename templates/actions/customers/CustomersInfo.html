@@ -71,17 +71,27 @@
                         <div class="field">
                             <div class="name">{$f->getName()|escape}</div>
                             {if $f instanceof waContactAddressField}
-                                {foreach $contact->get($f->getId(), 'js') as $a}
-                                    <div class="value">
-                                        {$a.value}
-                                        {if !empty($a.ext) && $a.ext === 'shipping' && $shipping_map}
-                                            {$shipping_map}
-                                        {/if}
-                                        {if !empty($a.ext) && $a.ext === 'billing' && $billing_map}
-                                            {$billing_map}
-                                        {/if}
-                                    </div>
-                                {/foreach}
+                                <div class="value">
+                                    {$_shipping_map_is_rendered = false}
+                                    {$_billing_map_is_rendered = false}
+                                    {foreach $contact->get($f->getId(), 'js') as $a}
+                                        <div class="s-customer-map-wrapper">
+                                            <div class="s-map-name">{$a.value}</div>
+                                            {if empty($_shipping_map_is_rendered)}
+                                                {if !empty($a.ext) && $a.ext === 'shipping' && $shipping_map}
+                                                    {$_shipping_map_is_rendered = true}
+                                                    <div class="s-map-image">{$shipping_map}</div>
+                                                {/if}
+                                            {/if}
+                                            {if empty($_billing_map_is_rendered)}
+                                                {if !empty($a.ext) && $a.ext === 'billing' && $billing_map}
+                                                    {$_billing_map_is_rendered = true}
+                                                    <div class="s-map-image">{$billing_map}</div>
+                                                {/if}
+                                            {/if}
+                                        </div>
+                                    {/foreach}
+                                </div>
                             {else}
                                 <div class="value">
                                     {$contact->get($f->getId(), 'html')}

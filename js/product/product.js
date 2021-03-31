@@ -171,6 +171,38 @@ editClick:(function ($) {
             }
             var queue = [];
             $.shop.trace('$.product.dispatch', [this.path, path, path.raw]);
+
+            if (path.tab) {
+                switch (path.tab) {
+                    case "main":
+                        $(document).trigger("wa_product_section_change", "product-general");
+                        break;
+                    case "descriptions":
+                        $(document).trigger("wa_product_section_change", "product-seo");
+                        break;
+                    case "images":
+                        $(document).trigger("wa_product_section_change", "product-media");
+                        break;
+                    case "features":
+                        $(document).trigger("wa_product_section_change", "product-sku");
+                        break;
+                    case "services":
+                        $(document).trigger("wa_product_section_change", "product-services");
+                        break;
+                    case "related":
+                        $(document).trigger("wa_product_section_change", "product-related");
+                        break;
+                    case "pages":
+                        $(document).trigger("wa_product_section_change", "product-pages");
+                        break;
+                    default:
+                        $(document).trigger("wa_product_section_change", "product");
+                        break;
+                }
+            } else {
+                $(document).trigger("wa_product_section_change", "product");
+            }
+
             if (!this.path.id) {
                 var container = this.get('container');
                 if (container.length) {
@@ -590,7 +622,9 @@ editClick:(function ($) {
             if ($new_edit_button.length) {
                 var href = $new_edit_button.attr("href");
                 if (href.indexOf("%product_id%") >= 0) {
-                    $new_edit_button.attr("href", href.replace("%product_id%", data.id) );
+                    $new_edit_button
+                        .attr("data-href", $new_edit_button.attr("data-href").replace("%product_id%", data.id))
+                        .attr("href", href.replace("%product_id%", data.id));
                 }
                 $new_edit_button.show();
             }

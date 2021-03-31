@@ -7,7 +7,6 @@
 
             // DOM
             that.$wrapper = options["$wrapper"];
-            that.$form = that.$wrapper.find("form:first");
 
             // CONST
             that.components = options["components"];
@@ -40,6 +39,9 @@
             //
             that.new_modification = that.formatModification(options["new_modification"]);
             that.new_sku = formatSku(options["new_sku"]);
+
+            //
+            that.plugins = {};
 
             // INIT
             that.vue_model = that.initVue();
@@ -118,6 +120,9 @@
             });
 
             that.initSave();
+
+            var ready_promise = that.$wrapper.data("ready");
+            ready_promise.resolve(that);
         };
 
         Section.prototype.initVue = function() {
@@ -1301,22 +1306,331 @@
                         mounted: function() {
                             var self = this;
                         }
+                    },
+                    "component-plugin-price": {
+                        props: ["field", "sku_mod", "errors"],
+                        data: function() {
+                            var self = this;
+                            return {};
+                        },
+                        template: that.templates["component-plugin-price"],
+                        delimiters: ['{ { ', ' } }'],
+                        computed: {
+                            error: function() {
+                                var self = this,
+                                    error = self.errors['product[skus]['+self.sku_mod.id+'][additional_prices]['+self.field.id+']'];
+
+                                return (error ? error : null);
+                            }
+                        },
+                        methods: {
+                            onInput: function(event) {
+                                var self = this;
+                                self.validate();
+                            },
+                            validate: function() {
+                                var self = this,
+                                    value = $.wa.validate("number", self.field.value);
+
+                                var limit_body = 11,
+                                    limit_tail = 3,
+                                    parts = value.replace(",", ".").split(".");
+
+                                // render error
+                                var error_key = 'product[skus]['+self.sku_mod.id+'][additional_prices]['+self.field.id+']';
+                                if (parts[0].length > limit_body || (parts[1] && parts[1].length > limit_tail)) {
+                                    self.$set(self.errors, error_key, {
+                                        id: "price_error",
+                                        text: "price_error"
+                                    });
+                                } else {
+                                    if (self.errors[error_key]) {
+                                        self.$delete(that.errors, error_key);
+                                    }
+                                }
+
+                                // set
+                                self.field.value = value;
+                            }
+                        },
+                        mounted: function() {
+                            var self = this;
+
+                            if (self.field.tooltip) {
+                                var tooltip_id = "plugin-tooltip-" + self.field.id;
+                                $.wa.new.Tooltip({
+                                    id: tooltip_id,
+                                    html: self.field.tooltip
+                                });
+                            }
+                        }
+                    },
+                    "component-plugin-field": {
+                        props: ["field", "sku_mod", "errors"],
+                        data: function() {
+                            var self = this;
+                            return {};
+                        },
+                        components: {
+                            "component-plugin-dropdown": {
+                                props: ["field", "sku_mod", "errors"],
+                                data: function() {
+                                    return {};
+                                },
+                                template: that.templates["component-plugin-dropdown"],
+                                delimiters: ['{ { ', ' } }'],
+                                computed: {
+                                    error: function() {
+                                        var self = this,
+                                            error = self.errors['product[skus]['+self.sku_mod.id+'][additional_fields]['+self.field.id+']'];
+
+                                        return (error ? error : null);
+                                    }
+                                },
+                                mounted: function() {
+                                    var self = this;
+
+                                    $(self.$el).waDropdown({
+                                        hover: false,
+                                        items: ".dropdown-item",
+                                        update_title: false,
+                                        change: function(event, target, dropdown) {
+                                            var $target = $(target),
+                                                option_value = $target.attr("data-value");
+
+                                            if (typeof option_value !== "undefined") {
+                                                option_value = (typeof option_value !== "string" ? option_value += "" : option_value);
+
+                                                var active_option_search = self.field.options.filter( function(option) {
+                                                    return ((""+option.value) === option_value);
+                                                });
+
+                                                if (active_option_search.length) {
+                                                    self.$set(self.field, "active_option", active_option_search[0]);
+                                                    self.$emit("change", [option_value, active_option_search[0]]);
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+                            },
+                            "component-plugin-textarea": {
+                                props: ["value", "placeholder", "errors"],
+                                data: function() { return { offset: 0 }; },
+                                template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-on:input="$emit(\'input\', $event.target.value)" v-on:blur="$emit(\'blur\', $event.target.value)"></textarea>',
+                                delimiters: ['{ { ', ' } }'],
+                                updated: function() {
+                                    var self = this;
+                                    var $textarea = $(self.$el);
+
+                                    $textarea.css("min-height", 0);
+                                    var scroll_h = $textarea[0].scrollHeight + self.offset;
+                                    $textarea.css("min-height", scroll_h + "px");
+                                },
+                                mounted: function() {
+                                    var self = this;
+                                    var $textarea = $(self.$el);
+
+                                    self.offset = $textarea[0].offsetHeight - $textarea[0].clientHeight;
+
+                                    $textarea.css("min-height", 0);
+                                    var scroll_h = $textarea[0].scrollHeight + self.offset;
+                                    $textarea.css("min-height", scroll_h + "px");
+
+                                    self.$emit("ready", self.$el.value);
+                                }
+                            }
+                        },
+                        template: that.templates["component-plugin-field"],
+                        delimiters: ['{ { ', ' } }'],
+                        computed: {
+                            error: function() {
+                                var self = this,
+                                    error = self.errors['product[skus]['+self.sku_mod.id+'][additional_fields]['+self.field.id+']'];
+
+                                return (error ? error : null);
+                            }
+                        },
+                        methods: {
+                            validate: function() {
+                                var self = this;
+
+                                var error_id = "product[skus]["+self.sku_mod.id+"][additional_fields]["+self.field.id+"]",
+                                    value = getValue();
+
+                                self.$delete(self.errors, error_id);
+
+                                if (value) {
+                                    // if (self.field.validate.numbers) {
+                                    //
+                                    // }
+                                } else if (self.field.validate) {
+                                    if (self.field.validate.required) {
+                                        self.$set(self.errors, error_id, {
+                                            "id": error_id,
+                                            "text": that.locales["value_required"]
+                                        });
+                                    }
+                                }
+
+                                function getValue() {
+                                    var value = null;
+
+                                    switch (self.field.render_type) {
+                                        case "field":
+                                        case "textarea":
+                                            value = self.field.value;
+                                            break;
+                                        case "select":
+                                            if (self.field.active_option) {
+                                                value = self.field.active_option.value;
+                                            }
+                                            break;
+                                    }
+
+                                    return value;
+                                }
+                            }
+                        },
+                        mounted: function() {
+                            var self = this;
+
+                            if (self.field.tooltip) {
+                                var tooltip_id = "plugin-tooltip-" + self.field.id;
+                                $.wa.new.Tooltip({
+                                    id: tooltip_id,
+                                    html: self.field.tooltip
+                                });
+                            }
+                        }
+                    },
+                    "component-flex-textarea": {
+                        props: ["value", "placeholder"],
+                        data: function() {
+                            return {
+                                offset: 0
+                            };
+                        },
+                        template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-on:input="$emit(\'input\', $event.target.value)" v-on:blur="$emit(\'blur\', $event.target.value)"></textarea>',
+                        delimiters: ['{ { ', ' } }'],
+                        updated: function() {
+                            var self = this;
+                            var $textarea = $(self.$el);
+
+                            $textarea.css("min-height", 0);
+                            var scroll_h = $textarea[0].scrollHeight + self.offset;
+                            $textarea.css("min-height", scroll_h + "px");
+                        },
+                        mounted: function() {
+                            var self = this;
+                            var $textarea = $(self.$el);
+
+                            self.offset = $textarea[0].offsetHeight - $textarea[0].clientHeight;
+
+                            $textarea.css("min-height", 0);
+                            var scroll_h = $textarea[0].scrollHeight + self.offset;
+                            $textarea.css("min-height", scroll_h + "px");
+
+                            self.$emit("ready", self.$el.value);
+                        }
                     }
                 },
                 computed: {
                 },
                 methods: {
-                    removeError: function(error_id) {
-                        var error_index = null;
-                        $.each(that.errors.global, function(i, error) {
-                            if (error.id === error_id) {
-                                error_index = i;
-                                return false;
-                            }
-                        });
+                    renderErrors: function(errors, scroll2top) {
+                        var self = this;
 
-                        if (typeof error_index === "number") {
-                            that.errors.splice(error_index, 1);
+                        if (errors && errors.length) {
+                            $.each(errors, function(i, error) {
+                                self.renderError(error);
+                            });
+
+                            self.$nextTick( function() {
+                                if (scroll2top) {
+                                    var $error = $(".wa-error-text:first");
+                                    if ($error.length) {
+                                        $(window).scrollTop($error.offset().top - 150);
+                                    } else {
+                                        $(window).scrollTop(0);
+                                    }
+                                }
+                            });
+                        }
+                    },
+                    renderError: function(error) {
+                        var self = this;
+                        if (!error) {
+                            return;
+                        }
+
+                        var white_list = ["price_error", "plugin_price_error", "plugin_field_error"];
+                        if (error.id && white_list.indexOf(error.id) >= 0) {
+                            if (error.data) {
+                                // Если модификации - артикулы скрыты, то открываем их.
+                                if (error.data.sku_id && error.data.sku_sku && (typeof error.data.sku_sku === "string")) {
+                                    var skus_search = that.product.skus.filter( function(sku) {
+                                        return (sku.sku === error.data.sku_sku);
+                                    });
+                                    if (skus_search.length) {
+                                        var target_sku = null,
+                                            target_sku_mod = null;
+
+                                        $.each(skus_search, function(i, sku) {
+                                            $.each(sku.modifications, function(i, sku_mod) {
+                                                if (sku_mod.id === error.data.sku_id) {
+                                                    target_sku = sku;
+                                                    target_sku_mod = sku_mod;
+                                                    return false;
+                                                }
+                                            });
+                                            if (target_sku) { return false; }
+                                        });
+
+                                        if (target_sku) {
+                                            target_sku.expanded = true;
+                                            target_sku_mod.expanded = true;
+                                        }
+                                    }
+                                }
+                            }
+
+                            self.$set(that.errors, (error.name || error.id), error);
+                        } else {
+                            that.errors.global.push(error);
+                        }
+                    },
+                    removeErrors: function(errors) {
+                        var self = this;
+
+                        errors = (typeof errors === "object" ? errors : null);
+
+                        // Очистка всех ошибок
+                        if (errors === null) {
+                            $.each(that.errors, function(key) {
+                                if (key !== "global") {
+                                    self.$delete(that.errors, key);
+                                } else {
+                                    that.errors.global.splice(0, that.errors.global.length);
+                                }
+                            });
+
+                        } else if (errors && errors.length) {
+                            $.each(errors, function(i, error_id) {
+                                self.removeError(error_id);
+                            });
+                        }
+                    },
+                    removeError: function(error_id, error) {
+                        var self = this;
+
+                        if (that.errors[error_id]) {
+                            self.$delete(that.errors, error_id);
+                        } else {
+                            var error_index = that.errors.global.indexOf(error);
+                            if (error_index >= 0) {
+                                that.errors.global.splice(error_index, 1);
+                            }
                         }
                     },
 
@@ -2127,6 +2441,7 @@
                     },
                     changeSkuModStocks: function(sku_mod) {
                         var stocks_count = 0,
+                            is_infinite = false,
                             is_set = false;
 
                         var virtual_stocks = [];
@@ -2136,6 +2451,7 @@
                                 is_set = true;
                                 stocks_count += value;
                             } else {
+                                is_infinite = true;
                                 value = "";
                             }
                             sku_mod.stock[stock_id] = value;
@@ -2156,6 +2472,9 @@
                                     if (!isNaN(sub_stock_value)) {
                                         if (!value) { value = 0; }
                                         value += sub_stock_value;
+                                    } else {
+                                        value = "";
+                                        return false;
                                     }
                                 });
                             }
@@ -2164,7 +2483,7 @@
                         });
 
                         sku_mod.stocks_mode = is_set;
-                        sku_mod.count = (is_set ? stocks_count : "");
+                        sku_mod.count = (is_set && !is_infinite ? stocks_count : "");
 
                         that.updateModificationStocks(sku_mod);
                     },
@@ -2492,6 +2811,9 @@
                             if (!isNaN(sub_stock_value)) {
                                 if (!value) { value = 0; }
                                 value += sub_stock_value;
+                            } else {
+                                value = "";
+                                return false;
                             }
                         });
                     }
@@ -2583,6 +2905,9 @@
                         } else {
                             is_critical = true;
                         }
+                    } else {
+                        is_set = false;
+                        return false;
                     }
                 });
 
@@ -3092,6 +3417,77 @@
                         errors.push("sku.sku.unique");
                     }
                 }
+
+                $.each(sku.modifications, function(i, sku_mod) {
+                    if (sku_mod.additional_prices.length) {
+                        $.each(sku_mod.additional_prices, function(i, field) {
+                            if (field.validate) {
+                                var error_id = "product[skus]["+sku_mod.id+"][additional_prices]["+field.id+"]",
+                                    value = $.trim(field.value);
+
+                                if (value.length) {
+                                    if (field.validate.numbers) {
+                                        var is_valid = $.wa.isValid("price", value);
+                                        if (!is_valid) {
+                                            Vue.set(that.errors, error_id, {
+                                                "id": error_id,
+                                                "text": that.locales["value_invalid"]
+                                            });
+                                            errors.push("field_value_invalid");
+                                        }
+                                    }
+                                } else if (field.validate.required) {
+                                    Vue.set(that.errors, error_id, {
+                                        "id": error_id,
+                                        "text": that.locales["value_required"]
+                                    });
+                                    errors.push("field_value_required");
+                                }
+                            }
+                        });
+
+                        $.each(sku_mod.additional_fields, function(i, field) {
+                            if (field.validate) {
+                                var error_id = "product[skus]["+sku_mod.id+"][additional_fields]["+field.id+"]",
+                                    value = getValue(field);
+
+                                Vue.delete(that.errors, error_id);
+
+                                if (value) {
+                                    // if (field.validate.numbers) {
+                                    //      errors.push("field_value_invalid");
+                                    // }
+                                } else if (field.validate) {
+                                    if (field.validate.required) {
+                                        Vue.set(that.errors, error_id, {
+                                            "id": error_id,
+                                            "text": that.locales["value_required"]
+                                        });
+                                        errors.push("field_value_required");
+                                    }
+                                }
+
+                                function getValue(field) {
+                                    var value = null;
+
+                                    switch (field.render_type) {
+                                        case "field":
+                                        case "textarea":
+                                            value = $.trim(field.value);
+                                            break;
+                                        case "select":
+                                            if (field.active_option) {
+                                                value = field.active_option.value;
+                                            }
+                                            break;
+                                    }
+
+                                    return value;
+                                }
+                            }
+                        });
+                    }
+                });
             });
 
             return errors;
@@ -3120,74 +3516,85 @@
         Section.prototype.initSave = function() {
             var that = this;
 
-            that.$form.on("submit", function(event) {
-                event.preventDefault();
-            });
-
             that.$wrapper.on("click", ".js-product-save", function (event, options) {
                 options = (options || {});
 
                 event.preventDefault();
 
+                var $button = $(this);
+
                 // Останавливаем сохранение если во фронте есть ошибки
-                var errors = that.validate();
-                if (errors.length) {
+                var errors = that.validate(),
+                    no_plugin_errors = true,
+                    plugin_errors = [],
+                    data;
+                if (!errors.length) {
+                    data = getProductData();
+                    no_plugin_errors = beforeSavePluginHook(data, plugin_errors);
+                    if (plugin_errors.length > 0) {
+                        no_plugin_errors = false;
+                        $.each(plugin_errors, function(i, err) {
+                            if (err && err.id) {
+                                Vue.set(that.errors, err.id, err);
+                            }
+                        });
+                    }
+                }
+
+                if (errors.length || !no_plugin_errors) {
                     var $error = $(".wa-error-text:first");
                     if ($error.length) {
-                        $(window).scrollTop($error.offset().top - 100);
+                        $(window).scrollTop($error.offset().top - 150);
                     }
                     return false;
                 }
 
-                var loading = "<span class=\"icon top\" style=\"margin-left: .5rem\"><i class=\"fas fa-spinner fa-spin\"></i></span>";
+                that.usePlugins("save")
+                    .done( function(data_array) {
+                        var plugins_data = [];
 
-                var $button = $(this),
-                    $loading = $(loading).appendTo($button.attr("disabled", true));
+                        $.each(data_array, function(i, data) {
+                            plugins_data = plugins_data.concat(data);
+                        });
 
-                // Очищаем ошибки
-                $.each(that.errors, function(key, error) {
-                    // Точечные ошибки
-                    if (key !== "global") { Vue.delete(that.errors, key); }
-                    // Общие ошибки
-                    else if (error.length) {
-                        error.splice(0, error.length);
-                    }
-                });
-
-                setSessionData();
-
-                sendRequest()
-                    .done( function() {
-                        if (options.redirect_url) {
-                            $.wa_shop_products.router.load(options.redirect_url);
-                        } else {
-                            $.wa_shop_products.router.reload();
-                        }
-                    })
-                    .fail( function(errors) {
-                        $button.attr("disabled", false);
-                        $loading.remove();
-
-                        if (errors) {
-                            $.each(errors, function(i, error) {
-                                console.log( error );
-
-                                if (error.id) {
-                                    switch (error.id) {
-                                        case "price_error":
-                                            Vue.set(that.errors, error.name, error);
-                                            break;
-                                        default:
-                                            that.errors.global.push(error);
-                                            break;
-                                    }
-                                } else {
-                                    that.errors.global.push(error);
-                                }
-                            });
-                            $(window).scrollTop(0);
-                        }
+                        data = data.concat(plugins_data);
+                        save();
                     });
+
+                function save() {
+
+                    var loading = "<span class=\"icon top\" style=\"margin-left: .5rem\"><i class=\"fas fa-spinner fa-spin\"></i></span>",
+                        $loading = $(loading).appendTo($button.attr("disabled", true));
+
+                    // Очищаем ошибки
+                    that.vue_model.removeErrors();
+
+                    setSessionData();
+
+                    sendRequest(data)
+                        .done( function(server_data) {
+                            if (options.redirect_url) {
+                                $.wa_shop_products.router.load(options.redirect_url).fail( function() {
+                                    location.href = options.redirect_url;
+                                });
+                            } else {
+                                $.wa_shop_products.router.reload();
+                            }
+                            afterSavePluginHook(data, server_data);
+                        })
+                        .fail( function(errors) {
+                            $button.attr("disabled", false);
+                            $loading.remove();
+
+                            afterSaveFailPluginHook(data, errors ? errors : []);
+
+                            if (errors) {
+                                that.vue_model.renderErrors(errors, true);
+                            }
+                        });
+
+                    savePluginHook(data);
+                }
 
                 function setSessionData() {
                     var scroll_top = $(window).scrollTop();
@@ -3211,8 +3618,8 @@
                 }
             });
 
-            function sendRequest() {
-                var data = getProductData();
+
+            function sendRequest(data) {
 
                 return request(data);
 
@@ -3252,6 +3659,10 @@
                     {
                         "name": "product[currency]",
                         "value": that.product.currency
+                    },
+                    {
+                        "name": "product[params_string]",
+                        "value": that.product.params
                     },
                     {
                         "name": "product[params][multiple_sku]",
@@ -3317,6 +3728,7 @@
                             setFeatures(sku_mod.features, prefix + "[features]");
 
                             setStocks(sku_mod, prefix);
+                            setPluginData(sku_mod, prefix);
                         });
                     });
 
@@ -3347,6 +3759,39 @@
                         }
 
                         data = data.concat(stocks_data);
+                    }
+
+                    function setPluginData(sku_mod, prefix) {
+                        if (sku_mod.additional_prices.length) {
+                            $.each(sku_mod.additional_prices, function(i, field) {
+                                data.push({
+                                    name: prefix + "[additional_prices]["+field.id+"]",
+                                    value: field.value
+                                });
+                            });
+                        }
+                        if (sku_mod.additional_fields.length) {
+                            $.each(sku_mod.additional_fields, function(i, field) {
+                                switch (field.render_type) {
+                                    case "field":
+                                    case "textarea":
+                                        data.push({
+                                            name: prefix + "[additional_fields]["+field.id+"]",
+                                            value: field.value
+                                        });
+                                        break;
+                                    case "select":
+                                        if (field.active_option) {
+                                            data.push({
+                                                name: prefix + "[additional_fields]["+field.id+"]",
+                                                value: field.active_option.value
+                                            });
+                                        }
+                                        break;
+                                }
+
+                            });
+                        }
                     }
                 }
 
@@ -3496,6 +3941,102 @@
                         });
                     }
                 }
+            }
+
+            /**
+             * Event allows to perform validation before sending data to server.
+             *
+             * Plugin may have added SKU fields to the page: price fields and additional SKU fields.
+             * SKU fields are duplicated for each SKU on page. See PHP event: backend_prod_sku_fields.
+             *
+             * Plugin may have also added basic form fields that are shown above SKU form
+             * and not duplicated for each SKU. See PHP event: backend_prod_content.
+             *
+             * For non-SKU fields, plugin should show validation message directly below its fields.
+             * Just like on General tab. In this case, cancel form submit like this:
+
+               event.preventDefault();
+
+             * `event` being jQuery event that triggered the hook.
+             *
+             * To implement custom validation for SKU price or additional fields added by plugin,
+             * use event.form_errors:
+
+                event.form_errors.push({
+                    "id": full name of the field as in event.form_data, e.g. "product[skus][906][additional_fields][debug_txtarea]"
+                    "text": your custom error text
+                });
+
+             * You may add data to be sent to ProdSaveSku controller like this example:
+
+               event.form_data.push({
+                    name: "yourplugin[key]",
+                    value: "value"
+               });
+
+             * You may use any name. Whatever you send has to be processed on the server,
+             * see PHP hooks `backend_prod_presave`, `backend_prod_save`
+             */
+            function beforeSavePluginHook(data, errors) {
+                return triggerHook($.Event('wa_before_save', {
+                    product_id: that.product.id,
+                    section_controller: that,
+                    form_errors: errors,
+                    form_data: data
+                }));
+            }
+
+            /**
+             * Triggered just after form data are sent to server (ProdSaveSku controller).
+             * This may be a good place to send data to your own plugin PHP controller.
+             */
+            function savePluginHook(data) {
+                triggerHook($.Event('wa_save', {
+                    product_id: that.product.id,
+                    section_controller: that,
+                    form_data: data.data
+                }));
+            }
+
+            /**
+             * Triggers `wa_after_save` after a successfull save (ProdSaveSku controller).
+             *
+             * Successfull event contains `server_data` and contains no `server_errors`.
+             */
+            function afterSavePluginHook(form_data, server_data) {
+                triggerHook($.Event('wa_after_save', {
+                    product_id: that.product.id || (server_data && server_data.data && server_data.data.id),
+                    section_controller: that,
+                    server_data: server_data,
+                    form_data: form_data
+                }));
+            }
+
+
+            /**
+             * Triggers `wa_after_save` when server controller returned validation errors.
+             *
+             * Unsuccessfull event contains `server_errors` and contains no `server_data` key.
+             *
+             * Successfull event will contain `server_data` and contain no `server_errors`.
+             * Use this to show custom validation message returned by your plugin via `backend_prod_presave`.
+             */
+            function afterSaveFailPluginHook(form_data, server_errors) {
+                triggerHook($.Event('wa_after_save', {
+                    product_id: that.product.id,
+                    section_controller: that,
+                    server_errors: server_errors,
+                    form_data: form_data
+                }));
+            }
+
+            function triggerHook(event) {
+                try {
+                    $('#js-product-sku-section-wrapper').trigger(event);
+                } catch(e) {
+                    console.log(e);
+                }
+                return !event.isDefaultPrevented();
             }
         };
 
@@ -4560,8 +5101,6 @@
         Section.prototype.moveMod = function(moved_sku_index, moved_mod_index, drop_sku_index, drop_mod_index) {
             var that = this;
 
-            // console.log(moved_sku_index, moved_mod_index, drop_sku_index, drop_mod_index);
-
             var moved_sku = that.product.skus[moved_sku_index],
                 moved_mod = moved_sku.modifications[moved_mod_index],
                 drop_sku = that.product.skus[drop_sku_index];
@@ -4578,6 +5117,65 @@
             that.highlight("sku_mod", { sku_mod: moved_mod });
 
             that.$wrapper.trigger("change");
+        };
+
+        // Плагины
+
+        Section.prototype.initPlugin = function(plugin_id, plugin_data) {
+            var that = this;
+
+            if (that.plugins[plugin_id]) {
+                console.error("Plugin already exist and will be overwritten");
+            }
+
+            that.plugins[plugin_id] = plugin_data;
+        };
+
+        Section.prototype.usePlugins = function(action_name) {
+            var that = this;
+
+            var deferred = $.Deferred(),
+                result = [];
+
+            if (Object.keys(that.plugins).length) {
+                var plugin_promise_count = 0;
+                var stop = false;
+
+                $.each(that.plugins, function(id, plugin) {
+                    if (plugin.on && typeof plugin.on[action_name] === "function") {
+                        plugin_promise_count += 1;
+                        var promise = plugin.on[action_name](that);
+                        promise
+                            .fail( function() {
+                                stop = true;
+                            })
+                            .done( function(form_data) {
+                                if (form_data) {
+                                    result.push(form_data);
+                                }
+                            })
+                            .always( function() {
+                                plugin_promise_count -= 1;
+                                if (plugin_promise_count === 0) {
+                                    finish();
+                                }
+                            });
+                    }
+                });
+
+                function finish() {
+                    if (stop) {
+                        deferred.reject();
+                    } else {
+                        deferred.resolve(result);
+                    }
+                }
+
+            } else {
+                deferred.resolve(result);
+            }
+
+            return deferred.promise();
         };
 
         return Section;

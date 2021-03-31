@@ -41,8 +41,7 @@
                 </span>
             </a>
         </li>
-        <li class="disabled">
-{*
+        <li>
             <a href="{$wa_app_url}products/{$id|escape}/services/">
                 <span>[`Services`]</span>
                 <span class="count">
@@ -50,15 +49,6 @@
                         <i class="s-icon fas fa-question-circle"></i>
                     </span>
                 </span>
-            </a>
-*}
-            <a class="flexbox" href="javascript:void(0);">
-                <div class="wa-tooltip custom top wide">
-                    <div>[`Services`]</div>
-                    <div class="tooltip-text">
-                        <p>[`This section is not available yet, we are still working on it.`]</p>
-                    </div>
-                </div>
             </a>
         </li>
         <li>
@@ -82,8 +72,7 @@
             </a>
             *}
         </li>
-        <li class="disabled">
-{*
+        <li>
             <a href="{$wa_app_url}products/{$id|escape}/pages/">
                 <span>[`Subpages`]</span>
                 <span class="count">
@@ -92,16 +81,12 @@
                     </span>
                 </span>
             </a>
-*}
-            <a class="flexbox" href="javascript:void(0);">
-                <div class="wa-tooltip custom top wide">
-                    <div>[`Subpages`]</div>
-                    <div class="tooltip-text">
-                        <p>[`This section is not available yet, we are still working on it.`]</p>
-                    </div>
-                </div>
-            </a>
         </li>
+
+        <!-- plugin hook: 'backend_prod.sidebar_item' -->
+        {* @event backend_prod.%plugin_id%.sidebar_item *}
+        {if !empty($backend_prod_event)}{foreach $backend_prod_event as $_}{ifset($_.sidebar_item)}{/foreach}{/if}
+
     </ul>
 </section>
 
@@ -132,16 +117,14 @@
                 </div>
             </a>
         </li>
-        <li class="disabled">
-{*            {$wa_app_url}products/{$id|escape}/reviews/*}
-
-            <a class="flexbox" href="javascript:void(0);">
-                <div class="wa-tooltip custom top wide">
-                    <div>[`Reviews`]</div>
-                    <div class="tooltip-text">
-                        <p>[`This section is not available yet, we are still working on it.`]</p>
-                    </div>
-                </div>
+        <li>
+            <a href="{$wa_app_url}products/{$id|escape}/reviews/">
+                <span>[`Reviews`]</span>
+                <span class="count">
+                    <span class="wa-tooltip bottom-left" data-title="{_w("Описание раздела Отзывов")|escape}">
+                        <i class="s-icon fas fa-question-circle"></i>
+                    </span>
+                </span>
             </a>
         </li>
     </ul>

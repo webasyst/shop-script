@@ -467,14 +467,7 @@
         initSearch: function () {
             var search = function () {
                 // encodeURIComponent ?..
-                var search_data = getSearchData(this.value);
-
-                $.wa.setHash('#/products/'+($.products.list_params && $.products.list_params.view ? 'view='+$.products.list_params.view+'&' : '') + search_data);
-
-                function getSearchData(value) {
-                    var string = (parseInt(value) > 0 ? "hash=id/" : "text=");
-                    return (string + encodeURIComponent(value));
-                }
+                $.wa.setHash('#/products/'+($.products.list_params && $.products.list_params.view ? 'view='+$.products.list_params.view+'&' : '')+'text='+encodeURIComponent(this.value));
             };
 
             var $products_search = $('#s-products-search');

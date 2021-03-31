@@ -139,7 +139,6 @@ class shopBackendWelcomeAction extends waViewAction
             'actions'           => shopTutorialActions::getActions(true),
             'currencies'        => $this->getCurrencies(),
             //'types'             => $this->getShortedProductTypes(),
-            'backend_welcome'   => $this->getBackendWelcomeEvent(),
             'tutorial_progress' => shopTutorialActions::getTutorialProgress(),
             'tutorial_visible'  => $tutorial_visible,
             'shop_demo_data_source_list' => shopDemoDataImporter::getSourceList(),
@@ -402,51 +401,6 @@ class shopBackendWelcomeAction extends waViewAction
         }
 
         return $types;
-    }
-
-    /**
-     * Call backend_welcome event and convert data to html
-     * @return array
-     * @throws Exception
-     */
-    protected function getBackendWelcomeEvent()
-    {
-        $backend_welcome = wa()->event('backend_welcome');
-
-        $params = array(
-            'title_wrapper'       => '%s',
-            'description_wrapper' => '<br><span class="hint">%s</span>',
-            'control_wrapper'     => '
-<div class="field">
-    <div class="name">%s</div>
-    <div class="value no-shift">%s%s</div>
-</div>
-',
-            'control_separator'   => '</div><div class="value">',
-        );
-
-        foreach ($backend_welcome as $plugin => &$data) {
-            if (isset($data['controls'])) {
-                if (is_array($data['controls'])) {
-                    $controls = array();
-                    foreach ($data['controls'] as $name => $row) {
-                        if (is_array($row)) {
-                            $row = array_merge($row, $params);
-                            waHtmlControl::addNamespace($row, $plugin);
-                            if (!empty($row['control_type'])) {
-                                $controls[$name] = waHtmlControl::getControl($row['control_type'], $name, $row);
-                            }
-                        } else {
-                            $controls[$name] = $row;
-                        }
-                    }
-                    $data['controls'] = implode("\n", $controls);
-                }
-            }
-            unset($data);
-        }
-
-        return $backend_welcome;
     }
 
     /**
