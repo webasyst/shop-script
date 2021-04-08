@@ -586,7 +586,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
         $this->data['taxes'] = $result;
     }
 
-    private function getAvailableCurrencies()
+    protected function getAvailableCurrencies()
     {
         $model = new shopCurrencyModel();
         $this->data['currency'] = array();
@@ -1486,7 +1486,7 @@ SQL;
      * @return shopYandexmarketPlugin
      * @throws waException
      */
-    private function plugin()
+    protected function plugin()
     {
         static $plugin;
         if (!$plugin) {
@@ -2009,7 +2009,7 @@ SQL;
                         } else {
                             /** случай когда товар участвует в нескольких промо-акциях */
                             $error_message = sprintf(
-                                _wp("Ошибка #88771: предложение с id #%s пропущено, потому что оно используется в нескольких промо-акциях [%s]"),
+                                _wp("Ошибка #88771: предложение с id #%s пропущено, потому что оно используется в нескольких промоакциях [%s]"),
                                 $product['id'],
                                 implode(', ', $this->data['promo_products'][$id]['promo_list'])
                             );
@@ -2567,7 +2567,7 @@ SQL;
 
         if (!$fields) {
             $fields = array(
-                'name'        => _wp('Название продукта'),
+                'name'        => _wp('Название товара'),
                 'description' => _wp('Описание'),
                 'summary'     => _wp('Краткое описание'),
                 'sku'         => _wp('Код артикула'),
@@ -2724,7 +2724,7 @@ SQL;
 
         if (!$valid) {
             $error_message = sprintf(
-                _wp("Ошибка #88757: промо-акция [%s] для товара %s не соответствует требованиям. ").$message,
+                _wp("Ошибка #88757: промоакция [%s] для товара %s не соответствует требованиям. ").$message,
                 $promo_id,
                 $product_id
             );
