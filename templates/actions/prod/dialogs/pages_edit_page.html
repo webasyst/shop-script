@@ -3,14 +3,14 @@
     <div class="dialog-body">
         <div class="js-vue-node-wrapper" style="visibility: hidden;">
             <div class="dialog-header">
-                <h2>{ { page.name ? page.name : {_w("Новая страница")|json_encode} } }</h2>
+                <h2>{ { page.name ? page.name : {_w("New page")|json_encode} } }</h2>
             </div>
             <div class="dialog-content">
                 <div class="wa-fields">
                     {* NAME *}
                     <div class="wa-field">
                         <div class="name size-small">
-                            <span>[`Название страницы`]</span>
+                            <span>[`Page title`]</span>
                         </div>
                         <div class="value">
                             <component-flex-textarea
@@ -22,7 +22,7 @@
                     {* STATUS *}
                     <div class="wa-field">
                         <div class="name size-small unshifted">
-                            <span>[`Публикация на сайте`]</span>
+                            <span>[`Published on the website`]</span>
                         </div>
                         <div class="value">
                             <component-switch v-model="page.status"
@@ -33,7 +33,7 @@
                     {* URL *}
                     <div class="wa-field">
                         <div class="name size-small">
-                            <span>[`URL-адрес страницы`]</span>
+                            <span>[`Page URL`]</span>
                         </div>
                         <div class="value">
                             <div class="s-field-wrapper">
@@ -42,7 +42,7 @@
                                        v-on:input="onChangeUrl">
 
                                 <div class="wa-error-text" v-if="!!errors['url_required']">
-                                    { { errors['url_required'].text.length ? errors['url_required'].text : "{_w("URL обязателен для сохранения")|escape}" } }
+                                    { { errors['url_required'].text.length ? errors['url_required'].text : "{_w("The URL is a required field.")|escape}" } }
                                 </div>
                             </div>
                             <div class="s-url-wrapper">
@@ -148,7 +148,7 @@
                         {if !empty($frontend_urls)}
                             {$_front = reset($frontend_urls)}
                             <template v-if="origin_page && origin_page.id">
-                                <a class="s-url" v-bind:href="'{$_front.url|escape}' + origin_page.url + '/' + (origin_page.status ? '' : '?preview={$preview_hash}')" target="_blank">[`Просмотр`]&nbsp<i class="fas fa-external-link-square-alt"></i></a>
+                                <a class="s-url" v-bind:href="'{$_front.url|escape}' + origin_page.url + '/' + (origin_page.status ? '' : '?preview={$preview_hash}')" target="_blank">[`View page`]&nbsp<i class="fas fa-external-link-square-alt"></i></a>
                             </template>
                         {/if}
                     </div>

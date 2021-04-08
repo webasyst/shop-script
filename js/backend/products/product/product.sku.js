@@ -3670,6 +3670,8 @@
                     }
                 ];
 
+                setPluginFields();
+
                 setBadge();
 
                 setSKUS();
@@ -3793,6 +3795,17 @@
                             });
                         }
                     }
+                }
+
+                function setPluginFields() {
+                    var $wrapper = $('#js-plugin-fields-place');
+                    $wrapper.find(':input[name]').each(function(i, field) {
+                        var $field = $(field);
+                        data.push({
+                            name: $field.attr('name'),
+                            value: $field.val()
+                        });
+                    });
                 }
 
                 function setBadge() {

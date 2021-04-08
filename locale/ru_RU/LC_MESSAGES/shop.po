@@ -5872,6 +5872,9 @@ msgstr "Описание и SEO"
 msgid "Subpages"
 msgstr "Подстраницы"
 
+msgid "Additional website pages with extra info about this product."
+msgstr "Дополнительные страницы сайта с расширенной информацией о товаре."
+
 msgid "Additional category"
 msgstr "Дополнительная категория"
 
@@ -11217,7 +11220,7 @@ msgstr "Все характеристики товара"
 msgid "Enter a value"
 msgstr "Введите значение"
 
-msgid "You can change the product type on the “Basic data” page."
+msgid "You can change the product type on the “Basic data” tab."
 msgstr "Изменить тип товара можно на странице «Основные данные»."
 
 msgid "Move by one SKU up"
@@ -11847,6 +11850,9 @@ msgstr[0] "%d модификация"
 msgstr[1] "%d модификации"
 msgstr[2] "%d модификаций"
 
+msgid "%s SKUs with %s variants each."
+msgstr "%s артикулов, в каждом %s модификаций."
+
 msgid "Total: %s."
 msgstr "Всего %s."
 
@@ -11918,3 +11924,147 @@ msgstr "Для типа «%s» заданы рекомендации:"
 
 msgid "If you have not found a certain product, enter a more detailed search query to see more exact results."
 msgstr "Если вы не нашли какой-то товар, введите более подробный поисковый запрос, чтобы получить более точные результаты."
+
+msgid "Coupons search"
+msgstr "Поиск купонов"
+
+msgid "Set up services for all products or for selected product types, or for individual products."
+msgstr "Создавайте и настраивайте услуги для всех товаров, выбранных типов или отдельных товаров."
+
+msgid "To apply a service to an individual product, disable its use for the entire product type."
+msgstr "Чтобы настроить услугу индивидуально для товара, отключите наследование настроек от типа товара."
+
+msgid "Configure services"
+msgstr "Настроить услуги"
+
+msgid "Select available services"
+msgstr "Изменить услуги товара"
+
+msgid "SKUs & variants"
+msgstr "Артикулы и модификации"
+
+msgid "The service is inherited from the product type. You cannot remove the service from this product but you can disable it or override it for this product."
+msgstr "Услуга наследуется от типа товара. Убрать такую услугу из товара нельзя, но можно отключить или переопределить для этого товара."
+
+msgid "Individually added service. You can remove it from the product, disable or override it."
+msgstr "Отдельно добавленная услуга. Можно убрать ее из товара, отключить или переопределить."
+
+msgid "Overriding of service settings for this product is enabled."
+msgstr "Включено переопределение настроек услуги для этого товара."
+
+msgid "Inheriting of settings from the parent service is enabled."
+msgstr "Включено наследование настроек от родительской услуги."
+
+msgid "All service options are visible in the storefront."
+msgstr "Все варианты услуги включены для показа на витрине."
+
+msgid "The service is visible in the storefront."
+msgstr "Услуга включена для показа на витрине."
+
+msgid "The service is hidden from the storefront."
+msgstr "Услуга отключена для показа на витрине."
+
+msgid "The service option is visible in the storefront."
+msgstr "Вариант услуги включен для показа на витрине."
+
+msgid "The service option is hidden from the storefront."
+msgstr "Вариант услуги отключен для показа на витрине."
+
+msgid "Default service option."
+msgstr "Вариант услуги по умолчанию."
+
+msgid "Click to select as the default service option."
+msgstr "Щелкните, чтобы выбрать вариантом по умолчанию."
+
+msgid "Service options and their variants are inherited from the product type."
+msgstr "Варианты услуги и их модификации наследуются от типа товара."
+
+msgid "The service is set up for the entire product type; therefore, you cannot remove it from this product. But you can hide the service from the storefront."
+msgstr "Услуга задана для всего типа товара, поэтому удалить ее из этого товара нельзя. Но вы можете отключить показ услуги на витрине."
+
+msgid "Under moderation"
+msgstr "На модерации"
+
+msgid "Reply"
+msgstr "Ответить"
+
+msgid "Reviews not found."
+msgstr "Отзывы не найдены."
+
+msgid "Reviews per page:"
+msgstr "Отзывов на странице:"
+
+msgid "Published on the website"
+msgstr "Опубликована на сайте"
+
+msgid "View page"
+msgstr "Просмотр"
+
+msgid "Review deletion confirmation"
+msgstr "Подтверждение удаления отзыва"
+
+msgid "Do you really want to delete this review?"
+msgstr "Вы действительно хотите удалить этот отзыв?"
+
+msgid "Image deletion confirmation"
+msgstr "Подтверждение удаления изображения"
+
+msgid "Do you really want to delete this image?"
+msgstr "Вы действительно хотите удалить это изображение?"
+
+msgid "Additional selectable product options, allowing you to increase the product cost."
+msgstr "Дополнительные доступные для выбора свойства товара, позволяющие увеличить его стоимость."
+
+msgid "Select additional services for this product"
+msgstr "Выберите дополнительные услуги для этого товара"
+
+msgid "You can add a new service in the “<a href=\"%s\">Services</a>” section."
+msgstr "Добавить новую услугу можно в разделе «<a href=\"%s\">Услуги</a>»."
+
+msgid "Page deletion confirmation"
+msgstr "Подтверждение удаления страницы"
+
+msgid "Do you really want to delete this page?"
+msgstr "Вы действительно хотите удалить эту страницу?"
+
+msgid "Subpages enable you to add more useful content to product pages such as user manuals, photo galleries, user reviews, etc."
+msgstr "Подстраницы позволяют дополнить информацию о товаре сопутствующими материалами, например, руководствами пользователя, фотографиями, обзорами и т. п."
+
+msgid "Add new pages, and they will appear in the list."
+msgstr "Добавьте новые страницы, и они появятся в списке."
+
+msgid "The list of product reviews added by your customers."
+msgstr "Список отзывов о товарах, добавленных вашими покупателями."
+
+msgid "Please specify the address"
+msgstr "Пожалуйста, уточните адрес"
+
+msgid "Unable to save the service."
+msgstr "Не удалось сохранить услугу."
+
+msgid "The URL is a required field."
+msgstr "Поле URL обязательно для заполнения."
+
+msgid "The specified URL already exists."
+msgstr "Указанный URL уже существует."
+
+msgid "Rating, ascending"
+msgstr "Рейтинг, по возрастанию"
+
+msgid "Rating, descending"
+msgstr "Рейтинг, по убыванию"
+
+msgid "Date, ascending"
+msgstr "Дата, по возрастанию"
+
+msgid "Date, descending"
+msgstr "Дата, по убыванию"
+
+msgid "There are no stocks available for selection. Set up stocks in section “Settings → Stocks”."
+msgstr "Нет складов, доступных для выбора. Настройте склады в разделе «Настройки → Склады»."
+
+msgid "Tools allowing you to manage how a product is indexed by search engines and viewed by social media users."
+msgstr "Инструменты, позволяющие управлять индексацией информации о товаре поисковыми системами и тем, как она отображается для пользователей соцсетей."
+
+msgid "Selection of other products, which should be offered to customers as a more valuable replacement or as a useful addition to this product."
+msgstr "Выбор других товаров, которые должны предлагаться покупателям как более ценная замена или как полезное дополнение к данному товару."

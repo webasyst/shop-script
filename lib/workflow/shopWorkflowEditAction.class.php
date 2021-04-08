@@ -167,10 +167,12 @@ class shopWorkflowEditAction extends shopWorkflowAction
             try {
                 if ($shipping_plugin = shopShipping::getPlugin(null, $data['params']['shipping_id'])) {
                     $shipping_currency = $shipping_plugin->allowedCurrency();
-                    $data['params']['shipping_currency'] = $shipping_currency;
-                    $rate_model = new shopCurrencyModel();
-                    if ($row = $rate_model->getById($shipping_currency)) {
-                        $data['params']['shipping_currency_rate'] = str_replace(',', '.', $row['rate']);
+                    if ($shipping_currency) {
+                        $data['params']['shipping_currency'] = $shipping_currency;
+                        $rate_model = new shopCurrencyModel();
+                        if ($row = $rate_model->getById($shipping_currency)) {
+                            $data['params']['shipping_currency_rate'] = str_replace(',', '.', $row['rate']);
+                        }
                     }
                 }
 

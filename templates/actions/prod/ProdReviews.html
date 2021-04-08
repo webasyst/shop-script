@@ -73,7 +73,7 @@
                         <span class="color-green-dark bold"
                               v-if="review.status === '{$review_states["published"]}'">[`Published`]</span>
                         <span class="color-orange bold"
-                              v-if="review.status === '{$review_states["moderation"]}'">[`На модерации`]</span>
+                              v-if="review.status === '{$review_states["moderation"]}'">[`Under moderation`]</span>
                     </div>
                     <div class="s-column-actions align-right">
                         <button class="wa-button wa-small wa-short transparent-red"
@@ -128,7 +128,8 @@
 
                 {* TITLE *}
                 <div class="s-review-title">
-                    <div class="s-rating">
+                    <div class="s-rating"
+                         v-if="review.show_rate">
                         <template v-for="(n, index) in 5">
                             <template v-if="n <= review.rate">
                                 <span class="icon baseline top s-star color-yellow" v-bind:key="n"><i class="fas fa-star"></i></span>
@@ -173,7 +174,7 @@
                 <div class="s-review-actions">
                     <button class="wa-button wa-small wa-short bold transparent"
                             v-on:click.prevent="formToggle(true)">
-                        <span class="s-name">[`Ответить`]</span>
+                        <span class="s-name">[`Reply`]</span>
                     </button>
                 </div>
 
@@ -190,7 +191,7 @@
                                 v-bind:disabled="review.form.is_locked"
                                 v-on:click.prevent="formAdd">
                             <span class="s-icon" v-if="review.form.is_locked" v-bind:key="1"><i class="fas fa-spinner fa-spin"></i></span>
-                            <span class="s-name">[`Ответить`]</span>
+                            <span class="s-name">[`Reply`]</span>
                         </button>
                         <button class="wa-small wa-button top gray js-cancel" type="button"
                                 v-bind:disabled="review.form.is_locked"
@@ -290,14 +291,14 @@
                     </template>
                 </template>
                 <template v-else>
-                    <p>[`Отзывы не найдены.`]</p>
+                    <p>[`Reviews not found.`]</p>
                 </template>
             </div>
 
             <div class="s-pagination-section">
                 {if $reviews_count > 10}
                     <div class="s-pagination-limit">
-                        <span class="s-label">[`Отзывов на странице:`]</span>
+                        <span class="s-label">[`Reviews per page:`]</span>
                         <component-dropdown
                             v-bind:body_width="'60px'"
                             v-bind:body_class="'top right'"

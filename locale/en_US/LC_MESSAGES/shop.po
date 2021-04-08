@@ -9907,3 +9907,6 @@ msgstr ""
 
 msgid "POST-params"
 msgstr ""
+
+msgid "View page"
+msgstr "View"

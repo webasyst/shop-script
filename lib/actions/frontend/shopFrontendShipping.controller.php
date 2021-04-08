@@ -41,7 +41,7 @@ class shopFrontendShippingController extends waJsonController
             }
             if (!$address) {
                 $settings = $this->getConfig()->getCheckoutSettings();
-                if ($settings['contactinfo']['fields']['address']) {
+                if (!empty($settings['contactinfo']['fields']['address'])) {
                     foreach ($settings['contactinfo']['fields']['address']['fields'] as $k => $f) {
                         if (!empty($f['value'])) {
                             $address[$k] = $f['value'];

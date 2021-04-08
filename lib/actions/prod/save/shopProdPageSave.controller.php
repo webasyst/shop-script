@@ -53,7 +53,7 @@ class shopProdPageSaveController extends waJsonController
         if (empty($page['url']) && $page['url'] !== '0') {
             $this->errors[] = [
                 'id'   => 'url_required',
-                'text' => _w('Поле URL обязательно для заполнения')
+                'text' => _w('The URL is a required field.')
             ];
             return;
         }
@@ -72,7 +72,7 @@ class shopProdPageSaveController extends waJsonController
                 /** проверка на уникальность сохраняемого URL */
                 $this->errors[] = [
                     'id'   => 'url_required',
-                    'text' => _w('Указанный URL уже существует')
+                    'text' => _w('The specified URL already exists.')
                 ];
                 return;
             }
@@ -92,7 +92,7 @@ class shopProdPageSaveController extends waJsonController
                 /** проверка на уникальность сохраняемого URL */
                 $this->errors[] = [
                     'id'   => 'url_required',
-                    'text' => _w('Указанный URL уже существует')
+                    'text' => _w('The specified URL already exists.')
                 ];
                 return;
             }

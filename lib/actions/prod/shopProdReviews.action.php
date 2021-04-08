@@ -172,6 +172,9 @@ class shopProdReviewsAction extends waViewAction
             }
         }
 
+        // show rating (stars) only for top-level reviews
+        $show_rate = empty($review["parent_id"]);
+
         $review = [
             "id"            => $review["id"],
             "author"        => $review["author"],
@@ -179,6 +182,7 @@ class shopProdReviewsAction extends waViewAction
             "humandatetime" => waDateTime::format( 'humandatetime', $review["datetime"] ),
             "is_new"        => $review["is_new"],
             "rate"          => (!empty($review["rate"]) ? (float)$review["rate"] : null),
+            "show_rate"     => $show_rate,
             "status"        => $review["status"],
             "name"          => $review["name"],
             "text"          => nl2br($review["text"]),
@@ -223,25 +227,25 @@ class shopProdReviewsAction extends waViewAction
                 "id" => "rate_asc",
                 "sort" => "rate",
                 "order" => "ASC",
-                "name" => _w("Рейтинг, по возрастанию")
+                "name" => _w("Rating, ascending")
             ],
             [
                 "id" => "rate_desc",
                 "sort" => "rate",
                 "order" => "DESC",
-                "name" => _w("Рейтинг, по убыванию")
+                "name" => _w("Rating, descending")
             ],
             [
                 "id" => "datetime_asc",
                 "sort" => "datetime",
                 "order" => "ASC",
-                "name" => _w("Дата, по возрастанию")
+                "name" => _w("Date, ascending")
             ],
             [
                 "id" => "datetime_desc",
                 "sort" => "datetime",
                 "order" => "DESC",
-                "name" => _w("Дата, по убыванию")
+                "name" => _w("Date, descending")
             ]
         ];
 

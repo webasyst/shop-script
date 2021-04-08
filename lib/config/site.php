@@ -28,7 +28,7 @@ foreach (shopHelper::getStocks() as $stock_id => $s) {
 if (count($stocks) === 0) {
     $stocks_form = array(
         'name'        => _w('Default stock'),
-        'description' => _w('Нет складов, доступных для выбора. Настройте склады в разделе «Магазин → Настройки → Склады».'),
+        'description' => _w('There are no stocks available for selection. Set up stocks in section “Settings → Stocks”.'),
         'type'        => 'help',
     );
 } else {

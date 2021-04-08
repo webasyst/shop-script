@@ -26,12 +26,12 @@
     ],
     "product-services-2" => [
         "id" => "product-services-2",
-        "html" => _w("Услуга наследуется от типа товара. Убрать такую услугу из товара нельзя, но можно отключить или переопределить для этого товара.")|escape,
+        "html" => _w("The service is inherited from the product type. You cannot remove the service from this product but you can disable it or override it for this product.")|escape,
         "position" => "top"
     ],
     "product-services-3" => [
         "id" => "product-services-3",
-        "html" => _w("Отдельно добавленная услуга. Можно убрать из товара, отключить или переопределить.")|escape,
+        "html" => _w("Individually added service. You can remove it from the product, disable or override it.")|escape,
         "position" => "top"
     ],
     "product-services-4" => [
@@ -41,64 +41,64 @@
     ],
     "product-services-5" => [
         "id" => "product-services-5",
-        "html" => _w("Включено переопределние настроек услуги для этого товара.")|escape,
+        "html" => _w("Overriding of service settings for this product is enabled.")|escape,
         "position" => "top"
     ],
     "product-services-6" => [
         "id" => "product-services-6",
-        "html" => _w("Включено наследование настроек от родительской услуги.")|escape,
+        "html" => _w("Inheriting of settings from the parent service is enabled.")|escape,
         "position" => "top"
     ],
     "product-services-7" => [
         "id" => "product-services-7",
-        "html" => _w("Все варианты услуги включены для показа на витрине.")|escape,
+        "html" => _w("All service options are visible in the storefront.")|escape,
         "position" => "top"
     ],
     "product-services-8" => [
         "id" => "product-services-8",
-        "html" => _w("Услуга включена для показа на витрине.")|escape,
+        "html" => _w("The service is visible in the storefront.")|escape,
         "position" => "top"
     ],
     "product-services-9" => [
         "id" => "product-services-9",
-        "html" => _w("Услуга отключена для показа на витрине.")|escape,
+        "html" => _w("The service is hidden from the storefront.")|escape,
         "position" => "top"
     ],
     "product-services-10" => [
         "id" => "product-services-10",
-        "html" => _w("Вариант услуги включен для показа на витрине.")|escape,
+        "html" => _w("The service option is visible in the storefront.")|escape,
         "position" => "top"
     ],
     "product-services-11" => [
         "id" => "product-services-11",
-        "html" => _w("Вариант услуги отключен для показа на витрине.")|escape,
+        "html" => _w("The service option is hidden from the storefront.")|escape,
         "position" => "top"
     ],
     "product-services-12" => [
         "id" => "product-services-12",
-        "html" => _w("Вариант услуги по умолчанию.")|escape,
+        "html" => _w("Default service option.")|escape,
         "position" => "top"
     ],
     "product-services-13" => [
         "id" => "product-services-13",
-        "html" => _w("Нажмите, чтобы сделать этот вариант услуги по умолчанию.")|escape,
+        "html" => _w("Click to select as the default service option.")|escape,
         "position" => "top"
     ],
     "product-services-14" => [
         "id" => "product-services-14",
-        "html" => _w("Варианты услуги и их модификации наследуются от типа.")|escape,
+        "html" => _w("Service options and their variants are inherited from the product type.")|escape,
         "position" => "middle",
         "start_time" => 200
     ],
     "product-services-15" => [
         "id" => "product-services-15",
-        "html" => _w("Услуга задана для типа товара, поэтому удалить из товара её нельзя. Но вы можете отключить показ услуги на витрине.")|escape,
+        "html" => _w("The service is set up for the entire product type; therefore, you cannot remove it from this product. But you can hide the service from the storefront.")|escape,
         "position" => "top"
     ]
 ]}
 
 {$_locales = [
-    "incorrect_url" => _w("Неправильный формат URL.")
+    "incorrect_url" => _w("Incorrect URL format.")
 ]}
 
 {$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
@@ -118,13 +118,13 @@
                     <i class="fas fa-info-circle"></i>
                 </div>
                 <div class="message-body wide">
-                    <p>[`Создавайте и настраивайте услуги для всех товаров, определенных типов или отдельных товаров.`]</p>
-                    <p>[`Чтобы настроить услугу индивидуально для товара, отключите наследование настроек от типа товара.`]</p>
+                    <p>[`Set up services for all products or for selected product types, or for individual products.`]</p>
+                    <p>[`To apply a service to an individual product, disable its use for the entire product type.`]</p>
                 </div>
                 <div class="message-actions middle">
                     <a class="wa-button wa-small gray" href="{$wa_app_url}?action=products#services/" target="_blank">
                         <span class="s-icon"><i class="fas fa-cog"></i></span>
-                        <span class="s-name">[`Настроить услуги`]</span>
+                        <span class="s-name">[`Configure services`]</span>
                         <span class="s-icon" style="font-size: 12px;"><i class="fas fa-external-link-square-alt"></i></span>
                     </a>
                 </div>
@@ -177,7 +177,7 @@
                                 </div>
                                 {/strip}
 
-                                <div class="s-hint hint">{_w("You can change the product type on the “Basic data” page.")}</div>
+                                <div class="s-hint hint">{_w("You can change the product type on the “Basic data” tab.")}</div>
 
                             {else}
                                 <div class="color-red">ERROR: TYPE IS NOT EXIST</div>
@@ -194,7 +194,7 @@
                     <button class="wa-button wa-small wa-short bold transparent" type="button"
                             v-on:click.prevent="changeServicesList">
                         <span class="s-icon"><i class="fas fa-project-diagram"></i></span>
-                        <span class="s-name">[`Изменить набор услуг`]</span>
+                        <span class="s-name">[`Select available services`]</span>
                     </button>
                 </div>
                 <div class="s-section-body">
@@ -286,7 +286,7 @@
                                                         <button class="wa-button wa-small wa-short bold transparent"
                                                                 v-bind:disabled="isOverwritten(service)"
                                                                 v-on:click.prevent="toggleService(service)">
-                                                            <span class="s-name">[`Артикулы и модификации`]</span>
+                                                            <span class="s-name">[`SKUs & variants`]</span>
                                                             <span class="s-icon" v-bind:key="1" v-if="!service.is_expanded"><i class="fas fa-caret-down"></i></span>
                                                             <span class="s-icon" v-bind:key="2" v-if="service.is_expanded"><i class="fas fa-caret-up"></i></span>
                                                         </button>
@@ -375,7 +375,7 @@
                                                                         <button class="wa-button wa-small wa-short bold transparent"
                                                                                 v-bind:disabled="isOverwritten(service, variant)"
                                                                                 v-on:click.prevent="toggleVariant(service, variant)">
-                                                                            <span class="s-name">[`Артикулы и модификации`]</span>
+                                                                            <span class="s-name">[`SKUs & variants`]</span>
                                                                             <span class="s-icon" v-bind:key="1" v-if="!variant.is_expanded"><i class="fas fa-caret-down"></i></span>
                                                                             <span class="s-icon" v-bind:key="2" v-if="variant.is_expanded"><i class="fas fa-caret-up"></i></span>
                                                                         </button>

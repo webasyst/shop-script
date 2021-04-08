@@ -43,7 +43,7 @@ class shopCurrencyModel extends waModel
         if (!$currencies) {
             return false;
         }
-        return (is_array($code)) ? $currencies : $currencies[$code];
+        return (is_array($code)) ? $currencies : ifset($currencies, $code, false);
     }
 
     public function getCurrencies($codes = null)
