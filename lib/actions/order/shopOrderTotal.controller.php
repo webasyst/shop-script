@@ -23,7 +23,7 @@ class shopOrderTotalController extends waJsonController
     public function execute()
     {
         $order = $this->getShopOrder();
-        $this->response['tax'] = $order->tax;
+        $this->response['tax'] = $order->not_included_tax;
         $this->response['items_tax'] = $order->items_tax;
 
         // To calculate all shipping rates, need extract clean ID

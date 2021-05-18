@@ -90,11 +90,12 @@ class shopFrontendCheckoutAction extends waViewAction
          */
         $event_params = array('step' => $current_step);
 
-        if (!empty(waRequest::get('transaction_id')) && !empty(waRequest::get('order_id')) && $current_step === shopCheckout::STEP_ERROR) {
-            $transaction_id = waRequest::get('transaction_id');
+        $order_id = waRequest::get('order_id');
+        $transaction_id = waRequest::get('transaction_id');
+        if (!empty($transaction_id) && !empty($order_id) && $current_step === shopCheckout::STEP_ERROR) {
             $transaction_model = new waTransactionModel();
-            $transaction = $transaction_model->getById($transaction_id);
-            if ($transaction['order_id'] == waRequest::get('order_id')) {
+            $transaction = $transaction_model->getByField(['id' => $transaction_id, 'order_id' => $order_id]);
+            if (!empty($transaction)) {
                 $error_message = ifempty($transaction['error'], _w('Payment was canceled.'));
                 $this->view->assign('error', $error_message);
             }
@@ -160,8 +161,8 @@ class shopFrontendCheckoutAction extends waViewAction
                         /** @var waPayment $plugin */
                         $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
                         $route = wa()->getRouting()->getRoute();
-                        $checkout_config = new shopCheckoutConfig($route['checkout_storefront_id']);
                         if (2 == ifset($route, 'checkout_version', null)) {
+                            $checkout_config = new shopCheckoutConfig($route['checkout_storefront_id']);
                             $auto_submit = isset($checkout_config['confirmation']['auto_submit']) ? $checkout_config['confirmation']['auto_submit'] : true;
                         } else {
                             $auto_submit = true;

@@ -34,6 +34,19 @@
                     $document.off("wa_loaded", loadWatcher);
                 }
             }
+
+            $document.on("product_created", createWatcher);
+            function createWatcher(event, product_id) {
+                var is_exist = $.contains(document, that.$wrapper[0]);
+                if (is_exist) {
+                    var $links = that.$wrapper.find("a[href*=\"/new/\"]");
+                    $links.each( function(i , link) {
+                        link.href = link.href.replace("/new/", "/"+product_id+"/");
+                    });
+                } else {
+                    $document.off("product_created", createWatcher);
+                }
+            }
         };
 
         /**

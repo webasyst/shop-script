@@ -72,6 +72,8 @@ class shopOrderAction extends waViewAction
             $billing_address_html = $_order->billing_address_html;
         }
 
+        $order_data_array['tax'] = self::calculateNotIncludedTax($order_data_array);
+
         $this->view->assign(array(
             'tracking'                   => $_order->getTracking('backend'),
             'map'                        => $_order->map,
@@ -146,6 +148,24 @@ class shopOrderAction extends waViewAction
                 'aux_info',
             )));
         }
+    }
+
+    public static function calculateNotIncludedTax($order_data_array)
+    {
+        $not_included_tax = 0;
+        if (ifset($order_data_array, 'params', 'shipping_tax', null)
+            && empty(ifset($order_data_array, 'params', 'shipping_tax_included', 1))
+        ) {
+            $not_included_tax += $order_data_array['params']['shipping_tax'];
+        }
+        if (isset($order_data_array['items'])) {
+            foreach ($order_data_array['items'] as $item) {
+                if (empty($item['tax_included'])) {
+                    $not_included_tax += $item['price'] * $item['quantity'] / 100 * $item['tax_percent'];
+                }
+            }
+        }
+        return $not_included_tax;
     }
 
     protected function getSimilarContacts($customer_contact)

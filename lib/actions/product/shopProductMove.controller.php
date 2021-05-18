@@ -38,7 +38,7 @@ class shopProductMoveController extends waJsonController
         }
     }
 
-    public function moveInsideCategory($product_ids, $before_id = null, $list_id)
+    public function moveInsideCategory($product_ids, $before_id, $list_id)
     {
         $category_products_model = new shopCategoryProductsModel();
         $category_products_model->move($product_ids, $before_id, $list_id);

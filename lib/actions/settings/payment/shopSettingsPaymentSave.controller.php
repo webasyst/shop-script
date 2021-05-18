@@ -23,7 +23,7 @@ class shopSettingsPaymentSaveController extends waJsonController
 
                 $log_params = array(
                     'id' => $plugin['id'],
-                    'status' => $plugin['status'],
+                    'status' => !empty($plugin['status']),
                     'plugin' => $plugin['plugin']
                 );
 

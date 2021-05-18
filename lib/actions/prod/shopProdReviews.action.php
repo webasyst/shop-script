@@ -4,13 +4,20 @@
  */
 class shopProdReviewsAction extends waViewAction
 {
+    /**
+     * @throws waException
+     */
     public function execute()
     {
-        $product_id = waRequest::param('id', '', 'int');
+        $product_id = waRequest::param('id', '', waRequest::TYPE_STRING);
+        shopProdGeneralAction::createEmptyProduct($product_id);
         $product = new shopProduct($product_id);
         if (!$product['id']) {
             throw new waException(_w("Unknown product"), 404);
         }
+
+        $product_model = new shopProductModel();
+        $can_edit = !!$product_model->checkRights($product["id"]);
 
         $sort = waRequest::request('sort', "datetime", waRequest::TYPE_STRING);
         $page = waRequest::request('page', 1, waRequest::TYPE_INT);
@@ -21,6 +28,7 @@ class shopProdReviewsAction extends waViewAction
         $status = (!empty($filters["status"]) ? $filters["status"] : null);
         $images_count = self::getImagesCount($filters);
         $frontend_urls = shopProdGeneralAction::getFrontendUrls($product)[0];
+        $backend_prod_content_event = $this->throwEvent($product);
 
         foreach ($filters as $id => $filter) {
             /** фильтр "все" равнозначен его отсутствию */
@@ -43,10 +51,13 @@ class shopProdReviewsAction extends waViewAction
             $limit = self::getFormattedLimit($reviews_count);
         }
 
+        $formatted_product = self::formatProduct($product);
+        $formatted_product["can_edit"] = $can_edit;
+
         $this->view->assign([
             'frontend_urls'     => $frontend_urls,
             'product'           => $product,
-            'formatted_product' => self::formatProduct($product),
+            'formatted_product' => $formatted_product,
             "reviews"           => $reviews,
             'reviews_count'     => $reviews_count,
             "filters"           => self::getFilters($reviews_count),
@@ -67,7 +78,8 @@ class shopProdReviewsAction extends waViewAction
                 "deleted"    => shopProductReviewsModel::STATUS_DELETED,
                 "published"  => shopProductReviewsModel::STATUS_PUBLISHED,
                 "moderation" => shopProductReviewsModel::STATUS_MODERATION
-            ]
+            ],
+            'backend_prod_content_event' => $backend_prod_content_event
         ]);
 
         $this->setLayout(new shopBackendProductsEditSectionLayout([
@@ -356,5 +368,29 @@ class shopProdReviewsAction extends waViewAction
         else if ($limit > 30) { $result = 50; }
 
         return $result;
+    }
+
+    /**
+     * Throw 'backend_prod_content' event
+     * @param shopProduct $product
+     * @return array
+     * @throws waException
+     */
+    protected function throwEvent($product)
+    {
+        /**
+         * @event backend_prod_content
+         * @since 8.19.0
+         *
+         * @param shopProduct $product
+         * @param string $content_id
+         *       Which page (tab) is shown
+         */
+        $params = [
+            'product' => $product,
+            'content_id' => 'reviews',
+        ];
+
+        return wa('shop')->event('backend_prod_content', $params);
     }
 }

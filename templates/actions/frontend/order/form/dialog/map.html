@@ -66,7 +66,7 @@
                             {$__variant["description"] = $_custom_data.description}
                         {/if}
                         {if !empty($_custom_data.storage.storage_days)}
-                            {$__variant["storage_days"] = $_custom_data.storage.storage_days}
+                            {$__variant["storage_days"] = _w('%d day', '%d days', $_custom_data.storage.storage_days)}
                         {/if}
                         {if !empty($_custom_data.lat)}
                             {$__variant["lat"] = $_custom_data.lat}

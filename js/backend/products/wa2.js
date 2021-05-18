@@ -776,7 +776,11 @@
                 hide: (typeof options["hide"] === "boolean" ? options["hide"] : true),
                 items: (options["items"] ? options["items"] : null),
                 active_class: (options["active_class"] ? options["active_class"] : "selected"),
-                update_title: (typeof options["update_title"] === "boolean" ? options["update_title"] : true)
+                update_title: (typeof options["update_title"] === "boolean" ? options["update_title"] : true),
+                protect: {
+                    right: (typeof options["protect"] === "object" && typeof options["protect"]["right"] === "number" ? options["protect"]["right"] : 0),
+                    bottom: (typeof options["protect"] === "object" && typeof options["protect"]["bottom"] === "number" ? options["protect"]["bottom"] : 0)
+                }
             };
 
             // DYNAMIC VARS
@@ -854,6 +858,9 @@
 
             if (open) {
                 that.$wrapper.addClass(active_class);
+
+                protect();
+
                 that.on.open(that);
 
                 if (that.$filter.length) { that.$filter.find(".js-field").trigger("focus"); }
@@ -863,6 +870,33 @@
                 that.on.close(that);
 
                 if (that.$filter.length) { that.$filter.find(".js-field").val("").trigger("input"); }
+            }
+
+            function protect() {
+                var $window = $(window),
+                    rect = that.$wrapper[0].getBoundingClientRect();
+
+                // bottom protection
+                var top_class = "top",
+                    bottom_space = $window.height() - rect.y - rect.height,
+                    use_top = (bottom_space < that.options.protect.bottom);
+
+                if (use_top) {
+                    that.$menu.addClass(top_class);
+                } else {
+                    that.$menu.removeClass(top_class);
+                }
+
+                // right protection
+                var right_class = "right",
+                    right_space = $window.width() - rect.x - that.$menu.outerWidth(),
+                    use_right = (right_space < that.options.protect.right);
+
+                if (use_right) {
+                    that.$menu.addClass(right_class);
+                } else {
+                    that.$menu.removeClass(right_class);
+                }
             }
         };
 

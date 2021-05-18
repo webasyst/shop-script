@@ -846,7 +846,24 @@ SQL;
             foreach(array_keys($recount_features) as $code) {
                 $feature = $this->getFeature($code);
                 if ($feature) {
-                    $feature_model->recount($feature);
+                    if (isset($feature['type']) && (strpos($feature['type'], '2d.') === 0 || strpos($feature['type'], '3d.') === 0)) {
+                        $child_features = array();
+                        $dimensions = array('0', '1');
+                        if (strpos($feature['type'], '3d.') === 0) {
+                            $dimensions[] = '2';
+                        }
+                        foreach ($dimensions as $dimension) {
+                            $dimension_feature = ifset(self::$fetched_features, $code . '.' . $dimension, false);
+                            if ($dimension_feature) {
+                                $child_features[] = $dimension_feature;
+                            }
+                        }
+                        foreach ($child_features as $child_feature) {
+                            $feature_model->recount($child_feature);
+                        }
+                    } else {
+                        $feature_model->recount($feature);
+                    }
                 }
             }
             unset($recount_features);

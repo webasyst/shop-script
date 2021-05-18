@@ -263,6 +263,11 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
                     }
                 }
 
+                $variant_id = explode('.', $selected_variant['variant_id'], 2);
+                if (isset($variant_id[0]) && is_numeric($variant_id[0])) {
+                    $data['order']['params'] += ['shipping_id' => $variant_id[0]];
+                }
+
                 if (is_numeric($updated_selected_variant['rate'])) {
                     $is_free_shipping = ifempty($data, 'shipping', 'is_free_shipping', false);
                     if ($is_free_shipping) {
@@ -291,6 +296,12 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
             if (!$errors) {
                 $data['shipping']['id'] = $shop_plugin_id;
                 $data['shipping']['address'] = $address;
+
+                foreach (['country', 'region'] as $name) {
+                    if (isset($address[$name])) {
+                        $data['order']['params'] += ['shipping_address.' . $name => $address[$name]];
+                    }
+                }
 
                 // re-format shipping params flattening arrays
                 $data['shipping']['params'] = [];

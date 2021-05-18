@@ -1536,6 +1536,7 @@
             that.map = options["map"];
             that.templates = options["templates"];
             that.disabled = options["disabled"];
+            that.variant_first = options["variant_first"];
             that.variants_count = options["variants_count"];
             that.locales = options["locales"];
             that.errors = options["errors"];
@@ -1569,7 +1570,7 @@
 
                 new Types({
                     $wrapper: $types_section,
-                    onChange: function (id) {
+                    onChange: function(id) {
                         $type_field.val(id);
                         that.scope.DEBUG("Delivery type changed — " + id, "info");
 
@@ -1641,6 +1642,14 @@
 
                 if (that.variants_count === 1) {
                     dropdown.lock(true);
+
+                    // Если кол-во вариантов = 1 (проверка в шаблоне) то автовыбор варианта
+                    if (that.variant_first && !$variant_field.val()) {
+                        $variant_field.val(that.variant_first.id).trigger("change");
+                        that.scope.$wrapper.one("ready changed", function() {
+                            that.update({ reload: true });
+                        });
+                    }
                 }
 
                 $types_section.on("click", ".wa-type-wrapper.is-active", function() {
@@ -1773,6 +1782,20 @@
                 }
 
                 $("html, body").scrollTop(top - lift);
+            }
+
+            // Если кол-во типов = 1, то автовыбор типа
+            var $type = that.$wrapper.find(".wa-type-wrapper");
+            if ($type.length > 1 && !$type.hasClass("is-active")) {
+                that.scope.$wrapper.on("ready changed", reload_type);
+            }
+
+            function reload_type() {
+                if ($.contains(that.scope.$wrapper[0], that.$wrapper[0])) {
+                    $type.first().trigger("click");
+                } else {
+                    that.scope.$wrapper.off("ready changed", reload_type);
+                }
             }
         };
 
@@ -2511,6 +2534,9 @@
             that.$form = that.$wrapper.find("form:first");
 
             // VARS
+            that.payments_count = options["payments_count"];
+            that.payment_first = options["payment_first"];
+
             that.disabled = options["disabled"];
             that.locales = options["locales"];
             that.errors = options["errors"];
@@ -2582,6 +2608,14 @@
                     setActive($method);
                 }
             });
+
+            // Если кол-во вариантов = 1 (проверка в шаблоне) то автовыбор варианта
+            if (that.payments_count === 1 && that.payment_first) {
+                var $method = $list.find(".wa-method-wrapper[data-id=\""+that.payment_first.id+"\"]");
+                if ($method.length) {
+                    setActive($method);
+                }
+            }
 
             function setActive($method) {
                 var $field = $method.find(".js-method-field");
@@ -3676,6 +3710,7 @@
             that.sections["auth"] = new Auth(options);
 
             that.DEBUG("Auth initialized", "info", that.sections["auth"]);
+            that.trigger("auth_initialized", [that.sections["auth"], that]);
         };
 
         Form.prototype.initRegion = function(options) {
@@ -3686,6 +3721,7 @@
             that.sections["region"] = new Region(options);
 
             that.DEBUG("Region initialized", "info", that.sections["region"]);
+            that.trigger("region_initialized", [that.sections["region"], that]);
         };
 
         Form.prototype.initShipping = function(options) {
@@ -3696,6 +3732,7 @@
             that.sections["shipping"] = new Shipping(options);
 
             that.DEBUG("Shipping initialized", "info", that.sections["shipping"]);
+            that.trigger("shipping_initialized", [that.sections["shipping"], that]);
         };
 
         Form.prototype.initDetails = function(options) {
@@ -3706,6 +3743,7 @@
             that.sections["details"] = new Details(options);
 
             that.DEBUG("Details initialized", "info", that.sections["details"]);
+            that.trigger("details_initialized", [that.sections["details"], that]);
         };
 
         Form.prototype.initPayment = function(options) {
@@ -3716,6 +3754,7 @@
             that.sections["payment"] = new Payment(options);
 
             that.DEBUG("Payment initialized", "info", that.sections["payment"]);
+            that.trigger("payment_initialized", [that.sections["payment"], that]);
         };
 
         Form.prototype.initConfirm = function(options) {
@@ -3726,6 +3765,7 @@
             that.sections["confirm"] = new Confirm(options);
 
             that.DEBUG("Confirm initialized", "info", that.sections["confirm"]);
+            that.trigger("confirm_initialized", [that.sections["confirm"], that]);
         };
 
         // PROTECTED

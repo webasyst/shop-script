@@ -395,7 +395,7 @@ class shopBackendCustomerForm {
 
         // REDUCE callback that merge each storefront contact fields into one result array, i.e. implement UNION logic
         $that = $this;
-        $merger = function (&$result, $storefront) use($contact_type, $that) {
+        $merger = function ($result, $storefront) use($contact_type, $that) {
             /**
              * Checkout config is always shopCheckoutConfig cause we filter by checkout version >= 2
              * @var shopCheckoutConfig $config

@@ -14,6 +14,9 @@ class shopProdSaveMediaController extends waJsonController
     protected function saveImageOrder()
     {
         $product_data = waRequest::post('product', [], 'array');
+        if (!empty($product_data['id'])) {
+            $this->response['product_id'] = $product_data['id'];
+        }
         if (empty($product_data['id']) || empty($product_data['photos'])) {
             return;
         }

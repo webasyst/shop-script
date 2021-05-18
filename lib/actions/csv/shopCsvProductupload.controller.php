@@ -9,6 +9,7 @@ class shopCsvProductuploadController extends shopUploadController
     {
         //TODO пометить поля, допускающий множественные значения (валидация)
         $fields = array(
+            'row_type'              => _w('Тип строки'),
             'product'               => array(
                 'id'                  => _w('Product ID'),
                 'name'                => _w('Product name'), //1
@@ -17,6 +18,7 @@ class shopCsvProductuploadController extends shopUploadController
                 'description'         => _w('Description'),
                 'badge'               => _w('Badge'),
                 'status'              => _w('Status'),
+                'sku_type'            => _w('Выбор вариантов товара'),
                 'type_name'           => _w('Product type'),
                 'tags'                => _w('Tags'),
                 'tax_name'            => _w('Taxable'),
@@ -72,7 +74,6 @@ class shopCsvProductuploadController extends shopUploadController
                 'cross_selling',
                 'upselling',
                 'total_sales',
-                'sku_type',
                 'sku_count',
                 'sku_id',
                 'ext',
@@ -151,7 +152,9 @@ class shopCsvProductuploadController extends shopUploadController
 
         if ($flat) {
             $fields_ = $fields;
-            $fields = array();
+            $fields = array(
+                'row_type' => _w('Тип строки'),
+            );
             $flat_order = array(
                 'product:name',
                 'sku:skus:-1:name',
@@ -177,6 +180,7 @@ class shopCsvProductuploadController extends shopUploadController
         $multiple = true;
 
         $translates = array();
+        $translates['row_type'] = _w('Тип строки');
         $translates['product'] = _w('Basic fields');
         $translates['product_custom_fields'] = _w("Custom product fields");
         $translates['sku'] = _w('SKU fields');
@@ -189,28 +193,40 @@ class shopCsvProductuploadController extends shopUploadController
         $options = array();
         $fields = self::getMapFields(false, true);
         foreach ($fields as $group => $group_fields) {
-            foreach ($group_fields as $id => $name) {
+            if ($group == 'row_type') {
                 $option = array(
                     'group' => array(
                         'title' => ifset($translates[$group]),
                         'class' => $group,
                     ),
-                    'value' => $id,
+                    'title' => ifset($translates[$group]),
+                    'value' => $group,
                 );
-                if (is_array($name)) {
-                    $option += $name;
-                    if (empty($option['title'])) {
-                        $option['title'] = $id;
-                    }
-                } else {
-                    $option['title'] = ifempty($name, $id);
-                }
-
-                if (preg_match('@^[a-z][a-z0-9_]+$@', $option['title'])) {
-                    $option['no_match'] = true;
-                    $option['title'] = $option['title'].' *';
-                }
                 $options[] = $option;
+            } else {
+                foreach ($group_fields as $id => $name) {
+                    $option = array(
+                        'group' => array(
+                            'title' => ifset($translates[$group]),
+                            'class' => $group,
+                        ),
+                        'value' => $id,
+                    );
+                    if (is_array($name)) {
+                        $option += $name;
+                        if (empty($option['title'])) {
+                            $option['title'] = $id;
+                        }
+                    } else {
+                        $option['title'] = ifempty($name, $id);
+                    }
+
+                    if (preg_match('@^[a-z][a-z0-9_]+$@', $option['title'])) {
+                        $option['no_match'] = true;
+                        $option['title'] = $option['title'].' *';
+                    }
+                    $options[] = $option;
+                }
             }
         }
 

@@ -1244,8 +1244,8 @@
             }];
 
             $.wa.loadSources(sources).then( function() {
-                var is_en = {if $_lang === "en"}true{else}false{/if};
-                if (!is_en) {
+                var locale = {$_lang|json_encode};
+                if (["ru"].indexOf(locale) >= 0) {
                     $.wa.loadSources([{
                         id: "redactor-2-{$_lang}-js",
                         type: "js",

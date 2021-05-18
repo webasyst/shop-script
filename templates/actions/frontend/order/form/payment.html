@@ -1,6 +1,8 @@
 {strip}
 
 {$_config = $config.payment}
+{$_payments_count = 0}
+{$_payment_first = null}
 
 {$_errors = []}
 {if !empty($error_step_id) && $error_step_id === "payment"}{$_errors = $errors}{/if}
@@ -25,6 +27,11 @@
                 {if empty($payment.disabled)}
                     <div class="wa-methods-list wide js-methods-list">
                         {foreach $payment.methods as $_method}
+                            {if $_method@first}
+                                {$_payment_first = ["id" => $_method.id, "name" => $_method.name|default:"[`Unknown`]"]}
+                            {/if}
+                            {$_payments_count = $_payments_count + 1}
+
                             {$_is_active = false}
                             {if $_method.id == $payment.selected_method_id}{$_is_active = true}{/if}
 
@@ -136,7 +143,10 @@
                     errors: {$_errors|json_encode},
                     locales: {
                         "method_required": {_w("Please select a payment method")|json_encode}
-                    }
+                    },
+
+                    payment_first: {$_payment_first|json_encode},
+                    payments_count: {$_payments_count|escape}
                 });
             });
         })(jQuery);

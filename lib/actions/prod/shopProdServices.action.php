@@ -4,13 +4,22 @@
  */
 class shopProdServicesAction extends waViewAction
 {
+    /**
+     * @throws waException
+     */
     public function execute()
     {
-        $product_id = waRequest::param('id', '', 'int');
-        $product = new shopProduct($product_id);
+        $product_id = waRequest::param('id', '', waRequest::TYPE_STRING);
+        shopProdGeneralAction::createEmptyProduct($product_id);
+        $product = new shopProduct($product_id, 'services');
         if (!$product['id']) {
             throw new waException(_w("Unknown product"), 404);
         }
+        $product_model = new shopProductModel();
+        if (!$product_model->checkRights($product_id)) {
+            throw new waException(_w('Access denied'));
+        }
+
         $formatted_product = self::formatProduct($product);
         $frontend_urls = shopProdGeneralAction::getFrontendUrls($product)[0];
 
@@ -20,13 +29,15 @@ class shopProdServicesAction extends waViewAction
         $services = self::getServices($product["id"]);
         $product_types = self::formatProductTypes($product_types);
         $product_type = ifset($product_types, $product["type_id"], null);
+        $backend_prod_content_event = $this->throwEvent($product);
 
         $this->view->assign([
             'frontend_urls'     => $frontend_urls,
             'product'           => $product,
             'product_type'      => $product_type,
             'formatted_product' => $formatted_product,
-            'services'          => $services
+            'services'          => $services,
+            'backend_prod_content_event' => $backend_prod_content_event
         ]);
 
         $this->setLayout(new shopBackendProductsEditSectionLayout([
@@ -108,5 +119,29 @@ class shopProdServicesAction extends waViewAction
         $service["is_changed"] = $is_changed;
 
         return $service;
+    }
+
+    /**
+     * Throw 'backend_prod_content' event
+     * @param shopProduct $product
+     * @return array
+     * @throws waException
+     */
+    protected function throwEvent($product)
+    {
+        /**
+         * @event backend_prod_content
+         * @since 8.19.0
+         *
+         * @param shopProduct $product
+         * @param string $content_id
+         *       Which page (tab) is shown
+         */
+        $params = [
+            'product' => $product,
+            'content_id' => 'services',
+        ];
+
+        return wa('shop')->event('backend_prod_content', $params);
     }
 }

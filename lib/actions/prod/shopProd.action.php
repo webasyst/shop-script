@@ -7,8 +7,8 @@ class shopProdAction extends waViewAction
 {
     public function execute()
     {
-        $product_id = waRequest::param('id', '', 'int');
-        if (!$product_id) {
+        $product_id = waRequest::param('id', '', waRequest::TYPE_STRING);
+        if (!is_numeric($product_id) && $product_id != 'new') {
             throw new waException('Not found', 404);
         }
 

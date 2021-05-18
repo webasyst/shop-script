@@ -78,6 +78,7 @@
     "sku_unique_error" => _w("The SKU code must be unique."),
     "stock_title" => _w("The quantity on this virtual stock is the sum of quantities on physical stocks — %s. You can change the list of stocks in “Settings” section."),
     "total_sku_mods" => _w("Total: %s."),
+    "not_defined" => _w("Not defined"),
     "sku_generation_sku_forms" => [
         _w("%d SKU with %s each.", "%d SKUs with %s each.", 1, false),
         _w("%d SKU with %s each.", "%d SKUs with %s each.", 2, false),
@@ -1669,6 +1670,20 @@
                 </header>
 
                 <component-features v-bind:product="product" v-bind:features="product.features" v-bind:values="11" v-bind:vertical="false" v-bind:columns="false"></component-features>
+
+                <div class="s-section-footer">
+                    <button class="wa-button wa-small wa-short transparent" id="js-show-add-feature-dialog"
+                            data-type-id="{$product["type_id"]|default:""|escape}"
+                            v-bind:disabled="states.load.add_feature">
+                        <span class="s-icon color-gray"
+                              v-if="states.load.add_feature"
+                              v-bind:key="'loading'"><i class="fas fa-spinner fa-spin"></i></span>
+                        <span class="s-icon color-green-dark"
+                              v-else
+                              v-bind:key="'icon'"><i class="fas fa-plus-circle"></i></span>
+                        <span class="s-name">[`Добавить характеристику`]</span>
+                    </button>
+                </div>
             </div>
 
             <div class="s-product-params-section">
@@ -1696,6 +1711,10 @@
     <!-- plugin hook: 'backend_prod_content.bottom' -->
     {* @event backend_prod_content.%plugin_id%.bottom *}
     {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.bottom)}{/foreach}{/if}
+
+    {shopSettingsTypefeatFeatureWidgetAction::widget([
+        "selection" => "#js-show-add-feature-dialog"
+    ])}
 
     <script>
         ( function($) {
@@ -1736,16 +1755,17 @@
                     tooltips: {$_tooltips|json_encode},
                     locales: {$_locales|json_encode},
                     urls: {
-                        "save": "{$wa_app_url}?module=prod&action=saveSku",
-                        "sku_delete_dialog": "{$wa_app_url}?module=prod&action=skuDeleteDialog",
-                        "add_feature_value": "{$wa_app_url}?module=prod&action=addFeatureValue",
-                        "change_image_dialog": "{$wa_app_url}?module=prod&action=skuImageDialog",
-                        "add_product_image": "{$wa_app_url}?module=prod&action=imageUpload",
+                        "save"                    : "{$wa_app_url}?module=prod&action=saveSku",
+                        "sku_delete_dialog"       : "{$wa_app_url}?module=prod&action=skuDeleteDialog",
+                        "add_feature_value"       : "{$wa_app_url}?module=prod&action=addFeatureValue",
+                        "change_image_dialog"     : "{$wa_app_url}?module=prod&action=skuImageDialog",
+                        "add_product_image"       : "{$wa_app_url}?module=prod&action=imageUpload",
                         "change_image_description": "{$wa_app_url}?module=prod&action=saveImageDetails",
-                        "delete_image": "{$wa_app_url}?module=prod&action=deleteImage",
-                        "color_transliterate": "{$wa_app_url}?module=settings&action=featuresHelper",
-                        "sku_file_upload": "{$wa_app_url}?module=prod&action=addSkuFile",
-                        "sku_file_delete": "{$wa_app_url}?module=prod&action=deleteSkuFile"
+                        "delete_image"            : "{$wa_app_url}?module=prod&action=deleteImage",
+                        "color_transliterate"     : "{$wa_app_url}?module=settings&action=featuresHelper",
+                        "sku_file_upload"         : "{$wa_app_url}?module=prod&action=addSkuFile",
+                        "sku_file_delete"         : "{$wa_app_url}?module=prod&action=deleteSkuFile",
+                        "format_feature"          : "{$wa_app_url}?module=prod&action=formatFeature"
                     },
 
                     max_file_size: {$_max_file_size|json_encode},

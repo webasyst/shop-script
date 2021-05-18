@@ -50,11 +50,13 @@ class shopPrintforms
 
                     if ($plugin && method_exists($plugin, 'getPrintForms')) {
                         $forms = $plugin->getPrintForms($order);
-                        foreach ($forms as $id => $form) {
-                            if (isset($form['emailprintform'])) {
-                                $form['mail_url'] = "?module=order&action=sendprintform&form_id={$type}.{$id}";
+                        if (is_array($forms)) {
+                            foreach ($forms as $id => $form) {
+                                if (isset($form['emailprintform'])) {
+                                    $form['mail_url'] = "?module=order&action=sendprintform&form_id={$type}.{$id}";
+                                }
+                                $plugins["{$type}.{$id}"] = $form;
                             }
-                            $plugins["{$type}.{$id}"] = $form;
                         }
                     }
                 } catch (waException $e) {

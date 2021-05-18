@@ -120,6 +120,7 @@ class shopOrderEditAction extends waViewAction
         if ($this->order_data) {
             $user = wa()->getUser();
             $order_data_array = $this->order->dataArray();
+            $order_data_array['tax'] = shopOrderAction::calculateNotIncludedTax($order_data_array);
             $order_data_array['contact'] = $this->order->contact_essentials;
             $order_data_array['shipping_id'] = $this->order['shipping_id'];
             $order_data_array['items'] = $this->order_data['items'];

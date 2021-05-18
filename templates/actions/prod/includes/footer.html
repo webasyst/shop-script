@@ -13,7 +13,7 @@
             {/if}
         </div>
 
-        {if !empty($product.id)}
+        {if !empty($product.id) && empty($hide_delete)}
             <div class="column align-right">
                 <button class="wa-button transparent-red js-product-delete" type="button">
                     <span class="icon top"><i class="fas fa-trash-alt"></i></span>

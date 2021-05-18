@@ -7,10 +7,15 @@ class shopProdMediaAction extends waViewAction
 {
     public function execute()
     {
-        $product_id = waRequest::param('id', '', 'int');
+        $product_id = waRequest::param('id', '', waRequest::TYPE_STRING);
+        shopProdGeneralAction::createEmptyProduct($product_id);
         $product = new shopProduct($product_id);
         if (!$product['id']) {
             throw new waException(_w("Unknown product"), 404);
+        }
+        $product_model = new shopProductModel();
+        if (!$product_model->checkRights($product_id)) {
+            throw new waException(_w('Access denied'));
         }
 
         $frontend_urls = shopProdGeneralAction::getFrontendUrls($product)[0];

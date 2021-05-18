@@ -103,7 +103,7 @@
 <script type="text/javascript">
 
 $.product_images.init({
-    product_id:   {$product_id},
+    product_id:   '{$product_id}',
     placeholder: '{$placeholder}',
     images: {json_encode(array_values($images))},
     count: {count($images)},

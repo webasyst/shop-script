@@ -10,6 +10,9 @@ return array(
     'product_delete' => array(
         'name' => /*_w*/('deleted a product')
     ),
+    'products_delete' => array(
+        'name' => /*_w*/('deleted products')
+    ),
     'catalog_import' => array(
         'name' => /*_w*/('performed catalog import')
     ),

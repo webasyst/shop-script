@@ -377,6 +377,9 @@ if (typeof ($) != 'undefined') {
                     var exists = false;
                     this.csv_product_form_map.each(function (index, el) {
                         var $el = $(el);
+                        if (value === 'skus:-1:sku_feature') {
+                            value = 'skus:-1:sku';
+                        }
                         if ($el.val() == value) {
                             exists = true;
                             var column = parseInt(($el.attr('name').match(/\[(\d+)(:[^\]]+)?]$/) || [-1, -1])[1]);

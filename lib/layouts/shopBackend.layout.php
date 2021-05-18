@@ -108,11 +108,7 @@ class shopBackendLayout extends waLayout
     {
         $stm = new shopTypeModel();
         if (!$stm->countAll()) {
-            $data = array(
-                'name' => _w('Conventional commodity'),
-                'icon' => 'ss pt box',
-            );
-            $stm->insert($data);
+            $stm->insertTemplate('default');
         }
     }
 

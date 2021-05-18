@@ -95,7 +95,7 @@
         {/if}
     {/if}
 
-    <div class="wa-section-body" {if !empty($_nothing_to_change)}style="display: none;"{/if}>
+    <div class="wa-section-body">
         <form autocomplete="off">
             {if empty($region.disabled)}
                 <div class="wa-line wa-required-text">
@@ -298,7 +298,7 @@
                     {$_city_value = $_active_location.city_id}
                     {if !empty($_active_location.city)}{$_city_value = $_active_location.city}{/if}
 
-                    <div class="wa-line wa-fields-group line">
+                    <div class="wa-line wa-fields-group line" {if !empty($_nothing_to_change)}style="display: none;"{/if}>
                         {* LOCATIONS *}
                         {if count($region.locations) > 1}
                             <div class="wa-field-wrapper wa-location-wrapper size-medium">

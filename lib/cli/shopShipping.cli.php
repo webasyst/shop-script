@@ -19,6 +19,18 @@ class shopShippingCli extends waCliController
         );
         $methods = $plugin_model->listPlugins(shopPluginModel::TYPE_SHIPPING, $options);
 
+        if ($methods) {
+            /**
+             * @event shipping_sync_cli
+             * @param array $params['methods']
+             * @return void
+             */
+            $params = [
+                'methods' => $methods
+            ];
+            wa('shop')->event('shipping_sync_cli', $params);
+        }
+
         $adapter = shopShipping::getInstance();
         foreach ($methods as $shipping_id => $method) {
             try {

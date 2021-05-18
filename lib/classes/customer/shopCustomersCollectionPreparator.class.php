@@ -152,10 +152,15 @@ class shopCustomersCollectionPreparator
         if (!$filter['hash']) {
             $this->where[] = 1;
         } else {
-            // Pretend collection has another hash.
-            // This will eventually call $this->searchPrepare()
-            $this->collection->setHash("search/" . $filter['hash']);
-            $this->collection->prepare(false, false);
+            if ($this->collection instanceof shopCustomersCollection) {
+                // Pretend collection has another hash.
+                // This will eventually call $this->searchPrepare()
+                $this->collection->setHash("search/" . $filter['hash']);
+                $this->collection->prepare(false, false);
+            } else {
+                // this is a case when Mailer app asked us to prepare instance of waContactsCollection
+                $this->searchPrepare($filter['hash'], false);
+            }
         }
         $this->addTitle($filter['name']);
     }

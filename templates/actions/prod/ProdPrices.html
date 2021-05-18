@@ -1,0 +1,664 @@
+{strip}
+
+{$_lang = substr($wa->locale(), 0, 2)}
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+{* ЛОКАЛИЗАЦИЯ *}
+
+{$_tooltips = [
+    "default" => [
+        "id" => "default"
+    ],
+    "prices-tooltip-1" => [
+        "id" => "prices-tooltip-1",
+        "html" => _w("The SKU variant is visible in the storefront.")|escape
+    ],
+    "prices-tooltip-2" => [
+        "id" => "prices-tooltip-2",
+        "html" => _w("The SKU variant visible in the storefront.")|escape
+    ],
+    "prices-tooltip-3" => [
+        "id" => "prices-tooltip-3",
+        "html" => _w("The variant is available for purchase.")|escape
+    ],
+    "prices-tooltip-4" => [
+        "id" => "prices-tooltip-4",
+        "html" => _w("The variant is unavailable for purchase.")|escape
+    ],
+    "prices-tooltip-5" => [
+        "id" => "prices-tooltip-5",
+        "html" => _w("Акция, в которой участвует модификация стоит на паузе. Посмотреть изменение цены можно в блоке акции ниже на странице.")|escape
+    ],
+    "prices-tooltip-6" => [
+        "id" => "prices-tooltip-6",
+        "html" => _w("Модификация участвует в запланированной на будущее акции. Посмотреть изменение цены можно в блоке акции ниже на странице.")|escape
+    ],
+    "prices-tooltip-7" => [
+        "id" => "prices-tooltip-7",
+        "html" => _w("Акция действует.")|escape
+    ],
+    "prices-tooltip-8" => [
+        "id" => "prices-tooltip-8",
+        "html" => _w("Акция действует по времени, но стоит на паузе.")|escape
+    ],
+    "prices-tooltip-9" => [
+        "id" => "prices-tooltip-9",
+        "html" => _w("Акция запланирована на будущее.")|escape
+    ],
+    "prices-tooltip-10" => [
+        "id" => "prices-tooltip-10",
+        "html" => _w("Цена в акции не отличается от заданной в товаре.")|escape,
+        "position" => "top"
+    ],
+    "prices-tooltip-11" => [
+        "id" => "prices-tooltip-11",
+        "html" => _w("Цена товара изменена для акции.")|escape,
+        "position" => "top"
+    ]
+]}
+
+{if !empty($promos_model.promos)}
+    {foreach $promos_model.promos as $_promo}
+        {if $_promo.status === "active"}
+            {$_key = "prices-tooltip-promo-{$_promo.id}"}
+            {$_tooltips[$_key] = [
+                "id" => $_key,
+                "html" => sprintf(_w("Модификация участвует в действующей акции «%s». Посмотреть изменение цены можно в блоке акции ниже на странице."), $_promo.name)|escape
+            ]}
+        {/if}
+    {/foreach}
+{/if}
+
+{$_locales = [
+    "stock_title" => _w("The quantity on this virtual stock is the sum of quantities on physical stocks — %s. You can change the list of stocks in “Settings” section."),
+    "storefronts_toggle_open_forms" => [
+        _w("Показать %d витрину, на которой проходит акция", "Показать %d витрину, на которой проходит акция", 1, false),
+        _w("Показать %d витрину, на которой проходит акция", "Показать %d витрины, на которых проходит акция", 2, false),
+        _w("Показать %d витрину, на которой проходит акция", "Показать %d витрин, на которых проходит акция", 5, false)
+    ],
+    "storefronts_toggle_hide_forms" => [
+        _w("Скрыть %d витрину, на которой проходит акция", "Скрыть %d витрину, на которой проходит акция", 1, false),
+        _w("Скрыть %d витрину, на которой проходит акция", "Скрыть %d витрины, на которых проходит акция", 2, false),
+        _w("Скрыть %d витрину, на которой проходит акция", "Скрыть %d витрин, на которых проходит акция", 5, false)
+    ]
+]}
+
+{/strip}
+
+{* ШАБЛОНЫ *}
+
+{$_templates = []}
+
+{* КОМПОНЕНТЫ *}
+
+{$_components = []}
+
+{capture assign="_component_prices_section"}
+    <div class="vue-component-prices-section">
+        <div class="s-section-header">
+            <div class="flexbox space-16 full-width">
+                <div class="s-column-title flexbox middle space-4 {if $formatted_product["normal_mode"]}cursor-pointer{/if}"
+                     {if $formatted_product["normal_mode"]}v-on:click.prevent="pricesToggle"{/if}>
+                    {if $formatted_product["normal_mode"]}
+                        <span class="s-icon">
+                            <span class="icon size-20" v-if="!prices_model.is_extended" v-bind:key="'right'"><i class="fas fa-chevron-right"></i></span>
+                            <span class="icon size-20" v-if="prices_model.is_extended" v-bind:key="'down'"><i class="fas fa-chevron-down"></i></span>
+                        </span>
+                    {/if}
+                    <div class="s-title">[`Prices & availability`]</div>
+                </div>
+                <div class="s-column-filters wide" v-if="prices_model.is_extended">
+                    <div class="s-filters-list">
+                        <template v-for="(active_filter_id, filter_name) in prices_model.filters">
+                            <div class="s-filter-section">
+                                <span class="s-label">{ { filters[filter_name].label } }</span>
+                                <component-dropdown
+                                    v-bind:items="filters[filter_name]['options']"
+                                    v-bind:active_item_id="active_filter_id"
+                                    v-bind:button_class="'wa-small transparent'"
+                                    v-bind:body_class="'right'"
+                                    v-on:change="onChangeFilter(filter_name, $event)"></component-dropdown>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="s-section-body" v-if="prices_model.is_extended">
+            <component-price-table
+                v-bind:skus="prices_model.skus"></component-price-table>
+        </div>
+    </div>
+{/capture}
+{$_components["component-prices-section"] = $_component_prices_section|trim}
+
+{capture assign="_component_price_table"}
+    <div class="vue-component-price-table">
+        <div class="s-table-header">
+            <div class="s-table-row">
+                <div class="s-table-column s-column-name">
+                    <span class="s-label">[`Артикул`]</span>
+                </div>
+                <div class="s-table-column s-column-compare-price">
+                    <span class="s-label">[`Зачёркнутая цена`]</span>
+                </div>
+                <div class="s-table-column s-column-price">
+                    <span class="s-label">[`Основная цена`]</span>
+                </div>
+                <div class="s-table-column s-column-amount">
+                    <span class="s-label">[`Количество`]</span>
+                </div>
+            </div>
+        </div>
+        <template v-if="skus_is_displayed">
+            <div class="s-table-body">
+                <template v-for="sku in skus">
+                    <div class="s-sku-section"
+                         v-if="sku.is_visible"
+                         v-bind:key="sku.sku">
+                        <div class="s-table-row s-sku-wrapper"
+                             v-if="product.normal_mode">
+                            <div class="s-table-column s-column-name">
+                                <div class="s-sku-sku" v-text="sku.sku"></div>
+                                <div class="s-sku-name" v-text="sku.name"></div>
+                            </div>
+                            <div class="s-table-column s-column-compare-price"></div>
+                            <div class="s-table-column s-column-price"></div>
+                            <div class="s-table-column s-column-amount"></div>
+                        </div>
+                        <template v-for="sku_mod in sku.modifications">
+                            <div class="s-table-row s-modification-wrapper"
+                                 v-if="sku_mod_visible(sku_mod)"
+                                 v-bind:class="{ 'is-highlighted' : sku_mod.is_highlighted }"
+                                 v-bind:data-id="sku_mod.id"
+                                 v-bind:key="sku_mod.id">
+                                <div class="s-table-column s-column-name">
+                                    <div class="flexbox">
+                                        <div class="s-modification-icon s-modification-percentage"
+                                             v-if="show_percentage(sku.modifications) && sku_mod.promos">
+                                            <button class="wa-button no-indent transparent"
+                                                    v-bind:data-tooltip-id="promo_tooltip(sku_mod)"
+                                                    v-bind:style="{ 'visibility' : (Object.keys(sku_mod.promos).length ? '' : 'hidden' ) }"
+                                                    v-on:click.prevent="scrollToPromo(sku_mod)">
+                                                <span class="s-icon"
+                                                      v-bind:class="promo_icon_class(sku_mod)"><i class="fas fa-percentage"></i></span>
+                                            </button>
+                                        </div>
+                                        <div class="s-modification-icon s-modification-status">
+                                            <button class="wa-button no-indent transparent"
+                                                    v-bind:data-tooltip-id="(sku_mod.status ? 'prices-tooltip-1' : 'prices-tooltip-2')">
+                                                <span class="s-icon color-blue"
+                                                      v-if="sku_mod.status"
+                                                      v-bind:key="'eye'"><i class="fas fa-eye"></i></span>
+                                                <span class="s-icon color-gray-light"
+                                                      v-if="!sku_mod.status"
+                                                      v-bind:key="'eye-slash'"><i class="fas fa-eye-slash"></i></span>
+                                                </button>
+                                        </div>
+                                        <div class="s-modification-icon s-modification-available">
+                                            <button class="wa-button no-indent transparent"
+                                                    v-bind:data-tooltip-id="(sku_mod.available ? 'prices-tooltip-3' : 'prices-tooltip-4')">
+                                                <span class="s-icon icon top size-18 color-green-dark"
+                                                      v-if="sku_mod.available"
+                                                      v-bind:key="'cart'"><svg><use xlink:href='{$_sprite_url}#cart'></use></svg></span>
+                                                <span class="s-icon icon top size-18 color-gray-light"
+                                                      v-if="!sku_mod.available"
+                                                      v-bind:key="'cart-slash'"><svg><use xlink:href='{$_sprite_url}#cart-slash'></use></svg></span>
+                                            </button>
+                                        </div>
+                                        <div class="s-modification-name wide">
+                                            <template v-if="product.normal_mode">
+                                                <span class="s-name" v-text="sku_mod.name"></span>
+                                            </template>
+                                            <template v-else>
+                                                <span class="s-sku-sku" v-text="sku.sku"></span>
+                                                <span class="s-sku-name" v-text="product.name"></span>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="s-table-column s-column-compare-price">
+                                    <div class="s-modification-compare-price"
+                                         v-bind:class="sku_mod_price_class(sku_mod, 'compare_price')"
+                                         v-html="sku_mod_price(sku_mod, 'compare_price')"></div>
+                                </div>
+                                <div class="s-table-column s-column-price">
+                                    <div class="s-modification-price"
+                                         v-bind:class="sku_mod_price_class(sku_mod, 'price')"
+                                         v-html="sku_mod_price(sku_mod, 'price')"></div>
+                                </div>
+                                <div class="s-table-column s-column-amount">
+
+                                    <component-stocks-manager
+                                        v-bind:sku_mod="sku_mod"
+                                        v-bind:key="sku_mod.stocks_data.render_key"
+                                        v-on:stocks_updated="updateStocks(sku_mod)"></component-stocks-manager>
+
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </template>
+        <template v-else>
+            <div class="s-message-empty">[`Артикулов нет`]</div>
+        </template>
+    </div>
+{/capture}
+{$_components["component-price-table"] = $_component_price_table|trim}
+
+{capture assign="_component_promo_section"}
+    <div class="vue-component-promo-section"
+         v-bind:id="'js-promo-' + promo.id">
+        <div class="s-section-header">
+            <div class="flexbox space-8">
+                <div class="s-column-icon">
+                    <span class="s-icon icon color-yellow" data-tooltip-id="prices-tooltip-8"
+                          v-if="promo.status === 'stopped'"
+                          v-bind:key="'pause'"><i class="fas fa-pause-circle"></i></span>
+                    <span class="s-icon icon color-gray" data-tooltip-id="prices-tooltip-9"
+                          v-else-if="promo.status === 'scheduled'"
+                          v-bind:key="'clock'"><i class="fas fa-clock"></i></span>
+                    <span class="s-icon icon color-green-dark" data-tooltip-id="prices-tooltip-7"
+                          v-else
+                          v-bind:key="'play'"><i class="fas fa-play-circle"></i></span>
+                </div>
+                <div class="s-column wide">
+                    <div class="s-section-title" v-text="promo.name"></div>
+                    <div class="flexbox space-16 full-width">
+                        <div class="wide">
+                            <div class="s-date-wrapper"
+                                 v-if="promo.date_string">
+                                <span class="s-date-string"
+                                      v-html="promo.date_string"></span>
+                            </div>
+
+                            {if !empty($frontend_urls) && (count($frontend_urls) > 1)}
+                                <div class="s-storefronts-section">
+                                    <template v-if="promo.storefronts">
+                                        <div class="s-storefronts-list wa-list space-6"
+                                             v-if="promo.storefronts.length > 0">
+
+                                            <template v-if="promo.storefronts.length > promo.storefronts_limit">
+                                                <div class="s-label">
+                                                    <a href="javascript:void(0);" v-on:click.prevent="storefrontsToggle">
+                                                        { { promo_storefronts_toggle(promo) } }
+                                                    </a>
+                                                </div>
+
+                                                <template v-if="promo.storefronts_extended">
+                                                    <div class="s-storefront" v-for="(storefront, index) in promo.storefronts">
+                                                        <a v-bind:href="storefront" v-text="storefront" target="_blank"></a>
+                                                    </div>
+
+                                                    <div class="s-toggle" v-if="promo.storefronts.length > 10">
+                                                        <a href="javascript:void(0);"
+                                                           v-on:click.prevent="storefrontsToggle">{_w("Скрыть витрины")|escape}</a>
+                                                    </div>
+                                                </template>
+                                            </template>
+                                            <template v-else>
+                                                <div class="s-label">[`Акция проходит на витринах:`]</div>
+                                                <div class="s-storefront" v-for="(storefront, index) in promo.storefronts">
+                                                    <a v-bind:href="storefront" v-text="storefront" target="_blank"></a>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <template v-else>
+                                        <div class="s-message">[`Акция проходит на всех витринах.`]</div>
+                                    </template>
+                                </div>
+                            {/if}
+                        </div>
+                        <div class="s-column-filters nowrap">
+                            <div class="s-filters-list">
+                                <template v-for="(active_filter_id, filter_name) in promo.filters">
+                                    <div class="s-filter-section">
+                                        <span class="s-label">{ { filters[filter_name].label } }</span>
+                                        <component-dropdown
+                                            v-bind:items="filters[filter_name]['options']"
+                                            v-bind:active_item_id="active_filter_id"
+                                            v-bind:button_class="'wa-small transparent'"
+                                            v-bind:body_class="'right'"
+                                            v-on:change="onChangeFilter(filter_name, $event)"></component-dropdown>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="s-section-body">
+            <component-price-table
+                v-bind:skus="promo.skus"
+                v-bind:promo="promo"></component-price-table>
+        </div>
+    </div>
+{/capture}
+{$_components["component-promo-section"] = $_component_promo_section|trim}
+
+{capture assign="_component_stocks_manager"}
+    <div class="vue-component-stocks-manager">
+        <div class="s-stocks-section">
+            <div class="s-visible-part">
+
+                <div class="wa-fields vertical">
+                    <div class="wa-field">
+                        <div class="value">
+                            <div class="flexbox">
+                                <div class="s-field-wrapper wide">
+                                    <div class="s-icon left" v-bind:class="{ 'color-green-dark' : sku_mod.stocks_data.indicator > 0, 'color-orange' : sku_mod.stocks_data.indicator == 0, 'color-red' : sku_mod.stocks_data.indicator < 0 }">
+                                        <i class="icon size-16"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></i>
+                                    </div>
+                                    <input class="wa-small s-field full-width is-number" type="text" placeholder="∞"
+                                           v-model="sku_mod.count"
+                                           v-bind:readonly="!!stocks_array.length || !can_edit"
+                                           v-on:click="focusSkuModStocks(sku_mod)"
+                                           v-on:input="validate($event, 'integer', sku_mod, 'count')">
+                                </div>
+
+                                <template v-if="stocks_array.length">
+                                    <div class="s-toggle" v-on:click.prevent="toggleStocks">
+                                        <span class="s-icon icon size-16" v-if="!sku_mod.stocks_data.expanded" v-bind:key="'down'">
+                                            <i class="s-angle-down"></i>
+                                        </span>
+                                        <span class="s-icon icon size-16" v-else="sku_mod.stocks_data.expanded" v-bind:key="'up'">
+                                            <i class="s-angle-up"></i>
+                                        </span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="s-hidden-part" v-if="sku_mod.stocks_data.expanded">
+                <div class="s-stocks-list-section" v-bind:class="{ 'is-large': stocks_array.length > 6 }">
+                    <div class="s-section-body">
+                        <div class="s-stocks-list">
+
+                            <template v-for="stock in stocks_array">
+                                <div class="s-stock-wrapper">
+                                    <div class="flexbox middle space-12"
+                                         data-tooltip-id="default"
+                                         v-bind:data-title="getStockTitle(stock)">
+
+                                        <div class="c-column">
+                                            <div class="s-field-wrapper">
+                                                <div class="s-icon left" v-bind:class="stock_icon_class(sku_mod_stocks[stock.id], stock)">
+                                                    <i class="icon size-16"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></i>
+                                                </div>
+                                                <input class="wa-small s-field full-width is-number" type="text" placeholder="∞"
+                                                       v-model="sku_mod_stocks[stock.id]"
+                                                       v-bind:readonly="stock.is_virtual || !can_edit"
+                                                       v-bind:style="{ 'opacity' : stock.is_virtual ? '.5' : ''}"
+                                                       v-bind:class="{ 'transparent' : stock.is_virtual }"
+                                                       v-on:input="validate($event, 'integer', sku_mod_stocks, stock.id); changeSkuModStocks(sku_mod);">
+                                            </div>
+                                        </div>
+                                        <div class="c-column">
+                                            <span class="cursor-default"
+                                                  v-bind:style="{ 'opacity' : stock.is_virtual ? '.5' : '' }">{ { stock.name } }</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                        </div>
+                    </div>
+                    <div class="s-section-footer"
+                         v-if="can_edit">
+                        <button class="wa-button wa-small" type="button"
+                                v-bind:class="{ 'yellow' : states.is_changed }"
+                                v-bind:disabled="states.is_locked"
+                                v-on:click.prevent="saveStocksChanges">
+
+                            <span class="s-icon" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
+                            <span class="s-name">[`Save`]</span>
+                        </button>
+                        <button class="wa-button wa-small gray-light" type="button"
+                                v-on:click.prevent="toggleStocks(false)">
+                            <span class="s-icon"><i class="fas fa-times"></i></span></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_components["component-stocks-manager"] = $_component_stocks_manager|trim}
+
+{capture assign="_component_dropdown"}
+    <div class="dropdown">
+        <button class="dropdown-toggle wa-button" type="button"
+                v-bind:class="button_class">{ { active_item.name } }</button>
+        <div class="dropdown-body"
+             v-bind:class="body_class"
+             v-bind:style="{ 'width' : body_width }">
+            <template v-for="item in items">
+                <div class="dropdown-item"
+                     v-bind:data-id="item.id"
+                     v-bind:class="{ 'selected': item.id === active_item.id }">{ { item.name } }</div>
+            </template>
+        </div>
+    </div>
+{/capture}
+{$_components["component-dropdown"] = $_component_dropdown|trim}
+
+{* PAGE *}
+<div id="js-product-prices-section-wrapper">
+    {* VUE *}
+    <div class="article s-product-prices-section js-product-prices-section" style="visibility: hidden;">
+        {* BODY *}
+
+        <!-- plugin hook: 'backend_prod_content.top' -->
+        {* @event backend_prod_content.%plugin_id%.top *}
+        {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.top)}{/foreach}{/if}
+
+        <div class="s-section-body">
+            {* GLOBAL ERRORS *}
+            <div class="s-errors-place" v-if="errors_global.length">
+                <template v-for="error in errors_global">
+                    <div class="wa-message wa-small info flexbox space-8"
+                         v-bind:data-id="error.id"
+                         v-bind:key="error.id">
+                        <div class="message-icon"><i class="fas fa-info-circle"></i></div>
+                        <div class="message-text wide">{ { error.text } }</div>
+                        <div class="message-actions">
+                            <div class="message-action" v-on:click.prevent="removeError(error.id, error)"><i class="fas fa-times message-toggle"></i></div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            {* STATUS *}
+            <div class="s-content-section s-status-section">
+                <div class="s-section-header">
+                    <h4 class="s-title">[`Публикация`]</h4>
+                </div>
+                <div class="s-section-body">
+                    <div class="s-status-message wa-message wa-small gray">
+                        {if $product.status === "1"}
+                            <div class="s-title flexbox space-8 middle">
+                                <div class="message-icon"><i class="fas fa-check color-green-dark"></i></div>
+                                <div class="message-text wide">[`Published`]</div>
+                            </div>
+                            <div class="s-description">[`Товар виден на витрине в общих списках товаров, возможность добавления в корзину зависит от настроек для отдельных артикулов и модификаций.`]</div>
+
+                        {elseif $product.status === "0"}
+                            <div class="s-title flexbox space-8 middle">
+                                <div class="message-icon"><i class="fas fa-times color-yellow"></i></div>
+                                <div class="message-text wide">[`Hidden`]</div>
+                            </div>
+                            <div class="s-description">
+                                {sprintf(
+                                    _w('The product is not visible among other products in the storefront, is not available for purchase, cannot be viewed at its direct URL, and is excluded from the %sSitemap file%s.'),
+                                    '<a class="nowrap bold" href="javascript:void(0);">',
+                                    sprintf(
+                                        '</a> <span class="wa-tooltip bottom-left" data-title="%s"><i class="fas fa-question-circle s-icon"></i></span>',
+                                        _w('A Sitemap file is a special XML file containing URLs of all website pages that need to be indexed by search engines.')|escape
+                                    )
+                                )}
+                            </div>
+
+                        {elseif $product.status === "-1"}
+                            <div class="s-title flexbox space-8 middle">
+                                <div class="message-icon"><i class="fas fa-times color-red"></i></div>
+                                <div class="message-text wide">[`Unpublished`]</div>
+                            </div>
+                            <div class="s-description">[`The product is not shown among other products in the storefront, is not available for purchase, and can be viewed at its direct URL only.`]</div>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+
+            {* STOREFRONTS *}
+            {if !empty($frontend_urls) && (count($frontend_urls) > 1)}
+                {$_limit = 3}
+                {$_count = count($frontend_urls)}
+                {$_show_toggle = ($_count > $_limit)}
+
+                {$_store_locales = [
+                    "show" => _w("Показать %d витрину, на которых опубликован товар", "Показать %d витрин, на которых опубликован товар", $_count),
+                    "hide" => _w("Скрыть %d витрину, на которых опубликован товар", "Скрыть %d витрин, на которых опубликован товар", $_count),
+                    "hide_toggle" => _w("Скрыть витрины")
+                ]}
+
+                <div class="s-content-section s-storefronts-section">
+                    {if !empty($_show_toggle)}
+                        <div class="s-section-header">
+                            <div class="s-description">
+                                <a href="javascript:void(0);" v-on:click.prevent="storefrontsToggle">
+                                    { { storefronts_extended ? "{$_store_locales["hide"]|escape}" : "{$_store_locales["show"]|escape}" } }
+                                </a>
+                            </div>
+                        </div>
+                    {/if}
+                    <div class="s-section-body">
+                        <ul class="s-storefronts-list wa-list space-12">
+                            {if empty($_show_toggle)}
+                                {foreach $frontend_urls as $_front}
+                                    <li class="s-storefront">
+                                        <a href="{$_front.url|escape}" target="_blank">{$_front.url|escape}</a>
+                                    </li>
+                                {/foreach}
+                            {else}
+                                <template v-if="storefronts_extended">
+                                    {foreach $frontend_urls as $_front}
+                                        <li class="s-storefront">
+                                            <a href="{$_front.url|escape}" target="_blank">{$_front.url|escape}</a>
+                                        </li>
+                                    {/foreach}
+
+                                    {if $_count > 10}
+                                        <li>
+                                            <a class="s-action" href="javascript:void(0);"
+                                               v-on:click.prevent="storefrontsToggle">{$_store_locales["hide_toggle"]|escape}</a>
+                                        </li>
+                                    {/if}
+                                </template>
+                            {/if}
+                        </ul>
+                    </div>
+                </div>
+            {/if}
+
+            {* PRICES *}
+            <component-prices-section
+                v-bind:prices_model="prices_model"></component-prices-section>
+
+            {* PROMOS *}
+            <div class="s-promos-section">
+                <div class="s-section-header">
+                    <div class="flexbox space-16">
+                        <div class="s-column-title flexbox middle space-4 {if $formatted_product["normal_mode"] && !empty($promos_model.promos)}cursor-pointer{/if}"
+                            {if $formatted_product["normal_mode"] && !empty($promos_model.promos)}v-on:click.prevent="promosToggle"{/if}>
+                            {if $formatted_product["normal_mode"] && !empty($promos_model.promos)}
+                                <span class="s-icon">
+                                    <span class="icon size-20" v-if="!promos_model.is_extended" v-bind:key="'right'"><i class="fas fa-chevron-right"></i></span>
+                                    <span class="icon size-20" v-if="promos_model.is_extended" v-bind:key="'down'"><i class="fas fa-chevron-down"></i></span>
+                                </span>
+                            {/if}
+                            <div class="s-title">[`Участие в акциях`]</div>
+                        </div>
+                        <div class="s-column-filters wide" v-if="promos_model.promos.length && promos_model.is_extended">
+                            <div class="s-filters-list">
+                                <template v-for="(active_filter_id, filter_name) in promos_model.filters">
+                                    <div class="s-filter-section">
+                                        <span class="s-label">{ { filters[filter_name].label } }</span>
+                                        <component-dropdown
+                                            v-bind:items="filters[filter_name]['options']"
+                                            v-bind:active_item_id="active_filter_id"
+                                            v-bind:button_class="'wa-small transparent'"
+                                            v-on:change="onChangeFilter(filter_name, $event)"></component-dropdown>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="s-section-body"
+                     v-if="promos_model.is_extended">
+
+                    <template v-if="promos_model.promos.length">
+                        <template v-for="promo in promos_model.promos">
+                            <component-promo-section
+                                v-if="promo.is_visible"
+                                v-bind:promo="promo"></component-promo-section>
+                        </template>
+                    </template>
+                    <template v-else>
+                        <div class="s-message-empty">[`Товар не участвует в промоакциях.`]</div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- plugin hook: 'backend_prod_content.bottom' -->
+        {* @event backend_prod_content.%plugin_id%.bottom *}
+        {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.bottom)}{/foreach}{/if}
+
+        {include file="./includes/footer.html" hide_save=true hide_delete=empty($formatted_product["can_edit"]) inline}
+    </div>
+
+    {* INIT JS *}
+    <script>
+        ( function($) {
+            var sources = [{
+                id: "vue-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/vue/vue.min.js?v={$wa->version()}"
+            }, {
+                id: "wa-shop-products-product-prices-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/product/product.prices.js?v={$wa->version()}"
+            }];
+
+            $.wa.loadSources(sources).done(init);
+
+            function init() {
+                $.wa_shop_products.init.initProductPricesSection({
+                    $wrapper: $("#js-product-prices-section-wrapper"),
+                    components: {$_components|json_encode},
+                    templates: {$_templates|json_encode},
+                    tooltips: {$_tooltips|json_encode},
+                    locales: {$_locales|json_encode},
+                    urls: {
+                        "save_stocks": "{$wa_app_url}?module=prod&action=pricesStocksSave"
+                    },
+
+                    product     : {$formatted_product|json_encode},
+                    filters     : {$filters|json_encode},
+                    prices_model: {$prices_model|json_encode},
+                    promos_model: {$promos_model|json_encode},
+                    stocks      : {$stocks|array_values|json_encode}
+                });
+
+                $(document).trigger("wa_product_section_change", "product-prices");
+            }
+        })(jQuery);
+    </script>
+</div>

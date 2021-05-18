@@ -50,6 +50,18 @@
                 var $footer = that.$wrapper.find(".js-sticky-footer");
                 product_page.initProductDelete($footer);
                 product_page.initStickyFooter($footer);
+                updateURL(that.product.id);
+
+                function updateURL(product_id) {
+                    if (product_id) {
+                        var is_new = location.href.indexOf("/new/") >= 0;
+                        if (is_new) {
+                            var url = location.href.replace("/new/", "/"+product_id+"/");
+                            history.replaceState(null, null, url);
+                            that.$wrapper.trigger("product_created", [product_id]);
+                        }
+                    }
+                }
             });
 
             $.each(that.tooltips, function(i, tooltip) {
@@ -542,6 +554,8 @@
                 },
                 mounted: function() {
                     var self = this;
+
+                    that.$wrapper.trigger("section_mounted", ["reviews", that]);
                 }
             });
 

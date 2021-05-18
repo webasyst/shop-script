@@ -27,7 +27,8 @@
             that.selectable_features = options["selectable_features"];
             that.states = {
                 load: {
-                    selectable_features: false
+                    selectable_features: false,
+                    add_feature: false
                 }
             };
             that.errors = {
@@ -59,16 +60,7 @@
 
                 // Проставляю параметры с дефолтными значениями
                 $.each(product.features, function(i, feature) {
-                    if (feature.can_add_value) {
-                        var white_list = ["select", "checkbox"];
-                        if (white_list.indexOf(feature.render_type) >= 0) {
-                            feature.show_form = false;
-                            feature.form = { value: "" }
-
-                            if (feature.type === "color") { feature.form.code = ""; }
-                            if (feature.type.indexOf("dimension") >= 0) { feature.form.unit = feature.active_unit.value; }
-                        }
-                    }
+                    that.formatFeature(feature);
                 });
 
                 var session_json_data = sessionStorage.getItem("product_sku_page_data");
@@ -113,6 +105,18 @@
                 var $footer = that.$wrapper.find(".js-sticky-footer");
                 product_page.initProductDelete($footer);
                 product_page.initStickyFooter($footer);
+                updateURL(that.product.id);
+
+                function updateURL(product_id) {
+                    if (product_id) {
+                        var is_new = location.href.indexOf("/new/") >= 0;
+                        if (is_new) {
+                            var url = location.href.replace("/new/", "/"+product_id+"/");
+                            history.replaceState(null, null, url);
+                            that.$wrapper.trigger("product_created", [product_id]);
+                        }
+                    }
+                }
             });
 
             $.each(that.tooltips, function(i, tooltip) {
@@ -1871,7 +1875,7 @@
                             html: that.templates["dialog_photo_manager"],
                             options: {
                                 onPhotoAdd: function(photo) {
-                                    that.product.photos.push(photo);
+                                    that.product.photos.unshift(photo);
                                     if (that.product.photos.length === 1) {
                                         self.setProductPhoto(photo, sku_mod);
                                     }
@@ -2614,6 +2618,7 @@
 
                         return result;
                     },
+
                     // OTHER
                     validate: function(event, type, data, key) {
                         var self = this,
@@ -2661,17 +2666,212 @@
                         function set(value) {
                             Vue.set(data, key, value);
                         }
+                    },
+
+                    //
+                    showAddFeatureDialog: function() {
+                        var href = that.urls["dialog_add_feature_html"],
+                            data = { mode: "varchar", type_id: "" };
+
+                        that.states.load.add_feature = true;
+
+                        getDialogSources()
+                            .fail( function() {
+                                that.states.load.add_feature = false;
+                            })
+                            .done( function () {
+                                getDialogHTML(href, data)
+                                    .always( function() {
+                                        that.states.load.add_feature = false;
+                                    })
+                                    .done(initDialog);
+                            });
+
+                        function getDialogSources() {
+                            var sources = [{
+                                id  : "wa-shop-features-add_feature-js",
+                                type: "js",
+                                uri : that.urls["dialog_add_feature_js"]
+                            }, {
+                                id: "wa-shop-features-add_feature-css",
+                                type: "css",
+                                uri: that.urls["dialog_add_feature_css"]
+                            }, {
+                                id: "wa-content-color-picker-js",
+                                type: "js",
+                                uri: that.urls["dialog_add_feature_color_picker_js"]
+                            }, {
+                                id: "wa-content-color-picker-css",
+                                type: "css",
+                                uri: that.urls["dialog_add_feature_color_picker_css"]
+                            }];
+
+                            return $.wa.loadSources(sources);
+                        }
+
+                        function getDialogHTML(href, data) {
+                            return $.post(href, data, "json");
+                        }
+
+                        function initDialog(html) {
+                            // Это точечная коррекция класов под оформление диалога в редакторе
+                            html = html
+                                .replace("wa-dialog-background", "dialog-background")
+                                .replace("wa-dialog-body", "dialog-body")
+                                .replace("wa-dialog-header", "dialog-header")
+                                .replace("wa-dialog-content", "dialog-content")
+                                .replace("wa-dialog-footer", "dialog-footer");
+
+                            $.waDialog({
+                                html: html,
+                                options: {
+                                    onSuccess: function() {
+                                        // do something
+                                        console.log( "AAAAA" );
+                                    },
+                                    scope: {
+                                        initFeatureEditDialog: function(options) {
+                                            return $.wa.new.AddFeatureDialog(options);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    },
+                    addFeatureToModel: function(feature_data) {
+                        var self = this;
+
+                        feature_data = that.formatFeature(feature_data);
+
+                        // 1 Добавляем к общим характеристикам
+                        that.product.features.unshift(feature_data);
+
+                        // 2 Добавляем в "выбираемые" характеристики
+                        if (feature_data.available_for_sku) {
+                            var selectable_feature = {
+                                "id": feature_data["id"],
+                                "name": feature_data["name"],
+                                "render_type": feature_data["render_type"],
+                                "disabled": true,
+                                "active": false
+                            };
+
+                            // range, 2d and 3d features are not supported as selectable
+                            var is_composite = !!feature_data['type'].match(/^(2d|3d|range)\./);
+                            if (!is_composite) {
+                                selectable_feature.disabled = (["select", "checkbox", "field", "field.date", "textarea", "color"].indexOf(feature_data["render_type"]) < 0);
+                            }
+
+                            that.selectable_features.unshift(selectable_feature);
+                        }
+
+                        // 2.1 Обновляем модель характеристик в модификациях
+                        $.each(that.product.skus, function(i, sku) {
+                            $.each(sku.modifications, function (i, sku_mod) {
+                                var sku_mod_feature = formatModificationFeature($.wa.clone(feature_data));
+                                sku_mod.features.unshift(sku_mod_feature);
+                            });
+                        });
+
+                        function formatModificationFeature(feature) {
+                            if (feature["render_type"] === "checkbox") {
+                                feature["render_type"] = "select";
+                                feature["options"].unshift({
+                                    "name" : that.locales["not_defined"],
+                                    "value": ""
+                                });
+                                feature["active_option"] = feature["options"][0];
+                            }
+
+                            if (feature["render_type"] === "select") {
+                                feature["can_add_value"] = false;
+                            }
+
+                            return feature;
+                        }
+
+                        // Скролим
+                        self.$nextTick( function() {
+                            var $feature = that.$wrapper.find(".s-general-options-section .s-features-list .s-feature-wrapper[data-id='"+feature_data.id+"']");
+                            if ($feature.length) {
+                                var $window = $(window),
+                                    top = $feature.offset().top - ($window.height()/2);
+
+                                $window.scrollTop(top > 0 ? top : 0);
+
+                                var active_class = "is-highlighted";
+                                $feature.addClass(active_class);
+                                setTimeout( function() {
+                                    $feature.removeClass(active_class);
+                                }, 2000);
+                            }
+                        });
+                    },
+
+                    // Функция для тестирования добавления характеристики
+                    /*
+                    test: function() {
+                        var self = this;
+                        var feature_id = "119";
+                        $.post(that.urls["format_feature"], { product_id: that.product.id, feature_id: feature_id }, "json")
+                            .done( function(response) {
+                                if (response.status === "ok") {
+                                    self.addFeatureToModel(response.data);
+                                }
+                            });
                     }
+                    */
                 },
                 delimiters: ['{ { ', ' } }'],
                 created: function () {
                     $view_section.css("visibility", "");
                 },
                 mounted: function() {
-                    var self = this;
+                    var self = this,
+                        $wrapper = $(self.$el);
+
                     that.initDragAndDrop(this);
                     // that.initTouchAndDrop(this);
                     that.validate();
+
+                    initAddFeatureDialog($wrapper);
+
+                    // Функция для тестирования добавления характеристики
+                    // self.test();
+
+                    //
+                    that.$wrapper.trigger("section_mounted", ["sku", that]);
+
+                    function initAddFeatureDialog($wrapper) {
+                        $wrapper.on("feature_dialog_before_load", function() {
+                            that.states.load.add_feature = true;
+                        });
+
+                        $wrapper.on("feature_dialog_load_fail feature_dialog_load_done", function() {
+                            that.states.load.add_feature = false;
+                        });
+
+                        $wrapper.on("feature_dialog_feature_created", function(event, feature_data, dialog_data) {
+                            $.post(that.urls["format_feature"], { product_id: that.product.id, feature_id: feature_data.id }, "json")
+                                .done( function(response) {
+                                    if (response.status === "ok") {
+                                        self.addFeatureToModel(response.data);
+                                        dialog_data.dialog.close();
+                                    } else {
+                                        console.log("ERROR: Formar Feature");
+                                    }
+                                });
+                        });
+
+                        $wrapper.on("feature_dialog_html_ready", function(event, data) {
+                            data.html = data.html
+                                .replace("wa-dialog-background", "dialog-background")
+                                .replace("wa-dialog-body", "dialog-body")
+                                .replace("wa-dialog-header", "dialog-header")
+                                .replace("wa-dialog-content", "dialog-content")
+                                .replace("wa-dialog-footer", "dialog-footer");
+                        });
+                    }
                 }
             });
 
@@ -2821,6 +3021,23 @@
                     sku_mod.stock[stock.id] = value;
                 });
             }
+        };
+
+        Section.prototype.formatFeature = function(feature) {
+            var that = this;
+
+            if (feature.can_add_value) {
+                var white_list = ["select", "checkbox"];
+                if (white_list.indexOf(feature.render_type) >= 0) {
+                    feature.show_form = false;
+                    feature.form = { value: "" }
+
+                    if (feature.type === "color") { feature.form.code = ""; }
+                    if (feature.type.indexOf("dimension") >= 0) { feature.form.unit = feature.active_unit.value; }
+                }
+            }
+
+            return feature;
         };
 
         Section.prototype.updateModificationSelectableFeatures = function(sku_mod) {
@@ -3573,6 +3790,16 @@
 
                     sendRequest(data)
                         .done( function(server_data) {
+                            var product_id = server_data.data.id;
+                            if (product_id) {
+                                var is_new = location.href.indexOf("/new/sku/") >= 0;
+                                if (is_new) {
+                                    var url = location.href.replace("/new/sku/", "/"+product_id+"/sku/");
+                                    history.replaceState(null, null, url);
+                                    that.$wrapper.trigger("product_created", [product_id]);
+                                }
+                            }
+
                             if (options.redirect_url) {
                                 $.wa_shop_products.router.load(options.redirect_url).fail( function() {
                                     location.href = options.redirect_url;
@@ -3740,10 +3967,10 @@
                         var is_stocks_mode = false;
 
                         $.each(sku_mod.stock, function(stock_id, stock_value) {
+                            is_stocks_mode = true;
+
                             var value = parseFloat(stock_value);
-                            if (value >= 0) {
-                                is_stocks_mode = true;
-                            } else {
+                            if (value < 0) {
                                 value = "";
                             }
 
@@ -4913,6 +5140,7 @@
                         } else if (file_size >= that.max_post_size) {
                             renderError({ id: "big_post", text: "ERROR: big POST file size" });
                         } else {
+                            file.id = that.getUniqueIndex("file_load_id");
                             self.files.push(file);
                         }
 

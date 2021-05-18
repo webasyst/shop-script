@@ -38,6 +38,18 @@
                 var $footer = that.$wrapper.find(".js-sticky-footer");
                 product_page.initProductDelete($footer);
                 product_page.initStickyFooter($footer);
+                updateURL(that.product.id);
+
+                function updateURL(product_id) {
+                    if (product_id) {
+                        var is_new = location.href.indexOf("/new/") >= 0;
+                        if (is_new) {
+                            var url = location.href.replace("/new/", "/"+product_id+"/");
+                            history.replaceState(null, null, url);
+                            that.$wrapper.trigger("product_created", [product_id]);
+                        }
+                    }
+                }
             });
 
             that.initSave();
@@ -351,7 +363,7 @@
                             html: that.templates["dialog_photo_manager"],
                             options: {
                                 onPhotoAdd: function(photo) {
-                                    that.product.photos.push(photo);
+                                    that.product.photos.unshift(photo);
                                     if (that.product.photos.length === 1) {
                                         self.setPhoto(that.product.photos[0]);
                                     }
@@ -398,6 +410,8 @@
                 },
                 mounted: function() {
                     var self = this;
+
+                    that.$wrapper.trigger("section_mounted", ["seo", that]);
                 }
             });
 
@@ -462,7 +476,17 @@
                 });
 
                 sendRequest()
-                    .done( function() {
+                    .done( function(server_data) {
+                        var product_id = server_data.product_id;
+                        if (product_id) {
+                            var is_new = location.href.indexOf("/new/seo/") >= 0;
+                            if (is_new) {
+                                var url = location.href.replace("/new/seo/", "/"+product_id+"/seo/");
+                                history.replaceState(null, null, url);
+                                that.$wrapper.trigger("product_created", [product_id]);
+                            }
+                        }
+
                         if (options.redirect_url) {
                             $.wa_shop_products.router.load(options.redirect_url).fail( function() {
                                 location.href = options.redirect_url;
@@ -484,6 +508,7 @@
 
             function sendRequest() {
                 var data = getData();
+                beforeSavePluginHook(data);
 
                 return request(data);
 
@@ -493,14 +518,16 @@
                     $.post(that.urls["save"], data, "json")
                         .done( function(response) {
                             if (response.status === "ok") {
-                                deferred.resolve(response);
+                                deferred.resolve(response.data);
                             } else {
                                 deferred.reject(response.errors);
                             }
+                            afterSavePluginHook(data, response);
                         })
                         .fail( function() {
                             deferred.reject();
                         });
+                    savePluginHook(data);
 
                     return deferred.promise();
                 }
@@ -549,6 +576,41 @@
                         "value": (that.social.is_auto ? "" : that.social.type)
                     }
                 ];
+            }
+
+            function beforeSavePluginHook(data) {
+                return triggerHook($.Event('wa_before_save', {
+                    product_id: that.product.id,
+                    section_controller: that,
+                    form_errors: data.errors,
+                    form_data: data.data
+                }));
+            }
+
+            function savePluginHook(data) {
+                triggerHook($.Event('wa_save', {
+                    product_id: that.product.id,
+                    section_controller: that,
+                    form_data: data.data
+                }));
+            }
+
+            function afterSavePluginHook(form_data, server_data) {
+                triggerHook($.Event('wa_after_save', {
+                    product_id: that.product.id || (server_data && server_data.data && server_data.data.id),
+                    section_controller: that,
+                    server_data: server_data,
+                    form_data: form_data
+                }));
+            }
+
+            function triggerHook(event) {
+                try {
+                    $('#js-product-seo-section-wrapper').trigger(event);
+                } catch(e) {
+                    console.warn(e);
+                }
+                return !event.isDefaultPrevented();
             }
         };
 
@@ -761,6 +823,7 @@
                         } else if (file_size >= that.max_post_size) {
                             renderError({ id: "big_post", text: "ERROR: big POST file size" });
                         } else {
+                            file.id = that.getUniqueIndex("file_load_id");
                             self.files.push(file);
                         }
 
@@ -812,6 +875,19 @@
                 var scroll_h = $textarea[0].scrollHeight;
                 $textarea.css("min-height", scroll_h + "px");
             }
+        };
+
+        Section.prototype.getUniqueIndex = function(name, iterator) {
+            var that = this;
+
+            name = (typeof name === "string" ? name : "") + "_index";
+            iterator = (typeof iterator === "number" ? iterator : 1);
+
+            if (typeof that.getUniqueIndex[name] !== "number") { that.getUniqueIndex[name] = 0; }
+
+            that.getUniqueIndex[name] += iterator;
+
+            return that.getUniqueIndex[name];
         };
 
         return Section;

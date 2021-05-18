@@ -329,7 +329,7 @@
             var $wrapper = $("#js-settings-feature-edit-dialog").removeAttr("id"),
                 dialog = $wrapper.data("dialog");
 
-            dialog.options.scope.initFeatureEditDialog({
+            dialog.options.initFeatureDialog({
                 $wrapper: $wrapper,
                 dialog: dialog,
                 kinds: {$kinds|json_encode},
@@ -339,6 +339,10 @@
                 active_kind_id: {if !empty($_active_kind)}{$_active_kind.id|json_encode}{else}null{/if},
                 active_format_id: {if !empty($_active_format)}{$_active_format.id|json_encode}{else}null{/if},
                 show_skus_warning: {if !empty($_skus_warning_message)}true{else}false{/if},
+                urls: {
+                    "transliterate": {$wa_app_url|json_encode} + "?module=backend&action=transliterate",
+                    "feature_save": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=featureSave"
+                },
                 templates: {
                     "kind_warning_message": {$_kind_warning_message|json_encode},
                     "skus_warning_message": {$_skus_warning_message|json_encode},

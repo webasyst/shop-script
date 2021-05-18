@@ -22,7 +22,8 @@
                             <h1 class="s-title">{$title|escape}</h1>
                         </div>
                         <div class="s-column align-right">
-                            {if empty($is_filter_page)}{strip}
+                            {strip}
+                            {if empty($is_filter_page)}
                                 <div class="s-type-actions">
                                     <a class="s-action inline-link js-type-edit" href="javascript:void(0);">
                                         <i class="icon16 edit"></i>
@@ -33,7 +34,8 @@
                                         <b><i>[`Delete`]</i></b>
                                     </a>
                                 </div>
-                            {/if}{/strip}
+                            {/if}
+                            {/strip}
                         </div>
                     </div>
 
@@ -122,21 +124,26 @@
                                         </a>
                                         <ul class="menu-v without-icons" style="max-width: none; width: 250px;">
                                             <li>
-                                                <a class="js-feature-add-new" href="javascript:void(0);">
+                                                <a class="js-feature-add-new"
+                                                   href="javascript:void(0);"
+                                                   data-type-id="{$type_url_id|default:""|escape}">
                                                     <span class="s-name">[`New feature`]</span>
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="js-feature-add-divider" href="javascript:void(0);">
+                                                <a class="js-feature-add-divider"
+                                                   href="javascript:void(0);"
+                                                   data-type-id="{$type_url_id|default:""|escape}"
+                                                   data-mode="divider">
                                                     <span class="s-name">[`Feature group heading`]</span>
                                                 </a>
                                             </li>
                                             {if empty($is_filter_page)}
-                                            <li class="with-border">
-                                                <a class="js-feature-add-existing" href="javascript:void(0);">
-                                                    <span class="s-name">[`Feature or heading from&nbsp;other product types`]</span>
-                                                </a>
-                                            </li>
+                                                <li class="with-border">
+                                                    <a class="js-feature-add-existing" href="javascript:void(0);">
+                                                        <span class="s-name">[`Feature or heading from&nbsp;other product types`]</span>
+                                                    </a>
+                                                </li>
                                             {/if}
                                         </ul>
                                     </li>
@@ -219,7 +226,7 @@
 
                                                 {strip}
                                                 <div class="s-actions-list align-right">
-                                                    <a class="s-action js-feature-edit" href="javascript:void({$_feature.id|escape});" title="[`Edit`]"><i class="icon16 edit"></i></a>
+                                                    <a class="s-action js-feature-edit" href="javascript:void(0);" data-id="{$_feature.id|escape}" data-code="{$_feature.code|escape}" title="[`Edit`]"><i class="icon16 edit"></i></a>
                                                     <a class="s-action js-feature-copy" href="javascript:void(0);" title="[`Duplicate`]"><i class="icon16 notebooks"></i></a>
                                                     {if $_feature.builtin}
                                                         <a class="s-action js-feature-undeletable" href="javascript:void(0);" title="[`This feature is special and cannot be deleted. You can only remove it from certain product types where you don’t need it.`]"><i class="icon16 delete-bw"></i></a>
@@ -253,6 +260,10 @@
         </div>
     </div>
 
+    {shopSettingsTypefeatFeatureWidgetAction::widget([
+        "selection" => ".js-feature-add-new, .js-feature-add-divider, .js-feature-edit"
+    ])}
+
     <script>
         ( function($) {
 
@@ -266,14 +277,6 @@
                 id: "wa-dialog-js",
                 type: "js",
                 uri: "{$wa_url}wa-content/js/dialog/dialog.js?v={$wa->version(true)}"
-            }, {
-                id: "wa-farbtastic-css",
-                type: "css",
-                uri: "{$wa_url}wa-content/js/farbtastic/farbtastic.css?v={$wa->version(true)}"
-            }, {
-                id: "wa-farbtastic-js",
-                type: "js",
-                uri: "{$wa_url}wa-content/js/farbtastic/farbtastic.js?v={$wa->version(true)}"
             }, {
                 id: "wa-features-settings-css",
                 type: "css",

@@ -117,6 +117,16 @@ class shopShipping extends waAppShipping
             $instance->saveSettings($plugin['settings']);
         }
 
+        /**
+         * @event shipping_save
+         * @param array $params['plugin']
+         * @return void
+         */
+        $params = [
+            'plugin' => $plugin
+        ];
+        wa('shop')->event('shipping_save', $params);
+
         // Clean shipping methods cache
         self::flushCache();
 

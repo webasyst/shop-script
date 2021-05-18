@@ -4756,6 +4756,9 @@ msgstr ""
 msgid "deleted a product"
 msgstr ""
 
+msgid "deleted products"
+msgstr ""
+
 msgid "performed catalog import"
 msgstr ""
 

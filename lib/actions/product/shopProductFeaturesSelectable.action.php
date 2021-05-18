@@ -30,6 +30,7 @@ class shopProductFeaturesSelectableAction extends shopProductAction
         $this->view->assign('product', $product);
         $this->view->assign('features', $features_selectable);
         $this->view->assign('features_counts', $counts);
+        $this->view->assign('product_has_incompatible_features_selectable', shopProductAction::productHasIncompatibleFeaturesSelectable($product));
 
         $this->view->assign(array(
             'use_product_currency' => wa()->getSetting('use_product_currency'),

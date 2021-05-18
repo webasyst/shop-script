@@ -8,14 +8,6 @@ class shopCheckoutShippingStep extends shopCheckoutStep
 {
     public function process($data, $prepare_result)
     {
-        if (!empty($data['input']['fast_render'])) {
-            /** для ускоренного доступа покупателя к странице оформления заказа */
-            $errors[] = ['fast_render' => true];
-            return [
-                'errors' => $errors
-            ];
-        }
-
         // Is shipping step disabled altogether?
         $config = $this->getCheckoutConfig();
         if (empty($config['shipping']['used'])) {
@@ -27,6 +19,12 @@ class shopCheckoutShippingStep extends shopCheckoutStep
                 'errors'       => [],
                 'can_continue' => true,
             );
+        } elseif (!empty($data['input']['fast_render'])) {
+            /** для ускоренного доступа покупателя к странице оформления заказа */
+            $errors[] = ['fast_render' => true];
+            return [
+                'errors' => $errors
+            ];
         }
 
         $address = [

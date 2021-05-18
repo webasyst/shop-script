@@ -16,11 +16,27 @@ class shopFrontendOrderActions extends waJsonActions
     {
         $input = waRequest::post();
 
-        // Save checkout order block data in session
-        $session_checkout = wa()->getStorage()->get('shop/checkout');
-        $session_checkout = is_array($session_checkout) ? $session_checkout : [];
-        $session_checkout['order'] = $input;
-        wa()->getStorage()->set('shop/checkout', $session_checkout);
+        if (!empty($input['use_session_input'])) {
+            // Immediately after fast_render, use data from session storage
+            $session_checkout = wa()->getStorage()->get('shop/checkout');
+            $input = (!empty($session_checkout['order']) && is_array($session_checkout['order'])) ? $session_checkout['order'] : [];
+
+            // Make sure all steps return HTML.
+            // This helps in case session is empty (first time here or session lost).
+            $input['auth']['html'] = 1;
+            $input['region']['html'] = 'only';
+            $input['shipping']['html'] = 'only';
+            $input['details']['html'] = 'only';
+            $input['payment']['html'] = 1;
+            $input['confirm']['html'] = 1;
+            unset($input['fast_render']); // paranoid
+        } else {
+            // Save checkout order block data in session
+            $session_checkout = wa()->getStorage()->get('shop/checkout');
+            $session_checkout = is_array($session_checkout) ? $session_checkout : [];
+            $session_checkout['order'] = $input;
+            wa()->getStorage()->set('shop/checkout', $session_checkout);
+        }
 
         $format = strtolower(waRequest::request('response', 'json', 'string'));
         $data = shopCheckoutStep::processAll($format === 'html' ? 'form' : 'calculate', $this->makeOrderFromCart(), $input);

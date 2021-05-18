@@ -4,13 +4,21 @@
  */
 class shopProdRelatedAction extends waViewAction
 {
+    /**
+     * @throws waException
+     */
     public function execute()
     {
-        $product_id = waRequest::param('id', '', waRequest::TYPE_INT);
+        $product_id = waRequest::param('id', '', waRequest::TYPE_STRING);
+        shopProdGeneralAction::createEmptyProduct($product_id);
         $product = new shopProduct($product_id);
 
         if (!$product['id']) {
             throw new waException(_w("Unknown product"), 404);
+        }
+        $product_model = new shopProductModel();
+        if (!$product_model->checkRights($product_id)) {
+            throw new waException(_w('Access denied'));
         }
 
         $frontend_urls = shopProdGeneralAction::getFrontendUrls($product)[0];
@@ -19,12 +27,14 @@ class shopProdRelatedAction extends waViewAction
         $type = $type_model->getById($product['type_id']);
         $cross_selling = self::getCrossSelling($product, $type);
         $upselling = self::getUpselling($product, $type);
+        $backend_prod_content_event = $this->throwEvent($product);
 
         $this->view->assign([
             'product'       => self::formatProduct($product),
             'upselling'     => $upselling,
             'cross_selling' => $cross_selling,
             'frontend_urls' => $frontend_urls,
+            'backend_prod_content_event' => $backend_prod_content_event
         ]);
 
         $this->setLayout(new shopBackendProductsEditSectionLayout([
@@ -171,5 +181,29 @@ class shopProdRelatedAction extends waViewAction
             ],
             "products" => $products
         ];
+    }
+
+    /**
+     * Throw 'backend_prod_content' event
+     * @param shopProduct $product
+     * @return array
+     * @throws waException
+     */
+    protected function throwEvent($product)
+    {
+        /**
+         * @event backend_prod_content
+         * @since 8.19.0
+         *
+         * @param shopProduct $product
+         * @param string $content_id
+         *       Which page (tab) is shown
+         */
+        $params = [
+            'product' => $product,
+            'content_id' => 'related',
+        ];
+
+        return wa('shop')->event('backend_prod_content', $params);
     }
 }

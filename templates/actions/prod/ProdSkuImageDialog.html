@@ -4,6 +4,12 @@
         <div id="vue-photo-manager-section" style="visibility: hidden;">
             <div class="dialog-header">
                 <h2>[`Select an image`]</h2>
+                <div class="wa-message wa-small white flexbox space-8">
+                    <div class="message-icon"><i class="fas fa-info-circle"></i></div>
+                    <div class="message-text wide">
+                        [`Настроить порядок изображений можно в разделе «Изображения и видео»`]
+                    </div>
+                </div>
             </div>
             <div class="dialog-content">
 
@@ -18,13 +24,13 @@
                             <div class="s-text" v-if="errors.length">
                                 <div class="color-red" v-for="error in errors">{ { error.text } }</div>
                             </div>
-                            <input class="s-field" type="file" v-on:change="onAreaChange($event)" title="">
+                            <input class="s-field" type="file" v-on:change="onAreaChange($event)" title="" accept="image/*" multiple>
                         </div>
                     </div>
 
                     <div class="s-photos-list">
                         <template v-for="file in files">
-                            <div class="s-photo-wrapper is-new">
+                            <div class="s-photo-wrapper is-new" v-bind:key="file.id">
                                 <component-loading-file v-bind:file="file" v-on:photo_added="onAddedPhoto"></component-loading-file>
                             </div>
                         </template>

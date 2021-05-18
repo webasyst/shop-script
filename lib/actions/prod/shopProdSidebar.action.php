@@ -24,10 +24,29 @@ class shopProdSidebarAction extends waViewAction
 
     public function execute()
     {
-        $product_id = waRequest::param('id', '', 'int');
+        $product_id = waRequest::param('id', '', waRequest::TYPE_STRING);
+
+        $can_edit = true;
+        $prices_available = false;
+        if (wa_is_int($product_id)) {
+            $product_model = new shopProductModel();
+            $can_edit = !!$product_model->checkRights($product_id);
+        }
+
+        if ($can_edit) {
+            $prices_available = true;
+        } else {
+            $product = new shopProduct($product_id);
+            if ($product["id"] && $product["status"] !== "-1") {
+                $prices_available = true;
+            }
+        }
+
         $this->view->assign([
-            'id' => $product_id,
-            'backend_prod_event' => $this->params['backend_prod_event']
+            'id'               => $product_id,
+            'can_edit'         => $can_edit,
+            'prices_available' => $prices_available,
+            'backend_prod_event' => $this->params['backend_prod_event'],
         ]);
     }
 }

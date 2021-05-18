@@ -233,13 +233,6 @@ class shopImportexportHelper
         if (!empty($params['categories']) || true) {
             $model = new shopCategoryModel();
             $categories = $model->getTree(null, 0, true);
-            foreach ($categories as $id => $category) {
-                if ($category['type'] == shopCategoryModel::TYPE_DYNAMIC) {
-                    if (empty($category_ids) || !in_array($id, $category_ids, true)) {
-                        unset($categories[$id]);
-                    }
-                }
-            }
 
             $map = array();
             foreach ($categories as &$category) {
@@ -257,6 +250,7 @@ class shopImportexportHelper
             $category_id = array_diff($category_id, array_keys($categories));
             foreach ($model->getById($category_id) as $category) {
                 $category['name'] = htmlspecialchars($category['name'], ENT_NOQUOTES, 'utf-8');
+                $category['icon'] = ($category['type'] == shopCategoryModel::TYPE_STATIC) ? 'folder' : 'funnel';
                 $map[$category['id']] = &$category;
                 if (isset($map[$category['parent_id']])) {
                     if (!isset($map['childs'])) {
@@ -270,6 +264,7 @@ class shopImportexportHelper
                         $path_category['childs'][$category['id']] = &$category;
                         unset($category);
                         $category = $path_category;
+                        $category['icon'] = ($category['type'] == shopCategoryModel::TYPE_STATIC) ? 'folder' : 'funnel';
                         $map[$category['id']] = &$category;
 
                         if (isset($map[$category['parent_id']])) {
@@ -281,6 +276,14 @@ class shopImportexportHelper
                     }
                 }
             }
+            foreach ($categories as $id => $root_category) {
+                if ($root_category['type'] == shopCategoryModel::TYPE_DYNAMIC) {
+                    if (empty($category_ids) || (!in_array($id, $category_ids, true) && empty($root_category['childs']))) {
+                        unset($categories[$id]);
+                    }
+                }
+            }
+
             foreach ($category_id as $id) {
                 if (isset($map[$id])) {
                     $map[$id]['selected'] = 'selected';

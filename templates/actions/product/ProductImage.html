@@ -153,7 +153,7 @@
 {$placeholder = '[`add description`]'}
 <script type="text/javascript">
 $.product_images.init({
-    product_id:   {$product_id},
+    product_id:   '{$product_id}',
     image: {json_encode($image)},
     placeholder: '{$placeholder}',
     count: {$count},

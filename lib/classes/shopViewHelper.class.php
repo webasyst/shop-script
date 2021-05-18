@@ -149,6 +149,7 @@ class shopViewHelper extends waAppViewHelper
             unset($options['order_by']);
         }
 
+        $options['frontend'] = true;
         $collection = new shopProductsCollection($hash, $options);
 
         /**

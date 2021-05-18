@@ -40,6 +40,18 @@
                 var $footer = that.$wrapper.find(".js-sticky-footer");
                 product_page.initProductDelete($footer);
                 product_page.initStickyFooter($footer);
+                updateURL(that.product.id);
+
+                function updateURL(product_id) {
+                    if (product_id) {
+                        var is_new = location.href.indexOf("/new/") >= 0;
+                        if (is_new) {
+                            var url = location.href.replace("/new/", "/"+product_id+"/");
+                            history.replaceState(null, null, url);
+                            that.$wrapper.trigger("product_created", [product_id]);
+                        }
+                    }
+                }
             });
 
             that.initDragAndDrop();
@@ -590,7 +602,7 @@
                         var photo = formatPhoto(data.photo);
 
                         // Добавляем фотку в модели данных
-                        self.photos.push(photo);
+                        self.photos.unshift(photo);
 
                         // удаляем UI загрузки
                         var index = self.files.indexOf(data.file);
@@ -634,6 +646,8 @@
                 },
                 mounted: function() {
                     var self = this;
+
+                    that.$wrapper.trigger("section_mounted", ["media", that]);
                 }
             });
 
@@ -788,7 +802,17 @@
                 });
 
                 sendRequest()
-                    .done( function() {
+                    .done( function(server_data) {
+                        var product_id = server_data.product_id;
+                        if (product_id) {
+                            var is_new = location.href.indexOf("/new/media/") >= 0;
+                            if (is_new) {
+                                var url = location.href.replace("/new/media/", "/"+product_id+"/media/");
+                                history.replaceState(null, null, url);
+                                that.$wrapper.trigger("product_created", [product_id]);
+                            }
+                        }
+
                         if (options.redirect_url) {
                             $.wa_shop_products.router.load(options.redirect_url).fail( function() {
                                 location.href = options.redirect_url;
@@ -819,7 +843,7 @@
                     $.post(that.urls["save"], data, "json")
                         .done( function(response) {
                             if (response.status === "ok") {
-                                deferred.resolve(response);
+                                deferred.resolve(response.data);
                             } else {
                                 deferred.reject(response.errors);
                             }

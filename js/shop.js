@@ -236,10 +236,12 @@
                 });
             }
 
-            if (options.page != 'orders') {
+            if (options.page !== 'orders') {
                 // sync mainmenu orders count with app counter
                 $(document).bind('wa.appcount', function(event, data) {
-                    $.shop.updateOrdersCounter(parseInt(data.shop, 10) || 0);
+                    if (data && typeof data.shop !== "undefined") {
+                        $.shop.updateOrdersCounter(parseInt(data.shop, 10) || 0);
+                    }
                 });
             }
 

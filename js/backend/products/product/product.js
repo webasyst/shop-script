@@ -31,6 +31,11 @@
             that.$wrapper.trigger("ready", [that]);
 
             that.initCallback();
+
+            var $product_name = that.$wrapper.find(".js-product-name");
+            that.$wrapper.on("change_product_name", function(event, product_name) {
+                $product_name.text(product_name);
+            });
         };
 
         Page.prototype.initCallback = function() {
@@ -134,13 +139,13 @@
 
             observe();
 
-            $window.on("scroll", scrollWatcher);
+            $window.on("scroll section_mounted", scrollWatcher);
             function scrollWatcher() {
                 var is_exist = $.contains(document, $footer[0]);
                 if (is_exist) {
                     observe();
                 } else {
-                    $window.off("scroll", scrollWatcher);
+                    $window.off("scroll section_mounted", scrollWatcher);
                 }
             }
 

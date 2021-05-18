@@ -3,7 +3,16 @@
 {$_errors = []}
 {if !empty($error_step_id) && $error_step_id === "shipping"}{$_errors = $errors}{/if}
 {$_error_text = null}
-{$fast_render = reset($_errors)}
+
+{$_is_fast_render = false}
+{if !empty($_errors)}
+    {foreach $_errors as $_error}
+        {if !empty($_error["fast_render"])}
+            {$_is_fast_render = true}
+            {break}
+        {/if}
+    {/foreach}
+{/if}
 
 {$_types_sort = ["todoor", "pickup", "post"]}
 
@@ -26,6 +35,7 @@
     {/if}
 {/if}
 
+{$_variant_first = null}
 {$_variants_count = 0}
 
 {$_hide_shipping = !empty($shipping.disabled) || (empty($shipping.types) && empty($_errors))}
@@ -149,6 +159,10 @@
                                 </div>
                                 <div class="wa-dropdown-area">
                                     {foreach $_active_type.variants as $_variant}
+                                        {if $_variant@first}
+                                            {$_variant_first = ["id" => $_variant.variant_id, "name" => $_variant.name]}
+                                        {/if}
+
                                         {$_date = null}
                                         {if !empty($_variant.date_locale)}
                                             {$_date = $_variant.date_locale}
@@ -244,6 +258,10 @@
                             </div>
                             <div class="wa-dropdown-area">
                                 {foreach $_variants as $_variant}
+                                    {if $_variant@first}
+                                        {$_variant_first = ["id" => $_variant.variant_id, "name" => $_variant.name]}
+                                    {/if}
+
                                     {$_date = null}
                                     {if !empty($_variant.date_locale)}
                                         {$_date = $_variant.date_locale}
@@ -299,7 +317,7 @@
                     </div>
                 {/if}
 
-            {elseif empty($fast_render.fast_render)}
+            {elseif empty($_is_fast_render)}
                 {$_error_text = "[`There are no shipping options available for specified location.`]<br>[`Please check values in location fields or contact us.`]"}
             {/if}
 
@@ -350,11 +368,13 @@
 
             var ready_promise = $wrapper.data("ready").promise();
             ready_promise.then(function (controller) {
-                let errors = {$_errors|json_encode};
-                let error  = (Array.isArray(errors) ? errors.shift() : []);
+                var errors = {$_errors|json_encode};
+                var error  = (Array.isArray(errors) ? errors.shift() : []);
+
                 controller.initShipping({
                     $wrapper: $section,
                     map: {$_map|json_encode},
+                    variant_first: {$_variant_first|json_encode},
                     variants_count: {$_variants_count|escape},
                     disabled: {if !empty($shipping.disabled)}true{else}false{/if},
                     errors: {$_errors|json_encode},
@@ -368,9 +388,16 @@
                     }
                 });
 
-                if (error !== undefined && error.hasOwnProperty('fast_render') && error.fast_render) {
-                    controller.update(error);
-                }
+                {if !empty($_is_fast_render)}
+                    $wrapper.one("confirm_initialized", function() {
+                        controller.update({
+                            data: [{
+                                name: "use_session_input",
+                                value: "1"
+                            }]
+                        });
+                    });
+                {/if}
             });
         })(jQuery);
     </script>

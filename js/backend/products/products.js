@@ -55,8 +55,8 @@
                                     .done( function() {
                                         that.is_changed = false;
                                         that.load(content_url)
-                                            .fail( function() {
-                                                location.href = content_url;
+                                            .fail( function(state) {
+                                                if (state === "incorrect_url") { location.href = content_url; }
                                             });
                                     });
                             } else {
@@ -64,8 +64,8 @@
                                     .done( function() {
                                         $(window).scrollTop(0);
                                     })
-                                    .fail( function() {
-                                        location.href = content_url;
+                                    .fail( function(state) {
+                                        if (state === "incorrect_url") { location.href = content_url; }
                                     });
                             }
                         }
@@ -152,12 +152,12 @@
 
             content_url = that.getContentURL(content_url);
             if (!content_url) {
-                deferred.reject();
+                deferred.reject("incorrect_url");
                 return deferred.promise();
             } else {
                 section = that.getSection(content_url);
                 if (!section) {
-                    deferred.reject();
+                    deferred.reject("incorrect_url");
                     return deferred.promise();
                 }
             }
@@ -173,7 +173,7 @@
             that.trigger("wa_before_load", [{
                 content_url: content_url,
                 data: $.extend({}, data),
-                section: section,
+                section: section
             }]);
 
             that.xhr = $.ajax({
@@ -217,12 +217,12 @@
                     that.is_changed = false;
                     deferred.resolve();
                 })
-                .fail( function(data) {
+                .fail( function(data, state) {
                     if (data.responseText) {
                         console.log(data.responseText);
                     }
                     that.trigger("wa_load_fail");
-                    deferred.reject();
+                    deferred.reject(state);
                 });
 
             return deferred.promise();
@@ -323,10 +323,14 @@
 
             var waLoading = $.waLoading();
 
+            var $wrapper = $("#wa"),
+                locked_class = "is-locked";
+
             that.$wrapper
                 .on("wa_before_load", function() {
                     waLoading.show();
                     waLoading.animate(10000, 95, false);
+                    $wrapper.addClass(locked_class);
                 })
                 .on("wa_loading", function(event, xhr_event) {
                     var percent = (xhr_event.loaded / xhr_event.total) * 100;
@@ -334,9 +338,11 @@
                 })
                 .on("wa_abort", function() {
                     waLoading.abort();
+                    $wrapper.removeClass(locked_class);
                 })
                 .on("wa_loaded", function() {
                     waLoading.done();
+                    $wrapper.removeClass(locked_class);
                 });
         };
 

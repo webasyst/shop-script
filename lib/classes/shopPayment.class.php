@@ -679,12 +679,12 @@ class shopPayment extends waAppPayment
     private function isSuitable($order_id)
     {
         if (!$this->merchant_id) {
-            return 'Invalid plugin id';
+            return _w('Empty payment method settings ID.');
         } else {
             $order_params_model = new shopOrderParamsModel();
 
             if ($this->merchant_id != $order_params_model->getOne($order_id, 'payment_id')) {
-                return 'Order payment type did not match the callback request';
+                return _w('Order payment method does not match the callback request.');
             }
         }
         return true;

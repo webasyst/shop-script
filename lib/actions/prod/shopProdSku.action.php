@@ -22,6 +22,9 @@ class shopProdSkuAction extends waViewAction
 
         $plugin_fields = $this->pluginFieldsEvent($product);
 
+        //для тестирования добавления характеристики
+        //unset($features["test_013"]);
+
         $formatted_features = $this->formatFeatures($features);
         $formatted_product = $this->formatProduct($product, array(
             "plugin_fields"                   => $plugin_fields,
@@ -61,7 +64,8 @@ class shopProdSkuAction extends waViewAction
 
     protected function getProduct()
     {
-        $product_id = waRequest::param('id', '', 'int');
+        $product_id = waRequest::param('id', '', waRequest::TYPE_STRING);
+        shopProdGeneralAction::createEmptyProduct($product_id);
         if ($product_id) {
             $product_model = new shopProductModel();
             $product_data = $product_model->getById($product_id);
@@ -69,6 +73,11 @@ class shopProdSkuAction extends waViewAction
         if (empty($product_data)) {
             throw new waException(_w("Unknown product"), 404);
         }
+        $product_model = new shopProductModel();
+        if (!$product_model->checkRights($product_id)) {
+            throw new waException(_w('Access denied'));
+        }
+
         return new shopProduct($product_data);
     }
 
@@ -106,6 +115,8 @@ class shopProdSkuAction extends waViewAction
         return $features;
     }
 
+    // also used in shopProdGeneralAction
+    // and shopProdPricesAction
     public static function formatProduct($product, $options = [])
     {
         $features = (!empty($options["features"]) ? $options["features"] : []);
@@ -185,7 +196,6 @@ class shopProdSkuAction extends waViewAction
         }
 
         foreach ($product['skus'] as $modification) {
-            // TODO: status is a new (planned) option of SKU, not implemented yet
             $modification["available"] = (boolean)$modification["available"];
             $modification["status"] = (boolean)$modification["status"];
 
@@ -241,11 +251,14 @@ class shopProdSkuAction extends waViewAction
 
             // Figure out modification name, excluding feature names possibly attached at the end
             $modification_name = $modification['name'];
+            $features_name = "";
+
             if ($modification_name && $_selectable_features) {
                 // Loop over comma-delimeted parts of modification name, last to first
                 // remove everything that looks like active selected feature name
                 // break from loop as soon as we encounter anything that does not look like feature name
                 $modification_name = array_filter(array_map('trim', explode(',', $modification_name)));
+                $_features_name = [];
                 while ($modification_name) {
                     $part = array_pop($modification_name);
                     if (!strlen($part)) {
@@ -254,9 +267,10 @@ class shopProdSkuAction extends waViewAction
                     foreach($_selectable_features as $f) {
                         $sku_feature_value = ifset($skus_features_values, $modification['id'], $f['code'], null);
                         if ($sku_feature_value) {
-                            $active_feature_name = (string) $sku_feature_value;
+                            $active_feature_name = (string)$sku_feature_value;
                             $active_feature_name = mb_strtolower($active_feature_name);
                             if ($active_feature_name == mb_strtolower($part)) {
+                                $_features_name[] = $part;
                                 $part = '';
                                 break;
                             }
@@ -268,11 +282,13 @@ class shopProdSkuAction extends waViewAction
                         break;
                     }
                 }
+                $features_name = join(', ', array_reverse($_features_name));
                 $modification_name = join(', ', $modification_name);
             }
 
             $modification["features"] = $_features;
             $modification["features_selectable"] = $_selectable_features;
+            $modification["features_name"] = $features_name;
             $modification["original_name"] = $modification["name"];
             $modification["name"] = $modification_name;
 
@@ -333,7 +349,7 @@ class shopProdSkuAction extends waViewAction
         $photo = ( !empty($photos) ? $photos[$product["image_id"]] : null );
 
         $_normal_mode = (count($product['skus']) > 1);
-        $_normal_mode_switch = $_normal_mode || ifempty($product, 'params', 'multiple_sku', null);
+        $_normal_mode_switch = $_normal_mode || ifempty($product, 'params', 'multiple_sku', null) || $selected_selectable_feature_ids;
 
         // When product has a photo and only one modification with no photo,
         // use product image as photo for the modification.
@@ -376,7 +392,8 @@ class shopProdSkuAction extends waViewAction
         ];
     }
 
-    protected function formatFeatures($features)
+    // also used in shopProdPricesAction
+    public static function formatFeatures($features)
     {
         $result = array();
 
@@ -424,7 +441,7 @@ class shopProdSkuAction extends waViewAction
                     $setUnits($feature, $units);
 
                     $feature["render_type"] = "checkbox";
-                    foreach ($feature["values"] as $value_id => $value) {
+                    foreach (ifset($feature, "values", []) as $value_id => $value) {
                         $_option = [
                             "name" => (string)$value,
                             "value" => (string)$value
@@ -452,7 +469,7 @@ class shopProdSkuAction extends waViewAction
                         "value" => ""
                     ];
 
-                    foreach ($feature["values"] as $value_id => $value) {
+                    foreach (ifset($feature, "values", []) as $value_id => $value) {
                         $_option = [
                             "name" => (string)$value,
                             "value" => (string)$value
@@ -622,6 +639,7 @@ class shopProdSkuAction extends waViewAction
             unset($feature["parent_id"]);
             unset($feature["status"]);
             unset($feature["values"]);
+
             $result[] = $feature;
         }
 
@@ -631,7 +649,7 @@ class shopProdSkuAction extends waViewAction
     // Features that are rendered as checklists for product and allow multiple selection,
     // for SKUs must be rendered as a single select (no multiple selection).
     // This loop corrects for that.
-    protected static function formatModificationFeature($feature)
+    public static function formatModificationFeature($feature)
     {
         if ($feature["render_type"] === "checkbox") {
             $feature["render_type"] = "select";

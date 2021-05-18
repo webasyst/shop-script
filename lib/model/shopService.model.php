@@ -287,7 +287,7 @@ class shopServiceModel extends waModel
 
     public function getAll($key = null, $normalize = false)
     {
-        return $this->query("SELECT * FROM `{$this->table}` ORDER BY sort")->fetchAll($key, $normalize);
+        return $this->query("SELECT * FROM `{$this->table}` ORDER BY sort, id")->fetchAll($key, $normalize);
     }
 
     public function move($id, $before_id = null)

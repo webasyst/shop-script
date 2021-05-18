@@ -227,6 +227,8 @@
 
             var ready_promise = that.$wrapper.data("ready");
             ready_promise.resolve(that);
+
+            that.$wrapper.trigger("change_product_name", [that.product.name]);
         };
 
         Section.prototype.renderErrors = function(errors) {
@@ -913,7 +915,7 @@
                             html: that.templates["dialog_photo_manager"],
                             options: {
                                 onPhotoAdd: function(photo) {
-                                    that.product.photos.push(photo);
+                                    that.product.photos.unshift(photo);
                                     if (that.product.photos.length === 1) {
                                         self.setProductPhoto(that.product.photos[0], sku_mod);
                                     }
@@ -1224,7 +1226,9 @@
                     that.$wrapper.css("visibility", "");
                 },
                 mounted: function() {
+                    var self = this;
 
+                    that.$wrapper.trigger("section_mounted", ["services", that]);
                 }
             });
 
@@ -1949,9 +1953,19 @@
 
                         request(that.urls["save"], form_data.data)
                             .done( function(server_data) {
+                                var product_id = server_data.id;
+                                if (product_id) {
+                                    var is_new = location.href.indexOf("/new/general/") >= 0;
+                                    if (is_new) {
+                                        var url = location.href.replace("/new/general/", "/"+product_id+"/general/");
+                                        history.replaceState(null, null, url);
+                                        that.$wrapper.trigger("product_created", [product_id]);
+                                    }
+                                }
                                 if (options.redirect_url) {
-                                    $.wa_shop_products.router.load(options.redirect_url).fail( function() {
-                                        location.href = options.redirect_url;
+                                    var redirect_url = options.redirect_url.replace("/new/", "/"+product_id+"/");
+                                    $.wa_shop_products.router.load(redirect_url).fail( function() {
+                                        location.href = redirect_url;
                                     });
                                 } else {
                                     $.wa_shop_products.router.reload();
@@ -2505,6 +2519,7 @@
                         } else if (file_size >= that.max_post_size) {
                             renderError({ id: "big_post", text: "ERROR: big POST file size" });
                         } else {
+                            file.id = that.getUniqueIndex("file_load_id");
                             self.files.push(file);
                         }
 
@@ -2556,6 +2571,19 @@
                 var scroll_h = $textarea[0].scrollHeight;
                 $textarea.css("min-height", scroll_h + "px");
             }
+        };
+
+        Section.prototype.getUniqueIndex = function(name, iterator) {
+            var that = this;
+
+            name = (typeof name === "string" ? name : "") + "_index";
+            iterator = (typeof iterator === "number" ? iterator : 1);
+
+            if (typeof that.getUniqueIndex[name] !== "number") { that.getUniqueIndex[name] = 0; }
+
+            that.getUniqueIndex[name] += iterator;
+
+            return that.getUniqueIndex[name];
         };
 
         return Section;

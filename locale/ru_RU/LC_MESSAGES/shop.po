@@ -5587,6 +5587,9 @@ msgstr "отредактировал товар"
 msgid "deleted a product"
 msgstr "удалил товар"
 
+msgid "deleted products"
+msgstr "удалил товары"
+
 msgid "performed catalog import"
 msgstr "произвел импорт товаров"
 
@@ -10395,6 +10398,9 @@ msgstr "Акции не отсортированы"
 msgid "Select shipping"
 msgstr "Выбрать доставку"
 
+msgid "Select payment"
+msgstr "Выбрать оплату"
+
 msgid "added a payment method"
 msgstr "добавил способ оплаты"
 
@@ -12068,3 +12074,9 @@ msgstr "Инструменты, позволяющие управлять инд
 
 msgid "Selection of other products, which should be offered to customers as a more valuable replacement or as a useful addition to this product."
 msgstr "Выбор других товаров, которые должны предлагаться покупателям как более ценная замена или как полезное дополнение к данному товару."
+
+msgid "Empty payment method settings ID."
+msgstr "Пустой идентификатор настроек способа оплаты."
+
+msgid "Order payment method does not match the callback request."
+msgstr "Способ оплаты заказа не соответствует запросу от платежной системы."

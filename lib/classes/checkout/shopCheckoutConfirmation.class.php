@@ -99,13 +99,9 @@ class shopCheckoutConfirmation extends shopCheckout
         unset($order['items']['%shipping%']);
 
         $tax = 0;
-        $tax_included = 0;
         foreach ($taxes as $t) {
             if (isset($t['sum'])) {
                 $tax += $t['sum'];
-            }
-            if (isset($t['sum_included'])) {
-                $tax_included += $t['sum_included'];
             }
         }
 
@@ -118,7 +114,7 @@ class shopCheckoutConfirmation extends shopCheckout
             'shipping'         => $order['shipping'],
             'discount'         => $order['discount'],
             'total'            => $order['total'] - $order['discount'] + $order['shipping'] + $tax,
-            'tax'              => $tax_included + $tax,
+            'tax'              => $tax,
             'subtotal'         => $order['total'],
             'shipping_address' => $shipping_address,
             'billing_address'  => !empty($settings['contactinfo']['fields']['address.billing']) ? $billing_address : false,

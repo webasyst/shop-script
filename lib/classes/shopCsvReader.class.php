@@ -3,6 +3,9 @@
 
 /**
  * Class shopCsvReader
+ * @property-read string $encoding
+ * @property-read string $delimiter
+ * @property-read array  $data_mapping
  * @example
  */
 class shopCsvReader implements SeekableIterator, Serializable, Countable
@@ -49,6 +52,23 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
         }
         $this->encoding = ifempty($encoding, 'utf-8');
         $this->restore();
+    }
+
+    public function __get($name)
+    {
+        $value = null;
+        switch ($name) {
+            case 'delimiter':
+                $value = $this->delimiter;
+                break;
+            case 'encoding':
+                $value = $this->encoding;
+                break;
+            case 'data_mapping':
+                $value = $this->data_mapping;
+                break;
+        }
+        return $value;
     }
 
     private static function registerControl($self)
@@ -106,31 +126,65 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
                     $this->fsize = filesize($this->file);
                     break;
                 case 'zip':
-                    if (function_exists('zip_open') && ($zip = zip_open($this->file)) && is_resource($zip) && ($zip_entry = zip_read($zip))) {
-                        //dummy read first file;
-                        $file = $path.waLocale::transliterate(basename(zip_entry_name($zip_entry)));
-                        $zip_fs = zip_entry_filesize($zip_entry);
-
-                        if ($z = fopen($file, "w")) {
-                            $size = 0;
-                            while ($zz = zip_entry_read($zip_entry, max(0, min(4096, $zip_fs - $size)))) {
-                                fwrite($z, $zz);
-                                $size += 1024;
+                    if (class_exists('ZipArchive') ) {
+                        $zip_archive = new ZipArchive();
+                        if ($zip_archive->open($this->file) === true && $zip_archive->numFiles == 1) {
+                            $stat = $zip_archive->statIndex(0);
+                            if (preg_match('/\.csv$/', $stat['name'])) {
+                                $stream = $zip_archive->getStream($stat['name']);
+                                if ($stream) {
+                                    $filename = waLocale::transliterate(basename($stat['name']));
+                                    if ($filename !== false) {
+                                        $file = $path . $filename;
+                                        $extract_file = fopen($file, "w");
+                                        if ($extract_file) {
+                                            while (!feof($stream)) {
+                                                $content = fread($stream, 4096);
+                                                fwrite($extract_file, $content);
+                                            }
+                                            fclose($extract_file);
+                                            $this->file = $file;
+                                            $this->files();
+                                        } else {
+                                            $zip_archive->close();
+                                            throw new waException("Error while read zip file");
+                                        }
+                                    }
+                                }
                             }
-                            fclose($z);
-                            zip_entry_close($zip_entry);
-                            zip_close($zip);
-                            $this->file = $file;
-                            $this->files();
+                            $zip_archive->close();
+                            $this->open();
                         } else {
-                            zip_entry_close($zip_entry);
-                            zip_close($zip);
+                            $zip_archive->close();
                             throw new waException("Error while read zip file");
                         }
-
-                        $this->open();
                     } else {
-                        throw new waException("Error while read zip file");
+                        if (function_exists('zip_open') && ($zip = zip_open($this->file)) && is_resource($zip) && ($zip_entry = zip_read($zip))) {
+                            //dummy read first file;
+                            $file = $path . waLocale::transliterate(basename(zip_entry_name($zip_entry)));
+                            $zip_fs = zip_entry_filesize($zip_entry);
+
+                            if ($z = fopen($file, "w")) {
+                                $size = 0;
+                                while ($zz = zip_entry_read($zip_entry, max(0, min(4096, $zip_fs - $size)))) {
+                                    fwrite($z, $zz);
+                                    $size += 1024;
+                                }
+                                fclose($z);
+                                zip_entry_close($zip_entry);
+                                zip_close($zip);
+                                $this->file = $file;
+                                $this->files();
+                            } else {
+                                zip_entry_close($zip_entry);
+                                zip_close($zip);
+                                throw new waException("Error while read zip file");
+                            }
+
+                            $this->open();
+                        } else {
+                            throw new waException("Error while read zip file");
+                        }
                     }
                     break;
                 default:
@@ -314,7 +368,7 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
         }
     }
 
-    public function current()
+    public function current($apply_mapping = true)
     {
         if ($this->current && ($this->mapped === null)) {
             foreach ($this->current as & $cell) {
@@ -331,7 +385,11 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
                 $this->header();
             }
         }
-        return $this->current ? (($this->mapped === null) ? $this->applyDataMapping($this->current) : $this->mapped) : $this->current;
+        if ($apply_mapping) {
+            return $this->current ? (($this->mapped === null) ? $this->applyDataMapping($this->current) : $this->mapped) : $this->current;
+        } else {
+            return $this->current;
+        }
     }
 
     public function next()

@@ -409,7 +409,7 @@ class shopProductServicesModel extends waModel
         }
         $service_ids = array_keys($services);
 
-        $data = array();
+        $data = $services;
 
         $product_skus_model = new shopProductSkusModel();
         $skus = $product_skus_model->getByField('product_id', $product_id, 'id');
@@ -540,7 +540,7 @@ class shopProductServicesModel extends waModel
                 s.id = ts.service_id AND type_id ".($type_id ? " = $type_id" : " IS NULL")."
             WHERE ps.sku_id IS NULL ".($service_id ? " AND s.id = $service_id" : "")."
             GROUP BY s.id
-            ORDER BY s.sort
+            ORDER BY s.sort, s.id
             ";
         $services = $this->query($sql)->fetchAll('id');
         if (!$services) {

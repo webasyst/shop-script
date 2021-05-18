@@ -4,11 +4,12 @@ class shopConfig extends waAppConfig
 {
     protected $_routes = array();
     protected $image_sizes = array(
-        'big'        => '970',
-        'default'    => '750x0',
-        'thumb'      => '200x0',
-        'crop'       => '96x96',
-        'crop_small' => '48x48'
+        'big'         => '970',
+        'default_fit' => '750',
+        'default'     => '750x0',
+        'thumb'       => '200x0',
+        'crop'        => '96x96',
+        'crop_small'  => '48x48'
     );
 
     public function checkUpdates()
@@ -110,7 +111,7 @@ class shopConfig extends waAppConfig
         if ($type == 'system') {
             return $this->image_sizes;
         }
-        $custom_sizes = $this->getOption('image_sizes');
+        $custom_sizes = array_map('strval', $this->getOption('image_sizes'));
         if ($type == 'custom') {
             return $custom_sizes;
         }
@@ -791,6 +792,15 @@ class shopConfig extends waAppConfig
                 if (!empty($l['params_html'])) {
                     $logs[$l_id]['params_html'] = str_replace('#/pages/', '?action=storefronts#/pages/', $l['params_html']);
                 }
+            } elseif ($l['action'] == 'product_delete') {
+                $product_delete_params = json_decode($l['params'], true);
+                if (is_array($product_delete_params) && isset(reset($product_delete_params)['name'])) {
+                    $logs[$l_id]['params_html'] = reset($product_delete_params)['name'];
+                }
+            } elseif ($l['action'] == 'products_delete') {
+                $product_delete_params = json_decode($l['params'], true);
+                $deleted_product_names = array_column($product_delete_params, 'name');
+                $logs[$l_id]['params_html'] = implode(', ', $deleted_product_names);
             }
         }
         return $logs;
@@ -880,7 +890,7 @@ function shop_currency($n, $in_currency = null, $out_currency = null, $format = 
     }
 
     if (($format !== null) && ($info = waCurrency::getInfo($out_currency)) && isset($info['precision'])) {
-        $n = round($n, $info['precision']);
+        $n = round(floatval($n), $info['precision']);
     }
 
     if ($format === 'h') {
@@ -889,7 +899,7 @@ function shop_currency($n, $in_currency = null, $out_currency = null, $format = 
         if (empty($options['extended_format'])) {
             return wa_currency($n, $out_currency);
         } else {
-            return waCurrency::format($options['extended_format'], $n, $currency);
+            return waCurrency::format($options['extended_format'], $n, $out_currency);
         }
     } else {
         return str_replace(',', '.', $n);

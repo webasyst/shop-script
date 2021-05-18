@@ -21,7 +21,7 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
             'subtotal'      => $order['subtotal'],
             'discount'      => $order['discount'],
             'shipping'      => $order['shipping'],
-            'tax'           => $order['tax'],
+            'tax'           => $order['not_included_tax'],
             'total'         => $order['total'],
             'currency_info' => $this->getCurrencyInfo($order['currency']),
         ];

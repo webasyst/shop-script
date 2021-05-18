@@ -269,43 +269,7 @@ class shopProductAction extends waViewAction
         $this->view->assign('category_name', $product->category_id && isset($product->categories[$product->category_id]) ? strip_tags($product->categories[$product->category_id]['name']) : null);
 
         $this->view->assign('orders_default_view', $config->getOption('orders_default_view'));
-
-        $this->view->assign('product_has_incompatible_features_selectable', $this->productHasIncompatibleFeaturesSelectable($product));
-    }
-
-    /**
-     * New product editor can use more feature types as selectable features
-     * than old editor. When product has been modified in new product editor,
-     * this may make it incompatible with the old editor.
-     * This method checks for that. When incompatibility found, part of the old editor
-     * becomes disabled.
-     */
-    protected function productHasIncompatibleFeaturesSelectable(shopProduct $product)
-    {
-        if ($product['sku_type'] == shopProductModel::SKU_TYPE_FLAT || !$product['id']) {
-            return false;
-        }
-
-        $product_features_selectable_model = new shopProductFeaturesSelectableModel();
-        $features_ids = $product_features_selectable_model->getFeatures($product['id']);
-        if (!$features_ids) {
-            return false;
-        }
-
-        $features = [];
-        foreach($product['features_selectable'] as $feature) {
-            if (!empty($feature['selectable']) && !empty($feature['multiple'])) {
-                $features[$feature['id']] = $feature;
-            }
-        }
-
-        foreach ($features_ids as $feature_id) {
-            if (!isset($features[$feature_id])) {
-                return true;
-            }
-        }
-
-        return false;
+        $this->view->assign('product_has_incompatible_features_selectable', shopProductAction::productHasIncompatibleFeaturesSelectable($product));
     }
 
     protected function assignReportsData(shopProduct $product)
@@ -380,5 +344,43 @@ class shopProductAction extends waViewAction
     {
         $model = new shopCurrencyModel();
         return $model->getCurrencies();
+    }
+
+
+
+    /**
+     * New product editor can use more feature types as selectable features
+     * than old editor. When product has been modified in new product editor,
+     * this may make it incompatible with the old editor.
+     * This method checks for that. When incompatibility found, part of the old editor
+     * becomes disabled.
+     * @depecated
+     */
+    public static function productHasIncompatibleFeaturesSelectable(shopProduct $product)
+    {
+        if ($product['sku_type'] == shopProductModel::SKU_TYPE_FLAT || !$product['id']) {
+            return false;
+        }
+
+        $product_features_selectable_model = new shopProductFeaturesSelectableModel();
+        $features_ids = $product_features_selectable_model->getFeatures($product['id']);
+        if (!$features_ids) {
+            return false;
+        }
+
+        $features = [];
+        foreach($product['features_selectable'] as $feature) {
+            if (!empty($feature['selectable']) && !empty($feature['multiple'])) {
+                $features[$feature['id']] = $feature;
+            }
+        }
+
+        foreach ($features_ids as $feature_id) {
+            if (!isset($features[$feature_id])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

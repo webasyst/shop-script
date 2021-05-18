@@ -21,7 +21,8 @@ class shopProdDownloadSkuFileController extends waViewController
     protected static function getFileParams($sku_id, $product_id)
     {
         $product_skus_model = new shopProductSkusModel();
-        $file_name = $product_skus_model->getByField(self::formatParams($sku_id, $product_id))['file_name'];
+        $sku = $product_skus_model->getByField(self::formatParams($sku_id, $product_id));
+        $file_name = ifset($sku, 'file_name', '');
         $path = "sku_file/{$sku_id}";
         $dot_position = strripos($file_name, '.');
         if ($dot_position !== false) {

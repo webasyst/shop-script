@@ -27,6 +27,8 @@ class shopProdSaveRelatedController extends waJsonController
                 }
             }
         }
+
+        $this->response['product_id'] = $product->getId();
     }
 
     protected function updateRelatedProducts($type, $products)

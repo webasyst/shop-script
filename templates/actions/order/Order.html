@@ -321,11 +321,13 @@
                                 <td class="align-right nowrap">{wa_currency_html($order.shipping, $order.currency)}</td>
                             </tr>
                         {/if}
-                        <tr class="no-border">
-                            <td colspan="2"></td>
-                            <td class="align-right">[`Tax`]</td>
-                            <td class="align-right nowrap">{wa_currency_html($order.tax, $order.currency)}</td>
-                        </tr>
+                        {if !empty($order.tax|default:'')}
+                            <tr class="no-border">
+                                <td colspan="2"></td>
+                                <td class="align-right">[`Tax`]</td>
+                                <td class="align-right nowrap">{wa_currency_html($order.tax, $order.currency)}</td>
+                            </tr>
+                        {/if}
                         <tr class="no-border bold large" style="font-size: 150%;">
                             <td colspan="2"></td>
                             <td class="align-right">[`Total`]</td>

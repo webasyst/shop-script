@@ -8,9 +8,9 @@
         <span class="hint float-right s-product-id" style="width: auto; padding: 0 .5rem; {if $product.id == 'new'}display:none;{/if}">id: {$product.id}</span>
 
         {if !empty($edit_rights)}
-            <a class="s-new-product-editor-button float-right" style="{if $product.id === 'new'}display: none{/if}"
-               data-href="{$wa_app_url}products/{if $product.id === 'new'}%product_id%{else}{$product.id|escape}{/if}/"
-               href="{$wa_app_url}products/{if $product.id === 'new'}%product_id%{else}{$product.id|escape}{/if}/"
+            <a class="s-new-product-editor-button float-right"
+               data-href="{$wa_app_url}products/{if $product.id === 'new'}new{else}{$product.id|escape}{/if}/"
+               href="{$wa_app_url}products/{if $product.id === 'new'}new{else}{$product.id|escape}{/if}/"
                title="{_w("Try out the new product editor version. The option to return to the old editor will remain.")|escape}">[`Try out new product editor`]</a>
 
             <script>
@@ -47,8 +47,37 @@
 
                         $button.attr("href", new_href);
                     });
+
+                    var is_locked = false;
+                    $button.on("click", function(event) {
+                        var is_changed = $("#s-product-save-button").hasClass("yellow");
+                        if (is_changed && !is_locked) {
+                            event.preventDefault();
+                            leavePage().done( function() {
+                                is_locked = true;
+                                location.href = $button[0].href;
+                            });
+                        }
+                    });
+
+                    function leavePage() {
+                        var deferred = $.Deferred();
+
+                        var text = "{_w("Your changes will be lost if you do not save them.")|escape}";
+                        if (confirm(text)) {
+                            deferred.resolve();
+                        } else {
+                            deferred.reject();
+                        }
+
+                        return deferred.promise();
+                    }
                 })(jQuery);
             </script>
+        {elseif !($product.id === 'new' || $product.status === "-1")}
+            <a class="s-new-product-editor-button float-right" style="{if $product.id === 'new'}display: none{/if}"
+               href="{$wa_app_url}products/{$product.id|escape}/prices/"
+               title="{_w("Try out the new product editor version. The option to return to the old editor will remain.")|escape}">[`Try out new product editor`]</a>
         {/if}
 
         <!-- plugin hook: 'backend_product.title_suffix' -->
@@ -1212,11 +1241,11 @@
         {/if}
     });
     {if !empty($product.reviews)}
-        $('#s-all-reviews').find('.count-new:first').text({if $sidebar_counters.reviews.new}'+{$sidebar_counters.reviews.new}'{else}''{/if});
+        $('#s-all-reviews').find('.count-new:first').text({if $sidebar_counters.reviews.new}'+{$sidebar_counters.reviews.new}'{else}''{/if})
     {/if}
     {if $product.id > 0}
         $.product_images.init({
-            product_id: {$product.id},
+            product_id: '{$product.id}',
             images: {json_encode(array_values($product.images))},
             type: 'crop',
             enable_2x: {if $wa->shop->config('enable_2x')}true{else}false{/if},
@@ -1297,11 +1326,14 @@
                 };
 
                 container.on('click', '.tabs a', function() {
-                    $(this).closest('.tabs').find('.selected').removeClass('selected')
-                    var el = $(this).closest('li').addClass('selected');
-                    $('.tab-content', container).find('.s-tab-block').hide()
+                    var is_new = location.href.indexOf("/new/") >= 0;
+                    if (!is_new) {
+                        $(this).closest('.tabs').find('.selected').removeClass('selected')
+                        var el = $(this).closest('li').addClass('selected');
+                        $('.tab-content', container).find('.s-tab-block').hide()
                             .end().find('.s-tab-block[data-tab="' + el.data('tab') + '"]').show().trigger('open');
-                    setLastTab(el.data('tab'));
+                        setLastTab(el.data('tab'));
+                    }
                     return false;
                 }).on('open', '.s-tab-block', function() {
                     container.find('.s-tab-block').each(function() {

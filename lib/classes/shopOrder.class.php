@@ -59,6 +59,7 @@
  *
  * @property-read string $shipping_name     Selected shipping plugin human-readable name
  * @property-read string $payment_name      Selected payment plugin human-readable name
+ * @property-read double $not_included_tax
  *
  * # Workflow related fields
  * @property-read shopWorkflowState $state  Current order state
@@ -216,7 +217,7 @@ class shopOrder implements ArrayAccess
     protected static $dependencies = array(
         'items'                => array(
             'items_extended' => true,
-            'tax'            => true,
+            'tax'            => false,
             'subtotal'       => true,
             'total'          => true,
             'shipping'       => false,
@@ -226,7 +227,7 @@ class shopOrder implements ArrayAccess
             'discount'       => false,
         ),
         'shipping'             => array(
-            'tax'    => true,
+            'tax'    => false,
             'total'  => true,
             'params' => array(
                 'shipping_name' => true,
@@ -241,7 +242,7 @@ class shopOrder implements ArrayAccess
             ),
         ),
         'discount'             => array(
-            'tax'      => true,
+            'tax'      => false,
             'total'    => true,
             'subtotal' => true,
             'shipping' => false,
@@ -2863,17 +2864,13 @@ class shopOrder implements ArrayAccess
     {
         $not_included = 0;
 
-        //Add to the total cost tax not included in the price of goods
-        foreach ($this->items as $item) {
-            if (ifset($item, 'tax_included', '1') == 0) {
-                $not_included += ifset($item, 'tax', 0);
+        $calculate_tax = $this->calculateTax();
+        $taxes = $calculate_tax['taxes'];
+
+        foreach ($taxes as $tax) {
+            if (!empty($tax['sum'])) {
+                $not_included += $tax['sum'];
             }
-        }
-
-        $shipping_tax_included = ifset($this->data,'params', 'shipping_tax_included', true);
-
-        if ($shipping_tax_included == 0) {
-            $not_included += ifset($this->data,'params', 'shipping_tax', true);
         }
 
         return $not_included;

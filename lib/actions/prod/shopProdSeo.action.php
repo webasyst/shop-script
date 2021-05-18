@@ -4,22 +4,33 @@
  */
 class shopProdSeoAction extends waViewAction
 {
+    /**
+     * @throws waException
+     */
     public function execute()
     {
-        $product_id = waRequest::param('id', '', 'int');
+        $product_id = waRequest::param('id', '', waRequest::TYPE_STRING);
+        shopProdGeneralAction::createEmptyProduct($product_id);
         $product = new shopProduct($product_id);
         if (!$product['id']) {
             throw new waException(_w("Unknown product"), 404);
         }
+        $product_model = new shopProductModel();
+        if (!$product_model->checkRights($product_id)) {
+            throw new waException(_w('Access denied'));
+        }
+
         $formatted_product = self::formatProduct($product);
         $frontend_urls = shopProdGeneralAction::getFrontendUrls($product)[0];
+        $backend_prod_content_event = $this->throwEvent($product);
 
         $this->view->assign([
             'frontend_urls'     => $frontend_urls,
             'product'           => $product,
             'formatted_product' => $formatted_product,
             'search'            => self::getSearchData($formatted_product),
-            'social'            => self::getSocialData($formatted_product)
+            'social'            => self::getSocialData($formatted_product),
+            'backend_prod_content_event' => $backend_prod_content_event
         ]);
 
         $this->setLayout(new shopBackendProductsEditSectionLayout([
@@ -103,7 +114,7 @@ class shopProdSeoAction extends waViewAction
             "root" => null
         ];
 
-        $storefronts = shopProdGeneralAction::getFrontendUrls($product)[0];
+        $storefronts = shopProdGeneralAction::getFrontendUrls($product, false)[0];
         if (!empty($storefronts)) {
             $root_front = null;
 
@@ -175,5 +186,29 @@ class shopProdSeoAction extends waViewAction
         }
 
         return $result;
+    }
+
+    /**
+     * Throw 'backend_prod_content' event
+     * @param shopProduct $product
+     * @return array
+     * @throws waException
+     */
+    protected function throwEvent($product)
+    {
+        /**
+         * @event backend_prod_content
+         * @since 8.19.0
+         *
+         * @param shopProduct $product
+         * @param string $content_id
+         *       Which page (tab) is shown
+         */
+        $params = [
+            'product' => $product,
+            'content_id' => 'seo',
+        ];
+
+        return wa('shop')->event('backend_prod_content', $params);
     }
 }

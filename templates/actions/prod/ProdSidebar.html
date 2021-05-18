@@ -1,102 +1,103 @@
-<section class="s-sidebar-section">
-    <div class="wa-heading">[`Editing`]</div>
-    <ul class="wa-menu-v">
-        <li>
-            <a href="{$wa_app_url}products/{$id|escape}/general/">
-                <span>[`Basic data`]</span>
-                <span class="count">
-                    <span class="wa-tooltip bottom-left" data-title="{_w("Product name, publication status, type, tax, categories & sets, descriptions & tags.")|escape}">
-                        <i class="s-icon fas fa-question-circle"></i>
+{if !empty($can_edit)}
+    <section class="s-sidebar-section">
+        <div class="wa-heading">[`Editing`]</div>
+        <ul class="wa-menu-v">
+            <li>
+                <a href="{$wa_app_url}products/{$id|escape}/general/">
+                    <span>[`Basic data`]</span>
+                    <span class="count">
+                        <span class="wa-tooltip bottom-left" data-title="{_w("Product name, publication status, type, tax, categories & sets, descriptions & tags.")|escape}">
+                            <i class="s-icon fas fa-question-circle"></i>
+                        </span>
                     </span>
-                </span>
-            </a>
-        </li>
-        <li>
-            <a href="{$wa_app_url}products/{$id|escape}/sku/">
-                <span>[`Prices and features`]</span>
-                <span class="count">
-                    <span class="wa-tooltip bottom-left" data-title="{_w("Product prices, stock quantities, SKUs, variants, features, badges.")|escape}">
-                        <i class="s-icon fas fa-question-circle"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{$wa_app_url}products/{$id|escape}/sku/">
+                    <span>[`Prices and features`]</span>
+                    <span class="count">
+                        <span class="wa-tooltip bottom-left" data-title="{_w("Product prices, stock quantities, SKUs, variants, features, badges.")|escape}">
+                            <i class="s-icon fas fa-question-circle"></i>
+                        </span>
                     </span>
-                </span>
-            </a>
-        </li>
-        <li>
-            <a href="{$wa_app_url}products/{$id|escape}/media/">
-                <span>[`Images & videos`]</span>
-                <span class="count">
-                    <span class="wa-tooltip bottom-left" data-title="{_w("Product images, photos, and videos displayed in the storefront.")|escape}">
-                        <i class="s-icon fas fa-question-circle"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{$wa_app_url}products/{$id|escape}/media/">
+                    <span>[`Images & videos`]</span>
+                    <span class="count">
+                        <span class="wa-tooltip bottom-left" data-title="{_w("Product images, photos, and videos displayed in the storefront.")|escape}">
+                            <i class="s-icon fas fa-question-circle"></i>
+                        </span>
                     </span>
-                </span>
-            </a>
-        </li>
-        <li>
-            <a href="{$wa_app_url}products/{$id|escape}/seo/">
-                <span>[`SEO`]</span>
-                <span class="count">
-                    <span class="wa-tooltip bottom-left" data-title="{_w("Tools allowing you to manage how a product is indexed by search engines and viewed by social media users.")|escape}">
-                        <i class="s-icon fas fa-question-circle"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{$wa_app_url}products/{$id|escape}/seo/">
+                    <span>[`SEO`]</span>
+                    <span class="count">
+                        <span class="wa-tooltip bottom-left" data-title="{_w("Tools allowing you to manage how a product is indexed by search engines and viewed by social media users.")|escape}">
+                            <i class="s-icon fas fa-question-circle"></i>
+                        </span>
                     </span>
-                </span>
-            </a>
-        </li>
-        <li>
-            <a href="{$wa_app_url}products/{$id|escape}/services/">
-                <span>[`Services`]</span>
-                <span class="count">
-                    <span class="wa-tooltip bottom-left" data-title="{_w("Additional selectable product options, allowing you to increase the product cost.")|escape}">
-                        <i class="s-icon fas fa-question-circle"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{$wa_app_url}products/{$id|escape}/services/">
+                    <span>[`Services`]</span>
+                    <span class="count">
+                        <span class="wa-tooltip bottom-left" data-title="{_w("Additional selectable product options, allowing you to increase the product cost.")|escape}">
+                            <i class="s-icon fas fa-question-circle"></i>
+                        </span>
                     </span>
-                </span>
-            </a>
-        </li>
-        <li>
-            <a href="{$wa_app_url}products/{$id|escape}/related/">
-                <span>[`Related products`]</span>
-                <span class="count">
-                    <span class="wa-tooltip bottom-left" data-title="{_w("Selection of other products, which should be offered to customers as a more valuable replacement or as a useful addition to this product.")|escape}">
-                        <i class="s-icon fas fa-question-circle"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{$wa_app_url}products/{$id|escape}/related/">
+                    <span>[`Related products`]</span>
+                    <span class="count">
+                        <span class="wa-tooltip bottom-left" data-title="{_w("Selection of other products, which should be offered to customers as a more valuable replacement or as a useful addition to this product.")|escape}">
+                            <i class="s-icon fas fa-question-circle"></i>
+                        </span>
                     </span>
-                </span>
-            </a>
-        </li>
-        <li>
-            <a href="{$wa_app_url}products/{$id|escape}/pages/">
-                <span>[`Subpages`]</span>
-                <span class="count">
-                    <span class="wa-tooltip bottom-left" data-title="{_w("Additional website pages with extra info about this product.")|escape}">
-                        <i class="s-icon fas fa-question-circle"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{$wa_app_url}products/{$id|escape}/pages/">
+                    <span>[`Subpages`]</span>
+                    <span class="count">
+                        <span class="wa-tooltip bottom-left" data-title="{_w("Additional website pages with extra info about this product.")|escape}">
+                            <i class="s-icon fas fa-question-circle"></i>
+                        </span>
                     </span>
-                </span>
-            </a>
-        </li>
+                </a>
+            </li>
 
-        <!-- plugin hook: 'backend_prod.sidebar_item' -->
-        {* @event backend_prod.%plugin_id%.sidebar_item *}
-        {if !empty($backend_prod_event)}{foreach $backend_prod_event as $_}{ifset($_.sidebar_item)}{/foreach}{/if}
+            <!-- plugin hook: 'backend_prod.sidebar_item' -->
+            {* @event backend_prod.%plugin_id%.sidebar_item *}
+            {if !empty($backend_prod_event)}{foreach $backend_prod_event as $_}{ifset($_.sidebar_item)}{/foreach}{/if}
 
-    </ul>
-</section>
+        </ul>
+    </section>
+{/if}
 
 <section class="s-sidebar-section">
     <div class="wa-heading">[`Reports`]</div>
     <ul class="wa-menu-v">
+        {if !empty($prices_available)}
+            <li>
+                <a href="{$wa_app_url}products/{$id|escape}/prices/">
+                    <span>[`Цены, наличие и публикация`]</span>
+                    <span class="count">
+                        <span class="wa-tooltip bottom-left" data-title="{_w("Отчёт по актуальным ценам товара, наличию, публикации на витрине и изменению цен при участии в акциях.")|escape}">
+                            <i class="s-icon fas fa-question-circle"></i>
+                        </span>
+                    </span>
+                </a>
+            </li>
+        {/if}
+        {*
         <li class="disabled">
-{*            {$wa_app_url}products/{$id|escape}/prices/*}
-
-            <a class="flexbox" href="javascript:void(0);">
-                <div class="wa-tooltip custom top wide">
-                    <div>[`Prices & availability`]</div>
-                    <div class="tooltip-text">
-                        <p>[`This section is not available yet, we are still working on it.`]</p>
-                    </div>
-                </div>
-            </a>
-        </li>
-        <li class="disabled">
-{*            {$wa_app_url}products/{$id|escape}/orders/*}
-
             <a class="flexbox" href="javascript:void(0);">
                 <div class="wa-tooltip custom top wide">
                     <div>[`Recent orders`]</div>
@@ -106,6 +107,7 @@
                 </div>
             </a>
         </li>
+        *}
         <li>
             <a href="{$wa_app_url}products/{$id|escape}/reviews/">
                 <span>[`Reviews`]</span>
@@ -118,13 +120,11 @@
         </li>
     </ul>
 </section>
-
+{*
 <section class="s-sidebar-section">
     <div class="wa-heading">[`Change log`]</div>
     <ul class="wa-menu-v">
         <li class="disabled">
-{*            {$wa_app_url}products/{$id|escape}/stock_changes/*}
-
             <a class="flexbox" href="javascript:void(0);">
                 <div class="wa-tooltip custom top wide">
                     <div>[`Stock quantity changes`]</div>
@@ -135,8 +135,6 @@
             </a>
         </li>
         <li class="disabled">
-{*            {$wa_app_url}products/{$id|escape}/price_changes/*}
-
             <a class="flexbox" href="javascript:void(0);">
                 <div class="wa-tooltip custom top wide">
                     <div>[`Prices changes`]</div>
@@ -147,8 +145,6 @@
             </a>
         </li>
         <li class="disabled">
-{*            {$wa_app_url}products/{$id|escape}/product_changes/*}
-
             <a class="flexbox" href="javascript:void(0);">
                 <div class="wa-tooltip custom top wide">
                     <div>[`Product changes`]</div>
@@ -160,3 +156,4 @@
         </li>
     </ul>
 </section>
+*}

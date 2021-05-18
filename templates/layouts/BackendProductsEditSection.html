@@ -32,7 +32,7 @@
                 <a class="wa-button gray-field s-button-back" href="{$wa_app_url|escape}?action=products#/product/{$product.id|escape}/">&larr; [`Back`]</a>
             </div>
             <div class="s-title-wrapper wide">
-                <h3 class="s-title">{$product.name|default:_w('Product name')}</h3>
+                <h3 class="s-title js-product-name">{$product.name|default:_w('Product name')}</h3>
             </div>
             <div class="s-details">
                 <button class="s-button wa-button rounded pink js-show-callback-dialog animation-pulse" type="button">
@@ -42,7 +42,7 @@
                     </span>
                 </button>
 
-                <a class="s-button wa-button pink rounded outlined" id="js-return-link" href="{$wa_app_url|escape}?action=products#/product/{$product.id|escape}/" title="{_w("Return to the old product editor version.")|escape}">
+                <a class="s-button wa-button pink rounded outlined" id="js-return-link" href="{$wa_app_url|escape}?action=products#/product/{$product.id|default:"new"|escape}/" title="{_w("Return to the old product editor version.")|escape}">
                     <span>
                         <span class="s-icon"><i class="fas fa-toggle-on"></i></span>
                         <span class="s-name">[`Return to old editor`]</span>
@@ -73,7 +73,7 @@
 
             function initReturnButton() {
                 var $button = $("#js-return-link"),
-                    href = "{$wa_app_url|escape}?action=products#/product/{$product.id|escape}/";
+                    href = "{$wa_app_url|escape}?action=products#/product/{$product.id|default:"new"|escape}/";
 
                 $(document).on("wa_product_section_change", function(event, section_id) {
                     var new_href = null;

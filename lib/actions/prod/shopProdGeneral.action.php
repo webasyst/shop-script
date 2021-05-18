@@ -7,11 +7,14 @@ class shopProdGeneralAction extends waViewAction
 {
     public function execute()
     {
-        $product_id = waRequest::param('id', '', 'int');
+        $product_id = waRequest::param('id', '', waRequest::TYPE_STRING);
         $product = new shopProduct($product_id);
-        if (!$product['id']) {
+        if (!$product['id'] && $product_id != 'new') {
             throw new waException(_w("Unknown product"), 404);
-            // TODO: new product mode when $product_id is empty
+        }
+        $product_model = new shopProductModel();
+        if (!$product_model->checkRights($product_id)) {
+            throw new waException(_w('Access denied'));
         }
 
         list($frontend_urls, $total_storefronts_count, $url_template) = $this->getFrontendUrls($product);
@@ -25,14 +28,26 @@ class shopProdGeneralAction extends waViewAction
 
         $type_model = new shopTypeModel();
 
+        // magic loading of skus
         $product['skus'];
-
+        if ($product_id == 'new') {
+            $product->setData('name', _w('Product name'));
+            $product->setData('currency', wa('shop')->getConfig()->getCurrency());
+            $product->setData('status', 1);
+            $product->setData('type_id', self::getFirstType());
+            $product_skus_model = new shopProductSkusModel();
+            $empty_sku = $product_skus_model->getEmptyRow();
+            foreach (['price', 'primary_price', 'purchase_price', 'compare_price'] as $field) {
+                $empty_sku[$field] = 0.0;
+            }
+            $product->setData('skus', [-1 => $empty_sku]);
+        }
         $backend_prod_content_event = $this->throwEvent($product);
 
         $this->view->assign([
             'url_template' => $url_template,
             'frontend_urls' => $frontend_urls,
-            'product_types' => $type_model->getTypes(true),
+            'product_types' => $type_model->getTypes(),
             'total_storefronts_count' => $total_storefronts_count,
             'categories' => $categories,
             'categories_tree' => $categories_tree,
@@ -52,7 +67,39 @@ class shopProdGeneralAction extends waViewAction
         ]));
     }
 
-    public static function getFrontendUrls($product)
+    public static function createEmptyProduct(&$product_id)
+    {
+        if ($product_id == 'new') {
+            $product = new shopProduct();
+            $data = [
+                'name' => '',
+                'currency' => wa('shop')->getConfig()->getCurrency(),
+                'type_id' => self::getFirstType(),
+                'status' => 1,
+                'skus' => [
+                    -1 => [
+                        'name' => ''
+                    ]
+                ]
+            ];
+            $product->save($data);
+            $product_id = $product->getId();
+        }
+    }
+
+    protected static function getFirstType()
+    {
+        $type_model = new shopTypeModel();
+        return $type_model->select('id')->order('id')->limit('1')->fetchField('id');
+    }
+
+    /**
+     * @param $product
+     * @param $urls_count_limit false is get all urls
+     * @return array
+     * @throws waException
+     */
+    public static function getFrontendUrls($product, $urls_count_limit = 10)
     {
         $frontend_urls = [];
         $url_template = null;
@@ -60,7 +107,6 @@ class shopProdGeneralAction extends waViewAction
 
         if ($product->id) {
 
-            $URLS_COUNT_LIMIT = 10;
             $worse_frontend_urls = [];
 
             $canonical_category = null;
@@ -78,7 +124,7 @@ class shopProdGeneralAction extends waViewAction
                     }
 
                     $total_storefronts_count++;
-                    if (count($frontend_urls) >= $URLS_COUNT_LIMIT) {
+                    if ($urls_count_limit !== false && count($frontend_urls) >= $urls_count_limit) {
                         continue;
                     }
 
@@ -110,7 +156,7 @@ class shopProdGeneralAction extends waViewAction
                         }
                     }
 
-                    if (!$good_url && count($worse_frontend_urls) >= $URLS_COUNT_LIMIT) {
+                    if (!$good_url && $urls_count_limit !== false && count($worse_frontend_urls) >= $urls_count_limit) {
                         continue;
                     }
 
@@ -122,7 +168,7 @@ class shopProdGeneralAction extends waViewAction
                     }
 
                     if ($good_url) {
-                        // Proper URLs: either contain category, or no category is requried
+                        // Proper URLs: either contain category, or no category is required
                         $frontend_urls[] = array(
                             'url' => $frontend_url,
                             'proper_url' => true,
@@ -140,8 +186,10 @@ class shopProdGeneralAction extends waViewAction
                     }
                 }
             }
-
-            $frontend_urls = array_slice(array_merge($frontend_urls, $worse_frontend_urls), 0, $URLS_COUNT_LIMIT);
+            $frontend_urls = array_merge($frontend_urls, $worse_frontend_urls);
+            if ($urls_count_limit !== false) {
+                $frontend_urls = array_slice($frontend_urls, 0, $urls_count_limit);
+            }
         }
 
         if (!$url_template) {
