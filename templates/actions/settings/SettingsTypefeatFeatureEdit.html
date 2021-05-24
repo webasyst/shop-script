@@ -83,10 +83,16 @@
             {* HEADER *}
             <header class="wa-dialog-header">
                 <h1 class="s-title">{$_title|escape}</h1>
+                {if !empty($product_id)}
+                    <div class="wa-message wa-small info flexbox space-8">
+                        <div class="message-icon"><i class="fas fa-info-circle"></i></div>
+                        <div class="message-text wide">[`The feature will be available for all products of this type.`]</div>
+                    </div>
+                {/if}
                 {if $_is_divider}
-                <div class="s-header-description">
-                    <p>[`Headings help organize a long list of features into smaller groups. Examples of headings: “Main&nbsp;features”, “Extra&nbsp;features“, “Manufacturer&nbsp;details”.`]</p>
-                </div>
+                    <div class="s-header-description">
+                        <p>[`Headings help organize a long list of features into smaller groups. Examples of headings: “Main&nbsp;features”, “Extra&nbsp;features“, “Manufacturer&nbsp;details”.`]</p>
+                    </div>
                 {/if}
             </header>
 

@@ -1649,7 +1649,7 @@ msgid "Select a primary currency"
 msgstr "Выберите основную валюту"
 
 msgid "You will later be able to add more currencies in «Settings - Currencies» section"
-msgstr "Дополнительные валюты можно добавить позже в разделе «Настройки - Валюты»"
+msgstr "Дополнительные валюты можно добавить позже в разделе «Настройки → Валюты»"
 
 msgid "Select currency"
 msgstr "Выберите валюту"
@@ -3830,7 +3830,7 @@ msgid "Cheat sheet"
 msgstr "Шпаргалка"
 
 msgid "Hidden products are not shown among other products in the storefront, are not available for purchase, and can be viewed by the direct URL only."
-msgstr "Скрытые товары не показываются на витрине в общих списках товаров и их нельзя добавить в корзину. Просмотреть скрытый товар на витрине возможно только по прямому открытию страницы товара (нужно знать ее адрес)."
+msgstr "Скрытые товары не видны в списках на витрине, их нельзя добавить в корзину. Просмотреть скрытый товар на витрине возможно только по прямому открытию страницы товара (нужно знать ее адрес)."
 
 msgid "Only %d left in stock. Sorry."
 msgstr "Извините, но в наличии только %d экземпляров этого товара."
@@ -6557,7 +6557,7 @@ msgid "Oops!"
 msgstr "Ошибка!"
 
 msgid "Promos"
-msgstr "Промо"
+msgstr "Промоакции"
 
 msgid "Select at least one storefront."
 msgstr "Выберите хотя бы одну витрину."
@@ -11086,7 +11086,7 @@ msgid "Availability in the storefront"
 msgstr "Публикация на сайте"
 
 msgid "The product is not shown among other products in the storefront, is not available for purchase, and can be viewed at its direct URL only."
-msgstr "Товар не виден на витрине в общих списках товаров, его нельзя добавить в корзину и можно просмотреть только по прямому URL."
+msgstr "Товар не виден в списках на витрине, его нельзя добавить в корзину и можно просмотреть только по прямому URL."
 
 msgid "Main category"
 msgstr "Основная категория"
@@ -11122,7 +11122,7 @@ msgid "Unpublished"
 msgstr "Снят с публикации"
 
 msgid "The product is not visible among other products in the storefront, is not available for purchase, cannot be viewed at its direct URL, and is excluded from the %sSitemap file%s."
-msgstr "Товар не виден на витрине в общих списках товаров, его нельзя добавить в корзину, он недоступен по прямому URL и исключен из %sSitemap-файла%s."
+msgstr "Товар не виден в списках на витрине, его нельзя добавить в корзину, он недоступен по прямому URL и исключен из %sSitemap-файла%s."
 
 msgid "A Sitemap file is a special XML file containing URLs of all website pages that need to be indexed by search engines."
 msgstr "Sitemap-файл — это специальный XML-файл, содержащий адреса всех страниц сайта, которые должны индексироваться поисковыми системами."
@@ -11187,10 +11187,10 @@ msgstr "Новое значение можно задать в общем спи
 msgid "The product contains several SKUs or variants"
 msgstr "Товар состоит из нескольких артикулов или модификаций"
 
-msgid "Product versions selection in the storefront"
+msgid "Product variety selection in the storefront"
 msgstr "Способ выбора вариантов товара на витрине"
 
-msgid "Features used for product version selection in the storefront"
+msgid "Features used for product variety selection in the storefront"
 msgstr "Характеристики для выбора вариантов товара на витрине"
 
 msgid "Add an SKU"
@@ -11349,7 +11349,7 @@ msgstr "Перетащите сюда характеристику, чтобы �
 msgid "Add features"
 msgstr "Добавьте характеристики"
 
-msgid "The feature’s format does not support selection of product versions."
+msgid "The feature’s format does not support selection of product varieties."
 msgstr "Формат характеристики не поддерживает выбор вариантов товара."
 
 msgid "Action is not available"
@@ -11391,14 +11391,14 @@ msgstr "Редактирование"
 msgid "Basic data"
 msgstr "Основные данные"
 
-msgid "Prices and features"
+msgid "Prices & features"
 msgstr "Цены и характеристики"
 
 msgid "Photos, videos & files"
 msgstr "Фото, видео и файлы"
 
-msgid "This section is not available yet, we are still working on it."
-msgstr "Этот раздел пока не готов, мы над ним еще работаем."
+msgid "This tab is not available yet, we are still working on it."
+msgstr "Эта вкладка пока не готова, мы еще работаем над ней."
 
 msgid "SEO"
 msgstr "SEO"
@@ -11520,10 +11520,10 @@ msgstr "Наименование товара, его статус публик�
 msgid "Enable to offer customers several versions of the product."
 msgstr "Включите, чтобы предлагать покупателям несколько вариантов товара."
 
-msgid "How product versions should be offered to customers in the storefront."
+msgid "How product varieties should be offered to customers in the storefront."
 msgstr "В каком виде варианты товара должны быть предложены покупателям на витрине."
 
-msgid "Add here the product features whose values customers should select to buy a corresponding product version."
+msgid "Add here the product features whose values customers should select to buy a corresponding product variety."
 msgstr "Добавьте здесь те характеристики товара, значения которых должны выбирать покупатели, чтобы купить соответствующий вариант товара."
 
 msgid "Product prices, stock quantities, SKUs, variants, features, badges."
@@ -11664,8 +11664,8 @@ msgstr "Использовать на всех витринах"
 msgid "Use only in selected storefronts"
 msgstr "Использовать только на выбранных витринах"
 
-msgid "Prices are edited in section “%s”."
-msgstr "Цены настраиваются в разделе «%s»."
+msgid "Prices are edited under the “%s” tab."
+msgstr "Цены настраиваются на вкладке «%s»."
 
 msgid "In variants"
 msgstr "В модификациях"
@@ -12080,3 +12080,165 @@ msgstr "Пустой идентификатор настроек способа 
 
 msgid "Order payment method does not match the callback request."
 msgstr "Способ оплаты заказа не соответствует запросу от платежной системы."
+
+msgid "By SKU code and features used for product variety selection"
+msgstr "По коду артикула и характеристикам для выбора вариантов товара"
+
+msgid "You can adjust the sort order of images under the “Images & videos” tab."
+msgstr "Настроить порядок сортировки изображений можно на вкладке «Изображения и видео»."
+
+msgid "The promo is applied to storefronts:"
+msgstr "Акция проходит на витринах:"
+
+msgid "The promo is applied to all storefronts."
+msgstr "Акция проходит на всех витринах."
+
+msgid "The product is visible in listings in the storefront but its availability for ordering depends on its individual SKUs’ & variants’ properties."
+msgstr "Товар виден в списках на витрине; возможность добавления его в корзину зависит от настроек отдельных артикулов и модификаций."
+
+msgid "This product is not included in any promos."
+msgstr "Товар не участвует в промоакциях."
+
+msgid "Show %d storefront to which the promo is applied"
+msgid_plural "Show %d storefronts to which the promo is applied"
+msgstr[0] "Показать %d витрину, на которой проходит акция"
+msgstr[1] "Показать %d витрины, на которых проходит акция"
+msgstr[2] "Показать %d витрин, на которых проходит акция"
+
+msgid "Hide %d storefront to which the promo is applied"
+msgid_plural "Hide %d storefronts to which the promo is applied"
+msgstr[0] "Показать %d витрину, на которой проходит акция"
+msgstr[1] "Показать %d витрины, на которых проходит акция"
+msgstr[2] "Показать %d витрин, на которых проходит акция"
+
+msgid "Show %d storefront on which the product is available"
+msgid_plural "Show %d storefronts on which the product is available"
+msgstr[0] "Показать %d витрину, на которых опубликован товар"
+msgstr[1] "Показать %d витрины, на которых опубликован товар"
+msgstr[2] "Показать %d витрин, на которых опубликован товар"
+
+msgid "Hide %d storefront on which the product is available"
+msgid_plural "Hide %d storefronts on which the product is available"
+msgstr[0] "Скрыть %d витрину, на которых опубликован товар"
+msgstr[1] "Скрыть %d витрины, на которых опубликован товар"
+msgstr[2] "Скрыть %d витрин, на которых опубликован товар"
+
+msgid "The promo in which this SKU variant is included is paused. You can view the price change in the promo info block below."
+msgstr "Акция, в которой участвует модификация, поставлена на паузу. Посмотреть изменение цены можно в информации об акции ниже на странице."
+
+msgid "The SKU variant is included in a planned promo. You can view the price change in the promo info block below."
+msgstr "Модификация участвует в запланированной акции. Посмотреть изменение цены можно в информации об акции ниже на странице."
+
+msgid "The promo is on."
+msgstr "Акция действует."
+
+msgid "The promo is on but is temporarily paused."
+msgstr "Акция действует, но временно поставлена на паузу."
+
+msgid "The promo is planned for the future."
+msgstr "Акция запланирована на будущее."
+
+msgid "The promo price does not differ from the original product price."
+msgstr "Цена по акции не отличается от цены, указанной в свойствах товара."
+
+msgid "Product price changed for promo."
+msgstr "Цена товара изменена для акции."
+
+msgid "The SKU variant is included in functioning promo “%s”. You can view the price change in the promo info block below."
+msgstr "Модификация участвует в действующей акции «%s». Посмотреть изменение цены можно в блоке акции ниже на странице."
+
+msgid "Hide storefronts"
+msgstr "Скрыть витрины"
+
+msgid "Add a new feature"
+msgstr "Добавить новую характеристику"
+
+msgid "Prices, quantity & availability"
+msgstr "Цены, наличие и публикация"
+
+msgid "Report on current product prices, stock quantity, availability status, and on promo price changes."
+msgstr "Отчет об актуальных ценах, наличии, статусе публикации товара на витрине и об изменении цен при участии в акциях."
+
+msgid "The specified row type is not supported."
+msgstr "Указанный тип строки не поддерживается."
+
+msgid "Repeating row."
+msgstr "Строка повторяется."
+
+msgid "Errors have been found in your CSV file. Download the log file to view details."
+msgstr "В вашем CSV-файле обнаружены ошибки. Скачайте лог-файл, чтобы посмотреть подробную информацию."
+
+msgid "Download log file"
+msgstr "Скачать лог-файл"
+
+msgid "ID of the invalid row in the import file"
+msgstr "Номер строки с ошибкой в файле импорта"
+
+msgid "Error description"
+msgstr "Описание ошибки"
+
+msgid "Row type"
+msgstr "Тип строки"
+
+msgid "Product variety selection"
+msgstr "Выбор вариантов товара"
+
+msgid "Saving has failed."
+msgstr "Не удалось выполнить сохранение."
+
+msgid "Only valid promos"
+msgstr "Только действующие"
+
+msgid "Only available"
+msgstr "Только доступные"
+
+msgid "Only unavailable"
+msgstr "Только недоступные"
+
+msgid "Only visible"
+msgstr "Только видимые"
+
+msgid "Only hidden"
+msgstr "Только скрытые"
+
+msgid "Only paused"
+msgstr "Только на паузе"
+
+msgid "Only planned"
+msgstr "Только запланированные"
+
+msgid "Participation in promos:"
+msgstr "Участие в акциях:"
+
+msgid "Availbility for purchase:"
+msgstr "Доступность для покупки:"
+
+msgid "Visibility:"
+msgstr "Видимость:"
+
+msgid "Show promos:"
+msgstr "Показать акции:"
+
+msgid "Without time limitation."
+msgstr "Без ограничения по времени."
+
+msgid "from %s to %s"
+msgstr "с %s по %s"
+
+msgid "from %s, %s"
+msgstr "с %s, %s"
+
+msgid "without an end date"
+msgstr "без даты окончания"
+
+msgid "%s, until %s"
+msgstr "%s, до %s"
+
+msgid "without a start date"
+msgstr "без даты начала"
+
+msgid "Availability"
+msgstr "Доступность"
+
+msgid "The feature will be available for all products of this type."
+msgstr "Характеристика будет доступна для всех товаров этого типа."

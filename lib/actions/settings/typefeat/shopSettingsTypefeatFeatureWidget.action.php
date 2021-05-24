@@ -7,9 +7,11 @@ class shopSettingsTypefeatFeatureWidgetAction extends waViewAction
     public function execute()
     {
         $selection = ifset($this->params, "selection", "");
+        $product_id = ifset($this->params, "product_id", null);
 
         $this->view->assign([
-            "selection" => $selection
+            "selection" => $selection,
+            "product_id" => $product_id
         ]);
     }
 

@@ -37,6 +37,7 @@ class shopProdGeneralAction extends waViewAction
             $product->setData('type_id', self::getFirstType());
             $product_skus_model = new shopProductSkusModel();
             $empty_sku = $product_skus_model->getEmptyRow();
+            $empty_sku["id"] = "-1";
             foreach (['price', 'primary_price', 'purchase_price', 'compare_price'] as $field) {
                 $empty_sku[$field] = 0.0;
             }

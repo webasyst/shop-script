@@ -422,7 +422,7 @@
                             <div class="wa-field-wrapper wa-city-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
                                 <label class="wa-label">{_render_label _label=$_system_address_field_names.city _required=!empty($_is_city_required)}</label>
 
-                                {if $_active_region.has_cities}
+                                {if !empty($_active_region.has_cities)}
                                     {$_active_city_id = null}
                                     {if isset($region.selected_values.city_id)}
                                         {$_active_city_id = $region.selected_values.city_id}

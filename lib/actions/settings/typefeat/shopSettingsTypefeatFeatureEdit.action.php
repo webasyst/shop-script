@@ -6,6 +6,8 @@ class shopSettingsTypefeatFeatureEditAction extends waViewAction
 {
     public function execute()
     {
+        $product_id = waRequest::request('product_id', null, waRequest::TYPE_STRING);
+
         $feature_code = waRequest::request('code', '', waRequest::TYPE_STRING);
         $feature = $this->getFeature($feature_code);
 
@@ -27,14 +29,15 @@ class shopSettingsTypefeatFeatureEditAction extends waViewAction
         }
 
         $this->view->assign([
-            'can_disable_sku' => $can_disable_sku,
-            'sku_values_count' => $sku_values_count,
-            'kinds' => $this->getAllFeatureKinds($feature),
-            'formats' => $this->getAllFeatureFormats($feature),
+            'can_disable_sku'      => $can_disable_sku,
+            'sku_values_count'     => $sku_values_count,
+            'kinds'                => $this->getAllFeatureKinds( $feature ),
+            'formats'              => $this->getAllFeatureFormats( $feature ),
             'all_types_is_checked' => $all_types_is_checked,
-            'selected_type' => ifset($types, $selected_type_id, null),
-            'feature' => $feature,
-            'types' => $types,
+            'selected_type'        => ifset( $types, $selected_type_id, null ),
+            'product_id'           => $product_id,
+            'feature'              => $feature,
+            'types'                => $types,
         ]);
     }
 

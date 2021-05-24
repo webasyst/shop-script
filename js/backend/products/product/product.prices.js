@@ -1,4 +1,4 @@
--( function($) {
+( function($) {
 
     var Section = ( function($) {
 
@@ -219,6 +219,9 @@
                                 stocks_array: that.stocks_array,
                                 sku_mod_stocks: $.wa.clone(self.sku_mod.stock),
                                 can_edit: that.product.can_edit,
+                                values: {
+                                    sku_mod_count: $.wa.clone(self.sku_mod.count)
+                                },
                                 states: {
                                     is_locked: false,
                                     is_changed: false
@@ -313,7 +316,10 @@
                             },
                             focusSkuModStocks: function(sku_mod) {
                                 var self = this;
-                                self.toggleStocks(true);
+
+                                if (self.stocks_array.length || self.can_edit) {
+                                    self.toggleStocks(true);
+                                }
                             },
                             toggleStocks: function(expanded) {
                                 var self = this,
@@ -355,12 +361,21 @@
                                     .always( function() {
                                         self.states.is_locked = false;
                                     })
-                                    .done( function() {
-                                        $.each(self.sku_mod.stock, function(stock_id, stock_value) {
-                                            self.sku_mod.stock[stock_id] = self.sku_mod_stocks[stock_id];
-                                        });
+                                    .done( function(response) {
+                                        if (response.status !== "ok") {
+                                            alert("We have a problem sir");
+                                        }
 
-                                        that.updateModificationStocks(self.sku_mod);
+                                        if (self.stocks_array.length) {
+                                            $.each(self.sku_mod.stock, function(stock_id, stock_value) {
+                                                self.sku_mod.stock[stock_id] = self.sku_mod_stocks[stock_id];
+                                            });
+                                            that.updateModificationStocks(self.sku_mod);
+                                        } else {
+                                            var server_data = response.data[self.sku_mod.id];
+                                            self.sku_mod.count = server_data.count;
+                                        }
+
                                         self.toggleStocks(false);
                                     });
 
@@ -368,7 +383,8 @@
                                     var data = {
                                         "product_id": that.product.id,
                                         "sku_id": self.sku_mod.id,
-                                        "stocks": self.sku_mod_stocks
+                                        "stocks": (self.stocks_array.length ? self.sku_mod_stocks : null),
+                                        "count": (self.stocks_array.length ? null : self.values.sku_mod_count)
                                     }
 
                                     return $.post(that.urls["save_stocks"], data, "json");

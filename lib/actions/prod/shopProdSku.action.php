@@ -199,6 +199,13 @@ class shopProdSkuAction extends waViewAction
             $modification["available"] = (boolean)$modification["available"];
             $modification["status"] = (boolean)$modification["status"];
 
+            // Форматируем значение склада в нормальное число без 1.000
+            if (!empty($modification["stock"])) {
+                foreach($modification["stock"] as $_stock_id => $_stock_value) {
+                    $modification["stock"][$_stock_id] = (int)$_stock_value;
+                }
+            }
+
             if (shopProdDownloadSkuFileController::checkSkuFile($modification['id'], $modification['product_id'])) {
                 $modification["file"] = [
                     "id" => (!empty($modification["file_name"]) ? $modification["file_name"] : null),

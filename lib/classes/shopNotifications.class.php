@@ -194,6 +194,7 @@ class shopNotifications
             $order_model = new shopOrderModel();
             $data['order'] = $order_model->getById($data['order']);
         }
+        $data['order']['tax'] = shopOrderAction::calculateNotIncludedTax($data['order']);
 
         if (empty($data['status'])) {
             $workflow = new shopWorkflow();

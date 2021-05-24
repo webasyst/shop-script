@@ -62,7 +62,7 @@ class shopProdPricesAction extends waViewAction
         $skus_features_values = $product_features_model->getValuesMultiple($features, $product['id'], array_keys($product['skus']));
 
         // Характеристики для выбора на витрине.
-        // Features used for product version selection in the storefront.
+        // Features used for product variety selection in the storefront.
         $features_selectable_model = new shopProductFeaturesSelectableModel();
         $selected_selectable_feature_ids = $features_selectable_model->getProductFeatureIds($product['id']);
 
@@ -126,6 +126,7 @@ class shopProdPricesAction extends waViewAction
 
                     "name"  => $_sku_mod["features_name"],
                     "stock" => $_sku_mod["stock"],
+                    "count" => $_sku_mod["count"],
 
                     "price"         => shop_currency($_sku_mod["price"], [ 'in_currency' => $currency, 'out_currency' => $currency, 'extended_format' => '%2{h}' ]),
                     "compare_price" => shop_currency($_sku_mod["compare_price"], [ 'in_currency' => $currency, 'out_currency' => $currency, 'extended_format' => '%2{h}' ]),
@@ -146,56 +147,56 @@ class shopProdPricesAction extends waViewAction
         $_promos = [
             [
                 "id" => "all",
-                "name" => _w("Не важно")
+                "name" => _w("Any")
             ],
             [
                 "id" => "promos",
-                "name" => _w("Все акции")
+                "name" => _w("All promos")
             ],
             [
                 "id" => "promos_active",
-                "name" => _w("Только запущенные")
+                "name" => _w("Only valid promos")
             ]
         ];
 
         $_available = [
             [
                 "id" => "all",
-                "name" => _w("Все")
+                "name" => _w("All")
             ],
             [
                 "id" => "available",
-                "name" => _w("Только доступные")
+                "name" => _w("Only available")
             ],
             [
                 "id" => "unavailable",
-                "name" => _w("Только недоступные")
+                "name" => _w("Only unavailable")
             ]
         ];
 
         $_visibility = [
             [
                 "id" => "all",
-                "name" => _w("Все")
+                "name" => _w("All")
             ],
             [
                 "id" => "visible",
-                "name" => _w("Только видимые")
+                "name" => _w("Only visible")
             ],
             [
                 "id" => "hidden",
-                "name" => _w("Только скрытые")
+                "name" => _w("Only hidden")
             ]
         ];
 
         $_activity = [
             [
                 "id" => "all",
-                "name" => _w("Все")
+                "name" => _w("All")
             ],
             [
                 "id" => "active",
-                "name" => _w("Только действующие")
+                "name" => _w("Only valid promos")
             ]
         ];
 
@@ -212,31 +213,31 @@ class shopProdPricesAction extends waViewAction
         if ($_stopped_enabled) {
             $_activity[] = [
                 "id" => "stopped",
-                "name" => _w("Только на паузе")
+                "name" => _w("Only paused")
             ];
         }
         if ($_scheduled_enabled) {
             $_activity[] = [
                 "id" => "scheduled",
-                "name" => _w("Только запланированные")
+                "name" => _w("Only planned")
             ];
         }
 
         return [
             "promos" => [
-                "label" => _w("Участие в акциях:"),
+                "label" => _w("Participation in promos:"),
                 "options" => $_promos
             ],
             "available" => [
-                "label" => _w("Доступность для покупки:"),
+                "label" => _w("Availbility for purchase:"),
                 "options" => $_available
             ],
             "visibility" => [
-                "label" => _w("Видимость:"),
+                "label" => _w("Visibility:"),
                 "options" => $_visibility
             ],
             "promos_activity" => [
-                "label" => _w("Показать акции:"),
+                "label" => _w("Show promos:"),
                 "options" => $_activity
             ]
         ];
@@ -339,18 +340,18 @@ class shopProdPricesAction extends waViewAction
             $status = "scheduled";
         }
 
-        $date_string = _w("Без ограничения по времени.");
+        $date_string = _w("Without time limitation.");
         if (!empty($promo["start_datetime"]) && !empty($promo["finish_datetime"]) ) {
-            $date_string = sprintf(_w("с %s по %s"),
+            $date_string = sprintf(_w("from %s to %s"),
                 '<span class="s-date">'.waDateTime::format( 'humandate', $promo["start_datetime"]).'</span>',
                 '<span class="s-date">'.waDateTime::format( 'humandate', $promo["finish_datetime"]).'</span>');
         } else if (!empty($promo["start_datetime"])) {
-            $date_string = sprintf(_w("с %s, %s"),
+            $date_string = sprintf(_w("from %s, %s"),
                 '<span class="s-date">'.waDateTime::format( 'humandate', $promo["start_datetime"]).'</span>',
-                '<span class="s-date">'._w("без срока окончания").'</span>');
+                '<span class="s-date">'._w("without an end date").'</span>');
         } else if (!empty($promo["finish_datetime"])) {
-            $date_string = sprintf(_w("%s, до %s"),
-                '<span class="s-date">'._w("без срока начала").'</span>',
+            $date_string = sprintf(_w("%s, until %s"),
+                '<span class="s-date">'._w("without a start date").'</span>',
                 '<span class="s-date">'.waDateTime::format( 'humandate', $promo["finish_datetime"]).'</span>');
         }
 

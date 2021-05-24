@@ -159,18 +159,28 @@
                                 <td style="padding: 8px 0;">%4%</td>
                                 <td style="white-space: nowrap; width: 20%; padding: 8px 0 8px 8px;">{wa_currency($subtotal, $order.currency)}</td>
                             </tr>
-                            <tr>
-                                <td style="padding: 8px 0;">%5%</td>
-                                <td style="white-space: nowrap; padding: 8px 0 8px 8px;">{wa_currency($order.discount, $order.currency)}</td>
-                            </tr>
+                            {if !empty((float)$order.discount)}
+                                <tr>
+                                    <td style="padding: 8px 0;">%5%</td>
+                                    <td style="white-space: nowrap; padding: 8px 0 8px 8px;">− {wa_currency($order.discount, $order.currency)}</td>
+                                </tr>
+                            {/if}
                             <tr>
                                 <td style="padding: 8px 0;">%6%</td>
-                                <td style="white-space: nowrap; padding: 8px 0 8px 8px;">{wa_currency($order.shipping, $order.currency)}</td>
+                                <td style="white-space: nowrap; padding: 8px 0 8px 8px;">
+                                    {if empty((float)$order.shipping)}
+                                        [`free`]
+                                    {else}
+                                        {wa_currency($order.shipping, $order.currency)}
+                                    {/if}
+                                </td>
                             </tr>
-                            <tr>
-                                <td style="padding: 8px 0;">%7%</td>
-                                <td style="white-space: nowrap; padding: 8px 0 8px 8px;">{wa_currency($order.tax, $order.currency)}</td>
-                            </tr>
+                            {if !empty($order.tax)}
+                                <tr>
+                                    <td style="padding: 8px 0;">%7%</td>
+                                    <td style="white-space: nowrap; padding: 8px 0 8px 8px;">{wa_currency($order.tax, $order.currency)}</td>
+                                </tr>
+                            {/if}
                             <tr>
                                 <td style="padding: 8px 0;">
                                     <h3 style="font-size:18px;margin:0;">%2%</h3>

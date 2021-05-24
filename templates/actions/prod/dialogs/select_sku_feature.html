@@ -8,7 +8,7 @@
     <div class="dialog-background"></div>
     <div class="dialog-body">
         <div class="dialog-header">
-            <h3>[`Features used for product version selection in the storefront`]</h3>
+            <h3>[`Features used for product variety selection in the storefront`]</h3>
         </div>
         <div class="dialog-content">
 
@@ -20,7 +20,7 @@
                              v-bind:key="feature.id"
                              v-bind:data-id="feature.id"
                              v-bind:class="{ 'is-moving': feature.is_moving, 'is-disabled': feature.disabled }"
-                             v-bind:title="feature.disabled ? '{_w("The feature’s format does not support selection of product versions.")|escape}' : ''">
+                             v-bind:title="feature.disabled ? '{_w("The feature’s format does not support selection of product varieties.")|escape}' : ''">
 
                             <div class="flexbox middle space-8">
                                 <template v-if="active_features.length > 1">
@@ -57,7 +57,7 @@
                              v-if="!feature.active"
                              v-bind:key="feature.id"
                              v-bind:class="{ 'is-disabled': feature.disabled }"
-                             v-bind:title="feature.disabled ? '{_w("The feature’s format does not support selection of product versions.")|escape}' : ''">
+                             v-bind:title="feature.disabled ? '{_w("The feature’s format does not support selection of product varieties.")|escape}' : ''">
 
                             <div class="flexbox middle space-8">
                                 <div class="s-field">

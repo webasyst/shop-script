@@ -27,32 +27,32 @@
     ],
     "prices-tooltip-5" => [
         "id" => "prices-tooltip-5",
-        "html" => _w("Акция, в которой участвует модификация стоит на паузе. Посмотреть изменение цены можно в блоке акции ниже на странице.")|escape
+        "html" => _w("The promo in which this SKU variant is included is paused. You can view the price change in the promo info block below.")|escape
     ],
     "prices-tooltip-6" => [
         "id" => "prices-tooltip-6",
-        "html" => _w("Модификация участвует в запланированной на будущее акции. Посмотреть изменение цены можно в блоке акции ниже на странице.")|escape
+        "html" => _w("The SKU variant is included in a planned promo. You can view the price change in the promo info block below.")|escape
     ],
     "prices-tooltip-7" => [
         "id" => "prices-tooltip-7",
-        "html" => _w("Акция действует.")|escape
+        "html" => _w("The promo is on.")|escape
     ],
     "prices-tooltip-8" => [
         "id" => "prices-tooltip-8",
-        "html" => _w("Акция действует по времени, но стоит на паузе.")|escape
+        "html" => _w("The promo is on but is temporarily paused.")|escape
     ],
     "prices-tooltip-9" => [
         "id" => "prices-tooltip-9",
-        "html" => _w("Акция запланирована на будущее.")|escape
+        "html" => _w("The promo is planned for the future.")|escape
     ],
     "prices-tooltip-10" => [
         "id" => "prices-tooltip-10",
-        "html" => _w("Цена в акции не отличается от заданной в товаре.")|escape,
+        "html" => _w("The promo price does not differ from the original product price.")|escape,
         "position" => "top"
     ],
     "prices-tooltip-11" => [
         "id" => "prices-tooltip-11",
-        "html" => _w("Цена товара изменена для акции.")|escape,
+        "html" => _w("Product price changed for promo.")|escape,
         "position" => "top"
     ]
 ]}
@@ -63,7 +63,7 @@
             {$_key = "prices-tooltip-promo-{$_promo.id}"}
             {$_tooltips[$_key] = [
                 "id" => $_key,
-                "html" => sprintf(_w("Модификация участвует в действующей акции «%s». Посмотреть изменение цены можно в блоке акции ниже на странице."), $_promo.name)|escape
+                "html" => sprintf(_w("The SKU variant is included in functioning promo “%s”. You can view the price change in the promo info block below."), $_promo.name)|escape
             ]}
         {/if}
     {/foreach}
@@ -72,14 +72,14 @@
 {$_locales = [
     "stock_title" => _w("The quantity on this virtual stock is the sum of quantities on physical stocks — %s. You can change the list of stocks in “Settings” section."),
     "storefronts_toggle_open_forms" => [
-        _w("Показать %d витрину, на которой проходит акция", "Показать %d витрину, на которой проходит акция", 1, false),
-        _w("Показать %d витрину, на которой проходит акция", "Показать %d витрины, на которых проходит акция", 2, false),
-        _w("Показать %d витрину, на которой проходит акция", "Показать %d витрин, на которых проходит акция", 5, false)
+        _w("Show %d storefront to which the promo is applied", "Show %d storefronts to which the promo is applied", 1, false),
+        _w("Show %d storefront to which the promo is applied", "Show %d storefronts to which the promo is applied", 2, false),
+        _w("Show %d storefront to which the promo is applied", "Show %d storefronts to which the promo is applied", 5, false)
     ],
     "storefronts_toggle_hide_forms" => [
-        _w("Скрыть %d витрину, на которой проходит акция", "Скрыть %d витрину, на которой проходит акция", 1, false),
-        _w("Скрыть %d витрину, на которой проходит акция", "Скрыть %d витрины, на которых проходит акция", 2, false),
-        _w("Скрыть %d витрину, на которой проходит акция", "Скрыть %d витрин, на которых проходит акция", 5, false)
+        _w("Hide %d storefront to which the promo is applied", "Hide %d storefronts to which the promo is applied", 1, false),
+        _w("Hide %d storefront to which the promo is applied", "Hide %d storefronts to which the promo is applied", 2, false),
+        _w("Hide %d storefront to which the promo is applied", "Hide %d storefronts to which the promo is applied", 5, false)
     ]
 ]}
 
@@ -137,16 +137,16 @@
         <div class="s-table-header">
             <div class="s-table-row">
                 <div class="s-table-column s-column-name">
-                    <span class="s-label">[`Артикул`]</span>
+                    <span class="s-label">[`SKU`]</span>
                 </div>
                 <div class="s-table-column s-column-compare-price">
-                    <span class="s-label">[`Зачёркнутая цена`]</span>
+                    <span class="s-label">[`Compare at price`]</span>
                 </div>
                 <div class="s-table-column s-column-price">
-                    <span class="s-label">[`Основная цена`]</span>
+                    <span class="s-label">[`Price`]</span>
                 </div>
                 <div class="s-table-column s-column-amount">
-                    <span class="s-label">[`Количество`]</span>
+                    <span class="s-label">[`Quantity`]</span>
                 </div>
             </div>
         </div>
@@ -242,7 +242,7 @@
             </div>
         </template>
         <template v-else>
-            <div class="s-message-empty">[`Артикулов нет`]</div>
+            <div class="s-message-empty">[`No SKUs.`]</div>
         </template>
     </div>
 {/capture}
@@ -294,12 +294,12 @@
 
                                                     <div class="s-toggle" v-if="promo.storefronts.length > 10">
                                                         <a href="javascript:void(0);"
-                                                           v-on:click.prevent="storefrontsToggle">{_w("Скрыть витрины")|escape}</a>
+                                                           v-on:click.prevent="storefrontsToggle">{_w("Hide storefronts")|escape}</a>
                                                     </div>
                                                 </template>
                                             </template>
                                             <template v-else>
-                                                <div class="s-label">[`Акция проходит на витринах:`]</div>
+                                                <div class="s-label">[`The promo is applied to storefronts:`]</div>
                                                 <div class="s-storefront" v-for="(storefront, index) in promo.storefronts">
                                                     <a v-bind:href="storefront" v-text="storefront" target="_blank"></a>
                                                 </div>
@@ -307,7 +307,7 @@
                                         </div>
                                     </template>
                                     <template v-else>
-                                        <div class="s-message">[`Акция проходит на всех витринах.`]</div>
+                                        <div class="s-message">[`The promo is applied to all storefronts.`]</div>
                                     </template>
                                 </div>
                             {/if}
@@ -353,14 +353,16 @@
                                     <div class="s-icon left" v-bind:class="{ 'color-green-dark' : sku_mod.stocks_data.indicator > 0, 'color-orange' : sku_mod.stocks_data.indicator == 0, 'color-red' : sku_mod.stocks_data.indicator < 0 }">
                                         <i class="icon size-16"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></i>
                                     </div>
-                                    <input class="wa-small s-field full-width is-number" type="text" placeholder="∞"
+                                    <input class="wa-small s-field full-width is-number" type="text"
+                                           placeholder="∞"
+                                           readonly="readonly"
                                            v-model="sku_mod.count"
-                                           v-bind:readonly="!!stocks_array.length || !can_edit"
+                                           v-bind:class="{ 'with-padding' : !(stocks_array.length || can_edit) }"
                                            v-on:click="focusSkuModStocks(sku_mod)"
                                            v-on:input="validate($event, 'integer', sku_mod, 'count')">
                                 </div>
 
-                                <template v-if="stocks_array.length">
+                                <template v-if="(stocks_array.length || can_edit)">
                                     <div class="s-toggle" v-on:click.prevent="toggleStocks">
                                         <span class="s-icon icon size-16" v-if="!sku_mod.stocks_data.expanded" v-bind:key="'down'">
                                             <i class="s-angle-down"></i>
@@ -379,7 +381,7 @@
             <div class="s-hidden-part" v-if="sku_mod.stocks_data.expanded">
                 <div class="s-stocks-list-section" v-bind:class="{ 'is-large': stocks_array.length > 6 }">
                     <div class="s-section-body">
-                        <div class="s-stocks-list">
+                        <div class="s-stocks-list" v-if="stocks_array.length">
 
                             <template v-for="stock in stocks_array">
                                 <div class="s-stock-wrapper">
@@ -407,6 +409,15 @@
                                     </div>
                                 </div>
                             </template>
+
+                        </div>
+                        <div class="s-stocks-list" v-else>
+
+                            <div class="s-field-wrapper">
+                                <input class="wa-small s-field full-width is-number" type="text" placeholder="∞"
+                                       v-model="values.sku_mod_count"
+                                       v-on:input="validate($event, 'integer', values, 'sku_mod_count');">
+                            </div>
 
                         </div>
                     </div>
@@ -477,7 +488,7 @@
             {* STATUS *}
             <div class="s-content-section s-status-section">
                 <div class="s-section-header">
-                    <h4 class="s-title">[`Публикация`]</h4>
+                    <h4 class="s-title">[`Availability`]</h4>
                 </div>
                 <div class="s-section-body">
                     <div class="s-status-message wa-message wa-small gray">
@@ -486,7 +497,7 @@
                                 <div class="message-icon"><i class="fas fa-check color-green-dark"></i></div>
                                 <div class="message-text wide">[`Published`]</div>
                             </div>
-                            <div class="s-description">[`Товар виден на витрине в общих списках товаров, возможность добавления в корзину зависит от настроек для отдельных артикулов и модификаций.`]</div>
+                            <div class="s-description">[`The product is visible in listings in the storefront but its availability for ordering depends on its individual SKUs’ & variants’ properties.`]</div>
 
                         {elseif $product.status === "0"}
                             <div class="s-title flexbox space-8 middle">
@@ -522,9 +533,9 @@
                 {$_show_toggle = ($_count > $_limit)}
 
                 {$_store_locales = [
-                    "show" => _w("Показать %d витрину, на которых опубликован товар", "Показать %d витрин, на которых опубликован товар", $_count),
-                    "hide" => _w("Скрыть %d витрину, на которых опубликован товар", "Скрыть %d витрин, на которых опубликован товар", $_count),
-                    "hide_toggle" => _w("Скрыть витрины")
+                    "show" => _w("Show %d storefront on which the product is available", "Show %d storefronts on which the product is available", $_count),
+                    "hide" => _w("Hide %d storefront on which the product is available", "Hide %d storefronts on which the product is available", $_count),
+                    "hide_toggle" => _w("Hide storefronts")
                 ]}
 
                 <div class="s-content-section s-storefronts-section">
@@ -582,7 +593,7 @@
                                     <span class="icon size-20" v-if="promos_model.is_extended" v-bind:key="'down'"><i class="fas fa-chevron-down"></i></span>
                                 </span>
                             {/if}
-                            <div class="s-title">[`Участие в акциях`]</div>
+                            <div class="s-title">[`Promos`]</div>
                         </div>
                         <div class="s-column-filters wide" v-if="promos_model.promos.length && promos_model.is_extended">
                             <div class="s-filters-list">
@@ -611,7 +622,7 @@
                         </template>
                     </template>
                     <template v-else>
-                        <div class="s-message-empty">[`Товар не участвует в промоакциях.`]</div>
+                        <div class="s-message-empty">[`This product is not included in any promos.`]</div>
                     </template>
                 </div>
             </div>

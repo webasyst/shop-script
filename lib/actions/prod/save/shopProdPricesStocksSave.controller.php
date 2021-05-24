@@ -9,10 +9,13 @@ class shopProdPricesStocksSaveController extends waJsonController
 {
     public function execute()
     {
-        $product_id = waRequest::post('product_id', null, waRequest::TYPE_INT);
-        $sku_id     = waRequest::post('sku_id', null, waRequest::TYPE_INT);
-        $stocks     = waRequest::post('stocks', [], waRequest::TYPE_ARRAY);
-
+        $product_id = waRequest::request('product_id', null, waRequest::TYPE_INT);
+        $sku_id     = waRequest::request('sku_id', null, waRequest::TYPE_INT);
+        $stocks     = waRequest::post('stocks', null);
+        if (empty($stocks) || !is_array($stocks)) {
+            $count  = waRequest::post('count', null, waRequest::TYPE_STRING_TRIM);
+            $stocks = [$count];
+        }
         if (empty($product_id) || empty($sku_id)) {
             throw new waException(_w('Not found'), 404);
         }
@@ -26,7 +29,7 @@ class shopProdPricesStocksSaveController extends waJsonController
         $result = $product_skus_model->setData($product, [$sku_id => ['stock' => $stocks]]);
 
         if (empty($result) && empty($result[$sku_id])) {
-            $this->errors[] = _w('Не удалось сохранить');
+            $this->errors[] = _w('Saving has failed.');
         } else {
             $this->response = $result;
         }

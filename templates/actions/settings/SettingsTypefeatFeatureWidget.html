@@ -26,6 +26,8 @@
     function initialize($target) {
         var deferred = $.Deferred();
 
+        var product_id = {$product_id|default:null|json_encode};
+
         // Вид, обычный или разделитель
         var mode = $target.data("mode");
         mode = (typeof mode === "string" ? mode : "varchar");
@@ -47,6 +49,10 @@
                 type_id: type_id,
                 feature_id: feature_id
             };
+
+        if (product_id) {
+            data["product_id"] = product_id;
+        }
 
         trigger("before_load");
 

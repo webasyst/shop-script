@@ -6,10 +6,10 @@
             {if !$product_id}
                 <a href="#/product/{$row['product_id']}/">
                     {$row['product_name']|escape}
-                    <span class="hint">{$row['sku_name']|escape}</span>
+                    <span class="hint">{$row['sku_name']|default:''|escape}</span>
                 </a>
             {else}
-                {$row['sku_name']|escape}
+                {$row['sku_name']|default:''|escape}
             {/if}
             <i class="shortener"></i>
         </div>

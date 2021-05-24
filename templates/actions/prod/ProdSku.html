@@ -1001,8 +1001,8 @@
 
                             <div class="wa-label">
                                 <div class="flexbox space-10">
-                                    <span class="s-name">[`Product versions selection in the storefront`]</span>
-                                    <span class="wa-tooltip right" data-title="{_w("How product versions should be offered to customers in the storefront.")|escape}">
+                                    <span class="s-name">[`Product variety selection in the storefront`]</span>
+                                    <span class="wa-tooltip right" data-title="{_w("How product varieties should be offered to customers in the storefront.")|escape}">
                                         <i class="fas fa-question-circle s-icon gray"></i>
                                     </span>
                                 </div>
@@ -1034,8 +1034,8 @@
 
                             <div class="wa-label">
                                 <div class="flexbox space-10">
-                                    <span class="s-name">[`Features used for product version selection in the storefront`]</span>
-                                    <span class="wa-tooltip right" data-title="{_w("Add here the product features whose values customers should select to buy a corresponding product version.")|escape}">
+                                    <span class="s-name">[`Features used for product variety selection in the storefront`]</span>
+                                    <span class="wa-tooltip right" data-title="{_w("Add here the product features whose values customers should select to buy a corresponding product variety.")|escape}">
                                         <i class="fas fa-question-circle s-icon gray"></i>
                                     </span>
                                 </div>
@@ -1681,7 +1681,7 @@
                         <span class="s-icon color-green-dark"
                               v-else
                               v-bind:key="'icon'"><i class="fas fa-plus-circle"></i></span>
-                        <span class="s-name">[`Добавить характеристику`]</span>
+                        <span class="s-name">[`Add a new feature`]</span>
                     </button>
                 </div>
             </div>
@@ -1713,7 +1713,8 @@
     {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.bottom)}{/foreach}{/if}
 
     {shopSettingsTypefeatFeatureWidgetAction::widget([
-        "selection" => "#js-show-add-feature-dialog"
+        "selection" => "#js-show-add-feature-dialog",
+        "product_id" => $product.id|default:"new"
     ])}
 
     <script>

@@ -943,7 +943,6 @@ SQL;
      * @return bool
      * @uses   shopCsvProductrunController::stepImportCategory
      * @uses   shopCsvProductrunController::stepImportVariant
-     * @uses   shopCsvProductrunController::stepImportImage
      * @usedby step
      */
     private function stepImport()
@@ -961,7 +960,7 @@ SQL;
                     $type = self::getDataType($current);
                 } catch (waException $e) {
                     $type = $e->getMessage();
-                    $this->writeImportError(_w('Указанный тип строки не поддерживается'));
+                    $this->writeImportError(_w('The specified row type is not supported.'));
                 }
                 if ($type) {
                     $this->workupData($current);
@@ -1152,18 +1151,19 @@ SQL;
             $data['sku_type'] = $data['sku_type'] == self::EXPORT_SKU_TYPE_SELECTABLE ? shopProductModel::SKU_TYPE_SELECTABLE : shopProductModel::SKU_TYPE_FLAT;
         }
 
+        if (isset($data['row_type']) && ($data['row_type'] == self::STAGE_PRODUCT || $data['row_type'] == self::STAGE_PRODUCT_VARIANT)) {
+            $this->data['is_deleted_empty_sku'] = false;
+            if ($data['row_type'] == self::STAGE_PRODUCT) {
+                $is_extended_sku_behavior = false;
+            }
+            if ($data['row_type'] == self::STAGE_PRODUCT_VARIANT) {
+                $this->data['last_product_sku_code'] = ifset($data, 'skus', -1, 'sku', null);
+            }
+        }
+
         //Features workaround
         if (!empty($data['features'])) {
             $virtual_sku_stock = null;
-            if (isset($data['row_type']) && ($data['row_type'] == self::STAGE_PRODUCT || $data['row_type'] == self::STAGE_PRODUCT_VARIANT)) {
-                $this->data['is_deleted_empty_sku'] = false;
-                if ($data['row_type'] == self::STAGE_PRODUCT) {
-                    $is_extended_sku_behavior = false;
-                }
-                if ($data['row_type'] == self::STAGE_PRODUCT_VARIANT) {
-                    $this->data['last_product_sku_code'] = ifset($data, 'skus', -1, 'sku', null);
-                }
-            }
             foreach ($data['features'] as $feature => &$values) {
                 if (is_array($values)) {
                 } elseif (preg_match('/^\{(.+,.+)\}$/', $values, $matches)) {
@@ -1671,16 +1671,21 @@ SQL;
                             }
                         }
 
-                        if (!empty($data['images'])) {
-                            $images = array_filter($data['images']);
-                            if (count($images) === 1) {
-                                $file = reset($images);
-                                $name = $this->getImageName($file);
-                                $image = $this->findImage($file, $name, $product['id']);
-                                if ($image) {
-                                    $truncated_data['skus'][$item_sku_id]['image_id'] = $image['id'];
+                        try {
+                            if (!empty($data['images'])) {
+                                $images = array_filter($data['images']);
+                                if (count($images) === 1) {
+                                    $file = reset($images);
+                                    $name = $this->getImageName($file);
+                                    $image = $this->findImage($file, $name, $product['id']);
+                                    if ($image) {
+                                        $truncated_data['skus'][$item_sku_id]['image_id'] = $image['id'];
+                                    }
                                 }
                             }
+                        } catch (waException $e) {
+                            $this->error($e->getMessage());
+                            $this->writeImportError(_w('Не удалось импортировать изображение артикула') . '; ' . $e->getMessage());
                         }
 
                         try {
@@ -1738,7 +1743,7 @@ SQL;
             if (!isset($this->data['emulate_keys'][$product->__hash][$key])) {
                 $this->data['emulate_keys'][$product->__hash][$key] = $this->emulate();
             } else {
-                $this->writeImportError(_w('Строка повторяется'));
+                $this->writeImportError(_w('Repeating row.'));
             }
 
 
@@ -1800,6 +1805,7 @@ SQL;
                             $model->updateById($exists['id'], compact('description'));
                             $this->data['processed_count'][self::STAGE_IMAGE_DESCRIPTION]['update']++;
                         }
+                        $this->writeImportError(_w('Изображение уже существует'));
                         break;
                     default:
                         $image = $this->getImage($file);
@@ -1824,6 +1830,7 @@ SQL;
             } catch (Exception $e) {
                 $target = 'error';
                 $this->error($e->getMessage());
+                $this->writeImportError(_w('Не удалось импортировать изображение') . '; ' . $e->getMessage());
             }
 
             $this->data['processed_count'][self::STAGE_IMAGE][$target]++;
@@ -2146,9 +2153,9 @@ SQL;
         $type = $this->getErrorType();
         if (isset($this->data['error_log_name'][$type])) {
             $report_file = wa()->getTempPath('csv/download/0/' . $this->data['error_log_name'][$type]);
-            $report .= '<div><span>' . _w('В процессе импорта или проверки файла возникли ошибки. Скачайте лог чтобы посмотреть детальную информацию') . '</span>';
+            $report .= '<div><span>' . _w('Errors have been found in your CSV file. Download the log file to view details.') . '</span>';
             $report .= '<div><a href="?module=csv&action=productdownload&profile=0&file='.$report_file.'" class="bold nowrap">';
-            $report .= '<i class="icon16 download"></i>' . _w('Скачать лог') . '</a></div></div>';
+            $report .= '<i class="icon16 download"></i>' . _w('Download log file') . '</a></div></div>';
         }
 
         return iconv('UTF-8', 'UTF-8//IGNORE', $report);
@@ -2711,8 +2718,8 @@ SQL;
             $file = wa()->getTempPath('csv/download/0/' . $this->data['error_log_name'][$type]);
             $error_writer = new shopCsvWriter($file, $this->reader->delimiter, $this->reader->encoding);
             $map = [
-                'import_line_number' => _w('Номер строки с ошибкой в оригинальном файле импорта'),
-                'error_message' => _w('Описание ошибки'),
+                'import_line_number' => _w('ID of the invalid row in the import file'),
+                'error_message' => _w('Error description'),
             ];
             $map += $this->reader->header();
             $error_writer->setMap($map);

@@ -9,7 +9,7 @@ class shopCsvProductuploadController extends shopUploadController
     {
         //TODO пометить поля, допускающий множественные значения (валидация)
         $fields = array(
-            'row_type'              => _w('Тип строки'),
+            'row_type'              => _w('Row type'),
             'product'               => array(
                 'id'                  => _w('Product ID'),
                 'name'                => _w('Product name'), //1
@@ -18,7 +18,7 @@ class shopCsvProductuploadController extends shopUploadController
                 'description'         => _w('Description'),
                 'badge'               => _w('Badge'),
                 'status'              => _w('Status'),
-                'sku_type'            => _w('Выбор вариантов товара'),
+                'sku_type'            => _w('Product variety selection'),
                 'type_name'           => _w('Product type'),
                 'tags'                => _w('Tags'),
                 'tax_name'            => _w('Taxable'),
@@ -153,7 +153,7 @@ class shopCsvProductuploadController extends shopUploadController
         if ($flat) {
             $fields_ = $fields;
             $fields = array(
-                'row_type' => _w('Тип строки'),
+                'row_type' => _w('Row type'),
             );
             $flat_order = array(
                 'product:name',
@@ -180,7 +180,7 @@ class shopCsvProductuploadController extends shopUploadController
         $multiple = true;
 
         $translates = array();
-        $translates['row_type'] = _w('Тип строки');
+        $translates['row_type'] = _w('Row type');
         $translates['product'] = _w('Basic fields');
         $translates['product_custom_fields'] = _w("Custom product fields");
         $translates['sku'] = _w('SKU fields');
