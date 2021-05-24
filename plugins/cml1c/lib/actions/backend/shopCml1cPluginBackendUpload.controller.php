@@ -22,30 +22,52 @@ class shopCml1cPluginBackendUploadController extends shopUploadController
             $file->moveTo($name);
             switch ($ext) {
                 case 'zip':
-                    if (!function_exists('zip_open')) {
-                        throw new waException("Для чтения ZIP-файлов требуется поддержка формата ZIP в PHP.");
-                    }
                     if (!function_exists('iconv')) {
                         throw new waException("Для чтения ZIP-файлов требуется PHP-расширение iconv.");
                     }
-                    if (($zip = zip_open($name)) && is_resource($zip)) {
-                        while ($entry = zip_read($zip)) {
-                            $filename = zip_entry_name($entry);
-                            $filename = iconv('CP866', 'UTF-8', $filename);
-
-                            if (strtolower(pathinfo($filename, PATHINFO_EXTENSION) == 'xml')) {
-                                $files[] = array(
-                                    'name' => $filename,
-                                    'size' => waFiles::formatSize(zip_entry_filesize($entry)),
-                                );
+                    if (!function_exists('zip_open') || !class_exists('ZipArchive')) {
+                        throw new waException("Для чтения ZIP-файлов требуется поддержка формата ZIP в PHP.");
+                    }
+                    if (class_exists('ZipArchive')) {
+                        $zip_archive = new ZipArchive();
+                        if ($zip_archive->open($name) === true) {
+                            for ($i = 0; $i < $zip_archive->numFiles; $i++) {
+                                $stat = $zip_archive->statIndex($i);
+                                $filename = iconv('CP866', 'UTF-8', $stat['name']);
+                                if (strtolower(pathinfo($filename, PATHINFO_EXTENSION)) == 'xml') {
+                                    $files[] = array(
+                                        'name' => $filename,
+                                        'size' => waFiles::formatSize($stat['size']),
+                                    );
+                                }
                             }
-                        }
-                        zip_close($zip);
-                        if (empty($files)) {
-                            throw new waException("В ZIP-архиве не найдено ни одного XML-файла.");
+                            $zip_archive->close();
+                            if (empty($files)) {
+                                throw new waException("В ZIP-архиве не найдено ни одного XML-файла.");
+                            }
+                        } else {
+                            throw new waException("Ошибка чтения zip файла");
                         }
                     } else {
-                        throw new waException("Ошибка чтения zip файла");
+                        if (($zip = zip_open($name)) && is_resource($zip)) {
+                            while ($entry = zip_read($zip)) {
+                                $filename = zip_entry_name($entry);
+                                $filename = iconv('CP866', 'UTF-8', $filename);
+
+                                if (strtolower(pathinfo($filename, PATHINFO_EXTENSION)) == 'xml') {
+                                    $files[] = array(
+                                        'name' => $filename,
+                                        'size' => waFiles::formatSize(zip_entry_filesize($entry)),
+                                    );
+                                }
+                            }
+                            zip_close($zip);
+                            if (empty($files)) {
+                                throw new waException("В ZIP-архиве не найдено ни одного XML-файла.");
+                            }
+                        } else {
+                            throw new waException("Ошибка чтения zip файла");
+                        }
                     }
                     break;
                 case 'xml':

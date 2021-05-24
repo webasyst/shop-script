@@ -236,7 +236,7 @@ class shopCml1cPluginFrontendController extends waController
             $size = max(1024 * 1024, min($sizes));
 
             $this->response(
-                sprintf("zip=%s", function_exists('zip_open') ? "yes" : "no"),
+                sprintf("zip=%s", function_exists('zip_open') || class_exists('ZipArchive') ? "yes" : "no"),
                 sprintf("file_limit=%d", 0.8 * $size)
             );
         }

@@ -2405,6 +2405,10 @@ HTML;
                                 'imported %d product',
                                 'imported %d products',
                             ),
+                            self::STAGE_FEATURE => array(
+                                'imported %d feature',
+                                'imported %d features',
+                            ),
                             self::STAGE_SKU      => array(
                                 'imported %d sku',
                                 'imported %d skus',
@@ -2430,6 +2434,10 @@ HTML;
                             self::STAGE_PRODUCT  => array(
                                 'updated %d product',
                                 'updated %d products',
+                            ),
+                            self::STAGE_FEATURE => array(
+                                'updated %d feature',
+                                'updated %d features',
                             ),
                             self::STAGE_SKU      => array(
                                 'updated %d sku',
@@ -4444,12 +4452,14 @@ SQL;
         if (!isset($this->data['map'][self::STAGE_FEATURE])) {
             $this->data['map'][self::STAGE_FEATURE] = array();
         }
+        $t = 'new';
         if (!empty($data['values'])) {
             $xpath = '//ХарактеристикиТовара/ХарактеристикаТовара';
             if ($target = $this->getTarget(null, $data, $xpath)) {
                 $target = $this->explainTarget($target);
                 if ($target['field'] === 'f') {
                     //update feature values
+                    $t = 'update';
                     $data['code'] = $this->findFeature($data['name'], $data, $xpath);
                 }
             }
@@ -4461,7 +4471,7 @@ SQL;
         //at offers - it's generic features
         //at product - features map
         ++$current_stage[self::STAGE_FEATURE];
-        ++$processed[self::STAGE_FEATURE];
+        ++$processed[self::STAGE_FEATURE][$t];
 
         return true;
 
@@ -4846,7 +4856,6 @@ SQL;
 
         $map[$currency['key']] = $currency;
 
-        ++$processed[self::STAGE_PRICE];
         ++$current_stage[self::STAGE_PRICE];
         return true;
     }
@@ -5499,9 +5508,10 @@ SQL;
                 //Значение | ИдЗначения - undocumented feature?
                 $id = self::field($property, 'Ид');
                 $feature = ifset($this->data['map'][self::STAGE_FEATURE][$id]);
-                $feature_name = mb_strtolower($feature['name'], 'utf-8');
+                $feature_name = ifset($feature, 'name', '');
+                $feature_name_lowercase = mb_strtolower($feature_name, 'utf-8');
 
-                switch ($feature_name) {
+                switch ($feature_name_lowercase) {
                     case 'вид номенклатуры':
                     case 'вид товара':
                         if (!$expert) {
@@ -5509,15 +5519,15 @@ SQL;
                         }
                     //no-break
                     default:
-                        if ($feature['name']) {
-                            $code = $this->findFeature($feature['name'], $feature);
+                        if ($feature_name) {
+                            $code = $this->findFeature($feature_name, $feature);
 
                             $data = array(
                                 'code' => $code,
-                                'name' => $feature['name'],
+                                'name' => $feature_name,
                             );
 
-                            $this->addFeatureMap($xpath, $feature['name'], $data);
+                            $this->addFeatureMap($xpath, $feature_name, $data);
 
                         }
                         break;
@@ -6502,81 +6512,144 @@ SQL;
                 throw new waException(sprintf("Файл %s не найден.", $filename));
             }
         } elseif (!empty($this->data['zipfile'])) {
-            if (function_exists('zip_open')
-                && function_exists('iconv')
-                && ($zip = zip_open($this->data['zipfile']))
-                && is_resource($zip)
-            ) {
-                while ($zip_entry = zip_read($zip)) {
-                    $entry_name = zip_entry_name($zip_entry);
-                    if (substr($entry_name, -1, 1) === '/') {
-                        continue;
-                    }
-                    $matched = false;
-                    if ($entry_name == $filename) {
-                        $matched = true;
-                    } else {
-                        foreach ($encodings as $encoding) {
-                            $entry_name_decoded = iconv($encoding, 'utf-8//IGNORE', $entry_name);
-                            if ($entry_name_decoded && ($filename == $entry_name_decoded)) {
-                                $matched = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if ($matched) {
-                        $exists = file_exists($target);
-                        if ($exists) {
-                            if (zip_entry_filesize($zip_entry) != filesize($target)) {
-                                $exists = false;
-                                waFiles::delete($target);
-                            }
-                        }
-                        if ($exists) {
-                            $result = $target;
-                        } else {
-                            if ($z = fopen($target, "wb")) {
-                                $zip_fs = zip_entry_filesize($zip_entry);
-                                $size = 0;
-                                while ($zz = zip_entry_read($zip_entry, $size_ = max(0, min(4096, $zip_fs - $size)))) {
-                                    fwrite($z, $zz);
-                                    $size += $size_;
-                                }
-                                fclose($z);
-                                zip_entry_close($zip_entry);
-                                $result = $target;
-                                break;
-                            } else {
-                                zip_entry_close($zip_entry);
-                                zip_close($zip);
-                                throw new waException("Ошибка извлечения файла из архива.");
-                            }
-                        }
-
-                        if (preg_match('@[\\/]@', $filename)) {
-                            $this->data['files'][] = dirname($result).'/';
-                            $this->data['files'] = array_unique($this->data['files']);
-                        } else {
-                            $this->data['files'] [] = $result;
-                        }
-                        break;
-                    }
-                }
-                zip_close($zip);
-                if (!$result) {
-                    throw new waException(sprintf("Файл %s не найден в архиве.", $filename));
-                }
-
-            } else {
-                $hint = '';
-                if (!function_exists('iconv')) {
-                    $hint .= ' Требуется наличие PHP расширения iconv;';
-                }
-                if (!function_exists('zip_open')) {
-                    $hint .= ' Требуется наличие PHP расширения zlib;';
-                }
+            $hint = '';
+            if (!function_exists('iconv')) {
+                $hint .= ' Требуется наличие PHP расширения iconv;';
+            }
+            if (!function_exists('zip_open') || !class_exists('ZipArchive')) {
+                $hint .= ' Требуется наличие PHP расширения zlib или ZipArchive;';
+            }
+            if ($hint) {
                 throw new waException("Ошибка чтения архива.".$hint);
+            }
+            if (class_exists('ZipArchive')) {
+                $zip_archive = new ZipArchive();
+                if ($zip_archive->open($this->data['zipfile']) === true) {
+                    for ($i = 0; $i < $zip_archive->numFiles; $i++) {
+                        $stat = $zip_archive->statIndex($i);
+                        $entry_name = $stat['name'];
+                        if (substr($entry_name, -1, 1) === '/') {
+                            continue;
+                        }
+                        $matched = false;
+                        if ($entry_name == $filename) {
+                            $matched = true;
+                        } else {
+                            foreach ($encodings as $encoding) {
+                                $entry_name_decoded = iconv($encoding, 'utf-8//IGNORE', $entry_name);
+                                if ($entry_name_decoded && ($filename == $entry_name_decoded)) {
+                                    $matched = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if ($matched) {
+                            $exists = file_exists($target);
+                            if ($exists) {
+                                if ($stat['size'] != filesize($target)) {
+                                    $exists = false;
+                                    waFiles::delete($target);
+                                }
+                            }
+                            if ($exists) {
+                                $result = $target;
+                            } else {
+                                $stream = $zip_archive->getStream($entry_name);
+                                if ($stream) {
+                                    $extract_file = fopen($target, "wb");
+                                    if ($extract_file) {
+                                        while (!feof($stream)) {
+                                            $content = fread($stream, 4096);
+                                            fwrite($extract_file, $content);
+                                        }
+                                        fclose($extract_file);
+                                        $result = $target;
+                                        break;
+                                    } else {
+                                        $zip_archive->close();
+                                        throw new waException("Ошибка извлечения файла из архива.");
+                                    }
+                                }
+                            }
+
+                            if (preg_match('@[\\/]@', $filename)) {
+                                $this->data['files'][] = dirname($result).'/';
+                                $this->data['files'] = array_unique($this->data['files']);
+                            } else {
+                                $this->data['files'][] = $result;
+                            }
+                            break;
+                        }
+                    }
+                    $zip_archive->close();
+                    if (!$result) {
+                        throw new waException(sprintf("Файл %s не найден в архиве.", $filename));
+                    }
+                }
+            } else {
+                if (($zip = zip_open($this->data['zipfile'])) && is_resource($zip)) {
+                    while ($zip_entry = zip_read($zip)) {
+                        $entry_name = zip_entry_name($zip_entry);
+                        if (substr($entry_name, -1, 1) === '/') {
+                            continue;
+                        }
+                        $matched = false;
+                        if ($entry_name == $filename) {
+                            $matched = true;
+                        } else {
+                            foreach ($encodings as $encoding) {
+                                $entry_name_decoded = iconv($encoding, 'utf-8//IGNORE', $entry_name);
+                                if ($entry_name_decoded && ($filename == $entry_name_decoded)) {
+                                    $matched = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if ($matched) {
+                            $exists = file_exists($target);
+                            if ($exists) {
+                                if (zip_entry_filesize($zip_entry) != filesize($target)) {
+                                    $exists = false;
+                                    waFiles::delete($target);
+                                }
+                            }
+                            if ($exists) {
+                                $result = $target;
+                            } else {
+                                if ($z = fopen($target, "wb")) {
+                                    $zip_fs = zip_entry_filesize($zip_entry);
+                                    $size = 0;
+                                    while ($zz = zip_entry_read($zip_entry, $size_ = max(0, min(4096, $zip_fs - $size)))) {
+                                        fwrite($z, $zz);
+                                        $size += $size_;
+                                    }
+                                    fclose($z);
+                                    zip_entry_close($zip_entry);
+                                    $result = $target;
+                                    break;
+                                } else {
+                                    zip_entry_close($zip_entry);
+                                    zip_close($zip);
+                                    throw new waException("Ошибка извлечения файла из архива.");
+                                }
+                            }
+
+                            if (preg_match('@[\\/]@', $filename)) {
+                                $this->data['files'][] = dirname($result).'/';
+                                $this->data['files'] = array_unique($this->data['files']);
+                            } else {
+                                $this->data['files'][] = $result;
+                            }
+                            break;
+                        }
+                    }
+                    zip_close($zip);
+                    if (!$result) {
+                        throw new waException(sprintf("Файл %s не найден в архиве.", $filename));
+                    }
+                }
             }
         }
 
