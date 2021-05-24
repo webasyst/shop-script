@@ -3286,7 +3286,7 @@ SQL;
                 if (!in_array($value, array('CB', 'CBRF', 'NBU', 'NBK'))) {
                     $accuracy = 10000;
                     $value    = round($value, 4);
-                    $chunk    = $accuracy * abs($value - floor($value));
+                    $chunk    = $accuracy * round(abs($value - floor($value)), 4);
                     $chunk    = (empty($chunk) ? 0 : mb_strlen($accuracy) - mb_strlen($chunk));
                     $info['format'] = $chunk ? sprintf('%%0.%df', $chunk) : '%d';
                 }
