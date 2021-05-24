@@ -38,7 +38,11 @@
                             <link itemprop="availability" href="http://schema.org/InStock" />
                         {else}
                             <div class="out-of-stock">
-                                {if $wa->shop->settings('ignore_stock_count')}[`Pre-order only`]{else}[`Out of stock`]{/if}
+                                {if $wa->shop->settings('ignore_stock_count')}
+                                    {_wd('shop', 'Pre-order only')}
+                                {else}
+                                    {_wd('shop', 'Out of stock')}
+                                {/if}
                             </div>
                             <link itemprop="availability" href="http://schema.org/OutOfStock" />
                         {/if}
