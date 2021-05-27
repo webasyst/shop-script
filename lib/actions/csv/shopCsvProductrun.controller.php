@@ -2454,20 +2454,32 @@ SQL;
 
                 #skus
                 $skus = $shop_product->skus;
+                $skus_exist = !empty($skus);
 
                 $primary_sku_id = $product['sku_id'];
                 if (!isset($skus[$primary_sku_id])) {
                     //set default sku as first
-                    $primary_sku_id = key($skus);
-                    $product['sku_id'] = $primary_sku_id;
+                    if ($skus_exist) {
+                        $primary_sku_id = key($skus);
+                        $product['sku_id'] = $primary_sku_id;
+                    } else {
+                        $product['sku_id'] = null;
+                    }
                 }
 
-                $sku = $skus[$primary_sku_id];
-                if (!empty($this->data['config']['primary_sku'])) {
-                    $sku['_primary'] = '1';
+                if ($skus_exist) {
+                    $sku = $skus[$primary_sku_id];
+                    if (!empty($this->data['config']['primary_sku'])) {
+                        $sku['_primary'] = '1';
+                    }
+                    unset($skus[$primary_sku_id]);
+                    $skus = array($product['sku_id'] => $sku,) + $skus;
+                } else {
+                    /** @var shopProductSkusModel $sku_model */
+                    $sku_model = $this->model('product_skus');
+                    $sku = $sku_model->getEmptyRow();
+                    $skus = [];
                 }
-                unset($skus[$primary_sku_id]);
-                $skus = array($product['sku_id'] => $sku,) + $skus;
 
                 $this->exportProductRow($product, $sku, false, !$extra_category_record);
 
@@ -2706,28 +2718,34 @@ SQL;
 
     private function writeImportError($message)
     {
-        $current = [
-            'import_line_number' => $this->reader->key(),
-            'error_message' => $message,
-        ];
-        $current += $this->reader->current(false);
-
-        $type = $this->getErrorType();
-        if (!isset($this->data['error_file'][$type])) {
-            $this->data['error_log_name'][$type] = sprintf($type . '_csv_import_log_%s.csv', date('Y-m-d_H_i'));
-            $file = wa()->getTempPath('csv/download/0/' . $this->data['error_log_name'][$type]);
-            $error_writer = new shopCsvWriter($file, $this->reader->delimiter, $this->reader->encoding);
-            $map = [
-                'import_line_number' => _w('ID of the invalid row in the import file'),
-                'error_message' => _w('Error description'),
+        try {
+            $current = [
+                'import_line_number' => $this->reader->key(),
+                'error_message' => $message,
             ];
-            $map += $this->reader->header();
-            $error_writer->setMap($map);
-        } else {
-            $error_writer = unserialize($this->data['error_file'][$type]);
+            $current += $this->reader->current(false);
+
+            $type = $this->getErrorType();
+            if (!isset($this->data['error_file'][$type])) {
+                $this->data['error_log_name'][$type] = sprintf($type . '_csv_import_log_%s.csv', date('Y-m-d_H_i'));
+                $file = wa()->getTempPath('csv/download/0/' . $this->data['error_log_name'][$type]);
+                $error_writer = new shopCsvWriter($file, $this->reader->delimiter, $this->reader->encoding);
+                $map = [
+                    'import_line_number' => _w('ID of the invalid row in the import file'),
+                    'error_message' => _w('Error description'),
+                ];
+                $map += $this->reader->header();
+                $error_writer->setMap($map);
+            } else {
+                $error_writer = unserialize($this->data['error_file'][$type]);
+            }
+            $error_writer->write($current);
+            $this->data['error_file'][$type] = serialize($error_writer);
+        } catch (Exception $e) {
+            $message .= "\n\nAdditionally, unable to write to CSV file with errors: ".strval($e);
+        } catch (Error $e) {
+            $message .= "\n\nAdditionally, unable to write to CSV file with errors: ".strval($e);
         }
-        $error_writer->write($current);
-        $this->data['error_file'][$type] = serialize($error_writer);
 
         $this->error($message);
     }

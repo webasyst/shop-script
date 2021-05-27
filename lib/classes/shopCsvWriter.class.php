@@ -196,13 +196,13 @@ class shopCsvWriter implements Serializable
                 if (is_array($key)) {
                     $value = $data;
                     while (($key_chunk = array_shift($key)) !== null) {
-                        $value = ifset($value[$key_chunk]);
+                        $value = ifset($value, $key_chunk, null);
                         if ($value === null) {
                             break;
                         }
                     }
                 } else {
-                    $value = ifset($data[$key]);
+                    $value = ifset($data, $key, null);
                 }
                 if (is_array($value)) {
                     if ($this->accept_arrays) {

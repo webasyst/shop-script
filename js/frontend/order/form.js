@@ -1786,7 +1786,7 @@
 
             // Если кол-во типов = 1, то автовыбор типа
             var $type = that.$wrapper.find(".wa-type-wrapper");
-            if ($type.length > 1 && !$type.hasClass("is-active")) {
+            if ($type.length === 1 && !$type.hasClass("is-active")) {
                 that.scope.$wrapper.on("ready changed", reload_type);
             }
 
