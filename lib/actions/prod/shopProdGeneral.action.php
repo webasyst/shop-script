@@ -17,7 +17,7 @@ class shopProdGeneralAction extends waViewAction
             throw new waException(_w('Access denied'));
         }
 
-        list($frontend_urls, $total_storefronts_count, $url_template) = $this->getFrontendUrls($product);
+        list($frontend_urls, $total_storefronts_count, $url_template) = $this->getFrontendUrls($product, false);
 
         $category_model = new shopCategoryModel();
         $categories = $category_model->getFullTree('id, name, parent_id', true);
@@ -44,6 +44,7 @@ class shopProdGeneralAction extends waViewAction
             $product->setData('skus', [-1 => $empty_sku]);
         }
         $backend_prod_content_event = $this->throwEvent($product);
+        shopHelper::setDefaultNewEditor();
 
         $this->view->assign([
             'url_template' => $url_template,
@@ -60,6 +61,7 @@ class shopProdGeneralAction extends waViewAction
             'formatted_product' => shopProdSkuAction::formatProduct($product),
             'currencies'        => shopProdSkuAction::getCurrencies(),
             'backend_prod_content_event' => $backend_prod_content_event,
+            'show_sku_warning' => shopProdSkuAction::isSkuCorrect($product['id'], $product['sku_type']),
         ]);
 
         $this->setLayout(new shopBackendProductsEditSectionLayout([

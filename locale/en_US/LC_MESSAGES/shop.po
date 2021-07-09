@@ -2074,7 +2074,7 @@ msgstr ""
 msgid "Primary email"
 msgstr ""
 
-msgid "All email notifications sent to store customers will be sent from the primary email address"
+msgid "Email notifications are sent from this address. It is also the administrator’s email address to which order notifications are sent."
 msgstr ""
 
 msgid "Phone number"
@@ -7305,9 +7305,6 @@ msgid "Checkout type"
 msgstr ""
 
 msgid "Limit shipping area"
-msgstr ""
-
-msgid "Separate locality names with a comma."
 msgstr ""
 
 msgid "Show pickup points map"

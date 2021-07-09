@@ -1405,7 +1405,7 @@ SQL;
         }
 
         // 'skus_filtered' require additional data if joined with product_skus table
-        if (in_array('skus_filtered', $split_fields) && isset($this->join_index['ps'])) {
+        if (isset($this->join_index['ps']) && (in_array('skus_filtered', $split_fields) || in_array('sku_filtered', $split_fields))) {
             $this->fields['skus_filtered'] = "GROUP_CONCAT(DISTINCT ps1.id) AS sku_ids";
             if (empty($this->group_by)) {
                 $this->group_by = 'p.id';
@@ -1440,6 +1440,7 @@ SQL;
             'stock_worth',
             'stock_counts',
             'sku',
+            'sku_filtered',
             'skus_filtered',
             'skus',
             'skus_image',
@@ -2061,85 +2062,132 @@ SQL;
                         }
                     }
                 }
-                if (isset($fields['skus']) || isset($fields['skus_filtered'])) {
 
-                    // sku_ids in products data (if present) are skus that passed filtering
-                    // see $this->getFields(). If there are no such field, it means there's no filtering,
-                    // and we fetch all SKUs below (same as $fields['skus'])
-                    $sku_ids = array();
-                    if (isset($fields['skus_filtered'])) {
+                if (isset($fields['skus']) || isset($fields['sku_filtered']) || isset($fields['skus_filtered'])) {
+
+                    // `sku_filtered` means: fetch exactly one SKU for each product that passed filtering;
+                    // `skus_filtered` will fetch all SKUs that passed filtering;
+                    // `skus` will fetch all SKUs
+                    if (isset($fields['sku_filtered']) || isset($fields['skus_filtered'])) {
+
+                        // sku_ids in products data (if present) are skus that passed filtering
+                        // see $this->getFields(). If there are no such field, it means there's no filtering,
+                        // and we fetch all SKUs below (same as $fields['skus'])
+                        $skus = array();
                         foreach ($products as $product) {
-                            if (!empty($product['sku_ids'])) {
-                                $sku_ids = array_merge($sku_ids, explode(',', $product['sku_ids']));
+                            if (!isset($product['sku_ids'])) {
+                                $skus = [];
+                                break; // no filtering; will fetch all SKUs
+                            }
+                            foreach (explode(',', $product['sku_ids']) as $sku_id) {
+                                if ($sku_id) {
+                                    $skus[$sku_id] = [
+                                        'id' => $sku_id,
+                                        'product_id' => $product['id']
+                                    ];
+                                }
                             }
                         }
-                    }
 
-                    // Fetch SKUs
-                    $skus_model = new shopProductSkusModel();
-                    if ($sku_ids) {
-                        $skus = $skus_model->getByField('id', $sku_ids, 'id');
-                    } else {
-                        $skus = $skus_model->getByField('product_id', array_keys($products), 'id');
-                    }
+                        // If list is filtered by features, we must not include SKUs
+                        // that don't match all the feature conditions we're filtering against.
+                        // SKU may match either because it has a needed feature
+                        // or because a product has the featre and therefore all its SKUs have it, too.
+                        if ($skus && $this->filtered_by_features) {
 
-                    // If list is filtered by features, we must not include SKUs
-                    // that don't match all the feature conditions we're filtering against.
-                    // SKU may match either because it has a needed feature
-                    // or because a product has the featre and therefore all its SKUs have it, too.
-                    if (isset($fields['skus_filtered']) && $skus && $this->filtered_by_features) {
-
-                        // Build a list of conditions like:
-                        // feature_id=? AND feature_value_id IN (?)
-                        $feature_conditions = array();
-                        foreach ($this->filtered_by_features as $feature_id => $values) {
-                            if (!$feature_id || !$values) {
-                                $feature_conditions = null;
-                                break;
+                            // Build a list of conditions like:
+                            // feature_id=? AND feature_value_id IN (?)
+                            $feature_conditions = array();
+                            foreach ($this->filtered_by_features as $feature_id => $values) {
+                                if (!$feature_id || !$values) {
+                                    $feature_conditions = null;
+                                    break;
+                                }
+                                $values = array_filter($values, 'wa_is_int');
+                                $feature_conditions[] = "(feature_id = ".((int)$feature_id)." AND feature_value_id IN (".join(',', $values)."))";
                             }
-                            $values = array_filter($values, 'wa_is_int');
-                            $feature_conditions[] = "(feature_id = ".((int)$feature_id)." AND feature_value_id IN (".join(',', $values)."))";
-                        }
 
-                        if ($feature_conditions) {
+                            if ($feature_conditions) {
 
-                            // Find out which SKUs and products match which filters
-                            $sql = "SELECT *
-                                    FROM shop_product_features
-                                    WHERE product_id IN (".join(',', array_keys($products)).")
-                                        AND (".join("\n\tOR ", $feature_conditions).")";
-                            foreach ($this->getModel()->query($sql) as $row) {
-                                if (!empty($row['sku_id'])) {
-                                    if (!empty($skus[$row['sku_id']])) {
-                                        // A single sku matches the filter by a single feature
-                                        $skus[$row['sku_id']]['matches_feature'][$row['feature_id']] = true;
-                                        // Remember that this product has a SKU that matches this feature
-                                        $products[$row['product_id']]['feature_has_sku_match'][$row['feature_id']] = true;
+                                // Find out which SKUs and products match which filters
+                                $sql = "SELECT *
+                                        FROM shop_product_features
+                                        WHERE product_id IN (".join(',', array_keys($products)).")
+                                            AND (".join("\n\tOR ", $feature_conditions).")";
+                                foreach ($this->getModel()->query($sql) as $row) {
+                                    if (!empty($row['sku_id'])) {
+                                        if (!empty($skus[$row['sku_id']])) {
+                                            // A single sku matches the filter by a single feature
+                                            $skus[$row['sku_id']]['matches_feature'][$row['feature_id']] = true;
+                                            // Remember that this product has a SKU that matches this feature
+                                            $products[$row['product_id']]['feature_has_sku_match'][$row['feature_id']] = true;
+                                        }
+                                    } else {
+                                        // The whole product matches filter by a feature
+                                        $products[$row['product_id']]['matches_feature'][$row['feature_id']] = true;
                                     }
-                                } else {
-                                    // The whole product matches filter by a feature
-                                    $products[$row['product_id']]['matches_feature'][$row['feature_id']] = true;
                                 }
-                            }
 
-                            // Remove SKUs that do not match all the conditions
-                            $match_count_needed = count($feature_conditions);
-                            foreach ($skus as $sku_id => $sku) {
-                                // Take into account SKU matches of a feature
-                                $sku_matches = ifset($sku, 'matches_feature', []);
+                                // Remove SKUs that do not match all the conditions
+                                $match_count_needed = count($feature_conditions);
+                                foreach ($skus as $sku_id => $sku) {
+                                    // Take into account SKU matches of a feature
+                                    $sku_matches = ifset($sku, 'matches_feature', []);
 
-                                // Take into account match of a product (in case SKU does not match)
-                                $product_matches = ifset($products, $sku['product_id'], 'matches_feature', []);
-                                // Ignore match of a product if another SKU of this product matches a feature
-                                $ignore_product_matches = ifset($products, $sku['product_id'], 'feature_has_sku_match', []);
-                                $product_matches = array_diff_key($product_matches, $ignore_product_matches);
+                                    // Take into account match of a product (in case SKU does not match)
+                                    $product_matches = ifset($products, $sku['product_id'], 'matches_feature', []);
+                                    // Ignore match of a product if another SKU of this product matches a feature
+                                    $ignore_product_matches = ifset($products, $sku['product_id'], 'feature_has_sku_match', []);
+                                    $product_matches = array_diff_key($product_matches, $ignore_product_matches);
 
-                                // Remove SKU if it matches less features than we filtered for
-                                if (count($sku_matches + $product_matches) < $match_count_needed) {
-                                    unset($skus[$sku_id]);
+                                    // Remove SKU if it matches less features than we filtered for
+                                    if (count($sku_matches + $product_matches) < $match_count_needed) {
+                                        unset($skus[$sku_id]);
+                                    }
                                 }
                             }
                         }
+
+                        if (!isset($fields['skus_filtered'])) {
+                            // sku_filtered: select one SKU to fetch for each product.
+                            if ($skus) {
+                                // Filtering is enabled; for each product select one SKU from several candidates
+                                $product_ids = [];
+                                $selected_skus = [];
+                                foreach ($skus as $sku_id => $sku) {
+                                    if (!isset($product_ids[$sku['product_id']])) {
+                                        $selected_skus[$sku_id] = $sku;
+                                        $product_ids[$sku['product_id']] = $sku_id;
+                                    }
+                                    if (isset($products[$sku['product_id']]) && $products[$sku['product_id']]['sku_id'] == $sku_id) {
+                                        if (isset($product_ids[$sku['product_id']])) {
+                                            unset($selected_skus[$product_ids[$sku['product_id']]]);
+                                        }
+                                        $selected_skus[$sku_id] = $sku;
+                                        $product_ids[$sku['product_id']] = $sku_id;
+                                    }
+                                }
+                                $skus = $selected_skus;
+                            } else {
+                                // no filtering is enabled: fetch main SKUs
+                                $skus = [];
+                                foreach ($products as $product) {
+                                    $skus[$product['sku_id']] = [];
+                                }
+                            }
+                        }
+                    }
+
+                    // Fetch SKU data.
+                    // `$skus` array is made above if 'sku_filtered' or 'skus_filtered' is requested.
+                    // $skus will be empty either if 'skus' is requested OR if 'skus_filtered' is requested but no filtering happened.
+                    $skus_model = new shopProductSkusModel();
+                    if (!empty($skus)) {
+                        // 'sku_filtered' or 'skus_filtered' field: only fetch SKUs that passed filtering
+                        $skus = $skus_model->getByField('id', array_keys($skus), 'id');
+                    } else {
+                        // 'skus' field: fetch all SKUs of selected products
+                        $skus = $skus_model->getByField('product_id', array_keys($products), 'id');
                     }
 
                     if (!empty($this->storefront_context)) {

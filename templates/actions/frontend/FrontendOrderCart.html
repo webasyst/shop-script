@@ -113,7 +113,7 @@
                                                 {/if}
 
                                                 {if !empty($_config["show_weight"]) && !empty($_item.weight_html)}
-                                                    <span class="wa-weight" title={_w('One item’s weight')|json_encode}>{$_item.weight_html}</span>
+                                                    <span class="wa-weight" title="{_w('One item’s weight')|escape}">{$_item.weight_html}</span>
                                                 {/if}
 
                                                 <span class="wa-actions">

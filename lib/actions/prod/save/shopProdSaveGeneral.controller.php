@@ -102,22 +102,27 @@ class shopProdSaveGeneralController extends waJsonController
             unset($product_data['category_id']);
         }
 
-        // When product only has a single SKU, and this SKU has an image,
-        // then same image must also be set as main product image.
-        if (isset($product_data['skus']) && count($product_data['skus']) == 1) {
-            $sku = reset($product_data['skus']);
-            if (!empty($sku['image_id'])) {
-                $product_images_model = new shopProductImagesModel();
-                $image = $product_images_model->getById($sku['image_id']);
-                if ($image) {
-                    $product_data += [
-                        'image_filename' => $image['filename'],
-                        'image_id' => $image['id'],
-                        'ext' => $image['ext'],
-                    ];
+        if (empty($this->errors) && isset($product_data['skus']) && is_array($product_data['skus'])) {
+            // Validate SKU prices. They must not exceed certain length
+            foreach ($product_data['skus'] as $sku_id => $sku) {
+                foreach (['price', 'purchase_price', 'compare_price'] as $field) {
+                    if (isset($sku[$field])) {
+                        $sku[$field] = str_replace(',', '.', $sku[$field]);
+                        if (strlen($sku[$field]) > 0 && (!is_numeric($sku[$field]) || strlen($sku[$field]) > 16
+                            || $sku[$field] > floatval('1'.str_repeat('0', 11)))
+                        ) {
+                            $this->errors[] = [
+                                'id' => 'price_error',
+                                'name' => "product[skus][{$sku_id}][{$field}]",
+                                'text' => _w('Invalid value'),
+                            ];
+                        }
+                    }
                 }
             }
         }
+
+        shopProdSaveGeneralController::updateMainImage($product_data, $product_data['id']);
 
         return $product_data;
     }
@@ -252,6 +257,36 @@ class shopProdSaveGeneralController extends waJsonController
         } else {
             if (!$product_model->checkRights($data)) {
                 throw new waRightsException(_w("Access denied"));
+            }
+        }
+    }
+
+    public static function updateMainImage(&$product_data, $product_id)
+    {
+        // When product only has a single SKU, and this SKU has an image,
+        // then same image must also be set as main product image.
+        if (isset($product_data['skus']) && count($product_data['skus']) == 1) {
+            $sku = reset($product_data['skus']);
+            if (!empty($sku['image_id'])) {
+                $product_images_model = new shopProductImagesModel();
+                $image = $product_images_model->getById($sku['image_id']);
+                if ($image) {
+                    $product_data += [
+                        'image_filename' => $image['filename'],
+                        'image_id' => $image['id'],
+                        'ext' => $image['ext'],
+                    ];
+                    $images = $product_images_model->getByField('product_id', $product_id, true);
+                    $sort = 1;
+                    foreach ($images as $img) {
+                        if ($img['id'] == $image['id']) {
+                            $product_images_model->updateById($img['id'], ['sort' => 0]);
+                        } else {
+                            $product_images_model->updateById($img['id'], ['sort' => $sort]);
+                            $sort++;
+                        }
+                    }
+                }
             }
         }
     }

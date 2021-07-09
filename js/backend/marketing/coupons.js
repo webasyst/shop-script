@@ -116,6 +116,19 @@
                     }
                 }
 
+                // URL validation
+                var $url_field = $('[name="coupon[url]"]');
+                var url_val    = $url_field.val().trim();
+                if (url_val !== '') {
+                    if (url_val.length > 2048) {
+                        valid = false;
+                        $url_field.addClass('error').after($('<em class="errormsg"></em>').text(that.locales['url_max_len']));
+                    } else if (/https?:\/\/[^\s]*\.[^\s]*/.exec(url_val) === null) {
+                        valid = false;
+                        $url_field.addClass('error').after($('<em class="errormsg"></em>').text(that.locales['url_no_valid']));
+                    }
+                }
+
                 return valid;
             };
 

@@ -144,6 +144,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         if ($type_id) {
             $result = $this->getListFeatures($type_id, $public_only);
             foreach ($result as $code => $row) {
+                $result[$code] = null;
                 if ($row['type'] != shopFeatureModel::TYPE_DIVIDER) {
                     $codes_to_remove[$code] = true;
                 }
@@ -631,7 +632,9 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
         foreach ($features as $code => $f) {
             if (empty($data[$code]) && !empty($current[$code])) {
-                $delete[$f['id']] = $current[$code];
+                if (!(isset($data[$code]) && is_string($data[$code]) && '0' === $data[$code])) {
+                    $delete[$f['id']] = $current[$code];
+                }
             }
         }
         foreach ($delete as $feature_id => $value_id) {

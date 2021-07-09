@@ -875,6 +875,8 @@
                 return false;
             },
             escape: function(selector) {
+                if (typeof selector === "undefined") { return ""; }
+
                 var reserved = new RegExp('([!"#\$%&\'\(\)\*\+,\./:;<=>\?@\[\\\]\^`\{|\}~])','g');
                 var escaped_selector = selector.replace(reserved,'\\$1');
                 return escaped_selector;

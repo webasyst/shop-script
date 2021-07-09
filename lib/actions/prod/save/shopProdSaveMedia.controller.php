@@ -13,7 +13,7 @@ class shopProdSaveMediaController extends waJsonController
 
     protected function saveImageOrder()
     {
-        $product_data = waRequest::post('product', [], 'array');
+        $product_data = waRequest::post('product', [], waRequest::TYPE_ARRAY);
         if (!empty($product_data['id'])) {
             $this->response['product_id'] = $product_data['id'];
         }
@@ -50,14 +50,15 @@ class shopProdSaveMediaController extends waJsonController
 
     protected function saveMainProductImage()
     {
-        $product_data = waRequest::post('product', [], 'array');
-        if (empty($product_data['id']) || empty($product_data['image_id'])) {
+        $product_data = waRequest::post('product', [], waRequest::TYPE_ARRAY);
+        $first_photo = reset($product_data['photos']);
+        if (empty($product_data['id']) || empty($first_photo['id'])) {
             return;
         }
 
         $product_images_model = new shopProductImagesModel();
         $image_data = $product_images_model->getByField([
-            'id' => $product_data['image_id'],
+            'id' => $first_photo['id'],
             'product_id' => $product_data['id'],
         ]);
         if (!$image_data) {
@@ -76,6 +77,14 @@ class shopProdSaveMediaController extends waJsonController
             'image_filename' => $image_data['filename'],
             'ext'            => $image_data['ext'],
         ]);
+
+        $product_skus_model = new shopProductSkusModel();
+        $skus_count = $product_skus_model->countByField('product_id', $product_data['id']);
+        if ($skus_count == 1) {
+            $product_skus_model->updateByField(['product_id' => $product_data['id']], [
+                'image_id' => $image_data['id'],
+            ]);
+        }
 
         // data for hook
         $data = [

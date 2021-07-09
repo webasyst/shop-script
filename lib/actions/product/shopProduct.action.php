@@ -4,6 +4,7 @@ class shopProductAction extends waViewAction
 {
     public function execute()
     {
+        $force_old = !!waRequest::get('force-old');
         $product = new shopProduct(waRequest::get('id', 0, waRequest::TYPE_INT));
         if (!$product->id) {
             if (waRequest::get('id') == 'new') {
@@ -21,6 +22,7 @@ class shopProductAction extends waViewAction
             'pages'    => 0,
             'services' => 0
         );
+        $curr_user = wa()->getUser();
         $sidebar_counters = array();
         $config = $this->getConfig();
         /**
@@ -74,7 +76,7 @@ class shopProductAction extends waViewAction
                     throw new waRightsException(_w("Access denied"));
                 } else {
                     reset($product_types);
-                    $product->type_id = wa()->getUser()->getSettings('shop', 'last_type_id', key($product_types));
+                    $product->type_id = $curr_user->getSettings('shop', 'last_type_id', key($product_types));
                 }
             } elseif (!$product->checkRights()) {
                 throw new waRightsException(_w("Access denied"));
@@ -183,6 +185,12 @@ class shopProductAction extends waViewAction
         $product_model = new shopProductModel();
         $this->view->assign('storefront_map', $product_model->getStorefrontMap($product->id));
 
+        /** Редактор по умолчанию */
+        $default_editor = $curr_user->getSettings('shop', 'default_editor');
+        if (empty($default_editor) || true === $force_old) {
+            $curr_user->setSettings('shop', 'default_editor', 'old_editor');
+        }
+
         /**
          * Backend product profile page
          * UI hook allow extends product profile page
@@ -206,7 +214,7 @@ class shopProductAction extends waViewAction
 
         $this->view->assign('counters', $counters);
         $this->view->assign('product', $product);
-        $this->view->assign('current_author', shopProductReviewsModel::getAuthorInfo(wa()->getUser()->getId()));
+        $this->view->assign('current_author', shopProductReviewsModel::getAuthorInfo($curr_user->getId()));
         $this->view->assign('reply_allowed', true);
         $this->view->assign('review_allowed', true);
         $this->view->assign('sidebar_counters', $sidebar_counters);

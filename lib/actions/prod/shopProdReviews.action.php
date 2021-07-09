@@ -53,6 +53,7 @@ class shopProdReviewsAction extends waViewAction
 
         $formatted_product = self::formatProduct($product);
         $formatted_product["can_edit"] = $can_edit;
+        shopHelper::setDefaultNewEditor();
 
         $this->view->assign([
             'frontend_urls'     => $frontend_urls,

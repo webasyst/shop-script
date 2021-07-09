@@ -365,6 +365,9 @@ $(function () {
         $coreImages.on("click", function(e) {
             e.preventDefault();
             var images = [];
+            if ($.swipebox.isOpen) {
+                return;
+            }
             if ($("#product-gallery a").length) {
                 var k = $("#product-gallery div.selected").prevAll('.image').length;
                 $('#product-gallery div.image').each(function () {

@@ -665,9 +665,6 @@
                     $(self.$el).waDropdown({
                         hover : false,
                         items : ".dropdown-item",
-                        protect: {
-                            bottom: 250
-                        },
                         change: function (event, target, dropdown) {
                             var $target        = $(target),
                                 active_item_id = $target.attr("data-id");
@@ -871,6 +868,7 @@
                         var self = this;
                         self.storefronts_extended = !self.storefronts_extended;
                         that.storage("storefronts_extended", self.storefronts_extended);
+                        if (!self.storefronts_extended) { $(window).scrollTop(0); }
                     }
                 },
                 delimiters: ['{ { ', ' } }'],

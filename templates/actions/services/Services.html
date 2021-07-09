@@ -140,8 +140,13 @@
                                 <div class="block double-padded" id="s-services-products">
                                     <table class="zebra">
                                         {foreach $products as $product}
+                                            {if $product.edit_rights}
+                                                {$edit_rights = 'services'}
+                                            {else}
+                                                {$edit_rights ='prices'}
+                                            {/if}
                                             <tr data-product-id="{$product.id}">
-                                                <td><a href="#/product/{$product.id}/edit/services/{$service.id}/">{$product.name|escape}</a></td>
+                                                <td>{$product.edit_rights}<a href="{shopHelper::getBackendEditorUrl($product.id, $edit_rights, [$service.id => null])}">{$product.name|escape}</a></td>
                                                 <td class="min-width">
                                                     <a href="#" class="s-delete-product"><i class="icon16 delete"></i></a>
                                                     <input type="hidden" name="product[]" value="{$product.id}">
@@ -150,7 +155,7 @@
                                         {/foreach}
                                         {capture "template-services-new-product"}{literal}
                                         <tr data-product-id="{%#o.product.id%}" class="s-new-product">
-                                            <td><a href="#/product/{%#o.product.id%}/edit/services/{%#o.service_id%}/">{%=o.product.name%}</a></td>
+                                            <td><a href="{%#'{/literal}{shopHelper::getBackendEditorUrl('@s', $edit_rights, ['@r' => null])}{literal}'.replace('@s', o.product.id).replace('@r', o.service_id)%}">{%=o.product.name%}</a></td>
                                             <td class="min-width">
                                                 <a href="#" class="s-delete-product"><i class="icon16 delete"></i></a>
                                                 <input type="hidden" name="product[]" value="{%#o.product.id%}">

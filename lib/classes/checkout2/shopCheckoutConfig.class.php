@@ -408,9 +408,10 @@ class shopCheckoutConfig implements ArrayAccess
      * @param $items array as returned by shopOrder['items']
      * @param string $customer_type ,
      * @param $single_plugin_params array
+     * @param $shipping_plugin_ids array
      * @return array
      */
-    public function getShippingRates($address, $items, $customer_type = self::CUSTOMER_TYPE_PERSON_AND_COMPANY, $single_plugin_params = [])
+    public function getShippingRates($address, $items, $customer_type = self::CUSTOMER_TYPE_PERSON_AND_COMPANY, $single_plugin_params = [], $shipping_plugin_ids = [])
     {
         $params = [
             'timeout'            => $this['shipping']['plugin_timeout'],
@@ -437,8 +438,8 @@ class shopCheckoutConfig implements ArrayAccess
                 $params['shipping_params'][$shipping_id]['%payment_type'] = $single_plugin_params['payment_type'];
             }
         } else {
-            // filter plugins by what's specified in routing
-            $allowed_shipping_id = waRequest::param('shipping_id');
+            // filter plugins by what's specified in routing or specific ids
+            $allowed_shipping_id = $shipping_plugin_ids ? $shipping_plugin_ids : waRequest::param('shipping_id');
             if ($allowed_shipping_id && is_array($allowed_shipping_id)) {
                 $params['shipping']['id'] = $allowed_shipping_id;
             }

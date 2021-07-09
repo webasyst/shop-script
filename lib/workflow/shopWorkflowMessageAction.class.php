@@ -213,7 +213,28 @@ class shopWorkflowMessageAction extends shopWorkflowAction
          */
         $config = wa('shop')->getConfig();
         $general = $config->getGeneralSettings();
-        $from_name = $general['name'];
+        $from_name = '';
+        if ($this->getOption('sender_name') == 'route_params') {
+            $order_params = $this->order_params_model->get($order_id, true);
+            if (isset($order_params['storefront'])) {
+                foreach (wa()->getRouting()->getByApp('shop') as $domain => $routes) {
+                    foreach ($routes as $r) {
+                        if (!isset($r['url'])) {
+                            continue;
+                        }
+                        $st = rtrim(rtrim($domain, '/').'/'.$r['url'], '/.*');
+                        if ($st == rtrim($order_params['storefront'], '/.*')) {
+                            if (isset($r['_name'])) {
+                                $from_name = $r['_name'];
+                            }
+                            break 2;
+                        }
+                    }
+                }
+            }
+        } else {
+            $from_name = $general['name'];
+        }
 
         $transport = waRequest::post('transport');
         $from = waRequest::post('sender', $this->getConfig()->getGeneralSettings('email'), 'string');

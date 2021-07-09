@@ -2052,4 +2052,77 @@ SQL;
         $camel_name = preg_replace_callback($pattern, array(__CLASS__, 'camelCase'), $name);
         return sprintf($template, $camel_name);
     }
+
+    /**
+     * @param $product_id
+     * @param string $tab
+     * @param array $options
+     * @return string
+     * @throws waException
+     */
+    public static function getBackendEditorUrl($product_id, $tab = '', $options = [])
+    {
+        if ((int) $product_id < 1 && !in_array($product_id, ['new', '@s'])) {
+            throw new waException('Product id not found');
+        }
+
+        $param = '';
+        $current_editor = self::getCurrentProductEditor();
+
+        if (!empty($options)) {
+            foreach ($options as $key => $value) {
+                if (null === $value) {
+                    $param .= $key.'/';
+                } else {
+                    $param .= $key.'='.$value.(end($options) === $value ? '/' : '&');
+                }
+            }
+        }
+
+        if ('old_editor' === $current_editor) {
+            switch ($tab) {
+                case 'services':
+                    $tab = 'edit/'.$tab.'/';
+                    break;
+                case 'product':
+                case 'reviews':
+                    $tab = '';
+                    break;
+                case 'prices':
+                default:
+                    $tab = 'edit/';
+            }
+
+            $link_editor = '?action=products#/product/'.$product_id.'/'.$tab.$param;
+        } else {
+            switch ($tab) {
+                case 'product':
+                    $tab = '';
+                    break;
+            }
+            $link_editor = 'products/'.$product_id.'/'.(empty($tab) ? '' : $tab.'/');
+        }
+
+        return $link_editor;
+    }
+
+    /**
+     * @return string
+     * @throws waException
+     */
+    public static function getCurrentProductEditor()
+    {
+        return wa()->getUser()->getSettings('shop', 'default_editor', 'old_editor');
+    }
+
+    /**
+     * @throws waException
+     */
+    public static function setDefaultNewEditor()
+    {
+        $default_editor = wa()->getUser()->getSettings('shop', 'default_editor');
+        if (empty($default_editor) || 'old_editor' === $default_editor) {
+            wa()->getUser()->setSettings('shop', 'default_editor', 'new_editor');
+        }
+    }
 }

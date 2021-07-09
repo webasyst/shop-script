@@ -323,6 +323,9 @@ editClick:(function ($) {
             if (!$container.length || ($container.data('product-id') != path.id)) {
                 var self = this;
                 var url = '?module=product&id=' + path.id;
+                if (path.hasOwnProperty('tail') && path.tail === 'force-old') {
+                    url += '&force-old=1';
+                }
                 $.shop.trace('$.product.load product', url);
                 $.products.load(url, function () {
                     self.dispatch(path);
@@ -621,10 +624,10 @@ editClick:(function ($) {
             var $new_edit_button = h1.find('.s-new-product-editor-button');
             if ($new_edit_button.length) {
                 var href = $new_edit_button.attr("href");
-                if (href.indexOf("%product_id%") >= 0) {
+                if (href.indexOf("/new/") >= 0) {
                     $new_edit_button
-                        .attr("data-href", $new_edit_button.attr("data-href").replace("%product_id%", data.id))
-                        .attr("href", href.replace("%product_id%", data.id));
+                        .attr("data-href", $new_edit_button.attr("data-href").replace("/new/", "/" + data.id + "/"))
+                        .attr("href", href.replace("/new/", "/" + data.id + "/"));
                 }
                 $new_edit_button.show();
             }

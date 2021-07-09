@@ -30,6 +30,7 @@ class shopProdServicesAction extends waViewAction
         $product_types = self::formatProductTypes($product_types);
         $product_type = ifset($product_types, $product["type_id"], null);
         $backend_prod_content_event = $this->throwEvent($product);
+        shopHelper::setDefaultNewEditor();
 
         $this->view->assign([
             'frontend_urls'     => $frontend_urls,
@@ -37,7 +38,8 @@ class shopProdServicesAction extends waViewAction
             'product_type'      => $product_type,
             'formatted_product' => $formatted_product,
             'services'          => $services,
-            'backend_prod_content_event' => $backend_prod_content_event
+            'backend_prod_content_event' => $backend_prod_content_event,
+            'show_sku_warning' => shopProdSkuAction::isSkuCorrect($product['id'], $product['sku_type']),
         ]);
 
         $this->setLayout(new shopBackendProductsEditSectionLayout([

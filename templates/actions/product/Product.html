@@ -85,7 +85,7 @@
         {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.title_suffix)}{/foreach}{/if}
 
         {if $edit_rights}
-            <a href="#/product/{$product.id}/edit/" class="button green s-product-edit-link" id="s-edit-product">[`Edit`]</a>
+            <a href="{shopHelper::getBackendEditorUrl($product.id)|escape}" class="button green s-product-edit-link" id="s-edit-product">[`Edit`]</a>
         {/if}
 
         <!-- plugin hook: 'backend_product.action_button' -->

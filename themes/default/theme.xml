@@ -188,10 +188,10 @@
             <name locale="en_US">Slider</name>
             <options>
                 <option value="promos">
-                    <name locale="ru_RU">Промокарточки</name>
-                    <name locale="en_US">Promo cards</name>
-                    <description locale="ru_RU">В слайдере будут показаны промокарточки, созданные в разделе «Товары → Промо».</description>
-                    <description locale="en_US">Promo cards editable in “Products → Promos” section will be displayed in home page slider.</description>
+                    <name locale="ru_RU">Баннеры промоакций</name>
+                    <name locale="en_US">Promo banners</name>
+                    <description locale="ru_RU">В слайдере будут показаны баннеры, настроенные в разделе «Маркетинг» в свойствах промоакций.</description>
+                    <description locale="en_US">The slider will consist of banners set up in promos in the “Marketing” section.</description>
                 </option>
                 <option value="products">
                     <name locale="ru_RU">Товары</name>

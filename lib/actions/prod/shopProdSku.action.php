@@ -37,6 +37,7 @@ class shopProdSkuAction extends waViewAction
         $frontend_urls = shopProdGeneralAction::getFrontendUrls($product)[0];
 
         $backend_prod_content_event = $this->throwEvent($product);
+        shopHelper::setDefaultNewEditor();
 
         $this->view->assign([
             'product'                       => $product,
@@ -547,18 +548,6 @@ class shopProdSkuAction extends waViewAction
                                 "value" => ""
                             ]
                         ];
-                    } elseif ($feature["type"] == 'range.volume') {
-                        $feature["render_type"] = "range.volume";
-                        $feature["options"] = [
-                            [
-                                "name"  => "",
-                                "value" => ""
-                            ],
-                            [
-                                "name"  => "",
-                                "value" => ""
-                            ]
-                        ];
                     } else {
                         $feature["render_type"] = "range";
                         $feature["options"] = [
@@ -680,7 +669,8 @@ class shopProdSkuAction extends waViewAction
         return $feature;
     }
 
-    protected static function formatFeaturesValues($features, $values) {
+    protected static function formatFeaturesValues($features, $values)
+    {
         $result = [];
 
         foreach ($features as $feature) {
@@ -741,7 +731,7 @@ class shopProdSkuAction extends waViewAction
                     break;
 
                 case "field":
-                    if (!empty($values[$feature["code"]])) {
+                    if (isset($values[$feature["code"]])) {
                         $_feature_value = $values[$feature["code"]];
 
                         if ($_feature_value instanceof shopDimensionValue) {
@@ -820,29 +810,25 @@ class shopProdSkuAction extends waViewAction
                 case "range":
                     if (!empty($values[$feature["code"]])) {
                         $_feature_value = $values[$feature["code"]];
+                        $_unit_value = null;
+
                         if ($_feature_value instanceof shopRangeValue) {
                             if ( !empty($_feature_value["begin"]) ) {
-                                $feature["options"][0]["value"] = (string)$_feature_value["begin"];
+                                if ($_feature_value["begin"] instanceof shopDimensionValue) {
+                                    $feature["options"][0]["value"] = (string)$_feature_value["begin"]["value"];
+                                    $_unit_value = (string)$_feature_value["begin"]['unit'];
+                                } else {
+                                    $feature["options"][0]["value"] = (string)$_feature_value["begin"];
+                                }
                             }
-                            if ( !empty($_feature_value["end"]) ) {
-                                $feature["options"][1]["value"] = (string)$_feature_value["end"];
-                            }
-                        }
-                    }
-                    break;
 
-                case "range.volume":
-                    if (!empty($values[$feature["code"]])) {
-                        $_feature_value = $values[$feature["code"]];
-                        $_unit_value = null;
-                        if ($_feature_value instanceof shopRangeValue) {
-                            if ( !empty($_feature_value["begin"]) && ($_feature_value["begin"] instanceof shopDimensionValue) ) {
-                                $feature["options"][0]["value"] = (string)$_feature_value["begin"]["value"];
-                                $_unit_value = (string)$_feature_value["begin"]['unit'];
-                            }
-                            if ( !empty($_feature_value["end"]) && ($_feature_value["end"] instanceof shopDimensionValue) ) {
-                                $feature["options"][1]["value"] = (string)$_feature_value["end"]["value"];
-                                $_unit_value = (string)$_feature_value["end"]['unit'];
+                            if ( !empty($_feature_value["end"]) ) {
+                                if ($_feature_value["end"] instanceof shopDimensionValue) {
+                                    $feature["options"][1]["value"] = (string)$_feature_value["end"]["value"];
+                                    $_unit_value = (string)$_feature_value["end"]['unit'];
+                                } else {
+                                    $feature["options"][1]["value"] = (string)$_feature_value["end"];
+                                }
                             }
                         }
 
@@ -1178,6 +1164,66 @@ class shopProdSkuAction extends waViewAction
         }
 
         return $result;
+    }
+
+    /**
+     * @param int $product_id
+     * @param int $sku_type
+     */
+    public static function isSkuCorrect($product_id, $sku_type)
+    {
+        $product_skus_model = new shopProductSkusModel();
+        $skus = $product_skus_model->getDataByProductId($product_id);
+        $empty_feature = false;
+        $same_names = false;
+        $same_features = false;
+        if (!empty($skus)) {
+            $product_features_model = new shopProductFeaturesModel();
+            $skus_count = count($skus);
+            if ($skus_count > 1) {
+                if (empty($sku_type)) {
+                    $sku_count_names = array_count_values(array_column($skus, 'name'));
+                    foreach ($sku_count_names as $count) {
+                        if ($count > 1) {
+                            $same_names = true;
+                            break;
+                        }
+                    }
+                } else {
+                    $skus_features = $product_features_model->select('sku_id, feature_id, feature_value_id')
+                                           ->where('!ISNULL(sku_id) AND product_id = ' . $product_id)->fetchAll();
+                    $combined_features = [];
+                    foreach ($skus_features as $feature) {
+                        if (!isset($combined_features[$feature['sku_id']])) {
+                            $combined_features[$feature['sku_id']] = '';
+                        }
+                        $combined_features[$feature['sku_id']] .= $feature['feature_id'] . ','
+                            . $feature['feature_value_id'] . ',';
+                    }
+                    $same_features_count = array_count_values($combined_features);
+                    foreach ($same_features_count as $count) {
+                        if ($count > 1) {
+                            $same_features = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!($same_names || $same_features)) {
+                $product_features_selectable_model = new shopProductFeaturesSelectableModel();
+                $features_selectable = $product_features_selectable_model->select('feature_id')
+                                            ->where('product_id = ' . $product_id)->fetchAll('feature_id');
+                if ($features_selectable) {
+                    $count_filled_features = $product_features_model->select('count(feature_id) as count')
+                        ->where('!ISNULL(sku_id) AND product_id = ' . $product_id
+                            . ' AND feature_id IN (' . implode(',', array_keys($features_selectable)) . ')')
+                        ->fetchField('count');
+                    $empty_feature = (count($features_selectable) * $skus_count) != $count_filled_features;
+                }
+            }
+        }
+
+        return $empty_feature || $same_names || $same_features;
     }
 
 }

@@ -49,6 +49,9 @@ class shopServicesAction extends waViewAction
         $product_services_model = new shopProductServicesModel();
         $products = $product_services_model->getProducts($service['id']);
         $products_count = $this->getProductsCount($types, $products);
+        foreach ($products as &$prod) {
+            $prod['edit_rights'] = (bool) wa()->getUser()->getRights('shop', 'type.'.$prod['type_id']);
+        }
 
         $this->assign(array(
             'services'       => $services,
@@ -58,7 +61,7 @@ class shopServicesAction extends waViewAction
             'products_count' => $products_count,
             'variants'       => $variants,
             'count'          => $service_model->countAll(),
-            'taxes'          => $this->getTaxes()
+            'taxes'          => $this->getTaxes(),
         ));
     }
 

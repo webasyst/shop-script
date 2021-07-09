@@ -70,6 +70,14 @@
                 </div>
                 <div class="field">
                     <div class="name">
+                        [`Ссылка на описание акции`]
+                    </div>
+                    <div class="value">
+                        <input type="text" class="" name="coupon[url]" value="{$coupon.url|escape}" placeholder="https://">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
                         [`Comment`]
                     </div>
                     <div class="value">
@@ -77,12 +85,9 @@
                         <p class="hint">[`Optional comment for your convenience. Will never be shown to customers.`]</p>
                     </div>
                 </div>
-                {include
-                    file="templates/includes/productSelector.html"
-                    hash=$coupon.products_hash
-                    types=$product_types
-                    sets=$product_sets
-                }
+
+                {include file="./MarketingCouponsProductSelector.html" hash=$coupon.products_hash types=$product_types sets=$product_sets}
+
                 <div class="field">
                     <div class="value submit">
                         {if $coupon.id}

@@ -308,6 +308,9 @@
         },
 
         productAction: function (id, action, tab) {
+            if (typeof tab !== 'undefined' && tab === 'force-old') {
+                tab = 'main/'+ tab;
+            }
             var path = Array.prototype.slice.call(arguments).filter(function (chunk) {
                 return chunk.length;
             }).join('/');

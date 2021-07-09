@@ -49,6 +49,10 @@
         "id" => "product-image-dialog-1",
         "html" => _w("Drag & drop image files here or click this area to upload files.")|escape,
         "position" => "top"
+    ],
+    "product-name-error" => [
+        "id" => "product-name-error",
+        "html" => _w("Это поле может содержать не более 255 символов")
     ]
 ]}
 
@@ -151,7 +155,8 @@
     "file_type" => _w("Unsupported image type. Use PNG, GIF and JPEG image files only."),
     "file_size" => "{_w("Each file’s size cannot be greater than")} {$_max_file_size_mb}{_w("KB")}.",
     "post_size" => "{_w("Total size of selected files cannot be greater than")} {$_max_post_size_mb}{_w("KB")}.",
-    "stock_title" => _w("The quantity on this virtual stock is the sum of quantities on physical stocks — %s. You can change the list of stocks in “Settings” section.")
+    "stock_title" => _w("The quantity on this virtual stock is the sum of quantities on physical stocks — %s. You can change the list of stocks in “Settings” section."),
+    "max_length_error" => "{_w("Invalid value")} <span class=\"s-icon\" data-tooltip-id=\"product-name-error\"><i class=\"fas fa-question-circle\"></i></span>"
 ]}
 
 {$_active_main_category = null}
@@ -192,10 +197,22 @@
 
                         </div>
                         <div class="value">
-
                             <div class="s-name-section">
                                 <textarea class="s-field js-auto-height js-product-name-field" name="product[name]">{$product.name|default:_w("Product name")|escape}</textarea>
                             </div>
+                        </div>
+                    </div>
+
+                    {* URL *}
+                    <div class="wa-field">
+                        <div class="name">
+
+                            <div class="wa-label for-input">
+                                <div>[`Страница товара`]</div>
+                            </div>
+
+                        </div>
+                        <div class="value">
 
                             <div class="s-storefronts-section js-storefronts-section">
 
@@ -222,29 +239,46 @@
                                     </div>
                                 </div>
 
-                                {if !empty($frontend_urls)}
+                                {if !empty($frontend_urls) && (count($frontend_urls) > 1)}
+                                    {$_limit = 1}
+                                    {$_count = count($frontend_urls)}
+                                    {$_show_toggle = ($_count > $_limit)}
+
+                                    {$_locales["storefronts_show"] = _w("Show %d storefront on which the product is available", "Show %d storefronts on which the product is available", $_count)}
+                                    {$_locales["storefronts_hide"] = _w("Hide %d storefront on which the product is available", "Hide %d storefronts on which the product is available", $_count)}
+
                                     <ul class="wa-list space-12 s-storefronts-list js-storefronts-list">
-                                        {$_limit = 2}
-                                        {$_count = count($frontend_urls)}
-                                        {$_show_toggle = ($_count > $_limit)}
-                                        {foreach $frontend_urls as $_front}
-                                            <li {if $_front@iteration > $_limit}class="s-extended-item" style="display: none;"{/if}>
-                                                <a href="{$_front.url|escape}" target="_blank">{$_front.url|escape}</a>
-                                            </li>
-                                        {/foreach}
                                         {if !empty($_show_toggle)}
-                                            {$_locales["storefronts_show"] = _w('Show %d more strefront', 'Show %d more strefronts', ($_count - $_limit) )}
-                                            {$_locales["storefronts_hide"] = _w('Hide %d storefront', 'Hide %d storefronts', ($_count - $_limit) )}
+                                            <li>
+                                                <a class="s-action js-list-toggle" href="javascript:void(0);">{$_locales["storefronts_show"]|escape}</a>
+                                            </li>
+
+                                            {foreach $frontend_urls as $_front}
+                                                <li class="s-extended-item" style="display: none;">
+                                                    <a href="{$_front.url|escape}" target="_blank">{$_front.url|escape}</a>
+                                                </li>
+                                            {/foreach}
+
+                                            {*
                                             {if $total_storefronts_count > $_count}
                                                 <li class="s-extended-item" style="display: none;">
                                                     [`Not all storefronts are included in this list.`]
                                                     [`Open “SEO” tab to view the full list.`]
-                                                    {* $total_storefronts_count - $_count *}
                                                 </li>
                                             {/if}
-                                            <li>
-                                                <a class="s-action js-list-toggle" href="javascript:void(0);">{$_locales["storefronts_show"]|escape}</a>
-                                            </li>
+                                            *}
+
+                                            {if $_count > 10}
+                                                <li class="s-extended-item" style="display: none;">
+                                                    <a class="s-action js-list-close" href="javascript:void(0);">{_w("Hide storefronts")}</a>
+                                                </li>
+                                            {/if}
+                                        {else}
+                                            {foreach $frontend_urls as $_front}
+                                                <li>
+                                                    <a href="{$_front.url|escape}" target="_blank">{$_front.url|escape}</a>
+                                                </li>
+                                            {/foreach}
                                         {/if}
                                     </ul>
                                 {/if}
@@ -385,7 +419,7 @@
                                                             </div>
                                                         {/foreach}
                                                     </div>
-                                                    <input name="product[params][redirect_type]" type="hidden" value="">
+                                                    <input name="product[params][redirect_type]" type="hidden" value="{$_active_redirect_option.id|escape}">
                                                 </div>
                                             </div>
 
@@ -505,7 +539,9 @@
                                     {strip}
                                     <div class="wa-fields custom-columns vertical">
                                         <div class="wa-field">
-                                            <div class="name">[`SKU code`]</div>
+                                            <div class="name">
+                                                [`SKU code`]<span class="s-label-hint" v-if="!product.normal_mode_switch">&nbsp;([`optional`])</span>
+                                            </div>
                                             <div class="value">
                                                 <input type="text" class="wa-small"
                                                        v-model="sku.sku"
@@ -1201,7 +1237,28 @@
     {* @event backend_prod_content.%plugin_id%.bottom *}
     {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.bottom)}{/foreach}{/if}
 
-    {include file="./includes/footer.html" inline}
+    {* FEATURES HIDDEN ON FRONT *}
+    {capture assign="_footer_content"}
+
+        {if $show_sku_warning}
+            {$_tooltips["product-sku-features-hidden-on-front"] = [
+                "id" => "product-sku-features-hidden-on-front",
+                "html" => _w("Перейдите в раздел «Цены и характеристики», чтобы устранить ошибки в модификациях.")|escape
+            ]}
+
+            <div class="s-features-hidden-on-front-section">
+                <div class="wa-message wa-small warn flexbox space-8">
+                    <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="message-text wide">
+                        <span class="s-text">[`В товаре есть модификаций, которые не показываются на витрине из-за ошибки`]</span>
+                        <span class="s-icon" data-tooltip-id="product-sku-features-hidden-on-front"><i class="fas fa-question-circle  gray"></i></span>
+                    </div>
+                </div>
+            </div>
+        {/if}
+    {/capture}
+
+    {include file="./includes/footer.html" footer_content=$_footer_content inline}
 
     <script>
         ( function($) {

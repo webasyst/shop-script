@@ -4,7 +4,7 @@
     <td>
         <div class="s-stock-productname-column">
             {if !$product_id}
-                <a href="#/product/{$row['product_id']}/">
+                <a href="{shopHelper::getBackendEditorUrl($row['product_id'], '')}">
                     {$row['product_name']|escape}
                     <span class="hint">{$row['sku_name']|default:''|escape}</span>
                 </a>

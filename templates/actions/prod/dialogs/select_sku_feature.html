@@ -7,79 +7,82 @@
 <div class="wa-dialog s-select-sku-features-dialog" id="js-select-sku-features-dialog">
     <div class="dialog-background"></div>
     <div class="dialog-body">
-        <div class="dialog-header">
-            <h3>[`Features used for product variety selection in the storefront`]</h3>
-        </div>
-        <div class="dialog-content">
+        <div id="vue-features-wrapper" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3>[`Features used for product variety selection in the storefront`]</h3>
+            </div>
+            <div class="dialog-content">
 
-            <div class="s-features-wrapper" id="vue-features-wrapper" style="visibility: hidden;">
-                <div class="s-features-list js-active-features-list" v-show="active_features.length">
-                    <template v-for="feature in active_features">
-                        <div class="s-feature-wrapper"
-                             v-if="feature.active"
-                             v-bind:key="feature.id"
-                             v-bind:data-id="feature.id"
-                             v-bind:class="{ 'is-moving': feature.is_moving, 'is-disabled': feature.disabled }"
-                             v-bind:title="feature.disabled ? '{_w("The feature’s format does not support selection of product varieties.")|escape}' : ''">
+                <div class="s-features-wrapper">
+                    <div class="s-features-list js-active-features-list" v-show="active_features.length">
+                        <template v-for="feature in active_features">
+                            <div class="s-feature-wrapper"
+                                 v-if="feature.active"
+                                 v-bind:key="feature.id"
+                                 v-bind:data-id="feature.id"
+                                 v-bind:class="{ 'is-moving': feature.is_moving, 'is-disabled': feature.disabled }"
+                                 v-bind:title="feature.disabled ? '{_w("The feature’s format does not support selection of product varieties.")|escape}' : ''">
 
-                            <div class="flexbox middle space-8">
-                                <template v-if="active_features.length > 1">
-                                    <div class="s-action-move js-feature-move-toggle cursor-move" draggable="true">
-                                        <i class="icon top size-16"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></i>
+                                <div class="flexbox middle space-8">
+                                    <template v-if="active_features.length > 1">
+                                        <div class="s-action-move js-feature-move-toggle cursor-move" draggable="true">
+                                            <i class="icon top size-16"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></i>
+                                        </div>
+                                    </template>
+
+                                    <div class="s-field">
+                                        <component-switch
+                                            v-model="feature.active"
+                                            v-bind:id="'sku-feature-' + feature.id"
+                                            v-bind:disabled="feature.disabled"></component-switch>
                                     </div>
-                                </template>
-
-                                <div class="s-field">
-                                    <component-switch
-                                        v-model="feature.active"
-                                        v-bind:id="'sku-feature-' + feature.id"
-                                        v-bind:disabled="feature.disabled"></component-switch>
-                                </div>
-                                <div class="s-icon icon baseline size-12"><i class="fas fa-sitemap"></i></div>
-                                <div class="s-name">
-                                    <label class="js-name" v-bind:for="'sku-feature-' + feature.id">{ { feature.name } }</label>
+                                    <div class="s-icon icon baseline size-12"><i class="fas fa-sitemap"></i></div>
+                                    <div class="s-name">
+                                        <label class="js-name" v-bind:for="'sku-feature-' + feature.id">{ { feature.name } }</label>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </template>
-                </div>
+                        </template>
+                    </div>
 
-                <div class="s-filter-section">
-                    <div class="s-filter-form">
-                        <span class="s-button"><i class="fas fa-search"></i></span>
-                        <input class="s-field js-filter-field" type="text" value="" placeholder="{_w("Feature search")|escape}">
+                    <div class="s-filter-section">
+                        <div class="s-filter-form">
+                            <span class="s-button"><i class="fas fa-search"></i></span>
+                            <input class="s-field js-filter-field" type="text" value="" placeholder="{_w("Feature search")|escape}">
+                        </div>
+                    </div>
+
+                    <div class="s-features-list js-inactive-features-list" v-if="inactive_features.length">
+                        <template v-for="feature in inactive_features">
+                            <div class="s-feature-wrapper"
+                                 v-if="!feature.active"
+                                 v-bind:key="feature.id"
+                                 v-bind:class="{ 'is-disabled': feature.disabled }"
+                                 v-bind:title="feature.disabled ? '{_w("The feature’s format does not support selection of product varieties.")|escape}' : ''">
+
+                                <div class="flexbox middle space-8">
+                                    <div class="s-field">
+                                        <component-switch
+                                            v-model="feature.active"
+                                            v-bind:id="'sku-feature-' + feature.id"
+                                            v-bind:disabled="feature.disabled"></component-switch>
+                                    </div>
+                                    <div class="s-icon icon baseline size-12"><i class="fas fa-sitemap"></i></div>
+                                    <div class="s-name">
+                                        <label class="js-name" v-bind:for="'sku-feature-' + feature.id">{ { feature.name } }</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
                     </div>
                 </div>
 
-                <div class="s-features-list js-inactive-features-list" v-if="inactive_features.length">
-                    <template v-for="feature in inactive_features">
-                        <div class="s-feature-wrapper"
-                             v-if="!feature.active"
-                             v-bind:key="feature.id"
-                             v-bind:class="{ 'is-disabled': feature.disabled }"
-                             v-bind:title="feature.disabled ? '{_w("The feature’s format does not support selection of product varieties.")|escape}' : ''">
-
-                            <div class="flexbox middle space-8">
-                                <div class="s-field">
-                                    <component-switch
-                                        v-model="feature.active"
-                                        v-bind:id="'sku-feature-' + feature.id"
-                                        v-bind:disabled="feature.disabled"></component-switch>
-                                </div>
-                                <div class="s-icon icon baseline size-12"><i class="fas fa-sitemap"></i></div>
-                                <div class="s-name">
-                                    <label class="js-name" v-bind:for="'sku-feature-' + feature.id">{ { feature.name } }</label>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-                </div>
             </div>
-
-        </div>
-        <div class="dialog-footer">
-            <button class="js-submit-button wa-button blue" type="button">[`Apply`]</button>
-            <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            <div class="dialog-footer">
+                <button class="js-submit-button wa-button" type="button"
+                        v-bind:class="{ 'yellow' : states.is_changed }">[`Apply`]</button>
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            </div>
         </div>
     </div>
 </div>

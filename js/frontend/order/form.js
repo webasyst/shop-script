@@ -1706,26 +1706,22 @@
                         if (possible_address) {
                             dropdown.setTitle(name);
 
-                            var $region = waOrder.form.sections["region"].$wrapper,
-                                address = possible_address.address;
+                            var address = possible_address.address;
 
+                            if (possible_address.name) {
+                                $possible_addresses_section.find(".js-possible-address-name").val(possible_address.name);
+                            }
                             if (address.region) {
-                                var $region_field = $region.find("input.js-region-field-value");
-                                if ($region_field.length) {
-                                    $region_field.val(address.region);
-                                }
+                                $possible_addresses_section.find(".js-possible-address-region").val(address.region);
                             }
                             if (address.city) {
-                                var $city_field = $region.find("input.js-city-field, input[name=\"region[city]\"]");
-                                if ($city_field.length) {
-                                    $city_field.val(address.city);
-                                }
+                                $possible_addresses_section.find(".js-possible-address-city").val(address.city);
                             }
                             if (address.zip) {
-                                var $zip_field = $region.find("input.js-zip-field, input[name=\"region[zip]\"]");
-                                if ($zip_field.length) {
-                                    $zip_field.val(address.zip);
-                                }
+                                $possible_addresses_section.find(".js-possible-address-zip").val(address.zip);
+                            }
+                            if (possible_address.plugin_id) {
+                                $possible_addresses_section.find(".js-possible-address-plugin-id").val(possible_address.plugin_id);
                             }
 
                             that.update({ reload: true });

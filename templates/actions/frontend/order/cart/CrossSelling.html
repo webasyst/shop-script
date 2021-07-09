@@ -45,7 +45,7 @@
                                     {/if}
 
                                     {if !empty($_product.weight_html)}
-                                        <span class="wa-weight" title={_w('One item’s weight')|json_encode}>{$_product.weight_html}</span>
+                                        <span class="wa-weight" title="{_w('One item’s weight')|escape}">{$_product.weight_html}</span>
                                     {/if}
                                 </div>
 

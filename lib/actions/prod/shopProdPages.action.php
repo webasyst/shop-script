@@ -25,6 +25,7 @@ class shopProdPagesAction extends waViewAction
 
         $model = new shopProductPagesModel();
         $backend_prod_content_event = $this->throwEvent($product);
+        shopHelper::setDefaultNewEditor();
 
         $this->view->assign([
             'url_template'      => $url_template,
@@ -34,7 +35,8 @@ class shopProdPagesAction extends waViewAction
             'empty_page'        => $empty_page,
             'pages'             => array_values($pages),
             'preview_hash'      => $model->getPreviewHash(),
-            'backend_prod_content_event' => $backend_prod_content_event
+            'backend_prod_content_event' => $backend_prod_content_event,
+            'show_sku_warning' => shopProdSkuAction::isSkuCorrect($product['id'], $product['sku_type']),
         ]);
 
         $this->setLayout(new shopBackendProductsEditSectionLayout([

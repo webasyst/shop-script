@@ -74,6 +74,9 @@ class shopCsvProductsetupAction extends waViewAction
             $this->view->assign('meta_fields', $meta_fields);
         }
 
+        $this->view->assign('csv_primary_column', $this->getUser()->getSettings('shop', 'csv_primary_column', 'name'));
+        $this->view->assign('csv_secondary_column', $this->getUser()->getSettings('shop', 'csv_secondary_column', 'sku_feature'));
+
         $this->view->assign('profile', $profile);
 
         $type_model = new shopTypeModel();

@@ -21,12 +21,14 @@ class shopProdMediaAction extends waViewAction
         $frontend_urls = shopProdGeneralAction::getFrontendUrls($product)[0];
 
         $backend_prod_content_event = $this->throwEvent($product);
+        shopHelper::setDefaultNewEditor();
 
         $this->view->assign([
             'frontend_urls'     => $frontend_urls,
             'product'           => $product,
             'formatted_product' => self::formatProduct($product),
             'backend_prod_content_event' => $backend_prod_content_event,
+            'show_sku_warning' => shopProdSkuAction::isSkuCorrect($product['id'], $product['sku_type']),
         ]);
 
         $this->setLayout(new shopBackendProductsEditSectionLayout([
@@ -70,6 +72,11 @@ class shopProdMediaAction extends waViewAction
         ];
     }
 
+    /**
+     * @param shopProduct $product
+     * @return array
+     * @throws waException
+     */
     protected function getPhotos($product)
     {
         $result = [];

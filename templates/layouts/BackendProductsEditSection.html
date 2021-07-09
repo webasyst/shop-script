@@ -28,9 +28,11 @@
 
     <header class="s-page-header bordered-bottom">
         <div class="flexbox middle space-8">
-            <div class="s-actions">
-                <a class="wa-button gray-field s-button-back" href="{$wa_app_url|escape}?action=products#/product/{$product.id|escape}/">&larr; [`Back`]</a>
-            </div>
+            {if !empty($product.id)}
+                <div class="s-actions">
+                    <a class="wa-button gray-field s-button-back">&larr; [`Back`]</a>
+                </div>
+            {/if}
             <div class="s-title-wrapper wide">
                 <h3 class="s-title js-product-name">{$product.name|default:_w('Product name')}</h3>
             </div>
@@ -80,6 +82,7 @@
 
                     switch (section_id) {
                         case "product-general":
+                        case "product-prices":
                             new_href = href + "edit/";
                             break;
                         case "product-seo":
@@ -101,8 +104,9 @@
                             new_href = href + "edit/pages/";
                             break;
                     }
-
-                    if (new_href) { $button.attr("href", new_href); }
+                    if (new_href) {
+                        $button.attr("href", new_href + 'force-old/');
+                    }
                 });
             }
             initReturnButton();
@@ -132,6 +136,11 @@
             });
 
             $.wa.title.set("{$product.name|escape}");
+
+            $('.s-button-back').on('click', function (event) {
+                event.preventDefault();
+                history.back();
+            });
 
         })(jQuery);
     </script>

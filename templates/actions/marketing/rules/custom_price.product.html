@@ -60,9 +60,7 @@
             {/if}
         {/if}
     {/if}
-
-    {$_product_uri = "`$wa_app_url`?action=products#/product/`$product.id`/"}
-
+    {$_product_uri = "{$wa_app_url}{shopHelper::getBackendEditorUrl($product.id, 'prices')}"}
     <tr class="s-product-wrapper {if empty($_sku_enabled)}is-disabled{/if}" data-id="{$product.id}" {if !empty($_render_sku_id)}data-sku-id="{$_sku.id}"{/if}>
         {* IMAGE *}
         <td class="s-image-column">

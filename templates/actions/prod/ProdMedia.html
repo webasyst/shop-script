@@ -4,6 +4,10 @@
     "product-media-dialog-1" => [
         "id" => "product-media-dialog-1",
         "html" => _w("Enter a description that will be used in the TITLE and in META tags used by search systems.")
+    ],
+    "product-media-photo-main" => [
+        "id" => "product-media-photo-main",
+        "html" => _w("Главное фото определяется выбором в главной модификации.")
     ]
 ]}
 
@@ -159,12 +163,15 @@
                 </div>
                 <div class="s-section-body">
                     <div class="s-photos-form">
-                        <div class="s-drop-area box dragndrop"
+                        <div class="s-drop-area js-drop-area box dragndrop"
                              v-bind:class="{ 'has-class': !!errors['file_add'] }"
                              v-on:dragover.prevent="onAreaOver($event)"
                              v-on:drop.prevent="onAreaDrop($event)">
 
-                            <div class="s-text">[`Upload or drag & drop images here`]</div>
+                            <div class="s-text js-text"
+                                 v-bind:class="{ 'is-large' : !photos.length }"
+                                 v-bind:style="get_drop_style"
+                            >[`Upload or drag & drop images here`]</div>
                             <input class="s-field" type="file" accept="image/*" multiple
                                    title="{_w("Drag & drop image files here or click this area to upload files.")|escape}"
                                    v-on:change="onAreaChange($event)">
@@ -235,10 +242,18 @@
 
                         <template v-for="photo in photos">
                             <div class="s-photo-wrapper"
-                                 {* v-bind:class="{ 'is-active' : (active_photo && photo.id === active_photo.id), 'is-moving' : photo.is_moving }"*}
                                  v-bind:key="photo.id"
-                                 v-bind:class="{ 'is-moving' : photo.is_moving }"
+                                 v-bind:class="{ 'is-moving' : photo.is_moving, 'is-main' : isMainPhoto(photo) }"
                                  v-bind:data-id="photo.id">
+
+                                <div class="s-photo-label">
+                                    <template v-if="isMainPhoto(photo)">
+                                        <span class="s-label is-main">[`Главное изображение`]</span>
+                                        <span class="s-icon"
+                                              data-tooltip-id="product-media-photo-main"
+                                              v-if="product.normal_mode"><i class="fas fa-question-circle"></i></span>
+                                    </template>
+                                </div>
 
                                 <div class="s-photo-block js-photo-move-toggle"
                                      title="{_w("Drag images to arrange them in the order in which they must appear in the storefront.")|escape}"
@@ -293,7 +308,28 @@
             </div>
         </div>
 
-        {include file="./includes/footer.html" inline}
+        {* FEATURES HIDDEN ON FRONT *}
+        {capture assign="_footer_content"}
+
+            {if $show_sku_warning}
+                {$_tooltips["product-sku-features-hidden-on-front"] = [
+                "id" => "product-sku-features-hidden-on-front",
+                "html" => _w("Перейдите в раздел «Цены и характеристики», чтобы устранить ошибки в модификациях.")|escape
+                ]}
+
+                <div class="s-features-hidden-on-front-section">
+                    <div class="wa-message wa-small warn flexbox space-8">
+                        <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="message-text wide">
+                            <span class="s-text">[`В товаре есть модификаций, которые не показываются на витрине из-за ошибки`]</span>
+                            <span class="s-icon" data-tooltip-id="product-sku-features-hidden-on-front"><i class="fas fa-question-circle  gray"></i></span>
+                        </div>
+                    </div>
+                </div>
+            {/if}
+        {/capture}
+
+        {include file="./includes/footer.html" footer_content=$_footer_content inline}
     </div>
 
     <!-- plugin hook: 'backend_prod_content.bottom' -->

@@ -28,13 +28,15 @@ class shopProdRelatedAction extends waViewAction
         $cross_selling = self::getCrossSelling($product, $type);
         $upselling = self::getUpselling($product, $type);
         $backend_prod_content_event = $this->throwEvent($product);
+        shopHelper::setDefaultNewEditor();
 
         $this->view->assign([
             'product'       => self::formatProduct($product),
             'upselling'     => $upselling,
             'cross_selling' => $cross_selling,
             'frontend_urls' => $frontend_urls,
-            'backend_prod_content_event' => $backend_prod_content_event
+            'backend_prod_content_event' => $backend_prod_content_event,
+            'show_sku_warning' => shopProdSkuAction::isSkuCorrect($product['id'], $product['sku_type']),
         ]);
 
         $this->setLayout(new shopBackendProductsEditSectionLayout([

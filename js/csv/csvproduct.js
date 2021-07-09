@@ -197,32 +197,143 @@ if (typeof ($) != 'undefined') {
                 self.csv_productMapPrimaryHandler($this, $this.val());
             });
 
-            this.csv_product_form_map = this.csv_product_form.find('select[name^="csv_map\["]').change(function (event) {
+            var $form = this.csv_product_form,
+                // Это массив селектов
+                $selects = this.csv_product_form_map = $form.find('select[name^="csv_map\["]');
+
+            var timeout = 0;
+
+            // Корректируем (очищаем) значения селектов для "похожих" характеристик
+            correctValuesAtSameFeatures($selects);
+
+            // Ивенты
+            $selects.on("change", function(event) {
                 var fast = !event.originalEvent;
-                var $this = $(this);
+                var $select = $(this);
                 var value;
+
                 switch (self.csv_product_options.control) {
                     case 'Csvtable':
-                        value = $this.val();
+                        value = $select.val();
                         break;
                     case 'Csvmap':
-                        value = parseInt($this.val(), 10);
+                        value = parseInt($select.val(), 10);
                         break;
                     default:
                         /*do nothing*/
                         break;
                 }
-                self.csv_productMapHandler($this, value, fast);
+
+                if (event.originalEvent) {
+                    toggleValuesAtSameFeatures($select, $selects);
+                } else {
+                    clearTimeout(timeout);
+                    timeout = setTimeout( function () {
+                        toggleValuesAtSameFeatures($select, $selects);
+                    }, 30);
+                }
+
+                self.csv_productMapHandler($select, value, fast);
             });
+
+            // При ручном открытии селекта записываем текущее значение для действий после изменения
+            $selects.on("focus", function(event) {
+                onFocus($(this));
+            });
+
+            // Инициализация
             this.csv_product_form_map.filter(function (index, el) {
                 return (index == 0) || ($(el).val() == '-1') || true;
             }).change();
+
             if (this.csv_product_data.primary_callback) {
                 clearTimeout(this.csv_product_data.primary_callback);
             }
+
             this.csv_product_data.primary_callback = setTimeout(function () {
                 self.csv_product_form_primary.change();
             }, 100);
+
+            //
+
+            function correctValuesAtSameFeatures($selects) {
+                var values = {};
+
+                $selects.each( function(i, select) {
+                    var $_select = $(this);
+
+                    var value = $_select.val();
+
+                    var group_name = getGroupName($_select);
+                    if (group_name) {
+                        if (!values[group_name]) { values[group_name] = []; }
+                        if (values[group_name].length) {
+                            if (values[group_name].indexOf(value) >= 0) {
+                                $_select.val("-1");
+                            } else {
+                                values[group_name].push(value);
+                            }
+                        } else {
+                            values[group_name].push(value);
+                        }
+
+                        onFocus($_select);
+                    }
+                });
+            }
+
+            function toggleValuesAtSameFeatures($select, $selects) {
+                var same_array = [];
+
+                var group_name = getGroupName($select);
+                if (group_name) { same_array.push(group_name); }
+
+                if (!same_array.length) { return false; }
+
+                var $_selects = $selects.filter( function(i, select) {
+                    var group_name = getGroupName($(this));
+                    return (same_array.indexOf(group_name) >= 0);
+                });
+
+                if (!$_selects.length) { return false; }
+
+                // Разблокируем старые значение
+                var prev_value = $select.data("prev_value");
+                prev_value = (typeof prev_value === "string" ? prev_value : null);
+                if (prev_value) {
+                    $_selects.find("option[value=\""+prev_value+"\"]").attr("disabled", false);
+                }
+
+                // Блокириуем новое значение
+                var value = $select.val();
+                if (value && value !== "-1") {
+                    var $filtered_selects = $_selects.filter( function(i, select) { return (select !== $select[0]); });
+                    if ($filtered_selects.length) {
+                        $filtered_selects.find("option[value=\""+value+"\"]")
+                            .attr("disabled", true)
+                            .attr("selected", false)
+                            .removeAttr("style");
+                    }
+                }
+            }
+
+            function getGroupName($select) {
+                var result = null;
+
+                var $select_wrapper = $select.closest(".js-same-feature");
+                if ($select_wrapper.length) {
+                    var group_name = $select_wrapper.data("group-name");
+                    if (group_name) {
+                        result = group_name;
+                    }
+                }
+
+                return result;
+            }
+
+            function onFocus($select) {
+                $select.data("prev_value", $select.val());
+            }
 
         },
 

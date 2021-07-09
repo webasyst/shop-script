@@ -48,7 +48,6 @@ class shopSettingsOrderStatesAction extends waViewAction
             'icons'            => (array)$this->getConfig()->getOption('order_state_icons'),
             'action_icons'     => (array)$this->getConfig()->getOption('order_action_icons'),
             'buttons'          => $buttons,
-
         ));
 
         // Restore unmodified workflow config (being paranoid)

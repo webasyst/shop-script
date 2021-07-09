@@ -86,7 +86,7 @@
     {* BODY *}
 
     {$_nothing_to_change = false}
-    {if $_is_minimal_mode && count($region.locations) === 1}
+    {if $_is_minimal_mode && isset($region.locations) && count($region.locations) === 1}
         {if !empty($_active_location.country_id) &&
             !(empty($_active_location.region_id) && empty($_active_location.region) ) &&
             !(empty($_active_location.city_id) && empty($_active_location.city) ) && empty($region.ask_zip)}

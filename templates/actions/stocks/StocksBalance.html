@@ -56,7 +56,7 @@
             {% var product = data[i], skus = product.skus, stocks = product.stocks; %}
             {% var sku_count = skus.length; %}
             <tr class="s-product" data-id="{%#product.id%}">
-                {% var hash = "#/product/"+product.id+"/"; %}
+                {% var hash = '{/literal}{shopHelper::getBackendEditorUrl('@s', 'prices')}{literal}'.replace('@s', product.id); %}
                 <td class="s-product min-width">
                     <a href="{%#hash%}">
                         {% if (product.url_crop_small) { %}
@@ -79,10 +79,11 @@
                         <ul class="menu-v">
                             {% for (var j = 0, n = stock_skus.length; j < n; j += 1) { %}
                                 {% var sku_id = stock_skus[j].id; %}
+                                {% var link_stock = '{/literal}{shopHelper::getBackendEditorUrl('@s', 'prices', ['focus' => 'stock', 'sku' => '@r', 'stock' => '@q'])}{literal}'.replace('@s', product.id).replace('@r', sku_id).replace('@q', stock_id); %}
                                 {% if (stock_skus[j].num_of_stocks > 0) { %}
                                     <li id="s-item-{%#sku_id%}-{%#stock_id%}" class="item {% if (stock_skus[j].count === null) { %}infinity{% } %}">{%#stock_skus[j].icon%}
                                         {% if (sku_count > 1) { %}
-                                        <a href="{%#hash+'edit/focus=stock&sku='+sku_id+'&stock='+stock_id%}">{%=stock_skus[j].name%}</a>
+                                        <a href="{%#link_stock%}">{%=stock_skus[j].name%}</a>
                                         {% } %}
                                         {% if (stock_skus[j].count !== null) { %}{%#stock_skus[j].count%}{% } else { %}∞{% } %}
                                     </li>

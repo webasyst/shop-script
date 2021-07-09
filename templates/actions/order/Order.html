@@ -214,7 +214,13 @@
                             </tr>
 
                             {$subtotal = 0}
+                            {$current_editor = shopHelper::getCurrentProductEditor()}
                             {foreach $order.items as $item}
+                                {if $item.type=='product'}
+                                    {$link_edit = shopHelper::getBackendEditorUrl($item.product_id, 'prices')}
+                                {else}
+                                    {$link_edit = "?action=products#/services/{$item.service_id}/"}
+                                {/if}
                                 <tr class="s-product-wrapper {if $item.type == 'service'}is-product small{/if}" data-id="{$item.id}" >
                                     <td class="min-width valign-top">
                                         {if $item.type != 'service'}
@@ -232,7 +238,7 @@
                                             {$item.name|escape}
                                             <span class="gray">{if $item.type == 'product'}[`deleted product`]{else}[`deleted service`]{/if}</span>
                                         {else}
-                                            <a href="?action=products#/{if $item.type=='product'}product/{$item.product_id}{else}services/{$item.service_id}{/if}/">{$item.name|escape}</a>
+                                            <a href="{$link_edit}">{$item.name|escape}</a>
                                         {/if}
                                         {if empty($item.deleted) && $item.type == 'product' && $item.current_product_name|escape != $item.name|escape}
                                             <div class="s-product-previous-name">

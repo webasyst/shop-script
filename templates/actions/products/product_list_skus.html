@@ -63,10 +63,12 @@
 </div>
 
 <script id="template-product-list-skus" type="text/html">
+    {$link_edit = shopHelper::getBackendEditorUrl('@s')}
     {literal}
     {% var stocks = o.stocks; %}
     {% var stock_count = stocks.length > 0 ? stocks.length : 1; %}
     {% var sort_column = {/literal}{if $sort_column}true{else}false{/if}{literal}; %}
+    {% var current_editor = '{/literal}{shopHelper::getCurrentProductEditor()}{literal}'; %}
 
     {% var sku_prices_html = function(product, sku) { %}
         {% var product_currency_html = ''; %}
@@ -168,7 +170,7 @@
             </td>
 
             <td class="drag-handle s-product-name">
-                <a href="#/product/{%#product.id%}/"><div>{%#product.name%}<i class="shortener"></i></div></a>
+                <a href="{%#'{/literal}{$link_edit}{literal}'.replace('@s', product.id)%}{% if (current_editor === 'new_editor' && !product.edit_rights) { %}prices/{% } %}"><div>{%#product.name%}<i class="shortener"></i></div></a>
             </td>
 
             {% if (product.sku && (typeof(product.sku) =='object')) { %}

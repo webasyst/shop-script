@@ -1487,8 +1487,10 @@ class shopOrder implements ArrayAccess
                 }
             }
 
-            $storefront = isset($this->data['params']['storefront']) ? $this->data['params']['storefront'] : null;
-            $form->setStorefront($storefront);
+            if (empty($form->getStorefront())) {
+                $storefront = isset($this->data['params']['storefront']) ? $this->data['params']['storefront'] : null;
+                $form->setStorefront($storefront);
+            }
 
             $this->options['customer_is_company'] = $form->getContactType() == shopCustomer::TYPE_COMPANY;
 
@@ -3436,7 +3438,7 @@ class shopOrder implements ArrayAccess
             switch ($item['type']) {
                 case 'product':
                     $item = $product_item = $this->extendProductItem($item, $product);
-                    if (empty($item['id'])) {
+                    if (empty($item['id']) || $this->originalSkuChanged($item)) {
                         $item['purchase_price'] = shop_currency($item['purchase_price'], $product['currency'], $this->currency, false);
                     }
                     break;
@@ -3699,8 +3701,7 @@ class shopOrder implements ArrayAccess
             } else {
                 $name = '';
             }
-            if (empty($i['id'])) {
-                #set data only for new items
+            if (empty($i['id']) || $this->originalSkuChanged($i)) {
                 $i['purchase_price'] = $sku['purchase_price'];
             }
             $i['sku_code'] = $sku['sku'];
@@ -3720,6 +3721,17 @@ class shopOrder implements ArrayAccess
         $i['product'] = $product;
 
         return $i + $append;
+    }
+
+    protected function originalSkuChanged($item)
+    {
+        $original_items = $this->original_data['items'];
+        $sku_changed = false;
+        if (isset($item['id']) && isset($original_items[$item['id']]) && $original_items[$item['id']]['sku_id'] != $item['sku_id']) {
+            $sku_changed = true;
+        }
+
+        return $sku_changed;
     }
 
     private function extendServiceItem($item, $product_item, $product)

@@ -57,7 +57,7 @@
                     {/if}
 
                     {if !empty($review.product_name)}
-                        {sprintf('[`on <a href="%s">%s</a>`]', "?action=products#/product/{$review.product_id}/", {$review.product_name|escape})}
+                        {sprintf('[`on <a href="%s">%s</a>`]', {shopHelper::getBackendEditorUrl($review.product_id, 'reviews')}, {$review.product_name|escape})}
                     {/if}
 
                     <!-- datetime -->

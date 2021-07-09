@@ -23,6 +23,7 @@ class shopProdSeoAction extends waViewAction
         $formatted_product = self::formatProduct($product);
         $frontend_urls = shopProdGeneralAction::getFrontendUrls($product)[0];
         $backend_prod_content_event = $this->throwEvent($product);
+        shopHelper::setDefaultNewEditor();
 
         $this->view->assign([
             'frontend_urls'     => $frontend_urls,
@@ -30,7 +31,8 @@ class shopProdSeoAction extends waViewAction
             'formatted_product' => $formatted_product,
             'search'            => self::getSearchData($formatted_product),
             'social'            => self::getSocialData($formatted_product),
-            'backend_prod_content_event' => $backend_prod_content_event
+            'backend_prod_content_event' => $backend_prod_content_event,
+            'show_sku_warning' => shopProdSkuAction::isSkuCorrect($product['id'], $product['sku_type']),
         ]);
 
         $this->setLayout(new shopBackendProductsEditSectionLayout([

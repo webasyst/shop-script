@@ -195,7 +195,7 @@ class shopConfig extends waAppConfig
                     }
                     foreach ($routing_rules as $url => & $route) {
                         if (!is_array($route)) {
-                            list($route_ar['module'], $route_ar['action']) = explode('/', $route);
+                            list($route_ar['module'], $route_ar['action']) = explode('/', $route) + [null, null];
                             $route = $route_ar;
                         }
                         $route['plugin'] = $plugin;

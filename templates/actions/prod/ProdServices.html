@@ -472,8 +472,29 @@
 
         </div>
 
+        {* FEATURES HIDDEN ON FRONT *}
+        {capture assign="_footer_content"}
+
+            {if $show_sku_warning}
+                {$_tooltips["product-sku-features-hidden-on-front"] = [
+                    "id" => "product-sku-features-hidden-on-front",
+                    "html" => _w("Перейдите в раздел «Цены и характеристики», чтобы устранить ошибки в модификациях.")|escape
+                ]}
+
+                <div class="s-features-hidden-on-front-section">
+                    <div class="wa-message wa-small warn flexbox space-8">
+                        <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="message-text wide">
+                            <span class="s-text">[`В товаре есть модификаций, которые не показываются на витрине из-за ошибки`]</span>
+                            <span class="s-icon" data-tooltip-id="product-sku-features-hidden-on-front"><i class="fas fa-question-circle  gray"></i></span>
+                        </div>
+                    </div>
+                </div>
+            {/if}
+        {/capture}
+
         {* FOOTER *}
-        {include file="./includes/footer.html" inline}
+        {include file="./includes/footer.html" footer_content=$_footer_content inline}
     </div>
 
     {* INIT JS *}

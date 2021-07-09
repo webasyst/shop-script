@@ -26,11 +26,8 @@
             that.stocks = $.wa.construct(that.stocks_array, "id");
             that.product = formatProduct(options["product"]);
             that.currencies = options["currencies"];
-            that.errors = {
-                // сюда будут добавться точечные ключи ошибок
-                // ключ global содержит массив с общими ошибками страницы
-                global: []
-            };
+            // Ошибки sku vue model
+            that.errors = {};
 
             // DYNAMIC VARS
             that.categories_tree = options["categories_tree"];
@@ -278,6 +275,14 @@
 
             if ($focus_message) {
                 $(window).scrollTop( $focus_message.offset().top - 100 );
+
+            } else {
+                var $errors = that.$wrapper.find(".wa-error-field, .wa-error-text");
+                if ($errors.length) {
+                    var top = $errors.first().offset().top - 100;
+                    top = (top > 0 ? top : 0);
+                    $(window).scrollTop(top);
+                }
             }
 
             function getMessage(message) {
@@ -320,9 +325,36 @@
                 if (use_transliterate) { transliterate(); }
             });
 
+            var $error_html = null;
+
+            $name_field.on("input", function() {
+                var value = $.trim($name_field.val()),
+                    show_length_error = (value.length > 255),
+                    error_class = "wa-error-field";
+
+                if (show_length_error) {
+                    if (!$error_html) {
+                        $error_html = $("<div />", { class: "wa-error-text"}).html(that.locales["max_length_error"]);
+                        $error_html.insertAfter($name_field);
+                    }
+                    $name_field.addClass(error_class);
+                } else {
+                    if ($error_html) {
+                        $error_html.remove();
+                        $error_html = null;
+                    }
+                    $name_field.removeClass(error_class);
+                }
+            });
+
             var input_timer = 0;
 
             $url_field
+                .on("input", function(event) {
+                    var value = $url_field.val();
+                    value = value.replace(/\//g, "");
+                    $url_field.val(value);
+                })
                 .on("keyup", function() {
                     var value = !!($url_field.val().length);
                     use_transliterate = !value;
@@ -350,16 +382,23 @@
             if ($list.length) { initList($list); }
 
             function initList($list) {
-                var $list_extended_items = $list.find(".s-extended-item");
+                var $list_extended_items = $list.find(".s-extended-item"),
+                    $toggle = $list.find(".js-list-toggle");
 
                 var is_list_extended = false;
 
-                $list.on("click", ".js-list-toggle", function(event) {
+                $toggle.on("click", function(event) {
                     event.preventDefault();
+                    toggle(!is_list_extended);
+                });
 
-                    var $toggle = $(this),
-                        show = !is_list_extended;
+                $list.on("click", ".js-list-close", function(event) {
+                    event.preventDefault();
+                    toggle(false);
+                    $(window).scrollTop(0);
+                });
 
+                function toggle(show) {
                     if (show) {
                         $list_extended_items.show();
                         $toggle.text(that.locales["storefronts_hide"]);
@@ -369,7 +408,7 @@
                     }
 
                     is_list_extended = show;
-                });
+                }
             }
 
             function toggleRefreshButton(active) {
@@ -1943,7 +1982,15 @@
 
                     var no_errors = beforeSavePluginHook(form_data);
 
-                    if (!no_errors || form_data.errors.length) {
+                    var vue_has_errors = (Object.keys(that.errors).length > 0);
+                    if (vue_has_errors) {
+                        var $errors = that.$wrapper.find(".wa-error-text");
+                        if ($errors.length > 0) {
+                            $(window).scrollTop( $errors.first().offset().top - 100 );
+                            that.is_locked = false;
+                        }
+
+                    } else if (!no_errors || form_data.errors.length) {
                         that.renderErrors(form_data.errors);
                         that.is_locked = false;
 
@@ -2000,6 +2047,16 @@
                     var sets_is_set = false;
 
                     $.each(data, function(index, item) {
+                        if (item.name === "product[url]") {
+                            item.value = item.value.replace(/\//g, "");
+                        } else if (item.name === "product[name]") {
+                            if (item.value.length > 255) {
+                                result.errors.push({
+                                    id: "product_name_length_error",
+                                    text: ""
+                                });
+                            }
+                        }
                         if (item.name === "product[sets][]") {
                             sets_is_set = true;
                         }
@@ -2327,6 +2384,11 @@
 
             if (!active_photo && photos.length) {
                 active_photo = photos[0];
+            }
+
+            if (!that.product.normal_mode && active_photo && photos.indexOf(active_photo) > 0) {
+                photos.splice(photos.indexOf(active_photo), 1);
+                photos.unshift(active_photo);
             }
 
             new Vue({

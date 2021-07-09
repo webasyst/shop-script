@@ -4615,8 +4615,8 @@ msgstr[2] "%d изображений"
 msgid "http://www.shop-script.com/help/45/import-products-from-csv-file/"
 msgstr "http://www.shop-script.ru/help/26/import-products-from-csv-file/"
 
-msgid "All email notifications sent to store customers will be sent from the primary email address"
-msgstr "Используется в качестве адреса отправителя для автоматических уведомлений, отправляемых магазином."
+msgid "Email notifications are sent from this address. It is also the administrator’s email address to which order notifications are sent."
+msgstr "Используется в качестве адреса отправителя для автоматических уведомлений, отправляемых магазином. Также является адресом администратора для отправки ему уведомлений о заказах."
 
 msgid "Any"
 msgstr "Неважно"
@@ -8600,9 +8600,6 @@ msgstr "Населенный пункт"
 
 msgid "locality"
 msgstr "населенный пункт"
-
-msgid "Separate locality names with a comma."
-msgstr "Перечислите населенные пункты через запятую."
 
 msgid "Selected country and region will be visible to customers but not available for changing."
 msgstr "Выбранные страна и регион будут видны покупателям, но будут недоступны для изменения."

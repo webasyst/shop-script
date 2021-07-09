@@ -85,16 +85,17 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         $customer_type = $contact['is_company'] ? shopCheckoutConfig::CUSTOMER_TYPE_COMPANY : shopCheckoutConfig::CUSTOMER_TYPE_PERSON;
 
         // Fetch list of shipping plugins enabled for current storefront
-        // Ask them to provide shipping variants using $address given
+        // Ask them to provide shipping variants using $address given by customer.
         $services_flat = array();
         $rates = $config->getShippingRates($address, $items, $customer_type);
         $possible_addresses = array();
+        $possible_addresses_plugin_ids = [];
         foreach ($rates as $id => $rate) {
             // Shipping plugin may ask to elaborate region selected by user.
             // Plugin returns several options user may choose from.
             // Selecting one of the options changes address previously selected by user.
-            if (!empty($rate['possible_addresses']) && !$data['result']['region']['is_fixed_delivery_city']) {
-                if (is_array($rate['possible_addresses'])) {
+            if (!empty($rate['possible_addresses'])) {
+                if (is_array($rate['possible_addresses']) && !$data['result']['region']['is_fixed_delivery_city']) {
                     // $exact_address is an array containing address parts, like shown below.
                     // May also contain 'value' which is a human-readable formatted string with all parts glued together
                     $defaults = [
@@ -115,13 +116,42 @@ class shopCheckoutShippingStep extends shopCheckoutStep
                             'address' => array_intersect_key($exact_address, $defaults) + $defaults,
                             'plugin_name' => ifset($rate['plugin_name']),
                             'plugin_id' => ifset($rate['plugin']),
-                            //'variant' => array_diff_key($rate, ['possible_addresses' => 1]),
                         ];
                     }
+
+                    $plugin_id = explode('.', $id)[0];
+                    $possible_addresses_plugin_ids[$plugin_id] = $plugin_id;
                 }
                 unset($rates[$id]);
-                continue;
             }
+        }
+
+        // When some plugins asked to adjust shipping address, and user selected one of the options suggested by a plugin,
+        // ask those plugins again with selected adjusted address given to them.
+        $selected_possible_address = ifset($data, 'input', 'region', 'possible_address', null);
+        if ($possible_addresses_plugin_ids && $selected_possible_address) {
+            // Remove shipping options provided by some plugins.
+            // We're going to ask those plugins again via getShippingRates() below.
+            foreach ($rates as $id => $rate) {
+                $plugin_id = explode('.', $id)[0];
+                if (isset($possible_addresses_plugin_ids[$plugin_id])) {
+                    unset($rates[$id]);
+                }
+            }
+
+            $adjusted_address = [
+                'country' => $address['country'],
+                'region' => ifempty($selected_possible_address, 'region', $address['region']),
+                'city' => ifempty($selected_possible_address, 'city', $address['city']),
+                'zip' => ifempty($selected_possible_address, 'zip', ifset($address, 'zip', '')),
+            ];
+            if (empty($adjusted_address['zip'])) {
+                unset($adjusted_address['zip']);
+            }
+            $rates += $config->getShippingRates($adjusted_address, $items, $customer_type, [], array_values($possible_addresses_plugin_ids));
+        }
+
+        foreach ($rates as $id => $rate) {
             if (isset($rate['type'])) {
                 $services_flat[$id] = $rate;
             }
@@ -137,6 +167,7 @@ class shopCheckoutShippingStep extends shopCheckoutStep
                 'data'         => $data,
                 'result'       => $this->addRenderedHtml([
                     'possible_addresses' => $possible_addresses,
+                    'selected_possible_address' => $selected_possible_address,
                 ], $data, $errors),
                 'errors'       => $errors,
                 'can_continue' => false,
@@ -350,11 +381,12 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         ];
 
         $result = $this->addRenderedHtml([
-            'possible_addresses'  => $possible_addresses,
-            'selected_type_id'    => $selected_type_id,
-            'selected_variant_id' => $selected_variant_id,
-            'types'               => $shipping_types,
-            'map'                 => $map
+            'possible_addresses'        => $possible_addresses,
+            'selected_possible_address' => $selected_possible_address,
+            'selected_type_id'          => $selected_type_id,
+            'selected_variant_id'       => $selected_variant_id,
+            'types'                     => $shipping_types,
+            'map'                       => $map
         ], $data, $errors);
 
         if ($data['origin'] !== 'form' && 'only' === ifset($data, 'input', 'shipping', 'html', null)) {

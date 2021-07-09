@@ -215,6 +215,7 @@ class shopFrontendProductAction extends shopFrontendAction
         }
 
         $product = new shopProduct($product, true);
+        self::setInvisibleUnfilledSkus($product);
         if ($product['status'] < 0) {
             // do the redirect when product is in "hidden and not available" status
             $this->handleHiddenAndNotAvailable($product);
@@ -325,6 +326,94 @@ class shopFrontendProductAction extends shopFrontendAction
             $q = waRequest::server('QUERY_STRING');
             $this->redirect('/'.$canonical_url.($q ? '?'.$q : ''), 301);
         }
+    }
+
+    /**
+     * When product SKUs are selected by features, we should hide all SKUs that do not have all those features set.
+     *
+     * @param shopProduct $product
+     * @throws waException
+     */
+    protected static function setInvisibleUnfilledSkus(&$product)
+    {
+        $skus = $product->getSkus();
+        $count_selectable_features = count($product->features_selectable);
+        if (!$skus || !$count_selectable_features || $product['sku_type'] == shopProductModel::SKU_TYPE_FLAT) {
+            return;
+        }
+
+        $product_features_model = new shopProductFeaturesModel();
+        $ungrouped_sku_features = $product_features_model->select('sku_id, feature_value_id')->where(
+            'product_id = i:id AND sku_id IS NOT NULL AND feature_id IN (i:feature_id)', [
+                'id' => $product->id,
+                'feature_id' => array_column($product->features_selectable, 'id')
+            ]
+        )->fetchAll();
+
+        $sku_features = [];
+        foreach ($ungrouped_sku_features as $fields) {
+            if (!isset($sku_features[$fields['sku_id']])) {
+                $sku_features[$fields['sku_id']] = [];
+            }
+            $sku_features[$fields['sku_id']][] = $fields['feature_value_id'];
+        }
+
+        $hidden_modifications = [];
+        $count_visible_modifications = 0;
+        foreach ($skus as $sku_id => $sku) {
+            $sku_feature = ifset($sku_features, $sku_id, []);
+            if ($sku['status'] != 0) {
+                $count_visible_modifications++;
+                if ($count_selectable_features != count($sku_feature)) {
+                    $hidden_modifications[] = $sku_id;
+                }
+            }
+        }
+
+        if (!$hidden_modifications) {
+            return;
+        }
+
+        // SKUs that do not have all the features set, we have to either hide completely or make unavailable for order.
+        // A product must have at least one SKU visible. When no SKUs are left, we make them unavailable for order (available=0).
+        // Otherwise, we hide SKUs (status=0).
+        $product_skus_model = new shopProductSkusModel();
+        if (count($hidden_modifications) == $count_visible_modifications) {
+            $should_update = false;
+            foreach ($hidden_modifications as $sku_id) {
+                if (!empty($skus[$sku_id]['available'])) {
+                    $skus[$sku_id]['available'] = 0;
+                    $should_update = true;
+                }
+            }
+            if ($should_update) {
+                $product_skus_model->updateByField('id', $hidden_modifications, ['available' => 0]);
+            }
+        } else {
+            $should_update = false;
+            $main_sku = $product->sku_id;
+            foreach ($hidden_modifications as $sku_id) {
+                if (!empty($skus[$sku_id]['status'])) {
+                    $skus[$sku_id]['status'] = 0;
+                    $should_update = true;
+                }
+                if (!empty($skus[$sku_id]['status'])) {
+                    // Main SKU of a product can not be set invisible.
+                    // First available SKU will become main SKU in this case.
+                    $main_sku = $sku_id;
+                }
+            }
+            if ($should_update) {
+                $product_skus_model->updateByField('id', $hidden_modifications, ['status' => 0]);
+                if (empty($skus[$product->sku_id]['status'])) {
+                    $product->setData('sku_id', $main_sku);
+                    $product_model = new shopProductModel();
+                    $product_model->updateById($product->getId(), ['sku_id' => $main_sku]);
+                }
+            }
+        }
+
+        $product->setData('skus', $skus);
     }
 
     /**

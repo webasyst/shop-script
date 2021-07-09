@@ -65,13 +65,12 @@ class shopBackendCustomerForm {
         $options = is_array($options) ? $options : array();
         $options['namespace'] = isset($options['namespace']) ? $options['namespace'] : 'customer';
 
-        $options = array_merge($options, array(
+        $options += array(
             'contact_type'    => shopCustomer::TYPE_PERSON,
             'contact'         => null,
             'storefront'      => null,
             'address_display_type' => 'all',                        // 'first', 'all', 'none'
-        ));
-
+        );
         $this->options = $options;
     }
 
@@ -252,6 +251,14 @@ class shopBackendCustomerForm {
     public function getNamespace()
     {
         return ifset($this->options['namespace']);
+    }
+
+    /**
+     * @return mixed|null
+     */
+    public function getStorefront()
+    {
+        return ifset($this->options['storefront']);
     }
 
     /**
@@ -784,10 +791,11 @@ class shopBackendCustomerForm {
             return !empty($item['used']);
         });
 
+        $shipping_enabled = $settlement['shipping']['used'];
         $list = array_merge($list, array(
-            'country' => array('required' => true),
-            'region' => array('required' => true),
-            'city' => array('required' => true)
+            'country' => array('required' => $shipping_enabled),
+            'region' => array('required' => $shipping_enabled),
+            'city' => array('required' => $shipping_enabled)
         ));
 
         // re-order
@@ -797,6 +805,9 @@ class shopBackendCustomerForm {
             unset($list[$key]);
         }
         foreach ($list as $key => $value) {
+            if (isset($value['required']) && $shipping_enabled == false) {
+                $value['required'] = $shipping_enabled;
+            }
             $result[$key] = $value;
             unset($list);
         }

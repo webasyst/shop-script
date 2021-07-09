@@ -106,7 +106,9 @@ class shopProdSaveSkuController extends waJsonController
                 foreach (['price', 'purchase_price', 'compare_price'] as $field) {
                     if (isset($sku[$field])) {
                         $sku[$field] = str_replace(',', '.', $sku[$field]);
-                        if (!is_numeric($sku[$field]) || strlen($sku[$field]) > 16 || $sku[$field] > floatval('1'.str_repeat('0', 11))) {
+                        if (strlen($sku[$field]) > 0 && (!is_numeric($sku[$field]) || strlen($sku[$field]) > 16
+                            || $sku[$field] > floatval('1'.str_repeat('0', 11)))
+                        ) {
                             $this->errors[] = [
                                 'id' => 'price_error',
                                 'name' => "product[skus][{$sku_id}][{$field}]",
@@ -159,6 +161,8 @@ class shopProdSaveSkuController extends waJsonController
                 }
             }
         }
+
+        shopProdSaveGeneralController::updateMainImage($product_data, $product_raw_data['id']);
 
         return $product_data;
     }
@@ -297,6 +301,13 @@ class shopProdSaveSkuController extends waJsonController
                     $sku_data['name'] = join(', ', $sku_name_parts);
                 }
                 unset($sku_data);
+            }
+
+            /** для сохранения фич, избавляемся от лишней вложенности */
+            foreach ($product_data['features'] as $feature => $val) {
+                if (is_array($val) && 1 === count($val) && isset($val['value']) && is_string($val['value'])) {
+                    $product_data['features'][$feature] = $val['value'];
+                }
             }
 
             // Save product

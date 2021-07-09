@@ -55,10 +55,19 @@
                 </div>
 
                 <div class="wa-dropdown full-line js-possible-address-select">
-                    <div class="wa-dropdown-toggle">[`Please specify the address`]</div>
+                    <div class="wa-dropdown-toggle">
+                        {if isset($shipping.selected_possible_address)}
+                            {$shipping.selected_possible_address.city}
+                        {else}
+                            [`Please specify the address`]
+                        {/if}
+                    </div>
                     <div class="wa-dropdown-area">
                         {foreach $shipping.possible_addresses as $_possible_address}
-                            <div class="wa-dropdown-item" data-index="{$_possible_address@index}">
+                            <div class="wa-dropdown-item{if isset($shipping.selected_possible_address.name)
+                                && $_possible_address.name == $shipping.selected_possible_address.name
+                                && $_possible_address.plugin_id == $shipping.selected_possible_address.plugin_id} is-selected{/if}"
+                                data-index="{$_possible_address@index}">
                                 <div class="wa-address-variant">
                                     <div class="wa-name">
                                         {if !empty($_possible_address.image)}
@@ -71,6 +80,11 @@
                         {/foreach}
                     </div>
                 </div>
+                <input type="hidden" name="region[possible_address][name]" class="js-possible-address-name" {if isset($shipping.selected_possible_address.name)}value="{$shipping.selected_possible_address.name}"{/if}>
+                <input type="hidden" name="region[possible_address][region]" class="js-possible-address-region" {if isset($shipping.selected_possible_address.region)}value="{$shipping.selected_possible_address.region}"{/if}>
+                <input type="hidden" name="region[possible_address][city]" class="js-possible-address-city" {if isset($shipping.selected_possible_address.city)}value="{$shipping.selected_possible_address.city}"{/if}>
+                <input type="hidden" name="region[possible_address][zip]" class="js-possible-address-zip" {if isset($shipping.selected_possible_address.zip)}value="{$shipping.selected_possible_address.zip}"{/if}>
+                <input type="hidden" name="region[possible_address][plugin_id]" class="js-possible-address-plugin-id" {if isset($shipping.selected_possible_address.plugin_id)}value="{$shipping.selected_possible_address.plugin_id}"{/if}>
             </div>
         {/if}
 

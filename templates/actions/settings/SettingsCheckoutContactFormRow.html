@@ -10,6 +10,10 @@
     {/if}
 {/strip}{/function}
 
+{if !isset($default_value)}
+    {$default_value = null}
+{/if}
+
 <tr class="{$tr_classes}" data-field-id="{$fid}"{if !$new_field} data-field-type="{$f->getType()}"{/if}>
     <td class="min-width"><i class="icon16 sort sort-outer"></i></td>
     <td class="min-width">

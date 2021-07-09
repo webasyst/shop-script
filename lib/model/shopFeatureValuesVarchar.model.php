@@ -26,7 +26,7 @@ class shopFeatureValuesVarcharModel extends shopFeatureValuesModel
         if (is_array($value)) {
             $value = ifempty($value, 'value', '');
         }
-        $value = mb_substr(trim($value), 0, 255);
+        $value = trim(mb_substr(trim($value), 0, 255));
         return array(
             'value'        => $value,
             'search_value' => preg_replace('@([%_\\\\])@', '\\\\$1', $value),

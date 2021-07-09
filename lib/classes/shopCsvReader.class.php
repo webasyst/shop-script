@@ -362,7 +362,6 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
                 }
 
                 while ($position > $this->key && $this->next()) {
-                    ;
                 }
             }
         }
@@ -668,7 +667,13 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
             $row .= '<tr class="js-row-'.$key.'"><td class="heading">'.$key.'</td>';
             foreach ($this->columns as $column) {
                 if (is_callable($column)) {
-                    $column = call_user_func($column, $this->current(), $key);
+                    $current = $this->current();
+                    if (!isset($current['row_type']) && isset($this->data_mapping['row_type'])
+                        && ifset($column, 1, '') == 'tableRowHandler'
+                    ) {
+                        $current['row_type'] = '';
+                    }
+                    $column = call_user_func($column, $current, $key);
                 }
                 if (preg_match('@^<td.+</td>$@', $column)) {
                     $row .= $column;
@@ -728,6 +733,7 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
         }
         unset($option);
 
+        $default_control_wrapper = '<td><div class="s-csv-assigned-to"><span class="ignored">&times;</span><span class="active">&darr;</span></div>%2$s%3$s</td>';
         $default = array(
             'value'               => -1,
             'title'               => '',
@@ -735,7 +741,7 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
             'title_wrapper'       => false,
             'description_wrapper' => false,
             'translate'           => false,
-            'control_wrapper'     => '<td><div class="s-csv-assigned-to"><span class="ignored">&times;</span><span class="active">&darr;</span></div>%2$s%3$s</td>',
+            'control_wrapper'     => $default_control_wrapper,
         );
 
         if (!empty($params['title'])) {
@@ -823,6 +829,14 @@ HTML;
                 self::findSimilar($params_target, $header['title'], array('similar' => false));
                 $header['value'] = $params_target['value'];
                 if ($header['value'] >= 0) {
+                    if (strpos($header['value'], 'features:') === 0 && $params_target['control_wrapper'] == $default_control_wrapper) {
+                        $_group_title = "same-feature";
+                        // $_group_title = htmlspecialchars($header['title'], ENT_NOQUOTES, waHtmlControl::$default_charset);
+                        // $_group_title = mb_strtolower($_group_title);
+
+                        $new_attributes = '<td class="js-same-feature" data-group-name="' . $_group_title . '">';
+                        $params_target['control_wrapper'] = str_replace('<td>', $new_attributes, $default_control_wrapper);
+                    }
                     $map[$header['value']] = $header['name'];
                 }
 

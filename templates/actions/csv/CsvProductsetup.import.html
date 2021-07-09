@@ -77,14 +77,14 @@
         <div class="value no-shift">
             <input type="hidden" name="emulate" value="1">
             <select name="primary" class="bold">
-                <option value="name">[`Product name`]</option>
-                <option value="url">[`Public link`]</option>
-                <option value="id">[`Product ID`]</option>
+                <option value="name" {if $csv_primary_column == "name"}selected{/if}>[`Product name`]</option>
+                <option value="url" {if $csv_primary_column == "url"}selected{/if}>[`Public link`]</option>
+                <option value="id" {if $csv_primary_column == "id"}selected{/if}>[`Product ID`]</option>
                 {if (!empty($meta_fields['product']['id_1c']))}
-                <option value="id_1c">Идентификатор товара «1С»</option>
+                <option value="id_1c" {if $csv_primary_column == "id_1c"}selected{/if}>Идентификатор товара «1С»</option>
                 {/if}
-                <option value="false" class="italic">[`SKU identification column`]</option>
-                <option value="null" class="italic">[`(skip products and categories, import only SKUs)`]</option>
+                <option value="false" class="italic" {if $csv_primary_column == "false"}selected{/if}>[`SKU identification column`]</option>
+                <option value="null" class="italic" {if $csv_primary_column == "null"}selected{/if}>[`(skip products and categories, import only SKUs)`]</option>
             </select>
             &nbsp;
             <span class="s-csv-primary-column-helper"></span>
@@ -99,12 +99,12 @@
         </div>
         <div class="value no-shift">
             <select name="secondary" class="bold">
-                <option value="skus:-1:sku_feature">[`By SKU code and features used for product variety selection`]</option>
-                <option value="skus:-1:sku">[`SKU code`]</option>
-                <option value="skus:-1:name">[`SKU name`]</option>
-                <option value="skus:-1:id">[`SKU ID`]</option>
+                <option value="skus:-1:sku_feature" {if $csv_secondary_column == "skus:-1:sku_feature"}selected{/if}>[`By SKU code and features used for product variety selection`]</option>
+                <option value="skus:-1:sku" {if $csv_secondary_column == "skus:-1:sku"}selected{/if}>[`SKU code`]</option>
+                <option value="skus:-1:name" {if $csv_secondary_column == "skus:-1:name"}selected{/if}>[`SKU name`]</option>
+                <option value="skus:-1:id" {if $csv_secondary_column == "skus:-1:id"}selected{/if}>[`SKU ID`]</option>
                 {if (!empty($meta_fields['sku']['id_1c']))}
-                <option value="skus:-1:id_1c">Идентификатор артикула «1С»</option>
+                    <option value="skus:-1:id_1c" {if $csv_secondary_column == "skus:-1:id_1c"}selected{/if}>Идентификатор артикула «1С»</option>
                 {/if}
             </select>
             &nbsp;

@@ -57,7 +57,7 @@
         <div class="field">
             <div class="name">[`Text color`]</div>
             <div class="value">
-                <input type="text" data-name="[color]" value="{ifempty($banner, 'color', '#ffffff')|escape}" class="short">
+                <input type="text" data-name="[color]" value="{$banner.color|escape|default:'#ffffff'}" class="short">
                 <i class="icon16 color"></i>
                 <div class="js-colorpicker"></div>
             </div>
@@ -66,7 +66,7 @@
         <div class="field">
             <div class="name">[`Background color`]</div>
             <div class="value">
-                <input type="text" data-name="[background_color]" value="{ifempty($banner, 'background_color', '#aaaaaa')|escape}" class="short">
+                <input type="text" data-name="[background_color]" value="{$banner.background_color|escape|default:'#aaaaaa'}" class="short">
                 <i class="icon16 color"></i>
                 <div class="js-colorpicker"></div>
                 <p class="hint">[`Image background color`]</p>

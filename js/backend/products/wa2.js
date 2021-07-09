@@ -772,14 +772,16 @@
                 close: (typeof options["close"] === "function" ? options["close"] : function() {})
             };
             that.options = {
-                hover: (typeof options["hover"] === "boolean" ? options["hover"] : true),
-                hide: (typeof options["hide"] === "boolean" ? options["hide"] : true),
-                items: (options["items"] ? options["items"] : null),
+                items       : (options["items"] ? options["items"] : null),
+                hover       : (typeof options["hover"] === "boolean" ? options["hover"] : true),
+                hide        : (typeof options["hide"] === "boolean" ? options["hide"] : true),
+                disabled    : (typeof options["disabled"] === "boolean" ? options["disabled"] : false),
                 active_class: (options["active_class"] ? options["active_class"] : "selected"),
                 update_title: (typeof options["update_title"] === "boolean" ? options["update_title"] : true),
                 protect: {
-                    right: (typeof options["protect"] === "object" && typeof options["protect"]["right"] === "number" ? options["protect"]["right"] : 0),
-                    bottom: (typeof options["protect"] === "object" && typeof options["protect"]["bottom"] === "number" ? options["protect"]["bottom"] : 0)
+                    use_protect: (typeof options["protect"] === "boolean" ? options["protect"] : true),
+                    right: (typeof options["protect"] === "object" && typeof options["protect"]["right"] === "number" ? options["protect"]["right"] : 20),
+                    bottom: (typeof options["protect"] === "object" && typeof options["protect"]["bottom"] === "number" ? options["protect"]["bottom"] : 70)
                 }
             };
 
@@ -789,7 +791,9 @@
             that.$active = null;
 
             // INIT
-            that.init();
+            if (!that.options.disabled) {
+                that.init();
+            }
         };
 
         Dropdown.prototype.init = function() {
@@ -859,7 +863,8 @@
             if (open) {
                 that.$wrapper.addClass(active_class);
 
-                protect();
+                // Защита от всплывания окна за правой/нижней границей экрана
+                if (that.options.protect.use_protect) { protect(); }
 
                 that.on.open(that);
 
@@ -873,29 +878,36 @@
             }
 
             function protect() {
-                var $window = $(window),
-                    rect = that.$wrapper[0].getBoundingClientRect();
-
-                // bottom protection
                 var top_class = "top",
-                    bottom_space = $window.height() - rect.y - rect.height,
-                    use_top = (bottom_space < that.options.protect.bottom);
+                    right_class = "right";
 
-                if (use_top) {
-                    that.$menu.addClass(top_class);
-                } else {
-                    that.$menu.removeClass(top_class);
+                // clear
+                that.$menu
+                    .removeClass(top_class)
+                    .removeClass(right_class);
+
+                var $window = $(window),
+                    rect = that.$wrapper[0].getBoundingClientRect(),
+                    menu_rect = that.$menu[0].getBoundingClientRect();
+
+                // BOTTOM PROTECTION
+                var top_space = rect.y,
+                    bottom_space = $window.height() - rect.y - rect.height;
+
+                // Если места снизу под меню не хватает
+                if (bottom_space < menu_rect.height + that.options.protect.bottom) {
+                    // Если места сверху хватает под меню ЛИБО места сверху больше чем снизу
+                    if (top_space > menu_rect.height || top_space > bottom_space) {
+                        that.$menu.addClass(top_class);
+                    }
                 }
 
-                // right protection
-                var right_class = "right",
-                    right_space = $window.width() - rect.x - that.$menu.outerWidth(),
-                    use_right = (right_space < that.options.protect.right);
+                // RIGHT PROTECTION
+                var right_space = $window.width() - rect.x - that.$menu.outerWidth(),
+                    use_right = ($window.width() - menu_rect.right < that.options.protect.right);
 
                 if (use_right) {
                     that.$menu.addClass(right_class);
-                } else {
-                    that.$menu.removeClass(right_class);
                 }
             }
         };

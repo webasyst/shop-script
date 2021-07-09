@@ -67,7 +67,7 @@
         <div class="block double-padded">
             <div class="fields s-customer-contact-summary">
                 {foreach $fields as $f}
-                    {if $contact->get($f->getId())}
+                    {if $contact->get($f->getId()) && $f->getId() != 'company_contact_id'}
                         <div class="field">
                             <div class="name">{$f->getName()|escape}</div>
                             {if $f instanceof waContactAddressField}
@@ -94,7 +94,13 @@
                                 </div>
                             {else}
                                 <div class="value">
-                                    {$contact->get($f->getId(), 'html')}
+                                    {if $f->getId() == 'company'}
+                                        <a href="{$wa->shop->backendContactUrl($contact['company_contact_id'])}" target="_blank">
+                                            {$contact->get($f->getId(), 'html')}
+                                        </a>
+                                    {else}
+                                        {$contact->get($f->getId(), 'html')}
+                                    {/if}
                                 </div>
                             {/if}
                         </div>

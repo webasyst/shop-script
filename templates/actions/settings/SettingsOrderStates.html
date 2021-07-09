@@ -258,6 +258,15 @@
                                 <div class="block double-padded s-new-action-details">
                                     <div class="fields form width100px">
                                         <div class="field">
+                                            <div class="name">[`Sender name`]</div>
+                                            <div class="value no-shift">
+                                                {$message_sender_name = ifset($actions.message.options.sender_name)|escape}
+                                                <label><input type="radio" name="action_options[message][sender_name]" value="general" {if !$message_sender_name || $message_sender_name == 'general'}checked{/if}> [`Store name`] <span class="gray">[`provided in Settings &gt; General settings`]</span> </label>
+                                                <br><br>
+                                                <label><input type="radio" name="action_options[message][sender_name]" value="route_params" {if $message_sender_name == 'route_params'}checked{/if}> [`Storefront name`] <span class="gray">[`provided in Storefronts &gt; Settings and customizable for each storefront`]</span> </label>
+                                            </div>
+                                        </div>
+                                        <div class="field">
                                             <div class="name">[`Template`]</div>
                                             <div class="value no-shift">
                                                 <textarea name="action_options[message][template]" style="width:100%;">{ifset($actions.message.options.template)|escape}</textarea>

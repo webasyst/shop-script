@@ -102,14 +102,16 @@ $(function () {
             <th>{$f.name}</th>
             {foreach $products as $p}
                 <td>
-                {if isset($p.features[$f_id])}
-                    {if is_array($p.features[$f_id])}
-                        {implode('<br> ', $p.features[$f_id])}
+                {if $f.type !== 'divider'}
+                    {if isset($p.features[$f_id])}
+                        {if is_array($p.features[$f_id])}
+                            {implode('<br> ', $p.features[$f_id])}
+                        {else}
+                            {$p.features[$f_id]}
+                        {/if}
                     {else}
-                        {$p.features[$f_id]}
+                        <span class="gray">&mdash;</span>
                     {/if}
-                {else}
-                    <span class="gray">&mdash;</span>
                 {/if}
                 </td>
             {/foreach}

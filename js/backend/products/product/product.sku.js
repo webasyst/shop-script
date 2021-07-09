@@ -138,14 +138,22 @@
             // VARS
             var is_root_locked = false;
 
+            var front_feature_timeout = 0;
+
             // COMPONENTS
 
             // feature components
 
             Vue.component("component-features", {
-                props: ["product", "features", "values", "vertical", "columns"],
+                props: ["product", "features", "vertical", "columns"],
                 template: that.templates["component-features"],
                 delimiters: ['{ { ', ' } }'],
+                methods: {
+                    onChange: function(event) {
+                        var self = this;
+                        self.$emit("change", event);
+                    }
+                },
                 mounted: function() {
                     var self = this;
                     initFeatureTooltips(self);
@@ -170,6 +178,25 @@
                         });
 
                         that.$wrapper.trigger("change");
+                    },
+                    isLockedFeature: function(feature) {
+                        var self = this,
+                            result = false;
+
+                        var is_product_feature = !self.vertical;
+                        if (is_product_feature) {
+                            that.selectable_features.filter( function(_feature) {
+                                if (_feature.id === feature.id && _feature.active) {
+                                    result = true;
+                                }
+                            });
+                        }
+
+                        return result;
+                    },
+                    onChange: function(event) {
+                        var self = this;
+                        self.$emit("change", event);
                     }
                 },
                 components: {
@@ -259,9 +286,6 @@
                                                                         case "range":
                                                                             setFields(" — ");
                                                                             break;
-                                                                        case "range.volume":
-                                                                            setFields(" — ");
-                                                                            break;
                                                                         case "range.date":
                                                                             setFields(" — ");
                                                                             break;
@@ -348,6 +372,10 @@
                 },
                 mounted: function() {
                     var self = this;
+
+                    $(self.$el).on("change input", function() {
+                        self.onChange();
+                    });
                 }
             });
 
@@ -386,6 +414,8 @@
                                     });
                             }
                         }
+
+                        self.$emit("change");
                     },
                     colorNameChange: function() {
                         var self = this;
@@ -411,6 +441,8 @@
                                     });
                             }
                         }
+
+                        self.$emit("change");
                     },
                     getColorInfo: function(name, color) {
                         var self = this;
@@ -628,6 +660,8 @@
                 },
                 mounted: function() {
                     var self = this;
+
+                    $(self.$el).find(".js-field").trigger("focus");
                 }
             });
 
@@ -784,7 +818,7 @@
             });
 
             Vue.component("dropdown-units", {
-                props: ["units", "default_value"],
+                props: ["units", "default_value", "disabled"],
                 template: that.templates["component-dropdown-units"],
                 data: function() {
                     var self = this;
@@ -796,7 +830,8 @@
                     var active_unit = (filter_array.length ? filter_array[0] : self.units[0]);
 
                     return {
-                        active_unit: active_unit
+                        active_unit: active_unit,
+                        disabled: (typeof self.disabled === "boolean" ? self.disabled : false)
                     }
                 },
                 delimiters: ['{ { ', ' } }'],
@@ -806,6 +841,7 @@
                     $(self.$el).waDropdown({
                         hover: false,
                         items: ".dropdown-item",
+                        disabled: self.disabled,
                         change: function(event, target, dropdown) {
                             var value = $(target).data("value");
 
@@ -815,6 +851,7 @@
 
                             if (filter.length) {
                                 self.$emit("change_unit", filter[0]);
+                                self.$emit("change");
                             } else {
                                 console.error("Unit undefined");
                             }
@@ -824,40 +861,56 @@
             });
 
             Vue.component("dropdown-feature-options", {
-                props: ["feature", "columns"],
+                props: ["feature", "columns", "disabled"],
+                data: function() {
+                    var self = this;
+                    return {
+                        disabled: (typeof self.disabled === "boolean" ? self.disabled : false)
+                    };
+                },
                 template: that.templates["dropdown-feature-options"],
                 delimiters: ['{ { ', ' } }'],
                 mounted: function() {
                     var self = this;
 
-                    $(self.$el).waDropdown({
-                        hover: false,
-                        items: ".js-set-dropdown-item",
-                        change: function(event, target, dropdown) {
-                            var value = $(target).data("value");
-                            value = (typeof value === "undefined" ? "" : value);
-                            value += "";
+                    if (!self.disabled) {
+                        var $dropdown = $(self.$el)
+                        $dropdown.waDropdown({
+                            hover: false,
+                            items: ".js-set-dropdown-item",
+                            disabled: self.disabled,
+                            change: function(event, target, dropdown) {
+                                var value = $(target).data("value");
+                                value = (typeof value === "undefined" ? "" : value);
+                                value += "";
 
-                            var filter = self.feature.options.filter( function(option) {
-                                return (option.value === value);
-                            });
-                            if (filter.length) {
-                                self.feature.active_option = filter[0];
+                                var filter = self.feature.options.filter( function(option) {
+                                    return (option.value === value);
+                                });
+                                if (filter.length) {
+                                    self.feature.active_option = filter[0];
+                                    self.$emit("change");
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
             });
 
             Vue.component("date-picker", {
-                props: ["value"],
+                props: ["value", "disabled"],
+                data: function() {
+                    var self = this;
+                    return {
+                        disabled: (typeof self.disabled === "boolean" ? self.disabled : false)
+                    };
+                },
                 template: that.templates["component-date-picker"],
                 delimiters: ['{ { ', ' } }'],
                 mounted: function() {
                     var self = this;
 
-                    // v-bind:value="value"
-                    // v-on:input="$emit('input', $event.target.value)"
+                    if (self.disabled) { return false; }
 
                     $(self.$el).find(".js-date-picker").each( function(i, field) {
                         var $field = $(field),
@@ -891,6 +944,7 @@
                             if (!field_value) { $alt_field.val(""); }
                             var value = $alt_field.val();
                             self.$emit("input", value);
+                            self.$emit("change");
                         });
 
                         function formatDate(date_string) {
@@ -1082,7 +1136,10 @@
                     stocks_array: that.stocks_array,
                     product: that.product,
                     currencies: that.currencies,
-                    selectable_features: that.selectable_features
+                    selectable_features: that.selectable_features,
+                    keys: {
+                        product_features: 0
+                    }
                 },
                 components: {
                     "component-file-manager": {
@@ -1540,6 +1597,48 @@
                     }
                 },
                 computed: {
+                    front_features_empty: function() {
+                        var self = this,
+                            result = false;
+
+                        var is_features_mode = (self.product.sku_type === "1");
+                        if (is_features_mode) {
+                            var selectable_features = self.selectable_features.filter( function(feature) {
+                                return feature.active;
+                            });
+                            if (!selectable_features.length) {
+                                result = true;
+                            }
+                        }
+
+                        return result;
+                    },
+                    features_hidden_on_front: function() {
+                        var self = this;
+
+                        var hidden_sku_mods = {};
+
+                        $.each(that.product.skus, function(i, sku) {
+                            $.each(sku.modifications, function(j, sku_mod) {
+                                var is_good = self.checkSkuModFrontFeatures(sku_mod);
+                                if (!is_good) {
+                                    if (!hidden_sku_mods[sku_mod.id]) {
+                                        hidden_sku_mods[sku_mod.id] = sku_mod;
+                                    }
+                                }
+                            });
+                        });
+
+                        return $.wa.destruct(hidden_sku_mods);
+                    },
+                    features_hidden_on_front_string: function() {
+                        var self = this;
+
+                        var count = self.features_hidden_on_front.length,
+                            string = $.wa.locale_plural(count, that.locales["features_hidden_on_front_forms"], true);
+
+                        return string;
+                    }
                 },
                 methods: {
                     renderErrors: function(errors, scroll2top) {
@@ -1664,6 +1763,8 @@
                         that.updateModificationSelectableFeatures();
                     },
                     changeSelectableFeatures: function() {
+                        var that_vue_model = this;
+
                         that.states.load.selectable_features = true;
                         var clone_selectable_features = JSON.parse(JSON.stringify(that.selectable_features));
 
@@ -1679,6 +1780,8 @@
                                     });
 
                                     that.updateModificationSelectableFeatures();
+
+                                    that_vue_model.keys.product_features += 1;
                                 }
                             },
                             onOpen: initDialog,
@@ -1696,10 +1799,12 @@
                                 Vue.set(feature, "is_moving", false);
                             });
 
-                            new Vue({
+                            var vue_model = new Vue({
                                 el: $section[0],
+                                delimiters: ['{ { ', ' } }'],
                                 data: {
-                                    selectable_features: selectable_features
+                                    selectable_features: selectable_features,
+                                    states: { is_changed: false }
                                 },
                                 computed: {
                                     active_features: function() {
@@ -1713,12 +1818,23 @@
                                         });
                                     }
                                 },
-                                delimiters: ['{ { ', ' } }'],
+                                methods: {
+                                    onChange: function() {
+                                        var self = this;
+                                        self.states.is_changed = true;
+                                    }
+                                },
                                 created: function () {
                                     $section.css("visibility", "");
                                 },
                                 mounted: function () {
+                                    var self = this;
+
                                     dialog.resize();
+
+                                    $(self.$el).on("change input", function() {
+                                        self.onChange();
+                                    });
                                 }
                             });
 
@@ -1730,7 +1846,7 @@
 
                             initSearch();
 
-                            initDragAndDrop();
+                            initDragAndDrop(vue_model);
 
                             function initSearch() {
                                 var timer = 0;
@@ -1767,7 +1883,7 @@
                                 }
                             }
 
-                            function initDragAndDrop() {
+                            function initDragAndDrop(vue_model) {
                                 var drag_data = {},
                                     over_locked = false,
                                     timer = 0;
@@ -1833,7 +1949,7 @@
 
                                         selectable_features.splice(new_index, 0, drag_data.move_feature);
 
-                                        that.$wrapper.trigger("change");
+                                        vue_model.onChange();
                                     }
                                 }
 
@@ -2202,6 +2318,9 @@
                             }
                         }
                     },
+                    changeSkuType: function() {
+                        that.checkUniqueFeaturesValuesAtMods();
+                    },
 
                     // Badges
                     changeProductBadge: function(badge) {
@@ -2231,6 +2350,8 @@
                         that.updateModificationSelectableFeatures(new_sku_mod);
 
                         that.product.normal_mode = true;
+
+                        that.validate();
 
                         that.highlight("sku", { sku: new_sku });
 
@@ -2313,9 +2434,15 @@
                         });
                     },
                     changeSkuName: function(sku, sku_index) {
+                        var self = this;
+
+                        that.validate();
+
                         $.each(sku.modifications, function(i, sku_mod) {
                             sku_mod.name = sku.name;
                         });
+
+                        that.checkUniqueFeaturesValuesAtMods({ focus: false });
                     },
                     toggleSkuModifications: function(event, sku) {
                         var self = this;
@@ -2332,6 +2459,30 @@
                             button_top = $button.offset().top;
                             $(window).scrollTop(button_top - visible_space);
                         });
+                    },
+                    checkSku: function(sku) {
+                        var result = true;
+
+                        $.each(["sku_full_unique", "sku_full_required"], function(i, error_id) {
+                            if (sku.errors[error_id]) {
+                                result = false;
+                                return false;
+                            }
+                        });
+
+                        return result;
+                    },
+                    getSkuStatusTooltip: function(sku) {
+                        var self = this,
+                            result = "";
+
+                        if (sku.errors["sku_full_unique"]) {
+                            result = "sku_full_unique";
+                        } else if (sku.errors["sku_full_required"]) {
+                            result = "sku_full_required";
+                        }
+
+                        return result;
                     },
 
                     // MODIFICATIONS
@@ -2378,6 +2529,8 @@
 
                         that.product.normal_mode = true;
 
+                        that.validate();
+
                         that.highlight("sku_mod", { sku_mod: new_sku_mod });
 
                         that.$wrapper.trigger("change");
@@ -2388,6 +2541,8 @@
                         that.product.skus[sku_index].modifications.splice(sku_mod_index + 1, 0, clone_sku_mod);
 
                         that.product.normal_mode = true;
+
+                        that.validate();
 
                         that.highlight("sku_mod", { sku_mod: clone_sku_mod });
 
@@ -2422,6 +2577,8 @@
                                         if (sku.sku_id === that.product.sku_id && mods.length > 0) {
                                             self.modificationMainToggle(mods[0], sku);
                                         }
+
+                                        that.validate();
                                     });
 
                                 that.$wrapper.trigger("change");
@@ -2617,6 +2774,76 @@
                         }
 
                         return result;
+                    },
+                    checkSkuModFrontFeatures: function(sku_mod) {
+                        var self = this,
+                            result = true;
+
+                        $.each(sku_mod.features_selectable, function(i, feature) {
+                            var is_set = checkFeature(feature);
+                            if (!is_set) {
+                                result = false;
+                                return false;
+                            }
+                        });
+
+                        // свойство отображает текущий статус модификации. Доступна/недоступна на витрине относительно установленных значений характеристик
+                        self.$set(sku_mod, "_front_features_status", result);
+
+                        return result;
+
+                        function checkFeature(feature) {
+                            var result = false;
+
+                            switch (feature.render_type) {
+                                case "field":
+                                case "color":
+                                case "field.date":
+                                    if (feature.options[0].value) {
+                                        result = true;
+                                    }
+                                    break;
+                                case "select":
+                                    if (feature.active_option && feature.active_option.value.length) {
+                                        result = true;
+                                    }
+                                    break;
+                                case "textarea":
+                                    if (feature.value.length) {
+                                        result = true;
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
+
+                            return result;
+                        }
+                    },
+                    checkSkuModFeaturesValues: function(sku_mod) {
+                        var self = this,
+                            result = null;
+
+                        var error_name = "product[skus]["+sku_mod.id+"][features_name]";
+                        if (that.errors[error_name]) {
+                            result = that.errors[error_name];
+                        }
+
+                        return result;
+                    },
+                    onChangeFrontFeature: function(event, sku_mod, sku) {
+                        var self = this,
+                            front_features_status = sku_mod._front_features_status;
+
+                        clearTimeout(front_feature_timeout);
+                        front_feature_timeout = setTimeout( function() {
+                            that.checkUniqueFeaturesValuesAtMods({ focus: false });
+
+                            var is_changed = (front_features_status !== sku_mod._front_features_status);
+                            if (!sku_mod.status && sku_mod._front_features_status && is_changed) {
+                                sku_mod.status = true;
+                            }
+                        }, 100);
                     },
 
                     // OTHER
@@ -2832,7 +3059,7 @@
 
                     that.initDragAndDrop(this);
                     // that.initTouchAndDrop(this);
-                    that.validate();
+                    that.validate(self);
 
                     initAddFeatureDialog($wrapper);
 
@@ -3206,7 +3433,7 @@
                 }
 
                 if (_feature.code === feature.code) {
-                    _feature.options.push(active_option);
+                    _feature.options.unshift(active_option);
                 }
 
                 if (feature.render_type === "select") {
@@ -3247,8 +3474,13 @@
                     event.preventDefault();
                 })
                 .on("drop", function() {
-                    var $drop_mod = $droparea.attr("data-over_mod");
-                    $drop_mod.trigger("drop");
+                    var $drop_mod = $droparea.data("over_mod");
+                    if ($drop_mod) {
+                        $drop_mod.trigger("drop");
+                    } else {
+                        console.log( $droparea );
+                        console.log("Drop ERROR #1");
+                    }
                 });
 
             that.$wrapper.on("dragstart", ".js-modification-move-toggle", function(event) {
@@ -3300,7 +3532,7 @@
                         } else {
                             $modification.after($droparea);
                         }
-                        $droparea.attr("data-over_mod", $modification);
+                        $droparea.data("over_mod", $modification);
                         drag_data.before = before;
                     }
                 }
@@ -3595,46 +3827,73 @@
 
         // Сохранение
 
-        Section.prototype.validate = function() {
+        Section.prototype.validate = function(vue_model) {
             var that = this;
+
+            vue_model = (typeof vue_model !== "undefined" ? vue_model : that.vue_model);
 
             var errors = [];
 
-            var sku_sku_groups = getSkuSkuGroups(that.product.skus);
+            if (vue_model.front_features_empty) {
+                errors.push("front_features_empty");
+                vue_model.$set(that.errors, "front_features_empty", {
+                    id: "front_features_empty",
+                    text: "front_features_empty"
+                });
+            } else {
+                vue_model.$delete(that.errors, "front_features_empty");
+            }
+
+            var sku_groups = getSkuSkuGroups(that.product.skus, false),
+                sku_groups_with_name = getSkuSkuGroups(that.product.skus, true);
+
             $.each(that.product.skus, function(i, sku) {
-                var sku_sku = (sku.sku ? sku.sku : "");
-                var sku_group = sku_sku_groups[sku_sku];
+                var sku_sku = (sku.sku ? sku.sku : ""),
+                    sku_name = (sku.name ? sku.name : "");
 
-                // очищаем ошибку пустого поля если она была
-                if (sku.errors["sku.sku.required"]) {
-                    Vue.delete(sku.errors, "sku.sku.required");
-                }
-                // очищаем ошибку уникального значения если она была
-                if (sku.errors["sku.sku.unique"]) {
-                    Vue.delete(sku.errors, "sku.sku.unique");
-                }
+                $.each(["sku_required", "sku_full_required", "sku_unique", "sku_full_unique"], function(i, error_id) {
+                    if (sku.errors[error_id]) { Vue.delete(sku.errors, error_id); }
+                });
 
-                // Ошибка пустого значения
-                if (!sku_sku.length) {
-                    if (sku.modifications.length > 1) {
-                        Vue.set(sku.errors, "sku.sku.required", {
-                            "id": "sku.sku.required",
+                if (that.product.normal_mode_switch) {
+                    // ОШИБКИ ПРО АРТИКУЛ И НАЗВАНИЕ
+                    if (sku_sku && sku_name) {
+                        var group = sku_groups_with_name[sku_sku + "|" + sku_name];
+                        if (group.length > 1 && group.indexOf(sku) >= 0) {
+                            Vue.set(sku.errors, "sku_full_unique", {
+                                "id": "sku_full_unique",
+                                "text": "sku_full_unique"
+                            });
+                            errors.push("sku_full_unique");
+                        }
+
+                    } else if (sku_sku && !sku_name) {
+                        var sku_group = sku_groups[sku_sku];
+                        if (sku_group.length > 1 && sku_group.indexOf(sku) >= 0) {
+                            Vue.set(sku.errors, "sku_unique", {
+                                "id": "sku_unique",
+                                "text": that.locales["sku_unique_error"]
+                            });
+                            errors.push("sku_unique");
+                        }
+
+                    } else if (!sku_sku && sku_name) {
+                        Vue.set(sku.errors, "sku_required", {
+                            "id": "sku_required",
                             "text": that.locales["sku_required"]
                         });
                         errors.push("sku_required");
-                    }
-                // Значение есть
-                } else {
-                    // Ошибка уникального значения
-                    if (sku_group.length > 1 && sku_group.indexOf(sku) >= 0) {
-                        Vue.set(sku.errors, "sku.sku.unique", {
-                            "id": "sku.sku.unique",
-                            "text": that.locales["sku_unique_error"]
+
+                    } else if (!sku_sku && !sku_name) {
+                        Vue.set(sku.errors, "sku_full_required", {
+                            "id": "sku_full_required",
+                            "text": "sku_full_required"
                         });
-                        errors.push("sku.sku.unique");
+                        errors.push("sku_full_required");
                     }
                 }
 
+                // ОШИБКИ ЦЕН МОДИФИКАЦИЙ
                 $.each(sku.modifications, function(i, sku_mod) {
                     if (sku_mod.additional_prices.length) {
                         $.each(sku_mod.additional_prices, function(i, field) {
@@ -3707,21 +3966,24 @@
                 });
             });
 
+            var unique_features_values_errors = that.checkUniqueFeaturesValuesAtMods();
+            if (unique_features_values_errors.length) {
+                errors = [].concat(errors, unique_features_values_errors);
+            }
+
             return errors;
 
-            function getSkuSkuGroups(skus) {
+            function getSkuSkuGroups(skus, with_name) {
                 var result = {};
 
                 $.each(skus, function(i, sku) {
-                    if (!result[sku.sku]) {
-                        result[sku.sku] = [];
-                    }
+                    var sku_sku = (sku.sku ? sku.sku : ""),
+                        sku_name = (sku.name ? sku.name : ""),
+                        key = sku_sku + (with_name ? "|" + sku.name : "");
 
-                    if (sku.sku) {
-                        result[sku.sku].push(sku);
-                    } else {
-                        result[""].push(sku);
-                    }
+                    if (!result[key]) { result[key] = []; }
+
+                    result[key].push(sku);
                 });
 
                 return result;
@@ -3745,6 +4007,7 @@
                     no_plugin_errors = true,
                     plugin_errors = [],
                     data;
+
                 if (!errors.length) {
                     data = getProductData();
                     no_plugin_errors = beforeSavePluginHook(data, plugin_errors);
@@ -3759,10 +4022,12 @@
                 }
 
                 if (errors.length || !no_plugin_errors) {
-                    var $error = $(".wa-error-text:first");
-                    if ($error.length) {
-                        $(window).scrollTop($error.offset().top - 150);
-                    }
+                    that.vue_model.$nextTick( function() {
+                        var $error = $(".wa-error-text:first");
+                        if ($error.length) {
+                            $(window).scrollTop($error.offset().top - 150);
+                        }
+                    });
                     return false;
                 }
 
@@ -3845,7 +4110,6 @@
                 }
             });
 
-
             function sendRequest(data) {
 
                 return request(data);
@@ -3923,7 +4187,7 @@
                             });
                             data.push({
                                 name: prefix + "[status]",
-                                value: (sku_mod.status ? 1 : 0)
+                                value: getSkuModStatus(sku_mod)
                             });
                             data.push({
                                 name: prefix + "[available]",
@@ -3953,8 +4217,8 @@
                                 });
                             }
 
-                            setFeatures(sku_mod.features_selectable, prefix + "[features]");
-                            setFeatures(sku_mod.features, prefix + "[features]");
+                            setFeatures(sku_mod.features_selectable, prefix + "[features]", !that.product.normal_mode_switch);
+                            setFeatures(sku_mod.features, prefix + "[features]", !that.product.normal_mode_switch);
 
                             setStocks(sku_mod, prefix);
                             setPluginData(sku_mod, prefix);
@@ -4022,6 +4286,15 @@
                             });
                         }
                     }
+
+                    function getSkuModStatus(sku_mod) {
+                        var result = (sku_mod.status ? 1 : 0);
+
+                        var check_front = that.vue_model.checkSkuModFrontFeatures(sku_mod);
+                        if (!check_front) { result = 0; }
+
+                        return result;
+                    }
                 }
 
                 function setPluginFields() {
@@ -4055,7 +4328,9 @@
                     });
                 }
 
-                function setFeatures(features, root_prefix) {
+                function setFeatures(features, root_prefix, clear) {
+                    clear = (typeof clear === "boolean" ? clear : false);
+
                     if (!features.length) { return false; }
 
                     $.each(features, function(i, feature) {
@@ -4070,21 +4345,21 @@
                                     }
                                     data.push({
                                         name: local_prefix + "[value]",
-                                        value: option["value"]
+                                        value: (clear ? "" : option["value"])
                                     });
                                 });
 
                                 if (feature.active_unit) {
                                     data.push({
                                         name: root_prefix + "[" + feature.code + (feature.options.length > 1 ? ".0" : "") + "][unit]",
-                                        value: feature.active_unit["value"]
+                                        value: (clear ? "" : feature.active_unit["value"])
                                     });
                                 }
                                 break;
                             case "select":
                                 data.push({
                                     name: prefix,
-                                    value: feature.active_option["value"]
+                                    value: (clear ? "" : feature.active_option["value"])
                                 });
                                 break;
                             case "checkbox":
@@ -4092,7 +4367,7 @@
                                     if (option.active) {
                                         data.push({
                                             name: prefix + "[]",
-                                            value: option["value"]
+                                            value: (clear ? "" : option["value"])
                                         });
                                     }
                                 });
@@ -4100,37 +4375,17 @@
                             case "textarea":
                                 data.push({
                                     name: prefix,
-                                    value: feature["value"]
+                                    value: (clear ? "" : feature["value"])
                                 });
                                 break;
                             case "range":
                                 data.push({
                                     name: prefix + "[value][begin]",
-                                    value: feature.options[0]["value"]
+                                    value: (clear ? "" : feature.options[0]["value"])
                                 });
                                 data.push({
                                     name: prefix + "[value][end]",
-                                    value: feature.options[1]["value"]
-                                });
-                                break;
-                            case "range.date":
-                                data.push({
-                                    name: prefix + "[value][begin]",
-                                    value: feature.options[0]["value"]
-                                });
-                                data.push({
-                                    name: prefix + "[value][end]",
-                                    value: feature.options[1]["value"]
-                                });
-                                break;
-                            case "range.volume":
-                                data.push({
-                                    name: prefix + "[value][begin]",
-                                    value: feature.options[0]["value"]
-                                });
-                                data.push({
-                                    name: prefix + "[value][end]",
-                                    value: feature.options[1]["value"]
+                                    value: (clear ? "" : feature.options[1]["value"])
                                 });
                                 if (feature.active_unit) {
                                     data.push({
@@ -4139,20 +4394,46 @@
                                     });
                                 }
                                 break;
+                            case "range.date":
+                                data.push({
+                                    name: prefix + "[value][begin]",
+                                    value: (clear ? "" : feature.options[0]["value"])
+                                });
+                                data.push({
+                                    name: prefix + "[value][end]",
+                                    value: (clear ? "" : feature.options[1]["value"])
+                                });
+                                break;
+                            case "range.volume":
+                                data.push({
+                                    name: prefix + "[value][begin]",
+                                    value: (clear ? "" : feature.options[0]["value"])
+                                });
+                                data.push({
+                                    name: prefix + "[value][end]",
+                                    value: (clear ? "" : feature.options[1]["value"])
+                                });
+                                if (feature.active_unit) {
+                                    data.push({
+                                        name: prefix + "[unit]",
+                                        value: (clear ? "" : feature.active_unit["value"])
+                                    });
+                                }
+                                break;
                             case "field.date":
                                 data.push({
                                     name: prefix,
-                                    value: feature.options[0]["value"]
+                                    value: (clear ? "" : feature.options[0]["value"])
                                 });
                                 break;
                             case "color":
                                 data.push({
                                     name: prefix + "[value]",
-                                    value: feature.options[0]["value"]
+                                    value: (clear ? "" : feature.options[0]["value"])
                                 });
                                 data.push({
                                     name: prefix + "[code]",
-                                    value: feature.options[0]["code"]
+                                    value: (clear ? "" : feature.options[0]["code"])
                                 });
                                 break;
                             default:
@@ -4950,6 +5231,11 @@
                 active_photo = photos[0];
             }
 
+            if (!that.product.normal_mode && active_photo && photos.indexOf(active_photo) > 0) {
+                photos.splice(photos.indexOf(active_photo), 1);
+                photos.unshift(active_photo);
+            }
+
             new Vue({
                 el: $vue_section[0],
                 data: {
@@ -5218,7 +5504,7 @@
                     methods: {
                         onFeatureValueAdded: function(option) {
                             var self = this;
-                            self.feature.options.push({
+                            self.feature.options.unshift({
                                 name: option.name,
                                 value: option.value,
                                 active: true
@@ -5358,6 +5644,148 @@
             that.highlight("sku_mod", { sku_mod: moved_mod });
 
             that.$wrapper.trigger("change");
+
+            that.checkUniqueFeaturesValuesAtMods({ focus: false });
+        };
+
+        /**
+         * @return {Array} errors
+         * */
+        Section.prototype.checkUniqueFeaturesValuesAtMods = function(options) {
+            options = (typeof options === "object" ? options : {});
+            options.focus = (typeof options.focus === "boolean" ? options.focus : true);
+
+            var that = this,
+                values_object = getValuesObject(),
+                result = [];
+
+            $.each(that.product.skus, function(i, sku) {
+                $.each(sku.modifications, function(i, sku_mod) {
+                    handler(sku_mod, sku);
+                });
+            });
+
+            return result;
+
+            function handler(sku_mod, sku) {
+                var error_id = "product[skus]["+sku_mod.id+"][features_name]";
+
+                // Удаляем ошибку
+                if (options.clear) {
+                    Vue.delete(that.errors, error_id);
+
+                // Устанавливаем ошибку
+                } else {
+                    var sku_mod_error = checkError(sku_mod, sku);
+                    if (sku_mod_error) {
+                        Vue.set(that.errors, error_id, sku_mod_error);
+                        result.push(sku_mod_error);
+
+                        // Ставим фокус на первой ошибке
+                        if (options.focus) {
+                            if (result.length === 1) {
+                                var $sku_mod = that.$wrapper.find(".s-modification-wrapper[data-id=\""+sku_mod.id+"\"]");
+                                if ($sku_mod.length) {
+                                    $(window).scrollTop( $sku_mod.offset().top - 100);
+                                }
+                            }
+                        }
+                    } else {
+                        Vue.delete(that.errors, error_id);
+                    }
+                }
+
+                /**
+                 * @param {Object} sku_mod
+                 * @param {Object} sku
+                 * @return {Null|Object}
+                 * */
+                function checkError(sku_mod, sku) {
+                    var result = null,
+                        name = getSkuModName(sku_mod, sku);
+
+                    // Особое условие когда ошибку не выводим.
+                    if (sku.modifications.length === 1 && that.product.sku_type === "0") {
+                        var selectable_features = that.selectable_features.filter( function(feature) {
+                            return feature.active;
+                        });
+                        if (!selectable_features.length) {
+                            return result;
+                        }
+                    }
+
+                    if (name && values_object[name].length > 1) {
+                        result = { id: error_id, text: error_id };
+                    }
+
+                    return result;
+                }
+            }
+
+            /**
+             * @return {Object}
+             */
+            function getValuesObject() {
+                var result = {};
+
+                $.each(that.product.skus, function(i, sku) {
+                    $.each(sku.modifications, function(i, sku_mod) {
+                        var sku_name = getSkuModName(sku_mod, sku);
+                        if (sku_name) {
+                            if (!result[sku_name]) { result[sku_name] = []; }
+                            result[sku_name].push(sku_mod);
+                        }
+                    });
+                });
+
+                return result;
+            }
+
+            /**
+             * @param {Object} sku_mod
+             * @param {Object} sku
+             * @return {String}
+             * */
+            function getSkuModName(sku_mod, sku) {
+                var result = [];
+
+                if (that.product.sku_type === "0") {
+                    result.push("name:" + sku_mod.name);
+                } else if (!sku_mod.features_selectable.length) {
+                    return null;
+                }
+
+                var features = [].concat(sku_mod.features_selectable);
+
+                $.each(features, function(i, feature) {
+                    switch (feature.render_type) {
+                        case "textarea":
+                            result.push("value:" + feature.value);
+                            break;
+                        case "field":
+                        case "field.date":
+                        case "color":
+                            $.each(feature.options, function(k, option) {
+                                var code = (option.code && option.code.length ? option.code : ""),
+                                    value = (option.value.length ? option.value : "");
+                                result.push("option:" + value + (code ? "-"+code : ""));
+                            });
+
+                            if (feature.active_unit && feature.active_unit.value.length) {
+                                result.push("unit:" + feature.active_unit.value);
+                            }
+                            break;
+                        case "select":
+                        case "checkbox":
+                            if (feature.active_option && feature.active_option.value.length) {
+                                result.push("option:" + feature.active_option.value);
+                            }
+                            break;
+                    }
+                });
+
+                return result.join("|");
+            }
         };
 
         // Плагины
