@@ -509,7 +509,7 @@ HTML
     'encoding'                  => array(
         'value'        => 'windows-1251',
         'title'        => 'Кодировка данных для передачи информации о товарах и заказах',
-        'description'  => '',
+        'description'  => 'Измените выбор кодировки, если возникают проблемы при обмене данными.',
         'control_type' => waHtmlControl::SELECT,
         'translate'    => false,
         'options'      => array(
