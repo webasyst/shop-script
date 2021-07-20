@@ -90,9 +90,9 @@
         _w("%d variant", "%d variants", 5, false)
     ],
     "features_hidden_on_front_forms" => [
-        _w("%d модификация не показывается на витрине из-за ошибки", "%d модификации не показываются на витрине из-за ошибки", 1, false),
-        _w("%d модификация не показывается на витрине из-за ошибки", "%d модификации не показываются на витрине из-за ошибки", 2, false),
-        _w("%d модификация не показывается на витрине из-за ошибки", "%d модификаций не показываются на витрине из-за ошибки", 5, false)
+        _w("%d product variant is not displayed in the storefront because of an error.", "%d product variants are not displayed in the storefront because of an error.", 1, false),
+        _w("%d product variant is not displayed in the storefront because of an error.", "%d product variants are not displayed in the storefront because of an error.", 2, false),
+        _w("%d product variant is not displayed in the storefront because of an error.", "%d product variants are not displayed in the storefront because of an error.", 5, false)
     ],
     "value_invalid" => _w("Invalid value"),
     "value_required" => _w("This field is required.")
@@ -212,7 +212,7 @@
     ],
     "product-sku-front-features-2" => [
         "id" => "product-sku-front-features-2",
-        "html" => _w("Товар находится в режиме выбора по характеристикам. Для этого режима необходимо задать хотя бы одну характеристику, по значениям которой, покупатели будет выбирать нужный им вариант товара на витрине.")|escape
+        "html" => _w("The selectable features mode is enabled for this product. In this mode, you need to pick at least one feature for customers to select the variants of this product in the storefront.")|escape
     ],
     "product-mass-sku-generation" => [
         "id" => "product-mass-sku-generation",
@@ -226,36 +226,36 @@
     ],
     "product-sku-features-hidden-on-front" => [
         "id" => "product-sku-features-hidden-on-front",
-        "html" => _w("В модификациях должны быть указаны значения для всех характеристик, которые используются для выбора вариантов товара на витрине. Значение по умолчанию а товаре для таких характеристик задать нельзя.")|escape
+        "html" => _w("In the product variants’ properties must be specified the values of all selectable product features. You cannot select default values of such features for the entire product.")|escape
     ],
     "product-sku-feature-hidden-on-front" => [
         "id" => "product-sku-feature-hidden-on-front",
-        "html" => _w("Модификация не показана на витрине. Чтобы показать модификацию заполните все значения характеристик для выбора вариантов товара на витрине для этой модификации.")|escape
+        "html" => _w("This product variant is not displayed in the storefront. To make it displayed, specify the values of all selectable features in its properties.")|escape
     ],
     "product-feature-used-on-front" => [
         "id" => "product-feature-used-on-front",
-        "html" => _w("Характеристика используется для выбора вариантов товара на витрине. Задать значение для неё можно только на уровне артикула.")|escape,
+        "html" => _w("This feature is used to select product variants in the storefront. Its values can be selected only for individual SKUs.")|escape,
         "position" => "top"
     ],
     "sku_full_required" => [
         "id" => "sku_full_required",
-        "html" => _w("Заполните код и/или наименование для артикула. Сочетание Код+Наименование должно быть уникальным для артикула в рамках товара.")|escape
+        "html" => _w("Enter an SKU code or name, or both of these values. The “code + name” combination must be unique for every SKU of this product.")|escape
     ],
     "sku_full_unique" => [
         "id" => "sku_full_unique",
-        "html" => _w("В товаре есть артикулы, у которых совпадает сочетание Код + Наименование. Это сочетание должно быть уникальным в рамках одного товара.")|escape
+        "html" => _w("This product has SKUs with the same “code + name” combination. It must be unique for all SKUs within a product.")|escape
     ],
     "sku_mod_features_name_error" => [
         "id" => "sku_mod_features_name_error",
-        "html" => _w("Чтобы отличать модификации одного арикула необходимо выбрать характеристики для выбора вариантов товара и задать им значения в модификациях.")|escape
+        "html" => _w("To distinguish the variants of an SKU from others, pick some features for product variants selection in the strorefront and specify their values in the product variants’ properties.")|escape
     ],
     "sku_mod_features_values_error" => [
         "id" => "sku_mod_features_values_error",
-        "html" => _w("В товаре есть модификации с одинаковым наименованием. Наименование модификации состоит из наименования артикула и перечня значений характеристик для выбора вариантов товара. Измените наименование модификации или удалите дублирующие модификации.")|escape
+        "html" => _w("The product has variants with equal names. The name of a product variant consists of an SKU name and the values of selectable features. Please either change the names of product variants or delete duplicate variants.")|escape
     ],
     "product-feature-type-select" => [
         "id" => "product-feature-type-select",
-        "html" => _w("Для характеристики формата \"Выбор нескольких значений из списка\" нельзя задать значение по умолчанию. Задайте значения для этой характеристики на уровне модификаций.")|escape
+        "html" => _w("You cannot select default values for features with the “Multiple values selection from a list” format. Select this feature’s values in product variants’ properties.")|escape
     ]
 ]}
 

@@ -13,34 +13,34 @@
 {/strip}
 
 <div class="field s-products-selection-wrapper js-product-selector-field">
-    <div class="name">[`Будет применяться`]</div>
+    <div class="name">[`Applied to`]</div>
     <div class="value">
         <div class="s-table-wrapper">
             <div class="s-variants-column">
                 <ul class="menu-v">
                     <li>
-                        <label class="black"><input type="radio" value="" name="hash" {if empty($hash.type)}checked{/if}>&nbsp;{_wd('shop',"Ко всему заказу, без учёта доставки")}</label>
-                        <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Купон будет применён ко всем позициям в заказе, в том числе к услугам на конкретные товары. На стоимость услуги доставки купон не повлияет.`]</span></span>
+                        <label class="black"><input type="radio" value="" name="hash" {if empty($hash.type)}checked{/if}>&nbsp;[`Entire order except for shipping`]</label>
+                        <span class="shop-tooltip"><i class="icon10 info"></i><span>[`The coupon will be applied to products and services and will not affect the shipping cost.`]</span></span>
                     </li>
                     <li>
-                        <span><input type="radio" style="visibility:hidden;">&nbsp;[`К определенным товарам:`]</span>
-                        <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Купон будет применяться только к товарам, к услугам на товары и доставке применяться не будет`]</span></span>
+                        <span><input type="radio" style="visibility:hidden;">&nbsp;[`To specified products:`]</span>
+                        <span class="shop-tooltip"><i class="icon10 info"></i><span>[`The coupon will be applied only to products and will not affect the cost of services or the shipping cost.`]</span></span>
                     </li>
                     <li class="s-shifted">
                         <label class="black"><input type="radio" value="id" name="hash"{if $hash.type eq 'id'} checked="checked"{/if}>
-                            <input type="hidden" value="{$hash.product_ids|default:''}" name="product_ids"> <span data-text="{_wd('shop',"Выбранным (%d)")|escape}">{if $hash.type eq 'id'}{$hash.count|string_format:"{_wd('shop',"Выбранным (%d)")|escape}"}{else}{'0'|string_format:"{_wd('shop',"Выбранным (%d)")|escape}"}{/if}</span></label>
+                            <input type="hidden" value="{$hash.product_ids|default:''}" name="product_ids"> <span data-text="{_wd('shop',"Selected products (%d)")|escape}">{if $hash.type eq 'id'}{$hash.count|string_format:"{_wd('shop',"Selected products (%d)")|escape}"}{else}{'0'|string_format:"{_wd('shop',"Selected products (%d)")|escape}"}{/if}</span></label>
                     </li>
                     <li class="s-shifted" {if $hash.type neq 'category' && empty($hash.data.categories)}style="display: none;"{/if}>
                         <label class="black"><input type="radio" value="category" name="hash"{if $hash.type eq 'category'} checked="checked"{/if}>
                             <input type="hidden" value="{$hash.category_ids|default:''}" name="category_ids">
-                            <span data-text="{_wd('shop','Categories')|escape}">[`Из категории`]</span>
+                            <span data-text="{_wd('shop','Category')|escape}">[`Category`]</span>
                         </label>
                     </li>
                     <li class="s-shifted">
-                        <label class="black"><input type="radio" value="set" name="hash"{if $hash.type eq 'set'} checked="checked"{/if}>&nbsp;[`Из списка`]</label>
+                        <label class="black"><input type="radio" value="set" name="hash"{if $hash.type eq 'set'} checked="checked"{/if}>&nbsp;[`Set`]</label>
                     </li>
                     <li class="s-shifted">
-                        <label class="black"><input type="radio" value="type" name="hash"{if $hash.type eq 'type'} checked="checked"{/if}>&nbsp;[`Принадлежащих к типу`]</label>
+                        <label class="black"><input type="radio" value="type" name="hash"{if $hash.type eq 'type'} checked="checked"{/if}>&nbsp;[`Type`]</label>
                     </li>
                 </ul>
             </div>

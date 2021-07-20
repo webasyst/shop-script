@@ -997,7 +997,7 @@ SQL;
          * @var shopTypeFeaturesModel $type_features_model
          */
         static $type_features_model;
-        static $extended_sku_fields_behavior = [];
+        static $is_extended_sku_behavior = false;
 
         $this->data['sku_feature_codes'] = array();
         $this->data['last_product_sku_code'] = null;
@@ -1111,6 +1111,9 @@ SQL;
                     if (!count($current_sku['stock']) && ($current_sku['count'] !== null)) {
                         $current_sku['stock'][0] = $current_sku['count'];
                     }
+                    if (!empty($current_sku['virtual']) && isset($data['row_type'])) {
+                        $current_sku['virtual'] = 0;
+                    }
                     $data['skus'][$sku_id] = $current_sku;
                 }
             }
@@ -1156,7 +1159,7 @@ SQL;
         if (isset($data['row_type']) && ($data['row_type'] == self::STAGE_PRODUCT || $data['row_type'] == self::STAGE_PRODUCT_VARIANT)) {
             $this->data['is_deleted_empty_sku'] = false;
             if ($data['row_type'] == self::STAGE_PRODUCT) {
-                $extended_sku_fields_behavior = [];
+                $is_extended_sku_behavior = false;
             }
             if ($data['row_type'] == self::STAGE_PRODUCT_VARIANT) {
                 $this->data['last_product_sku_code'] = ifset($data, 'skus', -1, 'sku', null);
@@ -1170,14 +1173,7 @@ SQL;
                 if (is_array($values)) {
                 } elseif (preg_match('/^\{(.+,.+)\}$/', $values, $matches)) {
                     $values = array_map('trim', $this->parseRow($matches[1]));
-                } else {
-                    $matches = null;
-                    if (in_array($feature, $extended_sku_fields_behavior)) {
-                        $matches = array(1 => $values);
-                    }
-                    if ($matches === null && !preg_match('/^<\{(.*)\}>$/', $values, $matches)) {
-                        continue;
-                    }
+                } elseif (preg_match('/^<\{(.*)\}>$/', $values, $matches)) {
                     if (!isset($this->data['sku_feature_codes'][$feature])) {
                         $this->data['sku_feature_codes'][$feature] = $feature;
                     }
@@ -1185,7 +1181,7 @@ SQL;
                         $data['features_selectable'] = array();
                     }
                     if (isset($data['row_type']) && $data['row_type'] == self::STAGE_PRODUCT && $values == '<{}>') {
-                        $extended_sku_fields_behavior[] = $feature;
+                        $is_extended_sku_behavior = true;
                         $data['features_selectable'] = array();
                         continue;
                     }
@@ -1207,7 +1203,7 @@ SQL;
                             unset($value);
                         }
 
-                        if (empty($extended_sku_fields_behavior)) {
+                        if ($is_extended_sku_behavior == false) {
                             $data['features_selectable'][$feature] = array(
                                 'values' => $values,
                             );
@@ -1318,7 +1314,7 @@ SQL;
             $primary_keys = explode(':', $primary_field);
             $primary_value = self::getData($data, $primary_keys);
             if ($primary_value == null && isset($this->reader->data_mapping[$primary_field])) {
-                $empty_column_error = _w('Столбец идентификации товаров пуст');
+                $empty_column_error = _w('The products identification column is empty.');
                 $this->writeImportError($empty_column_error);
                 $this->error($empty_column_error);
                 $empty = true;
@@ -1545,14 +1541,32 @@ SQL;
 
                 /** @var shopProductFeaturesModel $product_feature_model */
                 $product_feature_model = $this->model('product_features');
-                $current_features = array_intersect_key($saved_features, $data_features);
+                $selectable_data_features = [];
+                foreach ($data_features as $feature_code => $feature_value) {
+                    if (preg_match('/^<\{(.*)\}>$/', $feature_value) === 1) {
+                        $selectable_data_features[$feature_code] = $feature_value;
+                    }
+                }
+                /** @var shopProductFeaturesSelectableModel $feature_selectable_model */
+                $feature_selectable_model = $this->model('product_features_selectable');
+                $selectable_feature_ids = $feature_selectable_model->getFeatures($id);
+                if ($selectable_feature_ids) {
+                    foreach ($saved_features as $feature_code => $feature) {
+                        foreach ($selectable_feature_ids as $feature_id) {
+                            if ($feature['id'] == $feature_id && isset($data_features[$feature_code])) {
+                                $selectable_data_features[$feature_code] = $data_features[$feature_code];
+                            }
+                        }
+                    }
+                }
+                $current_features = array_intersect_key($saved_features, $selectable_data_features);
                 $product_feature_values = $product_feature_model->getValuesMultiple($current_features, $id, array_keys($product->skus));
 
                 foreach ($product->skus as $sku_id => $current_sku) {
                     if ($current_sku[$sku_primary] === ifset($sku[$sku_primary], '')) {
                         $all_values_exist = true;
                         if (!empty($product_feature_values) && $this->data['is_sku_feature']) {
-                            foreach ($data_features as $feature_code => $feature_value) {
+                            foreach ($selectable_data_features as $feature_code => $feature_value) {
                                 if (!is_array($feature_value)) {
                                     if (isset($product_feature_values[$sku_id][$feature_code])) {
                                         $product_feature_value = sprintf('%s', str_replace("\r\n", "\r", $product_feature_values[$sku_id][$feature_code]));
@@ -1698,7 +1712,9 @@ SQL;
                                 if (!isset($truncated_data['skus'][$item_sku_id]['features'])) {
                                     $truncated_data['skus'][$item_sku_id]['features'] = array();
                                 }
-                                $truncated_data['skus'][$item_sku_id]['features'][$code] = $data['features'][$code];
+                                if (isset($data['features'][$code])) {
+                                    $truncated_data['skus'][$item_sku_id]['features'][$code] = $data['features'][$code];
+                                }
                             }
                         }
 
@@ -1716,7 +1732,7 @@ SQL;
                             }
                         } catch (waException $e) {
                             $this->error($e->getMessage());
-                            $this->writeImportError(_w('Не удалось импортировать изображение артикула') . '; ' . $e->getMessage());
+                            $this->writeImportError(_w('The SKU image could not be imported.') . '; ' . $e->getMessage());
                         }
 
                         try {
@@ -1854,7 +1870,7 @@ SQL;
                             $model->updateById($exists['id'], compact('description'));
                             $this->data['processed_count'][self::STAGE_IMAGE_DESCRIPTION]['update']++;
                         }
-                        $this->writeImportError(_w('Изображение уже существует'));
+                        $this->writeImportError(_w('The image already exists.'));
                         break;
                     default:
                         $image = $this->getImage($file);
@@ -1885,7 +1901,7 @@ SQL;
             } catch (Exception $e) {
                 $target = 'error';
                 $this->error($e->getMessage());
-                $this->writeImportError(_w('Не удалось импортировать изображение') . '; ' . $e->getMessage());
+                $this->writeImportError(_w('The image could not be imported.') . '; ' . $e->getMessage());
             }
 
             $this->data['processed_count'][self::STAGE_IMAGE][$target]++;
@@ -2610,13 +2626,6 @@ SQL;
 
             }
             unset($values);
-        }
-        if (!$simple_product) {
-            foreach ($sku['features'] as $code => $values) {
-                if (!isset($product['features'][$code])) {
-                    $product['features'][$code] = '<{}>';
-                }
-            }
         }
 
 

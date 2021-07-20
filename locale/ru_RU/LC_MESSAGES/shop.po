@@ -12239,3 +12239,90 @@ msgstr "Доступность"
 
 msgid "The feature will be available for all products of this type."
 msgstr "Характеристика будет доступна для всех товаров этого типа."
+
+msgid "Applied to"
+msgstr "Применяется"
+
+msgid "Entire order except for shipping"
+msgstr "Ко всему заказу без учета доставки"
+
+msgid "The coupon will be applied to products and services and will not affect the shipping cost."
+msgstr "Купон будет применен ко всем товарам и услугам в заказе. На стоимость доставки купон не повлияет."
+
+msgid "To specified products:"
+msgstr "К отдельным товарам:"
+
+msgid "The coupon will be applied only to products and will not affect the cost of services or the shipping cost."
+msgstr "Купон будет применен только к товарам. На стоимость услуг и доставки купон не повлияет."
+
+msgid "Invalid URL"
+msgstr "Неправильный URL"
+
+msgid "Maximum URL length is 2048 characters"
+msgstr "Максимальная длина URL — 2048 символов"
+
+msgid "Link to promo description"
+msgstr "Ссылка на описание акции"
+
+msgid "Main image"
+msgstr "Главное изображение"
+
+msgid "Some product variants are not displayed in the storefront because of errors."
+msgstr "Некоторые модификации товара не видны на витрине из-за ошибок."
+
+msgid "The main image is selected in the product’s main variant."
+msgstr "Главное изображение выбирается в свойствах главной модификации товара."
+
+msgid "Open the “Prices & features” tab to fix errors in the product variants."
+msgstr "Перейдите в раздел «Цены и характеристики», чтобы устранить ошибки в модификациях товара."
+
+msgid "Product page"
+msgstr "Страница товара"
+
+msgid "This field may contain a maximum of 255 characters."
+msgstr "Это поле может содержать не более 255 символов."
+
+msgid "%d product variant is not displayed in the storefront because of an error."
+msgid_plural "%d product variants are not displayed in the storefront because of an error."
+msgstr[0] "%d модификация не показана на витрине из-за ошибки."
+msgstr[1] "%d модификации не показаны на витрине из-за ошибки."
+msgstr[2] "%d модификаций не показаны на витрине из-за ошибки."
+
+msgid "The selectable features mode is enabled for this product. In this mode, you need to pick at least one feature for customers to select the variants of this product in the storefront."
+msgstr "Для товара активирован режим выбора по характеристикам. В этом режиме нужно задать хотя бы одну характеристику, по значениям которой покупатели будут выбирать нужный вариант товара на витрине."
+
+msgid "In the product variants’ properties must be specified the values of all selectable product features. You cannot select default values of such features for the entire product."
+msgstr "В модификациях товара должны быть указаны значения всех характеристик, выбираемых покупателями на витрине. Значение по умолчанию таких характеристик для всего товара выбрать нельзя."
+
+msgid "This product variant is not displayed in the storefront. To make it displayed, specify the values of all selectable features in its properties."
+msgstr "Модификация товара не показана на витрине. Чтобы показать модификацию, заполните значения всех характеристик для выбора вариантов товара на витрине для этой модификации."
+
+msgid "This feature is used to select product variants in the storefront. Its values can be selected only for individual SKUs."
+msgstr "Эта характеристика используется для выбора вариантов товара на витрине. Ее значение можно выбрать только в свойствах артикула."
+
+msgid "Enter an SKU code or name, or both of these values. The “code + name” combination must be unique for every SKU of this product."
+msgstr "Заполните код или наименование артикула либо оба этих значения. Сочетание «код + наименование» должно быть уникальным для каждого артикула этого товара."
+
+msgid "This product has SKUs with the same “code + name” combination. It must be unique for all SKUs within a product."
+msgstr "У товара есть артикулы с совпадающим сочетанием «код + наименование». Это сочетание должно быть уникальным в пределах одного товара."
+
+msgid "To distinguish the variants of an SKU from others, pick some features for product variants selection in the strorefront and specify their values in the product variants’ properties."
+msgstr "Чтобы отличать модификации одного артикула от других, нужно определить характеристики для выбора вариантов товара на витрине и задать для них значения в свойствах модификаций."
+
+msgid "The product has variants with equal names. The name of a product variant consists of an SKU name and the values of selectable features. Please either change the names of product variants or delete duplicate variants."
+msgstr "У товара есть модификации с одинаковым наименованием. Наименование модификации состоит из наименования артикула и значений характеристик для выбора на витрине. Измените наименования модификаций или удалите дублирующие модификации."
+
+msgid "You cannot select default values for features with the “Multiple values selection from a list” format. Select this feature’s values in product variants’ properties."
+msgstr "Для характеристики с форматом «Выбор нескольких значений из списка» нельзя задать значение по умолчанию. Выберите значения этой характеристики в свойствах модификаций товара."
+
+msgid "The products identification column is empty."
+msgstr "Столбец идентификации товаров пуст."
+
+msgid "The SKU image could not be imported."
+msgstr "Не удалось импортировать изображение артикула."
+
+msgid "The image already exists."
+msgstr "Изображение уже существует."
+
+msgid "The image could not be imported."
+msgstr "Не удалось импортировать изображение."

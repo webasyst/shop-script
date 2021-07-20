@@ -52,7 +52,7 @@
     ],
     "product-name-error" => [
         "id" => "product-name-error",
-        "html" => _w("Это поле может содержать не более 255 символов")
+        "html" => _w("This field may contain a maximum of 255 characters.")
     ]
 ]}
 
@@ -208,7 +208,7 @@
                         <div class="name">
 
                             <div class="wa-label for-input">
-                                <div>[`Страница товара`]</div>
+                                <div>[`Product page`]</div>
                             </div>
 
                         </div>
@@ -1243,14 +1243,14 @@
         {if $show_sku_warning}
             {$_tooltips["product-sku-features-hidden-on-front"] = [
                 "id" => "product-sku-features-hidden-on-front",
-                "html" => _w("Перейдите в раздел «Цены и характеристики», чтобы устранить ошибки в модификациях.")|escape
+                "html" => _w("Open the “Prices & features” tab to fix errors in the product variants.")|escape
             ]}
 
             <div class="s-features-hidden-on-front-section">
                 <div class="wa-message wa-small warn flexbox space-8">
                     <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
                     <div class="message-text wide">
-                        <span class="s-text">[`В товаре есть модификаций, которые не показываются на витрине из-за ошибки`]</span>
+                        <span class="s-text">[`Some product variants are not displayed in the storefront because of errors.`]</span>
                         <span class="s-icon" data-tooltip-id="product-sku-features-hidden-on-front"><i class="fas fa-question-circle  gray"></i></span>
                     </div>
                 </div>

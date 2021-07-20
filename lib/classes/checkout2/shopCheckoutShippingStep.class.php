@@ -129,6 +129,7 @@ class shopCheckoutShippingStep extends shopCheckoutStep
         // When some plugins asked to adjust shipping address, and user selected one of the options suggested by a plugin,
         // ask those plugins again with selected adjusted address given to them.
         $selected_possible_address = ifset($data, 'input', 'region', 'possible_address', null);
+        $adjusted_address = [];
         if ($possible_addresses_plugin_ids && $selected_possible_address) {
             // Remove shipping options provided by some plugins.
             // We're going to ask those plugins again via getShippingRates() below.
@@ -354,8 +355,13 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             ];
         } else {
             // This is used by Details step later
+            $selected_plugin_id = explode('.', $selected_variant_id)[0];
+            $address_for_selected_plugin = $address;
+            if (isset($possible_addresses_plugin_ids[$selected_plugin_id])) {
+                $address_for_selected_plugin = $adjusted_address;
+            }
             $data['shipping']['items'] = $items;
-            $data['shipping']['address'] = $address;
+            $data['shipping']['address'] = $address_for_selected_plugin;
             $data['shipping']['selected_variant'] = $shipping_types[$selected_type_id]['variants'][$selected_variant_id];
             $data['shipping']['is_free_shipping'] = $is_free_shipping;
         }

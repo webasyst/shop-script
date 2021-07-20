@@ -7,7 +7,7 @@
     ],
     "product-media-photo-main" => [
         "id" => "product-media-photo-main",
-        "html" => _w("Главное фото определяется выбором в главной модификации.")
+        "html" => _w("The main image is selected in the product’s main variant.")
     ]
 ]}
 
@@ -248,7 +248,7 @@
 
                                 <div class="s-photo-label">
                                     <template v-if="isMainPhoto(photo)">
-                                        <span class="s-label is-main">[`Главное изображение`]</span>
+                                        <span class="s-label is-main">[`Main image`]</span>
                                         <span class="s-icon"
                                               data-tooltip-id="product-media-photo-main"
                                               v-if="product.normal_mode"><i class="fas fa-question-circle"></i></span>
@@ -314,14 +314,14 @@
             {if $show_sku_warning}
                 {$_tooltips["product-sku-features-hidden-on-front"] = [
                 "id" => "product-sku-features-hidden-on-front",
-                "html" => _w("Перейдите в раздел «Цены и характеристики», чтобы устранить ошибки в модификациях.")|escape
+                "html" => _w("Open the “Prices & features” tab to fix errors in the product variants.")|escape
                 ]}
 
                 <div class="s-features-hidden-on-front-section">
                     <div class="wa-message wa-small warn flexbox space-8">
                         <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
                         <div class="message-text wide">
-                            <span class="s-text">[`В товаре есть модификаций, которые не показываются на витрине из-за ошибки`]</span>
+                            <span class="s-text">[`Some product variants are not displayed in the storefront because of errors.`]</span>
                             <span class="s-icon" data-tooltip-id="product-sku-features-hidden-on-front"><i class="fas fa-question-circle  gray"></i></span>
                         </div>
                     </div>

@@ -305,7 +305,7 @@ class shopProdSaveSkuController extends waJsonController
 
             /** для сохранения фич, избавляемся от лишней вложенности */
             foreach ($product_data['features'] as $feature => $val) {
-                if (is_array($val) && 1 === count($val) && isset($val['value']) && is_string($val['value'])) {
+                if (is_array($val) && 1 === count($val) && isset($val['value']) && '0' === $val['value']) {
                     $product_data['features'][$feature] = $val['value'];
                 }
             }
