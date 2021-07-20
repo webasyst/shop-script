@@ -1,5 +1,20 @@
 {strip}
 
+{assign var=currency_warning value=
+'<div style="background: #ffe63f; border-color: #efc61f; color: #d55a00; padding: 10px; border-radius: 0.25em;">
+    <i class="icon16 exclamation"></i>
+    <strong>Экспортированные цены товаров могут отличаться от цен товаров на витрине</strong>
+    <br><br>
+    Это может привести к штрафным санкциям со стороны «Яндекс.Маркета».
+    <br><br>
+    Как исправить:
+    <ol>
+        <li>Для настройки плагина «<em>Основная валюта</em>» выберите валюту, соответствующую валюте витрины.</li>
+        <li>Для настройки плагина «<em>Конвертация цен в основную валюту</em>» выберите «<strong>Цены в любой валюте, отличной от основной, будут сконвертированы в основную валюту</strong>».</li>
+    </ol>
+    Цены товаров могут быть сохранены в разных валютах.
+</div>'}
+
 <div class="block double-padded ymarket-setup-page" id="s-yandexmarket-form">
     <p>Экспорт каталога товаров в формате YML</p>
     <div class="block">
@@ -34,6 +49,13 @@
                 </div>
             </div>
         {/if}
+
+        {if $error_currency}
+        <div class="field-group block">
+            {$currency_warning}
+        </div>
+        {/if}
+
         <div class="field-group block">
             <div class="field js-profile-description">
                 <div class="name">Название профиля</div>
@@ -733,6 +755,10 @@
         {/if}
     </section>
     <div class="clear-left"></div>
+
+    <div class="field-group block js-currency-warning" {if !$error_currency}style="display:none;"{/if}>
+        {$currency_warning}
+    </div>
 
     <div class="field-group" id="plugin-yandexmarket-submit">
         <div class="field">

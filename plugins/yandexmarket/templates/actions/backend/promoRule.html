@@ -19,7 +19,7 @@
     </td>
     <td class="s-details-column">
         <label for="s_plugins_yandexmarket_export_promo_rules_{$id|escape}">
-            <span class="bold">{$promo_name|default:$promo.name|escape}</span>
+            <span class="bold {if empty($promo.url)}gray{/if}">{$promo_name|default:$promo.name|escape}</span>
         </label>
 
         <span class="hint">{$promo_description|default:$promo.description|escape}</span>

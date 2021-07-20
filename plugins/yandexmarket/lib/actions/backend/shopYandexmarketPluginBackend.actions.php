@@ -27,7 +27,7 @@ class shopYandexmarketPluginBackendActions extends waViewActions
     {
         $routing = wa()->getRouting();
         $settlements = array();
-
+        $error_currency = false;
         $this->view->assign('custom_map', $this->plugin()->customMap());
 
         $profile = $this->getProfile();
@@ -45,15 +45,16 @@ class shopYandexmarketPluginBackendActions extends waViewActions
                     $current_domain = $settlement;
                     $routing->setRoute($route, $domain);
                     waRequest::setParam($route);
+                    $error_currency = $this->diffCurrency($route['currency']);
                 }
                 $settlements[] = $settlement;
             }
         }
+        $this->view->assign('error_currency', $error_currency);
         $this->view->assign('ssl', ifset($profile['config']['ssl'], $host == $current_host ? waRequest::isHttps() : false));
         $this->view->assign('settlements', $settlements);
 
         $this->shippingAction($profile);
-
 
         $this->view->assign('info', $this->getFeedInfo($profile, $routing));
 
@@ -61,7 +62,6 @@ class shopYandexmarketPluginBackendActions extends waViewActions
          * @var shopConfig $config ;
          */
         $config = wa('shop')->getConfig();
-
 
         $this->view->assign('company', ifempty($profile['config']['company'], $config->getGeneralSettings('name')));
         $this->view->assign('company_name', ifempty($profile['config']['company_name'], $config->getGeneralSettings('name')));
@@ -434,5 +434,39 @@ class shopYandexmarketPluginBackendActions extends waViewActions
         }
         $this->view->assign('features', $features);
         return $features;
+    }
+
+    /**
+     * Проверка различия валюты экспортируемой и витринной
+     *
+     * @param $storefront_currency
+     * @return bool
+     * @throws waException
+     */
+    private function diffCurrency($storefront_currency)
+    {
+        $result = false;
+
+        /** Общие настройки - 'Основная валюта' и 'Конвертация цен в основную валюту' */
+        $primary_currency = $this->plugin()->getSettings('primary_currency');
+        $convert_currency = $this->plugin()->getSettings('convert_currency');
+
+        if ($storefront_currency !== $primary_currency) {
+            $result = true;
+            if ($primary_currency === 'auto') {
+                /** основная валюта магазина */
+                $result = $storefront_currency !== wa('shop')->getConfig()->getCurrency();
+            } elseif ($primary_currency === 'front') {
+                /** использовать валюту витрины */
+                $result = false;
+            }
+        }
+
+        if (empty($convert_currency)) {
+            /** Общие настройки - 'Конвертация цен в основную валюту' */
+            $result = true;
+        }
+
+        return $result;
     }
 }

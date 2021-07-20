@@ -84,6 +84,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
                         $base_url = (waRequest::isHttps() ? 'https://' : 'http://').$base_url;
                     }
                     $this->data['base_url'] = parse_url($base_url, PHP_URL_HOST);
+                    $this->data['error_currency']  = $this->diffCurrency($route['currency']);
                     $success = true;
                     break;
                 }
@@ -1276,7 +1277,8 @@ SQL;
             'count'      => empty($this->data['count']) ? false : $this->data['count'],
             'memory'     => sprintf('%0.2fMByte', $this->data['memory'] / 1048576),
             'memory_avg' => sprintf('%0.2fMByte', $this->data['memory_avg'] / 1048576),
-        );
+            'error_currency' => empty($this->data['error_currency']) ? false : $this->data['error_currency']
+    );
 
         $stage_num   = 0;
         $stage_count = count($this->data['current']);
@@ -4156,5 +4158,39 @@ SQL;
             }
         }
         return $this->data['config']['__image_size'];
+    }
+
+    /**
+     * Проверка различия валюты экспортируемой и витринной
+     *
+     * @param $storefront_currency
+     * @return bool
+     * @throws waException
+     */
+    private function diffCurrency($storefront_currency)
+    {
+        $result = false;
+
+        /** Общие настройки - 'Основная валюта' и 'Конвертация цен в основную валюту' */
+        $primary_currency = $this->plugin()->getSettings('primary_currency');
+        $convert_currency = $this->plugin()->getSettings('convert_currency');
+
+        if ($storefront_currency !== $primary_currency) {
+            $result = true;
+            if ($primary_currency === 'auto') {
+                /** основная валюта магазина */
+                $result = $storefront_currency !== wa('shop')->getConfig()->getCurrency();
+            } elseif ($primary_currency === 'front') {
+                /** использовать валюту витрины */
+                $result = false;
+            }
+        }
+
+        if (empty($convert_currency)) {
+            /** Общие настройки - 'Конвертация цен в основную валюту' */
+            $result = true;
+        }
+
+        return $result;
     }
 }

@@ -1494,99 +1494,6 @@ HTML;
         self::getSettingsModel()->set($this->getSettingsKey(), $name, is_array($value) ? json_encode($value) : $value);
     }
 
-    /**
-     * @param mixed  [string] $data
-     * @param int    [string] $data[order_id]        Номер заказа
-     * @param string [string] $data[action_id]       ID действия
-     * @param string [string] $data[before_state_id] ID статуса до выполнения действия
-     * @param string [string] $data[after_state_id]  ID статуса после выполнения действия
-     * @param int    [string] $data[id]              ID записи в логе истории заказа
-     * @param string $event_name
-     * @throws waException
-     * @link https://tech.yandex.ru/market/partner/doc/dg/reference/put-campaigns-id-orders-id-status-docpage/
-     */
-    public function orderActionHandler($data, $event_name = null)
-    {
-        $params = null;
-        $action = null;
-        if ($this->checkApi()) {
-            $available_actions = array('ship', 'complete', 'delete');
-            if (in_array($data['action_id'], $available_actions)) {
-                $action = $data['action_id'];
-            } else {
-                foreach ($available_actions as $available_action) {
-                    $settings = $this->getSettings('order_action_'.$available_action);
-                    $matched_actions = array_keys(array_filter($settings));
-                    $matched = in_array($data['action_id'], $matched_actions);
-                    if ($matched) {
-                        $action = $available_action;
-                        break;
-                    }
-                }
-            }
-        }
-        if ($action && !empty($data['order_id'])) {
-            $params_model = new shopOrderParamsModel();
-            $search = array(
-                'order_id' => $data['order_id'],
-                'name'     => array('yandexmarket.id', 'yandexmarket.campaign_id'),
-            );
-            $params = $params_model->getByField($search, 'name');
-
-
-            if ($params && (count($params) == 2)) {
-                $result = null;
-                try {
-                    switch ($action) {
-                        case 'ship':
-                            $order = array(
-                                'status' => 'DELIVERY',
-                            );
-                            break;
-                        case 'complete':
-                            $order = array(
-                                'status' => 'DELIVERED',
-                            );
-                            break;
-                        case 'pickup':
-                            $order = array(
-                                'status' => 'PICKUP',
-                            );
-                            break;
-                        case 'delete':
-                            if (wa()->getEnv() == 'backend') {
-                                $post = waRequest::post('plugins');
-                                $substatus = 'USER_CHANGED_MIND';
-                                if (!empty($post['yandexmarket']['substatus'])) {
-                                    $substatus = $post['yandexmarket']['substatus'];
-                                    $available = self::getCancelSubstatus();
-                                    if (!isset($available[$substatus])) {
-                                        $substatus = 'USER_CHANGED_MIND';
-                                    }
-                                }
-                                $order = array(
-                                    'status'    => 'CANCELLED',
-                                    'substatus' => $substatus,
-                                );
-
-                            }
-                            break;
-                    }
-                    if (!empty($order)) {
-                        $this->changeOrderState($data['order_id'], $params, $order);
-                    }
-                } catch (waException $ex) {
-                    if (!empty($order)) {
-                        $params_model->set($data['order_id'], array('yandexmarket.status' => json_encode($order)), false);
-                    }
-                    $message = sprintf("Возникла ошибка с кодом %s при выполнении API-запроса для заказа %s:\n%s", $ex->getCode(), $data['order_id'], $ex->getMessage());
-                    waLog::log($message, 'shop/plugins/yandexmarket/api.order.status.error.log');
-                    throw $ex;
-                }
-            }
-        }
-    }
-
     private function changeOrderState($order_id, $params, $order)
     {
         $method = 'campaigns/%d/orders/%d/status';
@@ -1701,41 +1608,6 @@ HTML;
         return array_map('intval', $string);
     }
 
-    public function orderDeleteFormHandler($data, $event_name = null)
-    {
-        $raw_id = null;
-        if ($this->checkApi()) {
-            if (empty($event_name)) {
-                $matched = true;
-            } else {
-                $action = str_replace('order_action_form.', '', $event_name);
-                $settings = $this->getSettings('order_action_delete');
-                $matched = in_array($action, array_keys(array_filter($settings)));
-            }
-            if ($matched && !empty($data['order_id'])) {
-                $order_params_model = new shopOrderParamsModel();
-                $raw_id = $order_params_model->getOne($data['order_id'], 'yandexmarket.id');
-            }
-        }
-        if (empty($raw_id)) {
-            return null;
-        } else {
-            $sub_status = self::getCancelSubstatus();
-            $html = <<<HTML
-        Причина отмены заказа:
-        <select name="plugins[yandexmarket][substatus]">
-HTML;
-            foreach ($sub_status as $id => $description) {
-                $html .= <<<HTML
-<option value="{$id}">{$description}</option>
-HTML;
-
-            }
-            $html .= "</select>";
-            return $html;
-        }
-    }
-
     /**
      * Валидация промоакций
      *
@@ -1770,6 +1642,11 @@ HTML;
                     } elseif ($promo_rule['discount_value'] < shopYandexmarketPlugin::COUPON_DISCOUNT_DIVIDER) {
                         $promo_rule['errors']['discount'] = _wp('Ожидается ненулевая скидка.');
                     }
+                }
+
+                if (empty($promo_rule['url'])) {
+                    $promo_rule['hint']  = (empty($promo_rule['hint']) ? '' : $promo_rule['hint'].'. ');
+                    $promo_rule['hint'] .= _wp('У купона не заполнено обязательное поле URL для «Яндекс Маркета».');
                 }
 
                 break;

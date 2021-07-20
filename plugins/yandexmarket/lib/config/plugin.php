@@ -5,7 +5,7 @@ return array(
     'description'     => 'Экспорт каталога товаров в формате YML',
     'img'             => 'img/yandexmarket.png',
     'vendor'          => 'webasyst',
-    'version'         => '2.4.6',
+    'version'         => '2.4.7',
     'importexport'    => 'profiles',
     'export_profile'  => true,
     'custom_settings' => true,
@@ -18,14 +18,6 @@ return array(
         'backend_order'            => 'backendOrderEvent',
 
         'category_save'            => 'categorySaveHandler',
-
-        'order_action.ship'        => 'orderActionHandler',
-        'order_action.complete'    => 'orderActionHandler',
-        'order_action.delete'      => 'orderActionHandler',
-        'order_action.*'           => 'orderActionHandler',
-
-        'order_action_form.delete' => 'orderDeleteFormHandler',
-        'order_action_form.*'      => 'orderDeleteFormHandler',
 
         'currency_delete'          => 'currencyDeleteHandler',
     ),

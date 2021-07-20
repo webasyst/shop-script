@@ -531,6 +531,7 @@ $.extend($.importexport.plugins, {
             this.form.find(':submit').hide();
             this.form.find('.progressbar .progressbar-inner').css('width', '0%');
             this.form.find('.progressbar').show();
+            this.form.find('.js-currency-warning').hide();
             var url = $(element).attr('action');
             $.ajax({
                 url: url,
@@ -631,6 +632,9 @@ $.extend($.importexport.plugins, {
                             $report.find(".value:first").html($report.find(".value:first").html() + response.report);
                         } else {
                             $report.find(".value:first").html(response.report);
+                        }
+                        if (response.hasOwnProperty('error_currency') && response.error_currency) {
+                            $('.js-currency-warning').show();
                         }
                         $.storage.del('shop/hash');
                     }
