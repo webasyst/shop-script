@@ -107,7 +107,13 @@ class shopMigrateYmlTransport extends shopMigrateTransport
         if (empty($url)) {
             throw new waException(_wp('Empty URL for YML'));
         } else {
-            $name = parse_url($url, PHP_URL_HOST).'.xml';
+            $parsed = parse_url($url);
+            if (empty($parsed['scheme'])) {
+                throw new waException(_wp('Invalid URL: http:// or https:// is expected at the beginning.'));
+            } elseif (empty($parsed['host'])) {
+                throw new waException(_wp('Invalid URL: missing host name.'));
+            }
+            $name = $parsed['host'].'.xml';
             $path = wa()->getTempPath('plugins/migrate/yml/'.$name);
             try {
                 waFiles::upload($url, $path);

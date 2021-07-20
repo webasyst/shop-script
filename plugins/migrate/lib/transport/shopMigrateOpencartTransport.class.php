@@ -38,10 +38,10 @@ class shopMigrateOpencartTransport extends shopMigrateTransport
                     $result = false;
                 }
                 if (empty($parsed['scheme'])) {
-                    $errors['url'] = 'Invalid URL: expect http:// or https://';
+                    $errors['url'] = 'Invalid URL: http:// or https:// is expected at the beginning.';
                     $result = false;
                 } elseif (empty($parsed['host'])) {
-                    $errors['url'] = 'Invalid URL: Empty URL host';
+                    $errors['url'] = 'Invalid URL: missing host name.';
                     $result = false;
                 }
             }

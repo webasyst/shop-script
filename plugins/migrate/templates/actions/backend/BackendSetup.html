@@ -8,25 +8,21 @@
                 <div class="name"><label for="plugin-migrate-transport">[`Platform`]</label></div>
                 <div class="value no-shift">
                     <select name="transport" id="plugin-migrate-transport" class="s-plugin-migrate-transport">
-                    {$group = false}
-                        {if  $group}
-                        <optgroup>
-                        {/if}
+                        {$group = false}
                         {foreach $transports as $id => $t}
-                        {if $group != $t.group}
+                            {if !empty($t.group) && $group != $t.group}
+                                {if !$t@first && $group}
+                                </optgroup>
+                                {/if}
+                                {$group = $t.group}
+                                <optgroup label="{$group|escape}">
+                            {/if}
 
-                        {if !$t@first && $group}
-                        </optgroup>
-                        {/if}
-                        {$group = $t.group}
-                        <optgroup label="{$group|escape}">
-                        {/if}
-
-                        <option value="{$id}" title="{$t.description|strip_tags|escape}"{if $id==$platform} selected{/if}>{$t.title|escape}</option>
-                        {if $t@last}
-                        </optgroup>
-                        {/if}
-{/foreach}
+                            <option value="{$id}" title="{$t.description|strip_tags|escape}"{if $id==$platform} selected{/if}>{$t.title|escape}</option>
+                            {if $t@last}
+                            </optgroup>
+                            {/if}
+                        {/foreach}
                     </select>
                     <br>
                     {foreach $transports as $id => $t}

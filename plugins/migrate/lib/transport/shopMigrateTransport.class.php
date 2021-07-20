@@ -304,6 +304,15 @@ abstract class shopMigrateTransport implements Serializable
             );
 
             $image_changed = false;
+            if (empty($data['ext'])) {
+                $data['ext'] = $this->getExtensionImage($image->mime);
+            }
+
+            $ext = '.'.$data['ext'];
+            $ext_length = strlen($ext);
+            if (substr($data['original_filename'], - $ext_length, $ext_length) != $ext) {
+                $data['original_filename'] .= $ext;
+            }
 
             /**
              * Extend add/update product images
@@ -1284,5 +1293,42 @@ HTML;
     protected function formatDatetime($utc)
     {
         return date('Y-m-d H:i:s', empty($utc) ? null : strtotime($utc));
+    }
+
+    /**
+     * https://www.iana.org/assignments/media-types/media-types.xhtml#image
+     *
+     * @param string $mime_type
+     * @return string
+     */
+    protected function getExtensionImage($mime_type = '')
+    {
+        switch ($mime_type) {
+            case 'image/jpeg':
+                $extension = 'jpg';
+                break;
+            case 'image/png':
+                $extension = 'png';
+                break;
+            case 'image/gif':
+                $extension = 'gif';
+                break;
+            case 'image/webp':
+                $extension = 'webp';
+                break;
+            case 'image/svg+xml':
+                $extension = 'svg';
+                break;
+            case 'image/bmp':
+                $extension = 'bmp';
+                break;
+            case 'image/tiff':
+                $extension = 'tif';
+                break;
+            default:
+                $extension = str_replace('image/', '', $mime_type);
+        }
+
+        return $extension;
     }
 }
