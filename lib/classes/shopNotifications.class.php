@@ -49,14 +49,14 @@ class shopNotifications
 
         $send_results = array();
 
-        if ($notifications) {
+        if (!empty($event_params['notifications'])) {
             if (isset($data['storefront_route'])) {
                 $old_route = wa()->getRouting()->getRoute();
                 $old_domain = wa()->getRouting()->getDomain();
                 wa()->getRouting()->setRoute($data['storefront_route'], ifset($data['storefront_domain']));
             }
 
-            foreach ($notifications as $n) {
+            foreach ($event_params['notifications'] as $n) {
                 $send_res = array(
                     'status' => false,
                     'log_id' => null,
@@ -106,7 +106,7 @@ class shopNotifications
          */
         $event_params = [
             'event' => $event,
-            'notifications' => &$notifications,
+            'notifications' => &$event_params['notifications'],
             'data'  => &$data,
             'send_results' => $send_results
         ];
