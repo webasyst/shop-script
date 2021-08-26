@@ -64,6 +64,23 @@ class shopCompositeValue implements ArrayAccess
 
     public function __toString()
     {
+        return $this->toString();
+    }
+
+    /**
+     * @return string
+     */
+    public function format()
+    {
+        return $this->toString(false);
+    }
+
+    /**
+     * @param bool $with_unit
+     * @return string
+     */
+    private function toString($with_unit = true)
+    {
         if (($v = end($this->values)) instanceof shopDimensionValue) {
             /**
              * @var shopDimensionValue $v
@@ -80,9 +97,7 @@ class shopCompositeValue implements ArrayAccess
                 }
             }
 
-            return implode(' × ', $values).' '.$v->unit_name;
-
-
+            return implode(' × ', $values).($with_unit ? ' '.$v->unit_name : '');
         }
         return implode(' × ', $this->values);
     }

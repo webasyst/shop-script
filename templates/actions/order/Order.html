@@ -75,7 +75,7 @@
                                         {$customer_essentials.name|default:'[`(no name)`]'|escape}
                                     </a>
                                 {else}
-                                    {$customer_essentials.name|default:'[`(no name)`]'}
+                                    {$customer_essentials.name|default:'[`(no name)`]'|escape}
                                     {if !$customer_essentials.id|default:'0'|escape} <span class="hint">[`deleted`]</span>{/if}
                                 {/if}
                                 {if $customer_essentials.registered|default:false}
@@ -217,7 +217,11 @@
                             {$current_editor = shopHelper::getCurrentProductEditor()}
                             {foreach $order.items as $item}
                                 {if $item.type=='product'}
-                                    {$link_edit = shopHelper::getBackendEditorUrl($item.product_id, 'prices')}
+                                    {if 'old_editor' == $current_editor}
+                                        {$link_edit = shopHelper::getBackendEditorUrl($item.product_id, 'product')}
+                                    {else}
+                                        {$link_edit = shopHelper::getBackendEditorUrl($item.product_id, 'prices')}
+                                    {/if}
                                 {else}
                                     {$link_edit = "?action=products#/services/{$item.service_id}/"}
                                 {/if}

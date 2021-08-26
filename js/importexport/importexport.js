@@ -717,6 +717,16 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
                 self.handler($(this));
             });
 
+            this.$context.find('select[name="export_mode"]').change(function () {
+                if ($(this).val() === "0") {
+                    $(this).siblings('p.hint').removeClass('hidden');
+                    $(this).siblings('div.block-hint').addClass('hidden');
+                } else {
+                    $(this).siblings('p.hint').addClass('hidden');
+                    $(this).siblings('div.block-hint').removeClass('hidden');
+                }
+            });
+
             this.$inputs.trigger('change');
         },
 

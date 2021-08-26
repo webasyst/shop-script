@@ -211,7 +211,16 @@ class shopProdSaveGeneralController extends waJsonController
         }
 
         $product->save($product_data, true, $errors);
-        if ($errors) {
+        if (!$errors) {
+            if ($product_data['id']) {
+                $this->logAction('product_edit', $product_data['id']);
+            } else {
+                $this->logAction('product_add', $product->getId());
+                if ($product->type) {
+                    wa()->getUser()->setSettings('shop', 'last_type_id', $product->type);
+                }
+            }
+        } else {
             // !!! TODO format errors properly, if any happened
             $this->errors[] = [
                 'id' => "general",

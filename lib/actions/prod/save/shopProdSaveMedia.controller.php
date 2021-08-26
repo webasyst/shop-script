@@ -85,6 +85,7 @@ class shopProdSaveMediaController extends waJsonController
                 'image_id' => $image_data['id'],
             ]);
         }
+        $this->logAction('product_edit', $product_data['id']);
 
         // data for hook
         $data = [

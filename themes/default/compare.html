@@ -93,7 +93,11 @@ $(function () {
             <th>[`Price`]</th>
             {foreach $products as $p}
                 <td width="{$td_width}%">
+                    {if $p.min_price < $p.max_price}
+                    <div class="price nowrap">{shop_currency_html($p.min_price, ['extended_format' => '%t', 'format' => true])} &mdash; {shop_currency_html($p.max_price)}</div>
+                    {else}
                     <span class="price nowrap">{shop_currency_html($p.price)}</span>
+                    {/if}
                 </td>
             {/foreach}
         </tr>

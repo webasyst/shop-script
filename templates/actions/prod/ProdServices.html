@@ -36,7 +36,8 @@
     ],
     "product-services-4" => [
         "id" => "product-services-4",
-        "html" => _w("Enter a number between 0 and 99,999,999,999.999 with max. 3 decimal digits.")|escape,
+        "html" => sprintf(_w("Enter a number between 0 and %s99,999,999,999.9999%s with max. 4 decimal digits."), '<span class="nowrap">', "</span>"),
+        "width" => "16rem",
         "position" => "bottom"
     ],
     "product-services-5" => [

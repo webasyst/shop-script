@@ -20,6 +20,11 @@
 {* ПОДСКАЗКИ *}
 
 {$_tooltips = [
+    "price-error" => [
+        "id" => "price-error",
+        "html" => sprintf(_w("Enter a number between 0 and %s99,999,999,999.9999%s with max. 4 decimal digits."), '<span class="nowrap">', "</span>"),
+        "width" => "16rem"
+    ],
     "product-sku-8" => [
         "id" => "product-sku-8",
         "html" => _w("Change image")|escape,
@@ -53,6 +58,10 @@
     "product-name-error" => [
         "id" => "product-name-error",
         "html" => _w("This field may contain a maximum of 255 characters.")
+    ],
+    "product-photo-disabled" => [
+        "id" => "product-photo-disabled",
+        "html" => _w("To add images, save the product.")
     ]
 ]}
 
@@ -156,7 +165,8 @@
     "file_size" => "{_w("Each file’s size cannot be greater than")} {$_max_file_size_mb}{_w("KB")}.",
     "post_size" => "{_w("Total size of selected files cannot be greater than")} {$_max_post_size_mb}{_w("KB")}.",
     "stock_title" => _w("The quantity on this virtual stock is the sum of quantities on physical stocks — %s. You can change the list of stocks in “Settings” section."),
-    "max_length_error" => "{_w("Invalid value")} <span class=\"s-icon\" data-tooltip-id=\"product-name-error\"><i class=\"fas fa-question-circle\"></i></span>"
+    "max_length_error" => "{_w("Invalid value")} <span class=\"s-icon\" data-tooltip-id=\"product-name-error\"><i class=\"fas fa-question-circle\"></i></span>",
+    "product_name_required" => _w("Enter a product name.")
 ]}
 
 {$_active_main_category = null}
@@ -198,7 +208,7 @@
                         </div>
                         <div class="value">
                             <div class="s-name-section">
-                                <textarea class="s-field js-auto-height js-product-name-field" name="product[name]">{$product.name|default:_w("Product name")|escape}</textarea>
+                                <textarea class="s-field js-auto-height js-product-name-field" name="product[name]">{$product.name|default:""|escape}</textarea>
                             </div>
                         </div>
                     </div>
@@ -425,7 +435,17 @@
 
                                             <div class="s-custom-url-form">
                                                 <div class="s-redirect-field">
-                                                    <input class="full-width" type="text" name="product[params][redirect_url]" value="{$product.params.redirect_url|default:""|escape}" placeholder="http://yoursite.com/category/product-name">
+                                                    <input class="full-width js-validate-email" type="text" name="product[params][redirect_url]" value="{$product.params.redirect_url|default:""|escape}" placeholder="http://yoursite.com/category/product-name" required>
+
+                                                    {capture assign="_error_url_required"}
+                                                        <div class="wa-error-text">[`This is a required field.`]</div>
+                                                    {/capture}
+                                                    {$_templates["error_url_required"] = $_error_url_required}
+
+                                                    {capture assign="_error_url_incorrect"}
+                                                        <div class="wa-error-text">[`Incorrect URL format.`]</div>
+                                                    {/capture}
+                                                    {$_templates["error_url_incorrect"] = $_error_url_incorrect}
                                                 </div>
 
                                                 <div class="">
@@ -435,13 +455,13 @@
                                                     </div>
 
                                                     {$_redirect_codes = [
-                                                        "301" => [
-                                                            "id" => "301",
-                                                            "label" => _w("301: the product is permanently hidden")
-                                                        ],
                                                         "302" => [
                                                             "id" => "302",
                                                             "label" => _w("302: the product is temporarily hidden")
+                                                        ],
+                                                        "301" => [
+                                                            "id" => "301",
+                                                            "label" => _w("301: the product is permanently hidden")
                                                         ]
                                                     ]}
 
@@ -462,6 +482,12 @@
                                                             </li>
                                                         {/foreach}
                                                     </ul>
+                                                    <div class="redirect-message wa-message warn flexbox space-8" {if $_active_code.id != '301'}style="display: none;"{/if}>
+                                                        <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                                        <div class="message-text wide">
+                                                            <span class="s-text">[`A 301 redirect is applied at once and works permanently, and cannot be quickly disabled. Search enines will remove the page from their indices. The redirect will get saved in website visitors’ browsers. If you later decide to publish this page again, it might become available only after quite a long while.`]</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -578,15 +604,15 @@
                                             <div class="s-column-view-actions">
                                                 <div class="s-image-wrapper">
                                                     <div class="s-image-item"
-                                                         data-tooltip-id="product-sku-8"
                                                          v-if="sku_mod.photo"
                                                          v-bind:style="{ 'background-image': 'url(' + sku_mod.photo.url + ')' }"
                                                          v-on:click.prevent="addProductPhoto($event, sku_mod)"></div>
 
                                                     <div class="s-image-item"
-                                                         data-tooltip-id="product-sku-8"
                                                          v-if="!sku_mod.photo"
-                                                         v-on:click.prevent="addProductPhoto($event, sku_mod)">
+                                                         v-bind:class="{ 'is-disabled' : !product.id }"
+                                                         v-bind:data-tooltip-id="(product.id ? 'product-sku-8' : 'product-photo-disabled')"
+                                                         v-on:click.prevent="(product.id ? addProductPhoto($event, sku_mod) : null)">
 
                                                         <div class="s-icon icon">
                                                             <svg><use xlink:href='{$_sprite_url}#empty-image'></use></svg>
@@ -603,7 +629,6 @@
                                             </div>
 
                                             <div class="s-column-details">
-                                                {strip}
                                                 <div class="s-prices-wrapper wa-fields vertical">
                                                     <div class="wa-field s-field-purchase-price">
                                                         <div class="name">[`Purchase price`]</div>
@@ -615,10 +640,9 @@
 
                                                             <div class="wa-error-text" v-if="!!errors['product[skus][' + sku_mod.id + '][purchase_price]']">
                                                                 {_w("Invalid value")|escape}
-                                                                &nbsp;
-                                                                <div class="wa-tooltip" data-title="[`Enter a number between 0 and 99,999,999,999.999 with max. 3 decimal digits.`]">
+                                                                <span class="s-tooltip-icon" data-tooltip-id="price-error">
                                                                     <i class="fas fa-question-circle color-red"></i>
-                                                                </div>
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -632,10 +656,9 @@
 
                                                             <div class="wa-error-text" v-if="!!errors['product[skus][' + sku_mod.id + '][compare_price]']">
                                                                 {_w("Invalid value")|escape}
-                                                                &nbsp;
-                                                                <div class="wa-tooltip" data-title="[`Enter a number between 0 and 99,999,999,999.999 with max. 3 decimal digits.`]">
+                                                                <span class="s-tooltip-icon" data-tooltip-id="price-error">
                                                                     <i class="fas fa-question-circle color-red"></i>
-                                                                </div>
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -649,10 +672,9 @@
 
                                                             <div class="wa-error-text" v-if="!!errors['product[skus][' + sku_mod.id + '][price]']">
                                                                 {_w("Invalid value")|escape}
-                                                                &nbsp;
-                                                                <div class="wa-tooltip" data-title="[`Enter a number between 0 and 99,999,999,999.999 with max. 3 decimal digits.`]">
+                                                                <span class="s-tooltip-icon" data-tooltip-id="price-error">
                                                                     <i class="fas fa-question-circle color-red"></i>
-                                                                </div>
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </div>

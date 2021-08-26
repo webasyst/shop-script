@@ -14,6 +14,7 @@ class shopCsvProductsetupAction extends waViewAction
 
         if ($direction == 'export') { //export section
             $profile['config'] += array(
+                'export_mode' => false,
                 'encoding'    => 'UTF-8',
                 'images'      => false,
                 'features'    => false,

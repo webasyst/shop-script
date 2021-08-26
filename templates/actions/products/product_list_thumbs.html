@@ -13,7 +13,7 @@
         {% if (p.alien) { %}title="[`This is a subcategory product`]"{% } %}
     >
         <div class="s-product-image s-image">
-            <a href="{%#'{/literal}{$link_edit}{literal}'.replace('@s', p.id)%}{% if (current_editor === 'new_editor' && !p.edit_rights) { %}prices/{% } %}">
+            <a href="{%#'{/literal}{$link_edit}{literal}'.replace('@s', p.id).replace('edit/', '')%}{% if (current_editor === 'new_editor' && !p.edit_rights) { %}prices/{% } %}">
                 {% if (p.badge) { %}
                     <div class="s-image-corner top right">{%#p.badge%}</div>
                 {% } %}

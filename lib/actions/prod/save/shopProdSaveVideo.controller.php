@@ -29,6 +29,8 @@ class shopProdSaveVideoController extends waJsonController
                 'text'  => _w('Copy and paste the URL of a product video from the YouTube or Vimeo website.'),
             ];
             return;
+        } else {
+            $this->logAction('product_edit', $product->getId());
         }
 
         $this->throwSaveEvent($product, $data);

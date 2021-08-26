@@ -48,6 +48,7 @@ class shopCsvProductuploadController extends shopUploadController
                 'skus:-1:sku'            => _w('SKU code'), //3
                 'skus:-1:price'          => _w('Price'),
                 'skus:-1:available'      => _w('Available for purchase'),
+                'skus:-1:status'         => _w('Visibility in the storefront'),
                 'skus:-1:compare_price'  => _w('Compare at price'),
                 'skus:-1:purchase_price' => _w('Purchase price'),
                 'skus:-1:stock:0'        => _w('In stock'),

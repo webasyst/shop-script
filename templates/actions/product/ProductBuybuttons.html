@@ -327,7 +327,7 @@
 
                 html_tmpl = html_tmpl
                     .replace(':product_name', that.product_name)
-                    .replace(':product_image', (show_image && that.product_image) ? '<img src="//' + domain + that.product_image + '" style="width: ' + width + 'px;">' : "")
+                    .replace(':product_image', (show_image && that.product_image) ? '<img src="' + that.product_image + '" style="width: ' + width + 'px;">' : "")
                     .replace(':product_url', product_url);
 
                 var html = html_tmpl

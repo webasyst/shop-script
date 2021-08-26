@@ -108,11 +108,11 @@
                         <div class="s-name-wrapper">
                             <template v-if="review.contact_id">
                                 <a class="s-author-name"
-                                   v-bind:href="'{$wa_backend_url}contacts/#/contact/'+review.author.id">{ { review.author.name } }</a>
+                                   v-bind:href="'{$wa_backend_url}contacts/#/contact/'+review.author.id">{ { review.author.name|escape } }</a>
                             </template>
                             <template v-else-if="review.site">
                                 <a class="s-author-name"
-                                   v-bind:href="review.site">{ { review.author.name } }</a>
+                                   v-bind:href="review.site">{ { review.author.name|escape } }</a>
                             </template>
                             <template v-else>
                                 <span class="s-author-name">{ { review.author.name|escape } }</span>
@@ -142,7 +142,7 @@
                             </template>
                         </template>
                     </div>
-                    <div class="s-title">{ { review.title } }</div>
+                    <div class="s-title">{ { review.title|escape } }</div>
                 </div>
 
                 {* TEXT *}

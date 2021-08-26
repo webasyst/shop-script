@@ -1679,14 +1679,8 @@ class shopOrder implements ArrayAccess
     {
         $form = $this->customerForm();
         if ($this->contact && $form && !empty($this->data['customer'])) {
-
             $this->parseCustomer($this->data['customer'], $form);
             foreach ((array)$form->post() as $fld_id => $fld_data) {
-                //turn off checkbox
-                if (!$fld_data && !($form->fields($fld_id) instanceof waContactCheckboxField)) {
-                    continue;
-                }
-
                 if ($fld_id == 'address.shipping') {
                     $this->saveContactAddress($this->contact, 'shipping', $fld_data);
                     continue;

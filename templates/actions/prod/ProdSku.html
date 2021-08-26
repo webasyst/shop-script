@@ -101,6 +101,11 @@
 {* ПОДСКАЗКИ *}
 
 {$_tooltips = [
+    "price-error" => [
+        "id" => "price-error",
+        "html" => sprintf(_w("Enter a number between 0 and %s99,999,999,999.9999%s with max. 4 decimal digits."), '<span class="nowrap">', "</span>"),
+        "width" => "16rem"
+    ],
     "product-sku-1" => [
         "id" => "product-sku-1",
         "html" => _w("Move by one SKU up")|escape,
@@ -897,9 +902,9 @@
 
             <div class="wa-error-text" v-if="error">
                 { { error.text } }
-                <div class="wa-tooltip" data-title="[`Enter a number between 0 and 99,999,999,999.999 with max. 3 decimal digits.`]">
+                <span class="s-tooltip-icon" data-tooltip-id="price-error">
                     <i class="fas fa-question-circle color-red"></i>
-                </div>
+                </span>
             </div>
         </div>
     </div>
@@ -1277,7 +1282,7 @@
                                                     v-bind:class="{ 'wa-error-field': !!sku.errors['sku.sku'] }"
                                                     v-on:change="changeSkuSku(sku, sku_index)">
 
-                                                <div class="s-errors-place" v-if="product.normal_mode && (sku.errors['sku_required'] || sku.errors['sku_unique'])">
+                                                <div class="s-errors-place" v-if="product.normal_mode_switch && (sku.errors['sku_required'] || sku.errors['sku_unique'])">
                                                     <div class="wa-error-text" v-if="sku.errors['sku_required']">{ { sku.errors['sku_required'].text } }</div>
                                                     <div class="wa-error-text" v-if="sku.errors['sku_unique']">{ { sku.errors['sku_unique'].text } }</div>
                                                 </div>
@@ -1449,10 +1454,9 @@
 
                                                             <div class="wa-error-text" v-if="!!errors['product[skus][' + sku_mod.id + '][purchase_price]']">
                                                                 {_w("Invalid value")|escape}
-                                                                &nbsp;
-                                                                <div class="wa-tooltip" data-title="[`Enter a number between 0 and 99,999,999,999.999 with max. 3 decimal digits.`]">
+                                                                <span class="wa-tooltip" data-tooltip-id="price-error">
                                                                     <i class="fas fa-question-circle color-red"></i>
-                                                                </div>
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1466,10 +1470,9 @@
 
                                                             <div class="wa-error-text" v-if="!!errors['product[skus][' + sku_mod.id + '][compare_price]']">
                                                                 {_w("Invalid value")|escape}
-                                                                &nbsp;
-                                                                <div class="wa-tooltip" data-title="[`Enter a number between 0 and 99,999,999,999.999 with max. 3 decimal digits.`]">
+                                                                <span class="s-tooltip-icon" data-tooltip-id="price-error">
                                                                     <i class="fas fa-question-circle color-red"></i>
-                                                                </div>
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1483,10 +1486,9 @@
 
                                                             <div class="wa-error-text" v-if="!!errors['product[skus][' + sku_mod.id + '][price]']">
                                                                 {_w("Invalid value")|escape}
-                                                                &nbsp;
-                                                                <div class="wa-tooltip" data-title="[`Enter a number between 0 and 99,999,999,999.999 with max. 3 decimal digits.`]">
+                                                                <span class="s-tooltip-icon" data-tooltip-id="price-error">
                                                                     <i class="fas fa-question-circle color-red"></i>
-                                                                </div>
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </div>

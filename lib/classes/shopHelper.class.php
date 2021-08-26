@@ -2063,7 +2063,7 @@ SQL;
     public static function getBackendEditorUrl($product_id, $tab = '', $options = [])
     {
         if ((int) $product_id < 1 && !in_array($product_id, ['new', '@s'])) {
-            throw new waException('Product id not found');
+            return '';
         }
 
         $param = '';
@@ -2085,10 +2085,10 @@ SQL;
                     $tab = 'edit/'.$tab.'/';
                     break;
                 case 'product':
+                case 'prices':
                 case 'reviews':
                     $tab = '';
                     break;
-                case 'prices':
                 default:
                     $tab = 'edit/';
             }

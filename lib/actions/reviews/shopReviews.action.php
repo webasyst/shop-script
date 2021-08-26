@@ -15,7 +15,8 @@ class shopReviewsAction extends waViewAction
                 'limit'  => $reviews_per_page,
                 'sort'   => $this->getSort(),
                 'order'  => $this->getOrder(),
-                'where'  => $this->getWhere()
+                'where'  => $this->getWhere(),
+                'escape' => false
             )
         );
 

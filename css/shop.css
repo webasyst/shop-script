@@ -1365,6 +1365,14 @@ table.s-country-list i.icon16.country { margin-top: 1px; }
 .s-csv-settings table tr td.gray select { color: #aaa; }
 .s-csv-settings table tr td.ignored { color: #ccc !important; text-decoration: line-through; }
 
+.s-csv-settings .wa-csv-message.error {color: #ED2509FF; background: #FF311515; border-color: #FF311515; }
+.s-csv-settings .wa-csv-message.wa-small { font-size: .875rem; line-height: 1.142857142857143em; }
+.s-csv-settings .wa-csv-message { padding: .5rem .75rem; font-size: inherit; line-height: 1.142857142857143em; box-sizing: border-box; border: 1px solid #ddd; border-radius: .25rem; word-break: break-word; }
+.s-csv-settings .wa-csv-message.flexbox { display: flex; }
+.s-csv-settings .wa-csv-message.flexbox > *.wide { flex: 1; }
+.s-csv-settings .svg-inline--fa { width: 1.125em; display: inline-block; font-size: inherit; height: 1em; overflow: visible; vertical-align: -.125em; margin-right: .5rem; }
+.s-csv-settings .block-hint { color: #aaa; font-size: 0.8em; line-height: 1.5em; margin-bottom: 1.5em; }
+
 .s-csv-settings .value ul.menu-v { margin-top: 0; }
 .s-csv-primary-column-helper { background: #ffa; width: 16px; height: 16px; border-radius: 100%; border: 1px solid #ee6; position: absolute; }
 .s-csv-secondary-column-helper { background: #afa; width: 16px; height: 16px; border-radius: 100%; border: 1px solid #6e6; position: absolute; }

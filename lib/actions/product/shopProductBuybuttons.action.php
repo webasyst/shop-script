@@ -6,9 +6,13 @@ class shopProductBuybuttonsAction extends waViewAction
     {
         $id = (int) $this->getRequest()->get('id');
         $product = new shopProduct($id);
-        $images = $product->getImages('thumb', false);
+        $images = $product->getImages('thumb', true);
         $image = reset($images);
-        $image_url = $image ? $image['url_thumb'] : '';
+        if ($image) {
+            $image_url = preg_replace('/http(s?):\/\//is', '//', $image['url_thumb']);
+        } else {
+            $image_url = '';
+        }
         $this->view->assign(array(
             'id' => $id,
             'name' => $product['name'],

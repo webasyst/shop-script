@@ -51,7 +51,7 @@
                     <div class="wa-products">
                         {foreach $cart.items as $_item}
                             {$_product_front_uri = $wa->shop->productUrl($_item.product)}
-                            {$_product_image_uri = $wa->shop->productImgHtml($_item.product, '96x96', ['default' => "`$wa_app_static_url`img/image-dummy.png"])}
+                            {$_product_image_uri = $wa->shop->productImgHtml($_item.product, '200', ['default' => "`$wa_app_static_url`img/image-dummy.png"])}
 
                             {$_stock_count = null}
                             {$_is_in_stock = false}

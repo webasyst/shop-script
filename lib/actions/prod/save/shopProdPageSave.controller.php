@@ -103,6 +103,7 @@ class shopProdPageSaveController extends waJsonController
             }
             $page_id = $page['id'];
         }
+        $this->logAction('product_edit', $product_id);
 
         unset($page);
         $page = $this->pages_model->getById($page_id);

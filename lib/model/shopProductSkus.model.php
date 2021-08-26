@@ -357,14 +357,10 @@ SQL;
          */
         static $multi_stock = null;
 
-        if (isset($data['price'])) {
-            $data['price'] = $this->castValue('double', $data['price']);
-        }
-        if (isset($data['purchase_price'])) {
-            $data['purchase_price'] = $this->castValue('double', $data['purchase_price']);
-        }
-        if (isset($data['compare_price'])) {
-            $data['compare_price'] = $this->castValue('double', $data['compare_price']);
+        foreach (['price', 'purchase_price', 'compare_price'] as $key) {
+            if (isset($data[$key])) {
+                $data[$key] = $this->castValue('decimal', $data[$key]);
+            }
         }
 
         if ($id > 0) {

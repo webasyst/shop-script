@@ -51,6 +51,21 @@ class shopRangeValue implements ArrayAccess
 
     public function __toString()
     {
+        return $this->toString();
+    }
+
+    public function format()
+    {
+        return $this->toString(false);
+    }
+
+    /**
+     * @param bool $with_unit
+     * @return string
+     * @throws waException
+     */
+    private function toString($with_unit = true)
+    {
         $str = array();
         if ($this->begin !== null) {
             $str[] = $this->begin->format('%s');
@@ -65,9 +80,10 @@ class shopRangeValue implements ArrayAccess
         }
         $str = implode(' — ', $str);
         $unit = ($this->begin ? $this->begin->unit_name : ($this->end ? $this->end->unit_name : null));
-        if (strlen($unit)) {
+        if ($with_unit && strlen($unit)) {
             $str .= ' '.$unit;
         }
+
         return $str;
     }
 

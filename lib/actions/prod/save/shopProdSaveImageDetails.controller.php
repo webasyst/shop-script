@@ -29,6 +29,9 @@ class shopProdSaveImageDetailsController extends waJsonController
             $data = waRequest::post('data', array());
             $image['description'] = ifset($data['description'], '');
             $this->response = $this->save($file, $image, $restore_from_backup);
+            if ($this->response) {
+                $this->logAction('product_edit', $image['product_id']);
+            }
         } catch (Exception $e) {
             $this->errors[] = [
                 'error' => _w('File uploading error').' '.$e->getMessage(),

@@ -366,6 +366,7 @@ class shopCsvProductrunController extends waLongActionController
         $options = array();
 
         $config = array(
+            'export_mode'            => !!waRequest::post('export_mode'),
             # csv file encoding
             'encoding'               => $encoding,
             'delimiter'              => waRequest::post('delimiter', ';'),
@@ -1678,6 +1679,12 @@ SQL;
             // sku id is only used for identification, never to insert or update actual value of an id
             if (!empty($data['skus'])) {
                 foreach ($data['skus'] as $sku_key => $sku) {
+                    if (isset($sku['status']) && !($sku['status'] == 0 || $sku['status'] == 1)) {
+                        if (strlen($sku['status'])) {
+                            $this->writeImportError(sprintf_wp('The value of the “%s” field can be only 0 or 1.', _w('Visibility in the storefront')));
+                        }
+                        unset($data['skus'][$sku_key]['status']);
+                    }
                     unset($data['skus'][$sku_key]['id']);
                 }
             }
@@ -1758,6 +1765,8 @@ SQL;
                                 $this->data['map'][self::STAGE_IMAGE_DESCRIPTION] = ifempty($data['images_descriptions'], array());
                                 $this->data['count'][self::STAGE_IMAGE] += count($data['images']);
                             }
+
+                            $this->checkMainSku($product);
                         } catch (waDbException $ex) {
                             $this->writeImportError($ex->getMessage());
                             $target_sku = 'error';
@@ -1784,6 +1793,8 @@ SQL;
                         } else {
                             $target = 'validate';
                         }
+
+                        $this->checkMainSku($product);
 
                         $this->data['map'][self::STAGE_PRODUCT] = $product->getId();
                         if (!empty($data['images'])) {
@@ -2566,9 +2577,11 @@ SQL;
                     $skus = [];
                 }
 
-                $this->exportProductRow($product, $sku, false, !$extra_category_record, $simple_product);
+                if (!$this->data['config']['export_mode']) {
+                    $this->exportProductRow($product, $sku, false, !$extra_category_record, $simple_product);
+                }
 
-                if (!$extra_category_record && !$simple_product) {
+                if ((!$extra_category_record && !$simple_product) || $this->data['config']['export_mode']) {
                     foreach ($skus as $sku_id => $sku) {
                         if (!empty($this->data['config']['primary_sku'])) {
                             $sku['_primary'] = ($primary_sku_id == $sku_id) ? '1' : '';
@@ -2628,7 +2641,6 @@ SQL;
             unset($values);
         }
 
-
         if ($product['sku_type'] == shopProductModel::SKU_TYPE_SELECTABLE) {
             /** @var shopProductFeaturesSelectableModel $features_selectable_model */
             $features_selectable_model = $this->model('product_features_selectable');
@@ -2685,10 +2697,19 @@ SQL;
         $product['features'] = $features;
     }
 
+    private function prepareProductAllSkuFeatures(&$product, $sku)
+    {
+        foreach ($sku['features'] as $code => $values) {
+            if (!empty($values)) {
+                $product['features'][$code] = $values;
+            }
+        }
+    }
+
     private function exportProductRow($original_product, $sku, $sku_mode, $full, $simple_product = false)
     {
         $product = $original_product;
-        if ($sku_mode) {
+        if ($sku_mode && !$this->data['config']['export_mode']) {
             foreach (self::$non_sku_fields as $field) {
                 if (isset($product[$field])) {
                     unset($product[$field]);
@@ -2705,7 +2726,9 @@ SQL;
                 $product_feature_model = $this->model('product_features');
                 $sku['features'] = $product_feature_model->getValues($product['id'], -intval($sku['id']));
 
-                if ($sku_mode) {
+                if ($this->data['config']['export_mode']) {
+                    $this->prepareProductAllSkuFeatures($product, $sku);
+                } elseif ($sku_mode) {
                     $this->prepareProductSkuFeatures($product, $sku);
                 } else {
                     $this->prepareProductFeatures($product, $sku, $simple_product);
@@ -2752,7 +2775,7 @@ SQL;
         }
 
         $product['sku_type'] = $product['sku_type'] == shopProductModel::SKU_TYPE_SELECTABLE ? self::EXPORT_SKU_TYPE_SELECTABLE : self::EXPORT_SKU_TYPE_FLAT;
-        if ($sku_mode == false && $simple_product) {
+        if (($sku_mode == false && $simple_product) || $this->data['config']['export_mode']) {
             $product['row_type'] = self::STAGE_PRODUCT_VARIANT;
         } else {
             $product['row_type'] = $sku_mode ? self::STAGE_VARIANT : self::STAGE_PRODUCT;
@@ -3100,6 +3123,24 @@ SQL;
                 self::$selectable_feature_codes = array();
             }
             self::$selectable_feature_codes[$product_id] = $feature_model->query($select_query, ['id' => $product_id])->fetchAll('code');
+        }
+    }
+
+    /**
+     * @param shopProduct $product
+     */
+    private function checkMainSku($product)
+    {
+        if (isset($product['skus'][$product['sku_id']]['status']) && $product['skus'][$product['sku_id']]['status'] == 0) {
+            $product->save([
+                'skus' => [
+                    $product['sku_id'] => [
+                        'status' => 1
+                    ]
+                ]
+            ]);
+            $main_sku_message = _w('The main SKU cannot be hidden; therefore, the visibility in the storefront is always enabled for it.');
+            $this->writeImportError($main_sku_message);
         }
     }
 }

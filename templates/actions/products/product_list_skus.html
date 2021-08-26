@@ -170,7 +170,7 @@
             </td>
 
             <td class="drag-handle s-product-name">
-                <a href="{%#'{/literal}{$link_edit}{literal}'.replace('@s', product.id)%}{% if (current_editor === 'new_editor' && !product.edit_rights) { %}prices/{% } %}"><div>{%#product.name%}<i class="shortener"></i></div></a>
+                <a href="{%#'{/literal}{$link_edit}{literal}'.replace('@s', product.id).replace('edit/', '')%}{% if (current_editor === 'new_editor' && !product.edit_rights) { %}prices/{% } %}"><div>{%#product.name%}<i class="shortener"></i></div></a>
             </td>
 
             {% if (product.sku && (typeof(product.sku) =='object')) { %}

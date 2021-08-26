@@ -292,7 +292,11 @@ class shopProduct implements ArrayAccess
         if ($categories) {
             if ($route === null) {
                 $route = wa()->getRouting()->getRoute();
-                $route['full_url'] = wa()->getRouting()->getDomain(null, true).'/'.$route['url'];
+                if (isset($route['url'])) {
+                    $route['full_url'] = wa()->getRouting()->getDomain(null, true).'/'.$route['url'];
+                } else {
+                    $route['full_url'] = wa()->getRouting()->getDomain(null, true).'/';
+                }
             } elseif (!is_array($route)) {
                 $route = array(
                     'url'      => $route,
@@ -309,7 +313,6 @@ class shopProduct implements ArrayAccess
                 }
             }
         }
-
         return $categories;
     }
 

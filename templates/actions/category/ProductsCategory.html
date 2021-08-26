@@ -293,6 +293,8 @@
                                     <label class="small">
                                         <input type="checkbox" name="enable_sorting" {if $settings.enable_sorting}checked="checked"{/if} value="1"> [`Customers can select preferable product sort order`]
                                     </label>
+                                    <br>
+                                    <span class="hint">{sprintf_wp('Sorting option “%s” is available only when the “%s” setting is disabled.', _w('Manual (as defined in the backend)'), _w('Include products from sub-categories'))}</span>
                                 </div>
                             </div>
                         </div>
@@ -413,7 +415,7 @@
                                 <div class="value">
                                     <input name="og[image]" value="{ifset($og['image'])|escape}" placeholder="" class="long">
                                     <br>
-                                    <span class="hint">[`If not set, a social network will attempt to determine preview image on it’s own.`]</span>
+                                    <span class="hint">[`If no value is specified, a social network will attempt to automatically determine a preview image.`]</span>
                                 </div>
                             </div>
                             <div class="field">

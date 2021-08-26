@@ -25,6 +25,7 @@ foreach (shopHelper::getStocks() as $stock_id => $s) {
         $public_stocks[$stock_id] = $s['name'];
     }
 }
+
 if (count($stocks) === 0) {
     $stocks_form = array(
         'name'        => _w('Default stock'),
@@ -39,7 +40,6 @@ if (count($stocks) === 0) {
         'items'       => $stocks
     );
 }
-
 
 $view = wa()->getView();
 $template = wa()->getAppPath('templates/includes/checkoutVersionRouteMoveSetting.html', 'shop');
@@ -87,7 +87,7 @@ return array(
         'og_title'          => array(
             'name'        => _w('Social sharing Title (og:title)'),
             'type'        => 'input',
-            'description' => _w('For detailed information on Open Graph parameters and examples please refer to <a href="http://ogp.me" target="_blank">ogp.me</a>')
+            'description' => _w('For detailed information on Open Graph parameters and examples please refer to <a href="http://ogp.me" target="_blank">ogp.me</a>.')
         ),
         'og_image'          => array(
             'name' => _w('Social sharing Image URL (og:image)'),
@@ -104,7 +104,7 @@ return array(
         'og_type'           => array(
             'name'        => _w('Social sharing Type (og:type)'),
             'type'        => 'input',
-            'description' => _w('E.g. <b>website</b>.').' '._w('For detailed information on Open Graph parameters and examples please refer to <a href="http://ogp.me" target="_blank">ogp.me</a>')
+            'description' => _w('E.g. <b>website</b>.').' '._w('For detailed information on Open Graph parameters and examples please refer to <a href="http://ogp.me" target="_blank">ogp.me</a>.')
         ),
         'og_url'            => array(
             'name'        => _w('Social sharing URL (og:url)'),

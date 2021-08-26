@@ -3856,7 +3856,7 @@ msgstr ""
 msgid "Hz"
 msgstr ""
 
-msgid "KHz"
+msgid "kHz"
 msgstr ""
 
 msgid "MHz"
@@ -6126,7 +6126,7 @@ msgstr ""
 msgid "Social sharing image URL"
 msgstr ""
 
-msgid "If not set, a social network will attempt to determine preview image on it’s own."
+msgid "If no value is specified, a social network will attempt to automatically determine a preview image."
 msgstr ""
 
 msgid "Social sharing video URL"
@@ -6222,7 +6222,7 @@ msgstr ""
 msgid "Social sharing Title (og:title)"
 msgstr ""
 
-msgid "For detailed information on Open Graph parameters and examples please refer to <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>"
+msgid "For detailed information on Open Graph parameters and examples please refer to <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>."
 msgstr ""
 
 msgid "Social sharing Image URL (og:image)"
@@ -6396,13 +6396,13 @@ msgstr ""
 msgid "Sender name"
 msgstr ""
 
-msgid "provided in Settings &gt; General settings"
+msgid "as specified in the “Settings → General settings” section"
 msgstr ""
 
 msgid "Storefront name"
 msgstr ""
 
-msgid "provided in Storefronts &gt; Settings and customizable for each storefront"
+msgid "as specified in the “Storefront → Settings” section for each storefront"
 msgstr ""
 
 msgid "Unsettled"
@@ -9910,3 +9910,9 @@ msgstr ""
 
 msgid "View page"
 msgstr "View"
+
+msgid "“%s”"
+msgstr "%s"
+
+msgid "”, “"
+msgstr ", "

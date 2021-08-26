@@ -216,9 +216,9 @@
         var $field = $(this),
             value = "" + $field.val();
         if (value === "auto") {
-            $field.closest(".s-variants-list").find(".s-option-radio[value='1']").attr("checked", true);
+            $field.closest(".s-variants-list").find(".s-option-radio[value='1']").attr("checked", true).change();
         } else {
-            $field.closest(".s-variants-list").find(".s-option-radio[value='0']").attr("checked", true);
+            $field.closest(".s-variants-list").find(".s-option-radio[value='0']").attr("checked", true).change();
         }
     });
 

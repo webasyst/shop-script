@@ -102,8 +102,8 @@ return array(
                 'name'       => _w('Hz'),
                 'multiplier' => 1,
             ),
-            'KHz'  => array(
-                'name'       => _w('KHz'),
+            'kHz'  => array(
+                'name'       => _w('kHz'),
                 'multiplier' => 1000,
             ),
             'MHz'  => array(

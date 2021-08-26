@@ -31,7 +31,7 @@ class shopProdGeneralAction extends waViewAction
         // magic loading of skus
         $product['skus'];
         if ($product_id == 'new') {
-            $product->setData('name', _w('Product name'));
+            $product->setData('name', "");
             $product->setData('currency', wa('shop')->getConfig()->getCurrency());
             $product->setData('status', 1);
             $product->setData('type_id', self::getFirstType());
@@ -46,6 +46,12 @@ class shopProdGeneralAction extends waViewAction
         $backend_prod_content_event = $this->throwEvent($product);
         shopHelper::setDefaultNewEditor();
 
+        $selected_selectable_feature_ids = [];
+        if (!empty($product['id'])) {
+            $features_selectable_model = new shopProductFeaturesSelectableModel();
+            $selected_selectable_feature_ids = $features_selectable_model->getProductFeatureIds($product['id']);
+        }
+
         $this->view->assign([
             'url_template' => $url_template,
             'frontend_urls' => $frontend_urls,
@@ -58,7 +64,9 @@ class shopProdGeneralAction extends waViewAction
             'product' => $product,
 
             'stocks'            => shopProdSkuAction::getStocks(),
-            'formatted_product' => shopProdSkuAction::formatProduct($product),
+            'formatted_product' => shopProdSkuAction::formatProduct($product, [
+                'selected_selectable_feature_ids' => $selected_selectable_feature_ids
+            ]),
             'currencies'        => shopProdSkuAction::getCurrencies(),
             'backend_prod_content_event' => $backend_prod_content_event,
             'show_sku_warning' => shopProdSkuAction::isSkuCorrect($product['id'], $product['sku_type']),
@@ -87,6 +95,8 @@ class shopProdGeneralAction extends waViewAction
             ];
             $product->save($data);
             $product_id = $product->getId();
+            $log_model = new waLogModel();
+            $log_model->add('product_add', $product_id);
         }
     }
 

@@ -6,7 +6,7 @@
                 <button class="wa-button blue js-product-save js-router-submit-button" type="button">[`Save`]</button>
             {/if}
 
-            <a class="wa-button gray" href="{$wa_app_url}?action=products">{if !empty($hide_save)}{_w("Close")}{else}{_w("Close without saving")}{/if}</a>
+            <a class="wa-button gray" href="{$wa_app_url}?action=products">{_w("Close")}</a>
 
             {if !empty($frontend_urls)}
                 {$_front = reset($frontend_urls)}

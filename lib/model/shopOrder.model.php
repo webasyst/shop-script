@@ -778,7 +778,7 @@ SQL;
         }
         $sql = "SELECT MIN(create_datetime)
         FROM shop_order
-        WHERE create_datetime > '0000-00-00 00:00:00'";
+        WHERE create_datetime > '1000-01-01 00:00:00'"; // field create_datetime can be 0
         $result = $this->query($sql)->fetchField();
         if ($result) {
             $cache->set($result);

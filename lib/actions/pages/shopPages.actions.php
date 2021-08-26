@@ -8,7 +8,16 @@ class shopPagesActions extends waPageActions
 
     public function __construct()
     {
-        if (!$this->getRights('pages')) {
+        $can_upload_photos = false;
+        if (waRequest::get('action') == 'uploadimage') {
+            foreach ($this->getRights() as $type => $value) {
+                if (strpos($type, 'type.') === 0 && $value >= 1) {
+                    $can_upload_photos = true;
+                    break;
+                }
+            }
+        }
+        if (!$this->getRights('pages') && !$can_upload_photos) {
             throw new waRightsException("Access denied");
         }
         $this->options['is_ajax'] = true;

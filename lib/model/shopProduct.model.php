@@ -926,8 +926,7 @@ class shopProductModel extends waModel
                 $available_sku_count++;
             }
 
-            $price[] = $this->castValue('double', $sku['price']);
-
+            $price[] = $this->castValue('decimal', $sku['price']);
             $sku_count = 0;
             $num_of_null = 0;
             foreach ($sku['stock'] as $count) {

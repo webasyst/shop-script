@@ -106,7 +106,7 @@ class shopCurrencyModel extends waModel
 
     public function convert($price, $from, $to)
     {
-        $price = $this->castValue('double', $price);
+        $price = $this->castValue('decimal', $price);
         if ($from == $to) {
             return $price;
         }

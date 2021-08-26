@@ -27,6 +27,7 @@ class shopProdSaveRelatedController extends waJsonController
                 }
             }
         }
+        $this->logAction('product_edit', $this->product_id);
 
         $this->response['product_id'] = $product->getId();
     }

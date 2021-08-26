@@ -9,7 +9,7 @@ class shopProdPricesAction extends waViewAction
      */
     public function execute()
     {
-        $product_id = waRequest::param('id', '', 'int');
+        $product_id = waRequest::param('id', '', waRequest::TYPE_STRING);
         shopProdGeneralAction::createEmptyProduct($product_id);
         $product = new shopProduct($product_id);
         if (!$product['id']) {

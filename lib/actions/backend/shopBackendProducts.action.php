@@ -8,6 +8,10 @@ class shopBackendProductsAction extends waViewAction
 
     public function execute()
     {
+        /** Редактор по умолчанию */
+        if (true === !!waRequest::get('force-old')) {
+            wa()->getUser()->setSettings('shop', 'default_editor', 'old_editor');
+        }
         $this->setLayout(new shopBackendLayout());
 
         $this->getResponse()->setTitle(_w('Products'));

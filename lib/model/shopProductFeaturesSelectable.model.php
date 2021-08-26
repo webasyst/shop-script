@@ -677,8 +677,8 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
 
     public function getProductFeatureIds($product_id)
     {
-        $sql = 'SELECT DISTINCT feature_id FROM '.$this->table.' WHERE product_id = i:0 ORDER BY sort';
-        return $this->query($sql, $product_id)->fetchAll(null, true);
+        $sql = 'SELECT DISTINCT feature_id, sort FROM '.$this->table.' WHERE product_id = i:0 ORDER BY sort';
+        return array_keys($this->query($sql, $product_id)->fetchAll('feature_id', true));
     }
 
     public function setFeatureIds(shopProduct $product, array $features_selectable_ids)

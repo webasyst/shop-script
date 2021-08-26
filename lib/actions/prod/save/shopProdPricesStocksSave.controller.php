@@ -31,6 +31,7 @@ class shopProdPricesStocksSaveController extends waJsonController
         if (empty($result) && empty($result[$sku_id])) {
             $this->errors[] = _w('Saving has failed.');
         } else {
+            $this->logAction('product_edit', $product_id);
             $this->response = $result;
         }
     }

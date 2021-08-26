@@ -16,6 +16,7 @@
             that.urls = options["urls"];
 
             // VUE JS MODELS
+            that.lang = options["lang"];
             that.product = options["product"];
             that.pages = formatPages(options["pages"]);
             that.empty_page = formatPage(options["empty_page"]);
@@ -833,6 +834,7 @@
 
                         function getOptions(options) {
                             options = $.extend({
+                                lang: that.lang,
                                 focus: false,
                                 deniedTags: false,
                                 minHeight: 300,

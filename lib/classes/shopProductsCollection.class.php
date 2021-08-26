@@ -29,6 +29,7 @@ class shopProductsCollection
     protected $models = [];
     protected $is_frontend;
     protected $storefront_context;
+    protected $completed_events = [];
 
     /**
      * Map of join => alias
@@ -256,6 +257,8 @@ class shopProductsCollection
                 }
                 if (empty($processed)) {
                     throw new waException('Unknown collection hash type: '.htmlspecialchars($type));
+                } else {
+                    $this->completed_events['products_collection'] = $processed;
                 }
             }
         } else {
@@ -584,6 +587,7 @@ SQL;
                 $this->where[] = $alias.".category_id = ".(int)$id;
             }
             if ((empty($this->info['sort_products']) && !waRequest::get('sort')) || waRequest::get('sort') == 'sort') {
+                $this->group_by = $alias.'.sort, p.id';
                 $this->order_by = $alias.'.sort ASC, p.id';
             }
         } else {
@@ -645,6 +649,7 @@ SQL;
         if ($set['type'] == shopSetModel::TYPE_STATIC) {
             $alias = $this->addJoin('shop_set_products', null, ":table.set_id = '".$set_model->escape($id)."'");
             if (wa()->getEnv() == 'frontend' || !waRequest::get('sort') || waRequest::get('sort') == 'sort') {
+                $this->fields[] = $alias.'.sort';
                 $this->order_by = $alias.'.sort ASC, p.id';
             }
         } else {
@@ -3282,5 +3287,48 @@ SQL;
             'min' => (double)(isset($data['min']) ? $data['min'] : 0),
             'max' => (double)(isset($data['max']) ? $data['max'] : 0)
         );
+    }
+
+    /**
+     * @return bool
+     * @throws waException
+     */
+    public function isPluginHash()
+    {
+        $this->prepare();
+        if (!empty($this->completed_events['products_collection']) && is_array($this->completed_events['products_collection'])) {
+            foreach ($this->completed_events['products_collection'] as $plugin_id => $event_processed) {
+                if ($event_processed && strpos($plugin_id, '-plugin') !== false) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return array
+     */
+    public function getPluginNames()
+    {
+        $names = [];
+        if (!empty($this->completed_events['products_collection']) && is_array($this->completed_events['products_collection'])) {
+            foreach ($this->completed_events['products_collection'] as $plugin_id => $event_processed) {
+                if ($event_processed) {
+                    $name = $plugin_id;
+                    if (strpos($plugin_id, '-plugin') !== false) {
+                        $name = $plugin_id = str_replace('-plugin', '', $plugin_id);
+                        try {
+                            $name = _wp(wa('shop')->getPlugin($plugin_id)->getName());
+                        } catch (waException $e) {
+                        }
+                    }
+                    $names[] = $name;
+                }
+            }
+        }
+
+        return $names;
     }
 }

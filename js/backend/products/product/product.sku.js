@@ -1394,7 +1394,7 @@
                                     value = $.wa.validate("number", self.field.value);
 
                                 var limit_body = 11,
-                                    limit_tail = 3,
+                                    limit_tail = 4,
                                     parts = value.replace(",", ".").split(".");
 
                                 // render error
@@ -2860,7 +2860,7 @@
                                 value = $.wa.validate("number", value);
 
                                 var limit_body = 11,
-                                    limit_tail = 3,
+                                    limit_tail = 4,
                                     parts = value.replace(",", ".").split(".");
 
                                 var error_key = "product[skus][" + data.id + "]["+ key + "]";
@@ -3878,11 +3878,13 @@
                         }
 
                     } else if (!sku_sku && sku_name) {
+                        /*
                         Vue.set(sku.errors, "sku_required", {
                             "id": "sku_required",
                             "text": that.locales["sku_required"]
                         });
                         errors.push("sku_required");
+                        */
 
                     } else if (!sku_sku && !sku_name) {
                         Vue.set(sku.errors, "sku_full_required", {
@@ -4028,6 +4030,7 @@
                             $(window).scrollTop($error.offset().top - 150);
                         }
                     });
+                    console.log(errors);
                     return false;
                 }
 
@@ -4987,7 +4990,7 @@
                                 value = $.wa.validate("number", value);
 
                                 var limit_body = 11,
-                                    limit_tail = 3,
+                                    limit_tail = 4,
                                     parts = value.replace(",", ".").split(".");
 
                                 var error_key = key;

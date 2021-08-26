@@ -225,7 +225,13 @@
             var ready_promise = that.$wrapper.data("ready");
             ready_promise.resolve(that);
 
-            that.$wrapper.trigger("change_product_name", [that.product.name]);
+            if (that.product.name) {
+                that.$wrapper.trigger("change_product_name", [that.product.name]);
+            } else {
+                setTimeout( function() {
+                    that.$wrapper.find(".js-product-name-field").trigger("focus");
+                }, 100);
+            }
         };
 
         Section.prototype.renderErrors = function(errors) {
@@ -345,9 +351,13 @@
                     }
                     $name_field.removeClass(error_class);
                 }
+
+                validateNameField();
             });
 
             var input_timer = 0;
+
+            that.$wrapper.on("product-name-error", validateNameField);
 
             $url_field
                 .on("input", function(event) {
@@ -524,6 +534,27 @@
                         });
                 }
             }
+
+            var $product_error = null;
+
+            function validateNameField() {
+                var value = $.trim($name_field.val()),
+                    error_class = "wa-error-field";
+
+                if (value) {
+                    $name_field.removeClass(error_class);
+                    if ($product_error) {
+                        $product_error.remove();
+                        $product_error = null;
+                    }
+
+                } else {
+                    if (!$product_error) {
+                        $product_error = $("<div class=\"wa-error-text\"></div>").html(that.locales["product_name_required"]);
+                        $name_field.addClass(error_class).after($product_error);
+                    }
+                }
+            }
         };
 
         Section.prototype.initStatusSection = function() {
@@ -549,7 +580,8 @@
 
             var $redirect_section = $section.find(".s-redirect-section"),
                 $redirect_select = $redirect_section.find("#js-product-redirect-select"),
-                $redirect_input = $redirect_select.find("input");
+                $redirect_input = $redirect_select.find("input"),
+                $url_validate_error = $redirect_section.find(".js-validate-email");
 
             $redirect_select.waDropdown({
                 hover: false,
@@ -558,6 +590,72 @@
                     var status_id = $(target).data("id");
                     $redirect_section.attr("data-id", status_id);
                     $redirect_input.val(status_id).trigger("change");
+                }
+            });
+
+            var $error = null,
+                timer = 0;
+
+            $redirect_section.on("input", ".js-validate-email", function() {
+                var $field = $(this);
+
+                clearTimeout(timer);
+                timer = setTimeout( function() { onUrlChange($field); }, 100);
+            });
+
+            function onUrlChange($field) {
+                var value = $.trim($field.val()),
+                    is_valid = $.wa.isValid("url_absolute", value),
+                    error_class = "wa-error-field";
+
+                // Рендер ошибки на поле
+                if (!value.length) {
+                    renderError($(that.templates["error_url_required"]));
+                    $field.addClass(error_class);
+                } else if (!is_valid) {
+                    renderError($(that.templates["error_url_incorrect"]));
+                    $field.addClass(error_class);
+                } else {
+                    $field.removeClass(error_class);
+                    if ($error) { $error.remove(); $error = null; }
+                }
+
+                // Добавление ошибки в модель чтобы блочить сохранение
+                if (value.length) {
+                    Vue.delete(that.errors, "error_url_required");
+                } else {
+                    Vue.set(that.errors, "", {
+                        "id": "error_url_required",
+                        "text": "error_url_required"
+                    });
+                }
+
+                // Добавление ошибки в модель чтобы блочить сохранение
+                if (is_valid) {
+                    Vue.delete(that.errors, "error_url_incorrect");
+                } else {
+                    Vue.set(that.errors, "", {
+                        "id": "error_url_incorrect",
+                        "text": "error_url_incorrect"
+                    });
+                }
+
+                function renderError($_error) {
+                    if ($error) {
+                        $_error.insertAfter($error);
+                        $error.remove();
+                        $error = $_error;
+                    } else {
+                        $error = $_error.insertAfter($field);
+                    }
+                }
+            }
+
+            $redirect_section.find('[name="product[params][redirect_code]"]').on("change", function() {
+                if ($(this).val() === "301") {
+                    $redirect_section.find('.redirect-message').show();
+                } else {
+                    $redirect_section.find('.redirect-message').hide();
                 }
             });
         };
@@ -1226,7 +1324,7 @@
                                 value = $.wa.validate("number", value);
 
                                 var limit_body = 11,
-                                    limit_tail = 3,
+                                    limit_tail = 4,
                                     parts = value.replace(",", ".").split(".");
 
                                 var error_key = "product[skus][" + data.id + "]["+ key + "]";
@@ -1806,6 +1904,7 @@
 
                 function getOptions(options) {
                     options = $.extend({
+                        lang: that.lang,
                         focus: false,
                         deniedTags: false,
                         minHeight: 300,
@@ -2060,6 +2159,16 @@
                         if (item.name === "product[sets][]") {
                             sets_is_set = true;
                         }
+                        if (item.name === "product[name]") {
+                            if (!item.value.length) {
+                                result.errors.push({
+                                    id: "product_name_required",
+                                    text: ""
+                                });
+                                that.$wrapper.trigger("product-name-error");
+                            }
+                        }
+
                         result.data.push(item);
                     });
 

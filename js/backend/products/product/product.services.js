@@ -117,8 +117,7 @@
                     renderError: function(error) {
                         var self = this;
 
-                        var white_list = ["price_error"];
-                        if (error.id && white_list.indexOf(error.id) >= 0) {
+                        if (error.id && error.id.indexOf("][price]") >= 0) {
                             self.$set(that.errors, error.id, error);
                         } else {
                             that.errors_global.push(error);
@@ -167,7 +166,7 @@
                                 value = $.wa.validate("number", value);
 
                                 var limit_body = 11,
-                                    limit_tail = 3,
+                                    limit_tail = 4,
                                     parts = value.replace(",", ".").split(".");
 
                                 if (parts[0].length > limit_body || (parts[1] && parts[1].length > limit_tail)) {

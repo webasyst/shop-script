@@ -106,6 +106,7 @@ class shopProdReviewsAction extends waViewAction
         $filters = ifset($options, 'where', 'filters', 'status', '');
         $offset  = $options['offset'];
         $limit   = $options['limit'];
+        $options['escape'] = false;
         unset($options['where']['filters']['status'], $options['limit'], $options['offset']);
 
         $product_reviews_model = new shopProductReviewsModel();

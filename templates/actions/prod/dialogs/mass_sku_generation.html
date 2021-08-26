@@ -102,10 +102,9 @@
 
 {capture assign="_invalid_value"}
     {_w("Invalid value")|escape}
-    &nbsp;
-    <div class="wa-tooltip bottom" data-title="[`Enter a number between 0 and 99,999,999,999.999 with max. 3 decimal digits.`]">
+    <span class="wa-tooltip bottom" data-tooltip-id="price-error">
         <i class="fas fa-question-circle color-red"></i>
-    </div>
+    </span>
 {/capture}
 
 <div class="wa-dialog s-mass-sku-generation-dialog" id="js-mass-sku-generation-dialog">

@@ -32,7 +32,7 @@ class shopProductImagesAction extends waViewAction
 
             $offset = 0;
             foreach ($images as $k => $img) {
-                if ($image['id'] == $img['id']) {
+                if (!empty($img['id']) && $image['id'] == $img['id']) {
                     $offset = $k;
                 }
             }

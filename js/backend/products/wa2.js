@@ -3515,12 +3515,17 @@ $.wa = $.extend($.wa || {}, {
         console.error("TYPE is required");
 
         switch (type) {
-            case "price":
-                result = isPrice(value);
-                break;
-
             case "url":
                 result = isURL(value);
+                break;
+            case "url_absolute":
+                result = isURL(value, true);
+                break;
+            case "email":
+                result = isEmail(value);
+                break;
+            case "price":
+                result = isPrice(value);
                 break;
         }
 
@@ -3528,13 +3533,29 @@ $.wa = $.extend($.wa || {}, {
 
         /**
          * @param {String} string
+         * @param {Boolean?} absolute
          * @return {Boolean}
          * */
-        function isURL(string) {
+        function isURL(string, absolute) {
             var result = false,
-                regexp = /^(http:\/\/|https:\/\/)?.+\.+.+$/i;
+                regexp = (absolute ? /^(https?:\/\/).+\.+.+$/i : /^(http:\/\/|https:\/\/)?.+\.+.+$/i);
 
             if (string.length > 0 && (string.match(regexp) || []).length >= 1) {
+                result = true;
+            }
+
+            return result;
+        }
+
+        /**
+         * @param {String} string
+         * @return {Boolean}
+         * */
+        function isEmail(string) {
+            var result = false,
+                exp = /^.+@+.+\.+.+$/i;
+
+            if (string.length > 0 && (string.match(exp) || []).length >= 1) {
                 result = true;
             }
 

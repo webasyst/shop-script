@@ -261,9 +261,9 @@
                                             <div class="name">[`Sender name`]</div>
                                             <div class="value no-shift">
                                                 {$message_sender_name = ifset($actions.message.options.sender_name)|escape}
-                                                <label><input type="radio" name="action_options[message][sender_name]" value="general" {if !$message_sender_name || $message_sender_name == 'general'}checked{/if}> [`Store name`] <span class="gray">[`provided in Settings &gt; General settings`]</span> </label>
+                                                <label><input type="radio" name="action_options[message][sender_name]" value="general" {if !$message_sender_name || $message_sender_name == 'general'}checked{/if}> [`Store name`] <span class="gray">[`as specified in the “Settings → General settings” section`]</span> </label>
                                                 <br><br>
-                                                <label><input type="radio" name="action_options[message][sender_name]" value="route_params" {if $message_sender_name == 'route_params'}checked{/if}> [`Storefront name`] <span class="gray">[`provided in Storefronts &gt; Settings and customizable for each storefront`]</span> </label>
+                                                <label><input type="radio" name="action_options[message][sender_name]" value="route_params" {if $message_sender_name == 'route_params'}checked{/if}> [`Storefront name`] <span class="gray">[`as specified in the “Storefront → Settings” section for each storefront`]</span> </label>
                                             </div>
                                         </div>
                                         <div class="field">

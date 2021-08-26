@@ -405,7 +405,7 @@
                                         value = $.wa.validate("number", value);
 
                                         var limit_body = 11,
-                                            limit_tail = 3,
+                                            limit_tail = 4,
                                             parts = value.replace(",", ".").split(".");
 
                                         var error_key = "product[skus][" + data.id + "]["+ key + "]";

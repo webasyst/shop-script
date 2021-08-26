@@ -187,7 +187,13 @@ class shopImportexportHelper
                 $hash = 'id/'.implode(',', array_keys($products));
                 break;
             default:
-                $hash = '*';
+                $collection = new shopProductsCollection($hash);
+                if ($collection->isPluginHash()) {
+                    $hash = $info['type'];
+                    $info['type'] = 'custom';
+                } else {
+                    $hash = '*';
+                }
                 break;
         }
         $info['hash'] = $hash;
@@ -227,7 +233,18 @@ class shopImportexportHelper
                 $info['category_ids'] = implode(',', $category_ids);
                 break;
             default:
-                $info['hash'] = '';
+                $info['hash'] = trim($hash);
+                $collection = new shopProductsCollection($info['hash']);
+                if ($info['hash'] != '*' && $collection->isPluginHash()) {
+                    $info['type'] = 'custom';
+                    $info['count'] = $collection->count();
+                    $info['plugin_names'] = $collection->getPluginNames();
+                } elseif (!empty($info['hash']) && $info['hash'] != '*') {
+                    $info['type'] = 'custom';
+                    $info['count'] = 0;
+                } else {
+                    $info['hash'] = '';
+                }
                 break;
         }
         if (!empty($params['categories']) || true) {

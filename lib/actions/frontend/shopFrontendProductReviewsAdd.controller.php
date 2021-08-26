@@ -113,7 +113,11 @@ class shopFrontendProductReviewsAddController extends waJsonController
 
     private function renderTemplate($assign, $template)
     {
-        $theme = waRequest::param('theme', 'default');
+        if (waRequest::isMobile()) {
+            $theme = waRequest::param('theme_mobile', 'default');
+        } else {
+            $theme = waRequest::param('theme', 'default');
+        }
         $theme_path = wa()->getDataPath('themes', true).'/'.$theme;
         if (!file_exists($theme_path) || !file_exists($theme_path.'/theme.xml')) {
             $theme_path = wa()->getAppPath().'/themes/'.$theme;

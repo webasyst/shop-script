@@ -40,6 +40,7 @@ class shopProdSaveServicesController extends waJsonController
                 $product_services_model->deleteByField(array('product_id' => $this->product_id, 'service_id' => $service_id));
             } else {
                 $product_services_model->save($this->product_id, $service_id, $this->getData($service_id, $service));
+                $this->logAction('product_edit', $this->product_id);
             }
         }
 
