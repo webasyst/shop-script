@@ -5,7 +5,7 @@ return array(
     'description'     => 'Экспорт каталога товаров в формате YML',
     'img'             => 'img/yandexmarket.png',
     'vendor'          => 'webasyst',
-    'version'         => '2.4.7',
+    'version'         => '2.4.8',
     'importexport'    => 'profiles',
     'export_profile'  => true,
     'custom_settings' => true,

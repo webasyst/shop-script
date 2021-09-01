@@ -1063,8 +1063,23 @@ HTML;
                     if (!empty($original_domain)) {
                         $original_settlement = $original_domain.'/'.$route['url'];
                     }
+                    if (!empty($domain)) {
+                        $route_elem['domain'] = $domain;
+                    }
+                    if (!empty($settlement)) {
+                        $route_elem['settlement'] = $settlement;
+                    }
+                    if (!empty($original_domain)) {
+                        $route_elem['original_domain'] = $original_domain;
+                    }
+                    if (!empty($original_settlement)) {
+                        $route_elem['original_settlement'] = $original_settlement;
+                    }
 
-                    $settlements[] = compact('domain', 'original_domain', 'settlement', 'original_settlement');
+                    if (!empty($route_elem)) {
+                        $settlements[] = $route_elem;
+                        unset($route_elem);
+                    }
                 }
 
             }
@@ -1082,7 +1097,27 @@ HTML;
                         if (!empty($original_domain)) {
                             $original_settlement = $original_domain.'/'.$route['url'];
                         }
-                        $settlements[] = compact('alias', 'domain', 'original_domain', 'settlement', 'original_settlement');
+
+                        if (!empty($alias)) {
+                            $route_elem['alias'] = $alias;
+                        }
+                        if (!empty($domain)) {
+                            $route_elem['domain'] = $domain;
+                        }
+                        if (!empty($original_domain)) {
+                            $route_elem['original_domain'] = $original_domain;
+                        }
+                        if (!empty($settlement)) {
+                            $route_elem['settlement'] = $settlement;
+                        }
+                        if (!empty($original_settlement)) {
+                            $route_elem['original_settlement'] = $original_settlement;
+                        }
+
+                        if (!empty($route_elem)) {
+                            $settlements[] = $route_elem;
+                            unset($route_elem);
+                        }
                     }
                 }
             }

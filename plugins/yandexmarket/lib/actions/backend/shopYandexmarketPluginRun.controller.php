@@ -3734,6 +3734,10 @@ SQL;
                     $value = $value->format('%s');
                 } elseif ($value instanceof shopColorValue) {
                     $value = (string)$value->value;
+                } elseif ($value instanceof shopCompositeValue) {
+                    $value = $value->format();
+                } elseif ($value instanceof shopRangeValue) {
+                    $value = $value->format();
                 } elseif (is_array($value)) {
                     $_value = reset($value);
                     if ($_value instanceof shopDimensionValue) {
