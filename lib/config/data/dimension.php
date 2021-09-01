@@ -125,7 +125,7 @@ return array(
                 'multiplier' => 1,
             ),
             'KW'  => array(
-                'name'       => _w('KW'),
+                'name'       => _w('kW'),
                 'multiplier' => 1000,
             ),
             'MW'  => array(

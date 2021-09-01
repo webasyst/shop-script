@@ -72,7 +72,7 @@ class shopMarketingDiscountsSidebarAction extends shopMarketingViewAction
             ),
             array(
                 'id' => 'category',
-                'name' => _w('By contact category'),
+                'name' => _w('By customer category'),
                 'url' => $marketing_url.'discounts/category/',
             ),
             array(

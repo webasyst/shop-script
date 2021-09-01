@@ -1041,7 +1041,7 @@ class shopProdSkuAction extends waViewAction
         Field description expected from plugin via backend_prod_sku_fields event:
 
         [
-            'type' => 'price',// |input|textarea|select
+            'type' => 'price',// |input|textarea|select|help
             'id' => 'zzzz',
             'name' => '',
             'default_value' => '', // used for new sku
@@ -1152,6 +1152,9 @@ class shopProdSkuAction extends waViewAction
                                     $field['sku_values'][$sku_id] = null;
                                 }
                             }
+                            break;
+                        case 'help':
+                            $field['render_type'] = 'custom_html';
                             break;
                         case 'input':
                         default:

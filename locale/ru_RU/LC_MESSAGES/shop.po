@@ -454,7 +454,7 @@ msgstr "Просмотр"
 msgid "Saved"
 msgstr "Сохранено"
 
-msgid "Plugin %s is installed and working."
+msgid "Plugin “%s” is installed and working."
 msgstr "Плагин «%s» установлен и работает."
 
 msgid "No configuration options are available for this plugin."
@@ -760,7 +760,7 @@ msgstr "Конвертировать цены"
 msgid "Don’t convert, leave all product prices as is"
 msgstr "Не конвертировать, оставить все цены без изменений"
 
-msgid "By contact category"
+msgid "By customer category"
 msgstr "По категории покупателя"
 
 msgid "Settings updated"
@@ -891,9 +891,6 @@ msgstr "* умножается на размер глобальной ставк
 
 msgid "replaces global country rate"
 msgstr "заменяет глобальную ставку по стране"
-
-msgid "Stocking"
-msgstr "Склады"
 
 msgid "Inventory tracking is performed by stocks (warehouses) listed below. Yellow and red indicators are used to visually display low and critical stock levels in both backend and storefront."
 msgstr "Отслеживание товарных остатков выполняется по складам, перечисленными ниже. Желтые и красные индикаторы показывают низкий и критический уровни наличия товара на складе и в бекенде, и на витрине магазина."
@@ -2200,7 +2197,7 @@ msgstr "Мощность"
 msgid "W"
 msgstr "Вт"
 
-msgid "KW"
+msgid "kW"
 msgstr "кВт"
 
 msgid "MW"
@@ -12383,3 +12380,6 @@ msgstr "Значением поля «%s» может быть только 0 и
 
 msgid "The main SKU cannot be hidden; therefore, the visibility in the storefront is always enabled for it."
 msgstr "Основной артикул не может быть скрытым, поэтому для него всегда включена видимость на витрине."
+
+msgid "Error: product type does not exist."
+msgstr "Ошибка: тип товара не существует."

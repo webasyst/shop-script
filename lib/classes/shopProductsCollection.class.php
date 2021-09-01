@@ -3313,6 +3313,7 @@ SQL;
     public function getPluginNames()
     {
         $names = [];
+        $this->prepare();
         if (!empty($this->completed_events['products_collection']) && is_array($this->completed_events['products_collection'])) {
             foreach ($this->completed_events['products_collection'] as $plugin_id => $event_processed) {
                 if ($event_processed) {
@@ -3320,7 +3321,8 @@ SQL;
                     if (strpos($plugin_id, '-plugin') !== false) {
                         $name = $plugin_id = str_replace('-plugin', '', $plugin_id);
                         try {
-                            $name = _wp(wa('shop')->getPlugin($plugin_id)->getName());
+                            $name = _wp(wa('shop')->getPlugin($plugin_id, true)->getName());
+                            waSystem::popActivePlugin();
                         } catch (waException $e) {
                         }
                     }

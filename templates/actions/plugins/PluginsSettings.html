@@ -1,9 +1,9 @@
-{if isset($plugin_id)} 
+{if isset($plugin_id)}
     {if !empty($settings_controls)}
         {if !empty($plugin_info.printform)}
             <div class="block double-padded align-center gray">
                 <p>
-                    <strong>{$plugin_info.name|default:$plugin_id|string_format:'[`Plugin %s is installed and working.`]'}</strong>
+                    <strong>{$plugin_info.name|default:$plugin_id|string_format:'[`Plugin “%s” is installed and working.`]'}</strong>
                     <br>
                     <br>
                     {sprintf('[`Customize this print form in <a href="%s">Settings &rarr; Print forms</a>`]', '?action=settings#/printform/'|cat:$plugin_id|cat:'/')}
@@ -34,7 +34,7 @@
     {else}
         <div class="block double-padded align-center gray">
             <p>
-                <strong>{$plugin_info.name|default:$plugin_id|string_format:'[`Plugin %s is installed and working.`]'}</strong>
+                <strong>{$plugin_info.name|default:$plugin_id|string_format:'[`Plugin “%s” is installed and working.`]'}</strong>
                 <br>
                 <br>
                 {if !empty($plugin_info.importexport)}

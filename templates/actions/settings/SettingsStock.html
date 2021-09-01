@@ -85,7 +85,7 @@
 
 <script src="{$wa_app_static_url}js/settings/stocks.js?{$wa->version()}"></script>
 <div class="blank block double-padded s-settings-form">
-    <h1 style="margin-bottom: 0.75em;">[`Stocking`]</h1>
+    <h1 style="margin-bottom: 0.75em;">[`Stocks`]</h1>
     <p>[`Inventory tracking is performed by stocks (warehouses) listed below. Yellow and red indicators are used to visually display low and critical stock levels in both backend and storefront.`]</p>
     <form action="?module=settings&action=saveStock" method="post" id="s-settings-stocks-form">
         <input type="hidden" name="stocks_order" value="">
@@ -403,7 +403,7 @@
 </div>
 
 <script>
-document.title = "[`Stocking`] — " + {json_encode($wa->accountName(false))};
+document.title = "[`Stocks`] — " + {json_encode($wa->accountName(false))};
 $.settings.stocksInit({
     validate_errors: {
         number: "[`Value must be a positive number`]",

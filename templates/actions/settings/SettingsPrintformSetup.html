@@ -64,7 +64,7 @@
                 </div>
             {else}
                 <div class="block double-padded align-center gray">
-                    <strong>{$plugin_info.name|default:$plugin_id|string_format:'[`Plugin %s is installed and working.`]'}</strong>
+                    <strong>{$plugin_info.name|default:$plugin_id|string_format:'[`Plugin “%s” is installed and working.`]'}</strong>
                     <br>
                     <br>
                     [`No configuration options are available for this plugin.`]

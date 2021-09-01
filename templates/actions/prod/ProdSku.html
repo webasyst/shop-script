@@ -921,6 +921,10 @@
                   v-bind:data-tooltip-id="'plugin-tooltip-' + field.id"><i class="fas fa-question-circle color-gray-light"></i></span>
         </div>
         <div class="value">
+
+            <template v-if="field.render_type === 'custom_html'">
+                <div v-html="field.value"></div>
+            </template>
             <template v-if="field.render_type === 'field'">
                 <input class="wa-small size-short" type="text"
                        v-model="field.value"
@@ -1032,7 +1036,7 @@
                                     <div class="s-hint hint">{_w("You can change the product type on the “Basic data” tab.")}</div>
 
                                 {else}
-                                    <div class="color-red">ERROR: TYPE IS NOT EXIST</div>
+                                    <div class="color-red">[`Error: product type does not exist.`]</div>
                                 {/if}
                             </div>
 

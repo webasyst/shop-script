@@ -2726,7 +2726,7 @@ SQL;
                 $product_feature_model = $this->model('product_features');
                 $sku['features'] = $product_feature_model->getValues($product['id'], -intval($sku['id']));
 
-                if ($this->data['config']['export_mode']) {
+                if ($this->data['config']['export_mode'] || ($sku_mode == false && $simple_product)) {
                     $this->prepareProductAllSkuFeatures($product, $sku);
                 } elseif ($sku_mode) {
                     $this->prepareProductSkuFeatures($product, $sku);
