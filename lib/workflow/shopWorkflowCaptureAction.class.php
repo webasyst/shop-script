@@ -91,7 +91,10 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
                 } else {
 
                     $amount_on_hold = $order['amount_on_hold'];
-                    if ($amount_on_hold < $order['total']) {
+                    
+                    $tolerance = max(0.01, $this->getConfig()->getOption('order_amount_tolerance'));
+
+                    if (abs($amount_on_hold - $order['total']) < $tolerance) {
                         // Amount on hold is not enough to cover order total. Bail.
                         $message = sprintf(
                             "Unable to capture money for order #%d because order total exceeds amount on hold.",
