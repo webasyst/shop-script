@@ -55,7 +55,7 @@ class shopShippingCli extends waCliController
      */
     protected function runSync($plugin, $method)
     {
-        if (!empty($method['status'])) {
+        if (!empty($method['status']) && method_exists($plugin, 'runSync')) {
             try {
                 $plugin->runSync();
             } catch (waException $ex) {
