@@ -624,7 +624,7 @@
                 if (value.length) {
                     Vue.delete(that.errors, "error_url_required");
                 } else {
-                    Vue.set(that.errors, "", {
+                    Vue.set(that.errors, "error_url_required", {
                         "id": "error_url_required",
                         "text": "error_url_required"
                     });
@@ -634,7 +634,7 @@
                 if (is_valid) {
                     Vue.delete(that.errors, "error_url_incorrect");
                 } else {
-                    Vue.set(that.errors, "", {
+                    Vue.set(that.errors, "error_url_incorrect", {
                         "id": "error_url_incorrect",
                         "text": "error_url_incorrect"
                     });

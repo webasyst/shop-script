@@ -7,11 +7,20 @@ return array(
     'product_edit' => array(
         'name' => /*_w*/('edited a product')
     ),
+    'products_edit' => array(
+        'name' => /*_w*/('edited')
+    ),
     'product_delete' => array(
         'name' => /*_w*/('deleted a product')
     ),
     'products_delete' => array(
         'name' => /*_w*/('deleted products')
+    ),
+    'product_duplicate' => array(
+        'name' => /*_w*/('товар добавлен копированием')
+    ),
+    'products_duplicate' => array(
+        'name' => /*_w*/('товары добавлены копированием')
     ),
     'catalog_import' => array(
         'name' => /*_w*/('performed catalog import')

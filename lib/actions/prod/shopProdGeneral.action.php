@@ -128,7 +128,7 @@ class shopProdGeneralAction extends waViewAction
             $domain_routes = $routing->getByApp('shop');
 
             foreach ($domain_routes as $domain => $routes) {
-                foreach ($routes as $r) {
+                foreach (array_reverse($routes, true) as $r) {
                     if (!empty($r['private'])) {
                         continue; // do not advertise links to private storefronts
                     }

@@ -329,7 +329,7 @@ class shopCategoryModel extends waNestedSetModel
             preg_match_all('~\\\\(.)~', $escaped_url_without_dashes, $matches);
             $url = str_replace($matches[1], '', $url);
         }
-        return ifempty($url, null);
+        return mb_strlen($url) ? $url : null;
     }
 
     /**

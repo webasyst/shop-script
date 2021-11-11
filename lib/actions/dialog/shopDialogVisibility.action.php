@@ -92,6 +92,7 @@ class shopDialogVisibilityAction extends waViewAction
         wa('shop')->event('products_visibility_set.before', $params);
 
         // Read and update products in batches
+        $all_updated_products = [];
         while ($offset < $total_count) {
 
             $products = $collection->getProducts('id,type_id', $offset, $count);
@@ -110,6 +111,7 @@ class shopDialogVisibilityAction extends waViewAction
 
             // Update products and skus
             $product_model->updateById($products_id, array('status' => $set_status));
+            $all_updated_products += $products_id;
             if ($update_sku_availability) {
                 $product_skus_model->updateByField('product_id', $products_id, array(
                     'available' => (int)($set_status > 0),
@@ -120,6 +122,12 @@ class shopDialogVisibilityAction extends waViewAction
             if (!$products) {
                 break; // being paranoid
             }
+        }
+
+        if (count($all_updated_products) > 1) {
+            $this->logAction('products_edit', count($all_updated_products) . '$' . implode(',', $all_updated_products));
+        } elseif (isset($all_updated_products[0]) && is_numeric($all_updated_products[0])) {
+            $this->logAction('product_edit', $all_updated_products[0]);
         }
 
         /**

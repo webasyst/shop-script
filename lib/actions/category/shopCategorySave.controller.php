@@ -84,7 +84,7 @@ class shopCategorySaveController extends waJsonController
          * @var shopCategoryModel
          */
         if (!$category_id) {
-            if (empty($data['url'])) {
+            if (!mb_strlen($data['url'])) {
                 $url = shopHelper::transliterate($data['name'], false);
                 if ($url) {
                     $data['url'] = $this->model->suggestUniqueUrl($url);
@@ -108,7 +108,7 @@ class shopCategorySaveController extends waJsonController
             if (empty($data['name'])) {
                 $data['name'] = $category['name'];
             }
-            if (empty($data['url'])) {
+            if (!mb_strlen($data['url'])) {
                 $data['url'] = $this->model->suggestUniqueUrl(shopHelper::transliterate($data['name']), $category_id, $category['parent_id']);
             }
             unset($data['parent_id']);

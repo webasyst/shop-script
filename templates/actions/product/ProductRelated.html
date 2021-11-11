@@ -18,7 +18,7 @@
                             </div>
                             <div class="s-section-body">
                                 {if $type.cross_selling}
-                                    <em class="hint">[`Auto`] ({if $type.cross_selling == 'alsobought'}{sprintf('[`based on what other customers bought with %s`]',$product.name)}{else}[`products from category`] "{$type.category.name}"{/if})</em>
+                                    <em class="hint">[`Auto`] ({if $type.cross_selling == 'alsobought'}{sprintf('[`based on what other customers bought with %s`]', $product.name|escape)}{else}[`products from category`] "{$type.category.name|escape}"{/if})</em>
                                 {/if}
                             </div>
                         </div>
@@ -87,8 +87,8 @@
                                         {$product.type = null}
                                         {sprintf(
                                             _w('Upselling & similar product recommendations are not configured for product type “%s”. Set up filtering conditions for “%s” in the <a href="%s">recommendation settings</a>.'),
-                                            $product.type.name|default:'',
-                                            $product.type.name|default:'',
+                                            $product.type.name|default:''|escape,
+                                            $product.type.name|default:''|escape,
                                             "`$wa_app_url`marketing/recommendations/"
                                         )}
                                     </div>

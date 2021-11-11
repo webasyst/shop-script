@@ -179,13 +179,20 @@ class shopProdSkuAction extends waViewAction
             "code_model" => $badge_example_html
         ];
 
-        if ($product["badge"] === "") {
+        if (empty($product["badge"]) || $product["badge"] === "") {
             $product["badge"] = null;
         }
 
-        if (!empty($product["badge"])) {
-            $badges[""]["code"] = $badges[""]["code_model"] = $product["badge"];
-            $badge_id =  (empty($badges[$product["badge"]]) ? "" : $product["badge"]);
+        switch ($product["badge"]) {
+            case "new":
+            case "bestseller":
+            case "lowprice":
+                $badge_id = $product["badge"];
+                break;
+            default:
+                $badge_id = "";
+                $badges[""]["code"] = $badges[""]["code_model"] = $product["badge"];
+                break;
         }
 
         // Features that are rendered as checklists for product and allow multiple selection,
@@ -326,31 +333,20 @@ class shopProdSkuAction extends waViewAction
                 $modification["additional_fields"][] = $additional_field;
             }
 
-            // MODIFICATIONS
-            if ($modification['sku'] || $modification_name) {
-                $sku_key = $modification['sku'].'###'.$modification_name;
-                if (empty($skus[$sku_key])) {
-                    $skus[$sku_key] = [
-                        'sku' => $modification['sku'],
-                        'name' => $modification_name,
-                        'sku_id' => null,
-                        'modifications' => [],
-                    ];
-                }
-                $skus[$sku_key]['modifications'][] = $modification;
-
-                if ($product["sku_id"] === $modification['id']) {
-                    $skus[$sku_key]["sku_id"] = $modification['id'];
-                }
-
-            } else {
-                $_id = uniqid($modification['id'], true);
-                $skus[$_id] = [
+            // Group modifications into SKUs by name and sku code
+            $sku_key = $modification['sku'].'###'.$modification_name;
+            if (empty($skus[$sku_key])) {
+                $skus[$sku_key] = [
                     'sku' => $modification['sku'],
                     'name' => $modification_name,
-                    'sku_id' => ($product["sku_id"] === $modification['id'] ? $modification['id'] : null),
-                    'modifications' => [$modification],
+                    'sku_id' => null,
+                    'modifications' => [],
                 ];
+            }
+            $skus[$sku_key]['modifications'][] = $modification;
+
+            if ($product["sku_id"] === $modification['id']) {
+                $skus[$sku_key]["sku_id"] = $modification['id'];
             }
         }
 

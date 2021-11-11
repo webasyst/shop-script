@@ -69,7 +69,7 @@
                 //sessionStorage.removeItem("product_sku_page_data");
 
                 $.each(product.skus, function(i, sku) {
-                    sku.errors = {};
+                    sku = formatSku(sku);
 
                     $.each(sku.modifications, function(i, sku_mod) {
                         that.formatModification(sku_mod);
@@ -89,6 +89,12 @@
             }
 
             function formatSku(sku) {
+                sku.states = {
+                    error: false,
+                    highlight: false
+                };
+                sku.errors = {};
+
                 return sku;
             }
         };
@@ -1601,13 +1607,17 @@
                         var self = this,
                             result = false;
 
-                        var is_features_mode = (self.product.sku_type === "1");
-                        if (is_features_mode) {
-                            var selectable_features = self.selectable_features.filter( function(feature) {
-                                return feature.active;
-                            });
-                            if (!selectable_features.length) {
+                        var selectable_features = self.selectable_features.filter( function(feature) { return feature.active; });
+                        if (!selectable_features.length) {
+                            var is_features_mode = (self.product.sku_type === "1");
+                            if (is_features_mode) {
                                 result = true;
+                            } else {
+                                $.each(that.product.skus, function(i, sku) {
+                                    if (sku.modifications.length > 1) {
+                                        result = true;
+                                    }
+                                });
                             }
                         }
 
@@ -1651,7 +1661,7 @@
 
                             self.$nextTick( function() {
                                 if (scroll2top) {
-                                    var $error = $(".wa-error-text:first");
+                                    var $error = getTarget();
                                     if ($error.length) {
                                         $(window).scrollTop($error.offset().top - 150);
                                     } else {
@@ -1659,6 +1669,41 @@
                                     }
                                 }
                             });
+                        }
+
+                        function getTarget() {
+                            var $error = $(".wa-error-text:first");
+
+                            $.each(errors, function(i, error) {
+                                if (error.id === "main_sku_visibility") {
+                                    error.text = that.locales["main_sku_visibility"];
+                                    var target_sku = null,
+                                        target_sku_mod = null;
+                                    $.each(that.product.skus, function(i, sku) {
+                                        $.each(sku.modifications, function(i, sku_mod) {
+                                            if (sku_mod.id === that.product.sku_id) {
+                                                target_sku = sku;
+                                                target_sku_mod = sku_mod;
+                                                return false;
+                                            }
+                                        });
+                                        if (target_sku) { return false; }
+                                    });
+
+                                    // target_sku.states.error = true;
+                                    target_sku_mod.states.error = true;
+                                    setTimeout( function() {
+                                       // target_sku.states.error = false;
+                                        target_sku_mod.states.error = false;
+                                    }, 2000);
+
+                                    var $sku_mod = that.$wrapper.find(".s-modification-wrapper[data-id=\""+that.product.sku_id+"\"]");
+                                    if ($sku_mod.length) { $error = $sku_mod; }
+                                    return false;
+                                }
+                            });
+
+                            return $error;
                         }
                     },
                     renderError: function(error) {
@@ -1780,6 +1825,8 @@
                                     });
 
                                     that.updateModificationSelectableFeatures();
+
+                                    that.checkUniqueFeaturesValuesAtMods();
 
                                     that_vue_model.keys.product_features += 1;
                                 }
@@ -2820,13 +2867,22 @@
                             return result;
                         }
                     },
-                    checkSkuModFeaturesValues: function(sku_mod) {
+                    getSkuModFeaturesTooltip: function(sku_mod) {
                         var self = this,
-                            result = null;
+                            result = null,
+                            error_name = "product[skus]["+sku_mod.id+"]";
 
-                        var error_name = "product[skus]["+sku_mod.id+"][features_name]";
-                        if (that.errors[error_name]) {
-                            result = that.errors[error_name];
+                        if (sku_mod.errors[error_name + "[features_name_no_features]"]) {
+                            result = "sku_mod_features_name_error_1";
+                        } else
+                        if (sku_mod.errors[error_name + "[features_name]"]) {
+                            result = "sku_mod_features_name_error_2";
+                        } else
+                        if (sku_mod.errors[error_name + "[features_values_no_features]"]) {
+                            result = "sku_mod_features_values_error_1";
+                        } else
+                        if (sku_mod.errors[error_name + "[features_values]"]) {
+                            result = "sku_mod_features_values_error_2";
                         }
 
                         return result;
@@ -3196,6 +3252,12 @@
 
             var stocks = that.stocks;
 
+            sku_mod.errors = {};
+            sku_mod.expanded = false;
+            sku_mod.states = {
+                error: false,
+                highlight: false
+            };
             sku_mod.expanded = false;
             sku_mod.stocks_expanded = false;
             sku_mod.stocks_mode = true;
@@ -3855,9 +3917,9 @@
                     if (sku.errors[error_id]) { Vue.delete(sku.errors, error_id); }
                 });
 
-                if (that.product.normal_mode_switch) {
+                if (that.product.normal_mode_switch && that.product.skus.length > 1) {
                     // ОШИБКИ ПРО АРТИКУЛ И НАЗВАНИЕ
-                    if (sku_sku && sku_name) {
+                    if (sku_name) {
                         var group = sku_groups_with_name[sku_sku + "|" + sku_name];
                         if (group.length > 1 && group.indexOf(sku) >= 0) {
                             Vue.set(sku.errors, "sku_full_unique", {
@@ -3867,26 +3929,16 @@
                             errors.push("sku_full_unique");
                         }
 
-                    } else if (sku_sku && !sku_name) {
+                    } else if (sku_sku) {
                         var sku_group = sku_groups[sku_sku];
                         if (sku_group.length > 1 && sku_group.indexOf(sku) >= 0) {
-                            Vue.set(sku.errors, "sku_unique", {
-                                "id": "sku_unique",
-                                "text": that.locales["sku_unique_error"]
+                            Vue.set(sku.errors, "sku_full_unique", {
+                                "id": "sku_full_unique",
+                                "text": that.locales["sku_full_unique"]
                             });
                             errors.push("sku_unique");
                         }
-
-                    } else if (!sku_sku && sku_name) {
-                        /*
-                        Vue.set(sku.errors, "sku_required", {
-                            "id": "sku_required",
-                            "text": that.locales["sku_required"]
-                        });
-                        errors.push("sku_required");
-                        */
-
-                    } else if (!sku_sku && !sku_name) {
+                    } else {
                         Vue.set(sku.errors, "sku_full_required", {
                             "id": "sku_full_required",
                             "text": "sku_full_required"
@@ -3929,7 +3981,7 @@
                                 var error_id = "product[skus]["+sku_mod.id+"][additional_fields]["+field.id+"]",
                                     value = getValue(field);
 
-                                Vue.delete(that.errors, error_id);
+                                if (that.errors[error_id]) { Vue.delete(that.errors, error_id); }
 
                                 if (value) {
                                     // if (field.validate.numbers) {
@@ -5582,9 +5634,9 @@
                         that.highlight("sku_mod", { sku_mod: sku_mod });
                     });
 
-                    Vue.set(data.sku, "highlight", true);
+                    data.sku.states.highlight = true;
                     setTimeout( function() {
-                        Vue.set(data.sku, "highlight", false);
+                        data.sku.states.highlight = false;
                     }, time);
 
                     if (data.focus) {
@@ -5596,9 +5648,9 @@
 
                     break;
                 case "sku_mod":
-                    Vue.set(data.sku_mod, "highlight", true);
+                    data.sku_mod.states.highlight = true;
                     setTimeout( function() {
-                        Vue.set(data.sku_mod, "highlight", false);
+                        data.sku_mod.states.highlight = false;
                     }, time);
 
                     if (data.focus) {
@@ -5644,6 +5696,11 @@
             moved_mod.name = drop_sku.name;
             moved_mod.sku = drop_sku.sku;
 
+            // Если перетаскиваем главную модификацию, то "включаем" её в другом актикуле.
+            if (that.product.sku_id === moved_mod.id) {
+                that.vue_model.modificationMainToggle(moved_mod, drop_sku);
+            }
+
             that.highlight("sku_mod", { sku_mod: moved_mod });
 
             that.$wrapper.trigger("change");
@@ -5662,6 +5719,11 @@
                 values_object = getValuesObject(),
                 result = [];
 
+            // Выбранные характеристики
+            var selectable_features = that.selectable_features.filter( function(feature) {
+                return feature.active;
+            });
+
             $.each(that.product.skus, function(i, sku) {
                 $.each(sku.modifications, function(i, sku_mod) {
                     handler(sku_mod, sku);
@@ -5671,30 +5733,25 @@
             return result;
 
             function handler(sku_mod, sku) {
-                var error_id = "product[skus]["+sku_mod.id+"][features_name]";
+                var error_id = "product[skus]["+sku_mod.id+"]";
 
-                // Удаляем ошибку
-                if (options.clear) {
-                    Vue.delete(that.errors, error_id);
+                // Удаляем ошибки
+                removeErrors(error_id);
 
                 // Устанавливаем ошибку
-                } else {
-                    var sku_mod_error = checkError(sku_mod, sku);
-                    if (sku_mod_error) {
-                        Vue.set(that.errors, error_id, sku_mod_error);
-                        result.push(sku_mod_error);
+                var sku_mod_error = checkError(sku_mod, sku);
+                if (sku_mod_error) {
+                    Vue.set(sku_mod.errors, sku_mod_error["id"], sku_mod_error);
+                    result.push(sku_mod_error);
 
-                        // Ставим фокус на первой ошибке
-                        if (options.focus) {
-                            if (result.length === 1) {
-                                var $sku_mod = that.$wrapper.find(".s-modification-wrapper[data-id=\""+sku_mod.id+"\"]");
-                                if ($sku_mod.length) {
-                                    $(window).scrollTop( $sku_mod.offset().top - 100);
-                                }
+                    // Ставим фокус на первой ошибке
+                    if (options.focus) {
+                        if (result.length === 1) {
+                            var $sku_mod = that.$wrapper.find(".s-modification-wrapper[data-id=\""+sku_mod.id+"\"]");
+                            if ($sku_mod.length) {
+                                $(window).scrollTop( $sku_mod.offset().top - 100);
                             }
                         }
-                    } else {
-                        Vue.delete(that.errors, error_id);
                     }
                 }
 
@@ -5707,21 +5764,49 @@
                     var result = null,
                         name = getSkuModName(sku_mod, sku);
 
-                    // Особое условие когда ошибку не выводим.
-                    if (sku.modifications.length === 1 && that.product.sku_type === "0") {
-                        var selectable_features = that.selectable_features.filter( function(feature) {
-                            return feature.active;
-                        });
+                    // По наименованию
+                    if (that.product.sku_type === "0") {
                         if (!selectable_features.length) {
-                            return result;
+                            if (sku.modifications.length > 1) {
+                                result = { id: error_id + "[features_name_no_features]", text: error_id };
+                            }
+                        } else if (!checkName()) {
+                            result = { id: error_id + "[features_name]", text: error_id };
+                        }
+                    // По характеристикам
+                    } else {
+                        if (!selectable_features.length) {
+                            if (that.product.skus.length !== 1 || that.product.skus[0].modifications.length !== 1) {
+                                result = { id: error_id + "[features_values_no_features]", text: error_id };
+                            }
+                        } else if (!checkName()) {
+                            result = { id: error_id + "[features_values]", text: error_id };
                         }
                     }
 
-                    if (name && values_object[name].length > 1) {
-                        result = { id: error_id, text: error_id };
-                    }
-
                     return result;
+
+                    function checkName() {
+                        var result;
+
+                        if (name.indexOf("[value:]") >=0 || name.indexOf("[option:]") >=0) {
+                            result = true;
+                        } else {
+                            result = !(name && values_object[name].length > 1)
+                        }
+
+                        return result;
+                    }
+                }
+
+                function removeErrors(error_id) {
+                    var errors = ["features_name", "features_name_no_features", "features_values", "features_values_no_features"];
+                    $.each(errors, function(i, name) {
+                        var error_name = error_id+"["+name+"]";
+                        if (sku_mod.errors[error_name]) {
+                            Vue.delete(sku_mod.errors, error_name);
+                        }
+                    });
                 }
             }
 
@@ -5753,7 +5838,8 @@
                 var result = [];
 
                 if (that.product.sku_type === "0") {
-                    result.push("name:" + sku_mod.name);
+                    result.push("[sku_name:"+sku_mod.name+"]");
+                    result.push("[sku_sku:"+sku_mod.sku+"]");
                 } else if (!sku_mod.features_selectable.length) {
                     return null;
                 }
@@ -5763,7 +5849,8 @@
                 $.each(features, function(i, feature) {
                     switch (feature.render_type) {
                         case "textarea":
-                            result.push("value:" + feature.value);
+                            var value = (feature.value ? feature.value : "");
+                            result.push("[value:"+value+"]");
                             break;
                         case "field":
                         case "field.date":
@@ -5771,23 +5858,25 @@
                             $.each(feature.options, function(k, option) {
                                 var code = (option.code && option.code.length ? option.code : ""),
                                     value = (option.value.length ? option.value : "");
-                                result.push("option:" + value + (code ? "-"+code : ""));
+                                result.push("[option:"+value+"]");
+                                if (code) {
+                                    result.push("[code:"+code+"]");
+                                }
                             });
 
                             if (feature.active_unit && feature.active_unit.value.length) {
-                                result.push("unit:" + feature.active_unit.value);
+                                result.push("[unit:"+feature.active_unit.value+"]");
                             }
                             break;
                         case "select":
                         case "checkbox":
-                            if (feature.active_option && feature.active_option.value.length) {
-                                result.push("option:" + feature.active_option.value);
-                            }
+                            var value = (feature.active_option && feature.active_option.value.length ? ""+feature.active_option.value : "");
+                            result.push("[option:"+value+"]");
                             break;
                     }
                 });
 
-                return result.join("|");
+                return result.join("");
             }
         };
 

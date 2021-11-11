@@ -40,7 +40,7 @@ class shopOrderModel extends waModel
 
         $offset_where = "create_datetime > '{$item['create_datetime']}' OR (create_datetime = '{$item['create_datetime']}' AND id < '{$item['id']}')";
 
-        $sql = "SELECT COUNT(id) offset
+        $sql = "SELECT COUNT(id) `offset`
                 FROM `{$this->table}`
                 WHERE ".($where ? "$where AND " : "")." ($offset_where)";
         return $this->query($sql)->fetchField('offset');

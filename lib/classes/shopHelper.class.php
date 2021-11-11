@@ -1585,7 +1585,7 @@ SQL;
 
         return str_replace(
             array(':url', ':another_product_backend_url', ':another_product_name'),
-            array($product['url'], $backend_url, htmlspecialchars($found_product['name'])),
+            array($product['url'], $backend_url, $found_product['name']),
             $template
         );
     }

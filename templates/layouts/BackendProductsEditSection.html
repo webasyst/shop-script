@@ -34,7 +34,7 @@
                 </div>
             {/if}
             <div class="s-title-wrapper wide">
-                <h3 class="s-title js-product-name">{$product.name|default:_w('New product')}</h3>
+                <h3 class="s-title js-product-name">{$product.name|default:_w('New product')|escape}</h3>
             </div>
             <div class="s-details">
                 <button class="s-button wa-button rounded pink js-show-callback-dialog animation-pulse" type="button">
@@ -75,11 +75,7 @@
 
             function initReturnButton() {
                 var $button = $("#js-return-link"),
-                    href = "{$wa_app_url|escape}?action=products#/product/{$product.id|default:"new"|escape}/";
-
-                if ('{$product.id|escape}') {
-                    $button.attr('href', "{$wa_app_url|escape}?action=products&force-old=1#/product/{$product.id|default:"new"|escape}/");
-                }
+                    href = "{$wa_app_url|escape}?action=products&force-old=1#/product/{$product.id|default:"new"|escape}/";
 
                 $(document).on("wa_product_section_change", function(event, section_id) {
                     var new_href = null;

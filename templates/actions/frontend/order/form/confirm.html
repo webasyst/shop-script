@@ -28,6 +28,14 @@
 {if !empty($config["shipping"]["used"])}
     {if $error_step_id === "region" || $error_step_id === "shipping"}
         {$_button_text = _w("Select shipping")}
+        {if !empty($errors)}
+            {foreach $errors as $_error}
+                {if !empty($_error.id) && $_error.id === "empty_region_options"}
+                    {$_locked = true}
+                    {break}
+                {/if}
+            {/foreach}
+        {/if}
     {/if}
 {/if}
 {if !empty($config["payment"]["used"])}

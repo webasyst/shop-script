@@ -2992,41 +2992,43 @@ var Tooltip = ( function($) {
                 if (tooltips[tooltip_id]) {
                     var tooltip = tooltips[tooltip_id];
 
-                    var start_time = tooltip.start_time,
-                        hide_time = tooltip.hide_time,
-                        animate = tooltip.animate;
+                    if (tooltip.action === "hover") {
+                        var start_time = tooltip.start_time,
+                            hide_time = tooltip.hide_time,
+                            animate = tooltip.animate;
 
-                    // Принудительно закрываем другие подсказки если они показаны
-                    $.each(tooltips, function(id, _tooltip) {
-                        if (_tooltip !== tooltip && _tooltip.is_open) {
-                            _tooltip.close();
-                        }
-                    });
+                        // Принудительно закрываем другие подсказки если они показаны
+                        $.each(tooltips, function(id, _tooltip) {
+                            if (_tooltip !== tooltip && _tooltip.is_open) {
+                                _tooltip.close();
+                            }
+                        });
 
-                    $target.on("click change", updateTooltip);
+                        $target.on("click change", updateTooltip);
 
-                    if (force_show) {
-                        tooltip.start_time = 0;
-                        tooltip.animate = false;
-                    }
-
-                    tooltip.show($target);
-
-                    tooltip.animate = animate;
-                    tooltip.start_time = start_time;
-
-                    $target.one("mouseleave", function(event, force_hide) {
-                        $target.off("click change", updateTooltip);
-                        if (force_hide) {
-                            tooltip.hide_time = 0;
+                        if (force_show) {
+                            tooltip.start_time = 0;
                             tooltip.animate = false;
                         }
 
-                        tooltip.hide();
+                        tooltip.show($target);
 
                         tooltip.animate = animate;
-                        tooltip.hide_time = hide_time;
-                    });
+                        tooltip.start_time = start_time;
+
+                        $target.one("mouseleave", function(event, force_hide) {
+                            $target.off("click change", updateTooltip);
+                            if (force_hide) {
+                                tooltip.hide_time = 0;
+                                tooltip.animate = false;
+                            }
+
+                            tooltip.hide();
+
+                            tooltip.animate = animate;
+                            tooltip.hide_time = hide_time;
+                        });
+                    }
 
                     function updateTooltip() {
                         var new_tooltip_id = $.trim($target.attr("data-tooltip-id"));
@@ -3071,6 +3073,7 @@ var Tooltip = ( function($) {
             that.width = (typeof options["width"] === "string" ? options["width"] : null);
             that.index = (typeof options["index"] === "number" ? options["index"] : null);
             that.class = (typeof options["class"] === "string" ? options["class"] : null);
+            that.action = (typeof options["action"] === "string" ? options["action"] : "hover");
             that.animate = (typeof options["animate"] === "boolean" ? options["animate"] : false);
             that.position = (typeof options["position"] === "string" ? options["position"] : "right");
             that.start_time = (typeof options["start_time"] === "number" ? options["start_time"] : 500);

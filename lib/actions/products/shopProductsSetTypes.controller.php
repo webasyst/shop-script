@@ -52,6 +52,7 @@ class shopProductsSetTypesController extends waJsonController
             $offset = 0;
             $count = 100;
             $total_count = $collection->count();
+            $all_updated_products = [];
             while ($offset < $total_count) {
                 $product_ids = array_keys($collection->getProducts('*', $offset, $count));
                 if (!$product_ids) {
@@ -59,7 +60,13 @@ class shopProductsSetTypesController extends waJsonController
                 }
                 $filtered = $this->product_model->filterAllowedProductIds($product_ids);
                 $this->product_model->updateType($filtered, $type_id);
+                $all_updated_products += $filtered;
                 $offset += count($product_ids);
+            }
+            if (count($all_updated_products) > 1) {
+                $this->logAction('products_edit', count($all_updated_products) . '$' . implode(',', $all_updated_products));
+            } elseif (isset($all_updated_products[0]) && is_numeric($all_updated_products[0])) {
+                $this->logAction('product_edit', $all_updated_products[0]);
             }
         } else {
             $this->product_model->changeType(substr($hash, 5), $type_id);

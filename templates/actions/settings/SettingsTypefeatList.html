@@ -29,10 +29,17 @@
                                         <i class="icon16 edit"></i>
                                         <b><i>[`Edit`]</i></b>
                                     </a>
-                                    <a class="s-action inline-link js-type-delete" href="javascript:void(0);">
-                                        <i class="icon16 delete"></i>
-                                        <b><i>[`Delete`]</i></b>
-                                    </a>
+                                    {if $can_be_delete}
+                                        <a class="s-action inline-link js-type-delete" href="javascript:void(0);">
+                                            <i class="icon16 delete"></i>
+                                            <b><i>[`Delete`]</i></b>
+                                        </a>
+                                    {else}
+                                        <span title="[`Нельзя удалить последний тип товаров`]">
+                                            <i class="icon16 delete-bw"></i>
+                                            <i>[`Delete`]</i>
+                                        </span>
+                                    {/if}
                                 </div>
                             {/if}
                             {/strip}

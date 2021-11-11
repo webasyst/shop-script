@@ -146,7 +146,7 @@
                                                 {$edit_rights ='prices'}
                                             {/if}
                                             <tr data-product-id="{$product.id}">
-                                                <td>{$product.edit_rights}<a href="{shopHelper::getBackendEditorUrl($product.id, $edit_rights, [$service.id => null])}">{$product.name|escape}</a></td>
+                                                <td><a href="{shopHelper::getBackendEditorUrl($product.id, $edit_rights, [$service.id => null])}">{$product.name|escape}</a></td>
                                                 <td class="min-width">
                                                     <a href="#" class="s-delete-product"><i class="icon16 delete"></i></a>
                                                     <input type="hidden" name="product[]" value="{$product.id}">

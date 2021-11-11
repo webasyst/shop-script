@@ -89,9 +89,9 @@ class shopProductListAction extends waViewAction
             $result = array('search', 'query='.str_replace('&', '\&', $this->text));
         } elseif ($page_type == 'tag') {
             $tag = $this->getRawTag();
-            $tag = urldecode($tag);
+            $tag = strpos($tag, '+') === false ? urldecode($tag) : rawurldecode($tag);
             $this->collection_param = 'tag='.$tag;
-            $result = array('tag', urldecode($tag));
+            $result = array('tag', $tag);
         } elseif ($page_type == 'category') {
             $category_id = $this->getRawCategoryID();
             $this->collection_param = 'category_id='.$category_id;

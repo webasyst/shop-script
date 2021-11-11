@@ -52,7 +52,7 @@ class shopProductsAssignTagsController extends waJsonController
         if ($offset < $total_count) {
             $tag_ids = $tag_model->getIds($tags);
         }
-
+        $all_updated_products = [];
         while ($offset < $total_count) {
             $product_ids = array_keys($collection->getProducts('*', $offset, $count));
             if (!$product_ids) {
@@ -68,7 +68,7 @@ class shopProductsAssignTagsController extends waJsonController
             if ($tag_ids) {
                 $product_tags_model->assign($product_ids, $tag_ids);
             }
-
+            $all_updated_products += $product_ids;
             $offset += count($product_ids);
         }
 
@@ -78,6 +78,12 @@ class shopProductsAssignTagsController extends waJsonController
             $cloud = $tag_model->getCloud('id');
         } else {
             $cloud = null;
+        }
+
+        if ($total_count > 1) {
+            $this->logAction('products_edit', $total_count . '$' . implode(',', $all_updated_products));
+        } elseif (isset($all_updated_products[0]) && is_numeric($all_updated_products[0])) {
+            $this->logAction('product_edit', $all_updated_products[0]);
         }
 
         /**

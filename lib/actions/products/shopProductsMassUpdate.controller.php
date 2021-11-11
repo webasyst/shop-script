@@ -5,7 +5,9 @@ class shopProductsMassUpdateController extends waJsonController
     public function execute()
     {
         shopProductStocksLogModel::setContext(shopProductStocksLogModel::TYPE_PRODUCT);
-        shopProductMassUpdate::update($this->getSkus(), $this->getProducts());
+        $products = $this->getProducts();
+        shopProductMassUpdate::update($this->getSkus(), $products['products']);
+        $this->logAction('products_edit', count($products['products_id']) . '$' . implode(',', $products['products_id']));
         shopProductStocksLogModel::clearContext();
     }
 
@@ -27,7 +29,10 @@ class shopProductsMassUpdateController extends waJsonController
 
     public function getProducts()
     {
-        $products = array();
+        $products = array(
+            'products' => [],
+            'products_id' => [],
+        );
         $post = $this->getRequest()->post();
         foreach (ifset($post['product'], array()) as $product_id => $product) {
             if (isset($product['sku'])) {
@@ -35,8 +40,11 @@ class shopProductsMassUpdateController extends waJsonController
             }
             $product_id = (int)$product_id;
             if ($product && $product_id > 0) {
-                $products[$product_id] = $product;
-                $products[$product_id]['id'] = $product_id;
+                $products['products'][$product_id] = $product;
+                $products['products'][$product_id]['id'] = $product_id;
+            }
+            if ($product_id > 0) {
+                $products['products_id'][] = $product_id;
             }
         }
         return $products;

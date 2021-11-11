@@ -119,9 +119,9 @@ SQL;
         if ($coupon['type'] == '$FS') {
             return _w('Free shipping');
         } elseif ($coupon['type'] === '%') {
-            return waCurrency::format('%0', $coupon['value'], 'USD').'%';
+            return waCurrency::format('%2', $coupon['value'], 'USD').'%';
         } elseif (!empty($currencies[$coupon['type']])) {
-            return waCurrency::format('%0{s}', $coupon['value'], $coupon['type']);
+            return waCurrency::format('%2{s}', $coupon['value'], $coupon['type']);
         } else {
             // Coupon of unknown type. Possibly from a plugin?..
             return '';

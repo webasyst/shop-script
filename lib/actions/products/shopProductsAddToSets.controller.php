@@ -70,13 +70,21 @@ class shopProductsAddToSetsController extends waJsonController
         $offset = 0;
         $count = 100;
         $total_count = $collection->count();
+        $all_updated_products = [];
         while ($offset < $total_count) {
             $product_ids = array_keys($collection->getProducts('*', $offset, $count));
             $this->set_products_model->add($product_ids, $set_ids);
+            $all_updated_products += $product_ids;
             $offset += count($product_ids);
             if (!$product_ids) {
                 break;
             }
+        }
+
+        if ($total_count > 1) {
+            $this->logAction('products_edit', $total_count . '$' . implode(',', $all_updated_products));
+        } elseif (isset($all_updated_products[0]) && is_numeric($all_updated_products[0])) {
+            $this->logAction('product_edit', $all_updated_products[0]);
         }
 
         // form a response

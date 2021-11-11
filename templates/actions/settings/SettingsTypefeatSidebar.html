@@ -97,10 +97,17 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <a class="js-type-delete" href="javascript:void(0);">
-                                            <span class="s-icon"><i class="icon16 delete"></i></span>
-                                            <span class="s-name">[`Delete`]</span>
-                                        </a>
+                                        {if count($types) === 2}
+                                            <a class="disabled" href="javascript:void(0);" title="[`Нельзя удалить последний тип товаров`]">
+                                                <span class="s-icon"><i class="icon16 delete-bw"></i></span>
+                                                <span class="s-name">[`Delete`]</span>
+                                            </a>
+                                        {else}
+                                            <a class="js-type-delete" href="javascript:void(0);">
+                                                <span class="s-icon"><i class="icon16 delete"></i></span>
+                                                <span class="s-name">[`Delete`]</span>
+                                            </a>
+                                        {/if}
                                     </li>
                                 </ul>
                             </li>

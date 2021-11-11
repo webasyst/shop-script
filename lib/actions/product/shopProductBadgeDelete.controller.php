@@ -34,6 +34,7 @@ class shopProductBadgeDeleteController extends waJsonController
         $count = 100;
         $collection = new shopProductsCollection($hash);
         $total_count = $collection->count();
+        $all_updated_products = [];
         while ($offset < $total_count) {
             $products = $collection->getProducts('id, type_id', $offset, $count);
             $product_ids = [];
@@ -53,10 +54,17 @@ class shopProductBadgeDeleteController extends waJsonController
             }
 
             $product_model->updateById($product_ids, array('badge' => null));
+            $all_updated_products += $product_ids;
             $offset += count($product_ids);
             if (!$product_ids) {
                 break;
             }
+        }
+
+        if (count($all_updated_products) > 1) {
+            $this->logAction('products_edit', count($all_updated_products) . '$' . implode(',', $all_updated_products));
+        } elseif (isset($all_updated_products[0]) && is_numeric($all_updated_products[0])) {
+            $this->logAction('product_edit', $all_updated_products[0]);
         }
 
         /**

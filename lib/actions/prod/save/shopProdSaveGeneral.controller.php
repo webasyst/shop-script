@@ -272,29 +272,18 @@ class shopProdSaveGeneralController extends waJsonController
 
     public static function updateMainImage(&$product_data, $product_id)
     {
-        // When product only has a single SKU, and this SKU has an image,
-        // then same image must also be set as main product image.
-        if (isset($product_data['skus']) && count($product_data['skus']) == 1) {
-            $sku = reset($product_data['skus']);
+        // Image of the main SKU must also be set as main product image.
+        if (isset($product_data['sku_id']) && isset($product_data['skus'][$product_data['sku_id']])) {
+            $sku = $product_data['skus'][$product_data['sku_id']];
             if (!empty($sku['image_id'])) {
                 $product_images_model = new shopProductImagesModel();
                 $image = $product_images_model->getById($sku['image_id']);
                 if ($image) {
-                    $product_data += [
+                    $product_data = array_merge($product_data, [
                         'image_filename' => $image['filename'],
                         'image_id' => $image['id'],
                         'ext' => $image['ext'],
-                    ];
-                    $images = $product_images_model->getByField('product_id', $product_id, true);
-                    $sort = 1;
-                    foreach ($images as $img) {
-                        if ($img['id'] == $image['id']) {
-                            $product_images_model->updateById($img['id'], ['sort' => 0]);
-                        } else {
-                            $product_images_model->updateById($img['id'], ['sort' => $sort]);
-                            $sort++;
-                        }
-                    }
+                    ]);
                 }
             }
         }

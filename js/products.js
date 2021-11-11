@@ -502,7 +502,11 @@
                 delay: 300,
                 select: function (event, ui) {
                     $products_search.val('');
-                    $.wa.setHash('#/product/' + ui.item.id);
+                    if ($(this).attr('data-editor') === 'new_editor') {
+                        window.location.href = window.location.pathname +'products/'+ ui.item.id;
+                    } else {
+                        $.wa.setHash('#/product/' + ui.item.id);
+                    }
                     return false;
                 }
             });

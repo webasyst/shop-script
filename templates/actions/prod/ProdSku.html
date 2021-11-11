@@ -75,10 +75,10 @@
 {$_locales = [
     "file_type" => _w("Unsupported image type. Use PNG, GIF and JPEG image files only."),
     "sku_required" => _w("An SKU code is required for grouping."),
-    "sku_unique_error" => _w("The SKU code must be unique."),
     "stock_title" => _w("The quantity on this virtual stock is the sum of quantities on physical stocks — %s. You can change the list of stocks in “Settings” section."),
     "total_sku_mods" => _w("Total: %s."),
     "not_defined" => _w("Not defined"),
+    "main_sku_visibility" => _w("Основная модификация не может быть скрыта. Выберите в качестве основной другую модификацию или включите видимость на витрине для основной модификации."),
     "sku_generation_sku_forms" => [
         _w("%d SKU with %s each.", "%d SKUs with %s each.", 1, false),
         _w("%d SKU with %s each.", "%d SKUs with %s each.", 2, false),
@@ -250,13 +250,21 @@
         "id" => "sku_full_unique",
         "html" => _w("This product has SKUs with the same “code + name” combination. It must be unique for all SKUs within a product.")|escape
     ],
-    "sku_mod_features_name_error" => [
-        "id" => "sku_mod_features_name_error",
-        "html" => _w("To distinguish the variants of an SKU from others, pick some features for product variants selection in the strorefront and specify their values in the product variants’ properties.")|escape
+    "sku_mod_features_name_error_1" => [
+        "id" => "sku_mod_features_name_error_1",
+        "html" => _w("Чтобы отличать модификации одного арикула необходимо выбрать характеристики для выбора вариантов товара и задать им значения в модификациях.")|escape
     ],
-    "sku_mod_features_values_error" => [
-        "id" => "sku_mod_features_values_error",
-        "html" => _w("The product has variants with equal names. The name of a product variant consists of an SKU name and the values of selectable features. Please either change the names of product variants or delete duplicate variants.")|escape
+    "sku_mod_features_name_error_2" => [
+        "id" => "sku_mod_features_name_error_2",
+        "html" => _w("В товаре есть модификации с одинаковым наименованием. Наименование модификации состоит из наименования артикула и перечня значений характеристик для выбора вариантов товара. Измените наименование модификации или удалите дублирующие модификации.")|escape
+    ],
+    "sku_mod_features_values_error_1" => [
+        "id" => "sku_mod_features_values_error_1",
+        "html" => _w("Товар находится в режиме выбора по характеристикам. Для этого режима необходимо задать хотя бы одну характеристику, по значениям которой, покупатели будет выбирать нужный им вариант товара на витрине.")|escape
+    ],
+    "sku_mod_features_values_error_2" => [
+        "id" => "sku_mod_features_values_error_2",
+        "html" => _w("В товаре есть модификации с одинаковым набором значений характеристик для выбора вариантов товара на витрине. Измените набор значений или удалите дублирующие модификации.")|escape
     ],
     "product-feature-type-select" => [
         "id" => "product-feature-type-select",
@@ -387,7 +395,7 @@
                         <span class="s-name">[`Select`]</span>
                     </button>
                 </template>
-                <template v-else-if="product.normal_mode">
+                <template v-else-if="product.normal_mode && feature.available_for_sku">
                     <button class="wa-button wa-small wa-short transparent is-disabled" data-tooltip-id="product-feature-type-select">
                         <span class="s-icon"><i class="fas fa-pen"></i></span>
                         &nbsp;
@@ -981,26 +989,8 @@
     {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.top)}{/foreach}{/if}
 
     <div class="s-product-sku-section js-product-sku-section article" style="visibility: hidden;">
-        <div class="s-section-header">
-            <div class="s-errors-place" id="js-errors-place" v-if="errors.global.length">
-                <template v-for="error in errors.global">
-                    <div class="wa-message wa-small info flexbox space-8" v-bind:data-id="error.id" v-bind:key="error.id">
-                        <div class="message-icon">
-                            <i class="fas fa-info-circle"></i>
-                        </div>
-                        <div class="message-text wide">{ { error.text } }</div>
-                        <div class="message-actions">
-                            <div class="message-action" v-on:click.prevent="removeError(error.id)">
-                                <i class="fas fa-times message-toggle"></i>
-                            </div>
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </div>
-
+        {* <div class="s-section-header"></div> *}
         <div class="s-section-body">
-
             {* PRODUCT OPTIONS *}
             <div class="s-fields-section" id="js-plugin-fields-place">
                 <div class="wa-fields space-24">
@@ -1217,7 +1207,7 @@
                          v-bind:data-index="sku_index"
                          v-bind:data-view="product.view_type_id">
 
-                        <div class="s-sku-wrapper" v-bind:class="{ 'is-highlighted' : sku.highlight, 'has-error' : !checkSku(sku) }">
+                        <div class="s-sku-wrapper" v-bind:class="{ 'is-highlighted' : sku.states.highlight, 'has-error' : (sku.states.error || !checkSku(sku)) }">
 
                             <div class="s-sku-table tablebox fixed space-16">
                                 <div class="s-column-move-actions middle" v-if="product.normal_mode_switch">
@@ -1345,7 +1335,7 @@
                                 <template v-for="(sku_mod, sku_mod_index) in sku.modifications">
                                     <div class="s-modification-wrapper"
                                          v-bind:key="sku_mod.id"
-                                         v-bind:class="{ 'is-highlighted' : sku_mod.highlight, 'has-error' : checkSkuModFeaturesValues(sku_mod) }"
+                                         v-bind:class="{ 'is-highlighted' : sku_mod.states.highlight, 'has-error' : (sku_mod.states.error || getSkuModFeaturesTooltip(sku_mod)) }"
                                          v-bind:data-id="sku_mod.id"
                                          v-bind:data-index="sku_mod_index">
                                         <div class="s-sku-table tablebox fixed space-16">
@@ -1361,8 +1351,8 @@
                                                     <i class="icon size-20 color-gray-light"><svg><use xlink:href='{$_sprite_url}#grip-slash'></use></svg></i>
                                                 </span>
 
-                                                <template v-if="checkSkuModFeaturesValues(sku_mod)">
-                                                    <span class="s-action" v-bind:data-tooltip-id="(product.sku_type === '0' ? 'sku_mod_features_name_error' : 'sku_mod_features_values_error')">
+                                                <template v-if="getSkuModFeaturesTooltip(sku_mod)">
+                                                    <span class="s-action" v-bind:data-tooltip-id="getSkuModFeaturesTooltip(sku_mod)">
                                                         <i class="fas fa-exclamation-circle color-red"></i>
                                                     </span>
                                                 </template>
@@ -1518,7 +1508,7 @@
                                                 <div class="s-extended-content">
                                                     <div class="s-visible-content">
                                                         <div class="s-toggle" v-on:click.prevent="changeModificationExpand(sku_mod, sku_mod_index, sku, sku_index)">
-                                                            <span class="s-text">{_w("Custom parameters")}</span>
+                                                            <span class="s-text">{ { product.normal_mode_switch ? "{_w("Variant parameters")|escape}" : "{_w("Details")|escape}" } }</span>
                                                             <span class="s-icon" v-show="!sku_mod.expanded"><i class="fas fa-angle-down"></i></span>
                                                             <span class="s-icon" v-show="sku_mod.expanded"><i class="fas fa-angle-up"></i></span>
                                                         </div>
@@ -1841,6 +1831,22 @@
 
         {* FEATURES HIDDEN ON FRONT *}
         {capture assign="_footer_content"}
+            <div class="s-errors-place" v-if="errors.global.length">
+                <template v-for="error in errors.global">
+                    <div class="wa-message wa-small error flexbox space-8" v-bind:data-id="error.id" v-bind:key="error.id">
+                        <div class="message-icon">
+                            <i class="fas fa-exclamation-circle color-red"></i>
+                        </div>
+                        <div class="message-text wide">{ { error.text } }</div>
+                        <div class="message-actions">
+                            <div class="message-action" v-on:click.prevent="removeError(null, error)">
+                                <i class="fas fa-times message-toggle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
             <div class="s-features-hidden-on-front-section" v-if="features_hidden_on_front.length">
                 <div class="wa-message wa-small warn flexbox space-8">
                     <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>

@@ -678,7 +678,10 @@
                 var hash = $(this).attr('href').replace(/(^[^#]*#\/*|\/$)/g, ''); /* fix syntax highlight*/
                 if (hash == $.orders.hash) {
                     var params = $.orders.hash.replace('orders/', '');
-                    $.order_list.dispatch(params, true);
+                    if (params !== $.orders.hash) {
+                        // Only support #/orders/* hashes and ignore everything else
+                        $.orders.ordersAction.apply($.orders, params.split('/'));
+                    }
                 }
             });
         },

@@ -51,7 +51,11 @@ class shopProductsInlineSaveController extends shopProductListAction
         }
 
         // Save product
-        $product->save();
+        $errors = null;
+        $product->save([], true, $errors);
+        if (!$errors) {
+            $this->logAction('product_edit', $product->getId());
+        }
         if ($stock !== null) {
             shopProductStocksLogModel::clearContext();
         }

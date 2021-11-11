@@ -6,7 +6,8 @@ class shopSettingsFeaturesHelperController extends waJsonController
         if (!$this->getUser()->getRights('shop', 'settings')) {
             throw new waRightsException(_w('Access denied'));
         }
-        if ($code = waRequest::get('code')) {
+        $code = waRequest::get('code');
+        if (strlen($code)) {
 
             $this->response['name'] = shopColorValue::getName($code);
         } elseif ($name = waRequest::get('name')) {

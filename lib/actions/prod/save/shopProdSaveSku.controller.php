@@ -84,7 +84,7 @@ class shopProdSaveSkuController extends waJsonController
         $main_sku_id = ifset($product_data['sku_id'], null);
         if ($main_sku_id && empty($product_data['skus'][$main_sku_id]['status'])) {
             $this->errors[] = [
-                'id' => 'general',
+                'id' => 'main_sku_visibility',
                 'text' => _w('The main SKU cannot be hidden. Either select another main SKU or make the main SKU visible.'),
             ];
         }

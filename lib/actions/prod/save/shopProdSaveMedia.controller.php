@@ -51,7 +51,10 @@ class shopProdSaveMediaController extends waJsonController
     protected function saveMainProductImage()
     {
         $product_data = waRequest::post('product', [], waRequest::TYPE_ARRAY);
-        $first_photo = reset($product_data['photos']);
+        $first_photo = [];
+        if (isset($product_data['photos']) && is_array($product_data['photos'])) {
+            $first_photo = reset($product_data['photos']);
+        }
         if (empty($product_data['id']) || empty($first_photo['id'])) {
             return;
         }

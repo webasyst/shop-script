@@ -1,6 +1,10 @@
 <script src="{$wa_app_static_url}js/photo.stream.slider.js?v={$wa->version()}" type="text/javascript"></script>
 <script src="{$wa_app_static_url}js/loupe.widget.js?v={$wa->version()}" type="text/javascript"></script>
 
+{if !empty($image)}
+    {$image.description = $image.description|default:''|escape}
+{/if}
+
 {$image_name = "Image_"|cat:{$product_id}:"_":{$image.id}:".":{$image.ext}}
 
 <div class="sidebar right200px rendered" id="s-product-image-toolbar">

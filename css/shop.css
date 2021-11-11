@@ -314,7 +314,7 @@ td.s-empty-order-note { border-top: 1px solid #ddd; border-bottom: 1px solid #dd
 #s-filter-settings { background: #eee; padding: 20px; }
 
 .s-order-add-customer .field .value textarea { min-width: 200px; }
-#s-orders { margin-bottom: -32767px; padding-bottom: 32767px; }
+/*#s-orders { margin-bottom: -32767px; padding-bottom: 32767px; }*/
 #s-orders .lazyloading-wrapper { color: #aaa; padding-left: 5px; }
 #s-orders.sidebar .lazyloading-wrapper { text-align: center; padding-left: 0; }
 #s-orders table.zebra td,

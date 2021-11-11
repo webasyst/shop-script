@@ -82,7 +82,7 @@
 
         <!-- plugin hook: 'backend_product.title_suffix' -->
         {* @event backend_product.%plugin_id%.title_suffix *}
-        {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.title_suffix)}{/foreach}{/if}
+        {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_, 'title_suffix', '')}{/foreach}{/if}
 
         {if $edit_rights}
             <a href="{shopHelper::getBackendEditorUrl($product.id)|escape}" class="button green s-product-edit-link" id="s-edit-product">[`Edit`]</a>
@@ -90,7 +90,7 @@
 
         <!-- plugin hook: 'backend_product.action_button' -->
         {* @event backend_product.%plugin_id%.action_button *}
-        {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.action_button)}{/foreach}{/if}
+        {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_, 'action_button', '')}{/foreach}{/if}
 
     </h1>
 
@@ -229,14 +229,14 @@
 
             <!-- plugin hook: 'backend_product.toolbar_section' -->
             {* @event backend_product.%plugin_id%.toolbar_section *}
-            {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.toolbar_section)}{/foreach}{/if}
+            {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_, 'toolbar_section', '')}{/foreach}{/if}
 
 
         </div>
         <div class="content right200px" id="s-product-view">
 
             {* @event backend_product.%plugin_id%.info_section *}
-            {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.info_section)}{/foreach}{/if}
+            {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_, 'info_section', '')}{/foreach}{/if}
 
             {capture name='template-product-categories'}
                 {literal}
@@ -283,7 +283,7 @@
                     <li data-tab="buybuttons"><a href="#"><i class="icon16 ss div"></i>[`Buy button`]</a></li>
                     <!-- plugin hook: 'backend_product.tab_li' -->
                     {* @event backend_product.%plugin_id%.tab_li *}
-                    {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.tab_li)}{/foreach}{/if}
+                    {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_, 'tab_li', '')}{/foreach}{/if}
                 </ul>
                 <div class="tab-content">
                     <div class="block s-tab-block" data-tab="profile">
@@ -465,7 +465,7 @@
 
         <!-- plugin hook: 'backend_product.edit_section_li' -->
         {* @event backend_product.%plugin_id%.edit_section_li *}
-        {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.edit_section_li)}{/foreach}{/if}
+        {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_, 'edit_section_li', '')}{/foreach}{/if}
 
     </ul>
 {* PRODUCT EDIT SECTION MENU END *}
@@ -669,7 +669,7 @@
                                 <li><a href="#/product/{$product.id}/edit/main/categories/add/" class="small inline-link js-action"><i class="icon10 add"></i> <b><i>[`Additional category`]</i></b></a></li>
                             {/if}
                             {* @event backend_product.%plugin_id%.category_action_li *}
-                            {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.category_action_li)}{/foreach}{/if}
+                            {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_, 'category_action_li', '')}{/foreach}{/if}
                         </ul>
                     </div>
                 </div>
@@ -759,7 +759,7 @@
 
             <!-- plugin hook: 'backend_product.edit_basics' -->
             {* @event backend_product.%plugin_id%.edit_basics *}
-            {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.edit_basics)}{/foreach}{/if}
+            {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_, 'edit_basics', '')}{/foreach}{/if}
 
             <div class="field">
                 <div class="value s-sku-list">
@@ -1007,7 +1007,7 @@
 
                 <!-- plugin hook: 'backend_product.edit_descriptions' -->
                 {* @event backend_product.%plugin_id%.edit_descriptions *}
-                {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.edit_descriptions)}{/foreach}{/if}
+                {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_, 'edit_descriptions', '')}{/foreach}{/if}
 
               </div>
               <div class="field-group">

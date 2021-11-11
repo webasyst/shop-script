@@ -90,6 +90,7 @@ class shopSettingsTypefeatListAction extends waViewAction
             'too_many_features' => ifempty($too_many_features),
             'features' => $features,
             'codes' => $codes,
+            'can_be_delete' => count($sidebar_action->types) !== 2,
         ]);
     }
 

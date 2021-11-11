@@ -119,7 +119,11 @@ class shopFrontendCompareAction extends waViewAction
         if ($all_features) {
             $feature_model = new shopFeatureModel();
             foreach ($feature_model->getByCode(array_keys($all_features)) as $code => $f) {
-                $all_features[$code] += $f;
+                if ($f['status'] === 'public') {
+                    $all_features[$code] += $f;
+                } else {
+                    unset($all_features[$code]);
+                }
             }
         }
 

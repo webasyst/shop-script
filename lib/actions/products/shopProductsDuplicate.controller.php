@@ -61,6 +61,12 @@ class shopProductsDuplicateController extends waJsonController
                 'new_ids'     => $new_ids,
             );
         }
+
+        if (count($new_ids) > 1) {
+            $this->logAction('products_duplicate', count($new_ids) . '$' . implode(',', $new_ids));
+        } elseif (isset($new_ids[0]) && is_numeric($new_ids[0])) {
+            $this->logAction('product_duplicate', $new_ids[0]);
+        }
     }
 
     protected function checkProductRights($product_ids)

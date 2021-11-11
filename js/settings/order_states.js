@@ -27,6 +27,11 @@ $.extend($.settings || {}, {
                 $section = $wrapper.find(".s-payment-section"),
                 $textarea = $section.find(".js-textarea"),
                 $hidden = $section.find(".js-hidden");
+            var $status = $wrapper.find('input[name="name"]');
+
+            if ('' === $status.val().trim()) {
+                $status.focus();
+            }
 
             $section.on("change", ".js-checkbox", function () {
                 var $checkbox = $(this),

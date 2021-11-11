@@ -3201,6 +3201,7 @@
                             sendCode().then( function() {
                                 setTimer();
                                 resend_locked = false;
+                                that.$code_field.focus().select();
                             }, function(errors) {
                                 that.renderErrors(errors);
                             });
@@ -3219,7 +3220,7 @@
                             $send_line.hide();
                             $code_line.show();
                             $submit_line.show();
-
+                            that.$code_field.focus();
                         } else {
                             that.$value_field.attr("readonly", false);
                             $send_line.show();

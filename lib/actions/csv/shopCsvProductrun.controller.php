@@ -393,6 +393,9 @@ class shopCsvProductrunController extends waLongActionController
         if (empty($config['primary_sku'])) {
             unset($map['skus:-1:_primary']);
         }
+        if (empty($config['params'])) {
+            unset($map['params']);
+        }
 
         $this->data['composite_features'] = array();
         /** @var shopFeatureModel $features_model */
@@ -2709,7 +2712,7 @@ SQL;
     private function exportProductRow($original_product, $sku, $sku_mode, $full, $simple_product = false)
     {
         $product = $original_product;
-        if ($sku_mode && !$this->data['config']['export_mode']) {
+        if ($sku_mode && !$simple_product && !$this->data['config']['export_mode']) {
             foreach (self::$non_sku_fields as $field) {
                 if (isset($product[$field])) {
                     unset($product[$field]);

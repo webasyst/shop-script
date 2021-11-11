@@ -4,6 +4,12 @@
 {* @event backend_product_edit.%plugin_id%.images *}
 {if !empty($backend_product_edit)}{foreach $backend_product_edit as $_}{ifset($_.images)}{/foreach}{/if}
 
+{if $images}
+    {foreach from=$images key=id item=image}
+        {$images.$id.description = $image.description|default:''|escape}
+    {/foreach}
+{/if}
+
 <div class="sidebar right200px" id="s-product-images-toolbar">
 
     <div class="block s-product-images-actions">

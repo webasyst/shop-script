@@ -752,7 +752,7 @@ class shopConfig extends waAppConfig
         $logs = parent::explainLogs($logs);
         $product_ids = array();
         foreach ($logs as $l_id => $l) {
-            if (in_array($l['action'], array('product_add', 'product_edit')) && $l['params']) {
+            if (in_array($l['action'], array('product_add', 'product_edit', 'product_duplicate')) && $l['params']) {
                 $product_ids[] = $l['params'];
             }
         }
@@ -762,10 +762,17 @@ class shopConfig extends waAppConfig
         }
         $app_url = wa()->getConfig()->getBackendUrl(true).$l['app_id'].'/';
         foreach ($logs as $l_id => $l) {
-            if (in_array($l['action'], array('product_add', 'product_edit'))) {
+            if (in_array($l['action'], array('product_add', 'product_edit', 'product_duplicate'))) {
                 if (isset($products[$l['params']])) {
                     $p = $products[$l['params']];
-                    $url = $app_url.'?action=products#/product/'.$l['params'].'/';
+                    if (shopHelper::getCurrentProductEditor() === 'new_editor') {
+                        $url = $app_url.'products/'.$l['params'];
+                        if (0 === wa()->getUser()->getRights('shop', 'type.'.$p['type_id'])) {
+                            $url .='/prices/';
+                        }
+                    } else {
+                        $url = $app_url.'?action=products#/product/'.$l['params'].'/';
+                    }
                     $logs[$l_id]['params_html'] = '<div class="activity-target"><a href="'.$url.'">'.htmlspecialchars($p['name']).'</a></div>';
                     if ($l['action'] == 'product_add' && !empty($p['image_id'])) {
                         $_is_2x_enabled = wa('shop')->getConfig()->getOption('enable_2x');
@@ -801,6 +808,11 @@ class shopConfig extends waAppConfig
                 $product_delete_params = json_decode($l['params'], true);
                 $deleted_product_names = array_column($product_delete_params, 'name');
                 $logs[$l_id]['params_html'] = implode(', ', $deleted_product_names);
+            } elseif ($l['action'] == 'products_edit' || $l['action'] == 'products_duplicate') {
+                $products_edit_params = explode('$', $l['params']);
+                $count_edit_products = $products_edit_params[0];
+                $url = $app_url . "?action=products#/products/hash=id/" . rtrim($products_edit_params[1], ', ');
+                $logs[$l_id]['params_html'] = "<div class='activity-target'><a href='$url'>" . _w('products') . " ($count_edit_products)</a></div>";
             }
         }
         return $logs;
