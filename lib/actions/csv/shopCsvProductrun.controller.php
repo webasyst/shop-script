@@ -1502,6 +1502,14 @@ SQL;
         }
         $data_features = ifset($data, 'features', []);
         $data += $empty;
+
+        if (
+            !(empty($empty['features']) && empty($data['features']))
+            && (is_array($empty['features']) && is_array($data['features']))
+        ) {
+            $data['features'] = array_merge($empty['features'], $data['features']);
+        }
+
         if ($product = $this->findProduct($data)) {
             $item_sku_id = false;
             $current_id = ifset($this->data['map'][self::STAGE_PRODUCT]);
@@ -1682,7 +1690,7 @@ SQL;
             // sku id is only used for identification, never to insert or update actual value of an id
             if (!empty($data['skus'])) {
                 foreach ($data['skus'] as $sku_key => $sku) {
-                    if (isset($sku['status']) && !($sku['status'] == 0 || $sku['status'] == 1)) {
+                    if (isset($sku['status']) && !($sku['status'] == '0' || $sku['status'] == '1')) {
                         if (strlen($sku['status'])) {
                             $this->writeImportError(sprintf_wp('The value of the “%s” field can be only 0 or 1.', _w('Visibility in the storefront')));
                         }
@@ -3013,16 +3021,18 @@ SQL;
         if (!empty($data['features'])) {
             foreach ($data['features'] as $code => &$value) {
                 if (!is_array($value)) {
-                    $last_piece = substr($value, strrpos($value, ' ') + 1);
-                    if ((empty($last_piece) || is_numeric($last_piece))
+                    $space_position = strrpos($value, ' ');
+                    $last_piece = substr($value, (int)$space_position + 1);
+                    if (($space_position === false || empty($last_piece) || is_numeric($last_piece))
                         && !empty($dimension_features[$code]['default_unit'])
                     ) {
-                        $value = $value . ' ' . $dimension_features[$code]['default_unit'];
+                        $value = ('' === trim($value) ? '' : $value.' '.$dimension_features[$code]['default_unit']);
                     }
                 } else {
                     foreach ($value as &$val) {
-                        $last_piece = substr($val, strrpos($val, ' ') + 1);
-                        if ((empty($last_piece) || is_numeric($last_piece))
+                        $space_position = strrpos($val, ' ');
+                        $last_piece = substr($val, (int)$space_position + 1);
+                        if (($space_position === false || empty($last_piece) || is_numeric($last_piece))
                             && !empty($dimension_features[$code]['default_unit'])
                         ) {
                             $val = $val . ' ' . $dimension_features[$code]['default_unit'];
@@ -3134,7 +3144,7 @@ SQL;
      */
     private function checkMainSku($product)
     {
-        if (isset($product['skus'][$product['sku_id']]['status']) && $product['skus'][$product['sku_id']]['status'] == 0) {
+        if (isset($product['skus'][$product['sku_id']]['status']) && $product['skus'][$product['sku_id']]['status'] == '0') {
             $product->save([
                 'skus' => [
                     $product['sku_id'] => [

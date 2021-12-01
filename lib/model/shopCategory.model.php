@@ -346,7 +346,7 @@ class shopCategoryModel extends waNestedSetModel
         }
         $data['full_url'] = null;
 
-        if (isset($data['url']) && !$data['url']) {
+        if (isset($data['url']) && !mb_strlen($data['url'])) {
             unset($data['url']);
         }
         if (isset($data['url'])) {
@@ -366,7 +366,7 @@ class shopCategoryModel extends waNestedSetModel
             if ($before_id === false) {
                 $before_id = null;
             }
-            if (!empty($data['url'])) {
+            if (mb_strlen($data['url'])) {
                 $data['url'] = $this->suggestUniqueUrl($data['url'], null, 0);
                 $data['full_url'] = $data['url'];
             }
@@ -383,7 +383,7 @@ class shopCategoryModel extends waNestedSetModel
             if ($before_id === false) {
                 $before_id = null;
             }
-            if (!empty($data['url'])) {
+            if (mb_strlen($data['url'])) {
                 $data['url'] = $this->suggestUniqueUrl($data['url'], null, $parent_id);
                 $data['full_url'] = $this->fullUrl($parent['full_url'], $data['url']);
                 // 255 is the size of the field in the table
@@ -398,7 +398,7 @@ class shopCategoryModel extends waNestedSetModel
             return false;
         }
 
-        if (empty($data['url'])) {
+        if (!mb_strlen($data['url'])) {
             $data = array();
             $data['url'] = $this->suggestUniqueUrl("category_$id", $id, $parent_id);
             if (!$parent_id) {

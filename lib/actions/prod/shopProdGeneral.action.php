@@ -52,6 +52,14 @@ class shopProdGeneralAction extends waViewAction
             $selected_selectable_feature_ids = $features_selectable_model->getProductFeatureIds($product['id']);
         }
 
+        $formatted_product = shopProdSkuAction::formatProduct($product, [
+            'selected_selectable_feature_ids' => $selected_selectable_feature_ids
+        ]);
+
+        if ($formatted_product['has_features_values']) {
+            $formatted_product['normal_mode'] = true;
+        }
+
         $this->view->assign([
             'url_template' => $url_template,
             'frontend_urls' => $frontend_urls,
@@ -64,9 +72,7 @@ class shopProdGeneralAction extends waViewAction
             'product' => $product,
 
             'stocks'            => shopProdSkuAction::getStocks(),
-            'formatted_product' => shopProdSkuAction::formatProduct($product, [
-                'selected_selectable_feature_ids' => $selected_selectable_feature_ids
-            ]),
+            'formatted_product' => $formatted_product,
             'currencies'        => shopProdSkuAction::getCurrencies(),
             'backend_prod_content_event' => $backend_prod_content_event,
             'show_sku_warning' => shopProdSkuAction::isSkuCorrect($product['id'], $product['sku_type']),

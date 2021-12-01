@@ -162,7 +162,7 @@ class shopProdSaveSkuController extends waJsonController
             }
         }
 
-        shopProdSaveGeneralController::updateMainImage($product_data, $product_raw_data['id']);
+        shopProdSaveGeneralController::updateMainImage($product_data, $product_raw_data['id'], $product['type_id']);
 
         return $product_data;
     }

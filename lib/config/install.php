@@ -87,7 +87,7 @@ try {
 //shipping plugins
 try {
     $plugins = shopShipping::getList();
-    $default_enabled_plugins = array('dummy', 'courier', 'sd', 'russianpost');
+    $default_enabled_plugins = array('dummy');
     foreach ($plugins as $plugin => $info) {
         if (in_array($plugin, $default_enabled_plugins, true)) {
             $info['status'] = 1;

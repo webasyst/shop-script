@@ -517,6 +517,12 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                         $composite_codes[] = $c_code;
                     }
                     unset($features[$code]);
+                } elseif (is_string($value) && '' === trim($value)) {
+                    for ($i = 0; $i < $n; $i++) {
+                        $c_code = $code.'.'.$i;
+                        $data[$c_code] = '';
+                        $composite_codes[] = $c_code;
+                    }
                 } else {
                     waLog::log(sprintf('Error during parse %dD feature value [%s]', $n, $value), 'shop/features.error.log');
                 }

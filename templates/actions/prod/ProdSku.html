@@ -61,6 +61,12 @@
 {capture assign="_feature_used_values"}{include file="./dialogs/feature_used_values.html" inline}{/capture}
 {$_templates["dialog_feature_used_values"] = $_feature_used_values}
 
+{capture assign="_minimal_mode_message"}{include file="./dialogs/minimal_mode_message.html" inline}{/capture}
+{$_templates["dialog_minimal_mode_message"] = $_minimal_mode_message}
+
+{capture assign="_locked_mode_message"}{include file="./dialogs/locked_mode_message.html" inline}{/capture}
+{$_templates["dialog_locked_mode_message"] = $_locked_mode_message}
+
 {* КОМПОНЕНТЫ *}
 {* Они могут добавляться внутри шаблонов через globals. Не удалять. *}
 
@@ -78,7 +84,7 @@
     "stock_title" => _w("The quantity on this virtual stock is the sum of quantities on physical stocks — %s. You can change the list of stocks in “Settings” section."),
     "total_sku_mods" => _w("Total: %s."),
     "not_defined" => _w("Not defined"),
-    "main_sku_visibility" => _w("Основная модификация не может быть скрыта. Выберите в качестве основной другую модификацию или включите видимость на витрине для основной модификации."),
+    "main_sku_visibility" => _w("The main SKU variant cannot be hidden. Either select another variant as main or enable visibility in the storefront for the main variant."),
     "sku_generation_sku_forms" => [
         _w("%d SKU with %s each.", "%d SKUs with %s each.", 1, false),
         _w("%d SKU with %s each.", "%d SKUs with %s each.", 2, false),
@@ -252,19 +258,19 @@
     ],
     "sku_mod_features_name_error_1" => [
         "id" => "sku_mod_features_name_error_1",
-        "html" => _w("Чтобы отличать модификации одного арикула необходимо выбрать характеристики для выбора вариантов товара и задать им значения в модификациях.")|escape
+        "html" => _w("To distinguish between SKU variants, determine features for product variants selection and set their values in the variants’ properties.")|escape
     ],
     "sku_mod_features_name_error_2" => [
         "id" => "sku_mod_features_name_error_2",
-        "html" => _w("В товаре есть модификации с одинаковым наименованием. Наименование модификации состоит из наименования артикула и перечня значений характеристик для выбора вариантов товара. Измените наименование модификации или удалите дублирующие модификации.")|escape
+        "html" => _w("This product has SKU variants with equal names. A variant name consists of the SKU name and the set values of features used for product variants selection. Either change the variant name or delete variants with equal names.")|escape
     ],
     "sku_mod_features_values_error_1" => [
         "id" => "sku_mod_features_values_error_1",
-        "html" => _w("Товар находится в режиме выбора по характеристикам. Для этого режима необходимо задать хотя бы одну характеристику, по значениям которой, покупатели будет выбирать нужный им вариант товара на витрине.")|escape
+        "html" => _w("For this product, variant selection mode by feature values is enabled. In this mode, determine at least one feature by whose values customers will be able to select product variants in the storefront.")|escape
     ],
     "sku_mod_features_values_error_2" => [
         "id" => "sku_mod_features_values_error_2",
-        "html" => _w("В товаре есть модификации с одинаковым набором значений характеристик для выбора вариантов товара на витрине. Измените набор значений или удалите дублирующие модификации.")|escape
+        "html" => _w("This product has SKU variants with equal values of the features used for product variants selection in the storefront. Either change those values or delete variants with equal values.")|escape
     ],
     "product-feature-type-select" => [
         "id" => "product-feature-type-select",
@@ -528,7 +534,7 @@
 
                 <template v-if="isLockedFeature(feature)">
                     <div class="s-field-wrapper" data-tooltip-id="product-feature-used-on-front">
-                        <input type="text" placeholder="Значение" class="wa-small size-short is-disabled" readonly>
+                        <input type="text" placeholder="[`Value`]" class="wa-small size-short is-disabled" readonly>
                     </div>
                     <div class="vue-component-color-picker is-disabled" data-tooltip-id="product-feature-used-on-front">
                         <div class="inlinebox space-6 middle nowrap">
@@ -1061,19 +1067,18 @@
 
                             <div class="s-advanced-sku-mode-switch js-advanced-sku-mode-switch flexbox middle space-10">
 
-                                <component-advanced-sku-mode v-bind:product="product" v-on:change="changeMinimalModeSwitch">
-                                    {capture assign="component_sku_mode_switch"}
-                                        <div class="switch wa-small" v-on:click.prevent="(product.normal_mode ? showMinimalModeMessage() : '')">
-                                            <input type="checkbox" v-bind:checked="product.normal_mode_switch" v-bind:disabled="product.normal_mode">
-                                        </div>
-                                    {/capture}
-                                    {$_templates["component-advanced-sku-mode"] = $component_sku_mode_switch|trim|strip}
-
-                                    {if !empty($formatted_product["normal_mode"])}
-                                        {capture assign="_minimal_mode_message"}{include file="./dialogs/minimal_mode_message.html" inline}{/capture}
-                                        {$_templates["dialog_minimal_mode_message"] = $_minimal_mode_message}
-                                    {/if}
-                                </component-advanced-sku-mode>
+                                <template v-if="has_features_values">
+                                    <component-advanced-sku-mode
+                                        v-bind:key="'switch-locked'"
+                                        v-bind:product="product"
+                                        v-bind:locked="true"></component-advanced-sku-mode>
+                                </template>
+                                <template v-else>
+                                    <component-advanced-sku-mode
+                                        v-bind:key="'switch-active'"
+                                        v-bind:product="product"
+                                        v-on:change="changeMinimalModeSwitch"></component-advanced-sku-mode>
+                                </template>
 
                                 <div class="s-status">{ { product.normal_mode_switch ? {_w("Enabled")|json_encode} : {_w("Disabled")|json_encode} } }</div>
                             </div>

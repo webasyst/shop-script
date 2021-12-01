@@ -37,6 +37,12 @@ class shopProdMediaAction extends waViewAction
         ]));
     }
 
+    /**
+     * @param shopProduct $product
+     * @return array
+     * @throws waDbException
+     * @throws waException
+     */
     protected function formatProduct($product)
     {
         $photos = self::getPhotos($product);
@@ -60,7 +66,9 @@ class shopProdMediaAction extends waViewAction
             $photo = $photos[$product["image_id"]];
         }
 
-        $_normal_mode = ($product["sku_count"] > 1);
+        $has_features_values = shopProdSkuAction::checkProductFeaturesValues($product['id'], $product['type_id']);
+        $_normal_mode = $product['sku_count'] > 1 || $has_features_values
+            || ifempty($product, 'params', 'multiple_sku', null) || !empty($product->getSkuFeatures());
 
         return [
             "id"          => $product["id"],

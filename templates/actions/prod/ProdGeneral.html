@@ -521,7 +521,7 @@
 
                                 <div class="flexbox middle space-10">
                                     <component-switch v-model="product.normal_mode_switch"
-                                                      v-bind:disabled="product.normal_mode"
+                                                      v-bind:disabled="(product.has_features_values || product.normal_mode)"
                                                       v-bind:class="'wa-small'"
                                                       v-on:change="changeProductMode"></component-switch>
                                     <div class="s-status">{ { product.normal_mode_switch ? {_w("Enabled")|json_encode} : {_w("Disabled")|json_encode} } }</div>

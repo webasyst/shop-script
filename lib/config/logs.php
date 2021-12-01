@@ -17,10 +17,10 @@ return array(
         'name' => /*_w*/('deleted products')
     ),
     'product_duplicate' => array(
-        'name' => /*_w*/('товар добавлен копированием')
+        'name' => /*_w*/('product added by copying')
     ),
     'products_duplicate' => array(
-        'name' => /*_w*/('товары добавлены копированием')
+        'name' => /*_w*/('products added by copying')
     ),
     'catalog_import' => array(
         'name' => /*_w*/('performed catalog import')

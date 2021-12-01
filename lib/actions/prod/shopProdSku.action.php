@@ -181,18 +181,18 @@ class shopProdSkuAction extends waViewAction
 
         if (empty($product["badge"]) || $product["badge"] === "") {
             $product["badge"] = null;
-        }
-
-        switch ($product["badge"]) {
-            case "new":
-            case "bestseller":
-            case "lowprice":
-                $badge_id = $product["badge"];
-                break;
-            default:
-                $badge_id = "";
-                $badges[""]["code"] = $badges[""]["code_model"] = $product["badge"];
-                break;
+        } else {
+            switch ($product["badge"]) {
+                case "new":
+                case "bestseller":
+                case "lowprice":
+                    $badge_id = $product["badge"];
+                    break;
+                default:
+                    $badge_id = "";
+                    $badges[""]["code"] = $badges[""]["code_model"] = $product["badge"];
+                    break;
+            }
         }
 
         // Features that are rendered as checklists for product and allow multiple selection,
@@ -202,6 +202,10 @@ class shopProdSkuAction extends waViewAction
         foreach ($features as $feature) {
             $_corrected_features[] = self::formatModificationFeature($feature);
         }
+
+        $_normal_mode = count($product['skus']) > 1;
+        $has_features_values = self::checkProductFeaturesValues($product['id'], $product['type_id']);
+        $_normal_mode_switch = $_normal_mode || $has_features_values || ifempty($product, 'params', 'multiple_sku', null) || $selected_selectable_feature_ids;
 
         foreach ($product['skus'] as $modification) {
             $modification["available"] = (boolean)$modification["available"];
@@ -236,6 +240,11 @@ class shopProdSkuAction extends waViewAction
                     $product["image_id"] = $modification["image_id"];
                 }
                 if ( !empty($photos[$modification["image_id"]]) ) {
+                    $modification["photo"] = $photos[$modification["image_id"]];
+                }
+            } else if (!empty($product["image_id"])) {
+                if ($modification["id"] === $product["sku_id"]) {
+                    $modification["image_id"] = $product["image_id"];
                     $modification["photo"] = $photos[$modification["image_id"]];
                 }
             }
@@ -352,9 +361,6 @@ class shopProdSkuAction extends waViewAction
 
         $photo = ( !empty($photos) ? $photos[$product["image_id"]] : null );
 
-        $_normal_mode = (count($product['skus']) > 1);
-        $_normal_mode_switch = $_normal_mode || ifempty($product, 'params', 'multiple_sku', null) || $selected_selectable_feature_ids;
-
         // When product has a photo and only one modification with no photo,
         // use product image as photo for the modification.
         if ($photo && count($product['skus']) == 1 && $skus) {
@@ -393,7 +399,33 @@ class shopProdSkuAction extends waViewAction
             // front-side options
             "normal_mode"        => $_normal_mode,
             "normal_mode_switch" => $_normal_mode_switch,
+            "has_features_values" => $has_features_values
         ];
+    }
+
+    /**
+     * @param $product_id
+     * @param $product_type_id
+     * @return bool
+     * @throws waDbException
+     */
+    public static function checkProductFeaturesValues($product_id, $product_type_id)
+    {
+        $product_features_model = new shopProductFeaturesModel();
+        $sql = "SELECT pf.id
+                FROM shop_product_features pf
+                    JOIN shop_feature f ON pf.feature_id = f.id
+                    JOIN shop_type_features tf ON pf.feature_id = tf.feature_id
+                    JOIN shop_product_skus ps ON pf.sku_id = ps.id
+                WHERE pf.product_id = i:product_id AND f.type != s:feature_type AND
+                    (tf.type_id = 0 OR tf.type_id = i:product_type_id) AND pf.feature_value_id > 0
+                LIMIT 1";
+
+        return (bool)$product_features_model->query($sql, array(
+            'product_id' => $product_id,
+            'product_type_id' => $product_type_id,
+            'feature_type' => shopFeatureModel::TYPE_DIVIDER
+        ))->fetchField();
     }
 
     // also used in shopProdPricesAction

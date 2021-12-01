@@ -750,42 +750,6 @@
 
             // other components
 
-            Vue.component("component-advanced-sku-mode", {
-                props: ["product"],
-                template: that.templates["component-advanced-sku-mode"],
-                delimiters: ['{ { ', ' } }'],
-                methods: {
-                    showMinimalModeMessage: function() {
-                        $.waDialog({
-                            html: that.templates["dialog_minimal_mode_message"]
-                        });
-                    }
-                },
-                mounted: function() {
-                    var self = this;
-
-                    var $switch = $(self.$el);
-
-                    $switch.waSwitch({
-                        change: function(active, wa_switch) {
-                            self.$emit("change", active);
-                        }
-                    });
-
-                    var switch_controller = $switch.data("switch");
-
-                    self.switch_controller = switch_controller;
-
-                    self.$watch("product.normal_mode", function(old_value, new_value) {
-                        switch_controller.disable(!new_value);
-                    });
-
-                    self.$watch("product.skus", function(old_value, new_value) {
-
-                    });
-                }
-            });
-
             Vue.component("component-toggle", {
                 props: ["options", "active"],
                 template: that.templates["component-toggle"],
@@ -1148,6 +1112,50 @@
                     }
                 },
                 components: {
+                    "component-advanced-sku-mode": {
+                        props: ["product", "locked"],
+                        data: function() {
+                            var self = this;
+                            return {
+                                locked: (typeof self.locked === "boolean" ? self.locked : false)
+                            }
+                        },
+                        template: '<div class="switch wa-small" v-on:click.prevent="onClick"></div>',
+                        delimiters: ['{ { ', ' } }'],
+                        methods: {
+                            onClick: function() {
+                                var self = this;
+
+                                if (self.locked) {
+                                    $.waDialog({ html: that.templates["dialog_locked_mode_message"] });
+                                } else if (self.product.normal_mode) {
+                                    $.waDialog({ html: that.templates["dialog_minimal_mode_message"] });
+                                }
+                            }
+                        },
+                        mounted: function() {
+                            var self = this,
+                                $switch = $(self.$el);
+
+                            if (self.locked) {
+                                $switch.waSwitch({ active: true, disabled: true });
+
+                            } else {
+                                self.switch_controller = $.waSwitch({
+                                    $wrapper: $switch,
+                                    active: self.product.normal_mode_switch,
+                                    disabled: self.product.normal_mode,
+                                    change: function(active, wa_switch) {
+                                        self.$emit("change", active);
+                                    }
+                                });
+
+                                self.$watch("product.normal_mode", function(old_value, new_value) {
+                                    self.switch_controller.disable(!new_value);
+                                });
+                            }
+                        }
+                    },
                     "component-file-manager": {
                         props: ["sku_mod"],
                         data: function() {
@@ -1648,6 +1656,59 @@
                             string = $.wa.locale_plural(count, that.locales["features_hidden_on_front_forms"], true);
 
                         return string;
+                    },
+                    has_features_values: function () {
+                        var self = this,
+                            result = false;
+
+                        var is_normal_mode = !!(that.product.skus.length > 1 || that.product.skus[0].modifications.length > 1);
+                        if (!is_normal_mode) {
+                            $.each(that.product.skus, function (i, sku) {
+                                $.each(sku.modifications, function (i, sku_mod) {
+                                    var sku_mod_features = [].concat(sku_mod.features, sku_mod.features_selectable);
+                                    $.each(sku_mod_features, function(i, feature) {
+                                        var value = getValue(feature);
+                                        if (value) {
+                                            result = true;
+                                            return false;
+                                        }
+                                    });
+                                    if (result) { return false; }
+                                });
+                                if (result) { return false; }
+                            });
+                        }
+
+                        return result;
+
+                        function getValue(feature) {
+                            var value = null;
+
+                            switch (feature.render_type) {
+                                case "textarea":
+                                    value = feature.value;
+                                    break;
+                                case "field":
+                                case "field.date":
+                                case "color":
+                                case "range":
+                                case "range.date":
+                                case "range.volume":
+                                    $.each(feature.options, function(i, option) {
+                                        if (option.value) {
+                                            value = option.value;
+                                            return false;
+                                        }
+                                    });
+                                    break;
+                                case "checkbox":
+                                case "select":
+                                    value = feature.active_option.value;
+                                    break;
+                            }
+
+                            return value;
+                        }
                     }
                 },
                 methods: {
@@ -3896,18 +3957,19 @@
 
             var errors = [];
 
-            if (vue_model.front_features_empty) {
-                errors.push("front_features_empty");
-                vue_model.$set(that.errors, "front_features_empty", {
-                    id: "front_features_empty",
-                    text: "front_features_empty"
-                });
-            } else {
-                vue_model.$delete(that.errors, "front_features_empty");
+            if (that.product.normal_mode_switch) {
+                if (vue_model.front_features_empty) {
+                    errors.push("front_features_empty");
+                    vue_model.$set(that.errors, "front_features_empty", {
+                        id: "front_features_empty",
+                        text: "front_features_empty"
+                    });
+                } else {
+                    vue_model.$delete(that.errors, "front_features_empty");
+                }
             }
 
-            var sku_groups = getSkuSkuGroups(that.product.skus, false),
-                sku_groups_with_name = getSkuSkuGroups(that.product.skus, true);
+            var sku_groups = getSkuSkuGroups(that.product.skus, true);
 
             $.each(that.product.skus, function(i, sku) {
                 var sku_sku = (sku.sku ? sku.sku : ""),
@@ -3919,24 +3981,14 @@
 
                 if (that.product.normal_mode_switch && that.product.skus.length > 1) {
                     // ОШИБКИ ПРО АРТИКУЛ И НАЗВАНИЕ
-                    if (sku_name) {
-                        var group = sku_groups_with_name[sku_sku + "|" + sku_name];
+                    if (sku_name || sku_sku) {
+                        var group = sku_groups[sku_sku + "|" + sku_name];
                         if (group.length > 1 && group.indexOf(sku) >= 0) {
                             Vue.set(sku.errors, "sku_full_unique", {
                                 "id": "sku_full_unique",
                                 "text": "sku_full_unique"
                             });
                             errors.push("sku_full_unique");
-                        }
-
-                    } else if (sku_sku) {
-                        var sku_group = sku_groups[sku_sku];
-                        if (sku_group.length > 1 && sku_group.indexOf(sku) >= 0) {
-                            Vue.set(sku.errors, "sku_full_unique", {
-                                "id": "sku_full_unique",
-                                "text": that.locales["sku_full_unique"]
-                            });
-                            errors.push("sku_unique");
                         }
                     } else {
                         Vue.set(sku.errors, "sku_full_required", {
@@ -4077,7 +4129,7 @@
 
                 if (errors.length || !no_plugin_errors) {
                     that.vue_model.$nextTick( function() {
-                        var $error = $(".wa-error-text:first");
+                        var $error = $(".wa-error-text:first, .s-sku-wrapper.has-error:first");
                         if ($error.length) {
                             $(window).scrollTop($error.offset().top - 150);
                         }

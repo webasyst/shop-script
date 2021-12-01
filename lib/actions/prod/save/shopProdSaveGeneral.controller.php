@@ -122,7 +122,7 @@ class shopProdSaveGeneralController extends waJsonController
             }
         }
 
-        shopProdSaveGeneralController::updateMainImage($product_data, $product_data['id']);
+        shopProdSaveGeneralController::updateMainImage($product_data, $product_data['id'], $product_data['type_id']);
 
         return $product_data;
     }
@@ -270,20 +270,41 @@ class shopProdSaveGeneralController extends waJsonController
         }
     }
 
-    public static function updateMainImage(&$product_data, $product_id)
+    public static function updateMainImage(&$product_data, $product_id, $type_id)
     {
         // Image of the main SKU must also be set as main product image.
+        $sku = null;
         if (isset($product_data['sku_id']) && isset($product_data['skus'][$product_data['sku_id']])) {
             $sku = $product_data['skus'][$product_data['sku_id']];
-            if (!empty($sku['image_id'])) {
-                $product_images_model = new shopProductImagesModel();
-                $image = $product_images_model->getById($sku['image_id']);
-                if ($image) {
-                    $product_data = array_merge($product_data, [
-                        'image_filename' => $image['filename'],
-                        'image_id' => $image['id'],
-                        'ext' => $image['ext'],
-                    ]);
+        } elseif (isset($product_data['skus']) && count($product_data['skus']) == 1) {
+            $sku = reset($product_data['skus']);
+        }
+        $is_simple_product = true;
+        $has_features_values = shopProdSkuAction::checkProductFeaturesValues($product_id, $type_id);
+        if ($sku && (count($product_data['skus']) > 1 || $has_features_values
+                || ifempty($product_data, 'params', 'multiple_sku', null)
+                || !empty($product_data['features_selectable_ids']))
+        ) {
+            $is_simple_product = false;
+        }
+        if (!empty($sku['image_id'])) {
+            $product_images_model = new shopProductImagesModel();
+            $image = $product_images_model->getById($sku['image_id']);
+            if ($image) {
+                $product_data = array_merge($product_data, [
+                    'image_filename' => $image['filename'],
+                    'image_id' => $image['id'],
+                    'ext' => $image['ext'],
+                ]);
+                if ($is_simple_product) {
+                    $product_images_model->updateByField([
+                        'product_id' => $product_id,
+                        'sort' => 0
+                    ], ['sort' => $image['sort']]);
+                    $product_images_model->updateByField([
+                        'product_id' => $product_id,
+                        'id' => $image['id']
+                    ], ['sort' => 0]);
                 }
             }
         }

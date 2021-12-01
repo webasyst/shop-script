@@ -12386,3 +12386,43 @@ msgstr "Ошибка: тип товара не существует."
 
 msgid "Variant parameters"
 msgstr "Параметры модификации"
+
+msgid "You cannot delete the only existing product type."
+msgstr "Нельзя удалить единственный тип товаров."
+
+msgid "The main SKU variant cannot be hidden. Either select another variant as main or enable visibility in the storefront for the main variant."
+msgstr "Основная модификация товара не может быть скрыта. Выберите в качестве основной другую модификацию или включите видимость на витрине для основной модификации."
+
+msgid "To distinguish between SKU variants, determine features for product variants selection and set their values in the variants’ properties."
+msgstr "Чтобы различать между собой модификации арикула, определите характеристики для выбора вариантов товара и задайте им значения в свойствах модификаций."
+
+msgid "This product has SKU variants with equal names. A variant name consists of the SKU name and the set values of features used for product variants selection. Either change the variant name or delete variants with equal names."
+msgstr "У товара есть модификации с одинаковыми наименованиями. Наименование модификации состоит из наименования артикула и списка значений характеристик для выбора вариантов товара. Измените наименование модификации или удалите модификации с одинаковыми наименованиями."
+
+msgid "For this product, variant selection mode by feature values is enabled. In this mode, determine at least one feature by whose values customers will be able to select product variants in the storefront."
+msgstr "Для этого товара включен режим выбора вариантов по значениям характеристик. В этом режиме определите хотя бы одну характеристику, по значениям которой покупатели смогут выбирать нужный вариант товара на витрине."
+
+msgid "This product has SKU variants with equal values of the features used for product variants selection in the storefront. Either change those values or delete variants with equal values."
+msgstr "У этого товара есть модификации с одинаковыми наборами значений характеристик для выбора вариантов товара на витрине. Измените наборы этих значений или удалите модификации с одинаковыми наборами."
+
+msgid "This product has SKUs with feature values set in their properties. In this mode, disabling of the “%s” setting is unavailable."
+msgstr "В свойствах артикулов этого товара заданы значения характеристик. В таком режиме недоступно выключение настройки «%s»."
+
+msgid "edited"
+msgstr "отредактировал"
+
+msgid "product added by copying"
+msgstr "товар добавлен копированием"
+
+msgid "products added by copying"
+msgstr "товары добавлены копированием"
+
+msgid "products"
+msgstr "товары"
+
+msgid "This product has an SKU variant with feature values set in its properties. In this mode, disabling of the “%s” setting is unavailable."
+msgstr "В свойствах модификации этого товара заданы значения характеристик. В таком режиме недоступно выключение настройки «%s»."
+
+msgid "This product has more than 1 SKU variant. To make the disabling of the “%s” setting available, first delete additional SKUs and variants so that only 1 SKU with 1 variant is left."
+msgstr "В этом товаре более 1 модификации артикулов. Чтобы выключить настройку «%s», сначала удалите дополнительные артикулы и модификации, чтобы в товаре остался только 1 артикул с 1 модификацией."
+

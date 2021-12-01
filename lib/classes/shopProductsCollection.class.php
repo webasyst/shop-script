@@ -2252,7 +2252,7 @@ SQL;
                     }
 
                     // Write everything to product
-                    foreach ($skus as $s) {
+                    foreach ($skus as &$s) {
                         if (empty($products[$s['product_id']])) {
                             continue;
                         }
@@ -2296,6 +2296,7 @@ SQL;
                         // Write SKU to product
                         $products[$s['product_id']]['skus'][$s['id']] = $s;
                     }
+                    unset($s);
                     $products = $this->updateMainProductImage($products);
                 }
                 if (isset($fields['sku'])) {

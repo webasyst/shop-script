@@ -358,7 +358,7 @@
         </setting>
         <setting var="homepage_bullet_body_3" control_type="text">
             <value locale="en_US">If you are in SF or LA, you may pick up an order in one of our stores. Give us a call!</value>
-            <value locale="ru_RU">Будем рады видеть вас в нашем магазине по адресу г. Москва, ул. Крымский Вал, д. 3, стр. 2.</value>
+            <value locale="ru_RU">Будем рады видеть вас в нашем магазине по адресу г. Город, ул. Улица, д. 3.</value>
             <name locale="en_US">Block content</name>
             <name locale="ru_RU">Текст блока</name>
         </setting>

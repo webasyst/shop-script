@@ -628,10 +628,17 @@
 
                         // Добавляем фотку в модели данных
                         self.photos.unshift(photo);
+                        // Исправляем баг с кешированием в DOM новой фотографии, перерисовывая её
+                        self.$nextTick( function() {
+                            photo.render_key += "_updated";
+                        });
 
                         // удаляем UI загрузки
                         var index = self.files.indexOf(data.file);
                         if (index >= 0) { self.files.splice(index, 1); }
+
+                        // Делаем его главным если простой режим
+                        if (!that.product.normal_mode || self.photos.length === 1) { that.product.image_id = self.photos[0].id; }
                     },
 
                     //
@@ -725,6 +732,7 @@
                 photo.expanded = false;
                 photo.is_checked = false;
                 photo.is_moving = false;
+                photo.render_key = photo.id;
 
                 if (typeof photo.description !== "string") { photo.description = ""; }
                 photo.description_before = photo.description;
@@ -810,6 +818,9 @@
                     var new_index = over_index + (before ? 0 : 1);
 
                     that.product.photos.splice(new_index, 0, drag_data.move_photo);
+
+                    // Для простого режима делаем первое фото главным
+                    if (!that.product.normal_mode) { that.product.image_id = drag_data.move_photo.id; }
 
                     that.$wrapper.trigger("change");
                 }

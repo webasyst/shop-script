@@ -242,7 +242,7 @@
 
                         <template v-for="photo in photos">
                             <div class="s-photo-wrapper"
-                                 v-bind:key="photo.id"
+                                 v-bind:key="photo.render_key"
                                  v-bind:class="{ 'is-moving' : photo.is_moving, 'is-main' : isMainPhoto(photo) }"
                                  v-bind:data-id="photo.id">
 

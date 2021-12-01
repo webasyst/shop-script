@@ -163,6 +163,7 @@ return array(
         'limit' => array('int', 11),
         'used' => array('int', 11, 'null' => 0, 'default' => '0'),
         'value' => array('decimal', "15,4"),
+        'url' => array('text'),
         'comment' => array('text'),
         'expire_datetime' => array('datetime'),
         'create_datetime' => array('datetime', 'null' => 0),
