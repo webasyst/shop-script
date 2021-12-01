@@ -1278,7 +1278,7 @@ SQL;
             'memory'     => sprintf('%0.2fMByte', $this->data['memory'] / 1048576),
             'memory_avg' => sprintf('%0.2fMByte', $this->data['memory_avg'] / 1048576),
             'error_currency' => empty($this->data['error_currency']) ? false : $this->data['error_currency']
-    );
+        );
 
         $stage_num   = 0;
         $stage_count = count($this->data['current']);
@@ -2499,7 +2499,7 @@ SQL;
                             $_value = $_value['value'];
                         }
 
-                        if (in_array($_value, array('false', 0, '0', null), true)) {
+                        if (in_array($_value, array('false', 0, '0', '0.0', '0.00', '0.000', '0.0000', null), true)) {
                             $value = 'Заказ товара по предоплате';
                         }
                         break;
