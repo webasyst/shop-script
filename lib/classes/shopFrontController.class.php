@@ -20,7 +20,7 @@ class shopFrontController extends waFrontController
             return;
         }
         $result = parent::runController($controller, $params);
-        wa('shop')->event('controller_after.'.$class, $params);
+        wa('shop')->event('controller_after.'.$class, $evt_params);
         return $result;
     }
 }
