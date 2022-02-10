@@ -22,11 +22,18 @@ class shopOrdersGetProductController extends waJsonController
 
         $product['skus'] = $shop_product->getSkus();
         $product['skus'] = $this->workupSkus($product['skus']);
+        $product["show_order_counts"] = shopOrderEditAction::getProductOrderCounts();
+
+        $units = shopHelper::getUnits();
+        $formatted_units = shopFrontendProductAction::formatUnits($units);
+        $fractional_config = shopFrac::getFractionalConfig();
+        $this->response['stock_unit'] = ( $fractional_config["stock_units_enabled"] ? $formatted_units[$product["stock_unit_id"]] : null);
 
         if ($this->getSkuId()) {
             $sku = $product['skus'][$this->getSkuId()];
             $sku['services'] = $this->getServices($product, $sku);
 
+            $this->response['product'] = $product;
             $this->response['sku'] = $sku;
             $this->response['service_ids'] = array_keys($sku['services']);
         } else {
@@ -188,7 +195,7 @@ class shopOrdersGetProductController extends waJsonController
                     if ($stock['count'] === null) {
                         $counts_htmls[$stock_id] = '∞';
                     } else {
-                        $counts_htmls[$stock_id] = _w('%d left', '%d left', $stock['count']);
+                        $counts_htmls[$stock_id] = _w('%s left', '%s left', (float)$stock['count']);
                     }
                 }
                 $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], null, true);

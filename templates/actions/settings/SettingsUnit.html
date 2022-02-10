@@ -1,0 +1,776 @@
+{strip}
+
+{* ДАННЫЕ *}
+
+{$_is_ru = $wa->locale() == 'ru_RU'}
+{$_lang = "en"}{if $_is_ru}{$_lang = "ru"}{/if}
+{$_version = "2022.02.09.1557"}
+
+{$_page_title = _w("Product quantity units")}
+
+{* ПОДСКАЗКИ *}
+
+{$_locales = [
+    "close" => _w("Close")
+]}
+
+{$_tooltips = [
+    "unit_dialog_code" => [
+        "id" => "unit_dialog_code",
+        "html" => _w("Used in printable forms; e.g., waybills.")|escape
+    ],
+    "unit_dialog_short_name" => [
+        "id" => "unit_dialog_short_name",
+        "html" => sprintf_wp('Used in printable forms. Can be used for backend settings and in the storefront if no value has been set for “%s”.', _w('Name for storefront'))|escape
+    ],
+    "unit_dialog_storefront_name" => [
+        "id" => "unit_dialog_storefront_name",
+        "html" => sprintf_wp('Displayed in backend settings and in the storefront. If no value is set then the value of the “%s” field is used.', _w('Symbol'))|escape
+    ],
+    "unit_move" => [
+        "id" => "unit_move",
+        "html" => _w("Drag to change the units sort order.")|escape,
+        "position" => "top"
+    ],
+    "unit_status_locked" => [
+        "id" => "unit_status_locked",
+        "html" => _w("The unit is used in products’ properties or in product types’ settings. Such units cannot be disabled.")|escape,
+        "position" => "top"
+    ],
+    "unit_edit" => [
+        "id" => "unit_edit",
+        "html" => _w("Edit")|escape,
+        "position" => "top-right",
+        "width" => "100px"
+    ],
+    "unit_delete" => [
+        "id" => "unit_delete",
+        "html" => _w("Delete")|escape,
+        "position" => "top-right",
+        "width" => "100px"
+    ],
+    "unit_delete_locked" => [
+        "id" => "unit_delete_locked",
+        "html" => _w("The unit is used in products’ properties or in product types’ settings. Such units cannot be deleted.")|escape,
+        "position" => "top-right"
+    ]
+]}
+
+{$LIMIT_TYPE_LINKS = 5}
+{$fractional_locked = !empty($types_with_fractional) || !empty($types_with_order_count_min) || !empty($types_with_order_count_step)}
+{if $fractional_locked}
+    {capture assign="_tooltip_fractional_locked"}
+        <p>[`To switch to the use of integer product quantities only, disable the following options in product types’ settings:`]</p>
+
+        {if !empty($types_with_fractional)}
+            {$count_links = count($types_with_fractional)}
+            {if $count_links == $LIMIT_TYPE_LINKS + 1}
+                {$limit_links = $LIMIT_TYPE_LINKS + 1}
+            {else}
+                {$limit_links = 5}
+            {/if}
+            <p><em>[`Add-to-cart step`]</em></p>
+            <ul class="s-types-list">
+                {foreach array_slice($types_with_fractional, 0, $limit_links) as $_type}
+                    <li class="s-type">
+                        <a href="{$wa_app_url}?action=settings#/typefeat/{$_type["id"]}/">{$_type.name|escape}</a>
+                    </li>
+                {/foreach}
+                {if $count_links > $limit_links}
+                    <li class="s-type">
+                        {_w('and in %d more type', 'and in %d more types', $count_links - $limit_links)}
+                    </li>
+                {/if}
+            </ul>
+        {/if}
+        {if !empty($types_with_order_count_min)}
+            {$count_links = count($types_with_order_count_min)}
+            {if $count_links == $LIMIT_TYPE_LINKS + 1}
+                {$limit_links = $LIMIT_TYPE_LINKS + 1}
+            {else}
+                {$limit_links = 5}
+            {/if}
+            <p><em>[`Minimum orderable quantity`]</em></p>
+            <ul class="s-types-list">
+                {foreach array_slice($types_with_order_count_min, 0, $limit_links) as $_type}
+                    <li class="s-type">
+                        <a href="{$wa_app_url}?action=settings#/typefeat/{$_type["id"]}/">{$_type.name|escape}</a>
+                    </li>
+                {/foreach}
+                {if $count_links > $limit_links}
+                    <li class="s-type">
+                        {_w('and in %d more type', 'and in %d more types', $count_links - $limit_links)}
+                    </li>
+                {/if}
+            </ul>
+        {/if}
+        {if !empty($types_with_order_count_step)}
+            {$count_links = count($types_with_order_count_step)}
+            {if $count_links == $LIMIT_TYPE_LINKS + 1}
+                {$limit_links = $LIMIT_TYPE_LINKS + 1}
+            {else}
+                {$limit_links = 5}
+            {/if}
+            <p><em>[`Quantity adjustment with “+/-” buttons`]</em></p>
+            <ul class="s-types-list">
+                {foreach array_slice($types_with_order_count_step, 0, $limit_links) as $_type}
+                    <li class="s-type">
+                        <a href="{$wa_app_url}?action=settings#/typefeat/{$_type["id"]}/">{$_type.name|escape}</a>
+                    </li>
+                {/foreach}
+                {if $count_links > $limit_links}
+                    <li class="s-type">
+                        {_w('and in %d more type', 'and in %d more types', $count_links - $limit_links)}
+                    </li>
+                {/if}
+            </ul>
+        {/if}
+    {/capture}
+    {$_tooltips["fractional_locked"] = [
+        "id" => "fractional_locked",
+        "html" => $_tooltip_fractional_locked|trim,
+        "position" => "left",
+        "width" => "15rem"
+    ]}
+{/if}
+
+{if !empty($types_with_stock_units)}
+    {$count_links = count($types_with_stock_units)}
+    {if $count_links == $LIMIT_TYPE_LINKS + 1}
+        {$limit_links = $LIMIT_TYPE_LINKS + 1}
+    {else}
+        {$limit_links = 5}
+    {/if}
+    {capture assign="_tooltip_stock_units_locked"}
+        <p>[`The use of different quantity units is enabled in the product types:`]</p>
+        <ul class="s-types-list">
+            {foreach array_slice($types_with_stock_units, 0, $limit_links) as $_type}
+                <li class="s-type">
+                    <a href="{$wa_app_url}?action=settings#/typefeat/{$_type["id"]}/">{$_type.name|escape}</a>
+                </li>
+            {/foreach}
+            {if $count_links > $limit_links}
+                <li class="s-type">
+                    {_w('and in %d more type', 'and in %d more types', $count_links - $limit_links)}
+                </li>
+            {/if}
+        </ul>
+        <p>[`To switch to the use of quantity unit “piece” only, select that stock unit in all product types’ settings.`]</p>
+    {/capture}
+    {$_tooltips["stock_units_locked"] = [
+        "id" => "stock_units_locked",
+        "html" => $_tooltip_stock_units_locked|trim,
+        "position" => "left",
+        "width" => "15rem"
+    ]}
+{/if}
+
+{if !empty($types_with_base_units)}
+    {$count_links = count($types_with_base_units)}
+    {if $count_links == $LIMIT_TYPE_LINKS + 1}
+        {$limit_links = $LIMIT_TYPE_LINKS + 1}
+    {else}
+        {$limit_links = 5}
+    {/if}
+    {capture assign="_tooltip_base_units_locked"}
+        <p>[`The use of base quantity units is enabled in the product types:`]</p>
+        <ul class="s-types-list">
+            {foreach array_slice($types_with_base_units, 0, $limit_links) as $_type}
+                <li class="s-type">
+                    <a href="{$wa_app_url}?action=settings#/typefeat/{$_type["id"]}/">{$_type.name|escape}</a>
+                </li>
+            {/foreach}
+            {if $count_links > $limit_links}
+                <li class="s-type">
+                    {_w('and in %d more type', 'and in %d more types', $count_links - $limit_links)}
+                </li>
+            {/if}
+        </ul>
+        <p>[`To stop using base quantity units, disable them in all product types’ settings.`]</p>
+    {/capture}
+    {$_tooltips["base_units_locked"] = [
+        "id" => "base_units_locked",
+        "html" => $_tooltip_base_units_locked|trim,
+        "position" => "left",
+        "width" => "15rem"
+    ]}
+{/if}
+
+{* КОМПОНЕНТЫ *}
+
+{$_components = []}
+
+{/strip}{capture assign="_component_switch"}
+    <div class="vue-component-switch" v-bind:class="{ 'is-locked': disabled }">
+        <input type="checkbox" v-model="value" v-bind:disabled="disabled">&nbsp;{ { value ? "{_w("On")|escape}" : "{_w("Off")|escape}" } }
+    </div>
+{/capture}{strip}
+{$_components["component_switch"] = $_component_switch|trim}
+
+{/strip}{capture assign="_component_units_table"}
+    <div class="s-units-table">
+        <div class="s-table-item s-table-header">
+            <div class="s-column s-column-sort" v-if="sort"></div>
+            <div class="s-column s-column-toggle"></div>
+            <div class="s-column s-column-code">[`Code`]</div>
+            <div class="s-column s-column-name-1">[`Quantity unit name`]</div>
+            <div class="s-column s-column-name-2">[`Symbol`]</div>
+            <div class="s-column s-column-name-3">[`Name for storefront`]</div>
+            <div class="s-column s-column-actions">[`Actions`]</div>
+        </div>
+        <template v-for="unit in units">
+            <div class="s-table-item s-unit-wrapper"
+                 v-bind:class="{ 'is-highlighted' : unit.states.highlight, 'is-moving' : unit.states.move }"
+                 v-bind:key="unit.id"
+                 v-bind:data-id="unit.id">
+
+                <div class="s-column s-column-sort" v-if="sort">
+                    <div class="s-actions-list">
+                        <template v-if="!unit.states.move_loading">
+                            <div class="s-action js-unit-move-toggle cursor-move" draggable="true" data-tooltip-id="unit_move"><i class="icon16 sort"></i></div>
+                        </template>
+                        <template v-else>
+                            <div class="s-action"><i class="icon16 loading" style="margin: 0;"></i></div>
+                        </template>
+                    </div>
+                </div>
+                <div class="s-column s-column-status">
+                    <component-switch
+                        v-model="unit.states.active"
+                        v-bind:disabled="unit.states.locked"
+                        v-bind:class="{ 'is-loading' : unit.states.status_loading }"
+                        v-bind:data-tooltip-id="(unit.states.locked ? 'unit_status_locked' : '')"
+                        v-on:change="unitStatusChange(unit)"></component-switch>
+
+                    <span class="s-icon" v-if="unit.states.status_loading"><i class="icon16 loading" style="margin: 0;"></i></span>
+                </div>
+                <div class="s-column s-column-code">{ { unit.okei_code } }</div>
+                <div class="s-column s-column-name-1">{ { unit.name } }</div>
+                <div class="s-column s-column-name-2">{ { unit.short_name } }</div>
+                <div class="s-column s-column-name-3">{ { unit.storefront_name ? unit.storefront_name : unit.short_name } }</div>
+                <div class="s-column s-column-actions">
+                    {strip}
+                    <div class="s-actions-list align-right">
+                        <template v-if="unit.builtin === '2'">
+                            <a class="s-action is-locked" href="javascript:void(0);" title="[`This is a special unit that cannot be changed.`]"><i class="icon16 edit-bw"></i></a>
+                        </template>
+                        <template v-else>
+                            <a class="s-action" href="javascript:void();" data-tooltip-id="unit_edit" v-on:click.prevent="unitEdit($event, unit)"><i class="icon16 edit"></i></a>
+                        </template>
+                        <template v-if="unit.states.locked || unit.states.builtin">
+                            <a class="s-action is-locked" href="javascript:void(0);" data-tooltip-id="unit_delete_locked"><i class="icon16 delete-bw"></i></a>
+                        </template>
+                        <template v-else>
+                            <a class="s-action" href="javascript:void(0);" data-tooltip-id="unit_delete" v-on:click.prevent="unitDelete($event, unit)"><i class="icon16 delete"></i></a>
+                        </template>
+                    </div>
+                    {/strip}
+                </div>
+            </div>
+        </template>
+    </div>
+{/capture}{strip}
+{$_components["component_units_table"] = $_component_units_table|trim}
+
+{$_templates = []}
+
+{capture assign="_dialog_fractional_change_confirm"}
+    <div class="wa-dialog s-settings-unit-dialog s-settings-units-confirm-dialog" id="js-settings-units-confirm-dialog">
+        <div class="wa-dialog-background"></div>
+        <div class="wa-dialog-body">
+            <div class="wa-dialog-header">
+                <h2 class="s-title">[`Verify the compatibility of installed plugins & design themes`]</h2>
+            </div>
+            <div class="wa-dialog-content">
+                <ul class="s-content-list">
+                    <li>
+                        <p>[`For your online store to operate correctly, this setting must be supported by installed plugins and design themes that use product quantities:`]</p>
+                        <ul>
+                            <li>[`integration with payment systems and fiscal cash registers,`]</li>
+                            <li>[`integration with shipping services,`]</li>
+                            <li>[`integration with stock accounting systems,`]</li>
+                            <li>[`printable forms generators.`]</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <div class="wa-table-box">
+                            <span class="s-column-icon">1.&nbsp;</span>
+                            <p>{sprintf_wp('Verify the compatibility in section “%s → %s”.', _wp('Settings'), _wp('PREMIUM license compatibility'))}</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="wa-table-box">
+                            <span class="s-column-icon">2.&nbsp;</span>
+                            <div>
+                                <p>[`When fractional product quantities are enabled, test installed plugins and design themes for correct functioning:`]</p>
+                                <ul>
+                                    <li>[`Add a test product with the updated values and walk through the entire checkout process with that product.`]</li>
+                                    <li>[`Test plugins used for the integration with stock accounting systems and online marketplaces.`]</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="wa-dialog-footer">
+                <button class="js-confirm-button button blue" type="button">[`Confirm`]</button>
+                &nbsp;
+                <button class="js-close-dialog button" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_templates["dialog-fractional-change-confirm"] = $_dialog_fractional_change_confirm}
+
+{capture assign="_dialog_stock_change_confirm"}
+    <div class="wa-dialog s-settings-unit-dialog s-settings-units-confirm-dialog" id="js-settings-units-confirm-dialog">
+        <div class="wa-dialog-background"></div>
+        <div class="wa-dialog-body">
+            <div class="wa-dialog-header">
+                <h2 class="s-title">[`Verify the compatibility of installed plugins & design themes`]</h2>
+            </div>
+            <div class="wa-dialog-content">
+                <ul class="s-content-list">
+                    <li>
+                        <p>[`For your online store to operate correctly, this setting must be supported by installed plugins and design themes that use product quantity units:`]</p>
+                        <ul>
+                            <li>[`integration with payment systems and fiscal cash registers,`]</li>
+                            <li>[`integration with shipping services,`]</li>
+                            <li>[`integration with stock accounting systems,`]</li>
+                            <li>[`printable forms generators.`]</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <div class="wa-table-box">
+                            <span class="s-column-icon">1.&nbsp;</span>
+                            <p>{sprintf_wp('Verify the compatibility in section “%s → %s”.', _wp('Settings'), _wp('PREMIUM license compatibility'))}</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="wa-table-box">
+                            <span class="s-column-icon">2.&nbsp;</span>
+                            <div>
+                                <p>[`When different stock units are enabled, test installed plugins and design themes for correct functioning:`]</p>
+                                <ul>
+                                    <li>[`Add a test product with the updated values and walk through the entire checkout process with that product.`]</li>
+                                    <li>[`Test plugins used for the integration with stock accounting systems and online marketplaces.`]</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="wa-dialog-footer">
+                <button class="js-confirm-button button blue" type="button">[`Confirm`]</button>
+                &nbsp;
+                <button class="js-close-dialog button" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_templates["dialog-stock-change-confirm"] = $_dialog_stock_change_confirm}
+
+{capture assign="_dialog_base_change_confirm"}
+    <div class="wa-dialog s-settings-unit-dialog s-settings-units-confirm-dialog" id="js-settings-units-confirm-dialog">
+        <div class="wa-dialog-background"></div>
+        <div class="wa-dialog-body">
+            <div class="wa-dialog-header">
+                <h2 class="s-title">[`Verify the compatibility of installed plugins & design themes`]</h2>
+            </div>
+            <div class="wa-dialog-content">
+                <ul class="s-content-list">
+                    <li>
+                        <p>[`For your online store to operate correctly, this setting must be supported by installed plugins and design themes that use product quantity units in the storefront.`]</p>
+                    </li>
+                    <li>
+                        <div class="wa-table-box">
+                            <span class="s-column-icon">1.&nbsp;</span>
+                            <p>{sprintf_wp('Verify the compatibility in section “%s → %s”.', _wp('Settings'), _wp('PREMIUM license compatibility'))}</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="wa-table-box">
+                            <span class="s-column-icon">2.&nbsp;</span>
+                            <div>
+                                <p>[`When a base stock unit is enabled, test installed plugins and design themes for correct functioning:`]</p>
+                                <ul>
+                                    <li>[`Add a few test products with the updated values and check how they are displayed in the storefront.`]</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="wa-dialog-footer">
+                <button class="js-confirm-button button blue" type="button">[`Confirm`]</button>
+                &nbsp;
+                <button class="js-close-dialog button" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_templates["dialog-base-change-confirm"] = $_dialog_base_change_confirm}
+
+{/strip}
+
+<div class="s-unit-settings-page blank block double-padded" id="js-unit-settings-page" style="visibility: hidden;">
+    <div class="s-page-content-section js-page-content-section">
+        {* HEADER *}
+        <div class="s-section-header">
+            <h1 class="s-title">{$_page_title}</h1>
+            <div class="s-help-section">
+                <div class="flexbox">
+                    <span class="s-icon"><i class="icon16 info"></i></span>
+                    <div class="wide">
+                        <span class="cursor-pointer select-none" v-on:click="states.help_display = !states.help_display">[`Description of available settings options`]</span>
+                        <div style="margin-top: 4px; font-size: 11px;">
+                            <a href="javascript:void(0);" class="cursor-pointer select-none" v-on:click="states.help_display = !states.help_display">
+                                <template v-if="states.help_display">[`Collapse`]</template>
+                                <template v-else>[`Expand`]</template>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="s-sections-list" v-if="states.help_display">
+                    {* 1 *}
+                    <div class="s-section-wrapper">
+                        <div class="s-section-header">
+                            <h4 class="s-title heading">[`Stock units of product quantities`]</h4>
+                        </div>
+                        <div class="s-section-body">
+                            <div class="s-text-wrapper">
+                                <ul>
+                                    <li>[`Products can be sold with various quantity units used; e.g., pieces or packages for single items, kilograms for weight products, square feet for flooring.`]</li>
+                                    <li>[`For each product you can select the most suitable quantity units to conveniently present it in the storefront.`]</li>
+                                    <li>[`The quantity unit shown in the storefront next the product price is the one to which the price refers.`]</li>
+                                </ul>
+                            </div>
+                            <div class="s-image-wrapper">
+                                <img class="s-image" src="{$wa_app_static_url}img/backend/settings/premium/{$_lang}/image1.jpg?v={$_version}" alt="">
+                            </div>
+                        </div>
+                    </div>
+                    {* 2 *}
+                    <div class="s-section-wrapper">
+                        <div class="s-section-header">
+                            <h4 class="s-title heading">[`Base quantity unit for convenient comparison of product prices`]</h4>
+                        </div>
+                        <div class="s-section-body">
+                            <div class="s-text-wrapper">
+                                <p>[`It might not always be convenient to compare the prices of products sold in packages if packages contain different product quantities. For instance, porcelain stoneware is sold in packages but it is convenient to compare the prices of different items by the price of a square foot rather than by the package price.`]</p>
+                                <ul>
+                                    <li>[`To make the comparison more convenient, you can add one more quantity unit to a product—a base unit.`]</li>
+                                    <li>[`To use a base unit, you need to specify its conversion ratio from a stock unit. That ratio is used to calculate the price of a base product unit.`]</li>
+                                    <li>[`In the storefront, shoppers can see then two prices with their corresponding quantity units, and the conversion ratio specified for those units.`]</li>
+                                    <li>[`Shoppers can select the most convenient of those units to compare and sort products in the storefront.`]</li>
+                                </ul>
+                            </div>
+                            <div class="s-image-wrapper">
+                                <img class="s-image" src="{$wa_app_static_url}img/backend/settings/premium/{$_lang}/image2.jpg?v={$_version}" alt="">
+                            </div>
+                        </div>
+                    </div>
+                    {* 3 *}
+                    <div class="s-section-wrapper">
+                        <div class="s-section-header">
+                            <h4 class="s-title heading">[`Adjustable add-to-cart step value`]</h4>
+                        </div>
+                        <div class="s-section-body">
+                            <div class="s-text-wrapper">
+                                <p>[`It is the minimum quantity of a product by which its quantity can be changed when the shopping cart contents are updated, i.e. when a product is added to the cart or when its quantity in the cart is decreased or increased.`]</p>
+
+                                <h6>[`Example #1`]</h6>
+                                <p>[`Suppose that you are selling porcelain stoneware in packages. For convenience, the price is displayed in the storefront in square feet but the product is available for purchase only in quantities expressed in whole packages. Therefore, you cannot always order an arbitrary number of square feet but you can purchase only an integer number of packages corresponding to a certain value expressed in square feet.`]</p>
+                                <ul>
+                                    <li>[`To make the selling of such products convenient, you can set up an add-to-cart step value that should be used when a product is added to the shopping cart. It might be equal to the number of square feet of product contained in a package, for instance.`]</li>
+                                    <li>[`A customer will be able to add only such a quantity of the product to the shopping cart which is multiple of that step value. If a package contains 12.5&nbsp;sq.&nbsp;ft. then a customer will be able to add to the cart only quantities equal to 12.5&nbsp;sq.&nbsp;ft., 25&nbsp;sq.&nbsp;ft., 37.5&nbsp;sq.&nbsp;ft., etc.`]</li>
+                                    <li>[`If a customer attempts to manually enter a quantity which is not multiple of the specified step value then that quantity is rounded up to the nearest value multiple of the add-to-cart step.`]</li>
+                                </ul>
+
+                                <h6>[`Example #2`]</h6>
+                                <p>[`Suppose that you are selling watermelons measured accurate to the ounce.`]</p>
+                                <ul>
+                                    <li>[`You can set up the add-to-cart step equal to 0.16 lb.`]</li>
+                                    <li>[`A customer will be able to specify a desired product quantity with the precision of 2 decimal digits because you have set the add-to-cart step value with that number of decimal digits.`]</li>
+                                    <li>[`When a purchased watermelon is actually weighed, the online store personnel can edit the placed order to save the exact weight value.`]</li>
+                                </ul>
+                            </div>
+                            <div class="s-image-wrapper">
+                                <img class="s-image" src="{$wa_app_static_url}img/backend/settings/premium/{$_lang}/image5.jpg?v={$_version}" alt="">
+                            </div>
+                        </div>
+                    </div>
+                    {* 4 *}
+                    <div class="s-section-wrapper">
+                        <div class="s-section-header">
+                            <h4 class="s-title heading">[`Minimum orderable product quantity`]</h4>
+                        </div>
+                        <div class="s-section-body">
+                            <div class="s-text-wrapper">
+                                <p>[`You can specify any product quantity below which a customer cannot add to the shopping cart. Different product types can have their own minimum quantities.`]</p>
+                            </div>
+                            <div class="s-image-wrapper">
+                                <img class="s-image" src="{$wa_app_static_url}img/backend/settings/premium/{$_lang}/image6.jpg?v={$_version}" alt="">
+                            </div>
+                        </div>
+                    </div>
+                    {* 5 *}
+                    <div class="s-section-wrapper">
+                        <div class="s-section-header">
+                            <h4 class="s-title heading">[`Configurable product quantity adjustment in the shopping cart with “+/-” buttons`]</h4>
+                        </div>
+                        <div class="s-section-body">
+                            <div class="s-text-wrapper">
+                                <p>[`You can change the standard value 1 to any other, more convenient, number by which the product quantity must be changed when the “+/-” buttons are clicked. This value does not affect the rounding of the product quantity.`]</p>
+
+                                <h6>[`Example`]</h6>
+                                <ul>
+                                    <li>[`Suppose that you are selling oranges, weighed in pounds, with the add-to-cart step of 0.16 lb.`]</li>
+                                    <li>[`Shoppers and the store personnel can enter any values in quantity fields with the precision of 0.16 lb.`]</li>
+                                    <li>[`However, to make it convenient for customers to change the product quantity in the shopping cart, you can set up the quantity alteration value, changed via “+/-” buttons, to 0.5 lb. so that it is not necessary to adjust the order weight to the ounce.`]</li>
+                                </ul>
+                            </div>
+                            <div class="s-image-wrapper">
+                                <img class="s-image" src="{$wa_app_static_url}img/backend/settings/premium/{$_lang}/image6.jpg?v={$_version}" alt="">
+                            </div>
+                        </div>
+                    </div>
+
+                    {* END *}
+                    <div class="s-section-wrapper">
+                        <div style="font-size: 11px;">
+                            <a href="javascript:void(0);" class="cursor-pointer select-none" v-on:click="closeHelp">[`Collapse`]</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {* BODY *}
+        <div class="s-section-body">
+            <div class="s-settings-section s-content-section">
+                <div class="s-section-body">
+                    <div class="field">
+                        <div class="name">[`Product adding to the shopping cart`]</div>
+                        <div class="value">
+                            <div class="s-radio-group"
+                                 v-bind:class="{ 'is-locked' : states.change_type }"
+                                 v-on:change="onFractionalChange">
+                                <div class="s-radio-wrapper">
+                                    <label v-bind:data-tooltip-id="(fractional.locked ? 'fractional_locked' : '')">
+                                        <input type="radio" value="0"
+                                               v-model="fractional.enabled"
+                                               v-bind:disabled="fractional.locked">&nbsp;[`Only integer quantity values, with the add-to-cart step equal to 1.`]
+                                    </label>
+                                </div>
+                                <div class="s-radio-wrapper">
+                                    <label v-bind:data-tooltip-id="(fractional.locked ? 'fractional_locked' : '')">
+                                        <input type="radio" value="1"
+                                               v-model="fractional.enabled"
+                                               v-bind:disabled="fractional.locked">&nbsp;[`Fractional quantities, with the option to set up an arbitrary add-to-cart step, a minimum orderable quantity, and a quantity adjustment value for “+/-” buttons.`]
+                                    </label>
+                                    <div class="hint">[`Exact values must be saved in product types’ settings.`]</div>
+                                </div>
+                            </div>
+
+                            <div class="s-saving-text" v-if="states.change_type">
+                                <i class="icon16 loading"></i> [`Saving`]
+                            </div>
+
+                            <template v-if="errors.fractional.length" v-for="error in errors.fractional">
+                                <div class="wa-error-text"
+                                     v-text="error.text"
+                                     v-bind:key="error.id"></div>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">[`Product stock quantity unit`]</div>
+                        <div class="value">
+                            <div class="s-radio-group"
+                                 v-bind:class="{ 'is-locked' : states.change_stock_units }"
+                                 v-on:change="onStockUnitsChange">
+                                <div class="s-radio-wrapper">
+                                    <label v-bind:data-tooltip-id="(fractional.stock_units.locked ? 'stock_units_locked' : '')">
+                                        <input type="radio" value="0"
+                                               v-model="fractional.stock_units.enabled"
+                                               v-bind:disabled="fractional.stock_units.locked">&nbsp;[`Pieces for all product types.`]
+                                    </label>
+                                    <div class="hint">[`Product quantity is stored and displayed in the storefront in pieces.`]</div>
+                                </div>
+                                <div class="s-radio-wrapper">
+                                    <label v-bind:data-tooltip-id="(fractional.stock_units.locked ? 'stock_units_locked' : '')">
+                                        <input type="radio" value="1"
+                                               v-model="fractional.stock_units.enabled"
+                                               v-bind:disabled="fractional.stock_units.locked">&nbsp;[`Products can be available for order with different quantity units.`]
+                                    </label>
+                                    <div class="hint">[`For every product available for order, you can assign an individual quantity unit; e.g., pieces, packages, liters, or pounds. You need first to enable this option in the product type settings.`]</div>
+                                </div>
+                            </div>
+
+                            <div class="s-saving-text" v-if="states.change_stock_units">
+                                <i class="icon16 loading"></i> [`Saving`]
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">[`Base product quantity unit`]</div>
+                        <div class="value">
+                            <div class="s-radio-group"
+                                 v-bind:class="{ 'is-locked' : states.change_base_units }"
+                                 v-if="fractional.stock_units.enabled === '1'"
+                                 v-on:change="onBaseUnitsChange">
+                                <div class="s-radio-wrapper">
+                                    <label v-bind:data-tooltip-id="(fractional.base_units.locked ? 'base_units_locked' : '')">
+                                        <input type="radio" value="0"
+                                               v-model="fractional.base_units.enabled"
+                                               v-bind:disabled="fractional.base_units.locked">&nbsp;[`Not used.`]
+                                    </label>
+                                </div>
+                                <div class="s-radio-wrapper">
+                                    <label v-bind:data-tooltip-id="(fractional.base_units.locked ? 'base_units_locked' : '')">
+                                        <input type="radio" value="1"
+                                               v-model="fractional.base_units.enabled"
+                                               v-bind:disabled="fractional.base_units.locked">&nbsp;[`You can set up base quantity units for products.`]
+                                    </label>
+                                    <div class="hint">[`The price of a base product quantity unit can be used for convenient price comparison. For instance, laminate flooring is sold in packages but it is more convenient to compare the prices of a square foot. In this example, a package is a stock quantity unit and a square foot is a base quantity unit.`]</div>
+                                </div>
+                            </div>
+                            <template v-else>
+                                <p>{sprintf_wp('The price of a base product quantity unit can be used for convenient price comparison. For instance, laminate flooring is sold in packages but it is more convenient to compare the prices of a square foot. In this example, a package is a stock quantity unit and a square foot is a base quantity unit. To start using a base unit, enable mode “%s” for the stock unit.', _w('Products can be available for order with different quantity units.'))}</p>
+                            </template>
+
+                            <div class="s-saving-text" v-if="states.change_base_units">
+                                <i class="icon16 loading"></i> [`Saving`]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="s-units-section s-content-section">
+                <div class="s-section-header">
+                    <h5 class="s-title heading">[`Product quantity units`]</h5>
+
+                    <div class="s-message-wrapper" v-if="fractional.stock_units.enabled === '1'">
+                        <span class="s-icon"><i class="icon16 info"></i></span>
+                        <p>[`Select a desired unit from the list and enable it, or add your own unit. Only enabled units will be available in product properties. You can adjust the sort order of enabled units by dragging them by the sorting icons next to their names.`]</p>
+                    </div>
+                    <div class="s-message-wrapper" v-else>
+                        <span class="s-icon"><i class="icon16 info"></i></span>
+                        <p>[`The list of units will be available after you enable the option of selling product with different quantity units.`]</p>
+                    </div>
+                </div>
+                <div class="s-section-body" v-if="fractional.stock_units.enabled === '1'">
+                    {* ACTIVE UNITS TABLE *}
+                    <template v-if="active_units.length">
+                        <component-units-table
+                            v-bind:class="'s-active-units-table'"
+                            v-bind:sort="true"
+                            v-bind:units="active_units"></component-units-table>
+                    </template>
+
+                    <div class="s-add-wrapper">
+                        <a class="s-icon" href="javascript:void(0);" v-on:click.prevent="unitAdd">
+                            <i class="icon16 add"></i> [`Add quantity unit`]
+                        </a>
+                    </div>
+
+                    {* INACTIVE UNITS TABLE *}
+                    <template v-if="units.length">
+                        <template v-if="inactive_units.length">
+                            {* SEARCH *}
+                            <div class="s-search-section">
+                                <i class="s-icon icon16 ss search-bw"></i>
+                                <input class="s-field js-search-field" placeholder="{_w('Quantity units search')|escape}" autocomplete="off"
+                                       v-model="unit_search"
+                                       v-on:input="searchUnits">
+                            </div>
+
+                            {* TABLE *}
+                            <template v-if="visible_inactive_units.length">
+                                <component-units-table
+                                    v-bind:class="'s-inactive-units-table'"
+                                    v-bind:sort="false"
+                                    v-bind:units="visible_inactive_units"></component-units-table>
+                            </template>
+                            <div class="s-message-empty" v-else>[`Specified units not found`]</div>
+                        </template>
+                        {* <div class="s-message-empty" v-else>[`No quantity units`]</div> *}
+                    </template>
+                    {* <div class="s-message-empty" v-else>[`No quantity units`]</div> *}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+
+            document.title = {$_page_title|json_encode} + ' — ' + {$wa->accountName()|json_encode};
+
+            var sources = [{
+                id: "vue-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/vue/vue.min.js?v={$wa->version()}"
+            }, {
+                id: "wa-dialog-css",
+                type: "css",
+                uri: "{$wa_url}wa-content/js/dialog/dialog.css?v={$wa->version(true)}"
+            }, {
+                id: "wa-dialog-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/dialog/dialog.js?v={$wa->version(true)}"
+            }, {
+                id: "wa-units-settings-css",
+                type: "css",
+                uri: "{$wa_app_static_url}css/backend/settings/units.css?v={$wa->version()}"
+            }, {
+                id: "wa-units-settings-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/settings/units/units.js?v={$wa->version()}"
+            }];
+
+            $.shop.loadSources(sources).then(init, function() {
+                alert("Page Loading Error");
+            });
+
+            function init() {
+                window.initShopUnitSettingsPage({
+                    $wrapper: $("#js-unit-settings-page"),
+                    components: {$_components|json_encode},
+                    templates: {$_templates|json_encode},
+                    tooltips: {$_tooltips|json_encode},
+                    locales: {$_locales|json_encode},
+                    urls: {
+                        "reload": {$wa_app_url|json_encode} + "?module=settings&action=Unit",
+                        "unit_edit_dialog": {$wa_app_url|json_encode} + "?module=settingsUnit&action=EditDialog",
+                        "unit_save": {$wa_app_url|json_encode} + "?module=settingsUnit&action=Save",
+                        "unit_delete": {$wa_app_url|json_encode} + "?module=settingsUnit&action=Delete",
+                        "unit_delete_dialog": {$wa_app_url|json_encode} + "?module=settingsUnit&action=DeleteDialog",
+                        "unit_move": {$wa_app_url|json_encode} + "?module=settingsUnit&action=sort",
+                        "unit_status": {$wa_app_url|json_encode} + "?module=settingsUnit&action=changeStatus",
+                        "change_type": {$wa_app_url|json_encode} + "?module=settingsUnit&action=changeType",
+                        "change_stock_units": {$wa_app_url|json_encode} + "?module=settingsUnit&action=changeStockUnits",
+                        "change_base_units": {$wa_app_url|json_encode} + "?module=settingsUnit&action=changeBaseUnits"
+                    },
+                    fractional: {
+                        "enabled": {if !empty($frac_enabled)}1{else}0{/if},
+                        "locked" : {if !empty($fractional_locked)}true{else}false{/if},
+                        "stock_units": {
+                            "enabled": {if !empty($stock_units_enabled)}1{else}0{/if},
+                            "locked" : {if !empty($types_with_stock_units)}true{else}false{/if}
+                        },
+                        "base_units": {
+                            "enabled": {if !empty($base_units_enabled)}1{else}0{/if},
+                            "locked" : {if !empty($types_with_base_units)}true{else}false{/if}
+                        }
+                    },
+                    units: {$units|default:[]|json_encode}
+                });
+            }
+
+        })(jQuery);
+    </script>
+</div>

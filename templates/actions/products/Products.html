@@ -190,6 +190,8 @@
                                                 [`product name`]
                                             {elseif $sort == 'price'}
                                                 [`price`]
+                                            {elseif $sort == 'base_price'}
+                                                [`base price`]
                                             {elseif $sort == 'sku'}
                                                 [`sku name`]
                                             {elseif $sort == 'compare_price'}
@@ -252,6 +254,11 @@
                                         <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=price&order={if $order == 'asc' && $sort=='price'}desc{else}asc{/if}"
                                            class="no-underline {if $sort=='price'}selected{/if}">[`price`]
                                         </a>{if $sort=='price'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                                    </li>
+                                    <li class="sort">
+                                        <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=base_price&order={if $order == 'asc' && $sort=='base_price'}desc{else}asc{/if}"
+                                           class="no-underline {if $sort=='base_price'}selected{/if}">[`base price`]
+                                        </a>{if $sort=='base_price'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
                                     </li>
                                     <li class="sort">
                                         <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=compare_price&order={if $order == 'desc' && $sort=='compare_price'}asc{else}desc{/if}"

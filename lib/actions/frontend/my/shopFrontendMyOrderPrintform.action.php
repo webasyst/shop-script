@@ -46,7 +46,7 @@ class shopFrontendMyOrderPrintformAction extends waViewAction
         switch (waRequest::param('form_type')) {
             case 'payment':
                 if (empty($order['params']['payment_id']) || !($payment = shopPayment::getPlugin(null, $order['params']['payment_id']))) {
-                    throw new waException(_w('Printform not found'), 404);
+                    throw new waException(_w('Printable form not found'), 404);
                 }
                 $form_id = waRequest::param('form_id');
                 $params = null;
@@ -59,7 +59,7 @@ class shopFrontendMyOrderPrintformAction extends waViewAction
                 exit;
                 break;
             default:
-                throw new waException(_w('Printform not found'), 404);
+                throw new waException(_w('Printable form not found'), 404);
                 break;
         }
     }

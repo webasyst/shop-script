@@ -82,7 +82,7 @@ class shopOrderPrintformAction extends waViewAction
         }
 
         if (!$plugin) {
-            throw new waException(_w('Printform not found'), 404);
+            throw new waException(_w('Printable form not found'), 404);
         }
         print $plugin->displayPrintForm(ifempty($form, $plugin->getId()), shopPayment::getOrderData($order, $plugin));
         exit;

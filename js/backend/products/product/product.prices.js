@@ -57,6 +57,8 @@
                 // Контейнер для акций в которых участвует модификация
                 sku_mod.promos = {};
 
+                sku_mod.count = (sku_mod.count > 0 ? $.wa.validate("float", sku_mod.count) : sku_mod.count);
+
                 if (typeof sku_mod.stock !== "object" || Array.isArray(sku_mod.stock)) {
                     sku_mod.stock = {};
                 }
@@ -100,7 +102,7 @@
                             });
                         }
 
-                        sku_mod.stock[stock.id] = value;
+                        sku_mod.stock[stock.id] = $.wa.validate("float", value);
                     });
                 }
             }
@@ -284,7 +286,7 @@
                                         is_infinite = true;
                                         value = "";
                                     }
-                                    sku_mod_stocks[stock_id] = value;
+                                    // sku_mod_stocks[stock_id] = stock_value;
 
                                     var stock = that.stocks[stock_id];
                                     if (stock.is_virtual) {
@@ -309,10 +311,10 @@
                                         });
                                     }
 
-                                    sku_mod_stocks[stock.id] = value;
+                                    sku_mod_stocks[stock.id] = (typeof value === "number" ? value.toFixed(3) * 1 : value);
                                 });
 
-                                // sku_mod.count = (is_set && !is_infinite ? stocks_count : "");
+                                // sku_mod.count = (is_set && !is_infinite ? $.wa.validate("float", stocks_count) : "");
                             },
                             focusSkuModStocks: function(sku_mod) {
                                 var self = this;
@@ -1021,7 +1023,7 @@
                 }
 
                 if (is_set) {
-                    sku_mod.count = stocks_count;
+                    sku_mod.count = $.wa.validate("float", stocks_count);
                 }
             }
         };

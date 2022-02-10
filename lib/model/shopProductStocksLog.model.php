@@ -144,7 +144,7 @@ class shopProductStocksLogModel extends waModel
                 if ($v['after_count'] === null) {
                     $v['description'] = _w('In stock value updated to ∞');
                 } else {
-                    $v['description'] = sprintf(_w('In stock value updated to %d'), $v['after_count']);
+                    $v['description'] = sprintf(_w('In stock value updated to %.3f'), $v['after_count']);
                 }
             } elseif ($v['type'] == self::TYPE_ORDER) {
                 $v['description'] = sprintf(
@@ -238,9 +238,9 @@ class shopProductStocksLogModel extends waModel
      *   int $data['product_id']
      *   int $data['sku_id']
      *   int|null $data['stock_id']
-     *   int|null $data['before_count']
-     *   int|null $data['after_count']
-     *   int|null $data['diff_count']
+     *   decimal|null $data['before_count']
+     *   decimal|null $data['after_count']
+     *   decimal|null $data['diff_count']
      * @return boolean
      */
     public function add($data)
@@ -264,7 +264,7 @@ class shopProductStocksLogModel extends waModel
             if ($data['after_count'] === null || ($data['after_count'] == 0 && $data['before_count'] === null)) {
                 $data['diff_count'] = null;
             } else {
-                $data['diff_count'] = $data['after_count'] - (int) $data['before_count'];
+                $data['diff_count'] = $data['after_count'] - (double) $data['before_count'];
             }
 
             // change happens

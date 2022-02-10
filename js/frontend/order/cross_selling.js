@@ -277,9 +277,9 @@
                 event.preventDefault();
 
                 var $product = $(this).closest(".wa-product-wrapper"),
-                    skus_count = $product.data("skus-count");
+                    show_dialog = $product.data("show-dialog");
 
-                if (skus_count > 1) {
+                if (show_dialog) {
                     showDialog($product);
                 } else {
                     addProduct($product)
@@ -338,7 +338,8 @@
              * @param {String?} sku_id
              * */
             function addProduct($product, sku_id) {
-                var add_promise = $product.data("add_promise");
+                var quantity = $product.find(".js-quantity-field").val(),
+                    add_promise = $product.data("add_promise");
 
                 if (!add_promise) {
                     sku_id = ( sku_id ? sku_id : $product.data("sku-id") );
@@ -371,7 +372,7 @@
                         data = {
                             "item[product_id]": product_id,
                             "item[sku_id]": sku_id,
-                            "item[quantity]": 1
+                            "item[quantity]": quantity
                         };
 
                     return $.post(href, data, "json")

@@ -231,7 +231,7 @@ class shopImage
                     $image->resize($width, $height, waImage::INVERSE)->crop($width, $height);
                     break;
                 default:
-                    throw new waException("Unknown type");
+                    throw new waException(_w('Unknown type'));
                     break;
             }
         }

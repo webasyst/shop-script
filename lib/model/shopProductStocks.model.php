@@ -172,7 +172,7 @@ class shopProductStocksModel extends waModel
 
     /**
      * Transfer sku from one stock (src) to another (dst)
-     *
+     * @deprecated
      * @param int $src_id
      * @param int $dst_id
      * @param int $sku_id

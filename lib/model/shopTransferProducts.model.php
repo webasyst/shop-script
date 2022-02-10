@@ -14,8 +14,8 @@ class shopTransferProductsModel extends waModel
         $items = array();
         foreach ($data as $item) {
             $sku_id = (int) ifset($item['sku_id'], 0);
-            $count = (int) ifset($item['count'], 1);
-            if ($sku_id > 0 && $count >= 1) {
+            $count = (double) ifset($item['count'], 1);
+            if ($sku_id > 0 && $count > 0) {
                 $item['product_id'] = '';
                 $item['sku_id'] = $sku_id;
                 $item['transfer_id'] = $transfer_id;

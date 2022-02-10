@@ -52,7 +52,16 @@ class shopCheckoutPaymentStep extends shopCheckoutStep
         /** @var waContact $contact */
         $contact = $data['contact'];
         $customer_type = $contact['is_company'] ? shopCheckoutConfig::CUSTOMER_TYPE_COMPANY : shopCheckoutConfig::CUSTOMER_TYPE_PERSON;
-        $methods = $config->getPaymentRates($selected_shipping_plugin_id, $customer_type, $selected_shipping_type, $selected_shipping_payment_type);
+        $order_has_frac = shopFrac::itemsHaveFractionalQuantity($data['order']->items);
+        $order_has_units = shopUnits::itemsHaveCustomStockUnits($data['order']->items);
+        $methods = $config->getPaymentRates(
+            $selected_shipping_plugin_id,
+            $customer_type,
+            $selected_shipping_type,
+            $selected_shipping_payment_type,
+            $order_has_frac,
+            $order_has_units
+        );
 
         // Currently selected payment option
         $selected_method_id = ifset($data, 'input', 'payment', 'id', null);

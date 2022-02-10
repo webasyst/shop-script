@@ -26,8 +26,7 @@ class shopProdSaveImageDetailsController extends waJsonController
         $file = waRequest::file('image');
 
         try {
-            $data = waRequest::post('data', array());
-            $image['description'] = ifset($data['description'], '');
+            $image['description'] = waRequest::post('description', '', waRequest::TYPE_STRING);
             $this->response = $this->save($file, $image, $restore_from_backup);
             if ($this->response) {
                 $this->logAction('product_edit', $image['product_id']);

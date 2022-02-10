@@ -40,7 +40,7 @@
                             {elseif $transfer.status == 'completed'}
                                 <span class="s-transfer-status-completed"><i class="icon16 yes"></i>[`Completed`]</span>
                             {elseif $transfer.status == 'cancelled'}
-                                <span class="red"><i class="icon16 cross"></i>[`Cancelled`]</span>
+                                <span class="red"><i class="icon16 cross"></i>[`Canceled`]</span>
                             {/if}
                             </a></td>
                         <td><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}">{if $transfer.stock_from.name}{$transfer.stock_from.name|escape}{else}<span class="gray" title="[`New arrival`]">&mdash;</span>{/if}</a></td>

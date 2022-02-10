@@ -73,14 +73,14 @@ class shopFollowupCli extends waCliController
                         // Is there a recipient in the first place?
                         if (empty($o['contact_id'])) {
                             if (waSystemConfig::isDebug()) {
-                                waLog::log("Unable to send follow-up #{$f['id']} for order #{$o['id']}: no contact_id");
+                                waLog::log("Unable to send follow-up #{$f['id']} for order #{$o['id']}: no contact_id", 'shop/followups.log');
                             }
                             continue;
                         }
 
                         if (!empty($f['same_state_id']) && ($o['state_id'] != $f['state_id'])) {
                             if (waSystemConfig::isDebug()) {
-                                waLog::log("Skipping follow-up #{$f['id']} for order #{$o['id']}: not the same state_id.");
+                                waLog::log("Skipping follow-up #{$f['id']} for order #{$o['id']}: not the same state_id.", 'shop/followups.log');
                             }
                             continue;
                         }
@@ -91,7 +91,7 @@ class shopFollowupCli extends waCliController
                             $first_order_id = $om->select('MIN(id)')->where('contact_id=? AND paid_date=?', $o['contact_id'], $first_paid_date)->fetchField();
                             if ($first_order_id != $o['id']) {
                                 if (waSystemConfig::isDebug()) {
-                                    waLog::log("Skipping follow-up #{$f['id']} for order #{$o['id']}: not the first order of a customer.");
+                                    waLog::log("Skipping follow-up #{$f['id']} for order #{$o['id']}: not the first order of a customer.", 'shop/followups.log');
                                 }
                                 continue;
                             }
@@ -109,7 +109,7 @@ class shopFollowupCli extends waCliController
                             && in_array($source, $f['sources']) === false
                         ) {
                             if (waSystemConfig::isDebug()) {
-                                waLog::log("Skipping follow-up #{$f['id']} for order #{$o['id']}: mismatch order source.");
+                                waLog::log("Skipping follow-up #{$f['id']} for order #{$o['id']}: mismatch order source.", 'shop/followups.log');
                             }
                             continue;
                         }
@@ -117,7 +117,7 @@ class shopFollowupCli extends waCliController
                         // Make sure we have not send follow-up for this order yet
                         if (isset($o['params']['followup_'.$f['id']])) {
                             if (waSystemConfig::isDebug()) {
-                                waLog::log("Skipping follow-up #{$f['id']} for order #{$o['id']}: already sent before.");
+                                waLog::log("Skipping follow-up #{$f['id']} for order #{$o['id']}: already sent before.", 'shop/followups.log');
                             }
                             continue;
                         }
@@ -147,7 +147,7 @@ class shopFollowupCli extends waCliController
                         }
 
                     } catch (Exception $e) {
-                        waLog::log("Unable to send follow-up #{$f['id']} for order #{$o['id']}:\n".$e);
+                        waLog::log("Unable to send follow-up #{$f['id']} for order #{$o['id']}:\n".$e, 'shop/followups.log');
                     }
                 }
 
@@ -193,7 +193,7 @@ class shopFollowupCli extends waCliController
             $phone = $contact->get('phone', 'default'); // this with throw exception if contact does not exist; that's ok
             if (!$phone) {
                 if (waSystemConfig::isDebug()) {
-                    waLog::log("Unable to send follow-up #{$f['id']} for order #{$o['id']}: contact has no phone");
+                    waLog::log("Unable to send follow-up #{$f['id']} for order #{$o['id']}: contact has no phone", 'shop/followups.log');
                 }
                 return false;
             }
@@ -202,7 +202,7 @@ class shopFollowupCli extends waCliController
         }
 
         if (!self::sendOneSms($f, $o, $contact, $phone)) {
-            waLog::log("Unable to send follow-up #{$f['id']} for order #{$o['id']}: SMS adapter returned FALSE. Check sms.log for details.");
+            waLog::log("Unable to send follow-up #{$f['id']} for order #{$o['id']}: SMS adapter returned FALSE. Check sms.log for details.", 'shop/followups.log');
             return false;
         }
 
@@ -225,7 +225,7 @@ class shopFollowupCli extends waCliController
             $email = $contact->get('email', 'default'); // this with throw exception if contact does not exist; that's ok
             if (!$email) {
                 if (waSystemConfig::isDebug()) {
-                    waLog::log("Unable to send follow-up #{$f['id']} for order #{$o['id']}: contact has no email");
+                    waLog::log("Unable to send follow-up #{$f['id']} for order #{$o['id']}: contact has no email", 'shop/followups.log');
                 }
                 return false;
             }
@@ -233,7 +233,7 @@ class shopFollowupCli extends waCliController
         }
 
         if (!self::sendOneEmail($f, $o, null, $contact, $to)) {
-            waLog::log("Unable to send follow-up #{$f['id']} for order #{$o['id']}: waMessage->send() returned FALSE.");
+            waLog::log("Unable to send follow-up #{$f['id']} for order #{$o['id']}: waMessage->send() returned FALSE.", 'shop/followups.log');
             return false;
         }
 

@@ -85,6 +85,8 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
   COUNT(`id`) AS `cnt`,
   MAX(`price`) AS `max_price`,
   MIN(`price`) AS `min_price`,
+  MAX(`price` / `stock_base_ratio`) AS `max_base_price`,
+  MIN(`price` / `stock_base_ratio`) AS `min_base_price`,
   SUM(IF((`count` < 0) OR (`available` != 1), 0, `count`)) `count`
 FROM `{$this->table}`
 WHERE
@@ -111,8 +113,14 @@ SQL;
         $update = array(
             'max_price' => $currency != $primary ? $this->convertPrice($data['max_price'], $currency) : $data['max_price'],
             'min_price' => $currency != $primary ? $this->convertPrice($data['min_price'], $currency) : $data['min_price'],
+            'max_base_price' => $data['max_base_price'],
+            'min_base_price' => $data['min_base_price'],
             'sku_count' => $data['cnt']
         );
+
+        $sql = "SELECT `price` / `stock_base_ratio` AS `base_price`
+                FROM `{$this->table}`
+                WHERE `product_id` = {$product['id']}";
         if ($product['sku_id'] == $sku_id) {
             $item = $this->query("SELECT id AS sku_id, price FROM `{$this->table}` WHERE product_id = {$product['id']} AND id != {$sku_id} LIMIT 1")->fetchAssoc();
             if (!$item) {
@@ -122,7 +130,14 @@ SQL;
                 $item['price'] = $this->convertPrice($item['price'], $currency);
             }
             $update += $item;
+
+            $sql .= ' ORDER BY `id` LIMIT 1';
+        } else {
+            $sql .= " AND `id` = {$product['sku_id']}";
         }
+
+        $base_price = $this->query($sql)->fetchField('base_price');
+        $update['base_price'] = $currency != $primary ? $this->convertPrice($base_price, $currency) : $base_price;
 
         if (($sku['count'] !== null) && ($product['count'] !== null)) {
             $update['count'] = $product['count'] - $sku['count']; // increase count if it's possible
@@ -225,7 +240,6 @@ SQL;
 
         $skus = $this->getByField('product_id', $product_id, $this->id);
         foreach ($skus as &$sku) {
-            $sku['count'] = ($sku['count'] === null ? null : (int)$sku['count']);
             $sku['price'] = (float)$sku['price'];
             $sku['purchase_price'] = (float)$sku['purchase_price'];
             $sku['compare_price'] = (float)$sku['compare_price'];
@@ -878,6 +892,9 @@ SQL;
         $product->price = $product_data['price'];
         $product->compare_price = $product_data['compare_price'];
         $product->count = $product_data['count'];
+        $product->base_price = $product_data['base_price'];
+        $product->min_base_price = $product_data['min_base_price'];
+        $product->max_base_price = $product_data['max_base_price'];
         $product->setData('sku_count', count($data));
         $product->sku_id = $default_sku_id;
         if (isset($features) && $product_features_changed) {
@@ -887,6 +904,14 @@ SQL;
         return $result;
     }
 
+    /**
+     * @depecated
+     * @param $sku_id
+     * @param $count
+     * @param $src_stock
+     * @param $dst_stock
+     * @return bool
+     */
     public function transfer($sku_id, $count, $src_stock, $dst_stock)
     {
         $src_stock = (int)$src_stock;

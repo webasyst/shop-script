@@ -95,7 +95,7 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
         $template = self::getMailTemplate('Order.cancel.html');
         $locales = array(
             "%1%"            => sprintf(_w('Hi %s'), '{$customer.name|escape}'),
-            "%2%"            => sprintf(_w('Your order %s has been cancelled. If you want your order to be re-opened, please contact us.'), '{$order.id}'),
+            "%2%"            => sprintf(_w('Your order %s has been canceled. If you want your order to be re-opened, please contact us.'), '{$order.id}'),
             "%contact_info%" => _w('Contact info'),
             "%16%"           => _w('PIN'),
             "%17%"           => sprintf(_w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")}')
@@ -237,9 +237,9 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
         /* order CANCELLATION email notification template */
         $result['order.delete'] = array(
             'description' => _w('Execution of “Delete” action in backend.'),
-            'subject'     => sprintf(_w('Order %s has been cancelled'), '{$order.id}'),
+            'subject'     => sprintf(_w('Order %s has been canceled'), '{$order.id}'),
             'body'        => self::getOrderCancelTemplate(),
-            'sms'         => sprintf(_w('Your order %s has been cancelled'), '{$order.id}'),
+            'sms'         => sprintf(_w('Your order %s has been canceled'), '{$order.id}'),
         );
 
 

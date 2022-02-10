@@ -69,6 +69,14 @@ class shopProdMediaAction extends waViewAction
         $has_features_values = shopProdSkuAction::checkProductFeaturesValues($product['id'], $product['type_id']);
         $_normal_mode = $product['sku_count'] > 1 || $has_features_values
             || ifempty($product, 'params', 'multiple_sku', null) || !empty($product->getSkuFeatures());
+        foreach ($product['skus'] as $modification) {
+            foreach (['stock_base_ratio', 'order_count_min', 'order_count_step'] as $field) {
+                if (!empty($modification[$field])) {
+                    $_normal_mode = true;
+                    break 2;
+                }
+            }
+        }
 
         return [
             "id"          => $product["id"],

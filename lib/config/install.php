@@ -57,7 +57,6 @@ if (file_exists($file)) {
     waFiles::write($target, $file);
 }
 
-
 $target = $target_path.'.htaccess';
 if (!file_exists($target)) {
     waFiles::copy($source_path.'.htaccess', $target);

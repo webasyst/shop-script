@@ -11,6 +11,7 @@
 
             // CONST
             that.product_id = options["product_id"];
+            that.components = options["components"];
             that.templates = options["templates"];
             that.tooltips = options["tooltips"];
             that.locales = options["locales"];
@@ -35,8 +36,10 @@
             that.product_category_id = options["product_category_id"];
             that.is_changed = false;
             that.is_locked = false;
-
-            console.log( that );
+            that.keys = {
+                fractional: 0
+            };
+            that.fractional_vue_model = null;
 
             // INIT
             that.init();
@@ -102,6 +105,7 @@
                 sku_mod.stocks_expanded = false;
                 sku_mod.stocks_mode = true;
                 sku_mod.stocks_indicator = 1;
+                sku_mod.count = (sku_mod.count > 0 ? $.wa.validate("float", sku_mod.count) : sku_mod.count);
 
                 if (typeof sku_mod.stock !== "object" || Array.isArray(sku_mod.stock)) {
                     sku_mod.stocks_mode = false;
@@ -147,10 +151,12 @@
                             });
                         }
 
-                        sku_mod.stock[stock.id] = value;
+                        sku_mod.stock[stock.id] = $.wa.validate("float", value);
                     });
                 }
             }
+
+            console.log( that );
         };
 
         Section.prototype.init = function() {
@@ -170,6 +176,8 @@
             that.initStorefrontsSection();
 
             that.initStatusSection();
+
+            that.initFractionalSection();
 
             that.initSkuSection();
 
@@ -1044,6 +1052,7 @@
                 methods: {
                     // Misc
                     changeProductMode: function(event) {
+                        that.keys.fractional += 1;
                     },
                     addProductPhoto: function(event, sku_mod) {
                         var self = this;
@@ -1253,11 +1262,11 @@
                                 });
                             }
 
-                            sku_mod.stock[stock.id] = value;
+                            sku_mod.stock[stock.id] = $.wa.validate("float", value);
                         });
 
                         sku_mod.stocks_mode = is_set;
-                        sku_mod.count = (is_set && !is_infinite ? stocks_count : "");
+                        sku_mod.count = (is_set && !is_infinite ? $.wa.validate("float", stocks_count) : "");
 
                         that.updateModificationStocks(sku_mod);
                     },
@@ -1384,6 +1393,508 @@
             }
         };
 
+        Section.prototype.initFractionalSection = function() {
+            var that = this;
+
+            var $section = that.$wrapper.find(".js-fractional-section:first");
+
+            var vue_model = new Vue({
+                el: $section[0],
+                data: {
+                    product: that.product,
+                    keys: that.keys
+                },
+                components: {
+                    "component-fractional-section": {
+                        props: ["sku_mod"],
+                        data: function() {
+                            var self = this,
+                                is_product = true,
+                                is_simple = !that.product.normal_mode_switch;
+
+                            if (that.product.fractional.stock_unit_id !== '0') {
+                                that.product.fractional.units = that.product.fractional.units.filter(item => item.value !== '0');
+                            }
+
+                            return {
+                                section: "general",
+                                normal_mode: that.product.normal_mode_switch,
+                                fractional: that.product.fractional,
+                                errors: that.errors,
+                                states: {
+                                    is_product: is_product,
+                                    is_locked: false
+                                }
+                            }
+                        },
+                        template: that.components["component-fractional-section"],
+                        delimiters: ['{ { ', ' } }'],
+                        components: {
+                            "component-fractional-dropdown": {
+                                props: ["units", "default_value", "show_empty", "readonly"],
+                                template: that.components["component-fractional-dropdown"],
+                                data: function() {
+                                    var self = this,
+                                        active_unit = null,
+                                        max_length = 0;
+
+                                    $.each(self.units, function(i, unit) {
+                                        if (unit.value === self.default_value) {
+                                            active_unit = unit;
+                                        }
+
+                                        if (unit.name.length > max_length) {
+                                            max_length = unit.name.length;
+                                        }
+                                    });
+
+                                    var letter_width = max_length * 9,
+                                        body_width = 200;
+
+                                    if (letter_width < 80) {
+                                        body_width = 80;
+                                    } else if (letter_width < 200) {
+                                        body_width = letter_width + 40;
+                                    }
+
+                                    return {
+                                        body_width: (body_width > 80 ? body_width : 80) + "px",
+                                        active_unit: active_unit
+                                    }
+                                },
+                                delimiters: ['{ { ', ' } }'],
+                                computed: {
+                                    show_empty_item: function() {
+                                        var self = this;
+                                        return (self.show_empty === true);
+                                    }
+                                },
+                                mounted: function() {
+                                    var self = this;
+
+                                    var $dropdown = $(self.$el).find(".dropdown");
+                                    $dropdown.waDropdown({
+                                        hover: false,
+                                        items: ".dropdown-item",
+                                        change: function(event, target, dropdown) {
+                                            var value = $(target).data("value");
+
+                                            if (typeof value !== "undefined") {
+                                                value = value + "";
+                                            } else {
+                                                console.error("Unit undefined");
+                                                return false;
+                                            }
+
+                                            self.$emit("change", value);
+                                        }
+                                    });
+                                }
+                            },
+                            "component-fractional-changes": {
+                                props: ["name", "changes", "revert"],
+                                data: function() {
+                                    var self = this;
+                                    return {
+                                        revert: (typeof self.revert === "boolean" ? self.revert : false)
+                                    };
+                                },
+                                template: that.components["component-fractional-changes"],
+                                delimiters: ['{ { ', ' } }'],
+                                computed: {
+                                    has_changes: function() {
+                                        var self = this;
+                                        return self.changes[self.name];
+                                    },
+                                    show_indicator: function() {
+                                        var self = this;
+                                        return (that.product.normal_mode_switch && that.product.fractional.rights[self.name] === "enabled");
+                                    },
+                                    show_refresh: function() {
+                                        var self = this;
+                                        return (self.show_indicator && self.has_changes);
+                                    }
+                                },
+                                methods: {
+                                    revertMods: function(event) {
+                                        var self = this;
+
+                                        $.each(that.product.skus, function(i, sku) {
+                                            $.each(sku.modifications, function(j, sku_mod) {
+                                                sku_mod[self.name] = "";
+                                            });
+                                        });
+
+                                        $(event.currentTarget).trigger("mouseleave");
+                                        $(self.$el).trigger("change");
+                                    }
+                                }
+                            }
+                        },
+                        computed: {
+                            stock_unit_tooltip: function() {
+                                var self = this;
+                                return self.getTooltip('stock_unit_id', 'stock-unit-locked');
+                            },
+                            base_unit_tooltip: function() {
+                                var self = this;
+                                return self.getTooltip('base_unit_id', 'base-unit-locked');
+                            },
+                            order_multiplicity_factor_tooltip: function() {
+                                var self = this;
+                                return self.getTooltip('order_multiplicity_factor', 'count-denominator-locked');
+                            },
+
+                            sku_mods_changes: function() {
+                                var result = {};
+
+                                $.each(that.product.skus, function(i, sku) {
+                                    $.each(sku.modifications, function(j, sku_mod) {
+                                        $.each(["stock_base_ratio", "order_count_min", "order_count_step"], function(k, name) {
+                                            var has_value = (parseFloat(sku_mod[name]) >= 0);
+                                            result[name] = (result[name] ? result[name] : has_value);
+                                        });
+                                    });
+                                });
+
+                                return result;
+                            },
+
+                            show_fractional: function () {
+                                var self = this,
+                                    result = false;
+
+                                $.each(self.fractional.rights, function(name, value) {
+                                    if (value !== "disabled") {
+                                        result = true;
+                                        return false;
+                                    }
+                                });
+
+                                return result;
+                            },
+                            show_stock_base_ratio: function() {
+                                var self = this;
+                                return (self.fractional.rights.base_unit_id !== 'disabled' && self.fractional.rights.stock_base_ratio !== 'disabled' && self.fractional.stock_unit_id && self.fractional.base_unit_id);
+                            },
+                            show_section_1: function () {
+                                var self = this,
+                                    result = false;
+
+                                $.each(self.fractional.rights, function(name, value) {
+                                    var white_list = ["stock_unit_id", "base_unit_id"];
+                                    if (white_list.indexOf(name) >= 0 && value !== "disabled") {
+                                        result = true;
+                                        return false;
+                                    }
+                                });
+
+                                return result;
+                            },
+                            show_section_2: function () {
+                                var self = this,
+                                    result = false;
+
+                                $.each(self.fractional.rights, function(name, value) {
+                                    var white_list = ["order_multiplicity_factor", "order_count_min", "order_count_step"];
+                                    if (white_list.indexOf(name) >= 0 && value !== "disabled") {
+                                        result = true;
+                                        return false;
+                                    }
+                                });
+
+                                return result;
+                            },
+                            selected_stock_unit: function () {
+                                var self = this,
+                                    result = null;
+
+                                if (self.fractional.stock_unit_id) {
+                                    var unit_search = self.fractional.units.filter( function(unit) {
+                                        return (unit.value === self.fractional.stock_unit_id);
+                                    });
+
+                                    if (unit_search.length) {
+                                        result = unit_search[0].name_short;
+                                    }
+                                }
+
+                                return result;
+                            },
+                            selected_base_unit: function () {
+                                var self = this,
+                                    result = null;
+
+                                if (self.fractional.base_unit_id) {
+                                    var unit_search = self.fractional.units.filter( function(unit) {
+                                        return (unit.value === self.fractional.base_unit_id);
+                                    });
+
+                                    if (unit_search.length) {
+                                        result = unit_search[0].name_short;
+                                    }
+                                }
+
+                                return result;
+                            }
+                        },
+                        methods: {
+                            isReadonly: function(name) {
+                                var self = this;
+                                return (self.fractional.rights[name] === "readonly");
+                            },
+                            getTooltip: function(name, tooltip_id) {
+                                var self = this,
+                                    is_readonly = self.isReadonly(name);
+                                return (is_readonly ? "component-fractional-" + tooltip_id : "");
+                            },
+                            getPlaceholder: function(name) {
+                                return "";
+                            },
+
+                            onChangeStockUnit: function(value) {
+                                var self = this;
+
+                                that.product.fractional.stock_unit_id = self.fractional.stock_unit_id = value;
+
+                                self.checkStockUnit();
+                                self.checkUnits();
+                            },
+                            onChangeBaseUnit: function(value) {
+                                var self = this;
+
+                                that.product.fractional.base_unit_id = self.fractional.base_unit_id = value;
+
+                                self.checkUnits();
+                            },
+                            onChangeCountDenominator: function(value) {
+                                var self = this;
+
+                                self.checkCountDenominator();
+                                self.checkOrderCountStep();
+                                self.checkOrderCountMin();
+                            },
+                            onChangeStockBaseRatio: function() {
+                                var self = this;
+
+                                self.checkStockBaseRatio();
+                            },
+                            onChangeOrderCountStep: function() {
+                                var self = this;
+
+                                self.checkOrderCountStep();
+                            },
+                            onChangeOrderCountMin: function() {
+                                var self = this;
+
+                                self.checkOrderCountMin();
+                            },
+
+                            checkUnits: function() {
+                                var self = this,
+                                    result = null;
+
+                                var error_id = "units_error";
+
+                                if (self.fractional.rights.stock_unit_id === "enabled" || self.fractional.rights.base_unit_id === "enabled") {
+                                    var case_1 = (self.fractional.stock_unit_id && self.fractional.base_unit_id && self.fractional.stock_unit_id === self.fractional.base_unit_id);
+                                    if (case_1) {
+                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["units_unique_error"] });
+                                        result = "units_error";
+                                    } else {
+                                        self.$delete(self.errors, error_id);
+                                    }
+                                } else {
+                                    self.$delete(self.errors, error_id);
+                                }
+
+                                return result;
+                            },
+                            checkStockUnit: function() {
+                                var self = this,
+                                    result = null;
+
+                                var error_id = "stock_unit";
+
+                                if (self.fractional.rights.stock_unit_id === "enabled") {
+                                    var case_1 = (!self.fractional.stock_unit_id);
+                                    if (case_1) {
+                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["stock_unit_required"] });
+                                        result = "stock_unit_error";
+                                    } else {
+                                        self.$delete(self.errors, error_id);
+                                    }
+                                } else {
+                                    self.$delete(self.errors, error_id);
+                                }
+
+                                return result;
+                            },
+                            checkStockBaseRatio: function() {
+                                var self = this,
+                                    result = null;
+
+                                var error_id = "stock_base_ratio";
+
+                                // VALIDATE
+                                self.fractional.stock_base_ratio =  self.validate("number", self.fractional.stock_base_ratio);
+
+                                if (self.fractional.rights.base_unit_id !== 'disabled' &&
+                                    self.fractional.rights.stock_base_ratio === "enabled" &&
+                                    self.fractional.stock_unit_id &&
+                                    self.fractional.base_unit_id) {
+                                    var case_1 = (!self.fractional.stock_base_ratio || !(parseFloat(self.fractional.stock_base_ratio) > 0)),
+                                        case_2 = isInvalidRatio(self.fractional.stock_base_ratio);
+
+                                    if (case_1) {
+                                        self.$set(self.errors, error_id, {id: error_id, text: that.locales["stock_base_ratio_error"]});
+                                        result = "stock_base_ratio_error";
+                                    } else
+                                    if (case_2) {
+                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["stock_base_ratio_invalid"] });
+                                        result = "stock_base_ratio_invalid";
+                                    } else {
+                                        self.$delete(self.errors, error_id);
+                                    }
+                                } else {
+                                    self.$delete(self.errors, error_id);
+                                }
+
+                                return result;
+
+                                function isInvalidRatio(value) {
+                                    if (!(parseFloat(value) > 0)) { return true; }
+
+                                    value = $.wa.validate("number", value);
+
+                                    const limit_body = 8,
+                                          limit_tail = 8,
+                                          parts      = value.replace(",", ".").split(".");
+
+                                    return !!(parts[0].length > limit_body || (parts[1] && parts[1].length > limit_tail));
+                                }
+                            },
+                            checkCountDenominator: function() {
+                                var self = this,
+                                    result = null;
+
+                                var error_id = "order_multiplicity_factor";
+
+                                // VALIDATE
+                                self.fractional.order_multiplicity_factor =  self.validate("number", self.fractional.order_multiplicity_factor);
+
+                                if (self.fractional.rights.order_multiplicity_factor === "enabled") {
+                                    var case_1 = (!self.fractional.order_multiplicity_factor || !checkValue(self.fractional.order_multiplicity_factor));
+                                    if (case_1) {
+                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_multiplicity_factor_required"] });
+                                        result = "order_multiplicity_factor_required";
+                                    } else {
+                                        self.$delete(self.errors, error_id);
+                                    }
+                                } else {
+                                    self.$delete(self.errors, error_id);
+                                }
+
+                                return result;
+
+                                function checkValue(value_string) {
+                                    var result = false,
+                                        value = parseFloat(value_string),
+                                        tail_length = (value_string.indexOf(".") >= 0 ? (value_string.length - (value_string.indexOf(".") + 1)) : 0);
+
+                                    if (value > 0) {
+                                        var min = 0.001,
+                                            max = 999999.999,
+                                            max_tail_length = 3;
+
+                                        result = (tail_length <= max_tail_length && value >= min && value <= max);
+                                    }
+
+                                    return result;
+                                }
+                            },
+                            checkOrderCountStep: function() {
+                                var self = this,
+                                    result = null;
+
+                                var error_id = "order_count_step";
+
+                                // VALIDATE
+                                self.fractional.order_count_step =  self.validate("number", self.fractional.order_count_step);
+
+                                if (self.fractional.rights.order_count_step === "enabled" && self.fractional.order_multiplicity_factor) {
+                                    var case_1 = (!self.fractional.order_count_step || !self.checkValue(self.fractional.order_count_step));
+                                    if (case_1) {
+                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_count_step_error"] });
+                                        result = "order_count_step_error";
+                                    } else {
+                                        self.$delete(self.errors, error_id);
+                                    }
+                                } else {
+                                    self.$delete(self.errors, error_id);
+                                }
+
+                                return result;
+                            },
+                            checkOrderCountMin: function() {
+                                var self = this,
+                                    result = null;
+
+                                var error_id = "order_count_min";
+
+                                // VALIDATE
+                                self.fractional.order_count_min =  self.validate("number", self.fractional.order_count_min);
+
+                                if (self.fractional.rights.order_count_min === "enabled" && self.fractional.order_multiplicity_factor) {
+                                    var case_1 = (!self.fractional.order_count_min || !self.checkValue(self.fractional.order_count_min));
+                                    if (case_1) {
+                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_count_min_error"] });
+                                        result = "order_count_min_error";
+                                    } else {
+                                        self.$delete(self.errors, error_id);
+                                    }
+                                } else {
+                                    self.$delete(self.errors, error_id);
+                                }
+
+                                return result;
+                            },
+                            checkValue: function(value) {
+                                var self = this;
+
+                                value = parseFloat(value);
+
+                                var result = false,
+                                    divider = getDivider();
+
+                                if (value > 0 && divider > 0) {
+                                    var x1 = parseFloat((value/divider).toFixed(3)),
+                                        tail = value - parseFloat((parseInt(x1) * divider).toFixed(3));
+                                    result = (tail === 0);
+                                }
+
+                                return result;
+
+                                function getDivider() {
+                                    return (self.fractional.order_multiplicity_factor ? self.fractional.order_multiplicity_factor : null);
+                                }
+                            },
+                            validate: $.wa.validate
+                        },
+                        mounted: function() {
+                            var self = this;
+                            that.fractional_vue_model = self;
+                            that.validate({ fractional_vue_model: self });
+                        }
+                    }
+                },
+                delimiters: ['{ { ', ' } }'],
+                created: function() {
+                    $section.css("visibility", "");
+                }
+            });
+        };
+
         Section.prototype.initTypeSection = function() {
             var that = this;
 
@@ -1403,8 +1914,55 @@
                     var id = ($(target).data("id") || "");
                     $link.attr("href", href.replace("%type_id%", id));
                     $input.val(id).trigger("change");
+                    changeType(id);
                 }
             });
+
+            function changeType(type_id) {
+                var locked_class = "is-locked";
+
+                $section.addClass(locked_class);
+                that.fractional_vue_model.states.is_locked = true;
+
+                getTypeData(type_id)
+                    .always( function() {
+                        $section.removeClass(locked_class);
+                        that.fractional_vue_model.states.is_locked = false;
+                    })
+                    .done( function(response) {
+                        updateProductFraction(response.data);
+                    });
+
+                function getTypeData(type_id) {
+                    return $.post(that.urls["type_settings"], { type_id: type_id }, "json");
+                }
+
+                function updateProductFraction(type_fractional) {
+                    that.product.fractional.units = type_fractional.units;
+                    that.product.fractional.rights = type_fractional.rights;
+                    that.product.fractional.denominators = type_fractional.denominators;
+                    that.product.fractional.base_unit_id = type_fractional.base_unit_id;
+                    that.product.fractional.stock_unit_id = type_fractional.stock_unit_id;
+                    that.product.fractional.stock_base_ratio = formatValue(type_fractional.stock_base_ratio);
+                    that.product.fractional.order_multiplicity_factor = formatValue(type_fractional.order_multiplicity_factor);
+                    that.product.fractional.order_count_step = formatValue(type_fractional.order_count_step);
+                    that.product.fractional.order_count_min = formatValue(type_fractional.order_count_min);
+                    that.keys.fractional += 1;
+
+                    function formatValue(value) {
+                        var result = value;
+
+                        var float_value = $.wa.validate("float", value);
+                        if (float_value > 0) {
+                            result = $.wa.validate("number", float_value); }
+                        else {
+                            result = "1";
+                        }
+
+                        return result;
+                    }
+                }
+            }
         };
 
         Section.prototype.initTags = function() {
@@ -2077,17 +2635,21 @@
                 if (!that.is_locked) {
                     that.is_locked = true;
 
-                    var form_data = getData();
+                    var vue_errors = that.validate({ before_submit: true }),
+                        form_data = getData(),
+                        no_errors = beforeSavePluginHook(form_data);
 
-                    var no_errors = beforeSavePluginHook(form_data);
-
-                    var vue_has_errors = (Object.keys(that.errors).length > 0);
+                    var vue_has_errors = (vue_errors.length || Object.keys(that.errors).length > 0);
                     if (vue_has_errors) {
-                        var $errors = that.$wrapper.find(".wa-error-text");
-                        if ($errors.length > 0) {
-                            $(window).scrollTop( $errors.first().offset().top - 100 );
-                            that.is_locked = false;
-                        }
+                        console.log( vue_errors );
+                        // Есть разница во времени рендера Vue ошибок. Скролл к ошибке следует запускать чуть позже
+                        setTimeout( function() {
+                            var $errors = that.$wrapper.find(".wa-error-text");
+                            if ($errors.length > 0) {
+                                $(window).scrollTop( $errors.first().offset().top - 128 );
+                                that.is_locked = false;
+                            }
+                        }, 100);
 
                     } else if (!no_errors || form_data.errors.length) {
                         that.renderErrors(form_data.errors);
@@ -2194,6 +2756,30 @@
                             {
                                 "name": "product[params][multiple_sku]",
                                 "value": (that.product.normal_mode_switch ? 1 : 0)
+                            },
+                            {
+                                name: "product[base_unit_id]",
+                                value: that.product.fractional.base_unit_id
+                            },
+                            {
+                                name: "product[stock_unit_id]",
+                                value: that.product.fractional.stock_unit_id
+                            },
+                            {
+                                name: "product[order_multiplicity_factor]",
+                                value: that.product.fractional.order_multiplicity_factor
+                            },
+                            {
+                                name: "product[order_count_min]",
+                                value: that.product.fractional.order_count_min
+                            },
+                            {
+                                name: "product[order_count_step]",
+                                value: that.product.fractional.order_count_step
+                            },
+                            {
+                                name: "product[stock_base_ratio]",
+                                value: that.product.fractional.stock_base_ratio
                             }
                         ];
 
@@ -2258,6 +2844,18 @@
                                     data.push({
                                         name: prefix + "[purchase_price]",
                                         value: sku_mod.purchase_price
+                                    });
+                                    data.push({
+                                        name: prefix + "[order_count_min]",
+                                        value: (that.product.normal_mode_switch ? sku_mod.order_count_min : "")
+                                    });
+                                    data.push({
+                                        name: prefix + "[order_count_step]",
+                                        value: (that.product.normal_mode_switch ? sku_mod.order_count_step : "")
+                                    });
+                                    data.push({
+                                        name: prefix + "[stock_base_ratio]",
+                                        value: (that.product.normal_mode_switch ? sku_mod.stock_base_ratio : "")
                                     });
 
                                     if (sku_mod.file && sku_mod.file.id) {
@@ -2414,6 +3012,40 @@
             }
         };
 
+        Section.prototype.validate = function(options) {
+            options = (typeof options !== "undefined" ? options : {});
+
+            var that = this;
+
+            var errors = [];
+
+            // Проверка ошибок секции с дробностью
+            var fractional_vue_model = (typeof options["fractional_vue_model"] !== "undefined" ? options["fractional_vue_model"] : that.fractional_vue_model);
+            if (fractional_vue_model) {
+                if (options.before_submit) {
+                    var stock_unit_error = fractional_vue_model.checkStockUnit();
+                    if (stock_unit_error) { errors.push(stock_unit_error); }
+
+                    var order_multiplicity_factor_error = fractional_vue_model.checkCountDenominator();
+                    if (order_multiplicity_factor_error) { errors.push(order_multiplicity_factor_error); }
+                }
+
+                var unit_error = fractional_vue_model.checkUnits();
+                if (unit_error) { errors.push(unit_error); }
+
+                var ratio_error = fractional_vue_model.checkStockBaseRatio();
+                if (ratio_error) { errors.push(ratio_error); }
+
+                var step_error = fractional_vue_model.checkOrderCountStep();
+                if (step_error) { errors.push(step_error); }
+
+                var min_error = fractional_vue_model.checkOrderCountMin();
+                if (min_error) { errors.push(min_error); }
+            }
+
+            return errors;
+        };
+
         // VUE Methods
 
         Section.prototype.updateModificationStocks = function(sku_mod) {
@@ -2472,7 +3104,7 @@
                 }
 
                 if (is_set) {
-                    sku_mod.count = stocks_count;
+                    sku_mod.count = $.wa.validate("float", stocks_count);
                 }
             }
         };
@@ -2593,7 +3225,7 @@
                         var href = that.urls["change_image_description"],
                             data = {
                                 "id": photo.id,
-                                "data[description]": photo.description
+                                "description": photo.description
                             }
 
                         $.post(href, data, "json")

@@ -92,7 +92,7 @@ class shopSettingsShippingAction extends waViewAction
                     'valid'   => sprintf(
                         '<i class="icon16 yes"></i>%s',
                         sprintf(
-                            _w('Shipping plugins retrieve weight from the vaules of a product feature with code <tt>%s</tt>.'),
+                            _w('Shipping plugins retrieve weight from the values of a product feature with code <tt>%s</tt>.'),
                             $weight_code
                         )
                     ),

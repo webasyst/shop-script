@@ -172,6 +172,8 @@
     {% var chosen_sku_id = product.sku_id; %}
     {% var currency = options.currency; %}
     {% var stocks = o.options.stocks || {}; %}
+    {% var stock_unit = o.data.stock_unit; %}
+    {% var active_sku = product.skus[product.sku_id]; %}
     <tr data-product-id="{%#product.id%}" data-index={%#index%} class="s-order-item">
         <td class="min-width valign-top">{% include('template-order-product-img', { url: product.url_crop_small }); %}</td>
         <td>
@@ -260,12 +262,47 @@
         </td>
         <input type="hidden" name="product[add][{%#index%}]" value="{%#product.id%}">
         <td class="valign-top nowrap{% if (options.price_edit) { %} align-right{% } %}">
-            <span style="padding-top: 2px;" class="gray">&times;</span>
-            <input type="text"
-                   name="quantity[add][{%#index%}][product]"
-                   class="s-orders-quantity short numerical"
-                   value="1"
-            >
+
+            <div class="s-quantity-section" id="js-quantity-section">
+                <div class="s-section-body">
+                    <div class="s-field-wrapper">
+                        <span style="padding-top: 2px;" class="gray">&times;</span>
+                        <input type="text"
+                               name="quantity[add][{%#index%}][product]"
+                               class="s-orders-quantity short numerical js-quantity-field"
+                               value="">
+
+                        {% if (stock_unit) { %}
+                            <span class="s-unit">{%#stock_unit["name_short"]%}</span>
+                        {% } %}
+                    </div>
+                </div>
+                {% if (product["show_order_counts"]) { %}
+                    <div class="s-section-footer small" style="margin-top: 4px;">
+                        <div class="s-step">
+                            <span class="s-label">[`Step`]=</span>
+                            <span class="s-value">{%#parseFloat(product["order_multiplicity_factor"])%}</span>
+                            {% if (stock_unit) { %}
+                                <span class="s-unit">{%#stock_unit["name_short"]%}</span>
+                            {% } %}
+                        </div>
+                        <div class="s-min js-order_count_min">
+                            <span class="s-label">[`Min.`]=</span>
+                            <span class="s-value js-value">
+                                {% if (active_sku["order_count_min"]) { %}
+                                    {%#parseFloat(active_sku["order_count_min"])%}
+                                {% } else { %}
+                                    {%#parseFloat(product["order_count_min"])%}
+                                {% } %}
+                            </span>
+                            {% if (stock_unit) { %}
+                                <span class="s-unit">{%#stock_unit["name_short"]%}</span>
+                            {% } %}
+                        </div>
+                    </div>
+                {% } %}
+            </div>
+
         </td>
 
         <td class="valign-top align-right s-orders-product-price">

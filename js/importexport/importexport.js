@@ -416,7 +416,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
         if (plugin_name || plugin_description) {
             this.$header.show();
         }
-        
+
         this.profiles.init();
         this.profiles.draw(path);
 
@@ -691,7 +691,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
                 $a.text(profile.name);
                 $a.attr('title', profile.description);
             } else {
-                $a.text($_('New importexport profile'));
+                $a.text($_('New profile'));
             }
             $a.attr('href', ['#', this.key() + ':' + ( id || --this.counter)].join('/') + '/');
 

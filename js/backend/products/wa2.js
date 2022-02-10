@@ -2981,9 +2981,10 @@ var Tooltip = ( function($) {
         };
 
         Observer.prototype.init = function() {
-            var that = this;
+            var that = this,
+                $document = $(document);
 
-            $(document).on("mouseenter", "[data-tooltip-id]", function(event, force_show) {
+            $document.on("mouseenter", "[data-tooltip-id]", function(event, force_show) {
                 var $target = $(this),
                     tooltip_id = $.trim($target.attr("data-tooltip-id"));
 
@@ -2991,6 +2992,7 @@ var Tooltip = ( function($) {
 
                 if (tooltips[tooltip_id]) {
                     var tooltip = tooltips[tooltip_id];
+                    if (!tooltip.hover) { return false; }
 
                     if (tooltip.action === "hover") {
                         var start_time = tooltip.start_time,
@@ -2999,7 +3001,7 @@ var Tooltip = ( function($) {
 
                         // Принудительно закрываем другие подсказки если они показаны
                         $.each(tooltips, function(id, _tooltip) {
-                            if (_tooltip !== tooltip && _tooltip.is_open) {
+                            if (_tooltip.hover && _tooltip !== tooltip && _tooltip.is_open) {
                                 _tooltip.close();
                             }
                         });
@@ -3044,10 +3046,57 @@ var Tooltip = ( function($) {
                 }
             });
 
+            $document.on("click", "[data-tooltip-id]", function(event) {
+                var $target = $(this),
+                    tooltip_id = $.trim($target.attr("data-tooltip-id"));
+
+                if (!tooltip_id.length) { return; }
+
+                if (tooltips[tooltip_id]) {
+                    var tooltip = tooltips[tooltip_id];
+
+                    if (tooltip.hover) { return; }
+
+                    if (tooltip.is_open) {
+                        // console.log("off");
+                        tooltip.close();
+                        $document.off("click", clickWatcher);
+                    } else {
+                        // console.log("on");
+                        tooltip.open($target);
+                        $document.on("click", clickWatcher);
+                    }
+                } else {
+                    console.error("Tooltip is not found.");
+                }
+
+                function clickWatcher(event) {
+                    if (tooltip.is_open) {
+                        var tooltip_target = event.target.closest("[data-tooltip-id]"),
+                            tooltip_body = event.target.closest(".wa-flex-tooltip");
+
+                        // click on button. no reaction
+                        if (tooltip_target === $target[0]) {
+                            // console.log( "is_target" );
+                        // click on body. no reaction
+                        } else if (tooltip_body === tooltip.$tooltip[0]) {
+                            // console.log( "is_body" );
+                        // click overside. close
+                        } else {
+                            // console.log( "click overside" );
+                            tooltip.close();
+                            $document.off("click", clickWatcher);
+                        }
+                    } else {
+                        $document.off("click", clickWatcher);
+                    }
+                }
+            });
+
             $(window).on("resize scroll", function() {
                 // Принудительно закрываем другие подсказки если они показаны
                 $.each(tooltips, function(id, tooltip) {
-                    if (tooltip.is_open) {
+                    if (tooltip.hover && tooltip.is_open) {
                         tooltip.close();
                     }
                 });
@@ -3073,6 +3122,7 @@ var Tooltip = ( function($) {
             that.width = (typeof options["width"] === "string" ? options["width"] : null);
             that.index = (typeof options["index"] === "number" ? options["index"] : null);
             that.class = (typeof options["class"] === "string" ? options["class"] : null);
+            that.hover = (typeof options["hover"] === "boolean" ? options["hover"] : true);
             that.action = (typeof options["action"] === "string" ? options["action"] : "hover");
             that.animate = (typeof options["animate"] === "boolean" ? options["animate"] : false);
             that.position = (typeof options["position"] === "string" ? options["position"] : "right");
@@ -3084,6 +3134,7 @@ var Tooltip = ( function($) {
 
             // DYNAMIC VARS
             that.timeout = 0;
+            that.is_open = false;
 
             // INIT
             that.init();
@@ -3113,12 +3164,15 @@ var Tooltip = ( function($) {
         Tooltip.prototype.init = function() {
             var that = this;
 
-            that.$tooltip.on("mouseenter", function() {
-                clearTimeout(that.timeout);
-                that.$tooltip.one("mouseleave", function() {
-                    that.hide();
+            // Если режим "понаведению", то при возврате назад на подсказку, отменяем закрытые
+            if (that.hover) {
+                that.$tooltip.on("mouseenter", function() {
+                    clearTimeout(that.timeout);
+                    that.$tooltip.one("mouseleave", function() {
+                        that.hide();
+                    });
                 });
-            });
+            }
         };
 
         /**
@@ -3160,6 +3214,9 @@ var Tooltip = ( function($) {
          * */
         Tooltip.prototype.open = function($target) {
             var that = this;
+
+            var is_target_rendered = $.contains(document, $target[0]);
+            if (!is_target_rendered) { return false; }
 
             that.$tooltip.appendTo($("body"));
 
@@ -3257,7 +3314,7 @@ var Tooltip = ( function($) {
                     left = "";
 
                 switch (position) {
-                    case "left-top":
+                    case "top-left":
                         top = target_top - indent - tooltip_h;
                         left = target_left;
                         break;
@@ -3465,6 +3522,13 @@ $.wa = $.extend($.wa || {}, {
         var result = value;
 
         switch (type) {
+            case "float":
+                var float_value = parseFloat(value);
+                if (float_value >= 0) {
+                    result = float_value.toFixed(3) * 1;
+                }
+                break;
+
             case "number":
                 var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", ","],
                     letters_array = [],
@@ -3472,6 +3536,7 @@ $.wa = $.extend($.wa || {}, {
 
                 $.each(value.split(""), function(i, letter) {
                     if (letter === "." || letter === ",") {
+                        letter = ".";
                         if (!divider_exist) {
                             divider_exist = true;
                             letters_array.push(letter);

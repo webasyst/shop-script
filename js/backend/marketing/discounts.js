@@ -180,7 +180,8 @@
                 $form.on("submit", function(event) {
                     event.preventDefault();
 
-                    if (!is_locked) {
+                    var errors = checkErrors();
+                    if (!errors.length && !is_locked) {
                         is_locked = true;
 
                         var $loading = $('<i style="vertical-align:middle" class="icon16 loading"></i>');
@@ -204,6 +205,32 @@
                             });
                     }
                 });
+
+                function checkErrors() {
+                    var result = [];
+
+                    $form.find('.error').removeClass('error');
+                    $form.find('.errormsg').remove();
+
+                    $form.find('.rate-row:not(.template) input').each(function() {
+                        var item = $(this),
+                            name = item.attr('name'),
+                            val = 0;
+
+                        if (name) {
+                            if (name.indexOf('categories') >= 0) {
+                                val = parseInt(item.val(), 10);
+                                if (isNaN(val) || val < 0 || val > 100) {
+                                    item.addClass('error');
+                                    item.parent().append('<span class="errormsg">' + that.locales["incorrect_1"] + '</span>');
+                                    result.push("categories_error");
+                                }
+                            }
+                        }
+                    });
+
+                    return result;
+                }
 
                 function renderErrors(errors) {
                     console.log("ERRORS:", errors);
@@ -416,19 +443,24 @@
                     $form.find('.errormsg').remove();
 
                     $form.find('.rate-row:not(.template) input').each(function() {
-                        var item = $(this), name = item.attr('name'), val = 0;
-                        if (name && name.indexOf('discount') !== -1) {
-                            val = parseInt(item.val(), 10);
-                            if (isNaN(val) || val < 0 || val > 100) {
-                                item.addClass('error');
-                                item.after('<span class="errormsg">' + that.locales["incorrect_1"] + '</span>');
+                        var item = $(this),
+                            name = item.attr('name'),
+                            val = 0;
+
+                        if (name) {
+                            if (name.indexOf('discount') >= 0 || name.indexOf('categories') >= 0) {
+                                val = parseInt(item.val(), 10);
+                                if (isNaN(val) || val < 0 || val > 100) {
+                                    item.addClass('error');
+                                    item.after('<span class="errormsg">' + that.locales["incorrect_1"] + '</span>');
+                                }
                             }
-                        }
-                        if (name && name.indexOf('sum') !== -1) {
-                            val = parseInt(item.val(), 10);
-                            if (isNaN(val) || val < 0) {
-                                item.addClass('error');
-                                item.after('<span class="errormsg">' + that.locales["incorrect_2"] + '</span>');
+                            if (name.indexOf('sum') !== -1) {
+                                val = parseInt(item.val(), 10);
+                                if (isNaN(val) || val < 0) {
+                                    item.addClass('error');
+                                    item.after('<span class="errormsg">' + that.locales["incorrect_2"] + '</span>');
+                                }
                             }
                         }
                     });

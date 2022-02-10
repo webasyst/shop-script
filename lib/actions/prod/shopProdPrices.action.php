@@ -77,6 +77,20 @@ class shopProdPricesAction extends waViewAction
 
         $formatted_product["skus"] = self::formatSkus(array_values($formatted_product["skus"]), $product["currency"]);
 
+        $unit_model = new shopUnitModel();
+        $_units = $unit_model->getAll('id');
+        foreach ($_units as $_unit) {
+            if ($_unit["id"] === $product["stock_unit_id"]) {
+                $short_name = (!empty($_unit["storefront_name"]) ? $_unit["storefront_name"] : $_unit["short_name"]);
+                $formatted_product["stock_unit"] = [
+                    "id" => (string)$_unit["id"],
+                    "name" => mb_convert_case($_unit["name"], MB_CASE_TITLE, 'UTF-8'),
+                    "name_short" => $short_name
+                ];
+                break;
+            }
+        }
+
         // Очищаем ненужное
         unset($formatted_product["badge_id"]);
         unset($formatted_product["badges"]);
@@ -230,7 +244,7 @@ class shopProdPricesAction extends waViewAction
                 "options" => $_promos
             ],
             "available" => [
-                "label" => _w("Availbility for purchase:"),
+                "label" => _w("Availability for purchase:"),
                 "options" => $_available
             ],
             "visibility" => [

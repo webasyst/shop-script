@@ -64,10 +64,17 @@ class shopCheckoutViewHelper
             return $carry + $item['product']['features'];
         }, []);
 
+        $units = shopHelper::getUnits();
+
         $config = new shopCheckoutConfig(ifset(ref(wa()->getRouting()->getRoute()), 'checkout_storefront_id', []));
         return [
-            'cart'          => $order,
-            'currency_info' => [
+            'cart'            => $order,
+            'units'           => $units,
+            'formatted_units' => shopFrontendProductAction::formatUnits($units),
+            'fractional_config' => shopFrac::getFractionalConfig(),
+            'features'        => ( new shopFeatureModel() )->getByCode( array_keys( $feature_codes ) ),
+            'config'          => $config,
+            'currency_info'   => [
                 'code'             => $currency_info['code'],
                 'fraction_divider' => ifset($locale_info, 'decimal_point', '.'),
                 'fraction_size'    => ifset($currency_info, 'precision', 2),
@@ -80,10 +87,8 @@ class shopCheckoutViewHelper
                 'is_primary'    => $currency_info['is_primary'],
                 'rate'          => $currency_info['rate'],
                 'rounding'      => $currency_info['rounding'],
-                'round_up_only' => $currency_info['round_up_only'],
-            ],
-            'features'      => (new shopFeatureModel())->getByCode(array_keys($feature_codes)),
-            'config'        => $config,
+                'round_up_only' => $currency_info['round_up_only']
+            ]
         ];
     }
 
@@ -128,7 +133,11 @@ class shopCheckoutViewHelper
             'cart_code' => $cart->getCode(),
         ];
         foreach (['currency', 'total', 'subtotal', 'discount', 'discount_description'] as $i) {
-            $result[$i] = $order[$i];
+            if ($i == 'total' || $i == 'subtotal') {
+                $result[$i] = shop_currency($order[$i], null, null, false);
+            } else {
+                $result[$i] = $order[$i];
+            }
         }
         $result['params'] = $order['discount_params'];
 
@@ -264,7 +273,7 @@ class shopCheckoutViewHelper
                 'can_be_ordered' => false,
             ]);
             $item['stock_count'] = $item_data['count'];
-            $item['sku_available'] = (bool)$item_data['available'] && (bool)$item_data['sku_status'] && $item_data['status'] > 0;
+            $item['sku_available'] = $item_data['available'] && $item_data['sku_status'] && $item_data['status'] > 0;
             $item['can_be_ordered'] = (bool)$item_data['can_be_ordered'];
             if (!$item['can_be_ordered']) {
                 $name = $item['name'];
@@ -274,9 +283,9 @@ class shopCheckoutViewHelper
                 $name = htmlspecialchars($name);
 
                 if ($item['sku_available']) {
-                    if ($item['stock_count'] > 0) {
+                    if ($item['stock_count'] >= $item_data['order_count_min']) {
                         $item['error'] = sprintf(
-                            _w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'),
+                            _w('Only %s pcs. of %s are available, and you already have all of them in your shopping cart.'),
                             $item['stock_count'],
                             $name
                         );
@@ -342,6 +351,14 @@ class shopCheckoutViewHelper
 
             $items[$item_id]['full_price'] = $services_price + shop_currency($item['price'] * $item['quantity'], $item['currency'], null, false);
             $items[$item_id]['full_compare_price'] = $services_price + shop_currency($item['compare_price'] * $item['quantity'], $item['currency'], null, false);
+            // format sku count
+            if (!empty($item['product']['skus'])) {
+                foreach ($item['product']['skus'] as $sku_id => $sku) {
+                    if ($sku['count'] !== null) {
+                        $items[$item_id]['product']['skus'][$sku_id]['count'] = shopFrac::formatQuantityWithMultiplicity($sku['count'], $item['product']['order_multiplicity_factor']);
+                    }
+                }
+            }
         }
 
         // Prepare product features, including weight

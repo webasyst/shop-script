@@ -86,6 +86,7 @@ class shopPromoProductPrices
                             'primary_price'         => empty($sku['price']) ? null : (float) shop_currency($sku['price'], $product_data['currency'], $this->shop_currency, null),
                             'compare_price'         => empty($sku['compare_price']) ? null : (float) shop_currency($sku['compare_price'], $product_data['currency'], $product_currencies[$product_id]['currency'], null),
                             'primary_compare_price' => empty($sku['compare_price']) ? null : (float) shop_currency($sku['compare_price'], $product_data['currency'], $this->shop_currency, null),
+                            'primary_base_price'    => empty($sku['compare_price']) ? null : (float) shop_currency($sku['compare_price'], $product_data['currency'], $this->shop_currency, null),
                         ];
                     }
 
@@ -190,11 +191,10 @@ class shopPromoProductPrices
                 }
                 // Main product price
                 if ($p['sku_id'] == $promo_sku_price['sku_id']) {
-                    if (isset($p['price']) && $promo_sku_price['primary_price'] !== null) {
-                        $p['price'] = $promo_sku_price['primary_price'];
-                    }
-                    if (isset($p['compare_price']) && $promo_sku_price['primary_compare_price'] !== null) {
-                        $p['compare_price'] = $promo_sku_price['primary_compare_price'];
+                    foreach (array('price', 'compare_price', 'base_price') as $key) {
+                        if (isset($p[$key], $promo_sku_price['primary_'.$key]) && $promo_sku_price['primary_'.$key] !== null) {
+                            $p[$key] = $promo_sku_price['primary_' . $key];
+                        }
                     }
                 }
 

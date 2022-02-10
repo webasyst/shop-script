@@ -46,7 +46,7 @@ return array(
     // Products (wa2)
     //
 
-    'products/?'                           => 'prod/list',
+    'products/?'                               => 'prod/list',
     'products/<id:\d+|new>/services/?'         => 'prod/services',
     'products/<id:\d+|new>/related/?'          => 'prod/related',
     'products/<id:\d+|new>/reviews/?'          => 'prod/reviews',

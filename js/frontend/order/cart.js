@@ -1,5 +1,60 @@
 ( function($) { "use strict";
 
+    var validate = function(type, value) {
+        value = (typeof value === "string" ? value : "" + value);
+
+        var result = value;
+
+        switch (type) {
+            case "float":
+                var float_value = parseFloat(value);
+                if (float_value >= 0) {
+                    result = float_value.toFixed(3) * 1;
+                }
+                break;
+
+            case "number":
+                var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", ","],
+                    letters_array = [],
+                    divider_exist = false;
+
+                $.each(value.split(""), function(i, letter) {
+                    if (letter === "." || letter === ",") {
+                        letter = ".";
+                        if (!divider_exist) {
+                            divider_exist = true;
+                            letters_array.push(letter);
+                        }
+                    } else {
+                        if (white_list.indexOf(letter) >= 0) {
+                            letters_array.push(letter);
+                        }
+                    }
+                });
+
+                result = letters_array.join("");
+                break;
+
+            case "integer":
+                var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+                    letters_array = [];
+
+                $.each(value.split(""), function(i, letter) {
+                    if (white_list.indexOf(letter) >= 0) {
+                        letters_array.push(letter);
+                    }
+                });
+
+                result = letters_array.join("");
+                break;
+
+            default:
+                break;
+        }
+
+        return result;
+    };
+
     var Cart = ( function($) {
 
         Cart = function(options) {
@@ -53,6 +108,9 @@
                 .find("." + invisible_class).removeAttr("style").removeClass(invisible_class);
 
             that.$outer_wrapper.data("controller", that);
+
+            var ready_promise = that.$wrapper.data("ready");
+            ready_promise.resolve(that);
             that.trigger("ready", that);
 
             // START
@@ -274,6 +332,7 @@
             }
         };
 
+        /*
         Cart.prototype.initChangeQuantity = function() {
             var that = this,
                 toggle_disable_class = "is-disabled";
@@ -469,6 +528,112 @@
                 }
             }
         };
+        */
+
+        Cart.prototype.initChangeQuantity = function() {
+            var that = this,
+                toggle_disable_class = "is-disabled";
+
+            that.$wrapper.on("quantity.changed", ".wa-product", function(event, value, old_value) {
+                that.hideErrors( $(this).find(".js-quantity-cart-section") );
+                onChange($(this), value, old_value);
+            });
+
+            that.$wrapper.on("update", "input.js-product-quantity", function(event, data) {
+                onUpdate($(this), data);
+            });
+
+            function onChange($product, value, old_value) {
+                // DOM
+                var $input = $product.find(".js-product-quantity");
+
+                // VARS
+                var item_id = $product.data("id");
+
+                that.lock(true);
+
+                if (value > 0) {
+                    that.saveCart()
+                        .always( function() {
+                            that.lock(false);
+                        })
+                        .then( function(api) {
+                            that.updateCart(api);
+                        });
+
+                } else {
+                    that.deleteProduct($product).then( function(api) {
+                        $product.remove();
+                        that.updateCart(api);
+                    }, function(state) {
+                        if (old_value) {
+                            $input.val(old_value).trigger("input");
+                        }
+                    });
+                }
+            }
+
+            function onUpdate($input, data) {
+                var $section = $input.closest(".js-quantity-cart-section"),
+                    $product = $section.closest(".wa-product"),
+                    $price = $product.find(".wa-product-fractional-prices");
+
+                var quantity_controller = $input.data("controller");
+
+                var disabled_product_class = "is-out-of-stock",
+                    error_product_class = "is-more-than-limit",
+                    field_error_class = "wa-error-field";
+
+                quantity_controller.update({
+                    max: data.max,
+                    value: data.quantity
+                });
+
+                var value = quantity_controller.value;
+
+                // render errors
+                if (data.max === 0) {
+                    $input.addClass(field_error_class);
+                    $price.hide();
+
+                    getError().text(that.locales["quantity_empty"]).appendTo($section);
+                    $product.addClass(disabled_product_class);
+
+                } else if (data.max < value) {
+                    $input.addClass(field_error_class);
+                    $price.hide();
+
+                    var text = that.locales["quantity_stock_error"].replace("%s", data.max);
+                    getError().text(text).appendTo($section);
+                    $product.addClass(error_product_class);
+
+                } else if (data.errors) {
+
+                    if (data.errors["quantity"]) {
+                        $input.addClass(field_error_class);
+                        $price.hide();
+
+                        getError().text(data.errors["quantity"]).appendTo($section);
+                        $product.addClass(error_product_class);
+                    }
+
+                } else {
+
+                    if (value !== data.quantity) {
+                        $input.val(data.quantity).trigger("input");
+                    }
+
+                    // if (quantity_controller.value !== quantity_controller.min) { $price.show(); } else { $price.hide(); }
+                    $price.show();
+
+                    $input.removeClass(field_error_class);
+                }
+
+                function getError() {
+                    return $(that.templates["error"]);
+                }
+            }
+        };
 
         Cart.prototype.initChangeService = function() {
             var that = this;
@@ -640,6 +805,221 @@
                     that.updateCart(api);
                 });
             });
+        };
+
+        Cart.prototype.initQuantity = function(options) {
+            var that = this;
+
+            var Quantity = ( function($) {
+
+                Quantity = function(options) {
+                    var that = this;
+
+                    // DOM
+                    that.$wrapper = options["$wrapper"];
+                    that.$field = that.$wrapper.find(".js-product-quantity");
+                    that.$min = that.$wrapper.find(".js-decrease");
+                    that.$max = that.$wrapper.find(".js-increase");
+                    that.$min_desc = that.$wrapper.find(".js-min-description");
+                    that.$max_desc = that.$wrapper.find(".js-max-description");
+
+                    // CONST
+                    that.locales = options["locales"];
+                    that.denominator = (typeof options["denominator"] !== "undefined" ? validate("float", options["denominator"]) : 1);
+                    that.denominator = (that.denominator > 0 ? that.denominator : 1);
+                    that.min = (typeof options["min"] !== "undefined" ? validate("float", options["min"]) : that.denominator);
+                    that.min = (that.min > 0 ? that.min : 1);
+                    that.max = (typeof options["max"] !== "undefined" ? validate("float", options["max"]) : 0);
+                    that.max = (that.max >= 0 ? that.max : 0);
+                    that.step = (typeof options["step"] !== "undefined" ? validate("float", options["step"]) : 1);
+                    that.step = (that.step > 0 ? that.step : 1);
+
+                    // DYNAMIC VARS
+                    var value = that.$field.val();
+                    value = (parseFloat(value) > 0 ? value : that.min);
+                    that.value = that.validate(value);
+                    that.is_more = (value > that.value);
+
+                    // INIT
+                    that.init();
+
+                    console.log( that );
+                };
+
+                Quantity.prototype.init = function() {
+                    var that = this;
+
+                    that.$field.data("controller", that);
+                    that.$wrapper.data("controller", that);
+
+                    that.$wrapper.on("click", ".js-increase", function(event) {
+                        event.preventDefault();
+                        that.set(that.value + that.step);
+                    });
+
+                    that.$wrapper.on("click", ".js-decrease", function(event) {
+                        event.preventDefault();
+                        that.set(that.value - that.step);
+                    });
+
+                    that.$field.on("input", function() {
+                        var value = that.$field.val(),
+                            new_value = (typeof value === "string" ? value : "" + value);
+
+                        new_value = validateNumber(new_value);
+                        if (new_value !== value) {
+                            that.$field.val(new_value);
+                        }
+                    });
+
+                    that.$field.on("change", function() {
+                        that.set(that.$field.val());
+                    });
+
+                    //
+
+                    that.setDescription();
+
+                    //
+
+                    function validateNumber(value) {
+                        var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "."],
+                            letters_array = [],
+                            divider_exist = false;
+
+                        value = value.replace(/,/g, ".");
+
+                        $.each(value.split(""), function(i, letter) {
+                            if (letter === ".") {
+                                if (!divider_exist) {
+                                    divider_exist = true;
+                                    letters_array.push(letter);
+                                }
+                            } else {
+                                if (white_list.indexOf(letter) >= 0) {
+                                    letters_array.push(letter);
+                                }
+                            }
+                        });
+
+                        return letters_array.join("");
+                    }
+                };
+
+                /**
+                 * @param {string|number} value
+                 * @param {object?} options
+                 * */
+                Quantity.prototype.set = function(value, options) {
+                    options = (typeof options !== "undefined" ? options : {});
+
+                    var that = this;
+
+                    value = that.validate(value);
+
+                    var old_value = that.value,
+                        is_changed = (value !== that.value);
+
+                    that.$field.val(value);
+                    that.value = value;
+
+                    that.setDescription();
+
+                    if (is_changed || that.is_more) {
+                        that.$wrapper.trigger("quantity.changed", [that.value, old_value, that]);
+                    }
+
+                    if (that.is_more) { that.is_more = false; }
+                };
+
+                Quantity.prototype.validate = function(value) {
+                    var that = this,
+                        result = value;
+
+                    value = (typeof value !== "number" ? parseFloat(value) : value);
+                    value = parseFloat(value.toFixed(3));
+
+                    // левая граница
+                    if (!(value > 0)) { value = that.min; }
+
+                    if (value > 0 && value < that.min) { value = that.min; }
+
+                    // центр
+                    var steps_count = Math.floor(value/that.denominator);
+                    var x1 = (that.denominator * steps_count).toFixed(3) * 1;
+                    if (x1 !== value) {
+                        value = that.denominator * (steps_count + 1);
+                    }
+
+                    // правая граница
+                    if (that.max && value > that.max) { value = that.max; }
+
+                    return validate("float", value);
+                };
+
+                Quantity.prototype.update = function(options) {
+                    var that = this;
+
+                    var min = (typeof options["min"] !== "undefined" ? validate("float", options["min"]) : that.min),
+                        max = (typeof options["max"] !== "undefined" ? validate("float", options["max"]) : that.max),
+                        step = (typeof options["step"] !== "undefined" ? validate("float", options["step"]) : that.step),
+                        value = (typeof options["value"] !== "undefined" ? that.validate(options["value"]) : that.value);
+
+                    if (min > 0 && min !== that.min) { that.min = min; }
+                    if (max >= 0 && max !== that.max) { that.max = max; }
+                    if (step > 0 && step !== that.step) { that.step = step; }
+                    if (value > 0 && value !== that.value) { that.value = value; }
+
+                    that.set(that.value);
+                };
+
+                Quantity.prototype.setDescription = function(debug) {
+                    var that = this;
+
+                    var show_step = (that.step && that.step > 0 && that.step !== 1),
+                        near_limit_class = "is-near-limit",
+                        locked_class = "is-locked";
+
+                    toggleDescription(that.$min, that.$min_desc, that.min, that.locales["min"]);
+                    toggleDescription(that.$max, that.$max_desc, that.max, that.locales["max"]);
+
+                    function toggleDescription($button, $desc, limit, locale) {
+                        var description = null,
+                            limit_string = locale.replace("%s", (limit ? "<div class=\"wa-step\">"+limit+"</div>" : ""));
+
+                        $button
+                            .removeClass(locked_class)
+                            .removeClass(near_limit_class);
+
+                        var is_limit = (that.value === limit);
+                        if (is_limit) {
+                            $button.addClass(locked_class);
+                            description = limit_string;
+                        } else {
+                            if (show_step) {
+                                var near_limit = (limit > 0 && validate("float", Math.abs(that.value - limit)) < that.step);
+                                if (near_limit) {
+                                    $button.addClass(near_limit_class);
+                                    description = limit_string;
+                                } else {
+                                    description = that.step;
+                                }
+                            }
+                        }
+
+                        if (description) {
+                            $desc.html(description).show();
+                        } else {
+                            $desc.hide().html("");
+                        }
+                    }
+                };
+
+                return Quantity;
+
+            })($);
+
+            return new Quantity(options);
         };
 
         // PROTECTED METHODS
@@ -842,6 +1222,22 @@
                             if ($select.length) { $select.attr("disabled", true).trigger("disabled"); }
                         }
                     });
+
+                    // fractional ratio
+                    var $ratio_section = $product.find(".wa-product-ratio-wrapper");
+                    if ($ratio_section.length) {
+                        var ratio = $ratio_section.data("ratio"),
+                            stock_value = str2float(api_product.quantity),
+                            base_value = str2float(ratio * stock_value);
+
+                        $ratio_section.find(".js-stock-value").text(stock_value);
+                        $ratio_section.find(".js-base-value").text(base_value);
+
+                        function str2float(value) {
+                            value = parseFloat(value);
+                            return value.toFixed(8) * 1;
+                        }
+                    }
                 }
             }
 

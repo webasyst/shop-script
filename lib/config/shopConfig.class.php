@@ -907,6 +907,12 @@ function shop_currency($n, $in_currency = null, $out_currency = null, $format = 
 
     if ($format === 'h') {
         return wa_currency_html($n, $out_currency);
+    } elseif ($format === 'price_wrapper' && isset($options)) {
+        return shopViewHelper::formatPrice($n, [
+            'format' => ifset($options, 'wrapper_format', null),
+            'currency' => $out_currency,
+            'unit' => ifset($options, 'unit', null),
+        ] + $options);
     } elseif ($format) {
         if (empty($options['extended_format'])) {
             return wa_currency($n, $out_currency);
@@ -927,4 +933,50 @@ function shop_currency_html($n, $in_currency = null, $out_currency = null, $form
         );
     }
     return shop_currency($n, $in_currency, $out_currency, $format);
+}
+
+/**
+ * @param mixed $float
+ * @param null|int $limit_precision NULL means no limit
+ * @param null|string $decimal_separator NULL means specific to current selected locale
+ * @return string
+ */
+function shop_number_format($float, $limit_precision=null, $decimal_separator='.')
+{
+    if (is_array($limit_precision)) {
+        $options = $limit_precision;
+        $limit_precision = ifset($options, 'limit_precision', null);
+        if (array_key_exists('decimal_separator', $options)) {
+            $decimal_separator = $options['decimal_separator'];
+        }
+    }
+
+    // Input with dot and with comma
+    if (is_string($float)) {
+        $float = floatval(str_replace(',', '.', $float));
+    }
+
+    if ($limit_precision !== null && $limit_precision >= 0) {
+        $pow = 10**$limit_precision;
+        $float = floor($float * $pow) / $pow;
+    }
+    list($num, $exp) = explode('e', sprintf('%.'.strlen($float).'e', $float));
+    $exp = strlen(rtrim($num, '0')) - 2 - $exp;
+    if ($limit_precision !== null && $limit_precision >= 0) {
+        $exp = min($exp, $limit_precision);
+    }
+    if ($exp < 0) {
+        return strval(floatval($float));
+    }
+    $result = sprintf('%.'.$exp.'f', $float);
+
+    if ($decimal_separator === null) {
+        $locale_info = waLocale::getInfo(wa()->getLocale());
+        $decimal_separator = ifset($locale_info, 'decimal_point', '.');
+    }
+
+    if ($decimal_separator != '.') {
+        $result = str_replace('.', $decimal_separator, $result);
+    }
+    return $result;
 }

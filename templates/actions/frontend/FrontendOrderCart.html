@@ -8,7 +8,7 @@
     "quantity_delete" => _w('Delete product from the cart'),
     "quantity_decrease" => _w('Reduce quantity'),
     "quantity_increase" => _w('Increase quantity'),
-    "quantity_stock_error" => _w("Only %s available in stock. Please reduce the quantity or delete this product from the cart.")
+    "quantity_stock_error" => _w("The quantity in your shopping cart is greater than that available in stock. Please reduce the quantity or delete this product from the cart.")
 ]}
 
 {function name="_renderError" _text=""}
@@ -27,7 +27,15 @@
     {$_cart_classes[] = "with-adaptive"}
 {/if}
 
+{$_currency = $wa->shop->currency()}
+
 <div class="wa-order-cart-wrapper is-not-ready {$_cart_classes|join:" "}" id="wa-order-cart-wrapper">
+    <script>
+        ( function($) {
+            $("#wa-order-cart-wrapper").data("ready", $.Deferred());
+        })(jQuery);
+    </script>
+
     {if empty($cart.count)}
         <div class="wa-cart-body">
             <p class="align-center" style="margin: 100px 0;">[`Your shopping cart is empty.`]</p>
@@ -50,6 +58,11 @@
                 {if !empty($cart.items)}
                     <div class="wa-products">
                         {foreach $cart.items as $_item}
+                            {* this code sets default values for empty SKU fields *}
+                            {$_item.product = shopFrac::inheritSkuFieldsFromProduct($_item.product)}
+                            {$_active_sku = $_item.product.skus[$_item.product.sku_id]|default:null}
+                            {$_show_fractional = !empty($formatted_units[$_item.product["stock_unit_id"]]) && !empty($formatted_units[$_item.product["base_unit_id"]]) && ($_item.product["stock_unit_id"] !== $_item.product["base_unit_id"]) && !empty($_active_sku["stock_base_ratio"])}
+
                             {$_product_front_uri = $wa->shop->productUrl($_item.product)}
                             {$_product_image_uri = $wa->shop->productImgHtml($_item.product, '200', ['default' => "`$wa_app_static_url`img/image-dummy.png"])}
 
@@ -68,7 +81,8 @@
                                 {$_is_in_stock = true}
                             {else}
                                 {$_stock_count = $_item.stock_count|floatval}
-                                {if $_stock_count === 0 || $_stock_count === 0.0}
+                                {$_min_max = (!empty($_item["order_count_min"]) && ($_item["order_count_min"] > $_stock_count))}
+                                {if ($_stock_count === 0 || $_stock_count === 0.0 || $_min_max)}
                                     {$_is_out_of_stock = true}
                                 {elseif $_stock_count > 0 && $_item.quantity <= $_stock_count}
                                     {$_is_in_stock = true}
@@ -176,6 +190,7 @@
 
                                     {* QUANTITY *}
                                     <div class="wa-column-quantity">
+                                        {*
                                         <div class="wa-quantity-section">
                                             {$_hint = ""}
                                             {if !empty($_is_more_than_limit)}
@@ -215,6 +230,99 @@
                                                     'format' => 'h'
                                                 ])}/[`item`]
                                             </div>
+                                        </div>
+                                        *}
+
+                                        <div class="wa-quantity-cart-section js-quantity-cart-section {if !empty($_is_out_of_stock) || !empty($_is_product_disabled)}disabled{/if}">
+                                            <div class="wa-section-body">
+                                                <div class="wa-button-wrapper">
+                                                    <button class="wa-button s-minus-button transparent js-decrease" type="button" {if !empty($_is_product_disabled)}disabled{/if}>
+                                                        <span class="wa-icon-wrapper"><i class="wa-icon minus size-12"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#minus"></use></svg></i></span>
+                                                        <span class="wa-description js-min-description" style="display: none;"></span>
+                                                    </button>
+                                                </div>
+                                                <label class="wa-field-wrapper">
+                                                    <input class="wa-field js-product-quantity {if !empty($_item.error)}wa-error-field{/if}" name="quantity[{$_item.id}]" value="{$_item.quantity|floatval}" {if !empty($_is_out_of_stock) || !empty($_is_product_disabled)}disabled{/if}>
+                                                    {if !empty($formatted_units) && !empty($formatted_units[$_item.product["stock_unit_id"]])}
+                                                        {$_stock_unit = $formatted_units[$_item.product["stock_unit_id"]]}
+                                                        <span class="wa-unit top">{$_stock_unit["name_short"]}</span>
+                                                    {/if}
+                                                </label>
+                                                <div class="wa-button-wrapper">
+                                                    <button class="wa-button s-plus-button transparent js-increase" type="button" {if !empty($_is_product_disabled) || !empty($_is_limit)}disabled{/if}>
+                                                        <span class="wa-icon-wrapper"><i class="wa-icon minus size-12"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#plus"></use></svg></i></span>
+                                                        <span class="wa-description js-max-description" style="display: none;"></span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="wa-section-footer">
+                                                {$_errors = []}
+                                                {if !empty($_is_product_disabled)}
+                                                    {$_errors[] = $_locales["product_disabled"]}
+                                                {elseif !empty($_is_out_of_stock)}
+                                                    {$_errors[] = "[`Out of stock`]"}
+                                                {elseif !empty($_is_more_than_limit)}
+                                                    {$_errors[] = sprintf($_locales["quantity_stock_error"], $_item.stock_count)}
+                                                {/if}
+
+                                                {foreach $_errors as $_error}
+                                                    {_renderError _text=$_error}
+                                                {/foreach}
+
+                                                {$_min = $_active_sku["order_count_min"]|default:1|floatval}
+
+                                                <div class="wa-product-fractional-prices" style="{if empty($_item.quantity)}display: none;{/if}">
+                                                    {if !empty($_show_fractional)}
+                                                        {$_stock_unit = $formatted_units[$_item.product["stock_unit_id"]]}
+                                                        {$_base_unit = $formatted_units[$_item.product["base_unit_id"]]}
+                                                        {$_stock_price = $wa->shop->formatPrice($_active_sku["price"], ["unit" => $_stock_unit["name_short"], "currency" => $_currency])}
+                                                        {$_base_price = ($_active_sku["price"]/$_active_sku["stock_base_ratio"])}
+                                                        {$_base_price = $wa->shop->formatPrice($_base_price, ["unit" => $_base_unit["name_short"], "currency" => $_currency])}
+
+                                                        <div class="wa-product-ratio-wrapper" data-ratio="{shop_number_format($_active_sku["stock_base_ratio"])}">
+                                                            <span class="js-stock-value">{shop_number_format($_item.quantity)}</span>&nbsp;<span>{$_stock_unit["name_short"]}</span>
+                                                            <span>&nbsp;=&nbsp;</span>
+                                                            <span class="js-base-value">{shop_number_format($_item.quantity * $_active_sku["stock_base_ratio"])}</span>&nbsp;<span>{$_base_unit["name_short"]}</span>
+                                                        </div>
+                                                        <div class="wa-product-price">{$_stock_price}</div>
+                                                        <div class="wa-product-base-price">{$_base_price}</div>
+
+                                                    {elseif $fractional_config["stock_units_enabled"] && !empty($formatted_units) && !empty($formatted_units[$_item.product["stock_unit_id"]])}
+                                                        {$_stock_unit = $formatted_units[$_item.product["stock_unit_id"]]}
+                                                        {$_stock_price = $wa->shop->formatPrice($_active_sku["price"], ["unit" => $_stock_unit["name_short"], "currency" => $_currency])}
+                                                        <div class="wa-product-price">{$_stock_price}</div>
+                                                    {else}
+                                                        <div class="wa-product-price">
+                                                            {shop_currency($_item.price, [ 'in_currency' => true, 'format' => 'h' ])}/[`item`]
+                                                        </div>
+                                                    {/if}
+                                                </div>
+                                            </div>
+
+                                            <script>
+                                                ( function($) {
+                                                    var promise = $("#wa-order-cart-wrapper").data("ready");
+                                                    promise.done( function(controller) {
+                                                        var $wrapper = $(".wa-product[data-id=\"{$_item.id|escape}\"]");
+                                                        if ($wrapper.length) {
+                                                            controller.initQuantity({
+                                                                $wrapper: $wrapper,
+                                                                denominator: {$_item.product["order_multiplicity_factor"]|default:1|floatval|json_encode},
+                                                                step: {$_active_sku["order_count_step"]|default:1|floatval|json_encode},
+                                                                min: {$_active_sku["order_count_min"]|default:1|floatval|json_encode},
+                                                                max: {$_active_sku.count|default:0|floatval|json_encode},
+                                                                locales: {
+                                                                    "min": {_w("min. %s")|json_encode},
+                                                                    "max": {_w("max. %s")|json_encode}
+                                                                }
+                                                            });
+                                                        } else {
+                                                            console.error("ERROR: Field not found");
+                                                        }
+                                                    });
+                                                })(jQuery);
+                                            </script>
                                         </div>
 
                                         <div class="wa-quantity-actions">

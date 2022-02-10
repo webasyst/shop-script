@@ -23,10 +23,15 @@
             <div class="wa-slider-wrapper js-slider-wrapper">
                 <div class="wa-slider-list">
                     {foreach $products as $_product}
+                        {$_show_dialog = ($_product.sku_count > 1 || $_product["order_multiplicity_factor"] != 1)}
+
                         <div class="wa-slide-wrapper">
 
                             {* PRODUCT *}
-                            <div class="wa-product-wrapper" data-product-id="{$_product.id|escape}" data-sku-id="{$_product.sku_id|default:""|escape}" data-skus-count="{if !empty($_product.skus)}{$_product.skus|count}{else}1{/if}">
+                            <div class="wa-product-wrapper"
+                                 data-product-id="{$_product.id|escape}"
+                                 data-sku-id="{$_product.sku_id|default:""|escape}"
+                                 {if $_show_dialog}data-show-dialog="true"{/if}">
                                 {* IMAGE *}
                                 <div class="wa-image-wrapper">
                                     {$_image_uri = $wa->shop->productImgUrl($_product, '96x96')}

@@ -29,6 +29,21 @@
                     [`from`] <input type="text" class="min" name="price_min" {if $wa->get('price_min')}value="{(int)$wa->get('price_min')}"{/if} placeholder="{floor($filter.min)}">
                     [`to`] <input type="text" class="max" name="price_max" {if $wa->get('price_max')}value="{(int)$wa->get('price_max')}"{/if} placeholder="{ceil($filter.max)}"> {$c.sign}
                     </div>
+                    {if $units}
+                        <h5 class="s-filter-header">[`Units`]</h5>
+                        <div class="s-filter-wrapper">
+                            <div class="s-filter-item">
+                                <select name="unit">
+                                    {if is_null($default_unit)}
+                                        <option value=""></option>
+                                    {/if}
+                                    {foreach $units as $unit}
+                                        <option value="{$unit.id}" {if $unit.selected}selected{/if}>{$unit.name}</option>
+                                    {/foreach}
+                                </select>
+                            </div>
+                        </div>
+                    {/if}
                 {else}
                     <h5>{$filter.name|escape}</h5>
                     {if $filter.type == 'boolean'}

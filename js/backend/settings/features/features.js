@@ -4,6 +4,107 @@
  * */
 var ShopFeatureSettingsPage = ( function($) { "use strict";
 
+    // COMPONENTS
+
+    var Switch = ( function($) {
+
+        Switch = function(options) {
+            var that = this;
+
+            // DOM
+            that.$wrapper = options["$wrapper"];
+            that.$toggle = $("<span class=\"switch-toggle\" />").appendTo(that.$wrapper);
+            that.$field = that.$wrapper.find("input:checkbox:first");
+
+            // VARS
+            that.on = {
+                ready: (typeof options["ready"] === "function" ? options["ready"] : function() {}),
+                change: (typeof options["change"] === "function" ? options["change"] : function() {})
+            };
+
+            // DYNAMIC VARS
+            that.is_active = (that.$field.length ? that.$field.is(":checked") : false);
+            that.is_active = (typeof options["active"] === "boolean" ? options["active"] : that.is_active);
+
+            that.is_disabled = (that.$field.length ? that.$field.is(":disabled") : false);
+            that.is_disabled = (typeof options["disabled"] === "boolean" ? options["disabled"] : that.is_disabled);
+
+            // INIT
+            that.init();
+        };
+
+        Switch.prototype.init = function() {
+            var that = this;
+
+            that.set(that.is_active, false);
+            that.disable(that.is_disabled);
+
+            that.$wrapper.data("switch", that).trigger("ready", [that]);
+            that.on.ready(that);
+
+            that.$wrapper.on("click", function(event) {
+                event.preventDefault();
+                if (!that.is_disabled) {
+                    that.set(!that.is_active);
+                }
+            });
+        };
+
+        /**
+         * @param {Boolean} active
+         * @param {Boolean?} trigger_change
+         * */
+        Switch.prototype.set = function(active, trigger_change) {
+            var that = this,
+                active_class = "is-active";
+
+            trigger_change = (typeof trigger_change === "boolean" ? trigger_change : true);
+
+            if (active) {
+                that.$wrapper.addClass(active_class);
+            } else {
+                that.$wrapper.removeClass(active_class);
+            }
+
+            if (that.$field.length) {
+                that.$field.attr("checked", active);
+            }
+
+            if (trigger_change) {
+                if (that.$field.length) {
+                    that.$field.trigger("change", [active, that]);
+                } else {
+                    that.$wrapper.trigger("change", [active, that]);
+                }
+
+                that.on.change(active, that);
+            }
+
+            that.is_active = active;
+
+            return that.is_active;
+        };
+
+        /**
+         * @param {Boolean} disable
+         * */
+        Switch.prototype.disable = function(disable) {
+            var that = this,
+                disabled_class = "is-disabled";
+
+            if (disable) {
+                that.$wrapper.addClass(disabled_class);
+            } else {
+                that.$wrapper.removeClass(disabled_class);
+            }
+
+            that.is_disabled = disable;
+        };
+
+        return Switch;
+
+    })($);
+
     // SECTIONS
 
     /**
@@ -313,30 +414,13 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
             return $.post(href, data).done( function(html) {
                 var dialog = $.waDialog({
                     html: html,
-                    debug_output: 1
-                });
-
-                var type_edit_dialog = new TypeEditDialog({
-                    $wrapper: dialog.$wrapper,
-                    dialog: dialog,
-                    scope: that,
-                    onSuccess: function(new_type_id) {
-                        /*
-                        if (!type_id) {
-                            var new_sidebar = window.shop_feature_settings_page.sidebar,
-                                $new_type = new_sidebar.$types_list.find(".js-type-wrapper[data-id=\"" + new_type_id + "\"]"),
-                                active_class = "highlighted";
-
-                            if ($new_type.length) {
-                                $new_type
-                                    .addClass(active_class)
-                                    .one("hover", function() {
-                                        $new_type.removeClass(active_class);
-                                    });
-                            }
+                    options: {
+                        initDialog: function(options) {
+                            options["scope"] = that;
+                            return new TypeEditDialog(options);
                         }
-                        */
-                    }
+                    },
+                    debug_output: 1
                 });
             });
         };
@@ -1167,12 +1251,51 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
             that.scope = options["scope"];
             that.urls = that.scope["urls"];
             that.dialog = options["dialog"];
+            that.locales = options["locales"];
+            that.templates = options["templates"];
+            that.type = options["type"];
+            that.is_premium = options["is_premium"];
+            that.fractional = formatFractional(options["fractional"]);
+
+            // CALLBACKS
             that.onSuccess = (options["onSuccess"] || function() {});
 
-            // DYNAMIC VARS
+            // VARS
+            that.errors = {};
 
             // INIT
+            that.vue_model = that.initFractional();
             that.init();
+
+            console.log( that );
+
+            function formatFractional(fractional) {
+                if (fractional.stock_base_ratio.value === 0) { fractional.stock_base_ratio.value = ""; }
+
+                if (fractional.order_multiplicity_factor.value === "") { fractional.order_multiplicity_factor.value = fractional.order_multiplicity_factor.default; }
+                if (fractional.order_count_step.value === 0) { fractional.order_count_step.value = fractional.order_count_step.default; }
+                if (fractional.order_count_min.value === 0) { fractional.order_count_min.value = fractional.order_count_min.default; }
+
+                fractional.stock_base_ratio.value = formatValue(fractional.stock_base_ratio.value);
+                fractional.count_denominator.value = formatValue(fractional.count_denominator.value);
+                fractional.order_multiplicity_factor.value = formatValue(fractional.order_multiplicity_factor.value);
+                fractional.order_count_step.value = formatValue(fractional.order_count_step.value);
+                fractional.order_count_min.value = formatValue(fractional.order_count_min.value);
+
+                fractional.stock_unit_before = clone(fractional.stock_unit);
+                fractional.base_unit_before = clone(fractional.base_unit);
+                fractional.order_multiplicity_factor_before = clone(fractional.order_multiplicity_factor);
+                fractional.stock_base_ratio_before = clone(fractional.stock_base_ratio);
+                fractional.order_count_min_before = clone(fractional.order_count_min);
+                fractional.order_count_step_before = clone(fractional.order_count_step);
+
+                return fractional;
+
+                function formatValue(value) {
+                    value = parseFloat(value);
+                    return (value >= 0 ? "" + value : "");
+                }
+            }
         };
 
         Dialog.prototype.init = function() {
@@ -1182,6 +1305,544 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
             that.initToggle();
             that.initSubmit();
         };
+
+        Dialog.prototype.initFractional = function() {
+            var that = this;
+
+            var $section = that.$wrapper.find(".js-fractional-section");
+            if (!$section.length) { return null; }
+
+            return new Vue({
+                el: $section[0],
+                data: {
+                    fractional: that.fractional,
+                    errors: that.errors
+                },
+                components: {
+                    "component-switch": {
+                        props: ["value", "disabled", "title", "class_switch"],
+                        data: function() {
+                            var self = this,
+                                title_data = (typeof self.title === "string" ? self.title : null);
+
+                            self.title = null;
+
+                            return {
+                                checked: (typeof this.value === "boolean" ? this.value : false),
+                                disabled: (typeof this.disabled === "boolean" ? this.disabled : false),
+                                class_switch: (typeof this.class_switch === "string" ? this.class_switch : null),
+                                title_data: title_data
+                            };
+                        },
+                        template: that.templates["component-switch"],
+                        delimiters: ['{ { ', ' } }'],
+                        mounted: function() {
+                            var self = this,
+                                $switch = $(self.$el).find(".wa-switch");
+
+                            new Switch({
+                                $wrapper: $switch,
+                                change: function(active, wa_switch) {
+                                    self.$emit("change", active);
+                                    self.$emit("input", active);
+                                }
+                            });
+                        }
+                    }
+                },
+                computed: {
+                    selected_stock_unit: function () {
+                        var self = this,
+                            result = null;
+
+                        if (self.fractional.stock_unit.value) {
+                            var unit_search = self.fractional.units.filter( function(unit) {
+                                return (unit.value === self.fractional.stock_unit.value);
+                            });
+
+                            if (unit_search.length) {
+                                result = unit_search[0].name_short;
+                            }
+                        }
+
+                        return result;
+                    },
+                    selected_base_unit: function () {
+                        var self = this,
+                            result = null;
+
+                        if (self.fractional.base_unit.value) {
+                            var unit_search = self.fractional.units.filter( function(unit) {
+                                return (unit.value === self.fractional.base_unit.value);
+                            });
+
+                            if (unit_search.length) {
+                                result = unit_search[0].name_short;
+                            }
+                        }
+
+                        return result;
+                    },
+
+                    stock_unit_fixed: function () {
+                        var self = this,
+                            result = 2;
+
+                        if (self.fractional.stock_unit.enabled) {
+                            result = (self.fractional.stock_unit.editable ? 0 : 1);
+                        }
+
+                        return result;
+                    },
+                    base_unit_fixed: function () {
+                        var self = this,
+                            result = 2;
+
+                        if (self.fractional.base_unit.enabled) {
+                            result = (self.fractional.base_unit.editable ? 0 : 1);
+                        }
+
+                        return result;
+                    },
+                    stock_base_ratio_fixed: function () {
+                        var self = this,
+                            result = 2;
+
+                        if (self.fractional.stock_base_ratio.enabled) {
+                            result = (self.fractional.stock_base_ratio.editable ? 0 : 1);
+                        }
+
+                        return result;
+                    },
+                    order_multiplicity_factor_fixed: function () {
+                        var self = this,
+                            result = 2;
+
+                        if (self.fractional.order_multiplicity_factor.enabled) {
+                            result = (self.fractional.order_multiplicity_factor.editable ? 0 : 1);
+                        }
+
+                        return result;
+                    },
+                    order_count_step_fixed: function () {
+                        var self = this,
+                            result = 2;
+
+                        if (self.fractional.order_count_step.enabled) {
+                            result = (self.fractional.order_count_step.editable ? 0 : 1);
+                        }
+
+                        return result;
+                    },
+                    order_count_min_fixed: function () {
+                        var self = this,
+                            result = 2;
+
+                        if (self.fractional.order_count_min.enabled) {
+                            result = (self.fractional.order_count_min.editable ? 0 : 1);
+                        }
+
+                        return result;
+                    }
+                },
+                methods: {
+                    onChangeStockUnitEnabled: function(value) {
+                        var self = this;
+                        self.fractional.stock_unit.enabled = value;
+                        if (value) {
+                            self.fractional.stock_unit.default = (typeof self.fractional.units[1] === 'undefined' ? '0' : self.fractional.units[1]['value']);
+                            that.$wrapper.find('[name="stock_unit_id"] > option[value="0"]').hide();
+
+                            self.fractional.stock_unit.editable = true;
+                            self.onChangeStockUnitEditable();
+                        } else {
+                            self.fractional.stock_unit.default = 0;
+                            that.$wrapper.find('[name="stock_unit_id"] > option[value="0"]').show();
+                        }
+                        self.fractional.stock_unit.value = self.fractional.stock_unit.default;
+
+                        if ((self.fractional.stock_unit.enabled !== self.fractional.base_unit.enabled) && !self.fractional.stock_unit.enabled) {
+                            that.$wrapper.find(".js-switch-base-unit").trigger("click");
+                        }
+
+                        self.checkUnits();
+                    },
+                    onChangeBaseUnitEnabled: function(value) {
+                        var self = this;
+                        self.fractional.base_unit.enabled = value;
+                        that.$wrapper.find('[name="base_unit_id"] > option[value="0"]').hide();
+                        if (value) {
+                            self.fractional.base_unit.editable = true;
+                            self.onChangeBaseUnitEditable();
+                            self.fractional.base_unit.value = "";
+                        } else {
+                            self.fractional.base_unit.value = self.fractional.base_unit.default;
+                        }
+
+                        if ((self.fractional.stock_unit.enabled !== self.fractional.base_unit.enabled) && self.fractional.base_unit.enabled) {
+                            that.$wrapper.find(".js-switch-stock-unit").trigger("click");
+                        }
+
+                        self.checkUnits();
+                    },
+                    onChangeCountDenominatorEnabled: function(value) {
+                        var self = this;
+                        self.fractional.order_multiplicity_factor.enabled = value;
+                        if (value) {
+                            self.fractional.order_multiplicity_factor.editable = true;
+                            self.onChangeCountDenominatorEditable();
+                        }
+                        self.fractional.order_multiplicity_factor.value = self.fractional.order_multiplicity_factor.default;
+
+                        self.checkOrderCountStep();
+                        self.checkOrderCountMin();
+                    },
+                    onChangeOrderCountStepEnabled: function(value) {
+                        var self = this;
+                        self.fractional.order_count_step.enabled = value;
+                        if (value) {
+                            self.fractional.order_count_step.editable = true;
+                            self.onChangeOrderCountStepEditable();
+                        }
+                        self.fractional.order_count_step.value = (value && self.fractional.order_multiplicity_factor.value ? self.fractional.order_multiplicity_factor.value : self.fractional.order_count_step.default);
+
+                        self.checkOrderCountStep();
+                    },
+                    onChangeOrderCountMinEnabled: function(value) {
+                        var self = this;
+                        self.fractional.order_count_min.enabled = value;
+                        if (value) {
+                            self.fractional.order_count_min.editable = true;
+                            self.onChangeOrderCountMinEditable();
+                        }
+                        self.fractional.order_count_min.value = (value && self.fractional.order_multiplicity_factor.value ? self.fractional.order_multiplicity_factor.value : self.fractional.order_count_min.default);
+
+                        self.checkOrderCountMin();
+                    },
+
+                    onChangeStockUnitEditable: function() {
+                        var self = this,
+                            editable = self.fractional.stock_unit.editable;
+
+                        if (!editable) {
+                            if (!self.fractional.stock_unit.value) {
+                                self.fractional.stock_unit.value = self.fractional.units[0].value;
+                                self.checkUnits();
+                            }
+                        }
+                    },
+                    onChangeBaseUnitEditable: function() {
+                        var self = this,
+                            editable = self.fractional.base_unit.editable;
+
+                        var $select = that.$wrapper.find("select[name=\"base_unit_id\"]"),
+                            $option = $select.find("option[value=\"\"]");
+
+                        if (editable) {
+                            $option.show();
+                        } else {
+                            $option.hide();
+                            if (!self.fractional.base_unit.value) {
+                                self.fractional.base_unit.value = self.fractional.units[0].value;
+                                self.checkUnits();
+                            }
+                        }
+
+                        self.checkStockBaseRatio();
+                    },
+                    onChangeCountDenominatorEditable: function() {
+                        var self = this,
+                            editable = self.fractional.order_multiplicity_factor.editable;
+
+                        if (!editable) {
+                            if (!self.fractional.order_multiplicity_factor.value) {
+                                self.fractional.order_multiplicity_factor.value = self.fractional.denominators[0].value;
+                            }
+                        }
+
+                        self.fractional.order_count_step.editable = true;
+                        self.fractional.order_count_min.editable = true;
+
+                        self.checkOrderCountStep();
+                        self.checkOrderCountMin();
+                    },
+                    onChangeOrderCountStepEditable: function() {
+                        var self = this;
+                        self.checkOrderCountStep();
+                    },
+                    onChangeOrderCountMinEditable: function() {
+                        var self = this;
+                        self.checkOrderCountMin();
+                    },
+
+                    onChangeStockUnit: function() {
+                        var self = this;
+                        self.checkUnits();
+                    },
+                    onChangeBaseUnit: function() {
+                        var self = this;
+                        self.checkUnits();
+                    },
+                    onInputCountDenominator: function() {
+                        var self = this;
+
+                        self.checkCountDenominator();
+                        self.checkOrderCountStep();
+                        self.checkOrderCountMin();
+                    },
+                    onChangeCountDenominator: function() {
+                        var self = this;
+
+                        self.fractional.order_multiplicity_factor.value = "" + self.validate('float', self.fractional.order_multiplicity_factor.value);
+                        self.onInputCountDenominator();
+                    },
+                    onChangeStockBaseRatio: function() {
+                        var self = this;
+
+                        self.fractional.stock_base_ratio.value = "" + self.validate('float', self.fractional.stock_base_ratio.value);
+                        self.checkStockBaseRatio();
+                    },
+                    onChangeOrderCountStepValue: function() {
+                        var self = this;
+
+                        self.fractional.order_count_step.value = "" + self.validate('float', self.fractional.order_count_step.value);
+                        self.checkOrderCountStep();
+                    },
+                    onChangeOrderCountMinValue: function() {
+                        var self = this;
+
+                        self.fractional.order_count_min.value = "" + self.validate('float', self.fractional.order_count_min.value);
+                        self.checkOrderCountMin();
+                    },
+
+                    checkUnits: function() {
+                        var self = this,
+                            result = null;
+
+                        var error_id = "units_error";
+
+                        if (self.fractional.stock_unit.status && self.fractional.stock_unit.enabled && self.fractional.base_unit.status && self.fractional.base_unit.enabled) {
+                            var case_1 = (self.fractional.stock_unit.value && self.fractional.base_unit.value && self.fractional.stock_unit.value === self.fractional.base_unit.value);
+                            if (case_1) {
+                                self.$set(self.errors, error_id, { id: error_id, text: that.locales["units_unique_error"] });
+                                result = "units_error";
+                            } else {
+                                self.$delete(self.errors, error_id);
+                            }
+                        } else {
+                            self.$delete(self.errors, error_id);
+                        }
+
+                        return result;
+                    },
+                    checkStockBaseRatio: function() {
+                        var self = this,
+                            result = null;
+
+                        var error_id = "stock_base_ratio_error";
+
+                        // VALIDATE
+                        self.fractional.stock_base_ratio.value =  self.validate("number", self.fractional.stock_base_ratio.value);
+
+                        if (self.fractional.base_unit.status && self.fractional.base_unit.enabled && self.fractional.stock_unit.value && self.fractional.base_unit.value) {
+                            var case_1 = (self.fractional.stock_base_ratio.value && !(parseFloat(self.fractional.stock_base_ratio.value) > 0));
+                                //case_2 = (!self.fractional.stock_base_ratio.value && !self.fractional.base_unit.editable);
+
+                            if (case_1) {
+                                self.$set(self.errors, error_id, { id: error_id, text: that.locales["stock_base_ratio_required"] });
+                                result = "stock_base_ratio_error";
+                            } else {
+                                self.$delete(self.errors, error_id);
+                            }
+                        } else {
+                            self.$delete(self.errors, error_id);
+                        }
+
+                        return result;
+                    },
+                    checkCountDenominator: function() {
+                        var self = this,
+                            result = null;
+
+                        var error_id = "order_multiplicity_factor_error";
+
+                        // VALIDATE
+                        self.fractional.order_multiplicity_factor.value =  self.validate("number", self.fractional.order_multiplicity_factor.value);
+
+                        if (self.fractional.order_multiplicity_factor.status && self.fractional.order_multiplicity_factor.enabled) {
+                            var case_1 = (!self.fractional.order_multiplicity_factor.value || !checkValue(self.fractional.order_multiplicity_factor.value));
+                            if (case_1) {
+                                self.$set(self.errors, error_id, { id: error_id, text: that.locales[error_id] });
+                                result = error_id;
+                            } else {
+                                self.$delete(self.errors, error_id);
+                            }
+                        } else {
+                            self.$delete(self.errors, error_id);
+                        }
+
+                        return result;
+
+                        function checkValue(value_string) {
+                            var result = false,
+                                value = parseFloat(value_string),
+                                tail_length = (value_string.indexOf(".") >= 0 ? (value_string.length - (value_string.indexOf(".") + 1)) : 0);
+
+                            if (value > 0) {
+                                var min = 0.001,
+                                    max = 999999.999,
+                                    max_tail_length = 3;
+
+                                result = (tail_length <= max_tail_length && value >= min && value <= max);
+                            }
+
+                            return result;
+                        }
+                    },
+                    checkOrderCountStep: function() {
+                        var self = this,
+                            result = null;
+
+                        var error_id = "order_count_step_error";
+
+                        // VALIDATE
+                        self.fractional.order_count_step.value =  self.validate("number", self.fractional.order_count_step.value);
+
+                        if (self.fractional.order_count_step.status && self.fractional.order_count_step.enabled && self.fractional.order_multiplicity_factor.value) {
+                            var case_1 = (!self.fractional.order_count_step.value || !self.checkValue(self.fractional.order_count_step.value));
+                            if (case_1) {
+                                self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_count_step_error"] });
+                                result = "order_count_step_error";
+                            } else {
+                                self.$delete(self.errors, error_id);
+                            }
+                        } else {
+                            self.$delete(self.errors, error_id);
+                        }
+
+                        return result;
+                    },
+                    checkOrderCountMin: function() {
+                        var self = this,
+                            result = null;
+
+                        var error_id = "order_count_min_error";
+
+                        // VALIDATE
+                        self.fractional.order_count_min.value =  self.validate("number", self.fractional.order_count_min.value);
+
+                        if (self.fractional.order_count_min.status && self.fractional.order_count_min.enabled && self.fractional.order_multiplicity_factor.value) {
+                            var case_1 = (!self.fractional.order_count_min.value || !self.checkValue(self.fractional.order_count_min.value));
+                            if (case_1) {
+                                self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_count_min_error"] });
+                                result = "order_count_min_error";
+                            } else {
+                                self.$delete(self.errors, error_id);
+                            }
+                        } else {
+                            self.$delete(self.errors, error_id);
+                        }
+
+                        return result;
+                    },
+                    checkValue: function(value) {
+                        var self = this;
+
+                        value = parseFloat(value);
+
+                        var result = false,
+                            divider = getDivider();
+
+                        if (value > 0 && divider > 0) {
+                            var x1 = parseFloat((value/divider).toFixed(3)),
+                                tail = value - parseFloat((parseInt(x1) * divider).toFixed(3));
+                            result = (tail === 0);
+                        }
+
+                        return result;
+
+                        function getDivider() {
+                            return (self.fractional.order_multiplicity_factor.value ? self.fractional.order_multiplicity_factor.value : null);
+                        }
+                    },
+
+                    /**
+                     * @param {String} type
+                     * @param {Number|String} value
+                     * @return value
+                     * */
+                    validate: function(type, value) {
+                        value = (typeof value === "string" ? value : "" + value);
+
+                        var result = value;
+
+                        switch (type) {
+                            case "float":
+                                var float_value = parseFloat(value);
+                                if (float_value >= 0) {
+                                    result = float_value.toFixed(3) * 1;
+                                }
+                                break;
+
+                            case "number":
+                                var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", ","],
+                                    letters_array = [],
+                                    divider_exist = false;
+
+                                $.each(value.split(""), function(i, letter) {
+                                    letter = (letter !== "," ? letter : ".");
+
+                                    if (letter === "." || letter === ",") {
+                                        if (!divider_exist) {
+                                            divider_exist = true;
+                                            letters_array.push(letter);
+                                        }
+                                    } else {
+                                        if (white_list.indexOf(letter) >= 0) {
+                                            letters_array.push(letter);
+                                        }
+                                    }
+                                });
+
+                                result = letters_array.join("");
+                                break;
+
+                            case "integer":
+                                var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+                                    letters_array = [];
+
+                                $.each(value.split(""), function(i, letter) {
+                                    if (white_list.indexOf(letter) >= 0) {
+                                        letters_array.push(letter);
+                                    }
+                                });
+
+                                result = letters_array.join("");
+                                break;
+
+                            default:
+                                break;
+                        }
+
+                        return result;
+                    }
+                },
+                delimiters: ['{ { ', ' } }'],
+                mounted: function() {
+                    var self = this,
+                        $section = $(self.$el);
+
+                    if (self.fractional.stock_unit.enabled && self.fractional.stock_unit.value && self.fractional.stock_unit.value !== "0") {
+                        that.$wrapper.find('[name="stock_unit_id"] > option[value="0"]').hide();
+                    }
+                    if (self.fractional.base_unit.enabled && self.fractional.base_unit.value && self.fractional.base_unit.value !== "0") {
+                        that.$wrapper.find('[name="base_unit_id"] > option[value="0"]').hide();
+                    }
+
+                    that.validate(self);
+                }
+            });
+        }
 
         Dialog.prototype.initFrontList = function() {
             var that = this;
@@ -1282,11 +1943,22 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 $submit_button.removeClass("green").addClass("yellow");
             });
 
-            $form.on("submit", onSubmit);
-
-            function onSubmit(event) {
+            $form.on("submit", function(event) {
                 event.preventDefault();
 
+                var confirm_values = that.checkConfirmValues(),
+                    vue_errors = that.validate();
+
+                if (vue_errors.length) {
+                    console.log( vue_errors );
+                } else if (confirm_values) {
+                    that.showConfirmFractionalDialog(confirm_values);
+                } else {
+                    onSubmit();
+                }
+            });
+
+            function onSubmit() {
                 var formData = getData();
 
                 if (formData.errors.length) {
@@ -1384,6 +2056,585 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                         });
                 }
             }
+        };
+
+        Dialog.prototype.validate = function(vue_model) {
+            var that = this;
+
+            var errors = [];
+
+            if (!that.is_premium) { return errors; }
+
+            vue_model = (typeof vue_model !== "undefined" ? vue_model : that.vue_model);
+            if (vue_model) {
+                var unit_error = vue_model.checkUnits();
+                if (unit_error) { errors.push(unit_error); }
+
+                var ratio_error = vue_model.checkStockBaseRatio();
+                if (ratio_error) { errors.push(ratio_error); }
+
+                var count_denominator_error = vue_model.checkCountDenominator();
+                if (count_denominator_error) { errors.push(count_denominator_error); }
+
+                var step_error = vue_model.checkOrderCountStep();
+                if (step_error) { errors.push(step_error); }
+
+                var min_error = vue_model.checkOrderCountMin();
+                if (min_error) { errors.push(min_error); }
+            }
+
+            return errors;
+        };
+
+        Dialog.prototype.checkConfirmValues = function() {
+            var that = this,
+                result = null,
+                enabled = {},
+                enabled_locked = 0,
+                disabled = {};
+
+            if (!that.is_premium) { return result; }
+
+            var case_1, case_2;
+
+            if (that.type.count) {
+                if (that.fractional.stock_unit.enabled !== that.fractional.stock_unit_before.enabled) {
+                    if (that.fractional.stock_unit.enabled) {
+                        enabled.stock_unit = true;
+                        if (!that.fractional.stock_unit.editable) { enabled_locked += 1; }
+                    } else {
+                        disabled.stock_unit = true;
+                    }
+                // Если неразрешено менять в товаре
+                } else if (!that.fractional.stock_unit.editable) {
+                    case_1 = (that.fractional.stock_unit.editable !== that.fractional.stock_unit_before.editable);
+                    case_2 = (that.fractional.stock_unit.value !== that.fractional.stock_unit_before.value);
+
+                    if (case_1 || case_2) { enabled.stock_unit = true; }
+                }
+
+                if (that.fractional.base_unit.enabled !== that.fractional.base_unit_before.enabled) {
+                    if (that.fractional.base_unit.enabled) {
+                        enabled.base_unit = true;
+                        enabled.stock_base_ratio = true;
+                        if (!that.fractional.base_unit.editable) { enabled_locked += 1; }
+                        if (!that.fractional.stock_base_ratio.editable) { enabled_locked += 1; }
+                    } else {
+                        disabled.base_unit = true;
+                        disabled.stock_base_ratio = true;
+                    }
+                // Если неразрешено менять в товаре
+                } else if (!that.fractional.base_unit.editable) {
+                    case_1 = (that.fractional.base_unit.editable !== that.fractional.base_unit_before.editable);
+                    case_2 = (that.fractional.base_unit.value !== that.fractional.base_unit_before.value);
+
+                    if (case_1 || case_2) { enabled.base_unit = true; }
+                }
+
+                if (that.fractional.order_multiplicity_factor.enabled !== that.fractional.order_multiplicity_factor_before.enabled) {
+                    if (that.fractional.order_multiplicity_factor.enabled) {
+                        enabled.order_multiplicity_factor = true;
+                        if (!that.fractional.order_multiplicity_factor.editable) { enabled_locked += 1; }
+                    } else {
+                        disabled.order_multiplicity_factor = true;
+                    }
+                // Если неразрешено менять в товаре
+                } else if (!that.fractional.order_multiplicity_factor.editable) {
+                    case_1 = (that.fractional.order_multiplicity_factor.editable !== that.fractional.order_multiplicity_factor_before.editable);
+                    case_2 = (that.fractional.order_multiplicity_factor.value !== that.fractional.order_multiplicity_factor_before.value);
+
+                    if (case_1 || case_2) {
+                        enabled.order_multiplicity_factor = true;
+                        if (that.fractional.order_count_step.enabled && that.fractional.order_count_step.editable) { enabled.order_count_step = true; }
+                        if (that.fractional.order_count_min.enabled && that.fractional.order_count_min.editable) { enabled.order_count_min = true; }
+                    }
+                }
+
+                if (that.fractional.order_count_step.enabled !== that.fractional.order_count_step_before.enabled) {
+                    if (that.fractional.order_count_step.enabled) {
+                        enabled.order_count_step = true;
+                        if (!that.fractional.order_count_step.editable) { enabled_locked += 1; }
+                    } else {
+                        disabled.order_count_step = true;
+                    }
+                // Если неразрешено менять в товаре
+                } else if (!that.fractional.order_count_step.editable) {
+                    case_1 = (that.fractional.order_count_step.editable !== that.fractional.order_count_step_before.editable);
+                    case_2 = (that.fractional.order_count_step.value !== that.fractional.order_count_step_before.value);
+
+                    if (case_1 || case_2) { enabled.order_count_step = true; }
+                }
+
+                if (that.fractional.order_count_min.enabled !== that.fractional.order_count_min_before.enabled) {
+                    if (that.fractional.order_count_min.enabled) {
+                        enabled.order_count_min = true;
+                        if (!that.fractional.order_count_min.editable) { enabled_locked += 1; }
+                    } else {
+                        disabled.order_count_min = true;
+                    }
+                // Если неразрешено менять в товаре
+                } else if (!that.fractional.order_count_min.editable) {
+                    case_1 = (that.fractional.order_count_min.editable !== that.fractional.order_count_min_before.editable);
+                    case_2 = (that.fractional.order_count_min.value !== that.fractional.order_count_min_before.value);
+
+                    if (case_1 || case_2) { enabled.order_count_min = true; }
+                }
+            }
+
+            // Исключаем кейс когда поле есть и там и там
+            $.each(disabled, function(key, value) {
+                if (enabled[key]) { delete enabled[key]; }
+            });
+
+            if (Object.keys(enabled).length > 0 || Object.keys(disabled).length > 0) {
+                result = {
+                    enabled: (Object.keys(enabled).length > 0 && Object.keys(enabled).length !== enabled_locked ? enabled : null),
+                    disabled: (Object.keys(disabled).length > 0 ? disabled : null)
+                };
+            }
+
+            if (result && !result.enabled && !result.disabled) { result = null; }
+
+            return result;
+        };
+
+        Dialog.prototype.showConfirmFractionalDialog = function(confirm_values) {
+            var that = this,
+                deferred = $.Deferred();
+
+            var dialog = $.waDialog({
+                html: that.templates["dialog-confirm-fractional"],
+                options: {
+                    confirm_values: confirm_values,
+
+                    initDialog: function(options) {
+                        options["scope"] = that;
+                        return new TypeEditConfirmDialog(options);
+                    },
+                    onSubmit: function() {
+                        deferred.resolve();
+                        that.dialog.close();
+                    },
+                    onCancel: function () {
+                        deferred.reject("cancel");
+                    },
+                    onClose: function () {
+                        that.dialog.close();
+                    }
+                },
+                onOpen: function() {
+                    that.dialog.hide();
+                },
+                onClose: function() {
+                    that.dialog.show();
+                }
+            });
+
+            return deferred.promise();
+        };
+
+        return Dialog;
+
+    })($);
+
+    /**
+     * @used at wa-apps/shop/templates/actions/settings/SettingsTypefeatTypeEdit.html
+     * */
+    var TypeEditConfirmDialog = ( function($) {
+
+        var Dialog = function(options) {
+            var that = this;
+
+            // DOM
+            that.$wrapper = options["$wrapper"];
+            that.$form = that.$wrapper.find("form:first");
+
+            // CONST
+            that.scope = options["scope"];
+            that.dialog = options["dialog"];
+            that.locales = that.scope.locales;
+            that.fractional = that.scope.fractional;
+
+            // DYNAMIC VARS
+            that.errors = {};
+
+            // INIT
+            that.vue_model = that.initVue();
+            that.init();
+
+            console.log( that );
+        };
+
+        Dialog.prototype.init = function() {
+            var that = this;
+
+            that.initSubmit();
+        };
+
+        Dialog.prototype.initVue = function() {
+            var that= this;
+
+            var $section = that.$wrapper.find(".js-vue-section");
+            if (!$section.length) { return false; }
+
+            return new Vue({
+                el: $section[0],
+                data: {
+                    fractional: getFractional(that.dialog.options.confirm_values),
+                    confirm_values: that.dialog.options.confirm_values,
+                    errors: that.errors
+                },
+                components: {
+                },
+                computed: {
+                    selected_stock_unit: function () {
+                        var self = this,
+                            result = null;
+
+                        if (self.fractional.stock_unit.migrate) {
+                            var unit_search = self.fractional.units.filter( function(unit) {
+                                return (unit.value === self.fractional.stock_unit.migrate);
+                            });
+
+                            if (unit_search.length) {
+                                result = unit_search[0].name_short;
+                            }
+                        }
+
+                        return result;
+                    },
+                    selected_base_unit: function () {
+                        var self = this,
+                            result = null;
+
+                        if (self.fractional.base_unit.migrate) {
+                            var unit_search = self.fractional.units.filter( function(unit) {
+                                return (unit.value === self.fractional.base_unit.migrate);
+                            });
+
+                            if (unit_search.length) {
+                                result = unit_search[0].name_short;
+                            }
+                        }
+
+                        return result;
+                    }
+                },
+                methods: {
+                    onChangeStockUnit: function() {
+                        var self = this;
+                        self.checkUnits();
+                    },
+                    onChangeBaseUnit: function() {
+                        var self = this;
+                        self.checkUnits();
+                    },
+                    onInputCountDenominator: function() {
+                        var self = this;
+
+                        self.checkCountDenominator();
+                        self.checkOrderCountStep();
+                        self.checkOrderCountMin();
+                    },
+                    onChangeCountDenominator: function() {
+                        var self = this;
+
+                        self.fractional.order_multiplicity_factor.migrate = "" + self.validate('float', self.fractional.order_multiplicity_factor.migrate);
+                        self.onInputCountDenominator();
+                    },
+                    onChangeStockBaseRatio: function() {
+                        var self = this;
+
+                        self.fractional.stock_base_ratio.migrate = "" + self.validate('float', self.fractional.stock_base_ratio.migrate);
+                        self.checkStockBaseRatio();
+                    },
+                    onChangeOrderCountStep: function() {
+                        var self = this;
+
+                        self.fractional.order_count_step.migrate = "" + self.validate('float', self.fractional.order_count_step.migrate);
+                        self.checkOrderCountStep();
+                    },
+                    onChangeOrderCountMin: function() {
+                        var self = this;
+
+                        self.fractional.order_count_min.migrate = "" + self.validate('float', self.fractional.order_count_min.migrate);
+                        self.checkOrderCountMin();
+                    },
+
+                    checkUnits: function() {
+                        var self = this,
+                            result = null;
+
+                        var error_id = "units_error";
+
+                        if (self.fractional.stock_unit.status && self.fractional.stock_unit.enabled && self.fractional.base_unit.status && self.fractional.base_unit.enabled) {
+                            var case_1 = (self.fractional.stock_unit.migrate && self.fractional.base_unit.migrate && self.fractional.stock_unit.migrate === self.fractional.base_unit.migrate);
+                            if (case_1) {
+                                self.$set(self.errors, error_id, { id: error_id, text: that.locales["units_unique_error"] });
+                                result = "units_error";
+                            } else {
+                                self.$delete(self.errors, error_id);
+                            }
+                        } else {
+                            self.$delete(self.errors, error_id);
+                        }
+
+                        return result;
+                    },
+                    checkStockBaseRatio: function(event) {
+                        var self = this,
+                            result = null;
+
+                        var error_id = "stock_base_ratio_required";
+
+                        // VALIDATE
+                        self.fractional.stock_base_ratio.migrate =  self.validate("number", self.fractional.stock_base_ratio.migrate);
+
+                        var case_1 = (!self.fractional.stock_base_ratio.migrate || !(parseFloat(self.fractional.stock_base_ratio.migrate) > 0));
+                        if (case_1) {
+                            self.$set(self.errors, error_id, { id: error_id, text: that.locales["stock_base_ratio_required"] });
+                            result = "stock_base_ratio_required";
+                        } else {
+                            self.$delete(self.errors, error_id);
+                        }
+
+                        return result;
+                    },
+                    checkCountDenominator: function() {
+                        var self = this,
+                            result = null;
+
+                        var error_id = "order_multiplicity_factor_error";
+
+                        // VALIDATE
+                        self.fractional.order_multiplicity_factor.migrate =  self.validate("number", self.fractional.order_multiplicity_factor.migrate);
+
+                        if (self.fractional.order_multiplicity_factor.status && self.fractional.order_multiplicity_factor.enabled) {
+                            var case_1 = (!self.fractional.order_multiplicity_factor.migrate || !checkValue(self.fractional.order_multiplicity_factor.migrate));
+                            if (case_1) {
+                                self.$set(self.errors, error_id, { id: error_id, text: that.locales[error_id] });
+                                result = error_id;
+                            } else {
+                                self.$delete(self.errors, error_id);
+                            }
+                        } else {
+                            self.$delete(self.errors, error_id);
+                        }
+
+                        return result;
+
+                        function checkValue(value_string) {
+                            var result = false,
+                                value = parseFloat(value_string),
+                                tail_length = (value_string.indexOf(".") >= 0 ? (value_string.length - (value_string.indexOf(".") + 1)) : 0);
+
+                            if (value > 0) {
+                                var min = 0.001,
+                                    max = 999999.999,
+                                    max_tail_length = 3;
+
+                                result = (tail_length <= max_tail_length && value >= min && value <= max);
+                            }
+
+                            return result;
+                        }
+                    },
+                    checkOrderCountStep: function(event) {
+                        var self = this,
+                            result = null;
+
+                        var error_id = "order_count_step_error";
+
+                        // VALIDATE
+                        self.fractional.order_count_step.migrate =  self.validate("number", self.fractional.order_count_step.migrate);
+
+                        var case_1 = (!self.fractional.order_count_step.migrate || !self.checkValue(self.fractional.order_count_step.migrate));
+                        if (self.fractional.order_count_step.enabled && case_1) {
+                            self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_count_step_error"] });
+                            result = "order_count_step_error";
+                        } else {
+                            self.$delete(self.errors, error_id);
+                        }
+
+                        return result;
+                    },
+                    checkOrderCountMin: function() {
+                        var self = this,
+                            result = null;
+
+                        var error_id = "order_count_min_error";
+
+                        // VALIDATE
+                        self.fractional.order_count_min.migrate =  self.validate("number", self.fractional.order_count_min.migrate);
+
+                        var case_1 = (!self.fractional.order_count_min.migrate || !self.checkValue(self.fractional.order_count_min.migrate));
+                        if (self.fractional.order_count_min.enabled && case_1) {
+                            self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_count_min_error"] });
+                            result = "order_count_min_error";
+                        } else {
+                            self.$delete(self.errors, error_id);
+                        }
+
+                        return result;
+                    },
+                    checkValue: function(value) {
+                        var self = this;
+
+                        value = parseFloat(value);
+
+                        var result = false,
+                            divider = getDivider();
+
+                        if (value > 0 && divider > 0) {
+                            var x1 = parseFloat((value/divider).toFixed(3)),
+                                tail = value - parseFloat((parseInt(x1) * divider).toFixed(3));
+                            result = (tail === 0);
+                        }
+
+                        return result;
+
+                        function getDivider() {
+                            return (self.fractional.order_multiplicity_factor.migrate ? self.fractional.order_multiplicity_factor.migrate : null);
+                        }
+                    },
+
+                    validate: that.scope.vue_model.validate
+                },
+                delimiters: ['{ { ', ' } }'],
+                mounted: function() {
+                    var self = this,
+                        $section = $(self.$el);
+
+                    that.validate(self);
+                }
+            });
+
+            function getFractional(confirm_values) {
+                var fractional = clone(that.fractional);
+
+                fractional.stock_unit.migrate = (fractional.stock_unit.value ? fractional.stock_unit.value : fractional.stock_unit.default);
+                fractional.base_unit.migrate = (fractional.base_unit.value ? fractional.base_unit.value : fractional.base_unit.default);
+                fractional.order_multiplicity_factor.migrate = (fractional.order_multiplicity_factor.value ? fractional.order_multiplicity_factor.value : fractional.order_multiplicity_factor.default);
+                fractional.stock_base_ratio.migrate = (fractional.stock_base_ratio.value ? fractional.stock_base_ratio.value : fractional.stock_base_ratio.default);
+                fractional.order_count_min.migrate = (fractional.order_count_min.value ? fractional.order_count_min.value : fractional.order_count_min.default);
+                fractional.order_count_step.migrate = (fractional.order_count_step.value ? fractional.order_count_step.value : fractional.order_count_step.default);
+
+                return fractional;
+            }
+        }
+
+        Dialog.prototype.initSubmit = function() {
+            var that = this,
+                $submit_button = that.$wrapper.find(".js-submit-button"),
+                is_locked = false;
+
+            that.$wrapper.on("click", ".js-close-button", function(event) {
+                event.preventDefault();
+                that.dialog.close();
+                that.dialog.options.onClose();
+            });
+
+            that.$wrapper.on("click", ".js-cancel-button", function(event) {
+                event.preventDefault();
+                that.dialog.close();
+                that.dialog.options.onCancel();
+            });
+
+            that.$form.on("submit", function(event) {
+                event.preventDefault();
+
+                if (!is_locked) {
+                    var vue_errors = that.validate();
+                    if (vue_errors.length) {
+                        console.log( vue_errors );
+                        return false;
+                    }
+
+                    is_locked = true;
+                    $submit_button.attr("disabled", true).append("<i class=\"icon16 loading\" />");
+
+                    onSubmit()
+                        .always(function () {
+                            is_locked = false;
+                            $submit_button.attr("disabled", false).find(".loading").remove();
+                        })
+                        .done( function(data) {
+                            that.dialog.close();
+                            that.dialog.options.onSubmit(data);
+                        });
+                }
+            });
+
+            function onSubmit() {
+                var root_dialog_data = that.scope.$wrapper.find("form:first").serializeArray(),
+                    dialog_data = that.$form.serializeArray(),
+                    data = [].concat(root_dialog_data, dialog_data);
+
+                return request(data);
+            }
+
+            function request(data) {
+                var deferred = $.Deferred();
+
+                $.post(that.scope.urls["type_save"], data, "json")
+                    .done( function(response) {
+                        if (response.status === "ok") {
+                            if (response.data && response.data.id) {
+                                $.settings.forceHash("/typefeat/" + response.data.id + "/");
+
+                                that.scope.scope.scope.reload({
+                                    type_id: response.data.id
+                                }).fail( function() {
+                                    deferred.reject();
+                                    alert("ERROR: #4. FAIL");
+                                }).done( function() {
+                                    deferred.resolve(response.data);
+                                });
+
+                            } else {
+                                deferred.reject();
+                                alert("ERROR: #1. Product type adding error.");
+                            }
+                        } else {
+                            deferred.reject();
+                            alert("ERROR: #2. ERRORS");
+                            console.log("ERRORS:", response.errors);
+                        }
+                    })
+                    .fail( function() {
+                        deferred.reject();
+                        alert("ERROR: #3. FAIL");
+                    });
+
+                return deferred.promise();
+            }
+        };
+
+        Dialog.prototype.validate = function(vue_model) {
+            var that = this;
+
+            vue_model = (typeof vue_model !== "undefined" ? vue_model : that.vue_model);
+
+            var errors = [];
+
+            if (vue_model) {
+                var unit_error = vue_model.checkUnits();
+                if (unit_error) { errors.push(unit_error); }
+
+                var ratio_error = vue_model.checkStockBaseRatio();
+                if (ratio_error) { errors.push(ratio_error); }
+
+                var count_denominator_error = vue_model.checkCountDenominator();
+                if (count_denominator_error) { errors.push(count_denominator_error); }
+
+                var step_error = vue_model.checkOrderCountStep();
+                if (step_error) { errors.push(step_error); }
+
+                var min_error = vue_model.checkOrderCountMin();
+                if (min_error) { errors.push(min_error); }
+            }
+
+            return errors;
         };
 
         return Dialog;
@@ -2416,6 +3667,10 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
     function escape(string) {
         return $("<div />").text(string).html();
+    }
+
+    function clone(data) {
+        return JSON.parse(JSON.stringify(data));
     }
 
 })(jQuery);

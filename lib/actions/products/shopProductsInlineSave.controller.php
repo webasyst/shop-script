@@ -42,7 +42,7 @@ class shopProductsInlineSaveController extends shopProductListAction
                 if (is_array($stock)) {
                     $s['stock'] = $stock;
                 } else {
-                    $s['stock'][0] = $stock;
+                    $s['stock'][0] = str_replace(',', '.', $stock);
                 }
             }
             unset($s);

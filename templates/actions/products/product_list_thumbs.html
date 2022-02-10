@@ -29,11 +29,15 @@
             <label for="s-product-checkbox-{%#p.id%}">
                 <strong>{%#p.name%}</strong>
             </label>
-            <span class="small nowrap">{%#p.price_range%}</span>
+            <span class="small nowrap">{%#p.price_range%}{% if (p.stock_unit) { %}/{%#p.stock_unit.name_short%}{% } %}</span>
             <!-- extend info according to sorting method -->
             {% if (o.sort == 'rating') { %}
                 <span class="rate nowrap" title="{%#'[`Average user rating: %s / 5`]'.replace('%s', p.rating)%}">
                     {%#p.rating_str%}
+                </span>
+            {% } else if (o.sort == 'base_price') { %}
+                <span class="hint base-price nowrap">
+                    [`Base price`]: <strong>{%#p.base_price_range%}</strong>
                 </span>
             {% } else if (o.sort == 'total_sales') { %}
                 <span class="hint total-sales nowrap">

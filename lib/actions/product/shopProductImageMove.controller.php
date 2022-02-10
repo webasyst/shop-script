@@ -14,7 +14,7 @@ class shopProductImageMoveController extends waJsonController
         $product_images_model = new shopProductImagesModel();
         $image = $product_images_model->getById($id);
         if (!$image) {
-            throw new waException(_w("Unkown image"));
+            throw new waException(_w("Unknown image"));
         }
 
         $product_model = new shopProductModel();

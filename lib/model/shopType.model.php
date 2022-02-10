@@ -4,6 +4,10 @@ class shopTypeModel extends shopSortableModel
 {
     protected $table = 'shop_type';
 
+    const PARAM_ALL_PRODUCTS = 0;
+    const PARAM_ONLY_TYPES = 1;
+    const PARAM_DISABLED = 2;
+
     public function getByName($name)
     {
         $sql = "SELECT * FROM `{$this->table}` WHERE `name` LIKE s:0";
@@ -291,5 +295,28 @@ class shopTypeModel extends shopSortableModel
             }
         }
         return $type;
+    }
+
+    public function updateFractionalParams($params)
+    {
+        if (!empty($params['types']) && !empty($params['products'])) {
+            $columns = [];
+            $query = 'UPDATE shop_type t
+                        JOIN shop_product p ON t.id = p.type_id';
+            foreach ($params['types'] as $field => $value) {
+                $columns[] = 't.' . $field . ' = ' . $value;
+            }
+            foreach ($params['products'] as $field => $value) {
+                $columns[] = 'p.' . $field . ' = ' . $value;
+            }
+            if (!empty($params['product_skus'])) {
+                foreach ($params['product_skus'] as $field => $value) {
+                    $columns[] = 'ps.' . $field . ' = ' . $value;
+                }
+                $query .= ' JOIN shop_product_skus ps ON p.id = ps.product_id';
+            }
+            $query .= ' SET ' . implode(', ', $columns);
+            $this->exec($query);
+        }
     }
 }

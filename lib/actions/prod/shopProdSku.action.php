@@ -214,7 +214,16 @@ class shopProdSkuAction extends waViewAction
             // Форматируем значение склада в нормальное число без 1.000
             if (!empty($modification["stock"])) {
                 foreach($modification["stock"] as $_stock_id => $_stock_value) {
-                    $modification["stock"][$_stock_id] = (int)$_stock_value;
+                    $modification["stock"][$_stock_id] = (float)$_stock_value;
+                }
+            }
+
+            foreach (['stock_base_ratio', 'order_count_min', 'order_count_step'] as $field) {
+                if (!empty($modification[$field]) && $modification[$field] > 0) {
+                    $modification[$field] = shop_number_format($modification[$field]);
+                    $_normal_mode_switch = true;
+                } else {
+                    $modification[$field] = "";
                 }
             }
 
@@ -391,10 +400,11 @@ class shopProdSkuAction extends waViewAction
             "image_id"           => $product["image_id"],
             "photo"              => $photo,
             "photos"             => array_values( $photos ),
-            "params"             => implode(PHP_EOL, $_product_params),
+            "params"             => implode( PHP_EOL, $_product_params ),
+            "fractional"         => self::getProductFractional($product->type, $product),
 
             // Feature values saved for product: feature code => value (format depends on feature type)
-            "features"           => self::formatFeaturesValues($features, $product['features']),
+            "features"           => self::formatFeaturesValues( $features, $product['features'] ),
 
             // front-side options
             "normal_mode"        => $_normal_mode,
@@ -974,6 +984,162 @@ class shopProdSkuAction extends waViewAction
         return $stocks;
     }
 
+    /**
+     * @param array $type
+     * @param array|null $product
+     * @return array
+     */
+    public static function getProductFractional($type, $product = null)
+    {
+        // дробные юниты
+        $unit_model = new shopUnitModel();
+        $_units = $unit_model->getAll('id');
+        $fractional_units = [];
+        foreach ($_units as $_unit) {
+            if ($_unit['status'] !== '0') {
+                $short_name = (!empty($_unit["storefront_name"]) ? $_unit["storefront_name"] : $_unit["short_name"]);
+                $fractional_units[] = [
+                    "value" => (string)$_unit["id"],
+                    "name" => mb_convert_case($_unit["name"], MB_CASE_TITLE, 'UTF-8'),
+                    "name_short" => $short_name
+                ];
+            }
+        }
+
+        $type_fractional = shopSettingsTypefeatTypeEditAction::getTypeFractional($type);
+
+        /*
+         * Для рендера полей на фронте возможны 3 значения:
+         * "enabled"  - можно редактировать
+         * "disabled" - поле не будет показано
+         * "readonly" - поле будет показано, но без возможности редактировать
+         * */
+
+        $fractional_rights = [
+            "base_unit_id"              => "disabled",
+            "stock_unit_id"             => "disabled",
+            "order_multiplicity_factor" => "disabled",
+            "order_count_min"           => "disabled",
+            "order_count_step"          => "disabled",
+            "stock_base_ratio"          => "disabled"
+        ];
+
+        // stock_unit
+        if ($type_fractional["stock_unit"]["status"] && $type_fractional["stock_unit"]["enabled"]) {
+            if ($type_fractional["stock_unit"]["editable"]) {
+                $fractional_rights["stock_unit_id"] = "enabled";
+            } else {
+                $fractional_rights["stock_unit_id"] = "readonly";
+            }
+        } else {
+            $fractional_rights["stock_unit_id"] = "disabled";
+        }
+
+        // base_unit
+        if ($type_fractional["base_unit"]["status"] && $type_fractional["base_unit"]["enabled"]) {
+            if ($type_fractional["base_unit"]["editable"]) {
+                $fractional_rights["base_unit_id"] = "enabled";
+            } else {
+                $fractional_rights["base_unit_id"] = "readonly";
+            }
+        } else {
+            $fractional_rights["base_unit_id"] = "disabled";
+        }
+
+        // stock_base_ratio
+        if ($fractional_rights["base_unit_id"] === "disabled" && $fractional_rights["stock_unit_id"] === "disabled") {
+            $fractional_rights["stock_base_ratio"] = "disabled";
+        } else {
+            if ($type_fractional["stock_base_ratio"]["status"] && $type_fractional["stock_base_ratio"]["enabled"]) {
+                if ($type_fractional["stock_base_ratio"]["editable"]) {
+                    $fractional_rights["stock_base_ratio"] = "enabled";
+                } else {
+                    $fractional_rights["stock_base_ratio"] = "readonly";
+                }
+            } else {
+                $fractional_rights["stock_base_ratio"] = "disabled";
+            }
+        }
+
+        // order_multiplicity_factor
+        if ($type_fractional["order_multiplicity_factor"]["status"] && $type_fractional["order_multiplicity_factor"]["enabled"]) {
+            if ($type_fractional["order_multiplicity_factor"]["editable"]) {
+                $fractional_rights["order_multiplicity_factor"] = "enabled";
+            } else {
+                $fractional_rights["order_multiplicity_factor"] = "readonly";
+            }
+        } else {
+            $fractional_rights["order_multiplicity_factor"] = "disabled";
+        }
+
+        // order_count_step
+        if ($type_fractional["order_count_step"]["status"] && $type_fractional["order_count_step"]["enabled"]) {
+            if ($type_fractional["order_count_step"]["editable"]) {
+                $fractional_rights["order_count_step"] = "enabled";
+            } else {
+                $fractional_rights["order_count_step"] = "readonly";
+            }
+        } else {
+            $fractional_rights["order_count_step"] = "disabled";
+        }
+
+        // order_count_min
+        if ($type_fractional["order_count_min"]["status"] && $type_fractional["order_count_min"]["enabled"]) {
+            if ($type_fractional["order_count_min"]["editable"]) {
+                $fractional_rights["order_count_min"] = "enabled";
+            } else {
+                $fractional_rights["order_count_min"] = "readonly";
+            }
+        } else {
+            $fractional_rights["order_count_min"] = "disabled";
+        }
+
+        $denominators              = $type_fractional["denominators"];
+        $stock_unit_id             = $type_fractional["stock_unit"]["value"];
+        $base_unit_id              = $type_fractional["base_unit"]["value"];
+        $stock_base_ratio          = $type_fractional["stock_base_ratio"]["value"];
+        $order_multiplicity_factor = $type_fractional["order_multiplicity_factor"]["value"];
+        $order_count_step          = $type_fractional["order_count_step"]["value"];
+        $order_count_min           = $type_fractional["order_count_min"]["value"];
+
+        if ($product) {
+            // Base unit is shown as disabled when it matches stock unit.
+            $base_unit_id = null;
+            if ($product["base_unit_id"] != $product["stock_unit_id"]) {
+                $base_unit_id = (string)$product["base_unit_id"];
+            }
+
+            $stock_base_ratio = shop_number_format($product["stock_base_ratio"]);
+            if (!($stock_base_ratio > 0)) {
+                $stock_base_ratio = 1;
+            }
+
+            $stock_unit_id  = (string)$product["stock_unit_id"];
+
+            if (!empty($product["order_multiplicity_factor"])) {
+                $order_multiplicity_factor = (string)floatval($product["order_multiplicity_factor"]);
+            }
+            if (!empty($product["order_count_step"])) {
+                $order_count_step = (string)floatval($product["order_count_step"]);
+            }
+            if (!empty($product["order_count_min"])) {
+                $order_count_min = (string)floatval($product["order_count_min"]);
+            }
+        }
+
+        return [
+            "units"                     => $fractional_units,
+            "rights"                    => $fractional_rights,
+            "denominators"              => $denominators,
+            "stock_unit_id"             => $stock_unit_id,
+            "base_unit_id"              => $base_unit_id,
+            "stock_base_ratio"          => $stock_base_ratio,
+            "order_multiplicity_factor" => $order_multiplicity_factor,
+            "order_count_step"          => $order_count_step,
+            "order_count_min"           => $order_count_min
+        ];
+    }
+
     protected function getEmptySku()
     {
         return [
@@ -1005,6 +1171,11 @@ class shopProdSkuAction extends waViewAction
             "status"              => true,
 
             "features"            => [],
+
+            // Поля для дробных
+            "stock_base_ratio"    => null,
+            "order_count_min"     => null,
+            "order_count_step"    => null,
 
             'additional_fields' => $plugin_fields['additional'],
             'additional_prices' => $plugin_fields['price'],
@@ -1213,7 +1384,11 @@ class shopProdSkuAction extends waViewAction
             $skus_count = count($skus);
             if ($skus_count > 1) {
                 if (empty($sku_type)) {
-                    $sku_count_names = array_count_values(array_column($skus, 'name'));
+                    $names = [];
+                    foreach ($skus as $sku) {
+                        $names[] = $sku['sku'] . $sku['name'];
+                    }
+                    $sku_count_names = array_count_values($names);
                     foreach ($sku_count_names as $count) {
                         if ($count > 1) {
                             $same_names = true;

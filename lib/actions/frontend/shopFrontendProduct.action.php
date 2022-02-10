@@ -52,6 +52,15 @@ class shopFrontendProductAction extends shopFrontendAction
             if ($sku['compare_price'] && ($sku['price'] >= $sku['compare_price'])) {
                 $skus[$sku_id]['compare_price'] = 0.0;
             }
+            $order_count_min = !empty($sku['order_count_min']) ? $sku['order_count_min'] : $product['order_count_min'];
+            if ($sku['count'] !== null) {
+                $skus[$sku_id]['count'] = shopFrac::formatQuantityWithMultiplicity($sku['count'], $product['order_multiplicity_factor']);
+            }
+            foreach ($sku['stock'] as $stock_id => $stock_value) {
+                if ($stock_value !== null && $stock_value < $order_count_min) {
+                    $skus[$sku_id]['stock'][$stock_id] = 0;
+                }
+            }
             // Public virtual stock counts for each SKU
             if (!empty($skus[$sku_id]['stock'])) {
                 $skus[$sku_id]['stock'] = shopHelper::fillVirtulStock($skus[$sku_id]['stock']);
@@ -66,7 +75,7 @@ class shopFrontendProductAction extends shopFrontendAction
                 $_update_flag = false;
                 foreach ($skus as $sku_id => $sku) {
                     if (isset($sku['stock'][$stock_id])) {
-                        $skus[$sku_id]['count'] = $sku['stock'][$stock_id];
+                        $skus[$sku_id]['count'] = shopFrac::formatQuantityWithMultiplicity($sku['stock'][$stock_id], $product['order_multiplicity_factor']);
                         $_update_flag = true;
                     }
                 }
@@ -179,11 +188,12 @@ class shopFrontendProductAction extends shopFrontendAction
                 }
             }
             $sku = $product->skus[$sku_id];
+            $order_count_min = !empty($sku['order_count_min']) ? $sku['order_count_min'] : $product['order_count_min'];
             $sku_selectable[$sku_f] = array(
                 'id'        => $sku_id,
                 'price'     => (float)shop_currency($sku['price'], $product['currency'], null, false),
                 'available' => $product->status && $sku['available'] && $sku['status'] &&
-                    ($this->getConfig()->getGeneralSettings('ignore_stock_count') || $sku['count'] === null || $sku['count'] > 0),
+                    ($this->getConfig()->getGeneralSettings('ignore_stock_count') || $sku['count'] === null || $sku['count'] >= $order_count_min),
                 'image_id'  => (int)$sku['image_id'],
             );
             if ($sku['compare_price']) {
@@ -280,6 +290,11 @@ class shopFrontendProductAction extends shopFrontendAction
         $this->view->assign('currency_info', $this->getCurrencyInfo());
         $this->view->assign('stocks', shopHelper::getStocks(true));
 
+        $units = shopHelper::getUnits();
+        $this->view->assign('units', $units);
+        $this->view->assign('formatted_units', shopFrontendProductAction::formatUnits($units));
+        $this->view->assign('fractional_config', shopFrac::getFractionalConfig());
+
         /**
          * @event frontend_product
          * @param shopProduct $product
@@ -306,6 +321,27 @@ class shopFrontendProductAction extends shopFrontendAction
         $this->getResponse()->setCanonical();
 
         $this->setThemeTemplate($is_cart ? 'product.cart.html' : 'product.html');
+    }
+
+    /**
+     * @param array $units
+     * @return array
+     */
+    public static function formatUnits($units) {
+        $result = [];
+
+        foreach ($units as $_unit) {
+            $_unit_id = (string)$_unit["id"];
+            $short_name = (!empty($_unit["storefront_name"]) ? $_unit["storefront_name"] : $_unit["short_name"]);
+
+            $result[$_unit_id] = [
+                "id" => $_unit_id,
+                "name"  => mb_convert_case($_unit["name"], MB_CASE_TITLE, 'UTF-8'),
+                "name_short" => $short_name
+            ];
+        }
+
+        return $result;
     }
 
     /**
@@ -337,7 +373,7 @@ class shopFrontendProductAction extends shopFrontendAction
     protected static function setInvisibleUnfilledSkus(&$product)
     {
         $skus = $product->getSkus();
-        $count_selectable_features = count($product->features_selectable);
+        $count_selectable_features = is_array($product->features_selectable) ? count($product->features_selectable) : 0;
         if (!$skus || !$count_selectable_features || $product['sku_type'] == shopProductModel::SKU_TYPE_FLAT) {
             return;
         }
@@ -573,6 +609,18 @@ class shopFrontendProductAction extends shopFrontendAction
 
         if ($need_round_services) {
             shopRounding::roundServiceVariants($rows, $services);
+        } else {
+            foreach ($services as &$service) {
+                if ($service['currency'] !== '%') {
+                    $service['unconverted_currency'] = $service['currency'];
+                    $service['currency'] = wa('shop')->getConfig()->getCurrency(false);
+                    $service['price'] = shop_currency($service['price'], $service['unconverted_currency'], null, false);
+                    foreach ($service['variants'] as $key => $variant) {
+                        $service['variants'][$key]['price'] = shop_currency($variant['price'], $service['unconverted_currency'], null, false);
+                    }
+                }
+            }
+            unset($service);
         }
 
         // re-define statuses of service variants for that product

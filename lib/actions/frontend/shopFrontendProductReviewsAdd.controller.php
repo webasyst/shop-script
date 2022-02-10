@@ -216,13 +216,13 @@ class shopFrontendProductReviewsAddController extends waJsonController
         } elseif ($adapter != 'user') {
             $auth_adapters = wa()->getAuthAdapters();
             if (!isset($auth_adapters[$adapter])) {
-                $this->errors[] = _w('Invalid auth provider');
+                $this->errors[] = _w('Invalid authorization provider');
             } elseif ($user_data = $this->getStorage()->get('auth_user_data')) {
                 $data['name'] = $user_data['name'];
                 $data['email'] = '';
                 $data['site'] = $user_data['url'];
             } else {
-                $this->errors[] = _w('Invalid auth provider data');
+                $this->errors[] = _w('Invalid authorization provider data');
             }
         }
 

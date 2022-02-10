@@ -42,7 +42,21 @@ class shopFrontendAction extends waViewAction
      */
     protected function setCollection(shopProductsCollection $collection)
     {
-        $collection->filters(waRequest::get());
+        list($stock_units_ids, $base_units_ids, $all_base_unit_ids) = $collection->getAllUnitIds();
+        $this->assignUnits($stock_units_ids, $base_units_ids, $all_base_unit_ids);
+
+        $filters = waRequest::get();
+        if (isset($filters['sort_unit'])) {
+            $sort = ifset($filters, 'sort', '');
+            if ($sort == 'price' && !isset($filters['stock_unit_id'])) {
+                $filters['stock_unit_id'] = $filters['sort_unit'];
+            } else if ($sort == 'base_price' && !isset($filters['base_unit_id'])) {
+                $filters['base_unit_id'] = $filters['sort_unit'];
+            }
+            unset($filters['sort_unit']);
+        }
+
+        $collection->filters($filters);
         $limit = (int)waRequest::cookie('products_per_page');
         if (!$limit || $limit < 0 || $limit > 500) {
             $limit = (int)waRequest::param('products_per_page');
@@ -113,6 +127,12 @@ class shopFrontendAction extends waViewAction
          */
         $this->view->assign('frontend_homepage', wa()->event('frontend_homepage'));
 
+        $units = shopHelper::getUnits();
+        $this->view->assign('units', $units);
+        $this->view->assign('formatted_units', shopFrontendProductAction::formatUnits($units));
+        $this->view->assign('fractional_config', shopFrac::getFractionalConfig());
+        unset($units);
+
         $this->setThemeTemplate('home.html');
 
     }
@@ -161,5 +181,36 @@ class shopFrontendAction extends waViewAction
             $this->setThemeTemplate('error.html');
             return $this->view->fetch($this->getTemplate());
         }
+    }
+
+    protected function assignUnits($stock_units_ids, $base_units_ids, $all_base_unit_ids)
+    {
+        $units = array();
+        $stock_units = array();
+        $base_units = array();
+
+        $unique_units_ids = $stock_units_ids + $all_base_unit_ids;
+        $shop_units = shopHelper::getUnits(true);
+        $units = array_intersect_key($shop_units, $unique_units_ids);
+        $stock_units = array_intersect_key($shop_units, $stock_units_ids);
+        $base_units = array_intersect_key($shop_units, $base_units_ids);
+        $all_base_units = array_intersect_key($shop_units, $all_base_unit_ids);
+
+        if (count($stock_units) === 1) {
+            $filter_unit = reset($stock_units);
+        } else {
+            $filter_unit = null;
+            $filter_unit_id = waRequest::get("unit", null, "int");
+            if ($filter_unit_id && isset($units[$filter_unit_id])) {
+                $filter_unit = $units[$filter_unit_id];
+            }
+        }
+
+        $this->view->assign('filter_unit', $filter_unit);
+        $this->view->assign('filter_units', $units);
+        $this->view->assign('formatted_filter_units', shopFrontendProductAction::formatUnits($units));
+        $this->view->assign('filter_base_units', $base_units);
+        $this->view->assign('filter_stock_units', $stock_units);
+        $this->view->assign('filter_all_base_units', $all_base_units);
     }
 }

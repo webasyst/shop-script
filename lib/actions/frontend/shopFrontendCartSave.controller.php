@@ -10,33 +10,39 @@ class shopFrontendCartSaveController extends waJsonController
         $item = $cart_items_model->getById($item_id);
 
         $is_html = waRequest::request('html');
-        if ($q = waRequest::post('quantity', 0, 'int')) {
+        $q = (double)waRequest::post('quantity');
+        if ($q) {
             if ($q < 0) {
                 $q = 1;
                 $this->response['q'] = 1;
             }
-            if (!wa()->getSetting('ignore_stock_count')) {
-                if ($item['type'] == 'product') {
-                    $product_model = new shopProductModel();
-                    $p = $product_model->getById($item['product_id']);
-                    $sku_model = new shopProductSkusModel();
-                    $sku = $sku_model->getById($item['sku_id']);
+            if ($item['type'] == 'product') {
+                $product_model = new shopProductModel();
+                $p = $product_model->getById($item['product_id']);
+                $sku_model = new shopProductSkusModel();
+                $sku = $sku_model->getById($item['sku_id']);
+                if ($sku['count'] !== null) {
+                    $sku['count'] = shopFrac::formatQuantityWithMultiplicity($sku['count'], $p['order_multiplicity_factor']);
+                }
 
+                if (!wa()->getSetting('ignore_stock_count')) {
                     // limit by main stock
                     if (wa()->getSetting('limit_main_stock') && waRequest::param('stock_id')) {
                         $stock_id = waRequest::param('stock_id');
                         $product_stocks_model = new shopProductStocksModel();
                         $sku_stock = shopHelper::fillVirtulStock($product_stocks_model->getCounts($sku['id']));
                         if (isset($sku_stock[$stock_id])) {
-                            $sku['count'] = $sku_stock[$stock_id];
+                            $sku['count'] = shopFrac::formatQuantityWithMultiplicity($sku_stock[$stock_id], $p['order_multiplicity_factor']);
                         }
                     }
                     // check quantity
-                    if ($sku['count'] !== null && $q > $sku['count']) {
-                        $q = $sku['count'];
+                    $sku_count = (double)$sku['count'];
+                    $order_count_min = !empty($sku['order_count_min']) ? $sku['order_count_min'] : $p['order_count_min'];
+                    if ($sku['count'] !== null && ($q < $order_count_min || $q > $sku_count)) {
+                        $q = floor(($sku_count - $order_count_min) / $p['order_multiplicity_factor']) * $p['order_multiplicity_factor'] + $order_count_min;
                         $name = $p['name'].($sku['name'] ? ' ('.$sku['name'].')' : '');
-                        if ($q > 0) {
-                            $this->response['error'] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $q, $name);
+                        if ($q >= $order_count_min) {
+                            $this->response['error'] = sprintf(_w('Only %s pcs. of %s are available, and you already have all of them in your shopping cart.'), $q, $name);
                         } else {
                             $this->response['error'] = sprintf(_w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience.'), $name);
                         }

@@ -41,7 +41,7 @@ class shopProdSaveSkuController extends waJsonController
      */
     protected function prepareProductData(shopProduct $product, array $product_raw_data)
     {
-        $params_string = str_replace(' ', '', ifset($product_raw_data, 'params_string', ''));
+        $params_string = ifset($product_raw_data, 'params_string', '');
 
         $product_data = array_intersect_key($product_raw_data, [
             'badge' => true,
@@ -117,6 +117,24 @@ class shopProdSaveSkuController extends waJsonController
                         }
                     }
                 }
+                foreach (['stock_base_ratio' => 16, 'order_count_min' => 15, 'order_count_step' => 15] as $sku_field => $length) {
+                    if (isset($sku[$sku_field])) {
+                        $max_number = $sku_field == 'stock_base_ratio' ? 8 : 12;
+                        $min_number = $sku_field == 'stock_base_ratio' ? 7 : 2;
+                        if (is_string($sku[$sku_field]) && strlen($sku[$sku_field]) === 0) {
+                            $sku[$sku_field] = null;
+                        } elseif ($sku[$sku_field] <= 0 || !is_numeric($sku[$sku_field]) || strlen($sku[$sku_field]) > $length + 1
+                            || $sku[$sku_field] > floatval('1'.str_repeat('0', $max_number))
+                            || $sku[$sku_field] < floatval('0.'.str_repeat('0', $min_number).'1')
+                        ) {
+                            $this->errors[] = [
+                                'id' => $sku_field . '_error',
+                                'name' => "product[skus][$sku_id][$sku_field]",
+                                'text' => _w('Invalid value'),
+                            ];
+                        }
+                    }
+                }
             }
             unset($sku);
 
@@ -154,10 +172,12 @@ class shopProdSaveSkuController extends waJsonController
         if (is_array($divided_params)) {
             foreach ($divided_params as $param) {
                 $param_key_value = explode('=', $param);
-                if (is_array($param_key_value) && count($param_key_value) == 2
-                    && strlen($param_key_value[0]) && !isset($product_data['params'][$param_key_value[0]])
-                ) {
-                    $product_data['params'][$param_key_value[0]] = $param_key_value[1];
+                if (is_array($param_key_value) && count($param_key_value) == 2) {
+                    $param_key = $param_key_value[0];
+                    $param_value = trim($param_key_value[1]);
+                    if (mb_strlen($param_key) && !isset($product_data['params'][$param_key])) {
+                        $product_data['params'][$param_key] = $param_value;
+                    }
                 }
             }
         }

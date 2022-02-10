@@ -719,8 +719,10 @@ HTML;
             foreach ($order['items'] as $item) {
                 if (!empty($item['quantity'])) {
                     $total_item_discount_cents = round(ifset($item['total_discount'], 0) * $currency_precision);
-                    if ($total_item_discount_cents % $item['quantity']) {
-                        throw new waException();
+                    // Quantity may be fractional. PHP's % operator only works with integers.
+                    // Multiply by 1000 as a workaround.
+                    if (($total_item_discount_cents*1000) % ($item['quantity']*1000)) {
+                        throw new waException(); // see catch() below
                     }
                     $total_items_discount_cents += $total_item_discount_cents;
                 }
@@ -753,6 +755,15 @@ HTML;
         } else {
             $discount_distrbution_split = wa('shop')->getSetting('discount_distrbution_split');
         }
+
+        // Do not allow to split order items when at least one item has fractional quantity
+        foreach ($order['items'] as $item) {
+            if (!wa_is_int($item['quantity'])) {
+                $discount_distrbution_split = false;
+                break;
+            }
+        }
+        unset($item);
 
         // Vars with `_cents` postfix are cents, always round()'ed or floor()'ed to integers.
         // We calculate using integer math to avoid rounding errors.
@@ -824,7 +835,14 @@ HTML;
             // Calculate new item discount, then adjust according to divisibility:
             // Total item discount (in cents) must always be divisible by item quantity, as well as by discount batch size.
             $total_item_discount_cents = round($item['total_discount'] * $currency_precision) + $delta_cents;
-            $item['discount_batch_cents'] = waUtils::lcm($item['quantity'], $discount_batch_cents);
+            if (wa_is_int($item['quantity'])) {
+                // When quantity is integer, we want to preserve discount precision (i.e. respect $discount_batch_cents)
+                $item['discount_batch_cents'] = waUtils::lcm($item['quantity'], $discount_batch_cents);
+            } else {
+                // When quantity is not integer, we don't care for $discount_batch_cents, but still need total item
+                // discount to be divisible by quanity (even if fractional).
+                $item['discount_batch_cents'] = $item['quantity']*1000 / waUtils::gcd($item['quantity']*1000, 1000);
+            }
             $total_item_discount_cents = $item['discount_batch_cents'] * floor($total_item_discount_cents / $item['discount_batch_cents']);
 
             // Modify item data

@@ -63,7 +63,7 @@ $.extend($.settings = $.settings || {}, {
 
             return false;
         });
-        elem.find('.field-settings').html('<p class="small">' + $_('Upsell products will be offered for a particular base product according to the following criteria:') + '</p>').append(form.append(table));
+        elem.find('.field-settings').html('<p class="small">' + $_('Upselling products will be offered for a particular base product according to the following criteria:') + '</p>').append(form.append(table));
         for (var i = 0; i < data.length; i++) {
             this.recommendationsRenderEditFeature(data[i], table, type_id);
         }

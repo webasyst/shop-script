@@ -146,6 +146,19 @@ class shopOrderEditAction extends waViewAction
 
         $order_editor_config = $this->getOrderEditorConfig();
 
+        $units = shopHelper::getUnits();
+        $formatted_units = shopFrontendProductAction::formatUnits($units);
+        $fractional_config = shopFrac::getFractionalConfig();
+
+        $order_has_frac = false;
+        $order_has_units = false;
+        if (!empty($order_data_array['items'])) {
+            $order_has_frac = shopFrac::itemsHaveFractionalQuantity($order_data_array['items']);
+            $order_has_units = shopUnits::itemsHaveCustomStockUnits($order_data_array['items']);
+        }
+
+        $payment_methods = shopHelper::getPaymentMethods($order_data_array, $order_has_frac, $order_has_units);
+
         $this->view->assign(array(
             'order_editor_config'          => $order_editor_config,
             'form'                         => $customer_form,
@@ -168,7 +181,10 @@ class shopOrderEditAction extends waViewAction
             'discount'                     => $this->order->discount,
             'discount_description'         => $this->order->discount_description,
             'items_discount'               => $item_discount,
-            'contact'                      => $this->order->contact
+            'contact'                      => $this->order->contact,
+            "formatted_units"              => $formatted_units,
+            "fractional_config"            => $fractional_config,
+            'payment_methods'              => array_values($payment_methods)
         ));
     }
 
@@ -217,6 +233,8 @@ class shopOrderEditAction extends waViewAction
             $weights = $values_model->getProductValues($product_ids, $f['id']);
         }
 
+        $show_order_counts = $this->getProductOrderCounts();
+
         foreach ($order_data['items'] as &$item) {
             $this->workupItems($item, $sku_stocks);
             if (isset($weights['skus'][$item['item']['sku_id']])) {
@@ -225,10 +243,28 @@ class shopOrderEditAction extends waViewAction
                 $w = isset($weights[$item['id']]) ? $weights[$item['id']] : 0;
             }
             $item['weight'] = $w;
+
+            $item["item"]["quantity"] = floatval($item["item"]["quantity"]);
+            $item["show_order_counts"] = $show_order_counts;
         }
         unset($item);
 
         return $order_data;
+    }
+
+    public static function getProductOrderCounts() {
+        $result = false;
+
+        $type_model = new shopTypeModel();
+        $types = $type_model->getAll();
+        foreach ($types as $type) {
+            if ($type['order_multiplicity_factor_fixed'] < 2 && $type['order_count_min_fixed'] < 2) {
+                $result = true;
+                break;
+            }
+        }
+
+        return $result;
     }
 
     private function getShipMethods($shipping_address, $order)
@@ -277,7 +313,7 @@ class shopOrderEditAction extends waViewAction
                 $payment = shopPayment::getPluginInfo($order['params']['payment_id']);
                 $params['payment_type'] = array_keys(ifset($payment, 'options', 'payment_type', []));
             } catch (waException $ex) {
-                ;//Plugin not found;
+                //Plugin not found;
             }
         }
 
@@ -319,7 +355,7 @@ class shopOrderEditAction extends waViewAction
                         if ($stock['count'] === null) {
                             $counts_htmls[$stock_id] = sprintf(str_replace('%d', '%s', _w('%d left')), '∞');
                         } else {
-                            $counts_htmls[$stock_id] = _w('%d left', '%d left', $stock['count']);
+                            $counts_htmls[$stock_id] = _w('%s left', '%s left', (float)$stock['count']);
                         }
                     }
                     $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], null, true);

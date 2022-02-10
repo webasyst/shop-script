@@ -121,6 +121,9 @@ class shopFrontendOrderCartActions extends waJsonActions
                 ]];
             }
         }
+        if ($sku['count'] !== null) {
+            $sku['count'] = shopFrac::formatQuantityWithMultiplicity($sku['count'], $product['order_multiplicity_factor']);
+        }
 
         // Make sure product is in stock
         if (!wa('shop')->getSetting('ignore_stock_count')) {
@@ -131,7 +134,7 @@ class shopFrontendOrderCartActions extends waJsonActions
                 $product_stocks_model = new shopProductStocksModel();
                 $sku_stock = shopHelper::fillVirtulStock($product_stocks_model->getCounts($sku['id']));
                 if (isset($sku_stock[$stock_id])) {
-                    $sku['count'] = $sku_stock[$stock_id];
+                    $sku['count'] = shopFrac::formatQuantityWithMultiplicity($sku_stock[$stock_id], $product['order_multiplicity_factor']);
                 }
             }
 
@@ -438,6 +441,9 @@ class shopFrontendOrderCartActions extends waJsonActions
                 $new_items_data[$item_id] = false;
             } else {
                 unset($item['id'], $item['services']);
+                if (isset($old_cart_items[$item_id]) && !empty($old_cart_items[$item_id]['product']['order_multiplicity_factor'])) {
+                    $item['quantity'] = shopFrac::formatQuantityWithMultiplicity($item['quantity'], $old_cart_items[$item_id]['product']['order_multiplicity_factor']);
+                }
                 $new_items_data[$item_id] = $item;
                 $everything_is_deleted = false;
             }

@@ -275,7 +275,20 @@ class shopOrderAction extends waViewAction
         $product_ids = $this->getProducts($product_ids);
         $service_ids = $this->getServices($service_ids);
 
+        $units = shopHelper::getUnits();
+        $formatted_units = shopFrontendProductAction::formatUnits($units);
+        $fractional_config = shopFrac::getFractionalConfig();
+
         foreach ($order_items as &$item) {
+            // 2.000 => 2
+            $item["quantity"] = floatval($item["quantity"]);
+
+            if (!empty($fractional_config['stock_units_enabled']) && !empty($formatted_units[$item['stock_unit_id']])) {
+                $item["stock_unit"] = $formatted_units[$item["stock_unit_id"]];
+            }
+            if (!empty($fractional_config['base_units_enabled'])) {
+                $item['base_unit_id'] = ifset($product_ids[$item['product_id']], 'base_unit_id', '0');
+            }
 
             //check whether the item was deleted
             if ($item['type'] == 'product' && empty($product_ids[$item['product_id']])) {

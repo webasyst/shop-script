@@ -1423,4 +1423,83 @@ SQL;
         }
         return $this->shop_config;
     }
+
+    /**
+     * @param float|string $price
+     * @param array $options
+     * @return string
+     * @throws waException
+     */
+    public static function formatPrice($price, array $options = []) {
+        // price
+        $price = (!empty($price) ? $price : 0);
+
+        // options
+        $unit = (!empty($options["unit"]) ? $options["unit"] : null);
+        $format = (!empty($options["format"]) ? $options["format"] : "%");
+        $currency = (!empty($options["currency"]) ? $options["currency"] : null);
+
+        // Форматируем цену
+        $price_and_currency_template = waCurrency::format('%{h}', 0, $currency);
+        $currency_formatted = trim(str_replace('0', '', $price_and_currency_template));
+        $price_and_currency_template = str_replace('0', '<span class="price">%s</span>', $price_and_currency_template);
+        $price_and_currency_template = str_replace($currency_formatted, '<span class="currency">'.$currency_formatted.'</span>', $price_and_currency_template);
+        $price_and_currency = sprintf($price_and_currency_template, waCurrency::format($format, $price, $currency));
+
+        // При наличии юнита добавляем его к строке
+        if (!empty($unit)) {
+            $price_and_currency = sprintf_wp("%s/%s", $price_and_currency, '<span class="unit">'.$unit.'</span>');
+        }
+
+        return '<span class="price-wrapper">'.$price_and_currency.'</span>';
+    }
+
+    /**
+     * @param string $currency
+     * @param array $options
+     * @return array
+     * @throws waException
+     */
+    public static function getCurrencyData($currency, array $options = []) {
+        if (empty($currency)) { return null; }
+
+        $currency_config = wa('shop')->getConfig()->getCurrencies($currency);
+        if (empty($currency_config)) { return null; }
+
+        $currency_info = reset($currency_config);
+        $locale_info = waLocale::getInfo(wa()->getLocale());
+
+        $price_and_currency_template = waCurrency::format('%{h}', 0, $currency);
+        $currency_formatted = trim(str_replace('0', '', $price_and_currency_template));
+        $price_and_currency_template = str_replace('0', '<span class="price">%s</span>', $price_and_currency_template);
+        $price_and_currency_template = str_replace($currency_formatted, '<span class="currency">'.$currency_formatted.'</span>', $price_and_currency_template);
+
+        return [
+            'code'             => $currency_info['code'],
+            'fraction_divider' => ifset($locale_info, 'decimal_point', '.'),
+            'fraction_size'    => ifset($currency_info, 'precision', 2),
+            'group_divider'    => ifset($locale_info, 'thousands_sep', ''),
+            'group_size'       => 3,
+
+            'pattern_html' => $price_and_currency_template,
+            'pattern_text' => str_replace('0', '%s', waCurrency::format('%{s}', 0, $currency)),
+            'pattern_unit' => sprintf_wp("%s/%s", "%s", "%unit"),
+
+            'is_primary'    => $currency_info['is_primary'],
+            'rate'          => $currency_info['rate'],
+            'rounding'      => $currency_info['rounding'],
+            'round_up_only' => $currency_info['round_up_only'],
+        ];
+    }
+
+    /**
+     * Same as shop_number_format() but safe to call in themes designed to support older Shop versions.
+     *
+     * When shop_number_format() is used in theme and theme is installed over Shop version < 9.0.0,
+     * this will result in Smarty compilation exception. $wa->shop->numberFormat() is ok everywhere.
+     */
+    public function numberFormat($float, $limit_precision=null, $decimal_separator='.')
+    {
+        return shop_number_format($float, $limit_precision, $decimal_separator);
+    }
 }

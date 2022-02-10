@@ -558,7 +558,7 @@
                         var href = that.urls["change_image_description"],
                             data = {
                                 "id": photo.id,
-                                "data[description]": photo.description
+                                "description": photo.description
                             }
 
                         $.post(href, data, "json")

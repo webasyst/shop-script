@@ -1035,6 +1035,59 @@
             }
         },
 
+        /**
+         * @param {String} type
+         * @param {Number|String} value
+         * @return {String} value
+         * */
+        validate: function(type, value) {
+            value = (typeof value === "string" ? value : "" + value);
+
+            var result = value;
+
+            switch (type) {
+                case "number":
+                    var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", ","],
+                        letters_array = [],
+                        divider_exist = false;
+
+                    $.each(value.split(""), function(i, letter) {
+                        if (letter === "." || letter === ",") {
+                            letter = ".";
+                            if (!divider_exist) {
+                                divider_exist = true;
+                                letters_array.push(letter);
+                            }
+                        } else {
+                            if (white_list.indexOf(letter) >= 0) {
+                                letters_array.push(letter);
+                            }
+                        }
+                    });
+
+                    result = letters_array.join("");
+                    break;
+
+                case "integer":
+                    var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+                        letters_array = [];
+
+                    $.each(value.split(""), function(i, letter) {
+                        if (white_list.indexOf(letter) >= 0) {
+                            letters_array.push(letter);
+                        }
+                    });
+
+                    result = letters_array.join("");
+                    break;
+
+                default:
+                    break;
+            }
+
+            return result;
+        }
+
     };
 })(jQuery);
 $.storage = new $.store();

@@ -22,6 +22,20 @@ class shopSettingsTypefeatTypeDuplicateController extends waJsonController
             'sort' => 1,
             'upselling' => 1,
             'cross_selling' => 1,
+            'stock_unit_fixed' => 1,
+            'stock_unit_id' => 1,
+            'base_unit_fixed' => 1,
+            'base_unit_id' => 1,
+            'stock_base_ratio_fixed' => 1,
+            'stock_base_ratio' => 1,
+            'count_denominator_fixed' => 1,
+            'count_denominator' => 1,
+            'order_multiplicity_factor_fixed' => 1,
+            'order_multiplicity_factor' => 1,
+            'order_count_min_fixed' => 1,
+            'order_count_min' => 1,
+            'order_count_step_fixed' => 1,
+            'order_count_step' => 1,
         ]);
 
         // Append number to type name

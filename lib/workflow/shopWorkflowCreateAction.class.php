@@ -350,10 +350,16 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         $parent_id = null;
         foreach ($data['items'] as $item) {
             $item['order_id'] = $order_id;
+            if (isset($item['product']['stock_unit_id'])) {
+                $item['stock_unit_id'] = $item['product']['stock_unit_id'];
+            }
             if ($item['type'] == 'product') {
                 $parent_id = $this->order_items_model->insert($item);
             } elseif ($item['type'] == 'service') {
                 $item['parent_id'] = $parent_id;
+                if (!empty($item['parent_item']['quantity_denominator'])) {
+                    $item['quantity_denominator'] = $item['parent_item']['quantity_denominator'];
+                }
                 $this->order_items_model->insert($item);
             }
         }
@@ -651,7 +657,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                     $message->setFrom($store_email);
 
                     if ($message->send()) {
-                        $log = sprintf(_w("Printform <strong>%s</strong> sent to customer."), $form['name']);
+                        $log = sprintf(_w("Printable form <strong>%s</strong> sent to customer."), $form['name']);
 
                         $this->order_log_model->add(array(
                             'order_id'        => $data['order_id'],

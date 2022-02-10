@@ -58,7 +58,7 @@ class shopProductListAction extends waViewAction
         list($this->sort, $this->order) = $this->collection->getOrderBy();
 
         if ($info['hash'] == 'category' && empty($info['id'])) {
-            throw new waException("Unknown category", 404);
+            throw new waException(_w('Unknown category'), 404);
         }
         if ($info['hash'] == 'set' && empty($info['id'])) {
             throw new waException("Unknown list", 404);
@@ -196,8 +196,10 @@ class shopProductListAction extends waViewAction
         foreach ($products as &$p) {
             if ($p['min_price'] == $p['max_price']) {
                 $p['price_range'] = wa_currency_html($p['min_price'], $currency);
+                $p['base_price_range'] = wa_currency_html($p['min_base_price'], $currency);
             } else {
                 $p['price_range'] = wa_currency_html($p['min_price'], $currency).'...'.wa_currency_html($p['max_price'], $currency);
+                $p['base_price_range'] = wa_currency_html($p['min_base_price'], $currency).'...'.wa_currency_html($p['max_base_price'], $currency);
             }
             if ($p['badge']) {
                 $p['badge'] = shopHelper::getBadgeHtml($p['badge']);

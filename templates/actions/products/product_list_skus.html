@@ -77,7 +77,9 @@
         {% } else { %}
             {% product_currency_html = o.primary_currency; %}
         {% } %}
-        <td class="align-right">{%=product_currency_html%}</td>
+        <td class="align-right nowrap">
+            {%=product_currency_html%}{% if (product.stock_unit) { %}/{%#product.stock_unit.name_short%}{% } %}
+        </td>
         <td class="short align-right s-product-sku-purchase-price">
             {% if (product.edit_rights) { %}
             <input class="short"
@@ -117,7 +119,7 @@
                        {% if (sku.count === null) { %}
                             placeholder="∞" value=""
                        {% } else { %}
-                            placeholder="{%#sku.count%}" value="{%#sku.count%}"
+                            placeholder="{%#parseFloat(sku.count)%}" value="{%#parseFloat(sku.count)%}"
                        {% } %}
                        {% if (!product.edit_rights) { %}readonly="readonly"{% } %}
                 >
@@ -134,7 +136,7 @@
                            {% if (count === null) { %}
                                 placeholder="∞" value=""
                            {% } else { %}
-                                placeholder="{%#count%}" value="{%#count%}"
+                                placeholder="{%#parseFloat(count)%}" value="{%#parseFloat(count)%}"
                            {% } %}
                            {% if (!product.edit_rights) { %}readonly="readonly"{% } %}
                     >

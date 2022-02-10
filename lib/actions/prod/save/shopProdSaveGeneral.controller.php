@@ -119,10 +119,54 @@ class shopProdSaveGeneralController extends waJsonController
                         }
                     }
                 }
+                foreach (['stock_base_ratio' => 16, 'order_count_min' => 15, 'order_count_step' => 15] as $sku_field => $length) {
+                    if (isset($sku[$sku_field])) {
+                        $max_number = $sku_field == 'stock_base_ratio' ? 8 : 12;
+                        $min_number = $sku_field == 'stock_base_ratio' ? 7 : 2;
+                        if (is_string($sku[$sku_field]) && strlen($sku[$sku_field]) === 0) {
+                            $product_data['skus'][$sku_id][$sku_field] = null;
+                        } elseif ($sku[$sku_field] <= 0 || !is_numeric($sku[$sku_field]) || strlen($sku[$sku_field]) > $length + 1
+                            || $sku[$sku_field] > floatval('1'.str_repeat('0', $max_number))
+                            || $sku[$sku_field] < floatval('0.'.str_repeat('0', $min_number).'1')
+                        ) {
+                            $this->errors[] = [
+                                'id' => $sku_field . '_error',
+                                'name' => "product[skus][$sku_id][$sku_field]",
+                                'text' => _w('Invalid value'),
+                            ];
+                        }
+                    }
+                }
             }
         }
 
         shopProdSaveGeneralController::updateMainImage($product_data, $product_data['id'], $product_data['type_id']);
+
+        // shopProduct does not allow to save count_denominator. Only indirectly through order_multiplicity_factor.
+        if (!isset($product_data['order_multiplicity_factor'])) {
+            if (isset($product_data['count_denominator'])) {
+                $product_data['order_multiplicity_factor'] = 1 / $product_data['count_denominator'];
+            }
+        }
+        foreach (['stock_base_ratio' => 16, 'order_count_min' => 15, 'order_count_step' => 15] as $product_field => $length) {
+            $max_number = $product_field == 'stock_base_ratio' ? 8 : 12;
+            $min_number = $product_field == 'stock_base_ratio' ? 7 : 2;
+            if (!isset($product_data[$product_field])
+                || (is_string($product_data[$product_field]) && strlen($product_data[$product_field]) === 0)
+            ) {
+                $product_data[$product_field] = 1;
+            } elseif ($product_data[$product_field] <= 0 || !is_numeric($product_data[$product_field]) || strlen($product_data[$product_field]) > $length + 1
+                || $product_data[$product_field] > floatval('1'.str_repeat('0', $max_number))
+                || $product_data[$product_field] < floatval('0.'.str_repeat('0', $min_number).'1')
+            ) {
+                $this->errors[] = [
+                    'id' => "product_{$product_field}_error",
+                    'name' => "product[$product_field]",
+                    'text' => _w('Invalid value'),
+                ];
+            }
+        }
+        unset($product_data['count_denominator']);
 
         return $product_data;
     }

@@ -127,9 +127,10 @@
 <script>
     $(function () {
 
-        var dialog = $('#s-transfer-product-dialog');
-        var list = $('.s-transfer-products-list', dialog);
-        var form = $('form', dialog);
+        var dialog = $('#s-transfer-product-dialog'),
+            list = $('.s-transfer-products-list', dialog),
+            form = $('form', dialog),
+            count = 0;
 
         var showValidateErrors = function (errors) {
             $.each(errors, function(i, er) {
@@ -154,7 +155,11 @@
             item.find('.s-product-name').text(data.product_name);
             item.find('.s-sku-name').text(data.name);
             item.find('[name="id[]"]').attr('disabled', false).val(data.id);
-            item.find('[name="count[]"]').attr('disabled', false);
+            item.find('[name="count[]"]').attr({
+                'disabled': false,
+                'name': 'count[' + count.toString() + ']'
+            });
+            count++;
             return item.show();
         };
 

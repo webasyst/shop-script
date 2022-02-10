@@ -157,15 +157,16 @@ class shopProductsCollection
             }
             $model = $this->getModel();
 
-            if ($sort == 'price') {
+            if ($sort == 'price' || $sort == 'base_price') {
                 if (!isset($this->join_index['ps'])) {
-                    $this->order_by = "p.price $order, p.id";
-                    $this->addPromoPriceSort('price', $order);
+                    $this->order_by = "p.$sort $order, p.id";
+                    $this->addPromoPriceSort($sort, $order);
                 } else {
                     // Build the condition for regular prices:
-                    $main_sku_price = 'MAX(IF(ps1.id = p.sku_id, ps1.primary_price, -1))';
+                    $additional_query = $sort == 'base_price' ? '/ IFNULL(ps1.stock_base_ratio, p.stock_base_ratio)' : '';
+                    $main_sku_price = "MAX(IF(ps1.id = p.sku_id, ps1.primary_price $additional_query, -1))";
                     $main_sku_exists = '-1 < '.$main_sku_price;
-                    $sku_price = 'MIN(ps1.primary_price)';
+                    $sku_price = "MIN(ps1.primary_price $additional_query)";
                     // We use main SKU price if it's not filtered out;
                     // otherwise min of all remaining SKU prices.
                     $price_sort = "IF($main_sku_exists, $main_sku_price, $sku_price)";
@@ -187,9 +188,14 @@ class shopProductsCollection
                         }
 
                         // Build a sorting condition for promo-prices
-                        $promo_main_sku_price = "MAX(IF({$promo_prices_tmp_alias}.sku_id = p.sku_id, {$promo_prices_tmp_alias}.primary_price, -1))";
+                        if ($sort == 'price') {
+                            $promo_main_sku_price = "MAX(IF({$promo_prices_tmp_alias}.sku_id = p.sku_id, {$promo_prices_tmp_alias}.primary_price, -1))";
+                            $promo_sku_price = "MIN({$promo_prices_tmp_alias}.primary_price)";
+                        } else {
+                            $promo_main_sku_price = "MAX(IF({$promo_prices_tmp_alias}.sku_id = p.sku_id, {$promo_prices_tmp_alias}.primary_price {$promo_prices_tmp_alias}.stock_base_ratio, -1))";
+                            $promo_sku_price = "MIN({$promo_prices_tmp_alias}.primary_price / {$promo_prices_tmp_alias}.stock_base_ratio)";
+                        }
                         $promo_main_sku_exists = '-1 < '.$promo_main_sku_price;
-                        $promo_sku_price = "MIN({$promo_prices_tmp_alias}.primary_price)";
                         $promo_price = "IF($promo_main_sku_exists, $promo_main_sku_price, $promo_sku_price)";
                         $promo_price_exists = '-1 < '.$promo_price; // In SQL, we first make sure that we have promo-prices
 
@@ -369,6 +375,19 @@ class shopProductsCollection
             $price_max = str_replace(',', '.', $data['price_max']);
             $price_filter['price_max'] = '<= '.$this->toFloat(shop_currency($price_max, true, $config->getCurrency(true), false));
         }
+        $unit_id = null;
+        if (isset($data['unit']) && is_numeric($data['unit'])) {
+            $unit_id = (int)$data['unit'];
+            $this->addWhere("(p.stock_unit_id = {$unit_id} OR p.base_unit_id = {$unit_id})");
+        }
+        if (isset($data['base_unit_id']) && wa_is_int($data['base_unit_id'])) {
+            $unit_id = (int) $data['base_unit_id'];
+            $this->addWhere("p.base_unit_id = {$unit_id}");
+        }
+        if (isset($data['stock_unit_id']) && wa_is_int($data['stock_unit_id'])) {
+            $unit_id = (int) $data['stock_unit_id'];
+            $this->addWhere("p.stock_unit_id = {$unit_id}");
+        }
         if (!empty($price_filter)) {
             $skus_alias = $this->addJoin([
                 'table' => 'shop_product_skus',
@@ -393,7 +412,11 @@ class shopProductsCollection
             }
 
             foreach ($price_filter as $price_filter_item) {
-                $this->addWhere($where_conditional.' '.$price_filter_item);
+                if ($unit_id !== null) {
+                    $this->addWhere("IF(p.stock_unit_id = {$unit_id}, {$where_conditional} {$price_filter_item}, {$where_conditional} / {$skus_alias}.stock_base_ratio {$price_filter_item})");
+                } else {
+                    $this->addWhere($where_conditional.' '.$price_filter_item);
+                }
             }
         }
 
@@ -1411,7 +1434,7 @@ SQL;
 
         // 'skus_filtered' require additional data if joined with product_skus table
         if (isset($this->join_index['ps']) && (in_array('skus_filtered', $split_fields) || in_array('sku_filtered', $split_fields))) {
-            $this->fields['skus_filtered'] = "GROUP_CONCAT(DISTINCT ps1.id) AS sku_ids";
+            $this->fields['skus_filtered'] = "GROUP_CONCAT(DISTINCT ps" . $this->join_index['ps'] . ".id) AS sku_ids";
             if (empty($this->group_by)) {
                 $this->group_by = 'p.id';
             }
@@ -1750,6 +1773,28 @@ SQL;
         }
         $this->workupProducts($data, $escape);
         return $data;
+    }
+
+    public function getAllUnitIds()
+    {
+        $sql = "SELECT DISTINCT base_unit_id, stock_unit_id\n".$this->getSQL();
+
+        $stock_units_ids = [];
+        $all_base_unit_ids = [];
+        $base_unit_ids = [];
+        foreach($this->getModel()->query($sql) as $row) {
+            $stock_units_ids[$row['stock_unit_id']] = $row['stock_unit_id'];
+            $all_base_unit_ids[$row['base_unit_id']] = $row['base_unit_id'];
+            if ($row['base_unit_id'] != $row['stock_unit_id']) {
+                $base_unit_ids[$row['base_unit_id']] = $row['base_unit_id'];
+            }
+        }
+
+        // $stock_units_ids   - all stock units in this collection
+        // $all_base_unit_ids - all base units in this collection
+        // $base_unit_ids     - base units when they don't match product's stock unit
+        // (When base unit matches product's stock unit it means base unit for this product is not set explicitly by user.)
+        return [$stock_units_ids, $base_unit_ids, $all_base_unit_ids];
     }
 
     /**
@@ -3118,7 +3163,7 @@ SQL;
     protected function addPromoPriceSort($field, $order)
     {
         $field = strtolower($field);
-        if ($field !== 'compare_price') {
+        if ($field !== 'compare_price' && $field !== 'base_price') {
             $field = 'price';
         }
         $order = strtoupper($order);

@@ -154,6 +154,21 @@
 {capture assign="_sku_file_delete_confirm_dialog"}{include file="./dialogs/sku_file_delete_confirm.html" inline}{/capture}
 {$_templates["sku-file-delete-confirm-dialog"] = $_sku_file_delete_confirm_dialog|trim}
 
+{$_components = []}
+
+{capture assign="_component_fractional_section"}{include file="./components/component_fractional_section.html" inline}{/capture}
+{$_components["component-fractional-section"] = $_component_fractional_section|trim}
+
+{$_globals_components = $wa->globals("components")}
+{if !empty($_globals_components)}
+    {$_components = array_merge($_components, $_globals_components)}
+{/if}
+
+{$_globals_tooltips = $wa->globals("tooltips")}
+{if !empty($_globals_tooltips)}
+    {$_tooltips = array_merge($_tooltips, $_globals_tooltips)}
+{/if}
+
 {* LOCALES *}
 
 {$_locales = [
@@ -168,6 +183,13 @@
     "max_length_error" => "{_w("Invalid value")} <span class=\"s-icon\" data-tooltip-id=\"product-name-error\"><i class=\"fas fa-question-circle\"></i></span>",
     "product_name_required" => _w("Enter a product name.")
 ]}
+
+{$_globals_locales = $wa->globals("locales")}
+{if !empty($_globals_locales)}
+    {$_locales = array_merge($_locales, $_globals_locales)}
+{/if}
+
+{* OTHER *}
 
 {$_active_main_category = null}
 {if !empty($categories) && !empty($categories[$product.category_id])}
@@ -485,7 +507,7 @@
                                                     <div class="redirect-message wa-message warn flexbox space-8" {if $_active_code.id != '301'}style="display: none;"{/if}>
                                                         <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
                                                         <div class="message-text wide">
-                                                            <span class="s-text">[`A 301 redirect is applied at once and works permanently, and cannot be quickly disabled. Search enines will remove the page from their indices. The redirect will get saved in website visitors’ browsers. If you later decide to publish this page again, it might become available only after quite a long while.`]</span>
+                                                            <span class="s-text">[`A 301 redirect is applied at once and works permanently, and cannot be quickly disabled. Search engines will remove the page from their indices. The redirect will get saved in website visitors’ browsers. If you later decide to publish this page again, it might become available only after quite a long while.`]</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -751,7 +773,7 @@
                                                                                v-model="sku_mod.count"
                                                                                v-bind:readonly="!!stocks_array.length"
                                                                                v-on:click="focusSkuModStocks(sku_mod)"
-                                                                               v-on:input="validate($event, 'integer', sku_mod, 'count')">
+                                                                               v-on:input="validate($event, 'number', sku_mod, 'count')">
                                                                     </div>
 
                                                                     <template v-if="stocks_array.length">
@@ -774,11 +796,11 @@
 
                                                                     <template v-for="stock in stocks_array">
                                                                         <div class="s-stock-wrapper">
-                                                                            <div class="flexbox fixed middle space-12"
+                                                                            <div class="flexbox middle space-12"
                                                                                  data-tooltip-id="product-sku-24"
                                                                                  v-bind:data-title="getStockTitle(stock)">
 
-                                                                                <div class="c-column">
+                                                                                <div class="s-column">
                                                                                     <div class="s-field-wrapper">
                                                                                         <div class="s-icon left" v-bind:class="{ 'color-green' : sku_mod.stock[stock.id] > stock.low_count || sku_mod.stock[stock.id] === '', 'color-orange' : sku_mod.stock[stock.id] > stock.critical_count && sku_mod.stock[stock.id] <= stock.low_count, 'color-red' : sku_mod.stock[stock.id] <= stock.critical_count && sku_mod.stock[stock.id] !== '' }">
                                                                                             <i class="icon size-16"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></i>
@@ -789,10 +811,10 @@
                                                                                                v-bind:style="{ 'opacity' : stock.is_virtual ? '.5' : ''}"
                                                                                                v-bind:class="{ 'transparent' : stock.is_virtual }"
                                                                                                v-on:change="changeSkuModStocks(sku_mod)"
-                                                                                               v-on:input="validate($event, 'integer', sku_mod.stock, stock.id)">
+                                                                                               v-on:input="validate($event, 'number', sku_mod.stock, stock.id)">
                                                                                     </div>
                                                                                 </div>
-                                                                                <div class="c-column">
+                                                                                <div class="s-column wide">
                                                                                     <span class="cursor-default"
                                                                                           v-bind:style="{ 'opacity' : stock.is_virtual ? '.5' : '' }">{ { stock.name } }</span>
                                                                                 </div>
@@ -874,9 +896,9 @@
                     </template>
                 </div>
 
-                <div class="wa-fields space-24">
-                    {* TYPE *}
-                    {if !empty($product_types)}
+                {* TYPE *}
+                {if !empty($product_types)}
+                    <div class="wa-fields space-24">
                         <div class="wa-field">
                             <div class="name">
 
@@ -940,12 +962,23 @@
                                             <span class="s-name">[`Customize`]</span>
                                         </a>
                                     </div>
+
+                                    <span class="s-icon-loading">
+                                        <i class="fas fa-spinner fa-spin color-gray"></i>
+                                    </span>
                                 </div>
                                 {/strip}
 
                             </div>
                         </div>
-                    {/if}
+                    </div>
+                {/if}
+
+                <div class="js-fractional-section" style="visibility: hidden;">
+                    <component-fractional-section v-bind:key="keys.fractional"></component-fractional-section>
+                </div>
+
+                <div class="wa-fields space-24">
 
                     {* MAIN CATEGORY *}
                     <div class="wa-field">
@@ -1343,6 +1376,7 @@
                     product_id: {if !empty($product.id)}{$product.id|json_encode}{else}null{/if},
                     product_category_id: {if !empty($product.category_id)}{$product.category_id|json_encode}{else}null{/if},
                     categories_tree: {$categories_tree|json_encode},
+                    components: {$_components|json_encode},
                     templates: {$_templates|json_encode},
                     tooltips: {$_tooltips|json_encode},
                     locales: {$_locales|json_encode},
@@ -1358,7 +1392,8 @@
                         "change_image_description": "{$wa_app_url}?module=prod&action=saveImageDetails",
                         "delete_image": "{$wa_app_url}?module=prod&action=deleteImage",
                         "sku_file_upload": "{$wa_app_url}?module=prod&action=addSkuFile",
-                        "sku_file_delete": "{$wa_app_url}?module=prod&action=deleteSkuFile"
+                        "sku_file_delete": "{$wa_app_url}?module=prod&action=deleteSkuFile",
+                        "type_settings": "{$wa_app_url}?module=prod&action=typeSettings"
                     },
                     lang: {$_lang|json_encode},
 

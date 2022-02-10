@@ -42,7 +42,7 @@ class shopHelper
      * @return array
      * @throws waException
      */
-    public static function getPaymentMethods($order = array())
+    public static function getPaymentMethods($order = array(), $order_has_frac = false, $order_has_units = false)
     {
         $is_template = waConfig::get('is_template');
         if ($is_template) {
@@ -72,6 +72,41 @@ class shopHelper
         foreach ($methods as $m_id => $m) {
             try {
                 $plugin = shopPayment::getPlugin($m['plugin'], $m['id']);
+
+                if (isset($m['__plugin_info'])) {
+                    $plugin_info = $m['__plugin_info'];
+                } else {
+                    $plugin_info = $plugin->getProperties();
+                }
+
+                if ($order_has_units && shopUnits::stockUnitsEnabled()) {
+                    if (!isset($plugin_info['stock_units'])) {
+                        if (shopFrac::getPluginFractionalMode($m['plugin'], shopFrac::PLUGIN_MODE_UNITS) == shopFrac::PLUGIN_TRANSFER_DISABLED) {
+                            // Store admin disabled this payment method for orders containing custom stock units
+                            unset($methods[$m_id]);
+                            continue;
+                        }
+                    } else if ($plugin_info['stock_units'] !== true) {
+                        // Plugin declared it does not support custom stock units
+                        unset($methods[$m_id]);
+                        continue;
+                    }
+                }
+
+                if ($order_has_frac && shopFrac::isEnabled()) {
+                    if (!isset($plugin_info['fractional_quantity'])) {
+                        if (shopFrac::getPluginFractionalMode($m['plugin']) == shopFrac::PLUGIN_TRANSFER_DISABLED) {
+                            // Store admin disabled this payment method for orders containing fractional quantities
+                            unset($methods[$m_id]);
+                            continue;
+                        }
+                    } else if ($plugin_info['fractional_quantity'] !== true) {
+                        // Plugin declared it does not support fractional quantities
+                        unset($methods[$m_id]);
+                        continue;
+                    }
+                }
+
                 $custom_fields = $plugin->customFields($order);
                 if ($custom_fields) {
                     $params = array();
@@ -200,6 +235,8 @@ class shopHelper
         shopShipping::extendItems($items);
         $total_params = shopShipping::getItemsTotal($items);
 
+        $order_has_custom_stock_units = shopUnits::itemsHaveCustomStockUnits($items);
+
         $result = array();
         foreach ($methods as $method_index => &$m) {
             $time_start = microtime(true);
@@ -223,7 +260,44 @@ class shopHelper
             if (isset($m['__plugin_info'])) {
                 $plugin_info = $m['__plugin_info'];
             } else {
-                $plugin_info = $plugin->info($m['plugin']);
+                $plugin_info = $plugin->getProperties();
+            }
+
+            $order = new waOrder([
+                'contact_id'       => null,
+                'contact'          => null,
+                'items'            => $items,
+                'shipping_address' => $address,
+                'shipping_params'  => ifset($params['shipping_params'][$method_id]),
+                'has_custom_stock_units' => $order_has_custom_stock_units,
+            ]);
+
+            if (shopFrac::isEnabled() && $order->hasFractionalQuantity()) {
+                if (!isset($plugin_info['fractional_quantity'])) {
+                    $plugin_mode = shopFrac::getPluginFractionalMode($m['plugin'], shopFrac::PLUGIN_MODE_FRAC, shopPluginModel::TYPE_SHIPPING);
+                    if ($plugin_mode == shopFrac::PLUGIN_TRANSFER_DISABLED) {
+                        unset($methods[$method_index]);
+                        continue;
+                    } else {
+                        $order = $order->repackFractionalQuantity();
+                    }
+                } else {
+                    $params['filter']['fractional_quantity'] = true;
+                }
+            }
+
+            if (wa('shop')->getSetting('stock_units_enabled') && $order->hasStockUnits()) {
+                if (!isset($plugin_info['stock_units'])) {
+                    $plugin_mode = shopFrac::getPluginFractionalMode($m['plugin'], shopFrac::PLUGIN_MODE_UNITS, shopPluginModel::TYPE_SHIPPING);
+                    if ($plugin_mode == shopFrac::PLUGIN_TRANSFER_DISABLED) {
+                        unset($methods[$method_index]);
+                        continue;
+                    } else {
+                        // если выбрано "передавать дробный заказ в плагин"
+                    }
+                } else {
+                    $params['filter']['stock_units'] = true;
+                }
             }
 
             if (!empty($params['filter'])) {
@@ -297,7 +371,7 @@ class shopHelper
             } else {
                 $shipping_params = array();
                 $shipping_params += shopShipping::convertTotalDimensions($total_params, $plugin);
-                $shipping_items = $items;
+                $shipping_items = $order['items'];
 
                 $total = self::getShippingItemsTotal($shipping_items, $plugin_currency, $params);
 
@@ -476,6 +550,14 @@ class shopHelper
                                 'shipping_params'  => ifset($params['shipping_params'][$method_id]),
                             )
                         );
+
+                        if (shopFrac::isEnabled() && $order->hasFractionalQuantity() && !isset($plugin_info['fractional_quantity'])) {
+                            $plugin_mode = shopFrac::getPluginFractionalMode($m['plugin'], shopFrac::PLUGIN_MODE_FRAC, shopPluginModel::TYPE_SHIPPING);
+                            if ($plugin_mode == shopFrac::PLUGIN_TRANSFER_CONVERT) {
+                                $order = $order->repackFractionalQuantity();
+                            }
+                        }
+
                         $custom_fields = $plugin->customFields($order);
                         if ($custom_fields) {
                             $control_params = array();
@@ -1049,7 +1131,7 @@ class shopHelper
      */
     public static function fillVirtulStock($sku_stock)
     {
-        $result = array_map('intval', $sku_stock);
+        $result = array_map('floatval', $sku_stock);
         foreach (shopHelper::getStocks() as $virtualstock_id => $s) {
             if (isset($s['substocks'])) {
                 $result[$virtualstock_id] = 0;
@@ -1116,12 +1198,12 @@ class shopHelper
                 if ($stock_id && $all_balance_stocks) {
                     $all_balance_stocks_text =
                         "<span class='gray'>" .
-                            sprintf_wp('(On all stocks: %d)', $all_balance_stocks) .
+                            sprintf_wp('(On all stocks: %.3f)', $all_balance_stocks) .
                         "</span>";
                 }
                 $icon .=
                     "<span class='small s-stock-left-text $warn'>" .
-                        _w('%d left', '%d left', $count) . " $all_balance_stocks_text</span>";
+                        _w('%s left', '%s left', (float)$count) . " $all_balance_stocks_text</span>";
             }
         }
 
@@ -1756,7 +1838,26 @@ SQL;
         $features = array_fill_keys(array('height', 'length', 'width'), 'dimensions');
         $features['weight'] = 'weight';
 
+        $stock_unit_names = [];
+        $piece = shopUnitModel::getPc();
+        $stock_unit = $piece['storefront_name'];
+        $stock_unit_code = $piece['id'];
+        if (shopFrac::isEnabled()) {
+            $unit_model = new shopUnitModel();
+            $item_ids = array_column($order_items, 'stock_unit_id');
+            $stock_unit_names = $unit_model->getById($item_ids);
+        }
+
         foreach ($order_items as $item) {
+
+            if ($stock_unit_names) {
+                if (isset($stock_unit_names[$item['stock_unit_id']]['short_name'])) {
+                    $stock_unit = $stock_unit_names[$item['stock_unit_id']]['short_name'];
+                }
+                if (isset($stock_unit_names[$item['stock_unit_id']]['okei_code'])) {
+                    $stock_unit_code = $stock_unit_names[$item['stock_unit_id']]['okei_code'];
+                }
+            }
 
             $item['price'] = ifempty($item['price'], 0.0);
             $item['price'] = shopHelper::workupValue($item['price'], 'price', $options['currency'], $options['order_currency']);
@@ -1792,30 +1893,35 @@ SQL;
                 }
             }
 
+            $quantity_denominator = ifset($item, 'quantity_denominator', 1);
+            $item_quantity = shopFrac::formatQuantity(ifset($item, 'quantity', 0), $quantity_denominator);
             $items[] = array(
-                'id'              => ifset($item['id']),
-                'parent_id'       => ifset($item['parent_id']),
-                'name'            => ifset($item['name']),
-                'sku'             => ifset($item['sku_code']),
-                'tax_rate'        => ifset($item['tax_percent']),
-                'tax_included'    => ifset($item['tax_included'], 1),
-                'description'     => '',
-                'price'           => (float)$item['price'],
-                'currency'        => $options['currency'],
-                'quantity'        => (int)ifset($item['quantity'], 0),
-                'total'           => (float)$item['price'] * (int)$item['quantity'],
-                'type'            => ifset($item['type'], 'product'),
-                'product_id'      => ifset($item['product_id']),
-                'sku_id'          => ifset($item['sku_id']),
-                'weight'          => (float)ifset($item['weight']),
-                'height'          => (float)ifset($item['height']),
-                'length'          => (float)ifset($item['length']),
-                'width'           => (float)ifset($item['width']),
-                'weight_unit'     => (string)$options['weight'],
-                'dimensions_unit' => (string)$options['dimensions'],
-                'total_discount'  => (float)$item['total_discount'],
-                'discount'        => (float)((float)($item['quantity']) ? ($item['total_discount'] / $item['quantity']) : 0.0),
-                'product_codes'   => $product_codes // see shopOrderItemCodesModel::extendOrderItems for format
+                'id'                   => ifset($item['id']),
+                'parent_id'            => ifset($item['parent_id']),
+                'name'                 => ifset($item['name']),
+                'sku'                  => ifset($item['sku_code']),
+                'tax_rate'             => ifset($item['tax_percent']),
+                'tax_included'         => ifset($item['tax_included'], 1),
+                'description'          => '',
+                'price'                => (float)$item['price'],
+                'currency'             => $options['currency'],
+                'quantity'             => $item_quantity,
+                'quantity_denominator' => $quantity_denominator,
+                'total'                => floatval($item['price'] * $item_quantity),
+                'type'                 => ifset($item['type'], 'product'),
+                'product_id'           => ifset($item['product_id']),
+                'sku_id'               => ifset($item['sku_id']),
+                'weight'               => (float)ifset($item['weight']),
+                'height'               => (float)ifset($item['height']),
+                'length'               => (float)ifset($item['length']),
+                'width'                => (float)ifset($item['width']),
+                'weight_unit'          => (string)$options['weight'],
+                'dimensions_unit'      => (string)$options['dimensions'],
+                'stock_unit'           => (string)$stock_unit,
+                'stock_unit_code'      => (int)$stock_unit_code,
+                'total_discount'       => (float)$item['total_discount'],
+                'discount'             => ($item_quantity ? floatval($item['total_discount'] / $item_quantity) : 0.0),
+                'product_codes'        => $product_codes // see shopOrderItemCodesModel::extendOrderItems for format
             );
         }
 
@@ -2124,5 +2230,54 @@ SQL;
         if (empty($default_editor) || 'old_editor' === $default_editor) {
             wa()->getUser()->setSettings('shop', 'default_editor', 'new_editor');
         }
+    }
+
+    /**
+     * @param bool $include_disabled
+     * @return array
+     * @throws waException
+     */
+    public static function getUnits($include_disabled = false) {
+        $unit_model = new shopUnitModel();
+        $units = $unit_model->getAll('id');
+
+        foreach ($units as $id => &$unit) {
+            if ($include_disabled || !empty($unit['status'])) {
+                // unit[id] must be a string
+                $unit["id"] = (string)$unit["id"];
+            } else {
+                unset($units[$id]);
+            }
+        }
+
+        return $units;
+    }
+
+    /**
+     * Получение массива данных из файла shop_support.json
+     * с определением совместимости с PREMIUM версией
+     *
+     * @param $app_path
+     * @param $theme
+     * @return array
+     * @throws waException
+     */
+    public static function getShopSupportJson($app_path, $theme = false)
+    {
+        $result = [];
+        $support_path = ($theme ? $app_path.'/shop_support.json' : $app_path.'/lib/config/shop_support.json');
+        if (file_exists($support_path)) {
+            $support_json = waUtils::jsonDecode(file_get_contents($support_path), true);
+            if (isset($support_json['support_premium']) && in_array($support_json['support_premium'], ['no', 'yes', 'partial'])) {
+                $result['compatibility'] = shopSettingsCompatibilityAction::COMPATIBILITY[$support_json['support_premium']];
+            }
+            if (!empty($support_json['support_premium_description_'.wa()->getLocale()])) {
+                $result['compatibility_description'] = $support_json['support_premium_description_'.wa()->getLocale()];
+            } elseif (!empty($support_json['support_premium_description'])) {
+                $result['compatibility_description'] = $support_json['support_premium_description'];
+            }
+        }
+
+        return $result;
     }
 }

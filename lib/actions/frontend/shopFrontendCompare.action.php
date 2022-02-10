@@ -148,6 +148,11 @@ class shopFrontendCompareAction extends waViewAction
         $this->view->assign('features', $all_features);
         $this->view->assign('products', $products);
 
+        $units = shopHelper::getUnits();
+        $this->view->assign('units', $units);
+        $this->view->assign('formatted_units', shopFrontendProductAction::formatUnits($units));
+        $this->view->assign('fractional_config', shopFrac::getFractionalConfig());
+
         $this->setLayout(new shopFrontendLayout());
         $this->setThemeTemplate('compare.html');
     }

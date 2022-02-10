@@ -1,0 +1,344 @@
+{strip}
+
+{* ДАННЫЕ *}
+
+{$_page_title = _w("PREMIUM license compatibility")}
+{$_inst_title = _w("This section works only with the Installer app available")}
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/settings/compatibility/icons.svg?v=`$wa->version()`"}
+
+{* ПОДСКАЗКИ *}
+
+{$_locales = [
+    "on" => _w("Enabled"),
+    "off" => _w("Disabled"),
+    "show" => _w("Details"),
+    "hide" => _w("Hide")
+]}
+
+{$_tooltips = []}
+
+{* ШАБЛОНЫ *}
+
+{$_templates = []}
+
+{/strip}
+
+<div class="s-compatibility-settings-page blank block double-padded" id="js-compatibility-settings-page">
+    {* HEADER *}
+    <div class="s-page-header">
+        <h1 class="s-title">{$_page_title}</h1>
+    </div>
+
+    {* BODY *}
+    <div class="s-section-body">
+
+        {function name="_render_item" _item=[] _type="" _system_type="" _app_id=""}
+        {if !in_array($_system_type, ['shipping', 'payment']) && isset($_item["enabled"]) && $_item["enabled"] !== "1"}
+            {$gray_class = 'color-gray'}
+        {else}
+            {$gray_class = ''}
+        {/if}
+
+        <tr class="s-item-row {if $_type === "plugin"}is-plugin{elseif $_type === "theme"}is-theme{/if} {$gray_class}" data-type="{$_type|default:""}"
+                {if $_type === "plugin"}
+                    data-app-id="{$_app_id|escape}"
+                    data-plugin-id="{$_item['id']|escape}"
+                    data-plugin-type="{$_system_type|escape}"
+                {/if}
+            >
+                <td></td>
+                <td>
+                    <div class="s-name-section">
+                        <div class="s-image">
+                            {if $_type === "plugin"}
+                                <img src="{$_item["image"]}" alt="">
+                            {else}
+                                <span class="icon size-30"><svg><use xlink:href='{$_sprite_url}#object-ungroup'></use></svg></span>
+                            {/if}
+                        </div>
+                        <div class="s-name-wrapper">
+                            {if $_type === "plugin"}
+                                <div class="s-type">[`Plugin`]</div>
+                            {/if}
+                            <div class="s-name">
+                                <a href="{$_item["link_view"]}">{$_item["name"]|escape}</a>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="s-version-section">
+                        {if version_compare($_item['version_installed'], $_item['version_latest']) >= 0}
+                            <div class="s-version-wrapper">
+                                <div class="s-version">{$_item['version_installed']}</div>
+                                <div class="s-description">[`Up-to-date version is installed.`]</div>
+                            </div>
+                        {else}
+                            <div class="s-version-wrapper is-old">
+                                <div class="s-version">{$_item["version_installed"]}</div>
+                                <div class="s-description">[`Outdated version is installed.`]</div>
+                            </div>
+                            <div class="s-version-wrapper">
+                                <div class="s-version">{$_item["version_latest"]}</div>
+                                <div class="s-description">
+                                    [`Up-to-date version`]
+                                    <a href="{$_item["link_update"]}">[`Update`]</a>
+                                </div>
+                            </div>
+                        {/if}
+                    </div>
+                </td>
+                <td>
+                    <div class="s-compatibility-section">
+                        <div class="s-compatibility-wrapper">
+                            <div class="s-image">
+                                <span class="icon size-16">
+                                    {if $_item["compatibility"] === "0"}
+                                        <svg class="color-red"><use xlink:href='{$_sprite_url}#times'></use></svg>
+                                    {elseif $_item["compatibility"] === "1"}
+                                        <svg class="color-green"><use xlink:href='{$_sprite_url}#check'></use></svg>
+                                    {elseif $_item["compatibility"] === "2"}
+                                        <svg class="color-yellow"><use xlink:href='{$_sprite_url}#warning'></use></svg>
+                                    {else}
+                                        <svg class="color-yellow"><use xlink:href='{$_sprite_url}#warning'></use></svg>
+                                    {/if}
+                                </span>
+                            </div>
+                            <div class="s-text-wrapper">
+                            <div class="s-text">
+                                {if $_item["compatibility"] === "0"}
+                                    <span class="color-gray">[`No support`]</span>
+                                {elseif $_item["compatibility"] === "1"}
+                                    [`Full support`]
+                                {elseif $_item["compatibility"] === "2"}
+                                    [`Partial support`]
+                                {else}
+                                    [`No information`]
+                                {/if}
+                            </div>
+                            {if !empty($_item["compatibility_description"])}
+                                <div class="s-toggle s-text-hint">
+                                    <a class="js-toggle" href="javascript:void(0);">{$_locales["show"]}</a>
+                                </div>
+                                <div class="s-description">{$_item["compatibility_description"]}</div>
+                            {/if}
+                        </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="s-interaction-section">
+                        {if $_type === "plugin" && $_system_type}
+                            {if $_item["compatibility"] === '1'}
+                                <div>[`Quantity is passed on without conversion.`]</div>
+                                <div>[`Quantity units are passed on.`]</div>
+                            {else}
+                                {if $is_premium}
+                                    <div class="frac-mode-text">
+                                        {if $_item["frac_mode"] == shopFrac::PLUGIN_TRANSFER_DISABLED}
+                                            [`Unavailable for fractional quantity.`]
+                                        {elseif $_item["frac_mode"] == shopFrac::PLUGIN_TRANSFER_CONVERT}
+                                            [`Fractional quantity is converted to integer values.`]
+                                        {else}
+                                            [`Quantity is passed on without conversion.`]
+                                        {/if}
+                                    </div>
+                                    <div class="units-mode-text">
+                                        {if $_item["units_mode"] == shopFrac::PLUGIN_TRANSFER_DISABLED}
+                                            [`Unavailable for products with quantity units.`]
+                                        {else}
+                                            [`Quantity units are passed on.`]
+                                        {/if}
+                                    </div>
+                                {/if}
+                                <div>
+                                    <a class="js-interaction-dialog" href="javascript:void(0);">[`Change`]</a>
+                                </div>
+                            {/if}
+                        {else}
+                            <div>[`No settings`]</div>
+                        {/if}
+                    </div>
+                </td>
+                <td>
+                    {if !in_array($_system_type, ['shipping', 'payment']) && isset($_item["enabled"]) && $_type === "plugin"}
+                        <div class="s-checkbox-section">
+                            <div class="s-checkbox-wrapper">
+                                <input class="js-ibutton" type="checkbox" {if $_item["enabled"] === "1"}checked{/if}>
+                                <div class="s-label js-label s-text-hint">
+                                    {if $_item["enabled"] === "1"}
+                                        {$_locales["on"]}
+                                    {else}
+                                        {$_locales["off"]}
+                                    {/if}
+                                </div>
+                            </div>
+                        </div>
+                    {/if}
+                </td>
+            </tr>
+        {/function}
+
+        {if $installer_enable}
+        <table class="s-groups-table">
+            <thead>
+                <tr class="s-table-header">
+                    <th class="s-column-icon"></th>
+                    <th class="s-column-name"></th>
+                    <th class="s-column-version">[`Version`]</th>
+                    <th class="s-column-compatibility">[`Functionality support`]</th>
+                    <th class="s-column-interaction">[`Interaction`]</th>
+                    <th class="s-column-toggle"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {if !empty($groups["delivery"])}
+                    <tr class="s-group-row">
+                        <td class="s-column-icon">
+                            <div class="s-group-icon">
+                                <span class="icon size-48"><svg><use xlink:href='{$_sprite_url}#truck'></use></svg></span>
+                            </div>
+                        </td>
+                        <td class="s-column-group-name">
+                            <div class="s-group-name s-text-header">[`Shipping`]</div>
+                        </td>
+                        <td colspan="4"></td>
+                    </tr>
+
+                    {foreach $groups["delivery"] as $_plugin}
+                        {_render_item _item=$_plugin _type="plugin" _system_type="shipping"}
+                    {/foreach}
+                {/if}
+                {if !empty($groups["payment"])}
+                    <tr class="s-group-row">
+                        <td class="s-column-icon">
+                            <div class="s-group-icon">
+                                <span class="icon size-48"><svg><use xlink:href='{$_sprite_url}#credit-card'></use></svg></span>
+                            </div>
+                        </td>
+                        <td class="s-column-group-name">
+                            <div class="s-group-name s-text-header">[`Payment`]</div>
+                        </td>
+                        <td colspan="4"></td>
+                    </tr>
+
+                    {foreach $groups["payment"] as $_plugin}
+                        {_render_item _item=$_plugin _type="plugin" _system_type="payment"}
+                    {/foreach}
+                {/if}
+                {if !empty($groups["apps"])}
+                    {foreach $groups["apps"] as $_app}
+                        <tr class="s-app-row is-app">
+                            <td colspan="2">
+                                <div class="s-name-section">
+                                    <div class="s-image">
+                                        <img src="{$_app["image"]}" alt="">
+                                    </div>
+                                    <div class="s-name-wrapper">
+                                        <div class="s-type">[`App`]</div>
+                                        <div class="s-name s-text-header">
+                                            <a href="{$_app["link_view"]}">{$_app["name"]|escape}</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="s-version-section">
+                                    {if version_compare($_app['version_installed'], $_app['version_latest']) >= 0}
+                                        <div class="s-version-wrapper">
+                                            <div class="s-version">{$_app['version_installed']}</div>
+                                            <div class="s-description">[`Up-to-date version is installed.`]</div>
+                                        </div>
+                                    {else}
+                                        <div class="s-version-wrapper is-old">
+                                            <div class="s-version">{$_app["version_installed"]}</div>
+                                            <div class="s-description">[`Outdated version is installed.`]</div>
+                                        </div>
+                                        <div class="s-version-wrapper">
+                                            <div class="s-version">{$_app["version_latest"]}</div>
+                                            <div class="s-description">
+                                                [`Up-to-date version`]
+                                                <a href="{$_app["link_update"]}">[`Update`]</a>
+                                            </div>
+                                        </div>
+                                    {/if}
+                                </div>
+                            </td>
+                            <td colspan="3"></td>
+                        </tr>
+
+                        {foreach $_app["plugins"] as $_plugin}
+                            {_render_item _item=$_plugin _type="plugin" _system_type="" _app_id=$_app["id"]}
+                        {/foreach}
+                    {/foreach}
+                {/if}
+                {if !empty($groups["themes"])}
+                    <tr class="s-group-row">
+                        <td class="s-column-icon">
+                            <div class="s-group-icon">
+                                <span class="icon size-48"><svg><use xlink:href='{$_sprite_url}#palette'></use></svg></span>
+                            </div>
+                        </td>
+                        <td class="s-column-group-name">
+                            <div class="s-group-name s-text-header">[`Design themes`]</div>
+                        </td>
+                        <td colspan="4"></td>
+                    </tr>
+
+                    {foreach $groups["themes"] as $_theme}
+                        {_render_item _item=$_theme _type="theme"}
+                    {/foreach}
+                {/if}
+            </tbody>
+        </table>
+        {else}
+            {$_inst_title}
+        {/if}
+
+    </div>
+
+    <script>
+        ( function($) {
+
+            document.title = {$_page_title|json_encode} + ' — ' + {$wa->accountName()|json_encode};
+
+            var sources = [{
+                id: "wa-compatibility-settings-css",
+                type: "css",
+                uri: "{$wa_app_static_url}css/backend/settings/compatibility.css?v={$wa->version()}"
+            }, {
+                id: "wa-compatibility-settings-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/settings/compatibility/compatibility.js?v={$wa->version()}"
+            }, {
+                id: "wa-dialog-css",
+                type: "css",
+                uri: "{$wa_url}wa-content/js/dialog/dialog.css?v={$wa->version(true)}"
+            }, {
+                id: "wa-dialog-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/dialog/dialog.js?v={$wa->version(true)}"
+            }];
+
+            $.shop.loadSources(sources).then(init, function() {
+                alert("Page Loading Error");
+            });
+
+            function init() {
+                window.initShopCompatibilitySettingsPage({
+                    $wrapper: $("#js-compatibility-settings-page"),
+                    templates: {$_templates|json_encode},
+                    tooltips: {$_tooltips|json_encode},
+                    locales: {$_locales|json_encode},
+                    urls: {
+                        "plugin_status": "{$wa_app_url}?module=settingsCompatibility&action=statusPlugin",
+                        "compatibility_dialog": "{$wa_app_url}?module=settingsCompatibility&action=interactionEditDialog",
+                        "compatibility_edit": "{$wa_app_url}?module=settingsCompatibility&action=interactionEdit",
+                    },
+                    is_premium: {$is_premium|json_encode}
+                });
+            }
+
+        })(jQuery);
+    </script>
+</div>

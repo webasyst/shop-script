@@ -45,9 +45,3 @@ msgstr "Checkout"
 
 msgid "View page"
 msgstr "View"
-
-msgid "“%s”"
-msgstr "%s"
-
-msgid "”, “"
-msgstr ", "

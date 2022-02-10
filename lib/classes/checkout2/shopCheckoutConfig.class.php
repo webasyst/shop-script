@@ -554,15 +554,23 @@ class shopCheckoutConfig implements ArrayAccess
      * @param string|null $shipping_payment_type one of waShipping::PAYMENT_TYPE_* constant
      * @return array
      */
-    public function getPaymentRates($selected_shipping_plugin_id = null, $customer_type = self::CUSTOMER_TYPE_PERSON_AND_COMPANY, $shipping_type = null, $shipping_payment_type = null)
+    public function getPaymentRates(
+        $selected_shipping_plugin_id = null,
+        $customer_type = self::CUSTOMER_TYPE_PERSON_AND_COMPANY,
+        $shipping_type = null,
+        $shipping_payment_type = null,
+        $order_has_frac = false,
+        $order_has_units = false
+    )
     {
         $methods = $this->getPaymentMethods($selected_shipping_plugin_id, $customer_type, $shipping_type, $shipping_payment_type);
         $currencies = $this->getCurrencies();
-        foreach ($methods as $key => &$m) {
+        foreach ($methods as $method_index => &$m) {
             try {
                 /** @var waPayment $plugin */
                 $plugin = $m['__instance'];
-                $m['icon'] = ifset($m, '__plugin_info', 'icon', null);
+                $plugin_info = ifset($m, '__plugin_info', []);
+                $m['icon'] = ifset($plugin_info, 'icon', null);
 
                 $allowed_currencies = $plugin->allowedCurrency();
                 if ($allowed_currencies !== true) {
@@ -572,9 +580,39 @@ class shopCheckoutConfig implements ArrayAccess
                         $m['error'] = sprintf($format, implode(', ', $allowed_currencies));
                     }
                 }
+
+                if ($order_has_units && shopUnits::stockUnitsEnabled()) {
+                    if (!isset($plugin_info['stock_units'])) {
+                        $plugin_mode = shopFrac::getPluginFractionalMode($m['plugin'], shopFrac::PLUGIN_MODE_UNITS);
+                        if ($plugin_mode == shopFrac::PLUGIN_TRANSFER_DISABLED) {
+                            // Store admin disabled this payment method for orders containing custom stock units
+                            unset($methods[$method_index]);
+                            continue;
+                        }
+                    } else if ($plugin_info['stock_units'] !== true) {
+                        // Plugin declared it does not support custom stock units
+                        unset($methods[$method_index]);
+                        continue;
+                    }
+                }
+
+                if ($order_has_frac && shopFrac::isEnabled()) {
+                    if (!isset($plugin_info['fractional_quantity'])) {
+                        $plugin_mode = shopFrac::getPluginFractionalMode($m['plugin']);
+                        if ($plugin_mode == shopFrac::PLUGIN_TRANSFER_DISABLED) {
+                            // Store admin disabled this payment method for orders containing fractional quantities
+                            unset($methods[$method_index]);
+                            continue;
+                        }
+                    } else if ($plugin_info['fractional_quantity'] !== true) {
+                        // Plugin declared it does not support fractional quantities
+                        unset($methods[$method_index]);
+                        continue;
+                    }
+                }
             } catch (waException $ex) {
                 waLog::log($ex->getMessage(), 'shop/checkout.error.log');
-                unset($methods[$key]);
+                unset($methods[$method_index]);
             }
         }
         unset($m);

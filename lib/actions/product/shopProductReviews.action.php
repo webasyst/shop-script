@@ -15,7 +15,7 @@ class shopProductReviewsAction extends waViewAction
         $product_model = new shopProductModel();
         $product = $product_model->getById($id);
         if (!$product) {
-            throw new waException(_w("Unkown product"));
+            throw new waException(_w("Unknown product"));
         }
 
         $offset = waRequest::get('offset', 0, waRequest::TYPE_INT);

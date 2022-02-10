@@ -253,13 +253,13 @@ class shopOrder implements ArrayAccess
         'sku_code'       => 'string',
         'price'          => 'float',
         'total_discount' => 'float',
-        'quantity'       => 'int',
+        'quantity'       => 'float',
         'name'           => 'string',
     );
 
     private static $service_fields = array(
         'price'    => 'float',
-        'quantity' => 'int',
+        'quantity' => 'float',
         'name'     => 'string',
     );
 
@@ -729,7 +729,7 @@ class shopOrder implements ArrayAccess
         $subtotal = 0.0;
 
         foreach ($this->items as $i) {
-            $subtotal += floatval($i['price']) * intval($i['quantity']);
+            $subtotal += floatval($i['price']) * floatval($i['quantity']);
         }
 
         return $subtotal;
@@ -839,7 +839,7 @@ class shopOrder implements ArrayAccess
 
         foreach ($items as $item_id => &$item) {
 
-            $item['quantity'] = intval($item['quantity']);
+            $item['quantity'] = floatval($item['quantity']);
             if (!$item['quantity']) {
                 continue;
             }
@@ -859,10 +859,10 @@ class shopOrder implements ArrayAccess
                 $quantity = max(0, $change_items[$item_id]['quantity']);
                 switch ($mode) {
                     case waPayment::OPERATION_CAPTURE:
-                        $quantity = intval(max(0, $item['quantity'] - $quantity));
+                        $quantity = floatval(max(0, $item['quantity'] - $quantity));
                         break;
                     case waPayment::OPERATION_REFUND:
-                        $quantity = intval(max(0, min($quantity, $item['quantity'])));
+                        $quantity = floatval(max(0, min($quantity, $item['quantity'])));
                         break;
                     default:
                         throw new waException('Unknown edit payment mode');
@@ -2218,6 +2218,12 @@ class shopOrder implements ArrayAccess
         if (empty($order['discount_increased_by']) || empty($order['items'])) {
             return false;
         }
+        // Do not try to split order that contains fractional quantities
+        foreach ($order['items'] as $item) {
+            if (!wa_is_int($item['quantity'])) {
+                return false;
+            }
+        }
         // If disabled in settings, do not split any items; allow to change overall discount
         if (!wa('shop')->getSetting('discount_distrbution_split')) {
             // this option is used in unit tests
@@ -2283,7 +2289,7 @@ class shopOrder implements ArrayAccess
     {
         //
         // Each item with total_discount not divisible by quantity
-        // (taking currency precision into account)
+        // (taking currency precision into account; quantity may be fractional)
         // must be split into two items.
         //
 
@@ -2301,6 +2307,11 @@ class shopOrder implements ArrayAccess
         $current_group = [];
         foreach($data_array['items'] as $item) {
             if ($item['type'] == 'product') {
+                // Do not try to split order that contains fractional quantities
+                if (!wa_is_int($item['quantity'])) {
+                    return $data_array;
+                }
+
                 if ($current_group) {
                     $item_groups[] = $current_group;
                 }
@@ -3064,7 +3075,7 @@ class shopOrder implements ArrayAccess
             'price'           => 'float',
             'total_discount'  => 'float',
             'purchase_price'  => 'float',
-            'quantity'        => 'int',
+            'quantity'        => 'float',
             'stock_id'        => 'int|null',
             'virtualstock_id' => 'int|null',
             'tax_percent'     => 'float|null',
@@ -3109,7 +3120,7 @@ class shopOrder implements ArrayAccess
 
                     switch ($original_item['type']) {
                         case 'product':
-                            $quantity = (int)ifset($original_item['quantity']);
+                            $quantity = (float)ifset($original_item['quantity']);
                             if ($quantity) {
                                 foreach ($original_items as &$original_service) {
                                     if ($original_service['parent_id'] == $id) {
@@ -3343,7 +3354,7 @@ class shopOrder implements ArrayAccess
             'quantity'   => 'quantity',
             'id'         => 'parent_id',
         );
-        if (isset($item['quantity']) && ($item['quantity'] === 0)) {
+        if (isset($item['quantity']) && ($item['quantity'] === 0.0)) {
             unset($parent_fields['quantity']);
         } else {
             unset($item['quantity']);
@@ -3654,14 +3665,15 @@ class shopOrder implements ArrayAccess
         $sku_id = $i['sku_id'];
 
         $append = array(
-            'type'               => 'product',
-            'service_id'         => null,
-            'service_variant_id' => null,
-            'purchase_price'     => 0,
-            'sku_code'           => '',
-            'sku_name'           => '',
-            'name'               => '',
-            'tax_id'             => intval(ifset($product['tax_id'])),
+            'type'                 => 'product',
+            'service_id'           => null,
+            'service_variant_id'   => null,
+            'purchase_price'       => 0,
+            'sku_code'             => '',
+            'sku_name'             => '',
+            'quantity_denominator' => ifset($product['count_denominator'], 1),
+            'name'                 => '',
+            'tax_id'               => intval(ifset($product['tax_id'])),
         );
         if (empty($sku_id)) {
             if (!empty($product['sku_id']) && isset($product['skus'][$product['sku_id']])) {
@@ -3861,7 +3873,7 @@ class shopOrder implements ArrayAccess
                 'service_variant_id' => null,
                 'price'              => $this->formatValue($prices[$item_id], 'float'),
                 'total_discount'     => $this->formatValue(ifset($total_discounts, $item_id, 0), 'float'),
-                'quantity'           => (int)$quantities[$item_id],
+                'quantity'           => (float)$quantities[$item_id],
                 'stock_id'           => !empty($stocks[$item_id]) ? intval($stocks[$item_id]) : null,
                 'parent_id'          => null,
                 '_index'             => sprintf('%d', $index),
@@ -3881,7 +3893,7 @@ class shopOrder implements ArrayAccess
                             'service_id'         => (int)$service_id,
                             'price'              => $this->formatValue($prices[$group][$index][$k], 'float'),
                             'total_discount'     => $this->formatValue(ifset($total_discounts, $group, $index, $k, 0), 'float'),
-                            'quantity'           => (int)$quantity,
+                            'quantity'           => (float)$quantity,
                             'service_variant_id' => null,
                             'stock_id'           => null,
                             'parent_id'          => null,

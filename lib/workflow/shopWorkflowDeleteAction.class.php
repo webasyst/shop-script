@@ -122,6 +122,5 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
     public function getButton()
     {
         return parent::getButton();
-        //'data-confirm="'._w('This order will be cancelled. Are you sure?').'"';
     }
 }

@@ -374,7 +374,7 @@ class shopTransferModel extends waModel
                         continue;
                     }
 
-                    $diff = (int)$diff;
+                    $diff = (double) $diff;
                     if ($diff == 0) {
                         continue;
                     }

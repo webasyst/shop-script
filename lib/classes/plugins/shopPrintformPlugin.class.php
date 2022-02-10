@@ -246,7 +246,7 @@ abstract class shopPrintformPlugin extends shopPlugin implements shopPrintformIn
                 }
                 if ($message->send()) {
                     $result = true;
-                    $log = sprintf(_w("Printform <strong>%s</strong> sent to customer."), $this->getName());
+                    $log = sprintf(_w("Printable form <strong>%s</strong> sent to customer."), $this->getName());
                     $order_log_model = new shopOrderLogModel();
                     $order_log_model->add(array(
                         'order_id'        => $order->id,

@@ -72,12 +72,19 @@ class shopFrontendCartAction extends shopFrontendAction
             }
             unset($row);
 
-        } else if (waRequest::post('checkout')) {
+        } elseif (waRequest::post('checkout')) {
             $saved_quantity = $cart_model->select('id,quantity')->where("type='product' AND code = s:code", array('code' => $code))->fetchAll('id');
-            $quantity = waRequest::post('quantity');
-            foreach ($quantity as $id => $q) {
-                if (isset($saved_quantity[$id]) && ($q != $saved_quantity[$id])) {
-                    $cart->setQuantity($id, $q);
+            if ($saved_quantity) {
+                $quantity = waRequest::post('quantity');
+                foreach ($quantity as $id => $q) {
+                    if (isset($saved_quantity[$id])) {
+                        if (isset($items[$id]) && !empty($items[$id]['product']['order_multiplicity_factor'])) {
+                            $q = shopFrac::formatQuantityWithMultiplicity($q, $items[$id]['product']['order_multiplicity_factor']);
+                        }
+                        if ($q != $saved_quantity[$id]['quantity']) {
+                            $cart->setQuantity($id, $q);
+                        }
+                    }
                 }
             }
 
@@ -124,6 +131,12 @@ class shopFrontendCartAction extends shopFrontendAction
                 }
             }
             $items[$item_id]['full_price'] = $price;
+
+            if (!empty($item['product']['skus'])) {
+                foreach ($item['product']['skus'] as $sku_id => $sku) {
+                    $items[$item_id]['product']['skus'][$sku_id]['count'] = shopFrac::formatQuantityWithMultiplicity($sku['count'], $item['product']['order_multiplicity_factor']);
+                }
+            }
         }
 
         $data = wa()->getStorage()->get('shop/checkout');
@@ -178,6 +191,11 @@ class shopFrontendCartAction extends shopFrontendAction
         }
         $this->view->assign('discount', $discount);
 
+        $units = shopHelper::getUnits();
+        $this->view->assign('units', $units);
+        $this->view->assign('formatted_units', shopFrontendProductAction::formatUnits($units));
+        $this->view->assign('fractional_config', shopFrac::getFractionalConfig());
+
         /**
          * @event frontend_cart
          * @return array[string]string $return[%plugin_id%] html output
@@ -202,8 +220,8 @@ class shopFrontendCartAction extends shopFrontendAction
                 $row['name'] .= ' ('.$row['sku_name'].')';
             }
             if ($row['available'] && $row['sku_status'] && $row['status'] > 0) {
-                if ($row['count'] > 0) {
-                    $message = _w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.');
+                if ($row['count'] >= $row['order_count_min']) {
+                    $message = _w('Only %s pcs. of %s are available, and you already have all of them in your shopping cart.');
                     $errors[$row['id']] = sprintf($message, $row['count'], $row['name']);
                 } else {
                     $message = _w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience. Please remove this product from your shopping cart to proceed.');

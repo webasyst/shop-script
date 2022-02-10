@@ -160,11 +160,16 @@ class shopCartItemsModel extends waModel
         if (!$code) {
             return 0;
         }
-        $sql = "SELECT SUM(quantity) FROM ".$this->table." WHERE code = s:code";
+        if (shopFrac::isEnabled()) {
+            $select = 'count(*)';
+        } else {
+            $select = 'SUM(quantity)';
+        }
+        $sql = "SELECT {$select} FROM ".$this->table." WHERE code = s:code";
         if ($type) {
             $sql .= ' AND type = s:type';
         }
-        return $this->query($sql, array(
+        return (int) $this->query($sql, array(
             'code' => $code,
             'type' => $type
         ))->fetchField();
@@ -336,6 +341,8 @@ SQL;
                         continue;
                     }
                     $sku = $skus[$item['sku_id']];
+                    $item['product']['sku_id'] = $item['sku_id'];
+                    $item['product']['skus'][$item['sku_id']] = $sku;
 
                     // Use SKU image instead of product image if specified
                     if ($sku['image_id'] && $sku['image_id'] != $item['product']['image_id']) {
@@ -355,7 +362,11 @@ SQL;
                     $item['currency'] = $item['product']['currency'];
                     $item['price'] = $sku['price'];
                     $item['name'] = $item['product']['name'];
+                    $item['quantity_denominator'] = $item['product']['count_denominator'];
                     $item['sku_file_name'] = $sku['file_name'];
+                    $item['stock_base_ratio'] = !empty($sku['stock_base_ratio']) ? $sku['stock_base_ratio'] : $item['product']['stock_base_ratio'];
+                    $item['order_count_min'] = !empty($sku['order_count_min']) ? $sku['order_count_min'] : $item['product']['order_count_min'];
+                    $item['order_count_step'] = !empty($sku['order_count_step']) ? $sku['order_count_step'] : $item['product']['order_count_step'];
                     if (is_scalar($item['sku_name']) && strlen($item['sku_name']) > 0) {
                         $item['name'] .= ' ('.$item['sku_name'].')';
                     }
@@ -375,6 +386,7 @@ SQL;
                     if ($item['variant_name']) {
                         $item['name'] .= ' ('.$item['variant_name'].')';
                     }
+                    $item['quantity_denominator'] = $products[$items[$item['parent_id']]['product_id']]['count_denominator'];
                     $item['price'] = $variants[$item['service_variant_id']]['price'];
                     if (isset($product_services[$item['product_id']][$item['service_variant_id']])) {
                         if ($product_services[$item['product_id']][$item['service_variant_id']]['price'] !== null) {
@@ -564,12 +576,17 @@ SQL;
                 // No stock specified; check against total count of the SKU
                 $count_field = 's.count';
             }
-            $can_be_ordered_field = "(s.available > 0 AND s.status > 0 AND ({$count_field} IS NULL OR ci.quantity <= {$count_field}) AND p.status >= 1)";
+            $can_be_ordered_field = "
+                (s.available > 0 AND s.status > 0 AND p.status >= 1 
+                    AND ($count_field IS NULL 
+                        OR (ci.quantity >= IF(ISNULL(s.order_count_min), p.order_count_min, s.order_count_min)
+                            AND ci.quantity <= ($count_field DIV p.order_multiplicity_factor) * p.order_multiplicity_factor)))";
         }
 
-        $sql = "SELECT ci.id, p.name, s.name AS sku_name, s.available, s.status as `sku_status`, p.status > 0 as `status`, ci.quantity, s.id as sku_id,
+        $sql = "SELECT ci.id, p.name, s.name AS sku_name, s.available, s.status as `sku_status`, p.status > 0 as `status`, 
+                        ci.quantity, s.id as sku_id, IF(ISNULL(s.order_count_min), p.order_count_min, s.order_count_min) as `order_count_min`,
                     {$can_be_ordered_field} as `can_be_ordered`,
-                    {$count_field} AS `count`
+                    IF(ISNULL($count_field), NULL, ($count_field DIV p.order_multiplicity_factor) * p.order_multiplicity_factor) AS `count`
                 FROM {$this->table} AS ci
                     JOIN shop_product AS p
                         ON ci.product_id = p.id

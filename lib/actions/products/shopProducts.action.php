@@ -66,7 +66,7 @@ class shopProductsAction extends shopProductListAction
 
         $this->assign(array(
             'lazy_loading'                    => $lazy_loading,
-            'products'                        => $products,
+            'products'                        => self::formatProducts($products),
             'total_count'                     => $total_count,
             'count'                           => count($products),
             'sort'                            => $sort,
@@ -102,6 +102,30 @@ class shopProductsAction extends shopProductListAction
         $products = $this->collection->getProducts($fields, $options['offset'], $options['products_per_page']);
         $this->workupProducts($products);
         $products = array_values($products);
+        return $products;
+    }
+
+    public static function formatProducts($products)
+    {
+        $units = shopHelper::getUnits();
+        $formatted_units = shopFrontendProductAction::formatUnits($units);
+        $fractional_config = shopFrac::getFractionalConfig();
+
+        if ($fractional_config["stock_units_enabled"] || $fractional_config["base_units_enabled"]) {
+            foreach ($products as &$product) {
+                if ($fractional_config["stock_units_enabled"] && !empty($formatted_units[$product["stock_unit_id"]])) {
+                    $product["stock_unit"] = $formatted_units[$product["stock_unit_id"]];
+                }
+                if ($fractional_config["base_units_enabled"] &&
+                    !empty($product["base_unit_id"]) &&
+                    ($product["base_unit_id"] !== $product["stock_unit_id"]) &&
+                    !empty($formatted_units[$product["base_unit_id"]]))
+                {
+                    $product["base_unit"] = $formatted_units[$product["base_unit_id"]];
+                }
+            }
+        }
+
         return $products;
     }
 

@@ -71,6 +71,10 @@
 {* Они могут добавляться внутри шаблонов через globals. Не удалять. *}
 
 {$_components = []}
+
+{capture assign="_component_fractional_section"}{include file="./components/component_fractional_section.html" inline}{/capture}
+{$_components["component-fractional-section"] = $_component_fractional_section|trim}
+
 {$_globals_components = $wa->globals("components")}
 {if !empty($_globals_components)}
     {$_components = array_merge($_components, $_globals_components)}
@@ -103,6 +107,11 @@
     "value_invalid" => _w("Invalid value"),
     "value_required" => _w("This field is required.")
 ]}
+
+{$_globals_locales = $wa->globals("locales")}
+{if !empty($_globals_locales)}
+    {$_locales = array_merge($_locales, $_globals_locales)}
+{/if}
 
 {* ПОДСКАЗКИ *}
 
@@ -159,7 +168,7 @@
     ],
     "product-sku-11" => [
         "id" => "product-sku-11",
-        "html" => _w("Detele variant")|escape,
+        "html" => _w("Delete variant")|escape,
         "class" => "inline"
     ],
     "product-sku-12" => [
@@ -288,7 +297,12 @@
     "width" => "15rem"
 ]}
 
-{* КОМПОНЕНТЫ *}
+{$_globals_tooltips = $wa->globals("tooltips")}
+{if !empty($_globals_tooltips)}
+    {$_tooltips = array_merge($_tooltips, $_globals_tooltips)}
+{/if}
+
+{* ЛОКАЛЬНЫЕ КОМПОНЕНТЫ *}
 
 {capture assign="_component_feature"}
     <div class="s-feature-component" v-bind:data-type="feature.render_type">
@@ -983,7 +997,6 @@
 {$_templates["component-plugin-dropdown"] = $_component_plugin_dropdown|trim}
 
 <div id="js-product-sku-section-wrapper">
-
     <script>
         ( function($) {
             $("#js-product-sku-section-wrapper").data("ready", $.Deferred());
@@ -1531,9 +1544,12 @@
                                                             </template>
                                                         </div>
 
-                                                        <template v-if="product.normal_mode_switch">
+                                                        <component-fractional-section v-bind:sku_mod="sku_mod"></component-fractional-section>
+
+                                                        <div class="s-features-list-wrapper" v-if="product.normal_mode_switch">
+                                                            <div class="s-list-label">[`Features`]</div>
                                                             <component-features v-bind:product="product" v-bind:features="sku_mod.features" v-bind:vertical="true" v-bind:columns="false"></component-features>
-                                                        </template>
+                                                        </div>
 
                                                         <div class="s-plugin-fields-list wa-fields space-24 vertical"
                                                              v-if="sku_mod.additional_fields.length">
@@ -1602,7 +1618,7 @@
                                                                                v-model="sku_mod.count"
                                                                                v-bind:readonly="!!stocks_array.length"
                                                                                v-on:click="focusSkuModStocks(sku_mod)"
-                                                                               v-on:input="validate($event, 'integer', sku_mod, 'count')">
+                                                                               v-on:input="validate($event, 'number', sku_mod, 'count')">
                                                                     </div>
 
                                                                     <template v-if="stocks_array.length">
@@ -1629,7 +1645,7 @@
                                                                                  data-tooltip-id="product-sku-24"
                                                                                  v-bind:data-title="getStockTitle(stock)">
 
-                                                                                <div class="c-column">
+                                                                                <div class="s-column">
                                                                                     <div class="s-field-wrapper">
                                                                                         <div class="s-icon left" v-bind:class="{ 'color-green' : sku_mod.stock[stock.id] > stock.low_count || sku_mod.stock[stock.id] === '', 'color-orange' : sku_mod.stock[stock.id] > stock.critical_count && sku_mod.stock[stock.id] <= stock.low_count, 'color-red' : sku_mod.stock[stock.id] <= stock.critical_count && sku_mod.stock[stock.id] !== '' }">
                                                                                             <i class="icon size-16"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></i>
@@ -1640,10 +1656,10 @@
                                                                                                v-bind:style="{ 'opacity' : stock.is_virtual ? '.5' : ''}"
                                                                                                v-bind:class="{ 'transparent' : stock.is_virtual }"
                                                                                                v-on:change="changeSkuModStocks(sku_mod)"
-                                                                                               v-on:input="validate($event, 'integer', sku_mod.stock, stock.id)">
+                                                                                               v-on:input="validate($event, 'number', sku_mod.stock, stock.id)">
                                                                                     </div>
                                                                                 </div>
-                                                                                <div class="c-column">
+                                                                                <div class="s-column wide">
                                                                                     <span class="cursor-default"
                                                                                           v-bind:style="{ 'opacity' : stock.is_virtual ? '.5' : '' }">{ { stock.name } }</span>
                                                                                 </div>
@@ -1823,7 +1839,7 @@
                 <div class="wa-message wa-small white flexbox space-8">
                     <div class="message-icon"><i class="fas fa-info-circle"></i></div>
                     <div class="message-text wide">
-                        [`Optional set of custom <em>key=value</em> parameters which can be used in frontend theme templates as <em>&#123;$category.params.key&#125;</em>. Each key=value pair must be on a separate line.`]
+                        [`Optional set of custom <em>key=value</em> parameters which can be used in frontend theme templates as <em>&#123;$product.params.key&#125;</em>. Each key=value pair must be on a separate line.`]
                     </div>
                 </div>
 
@@ -1921,7 +1937,7 @@
                         "add_product_image"       : "{$wa_app_url}?module=prod&action=imageUpload",
                         "change_image_description": "{$wa_app_url}?module=prod&action=saveImageDetails",
                         "delete_image"            : "{$wa_app_url}?module=prod&action=deleteImage",
-                        "color_transliterate"     : "{$wa_app_url}?module=settings&action=featuresHelper",
+                        "color_transliterate"     : "{$wa_app_url}?module=settingsTypefeat&action=featuresHelper",
                         "sku_file_upload"         : "{$wa_app_url}?module=prod&action=addSkuFile",
                         "sku_file_delete"         : "{$wa_app_url}?module=prod&action=deleteSkuFile",
                         "format_feature"          : "{$wa_app_url}?module=prod&action=formatFeature"

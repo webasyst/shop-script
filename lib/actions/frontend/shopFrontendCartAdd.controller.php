@@ -74,11 +74,15 @@ class shopFrontendCartAddController extends waJsonController
             }
         }
 
-        $quantity = waRequest::post('quantity', 1);
-        if ($quantity < 0) {
-            $quantity = 1;
-        }
         if (!empty($product) && !empty($sku)) {
+            $order_count_min = !empty($sku['order_count_min']) ? $sku['order_count_min'] : $product['order_count_min'];
+            $quantity = waRequest::post('quantity', $order_count_min);
+            if ($quantity < $order_count_min) {
+                $quantity = $order_count_min;
+            }
+            if ($sku['count'] !== null) {
+                $sku['count'] = shopFrac::formatQuantityWithMultiplicity($sku['count'], $product['order_multiplicity_factor']);
+            }
             // check quantity
             if (!wa()->getSetting('ignore_stock_count')) {
 
@@ -88,23 +92,23 @@ class shopFrontendCartAddController extends waJsonController
                     $product_stocks_model = new shopProductStocksModel();
                     $sku_stock = shopHelper::fillVirtulStock($product_stocks_model->getCounts($sku['id']));
                     if (isset($sku_stock[$stock_id])) {
-                        $sku['count'] = $sku_stock[$stock_id];
+                        $sku['count'] = shopFrac::formatQuantityWithMultiplicity($sku_stock[$stock_id], $product['order_multiplicity_factor']);
                     }
                 }
 
-                $c = $this->cart_model->countSku($code, $sku['id']);
-                if ($sku['count'] !== null && $c + $quantity > $sku['count']) {
-                    $quantity = $sku['count'] - $c;
+                $count_in_cart = $this->cart_model->countSku($code, $sku['id']);
+                if ($sku['count'] !== null && $count_in_cart + $quantity > $sku['count']) {
+                    $quantity = $sku['count'] - $count_in_cart;
                     $name = $product['name'].($sku['name'] ? ' ('.$sku['name'].')' : '');
                     if (!$quantity) {
-                        if ($sku['count'] > 0) {
-                            $this->errors = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);
+                        if ($sku['count'] >= $order_count_min) {
+                            $this->errors = sprintf(_w('Only %s pcs. of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);
                         } else {
                             $this->errors = sprintf(_w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience.'), $name);
                         }
                         return;
                     } else {
-                        $this->errors = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);
+                        $this->errors = sprintf(_w('Only %s pcs. of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);
                     }
                 }
             }

@@ -825,7 +825,9 @@
                                             <span data-stock="0" class="s-product-stock-icon">
                                             {shopHelper::getStockCountIcon($sku.count)}
                                             </span>
-                                            <input class="short{if empty($sku.available) || empty($sku.status)} grey{/if}" type="text" name="skus[{$sku_id}][stock][0]"value="{if $sku.count !== null}{$sku.count}{/if}" placeholder="∞" title="[`In stock`]"> <span class="small">[`items`]</span>
+                                            <input
+                                                oninput="this.value = $.shop.validate('number', this.value)"
+                                                class="short number{if empty($sku.available) || empty($sku.status)} grey{/if}" type="text" name="skus[{$sku_id}][stock][0]"value="{if $sku.count !== null}{$sku.count}{/if}" placeholder="∞" title="[`In stock`]"> <span class="small">[`items`]</span>
                                             {if (count($stocks) >= 1)}
                                                 <br><a href="#/product/{$product.id}/edit/main/sku/stock/{$sku_id}/" class="small gray inline-link js-action"><b><i>[`Multiple stocks`]</i></b></a>
                                             </div>
@@ -843,7 +845,9 @@
                                             <span data-stock="{$stock_id}" class="s-product-stock-icon">
                                                 {shopHelper::getStockCountIcon($count, $stock_id)}
                                             </span>
-                                            <input class="short" type="text" name="skus[{$sku_id}][stock][{$stock_id}]"value="{if empty($sku.stock) && $stock@first}{$sku.count}{else}{if $count!==null}{$count}{/if}{/if}" placeholder="∞"{if empty($sku.stock)} disabled="disabled"{/if}>
+                                            <input
+                                                oninput="this.value = $.shop.validate('number', this.value)"
+                                                class="short number" type="text" name="skus[{$sku_id}][stock][{$stock_id}]"value="{if empty($sku.stock) && $stock@first}{$sku.count}{else}{if $count!==null}{$count}{/if}{/if}" placeholder="∞"{if empty($sku.stock)} disabled="disabled"{/if}>
                                             <span class="hint" title="{$stock.name|escape}">{$stock.name|escape}</span><br>
                                         {/foreach}
                                         </div>

@@ -15,7 +15,7 @@
     {/foreach}
 {/if}
 
-{$_quantity = 1}
+{$_quantity = $product.skus[$product.sku_id]["order_count_min"]}
 
 <div class="wa-order-dialog wa-product-edit-dialog" id="js-product-edit-dialog">
     <div class="wa-dialog-background"></div>
@@ -275,8 +275,8 @@
 
                 {$_product_price = $product.skus[$product.sku_id].frontend_price}
                 {$_product_compare_price = $product.skus[$product.sku_id].frontend_compare_price}
-                {$_total_price = ($_product_price * $_quantity)}
-                {$_total_compare_price = ($_product_compare_price * $_quantity)}
+                {$_total_price = $_product_price}
+                {$_total_compare_price = $_product_compare_price}
 
                 <div class="wa-price-compare js-product-price-compare" {if !($_product_compare_price > 0)}style="display:none;"{/if}>
                     {shop_currency_html($_total_compare_price, $product.currency)}

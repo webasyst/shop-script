@@ -494,7 +494,10 @@ class shopProductMassUpdate
                 if (wa_is_int($sku['count'])) {
                     $sku['count'] = (int) $sku['count'];
                 } else {
-                    if (!$sku['count']) {
+                    $sku['count'] = str_replace(',', '.', $sku['count']);
+                    if (is_numeric($sku['count'])) {
+                        $sku['count'] = (float) $sku['count'];
+                    } elseif (!$sku['count']) {
                         $sku['count'] = null;
                     } else {
                         throw new waException('sku.count must be integer or empty string: '.htmlspecialchars($sku['count']), 400);

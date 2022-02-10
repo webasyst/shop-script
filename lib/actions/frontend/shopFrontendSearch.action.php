@@ -18,6 +18,11 @@ class shopFrontendSearchAction extends shopFrontendAction
             $this->view->assign('sorting', true);
         }
 
+        $units = shopHelper::getUnits();
+        $this->view->assign('units', $units);
+        $this->view->assign('formatted_units', shopFrontendProductAction::formatUnits($units));
+        $this->view->assign('fractional_config', shopFrac::getFractionalConfig());
+
         /**
          * @event frontend_search
          * @return array[string]string $return[%plugin_id%] html output for search

@@ -87,14 +87,14 @@ class shopFrontendBuybuttonsAction extends waViewAction
             foreach ($features as $feature_id => $feature_value_id) {
                 $key .= $feature_id . ':' . $feature_value_id . ';';
             }
-            if (!isset($skus[$key]) || !$skus[$key]['available'] || !$skus[$key]['status']) {
+            if (!isset($skus[$key]) || !$skus[$key]['available']) {
                 $available = false;
             }
             $_POST['features'] = $features;
         } else if (count($product->skus) > 1) {
             $sku_id = (int) ifset($post['sku_id']);
             $skus = $product->skus;
-            if (!isset($skus[$sku_id]) || !$skus[$sku_id]['available'] || !$skus[$sku_id]['status']) {
+            if (!isset($skus[$sku_id]) || !$skus[$sku_id]['available']) {
                 $available = false;
             }
             $_POST['sku_id'] = $sku_id;

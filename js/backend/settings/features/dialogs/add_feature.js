@@ -567,7 +567,7 @@
                      * @param {String?} color
                      * */
                     function getColorData(name, color) {
-                        var href = "?module=settings&action=featuresHelper",
+                        var href = "?module=settingsTypefeat&action=featuresHelper",
                             data = {};
 
                         if (color) { data.code = color2magic(color); }

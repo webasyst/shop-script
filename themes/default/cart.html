@@ -21,7 +21,11 @@
             {foreach $cart.items as $item}
 
                 <!-- cart item -->
-                <div class="row" data-id="{$item.id}">
+                <div class="row"
+                     data-id="{$item.id}"
+                     data-count-min="{$item.order_count_min}"
+                     data-count-step="{$item.order_count_step}"
+                >
                     <div class="col w1 item-thumb"><a href="{$wa->shop->productUrl($item.product)}" title="{$item.product.name|escape}">{$wa->shop->productImgHtml($item.product, '96x96', ['default' => "`$wa_theme_url`img/dummy48.png"])}</a>&nbsp;</div>
                     <div class="col w9 item-name">
                         <a href="{$wa->shop->productUrl($item.product)}" class="bold">{$item.product.name|escape}</a>

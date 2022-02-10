@@ -34,6 +34,7 @@ class shopProductPromoPriceTmpModel extends waModel
                         primary_price         DECIMAL(15, 4) DEFAULT '0.0000' NULL,
                         compare_price         DECIMAL(15, 4) DEFAULT '0.0000' NULL,
                         primary_compare_price DECIMAL(15, 4) DEFAULT '0.0000' NULL,
+                        primary_base_price    DECIMAL(15, 4) DEFAULT '0.0000' NULL,
                         INDEX `storefront` (`storefront`),
                         INDEX `product_id` (`product_id`),
                         INDEX `sku_id` (`sku_id`),

@@ -904,6 +904,7 @@ class shopProductModel extends waModel
         }
         $id = (int)$id;
         $product = $this->getById($id);
+        $main_sku_id = $product['sku_id'];
 
         $product_skus_model = new shopProductSkusModel();
         $skus = $product_skus_model->getDataByProductId($id, true);
@@ -921,12 +922,23 @@ class shopProductModel extends waModel
         $product_count = 0;
 
         $available_sku_count = 0;
+        $base_prices = array();
+        $product_base_price = 0;
         foreach ($skus as $sku) {
             if ($sku['available'] && $sku['status']) {
                 $available_sku_count++;
             }
 
-            $price[] = $this->castValue('decimal', $sku['price']);
+            $sku_price = $this->castValue('decimal', $sku['price']);
+            $price[] = $sku_price;
+            $stock_base_ratio = isset($sku['stock_base_ratio']) ? $sku['stock_base_ratio'] : $product['stock_base_ratio'];
+            $base_price = $sku_price / $this->castValue('double', $stock_base_ratio);
+            $base_price = min(99999999999.9999, max(0.0001, $base_price));
+            $base_prices[] = $base_price;
+            if ($main_sku_id == $sku['id']) {
+                $product_base_price = $base_price;
+            }
+
             $sku_count = 0;
             $num_of_null = 0;
             foreach ($sku['stock'] as $count) {
@@ -963,9 +975,15 @@ class shopProductModel extends waModel
         if (!$price) {
             $price[] = 0;
         }
+        if (!$base_prices) {
+            $base_prices[] = 0;
+        }
         $update_product_data['sku_count'] = count($skus);
         $update_product_data['min_price'] = $currency_model->convert(min($price), $product['currency'], $currency);
         $update_product_data['max_price'] = $currency_model->convert(max($price), $product['currency'], $currency);
+        $update_product_data['base_price'] = $product_base_price;
+        $update_product_data['min_base_price'] = min($base_prices);
+        $update_product_data['max_base_price'] = max($base_prices);
         $update_product_data['price'] = $currency_model->convert($skus[$product['sku_id']]['price'], $product['currency'], $currency);
         if (isset($skus[$product['sku_id']]['compare_price'])) {
             $update_product_data['compare_price'] = $currency_model->convert($skus[$product['sku_id']]['compare_price'], $product['currency'], $currency);

@@ -31,6 +31,15 @@ class shopOrderTotalController extends waJsonController
         $shipping_id = ifset($params, 'shipping_id', 0);
         $this->response['shipping_methods'] = $order->getShippingMethods(false, $shipping_id);
         $this->response['shipping_method_ids'] = array_keys($this->response['shipping_methods']);
+
+        $order_has_frac = false;
+        $order_has_units = false;
+        if (!empty($order['items'])) {
+            $order_has_frac = shopFrac::itemsHaveFractionalQuantity($order['items']);
+            $order_has_units = shopUnits::itemsHaveCustomStockUnits($order['items']);
+        }
+        $payment_methods = shopHelper::getPaymentMethods($order, $order_has_frac, $order_has_units);
+        $this->response['payment_methods'] = array_values($payment_methods);
         $this->response['discount'] = $order->discount;
         $this->response['discount_description'] = $order->discount_description;
         $this->response['errors'] = $order->errors();

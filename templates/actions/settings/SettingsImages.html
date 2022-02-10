@@ -134,7 +134,7 @@
                             <br>
                             <span class="hint">[`When enabled, thumbnails’ file names are derived from the name of an original image file you upload.`]<br>
                             [`When disabled, thumbnails’ file names are generated only with the use of numbers denoting thumbnail dimensions.`]</span>
-                            <p id="s-image-filename-hint" class="small"{if empty($settings.image_filename)} style="display: none"{/if}><br><em style="background-color: #ffa;">{sprintf('[`If you enable this setting for the first time, it is <strong>strongly recommended</strong> to 1) Re-generate all product image thumbnails (use the link below) right after this setting has been changed, and 2) Update your store theme product.html template with the <a href="%s" target="_blank">new product thumbnail display code</a>.`]', '[`http://www.shop-script.com/help/4750/shopscript610-design-theme-changes/`]')}</em></p>
+                            <p id="s-image-filename-hint" class="small"{if empty($settings.image_filename)} style="display: none"{/if}><br><em style="background-color: #ffa;">{sprintf('[`If you enable this setting for the first time, it is <strong>strongly recommended</strong> to 1) Re-generate all product image thumbnails (use the link below) right after this setting has been changed, and 2) Update your store theme product.html template with the <a href="%s" target="_blank">new product thumbnail display code</a>.`]', '[`https://www.shop-script.com/help/4750/shopscript610-design-theme-changes/`]')}</em></p>
                         </div>
                     </div>
                 </div>
@@ -230,7 +230,7 @@
         <div class="dialog-content">
             <div class="dialog-content-indent">
                 <h1>[`Re-generate product image thumbnails`]</h1>
-                <p>[`This will start the process of deleting all existing product thumbnails and re-generating them from fullsize versions according to latest thumbnail generation settings such as sharpening and JPEG compression quality. Depending on the number of products, re-generation may take some time to complete and may free some disk space on your server.`]</p>
+                <p>[`This will start the process of deleting all existing product thumbnails and re-generating them from full-size versions according to latest thumbnail generation settings such as sharpening and JPEG compression quality. Depending on the number of products, re-generation may take some time to complete and may free some disk space on your server.`]</p>
                 <p class="small"><i class="icon10 exclamation"></i> <em>[`While thumbnails are re-generated, your storefront visitors should see no difference in your storefront functioning, and there should be no broken images, because new thumbnails are created by Webasyst automatically upon user request. However, since creating new thumbnails consume server resources, your server may experience above-average load while new thumbnails are created. The overload depends on the number of requests on thumbnails generation, i.e. on your storefront traffic. It is recommended to perform thumbnail re-generation when your storefront traffic is at its lowest.`]</em></p>
 
                 <h5 class="heading">[`Optional settings`]</h5>
@@ -247,15 +247,15 @@
                 <div style="padding-left: 24px;margin-top: 14px;">
                     <label><input type="checkbox" name="with_2x" value="1" disabled> [`Create @2x image thumbnails`]</label>
                     <br>
-                    <span class="hint">[`@2x thumbnails require more disk space than orginary thumbnails. Ensure that you have sufficient space to store all image files.`]</span>
+                    <span class="hint">[`@2x thumbnails require more disk space than ordinary ones. Ensure that you have sufficient space to store all image files.`]</span>
                 </div>
 
                 <br>
 
                 <div>
-                    <label><input type="checkbox" name="restore_originals" value="1"> [`Restore product fullsize images from originally uploaded versions (backups)`]</label>
+                    <label><input type="checkbox" name="restore_originals" value="1"> [`Restore product full-size images from originally uploaded versions (backups)`]</label>
                     <br>
-                    <span class="hint">[`Enable this to flush all source fullsize images and re-generate them from backups. All plugin customizations to source images will be re-applied. Source images without backups will be skipped.`]</span>
+                    <span class="hint">[`Enable this to flush all source full-size images and re-generate them from backups. All plugin customizations to source images will be re-applied. Source images without backups will be skipped.`]</span>
                 </div>
 
                 <div id="s-regenerate-progressbar" style="display:none; margin-top: 20px;">

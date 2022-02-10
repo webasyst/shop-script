@@ -19,22 +19,25 @@ class shopTransferActions extends waJsonActions
     public function send()
     {
         $ids = array_map('intval', (array) $this->getRequest()->request('id'));
-        $counts = array_map('intval', (array) $this->getRequest()->request('count'));
+        $counts = (array)$this->getRequest()->request('count');
         $from = (int) $this->getRequest()->request('from');
         $to = (int) $this->getRequest()->request('to');
-        $count = (int) $this->getRequest()->request('count');
+
+        foreach ($counts as $key => &$value) {
+            $value = floatval(str_replace(',', '.', $value));
+            if ($value <= 0) {
+                $this->errors[] = array(
+                    'name' => "count[$key]",
+                    'msg' => _w('Product count must be more than 0')
+                );
+            }
+        }
+        unset($value);
 
         if (empty($ids)) {
             $this->errors[] = array(
                 'name' => 'id',
                 'msg' => _w('Add at least one product to the transfer')
-            );
-        }
-
-        if ($count <= 0) {
-            $this->errors[] = array(
-                'name' => 'count',
-                'msg' => _w('Product count must be not less than 1')
             );
         }
 
@@ -76,10 +79,10 @@ class shopTransferActions extends waJsonActions
             if (!isset($items[$id])) {
                 $items[$id] = array(
                     'sku_id' => $id,
-                    'count' => (int)ifset($counts[$index], 1)
+                    'count' => (double) ifset($counts[$index], 1)
                 );
             } else {
-                $items[$id]['count'] += (int)ifset($counts[$index], 1);
+                $items[$id]['count'] += (double) ifset($counts[$index], 1);
             }
         }
 

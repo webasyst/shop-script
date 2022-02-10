@@ -56,14 +56,13 @@ class shopOrderSendprintformController extends waJsonController
                         $order = shopPayment::getOrderData($order, $plugin);
                         $forms = $plugin->getPrintForms($order);
                         if (!isset($forms[$form])) {
-                            $this->setError('Printform not found');
+                            $this->setError('Printable form not found');
                         } elseif (!isset($forms[$form]['emailprintform'])) {
                             $this->setError('Plugin not support sending via email');
                         } else {
                             if ($order->contact_email) {
                                 $mail = new waMailMessage();
                                 $mail->setBody($plugin->displayPrintForm($form, $order));
-                                //_w('Printform %s for order %s')
                                 $mail->setSubject(sprintf('%s %s', $forms[$form]['name'], $order->id_str));
                                 $mail->setTo($order->contact_email, $order->contact_name);
 
@@ -72,7 +71,7 @@ class shopOrderSendprintformController extends waJsonController
                                 $mail->setFrom($from);
                                 if ($mail->send()) {
                                     $text = sprintf('<i class="icon16 email" title="%s"></i>', htmlentities($order->contact_email, ENT_QUOTES, 'utf-8'));
-                                    $text .= sprintf(_w("Printform <strong>%s</strong> sent to customer."), $forms[$form]['name']);
+                                    $text .= sprintf(_w("Printable form <strong>%s</strong> sent to customer."), $forms[$form]['name']);
 
                                     $log = array(
                                         'order_id'        => $order->id,

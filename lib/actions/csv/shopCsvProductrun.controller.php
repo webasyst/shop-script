@@ -188,6 +188,7 @@ class shopCsvProductrunController extends waLongActionController
         $file = wa()->getTempPath('csv/upload/'.$name);
         $this->data['rights'] = $this->getUser()->getRights('shop', 'settings');
         $this->data['new_features'] = array();
+        $this->data['product_selectable_features'] = [];
         $this->data['currencies'] = $config->getCurrencies();
         if ($this->data['type_id'] && !in_array($this->data['type_id'], $this->data['types'])) {
             $this->data['type_id'] = reset($this->data['types']);
@@ -390,6 +391,7 @@ class shopCsvProductrunController extends waLongActionController
         );
 
         $map = shopCsvProductuploadController::getMapFields(true, $config['extra']);
+
         if (empty($config['primary_sku'])) {
             unset($map['skus:-1:_primary']);
         }
@@ -1162,6 +1164,7 @@ SQL;
 
         if (isset($data['row_type']) && ($data['row_type'] == self::STAGE_PRODUCT || $data['row_type'] == self::STAGE_PRODUCT_VARIANT)) {
             $this->data['is_deleted_empty_sku'] = false;
+            $this->data['product_selectable_features'] = [];
             if ($data['row_type'] == self::STAGE_PRODUCT) {
                 $is_extended_sku_behavior = false;
             }
@@ -1711,6 +1714,14 @@ SQL;
                             $sku_id = array_keys($data['skus'])[0];
                             $this->data['is_deleted_empty_sku'] = true;
                             $data['skus'][$sku_id] = '';
+                        }
+
+                        if (shopFrac::isEnabled()) {
+                            foreach (['stock_base_ratio', 'order_count_min', 'order_count_step'] as $product_field) {
+                                if (isset($data[$product_field])) {
+                                    $data['skus'][$item_sku_id][$product_field] = $data[$product_field];
+                                }
+                            }
                         }
 
                         $truncated_data = array(
@@ -2515,6 +2526,10 @@ SQL;
                     }
                 }
 
+                if (!empty($product['count_denominator'])) {
+                    $product['count_denominator'] = shopFrac::isEnabled() ? 1.0 / $product['count_denominator'] : 1;
+                }
+
                 # tags
                 if (!isset($product['tags']) && !$extra_category_record) {
                     /** @var shopProductTagsModel $tags_model */
@@ -2783,6 +2798,11 @@ SQL;
 
         if ($sku_mode || $simple_product) {
             $product['skus'] = array(-1 => $sku);
+            foreach (['stock_base_ratio', 'order_count_min', 'order_count_step'] as $product_field) {
+                if (isset($sku[$product_field])) {
+                    $product[$product_field] = $sku[$product_field];
+                }
+            }
         }
 
         $product['sku_type'] = $product['sku_type'] == shopProductModel::SKU_TYPE_SELECTABLE ? self::EXPORT_SKU_TYPE_SELECTABLE : self::EXPORT_SKU_TYPE_FLAT;
@@ -3105,15 +3125,24 @@ SQL;
         $features_selectable_model = $this->model('product_features_selectable');
         $features_selectable_ids = $features_selectable_model->getByProduct($product->getId());
         if (is_array($this->data['sku_feature_codes']) && is_array($features_selectable_ids)) {
-            if (!isset($this->data['product_selectable_features'])) {
-                $this->data['product_selectable_features'] = [];
+            if (!isset($this->data['all_products_selectable_features'])) {
+                $this->data['all_products_selectable_features'] = [];
             }
-            $missing_feature_ids = array_diff(array_keys($features_selectable_ids), array_column($this->data['product_selectable_features'], 'id'));
+            $missing_feature_ids = array_diff(array_keys($features_selectable_ids), array_column($this->data['all_products_selectable_features'], 'id'));
             if (!empty($missing_feature_ids)) {
                 /** @var shopProductFeaturesModel $feature_model */
                 $feature_model = $this->model('feature');
-                $this->data['product_selectable_features'] += $feature_model->select('id, code')->where('id IN (?)', [$missing_feature_ids])->fetchAll('code');
+                $this->data['all_products_selectable_features'] += $feature_model->select('id, code')->where('id IN (?)', [$missing_feature_ids])->fetchAll('code');
             }
+            $product_selectable_features = [];
+            foreach ($features_selectable_ids as $id => $empty_item) {
+                foreach ($this->data['all_products_selectable_features'] as $code => $selectable_feature) {
+                    if ($id == $selectable_feature['id']) {
+                        $product_selectable_features[$code] = $selectable_feature;
+                    }
+                }
+            }
+            $this->data['product_selectable_features'] = array_merge($this->data['product_selectable_features'], $product_selectable_features);
             $sku_feature_codes = array_merge($this->data['sku_feature_codes'], $this->data['product_selectable_features']);
             if (!empty($saved_features) && $sku_feature_codes) {
                 $selectable_features_ids = array_column(array_intersect_key($saved_features, $sku_feature_codes), 'id');

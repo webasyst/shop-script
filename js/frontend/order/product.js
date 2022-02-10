@@ -26,13 +26,14 @@
             that.added_class = "is-added";
 
             // DYNAMIC VARS
-            that.amount = parseFloat( that.$amount.val() );
             that.sku_id = parseFloat( options["sku_id"] );
             that.price = parseFloat( options["price"] );
             that.compare_price = parseFloat( options["price"] );
 
             // INIT
             that.init();
+
+            console.log( that );
         };
 
         Product.prototype.init = function() {
@@ -164,6 +165,8 @@
             if (!sku) {
                 that.DEBUG("SKU is missing", "error");
             }
+
+            that.$amount.val(sku.order_count_min);
 
             //
             renderSKU(sku.sku);
@@ -369,7 +372,6 @@
             // VARS
             var services_price = 0,
                 // services_price = getServicePrice(),
-                amount = that.amount,
                 price_sum,
                 compare_sum;
 
@@ -390,8 +392,8 @@
             }
 
             //
-            price_sum = (price + services_price) * amount;
-            compare_sum = (compare_price + services_price) * amount;
+            price_sum = (price + services_price);
+            compare_sum = (compare_price + services_price);
 
             // Render Price
             $price.html( window.waOrder.ui.formatPrice(price_sum) );

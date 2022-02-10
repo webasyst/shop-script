@@ -9,7 +9,7 @@ class shopProductStocksLogAction extends shopStocksLogListAction
         $product_model = new shopProductModel();
         $product = $product_model->getById($id);
         if (!$product) {
-            throw new waException(_w("Unkown product"));
+            throw new waException(_w("Unknown product"));
         }
         $this->product_id = $id;
         parent::execute();

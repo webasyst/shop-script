@@ -24,6 +24,8 @@ class shopProductsLoadListController extends shopProductListAction
             $total_count = $this->collection->count();
         }
 
+        $products = shopProductsAction::formatProducts($products);
+
         $this->assign(array(
             'products' => array_values($products),
             'total_count' => $total_count,

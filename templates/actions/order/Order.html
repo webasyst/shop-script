@@ -293,7 +293,12 @@
                                             </div>
                                         {/if}
                                     </td>
-                                    <td class="align-right nowrap"><span class="gray">{wa_currency_html($item.price, $order.currency)} &times;</span> {$item.quantity}</td>
+                                    <td class="align-right nowrap">
+                                        <span class="gray">{wa_currency_html($item.price, $order.currency)} &times;</span> {$item.quantity}
+                                        {if !empty($item.stock_unit)}
+                                            <span class="s-unit">{$item.stock_unit.name_short}</span>
+                                        {/if}
+                                    </td>
                                     <td class="align-right nowrap"{if $item.total_discount > 0} title="{sprintf_wp("Total discount for this order item: %s.", wa_currency($item.total_discount, $order.currency))|escape}"{/if}>{wa_currency_html($item.price * $item.quantity, $order.currency)}</td>
                                 </tr>
                                 {$subtotal = $subtotal + $item.price*$item.quantity}

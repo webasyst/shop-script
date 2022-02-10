@@ -36,6 +36,7 @@
                 // ключ global содержит массив с общими ошибками страницы
                 global: []
             };
+            that.fractional_vue_model = null;
 
             //
             that.new_modification = that.formatModification(options["new_modification"]);
@@ -1112,6 +1113,462 @@
                     }
                 },
                 components: {
+                    "component-fractional-section": {
+                        props: ["sku_mod"],
+                        data: function() {
+                            var self = this,
+                                is_product = false,
+                                is_simple = !that.product.normal_mode_switch;
+
+                            var fractional = {
+                                "units"            : that.product.fractional.units,
+                                "rights"           : that.product.fractional.rights,
+                                "denominators"     : that.product.fractional.denominators,
+
+                                "base_unit_id"     : that.product.fractional.base_unit_id,
+                                "stock_unit_id"    : that.product.fractional.stock_unit_id,
+                                "order_multiplicity_factor": that.product.fractional.order_multiplicity_factor,
+
+                                "order_count_min"  : (typeof self.sku_mod.order_count_min === "string" ? self.sku_mod.order_count_min : ""),
+                                "order_count_step" : (typeof self.sku_mod.order_count_step === "string" ? self.sku_mod.order_count_step : ""),
+                                "stock_base_ratio" : (typeof self.sku_mod.stock_base_ratio === "string" ? self.sku_mod.stock_base_ratio : "")
+                            };
+
+                            if (!is_simple) {
+                                if (fractional.rights.base_unit_id !== "disabled") {
+                                    fractional.rights.base_unit_id = "readonly";
+                                }
+                                if (fractional.rights.stock_unit_id !== "disabled") {
+                                    fractional.rights.stock_unit_id = "readonly";
+                                }
+                                if (fractional.rights.order_multiplicity_factor !== "disabled") {
+                                    fractional.rights.order_multiplicity_factor = "readonly";
+                                }
+                            }
+
+                            return {
+                                section: "sku",
+                                normal_mode: that.product.normal_mode_switch,
+                                fractional: fractional,
+                                errors: that.errors,
+                                states: {
+                                    is_product: is_product,
+                                    is_locked: false
+                                }
+                            }
+                        },
+                        template: that.components["component-fractional-section"],
+                        delimiters: ['{ { ', ' } }'],
+                        components: {
+                            "component-fractional-dropdown": {
+                                props: ["units", "default_value", "show_empty", "readonly"],
+                                template: that.components["component-fractional-dropdown"],
+                                data: function() {
+                                    var self = this,
+                                        active_unit = null,
+                                        max_length = 0;
+
+                                    $.each(self.units, function(i, unit) {
+                                        if (unit.value === self.default_value) {
+                                            active_unit = unit;
+                                        }
+
+                                        if (unit.name.length > max_length) {
+                                            max_length = unit.name.length;
+                                        }
+                                    });
+
+                                    var letter_width = max_length * 9,
+                                        body_width = 200;
+
+                                    if (letter_width < 80) {
+                                        body_width = 80;
+                                    } else if (letter_width < 200) {
+                                        body_width = letter_width + 40;
+                                    }
+
+                                    return {
+                                        body_width: (body_width > 80 ? body_width : 80) + "px",
+                                        active_unit: active_unit
+                                    }
+                                },
+                                delimiters: ['{ { ', ' } }'],
+                                computed: {
+                                    show_empty_item: function() {
+                                        var self = this;
+                                        return (self.show_empty === true);
+                                    }
+                                },
+                                mounted: function() {
+                                    var self = this;
+
+                                    var $dropdown = $(self.$el).find(".dropdown");
+                                    $dropdown.waDropdown({
+                                        hover: false,
+                                        items: ".dropdown-item",
+                                        change: function(event, target, dropdown) {
+                                            var value = $(target).data("value");
+
+                                            if (typeof value !== "undefined") {
+                                                value = value + "";
+                                            } else {
+                                                console.error("Unit undefined");
+                                                return false;
+                                            }
+
+                                            self.$emit("change", value);
+                                        }
+                                    });
+                                }
+                            }
+                        },
+                        computed: {
+                            stock_unit_tooltip: function() {
+                                var self = this;
+                                return self.getTooltip('stock_unit_id', 'unit-readonly');
+                            },
+                            base_unit_tooltip: function() {
+                                var self = this;
+                                return self.getTooltip('base_unit_id', 'unit-readonly');
+                            },
+                            order_multiplicity_factor_tooltip: function() {
+                                var self = this;
+                                return self.getTooltip('order_multiplicity_factor', 'count-denominator-readonly');
+                            },
+
+                            show_fractional: function () {
+                                var self = this,
+                                    result = false;
+
+                                $.each(self.fractional.rights, function(name, value) {
+                                    if (value !== "disabled") {
+                                        result = true;
+                                        return false;
+                                    }
+                                });
+
+                                if (!self.normal_mode) { result = false; }
+
+                                return result;
+                            },
+                            show_stock_base_ratio: function() {
+                                var self = this;
+                                return (self.fractional.rights.base_unit_id !== 'disabled' && self.fractional.rights.stock_base_ratio !== 'disabled' && self.fractional.stock_unit_id && self.fractional.base_unit_id);
+                            },
+                            show_section_1: function () {
+                                var self = this,
+                                    result = false;
+
+                                $.each(self.fractional.rights, function(name, value) {
+                                    var white_list = ["stock_unit_id", "base_unit_id"];
+                                    if (white_list.indexOf(name) >= 0 && value !== "disabled") {
+                                        result = true;
+                                        return false;
+                                    }
+                                });
+
+                                return result;
+                            },
+                            show_section_2: function () {
+                                var self = this,
+                                    result = false;
+
+                                $.each(self.fractional.rights, function(name, value) {
+                                    var white_list = ["order_multiplicity_factor", "order_count_min", "order_count_step"];
+                                    if (white_list.indexOf(name) >= 0 && value !== "disabled") {
+                                        result = true;
+                                        return false;
+                                    }
+                                });
+
+                                return result;
+                            },
+                            selected_stock_unit: function () {
+                                var self = this,
+                                    result = null;
+
+                                if (self.fractional.stock_unit_id) {
+                                    var unit_search = self.fractional.units.filter( function(unit) {
+                                        return (unit.value === self.fractional.stock_unit_id);
+                                    });
+
+                                    if (unit_search.length) {
+                                        result = unit_search[0].name_short;
+                                    }
+                                }
+
+                                return result;
+                            },
+                            selected_base_unit: function () {
+                                var self = this,
+                                    result = null;
+
+                                if (self.fractional.base_unit_id) {
+                                    var unit_search = self.fractional.units.filter( function(unit) {
+                                        return (unit.value === self.fractional.base_unit_id);
+                                    });
+
+                                    if (unit_search.length) {
+                                        result = unit_search[0].name_short;
+                                    }
+                                }
+
+                                return result;
+                            }
+                        },
+                        methods: {
+                            isReadonly: function(name) {
+                                var self = this;
+                                return (self.fractional.rights[name] === "readonly");
+                            },
+                            getTooltip: function(name, tooltip_id) {
+                                var self = this,
+                                    is_readonly = self.isReadonly(name);
+                                return (is_readonly ? "component-fractional-" + tooltip_id : "");
+                            },
+                            getPlaceholder: function(name) {
+                                var self = this;
+                                return that.product.fractional[name];
+                            },
+
+                            onChangeStockUnit: function(value) {
+                                var self = this;
+
+                                self.fractional.stock_unit_id = value;
+
+                                self.checkStockUnit();
+                                self.checkUnits();
+                            },
+                            onChangeBaseUnit: function(value) {
+                                var self = this;
+
+                                self.fractional.base_unit_id = value;
+
+                                self.checkUnits();
+                            },
+                            onChangeCountDenominator: function(value) {
+                                var self = this;
+
+                                self.checkCountDenominator();
+                                self.checkOrderCountStep();
+                                self.checkOrderCountMin();
+                            },
+                            onChangeStockBaseRatio: function() {
+                                var self = this;
+
+                                self.checkStockBaseRatio();
+
+                                self.sku_mod.stock_base_ratio = self.fractional.stock_base_ratio;
+                            },
+                            onChangeOrderCountStep: function() {
+                                var self = this;
+
+                                self.checkOrderCountStep();
+
+                                self.sku_mod.order_count_step = self.fractional.order_count_step;
+                            },
+                            onChangeOrderCountMin: function() {
+                                var self = this;
+
+                                self.checkOrderCountMin();
+
+                                self.sku_mod.order_count_min = self.fractional.order_count_min;
+                            },
+
+                            checkUnits: function() {
+                                var self = this,
+                                    result = null;
+
+                                var error_id = "units_error";
+
+                                if (self.fractional.rights.stock_unit_id === "enabled" || self.fractional.rights.base_unit_id === "enabled") {
+                                    var case_1 = (self.fractional.stock_unit_id && self.fractional.base_unit_id && self.fractional.stock_unit_id === self.fractional.base_unit_id);
+                                    if (case_1) {
+                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["units_unique_error"] });
+                                        result = "units_error";
+                                    } else {
+                                        self.$delete(self.errors, error_id);
+                                    }
+                                } else {
+                                    self.$delete(self.errors, error_id);
+                                }
+
+                                return result;
+                            },
+                            checkStockUnit: function() {
+                                var self = this,
+                                    result = null;
+
+                                var error_id = "stock_unit";
+
+                                if (self.fractional.rights.stock_unit_id === "enabled") {
+                                    var case_1 = (!self.fractional.stock_unit_id);
+                                    if (case_1) {
+                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["stock_unit_required"] });
+                                        result = "stock_unit_error";
+                                    } else {
+                                        self.$delete(self.errors, error_id);
+                                    }
+                                } else {
+                                    self.$delete(self.errors, error_id);
+                                }
+
+                                return result;
+                            },
+
+                            checkStockBaseRatio: function() {
+                                var self = this,
+                                    result = null;
+
+                                var error_id = "stock_base_ratio";
+
+                                // VALIDATE
+                                self.fractional.stock_base_ratio =  self.validate("number", self.fractional.stock_base_ratio);
+
+                                if (self.fractional.stock_base_ratio !== "" && self.fractional.rights.base_unit_id !== 'disabled' && self.fractional.rights.stock_base_ratio === "enabled" && self.fractional.stock_unit_id && self.fractional.base_unit_id) {
+                                    var case_1 = (!self.fractional.stock_base_ratio || !(parseFloat(self.fractional.stock_base_ratio) > 0)),
+                                        case_2 = isInvalidRatio(self.fractional.stock_base_ratio);
+                                    if (case_1) {
+                                        self.$set(self.errors, error_id, {id: error_id, text: that.locales["stock_base_ratio_error"]});
+                                        result = "stock_base_ratio_error";
+                                    } else
+                                    if (case_2) {
+                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["stock_base_ratio_invalid"] });
+                                        result = "stock_base_ratio_invalid";
+                                    } else {
+                                        self.$delete(self.errors, error_id);
+                                    }
+                                } else {
+                                    self.$delete(self.errors, error_id);
+                                }
+
+                                return result;
+
+                                function isInvalidRatio(value) {
+                                    if (!(parseFloat(value) > 0)) { return true; }
+
+                                    value = $.wa.validate("number", value);
+
+                                    const limit_body = 8,
+                                          limit_tail = 8,
+                                          parts      = value.replace(",", ".").split(".");
+
+                                    return !!(parts[0].length > limit_body || (parts[1] && parts[1].length > limit_tail));
+                                }
+                            },
+                            checkCountDenominator: function() {
+                                var self = this,
+                                    result = null;
+
+                                var error_id = "order_multiplicity_factor";
+
+                                // VALIDATE
+                                self.fractional.order_multiplicity_factor =  self.validate("number", self.fractional.order_multiplicity_factor);
+
+                                if (self.fractional.rights.order_multiplicity_factor === "enabled") {
+                                    var case_1 = (!self.fractional.order_multiplicity_factor || !checkValue(self.fractional.order_multiplicity_factor));
+                                    if (case_1) {
+                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_multiplicity_factor_required"] });
+                                        result = "order_multiplicity_factor_required";
+                                    } else {
+                                        self.$delete(self.errors, error_id);
+                                    }
+                                } else {
+                                    self.$delete(self.errors, error_id);
+                                }
+
+                                return result;
+
+                                function checkValue(value_string) {
+                                    var result = false,
+                                        value = parseFloat(value_string),
+                                        tail_length = (value_string.indexOf(".") >= 0 ? (value_string.length - (value_string.indexOf(".") + 1)) : 0);
+
+                                    if (value > 0) {
+                                        var min = 0.001,
+                                            max = 999999.999,
+                                            max_tail_length = 3;
+
+                                        result = (tail_length <= max_tail_length && value >= min && value <= max);
+                                    }
+
+                                    return result;
+                                }
+                            },
+                            checkOrderCountStep: function() {
+                                var self = this,
+                                    result = null;
+
+                                var error_id = "order_count_step";
+
+                                // VALIDATE
+                                self.fractional.order_count_step =  self.validate("number", self.fractional.order_count_step);
+
+                                if (self.fractional.order_count_step !== "" && self.fractional.rights.order_count_step === "enabled" && self.fractional.order_multiplicity_factor) {
+                                    var case_1 = (!self.fractional.order_count_step || !self.checkValue(self.fractional.order_count_step));
+                                    if (case_1) {
+                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_count_step_error"] });
+                                        result = "order_count_step_error";
+                                    } else {
+                                        self.$delete(self.errors, error_id);
+                                    }
+                                } else {
+                                    self.$delete(self.errors, error_id);
+                                }
+
+                                return result;
+                            },
+                            checkOrderCountMin: function() {
+                                var self = this,
+                                    result = null;
+
+                                var error_id = "order_count_min";
+
+                                // VALIDATE
+                                self.fractional.order_count_min =  self.validate("number", self.fractional.order_count_min);
+
+                                if (self.fractional.order_count_min !== "" && self.fractional.rights.order_count_min === "enabled" && self.fractional.order_multiplicity_factor) {
+                                    var case_1 = (!self.fractional.order_count_min || !self.checkValue(self.fractional.order_count_min));
+                                    if (case_1) {
+                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_count_min_error"] });
+                                        result = "order_count_min_error";
+                                    } else {
+                                        self.$delete(self.errors, error_id);
+                                    }
+                                } else {
+                                    self.$delete(self.errors, error_id);
+                                }
+
+                                return result;
+                            },
+                            checkValue: function(value) {
+                                var self = this;
+
+                                value = parseFloat(value);
+
+                                var result = false,
+                                    divider = getDivider();
+
+                                if (value > 0 && divider > 0) {
+                                    var x1 = parseFloat((value/divider).toFixed(3)),
+                                        tail = value - parseFloat((parseInt(x1) * divider).toFixed(3));
+                                    result = (tail === 0);
+                                }
+
+                                return result;
+
+                                function getDivider() {
+                                    return (self.fractional.order_multiplicity_factor ? self.fractional.order_multiplicity_factor : null);
+                                }
+                            },
+                            validate: $.wa.validate
+                        },
+                        mounted: function() {
+                            var self = this;
+                            that.fractional_vue_model = self;
+                            that.validate({ fractional_vue_model: self });
+                        }
+                    },
                     "component-advanced-sku-mode": {
                         props: ["product", "locked"],
                         data: function() {
@@ -2748,11 +3205,11 @@
                                 });
                             }
 
-                            sku_mod.stock[stock.id] = value;
+                            sku_mod.stock[stock.id] = $.wa.validate("float", value);
                         });
 
                         sku_mod.stocks_mode = is_set;
-                        sku_mod.count = (is_set && !is_infinite ? stocks_count : "");
+                        sku_mod.count = (is_set && !is_infinite ? $.wa.validate("float", stocks_count) : "");
 
                         that.updateModificationStocks(sku_mod);
                     },
@@ -3176,7 +3633,7 @@
 
                     that.initDragAndDrop(this);
                     // that.initTouchAndDrop(this);
-                    that.validate(self);
+                    that.validate({ vue_model: self });
 
                     initAddFeatureDialog($wrapper);
 
@@ -3324,6 +3781,8 @@
             sku_mod.stocks_mode = true;
             sku_mod.stocks_indicator = 1;
 
+            sku_mod.count = (sku_mod.count > 0 ? $.wa.validate("float", sku_mod.count) : sku_mod.count);
+
             if (typeof sku_mod.stock !== "object" || Array.isArray(sku_mod.stock)) {
                 sku_mod.stocks_mode = false;
                 sku_mod.stock = {};
@@ -3368,7 +3827,7 @@
                         });
                     }
 
-                    sku_mod.stock[stock.id] = value;
+                    sku_mod.stock[stock.id] = $.wa.validate("float", value);
                 });
             }
         };
@@ -3487,7 +3946,7 @@
                 }
 
                 if (is_set) {
-                    sku_mod.count = stocks_count;
+                    sku_mod.count = $.wa.validate("float", stocks_count);
                 }
             }
         };
@@ -3950,12 +4409,14 @@
 
         // Сохранение
 
-        Section.prototype.validate = function(vue_model) {
+        Section.prototype.validate = function(options) {
+            options = (typeof options !== "undefined" ? options : {});
+
             var that = this;
-
-            vue_model = (typeof vue_model !== "undefined" ? vue_model : that.vue_model);
-
             var errors = [];
+
+            var vue_model = (typeof options["vue_model"] !== "undefined" ? options["vue_model"] : that.vue_model);
+            if (!vue_model) { return false; }
 
             if (that.product.normal_mode_switch) {
                 if (vue_model.front_features_empty) {
@@ -4077,6 +4538,30 @@
                 errors = [].concat(errors, unique_features_values_errors);
             }
 
+            // Проверка ошибок секции с дробностью
+            var fractional_vue_model = (typeof options["fractional_vue_model"] !== "undefined" ? options["fractional_vue_model"] : that.fractional_vue_model);
+            if (fractional_vue_model) {
+                if (options.before_submit) {
+                    var stock_unit_error = fractional_vue_model.checkStockUnit();
+                    if (stock_unit_error) { errors.push(stock_unit_error); }
+
+                    var order_multiplicity_factor_error = fractional_vue_model.checkCountDenominator();
+                    if (order_multiplicity_factor_error) { errors.push(order_multiplicity_factor_error); }
+                }
+
+                var unit_error = fractional_vue_model.checkUnits();
+                if (unit_error) { errors.push(unit_error); }
+
+                var ratio_error = fractional_vue_model.checkStockBaseRatio();
+                if (ratio_error) { errors.push(ratio_error); }
+
+                var step_error = fractional_vue_model.checkOrderCountStep();
+                if (step_error) { errors.push(step_error); }
+
+                var min_error = fractional_vue_model.checkOrderCountMin();
+                if (min_error) { errors.push(min_error); }
+            }
+
             return errors;
 
             function getSkuSkuGroups(skus, with_name) {
@@ -4109,7 +4594,7 @@
                 var $button = $(this);
 
                 // Останавливаем сохранение если во фронте есть ошибки
-                var errors = that.validate(),
+                var errors = that.validate({ before_submit: true }),
                     no_plugin_errors = true,
                     plugin_errors = [],
                     data;
@@ -4315,6 +4800,18 @@
                             data.push({
                                 name: prefix + "[purchase_price]",
                                 value: sku_mod.purchase_price
+                            });
+                            data.push({
+                                name: prefix + "[stock_base_ratio]",
+                                value: (that.product.normal_mode_switch ? sku_mod.stock_base_ratio : "")
+                            });
+                            data.push({
+                                name: prefix + "[order_count_min]",
+                                value: (that.product.normal_mode_switch ? sku_mod.order_count_min : "")
+                            });
+                            data.push({
+                                name: prefix + "[order_count_step]",
+                                value: (that.product.normal_mode_switch ? sku_mod.order_count_step : "")
                             });
 
                             if (sku_mod.file && sku_mod.file.id) {
@@ -5436,7 +5933,7 @@
                         var href = that.urls["change_image_description"],
                             data = {
                                 "id": photo.id,
-                                "data[description]": photo.description
+                                "description": photo.description
                             }
 
                         $.post(href, data, "json")

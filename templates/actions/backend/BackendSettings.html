@@ -26,6 +26,18 @@
                     <i class="icon16 ss features-bw"></i>[`Product types & Features`]
                 </a>
             </li>
+            {if !empty($is_premium)}
+                <li>
+                    <a href="?action=settings#/unit/">
+                        <i class="icon16 ss units"></i>[`Product quantity units & add-to-cart parameters`]
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/compatibility/">
+                        <i class="icon16 ss compatibility"></i>[`PREMIUM license compatibility`]
+                    </a>
+                </li>
+            {/if}
             <li>
                 <a href="?action=settings#/images/">
                     <i class="icon16 ss camera-bw"></i>[`Images`]
@@ -99,7 +111,13 @@
                     <i class="icon16 ss dashboard-bw"></i>[`Analytics`]
                 </a>
             </li>
-
+            {if $wa->locale() == 'ru_RU'}
+            <li>
+                <a href="?action=settings#/premium/">
+                    <i class="icon16 ss compatibility"></i>[`PREMIUM license functionality`]
+                </a>
+            </li>
+            {/if}
 
             {if $wa->user()->isAdmin()}
             <li class="top-padded">

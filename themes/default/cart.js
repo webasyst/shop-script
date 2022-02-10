@@ -35,25 +35,34 @@ $(function () {
     });
 
     $(".cart input.qty").change(function () {
-        var that = $(this);
-        if (that.val() > 0) {
-            var row = that.closest('div.row');
-            if (that.val()) {
-                $.post('save/', {html: 1, id: row.data('id'), quantity: that.val()}, function (response) {
-                    row.find('.item-total').html(response.data.item_total);
-                    if (response.data.q) {
-                        that.val(response.data.q);
-                    }
-                    if (response.data.error) {
-                        alert(response.data.error);
-                    } else {
-                        that.removeClass('error');
-                    }
-                    updateCart(response.data);
-                }, "json");
-            }
-        } else {
-            that.val(1);
+        var that = $(this),
+            product_quantity = parseFloat( that.val() ),
+            row = that.closest('div.row'),
+            count_step = parseFloat( row.data('count-step') ),
+            count_min = parseFloat( row.data('count-min') );
+
+        if ( isNaN( product_quantity ) || product_quantity < count_min) {
+            product_quantity = count_min;
+        }
+        if ((product_quantity - count_min) % count_step !== 0) {
+            var round_up = Math.ceil((product_quantity - count_min) / count_step);
+            product_quantity = count_min + round_up * count_step;
+        }
+        that.val(product_quantity);
+
+        if (product_quantity && product_quantity > count_min) {
+            $.post('save/', {html: 1, id: row.data('id'), quantity: product_quantity}, function (response) {
+                row.find('.item-total').html(response.data.item_total);
+                if (response.data.q) {
+                    that.val(response.data.q);
+                }
+                if (response.data.error) {
+                    alert(response.data.error);
+                } else {
+                    that.removeClass('error');
+                }
+                updateCart(response.data);
+            }, "json");
         }
     });
 

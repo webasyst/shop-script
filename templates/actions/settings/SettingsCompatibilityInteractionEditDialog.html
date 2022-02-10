@@ -1,0 +1,130 @@
+<div class="wa-dialog s-settings-compatibility-interaction-dialog">
+    <div class="wa-dialog-background"></div>
+    <div class="wa-dialog-body">
+        <form action="" method="post" class="compatibility-edit-form">
+            <header class="wa-dialog-header">
+                <h1 class="s-title">[`Interaction with PREMIUM features`]</h1>
+            </header>
+            <div class="wa-dialog-content">
+                <div class="s-help-section">
+                    <div class="flexbox">
+                        <span class="s-icon"><i class="icon16 info"></i></span>
+                        <div class="wide js-help-message">
+                            {if shopLicensing::isPremium()}
+                                {sprintf(_w('Select Shop-Script and %s plugin interaction options for the processing of orders containing products with fractional quantities and quantity units. The <a href="%s">corresponding settings</a> must be enabled for that.'), "%s", "{$wa_app_url}?action=settings#/unit/")}
+                            {else}
+                                {sprintf(_w('The settings will become available after the transition to the <a href="%s">PREMIUM</a> license.'), "{$wa_app_url}?action=settings#/premium/")}
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+                <div class="s-fields-wrapper">
+                    <div class="fields">
+                        <div class="field-group">
+                            <div class="field">
+                                <div class="name">[`How to pass on product quantities to the plugin`]</div>
+                                <div class="value">
+                                    <div class="s-radio-group">
+                                        <div class="s-radio-wrapper">
+                                            <label class="flexbox">
+                                                <input type="radio" name="frac_mode" value="" {if empty($frac_mode)}checked{/if} data-mode-text="[`Quantity is passed on without conversion.`]">
+                                                <span>[`Pass on product quantities without conversion, as specified in the order.`]</span>
+                                            </label>
+                                            <div class="hint">
+                                                [`All orders are passed on to the plugin regardless of whether product quantities are specified as fractional or integer values.`]<br>
+                                                [`Select this option if`]
+                                                <ul>
+                                                    <li>[`the plugin supports fractional product quantities,`]</li>
+                                                    <li>[`you sell only integer product quantities.`]</li>
+                                                </ul>
+                                                {if $type == "shipment"}
+                                                    [`If the plugin does not support fractional product quantities then processing orders with fractional quantities may result in errors or in the transfer of incorrect information to the shipping service.`]
+                                                {else}
+                                                    [`If the plugin does not support fractional product quantities then processing orders with fractional quantities may result in errors or in the transfer of incorrect information to the payment gateway.`]
+                                                {/if}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="value">
+                                    <label class="flexbox">
+                                        <input type="radio" name="frac_mode" value="disabled" {if $frac_mode == "disabled"}checked{/if} data-mode-text="[`Unavailable for fractional quantity.`]">
+                                        <span>[`The plugin is unavailable for orders with fractional product quantities.`]</span>
+                                    </label>
+                                    <div class="hint">
+                                        {if $type == "shipment"}
+                                            [`If at least one product with fractional quantity is contained in an order then the shipping option set up via this plugin is not available for such an order. For orders only with integer product quantities, such a shipping option is available as usual.`]
+                                        {else}
+                                            [`If at least one product with fractional quantity is contained in an order then the payment option set up via this plugin is not available for such an order. For orders only with integer product quantities, such a payment option is available as usual.`]
+                                        {/if}
+                                    </div>
+                                </div>
+                                <div class="value">
+                                    <label class="flexbox">
+                                        <input type="radio" name="frac_mode" value="convert" {if $frac_mode == "convert"}checked{/if} data-mode-text="[`Fractional quantity is converted to integer values.`]">
+                                        <span>[`Convert order items with fractional quantities to items with integer quantities.`]</span>
+                                    </label>
+                                    <div class="hint">
+                                        {if $type == "shipment"}
+                                            [`If an order contains items with fractional quantities then information about such items is converted before being passed to the shipping service—the quantity value and the quantity unit name are added to the order item name and the quantity value becomes equal to 1.`]
+                                        {else}
+                                            [`If an order contains items with fractional quantities then information about such items is converted before being passed to the payment gateway—the quantity value and the quantity unit name are added to the order item name and the quantity value becomes equal to 1.`]
+                                        {/if}<br>
+                                        <div class="bold">[`Example`]</div>
+                                        [`<strong>Mango</strong>: 1.75 lb. &times; $5.20/lb. = $9.10 is converted to`]<br>
+                                        [`<strong>Mango 1.75 lb.</strong>: 1 pc. &times; $9.10/pc. = $9.10`]<br>
+                                        {if $type == "shipment"}
+                                            [`Order items with integer quantity values are passed on to the shipping service without a conversion.`]
+                                        {else}
+                                            [`Order items with integer quantity values are passed on to the payment gateway without a conversion.`]
+                                        {/if}
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name">[`How to pass on product quantity units to the plugin`]</div>
+                                <div class="value">
+                                    <label class="flexbox">
+                                        <input type="radio" name="units_mode" value="" {if empty($units_mode)}checked{/if} data-mode-text="[`Quantity units are passed on.`]">
+                                        <span>[`Pass on product quantity units.`]</span>
+                                    </label>
+                                    <div class="hint">
+                                        {if $type == "shipment"}
+                                            [`This option can also be used if the plugin does not support quantity units. Such a case is identical to the absence of set up units, and the plugin passes on information to the shipping service about product quantities expressed in pieces only.`]
+                                        {else}
+                                            [`This option can also be used if the plugin does not support quantity units. Such a case is identical to the absence of set up units, and the plugin passes on information to the payment gateway about product quantities expressed in pieces only.`]
+                                        {/if}
+                                    </div>
+                                </div>
+                                <div class="value">
+                                    <label class="flexbox">
+                                        <input type="radio" name="units_mode" value="disabled" {if $units_mode == "disabled"}checked{/if} data-mode-text="[`Unavailable for products with quantity units.`]">
+                                        <span>[`The plugin is available only for orders containing products for whose types the support for different stock quantity units is disabled.`]</span>
+                                    </label>
+                                    <div class="hint">
+                                        {if $type == "shipment"}
+                                            [`The shipping option set up via this plugin is available only for orders containing products of certain types. To use that shipping option for some product type, you need to disable the support for different stock quantity units in that product type’s settings.`]
+                                        {else}
+                                            [`The payment option set up via this plugin is available only for orders containing products of certain types. To use that payment option for some product type, you need to disable the support for different stock quantity units in that product type’s settings.`]
+                                        {/if}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <footer class="wa-dialog-footer">
+                <div class="s-errors-place js-errors-place"></div>
+                <div class="wa-table-box middle">
+                    <div class="s-column">
+                        <button class="s-button button green js-submit-button" type="submit">[`Save`]</button>
+                        <span class="s-divider">[`or`]</span>
+                        <a href="javascript:void(0);" class="js-close-dialog">[`cancel`]</a>
+                    </div>
+                </div>
+            </footer>
+        </form>
+    </div>
+</div>

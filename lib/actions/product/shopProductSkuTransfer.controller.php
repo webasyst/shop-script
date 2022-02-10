@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Скорее всего не используется
+ * @deprecated
+ */
 class shopProductSkuTransferController extends waJsonController
 {
     public function execute() {

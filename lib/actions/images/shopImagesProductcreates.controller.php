@@ -36,7 +36,7 @@ class shopImagesProductcreatesController extends waJsonController
 
         /*
         if (!($this->type_id = (int)waRequest::post('type_id'))) {
-            throw new waException(_w("Unkown type of product"));
+            throw new waException(_w("Unknown product type"));
         }
         */
 

@@ -291,7 +291,7 @@
                 <template v-if="getCount(false) === 0 && getCount(true) === 0">
                     <div class="s-smart-string nowrap">
                         {* Статичная строка когда ничего нет (0 артикулов, 0 модификаций) *}
-                        {sprintf(_wp('%s SKUs with %s variants each.'), "<span class=\"s-counter is-green\">0</span>", "<span class=\"s-counter\">0</span>")}
+                        {sprintf(_w('%s SKUs with %s variants each.'), "<span class=\"s-counter is-green\">0</span>", "<span class=\"s-counter\">0</span>")}
                     </div>
                 </template>
                 <template v-else>

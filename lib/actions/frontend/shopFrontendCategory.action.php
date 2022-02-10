@@ -146,7 +146,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
             $category_value_ids = $collection->getFeatureValueIds(false);
 
             foreach ($filter_ids as $fid) {
-                if ($fid == 'price') {
+                if (!isset($filters['price']) && ($fid == 'price' || $fid == 'base_price')) {
                     $range = $collection->getPriceRange();
                     if ($range['min'] != $range['max']) {
                         $filters['price'] = array(
@@ -342,6 +342,11 @@ class shopFrontendCategoryAction extends shopFrontendAction
          * @return array[string]string $return[%plugin_id%] html output for category
          */
         $this->view->assign('frontend_category', wa()->event('frontend_category', $category));
+
+        $units = shopHelper::getUnits();
+        $this->view->assign('units', $units);
+        $this->view->assign('formatted_units', shopFrontendProductAction::formatUnits($units));
+        $this->view->assign('fractional_config', shopFrac::getFractionalConfig());
 
         $this->setThemeTemplate('category.html');
     }

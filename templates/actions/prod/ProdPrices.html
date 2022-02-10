@@ -146,7 +146,10 @@
                     <span class="s-label">[`Price`]</span>
                 </div>
                 <div class="s-table-column s-column-amount">
-                    <span class="s-label">[`Quantity`]</span>
+                    <span class="s-label">
+                        [`Quantity`]
+                        <span class="s-unit" v-if="product.stock_unit">({ { product.stock_unit.name_short } })</span>
+                    </span>
                 </div>
             </div>
         </div>
@@ -359,7 +362,7 @@
                                            v-model="sku_mod.count"
                                            v-bind:class="{ 'with-padding' : !(stocks_array.length || can_edit) }"
                                            v-on:click="focusSkuModStocks(sku_mod)"
-                                           v-on:input="validate($event, 'integer', sku_mod, 'count')">
+                                           v-on:input="validate($event, 'number', sku_mod, 'count')">
                                 </div>
 
                                 <template v-if="(stocks_array.length || can_edit)">
@@ -389,7 +392,7 @@
                                          data-tooltip-id="default"
                                          v-bind:data-title="getStockTitle(stock)">
 
-                                        <div class="c-column">
+                                        <div class="s-column">
                                             <div class="s-field-wrapper">
                                                 <div class="s-icon left" v-bind:class="stock_icon_class(sku_mod_stocks[stock.id], stock)">
                                                     <i class="icon size-16"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></i>
@@ -399,10 +402,10 @@
                                                        v-bind:readonly="stock.is_virtual || !can_edit"
                                                        v-bind:style="{ 'opacity' : stock.is_virtual ? '.5' : ''}"
                                                        v-bind:class="{ 'transparent' : stock.is_virtual }"
-                                                       v-on:input="validate($event, 'integer', sku_mod_stocks, stock.id); changeSkuModStocks(sku_mod);">
+                                                       v-on:input="validate($event, 'number', sku_mod_stocks, stock.id); changeSkuModStocks(sku_mod);">
                                             </div>
                                         </div>
-                                        <div class="c-column">
+                                        <div class="s-column wide">
                                             <span class="cursor-default"
                                                   v-bind:style="{ 'opacity' : stock.is_virtual ? '.5' : '' }">{ { stock.name } }</span>
                                         </div>
@@ -416,7 +419,7 @@
                             <div class="s-field-wrapper">
                                 <input class="wa-small s-field full-width is-number" type="text" placeholder="∞"
                                        v-model="values.sku_mod_count"
-                                       v-on:input="validate($event, 'integer', values, 'sku_mod_count');">
+                                       v-on:input="validate($event, 'number', values, 'sku_mod_count');">
                             </div>
 
                         </div>

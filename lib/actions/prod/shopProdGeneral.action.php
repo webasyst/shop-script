@@ -27,6 +27,7 @@ class shopProdGeneralAction extends waViewAction
         $sets = $set_model->getAll();
 
         $type_model = new shopTypeModel();
+        $product_types = $type_model->getTypes();
 
         // magic loading of skus
         $product['skus'];
@@ -34,10 +35,17 @@ class shopProdGeneralAction extends waViewAction
             $product->setData('name', "");
             $product->setData('currency', wa('shop')->getConfig()->getCurrency());
             $product->setData('status', 1);
-            $product->setData('type_id', self::getFirstType());
+            $product->setData('type_id', key($product_types));
+            $active_product_type = reset($product_types);
+            $product->setData('order_multiplicity_factor', $active_product_type['order_multiplicity_factor']);
+            $product->setData('stock_unit_id', $active_product_type['stock_unit_id']);
+            $product->setData('base_unit_id', $active_product_type['base_unit_id']);
+            $product->setData('stock_base_ratio', $active_product_type['stock_base_ratio']);
+            $product->setData('order_count_min', $active_product_type['order_count_min']);
+            $product->setData('order_count_step', $active_product_type['order_count_step']);
             $product_skus_model = new shopProductSkusModel();
             $empty_sku = $product_skus_model->getEmptyRow();
-            $empty_sku["id"] = "-1";
+            $empty_sku['id'] = '-1';
             foreach (['price', 'primary_price', 'purchase_price', 'compare_price'] as $field) {
                 $empty_sku[$field] = 0.0;
             }
@@ -63,7 +71,7 @@ class shopProdGeneralAction extends waViewAction
         $this->view->assign([
             'url_template' => $url_template,
             'frontend_urls' => $frontend_urls,
-            'product_types' => $type_model->getTypes(),
+            'product_types' => $product_types,
             'total_storefronts_count' => $total_storefronts_count,
             'categories' => $categories,
             'categories_tree' => $categories_tree,
@@ -88,17 +96,25 @@ class shopProdGeneralAction extends waViewAction
     {
         if ($product_id == 'new') {
             $product = new shopProduct();
+            $active_product_type = self::getFirstType();
             $data = [
                 'name' => '',
                 'currency' => wa('shop')->getConfig()->getCurrency(),
-                'type_id' => self::getFirstType(),
+                'type_id' => $active_product_type['id'],
                 'status' => 1,
                 'skus' => [
                     -1 => [
-                        'name' => ''
+                        'name' => '',
                     ]
-                ]
+                ],
             ];
+            $product_fields = ['order_multiplicity_factor', 'stock_unit_id', 'base_unit_id',
+                'stock_base_ratio', 'order_count_min', 'order_count_step'];
+            foreach ($product_fields as $field) {
+                if (isset($active_product_type[$field])) {
+                    $data[$field] = $active_product_type[$field];
+                }
+            }
             $product->save($data);
             $product_id = $product->getId();
             $log_model = new waLogModel();
@@ -109,7 +125,7 @@ class shopProdGeneralAction extends waViewAction
     protected static function getFirstType()
     {
         $type_model = new shopTypeModel();
-        return $type_model->select('id')->order('id')->limit('1')->fetchField('id');
+        return $type_model->select('*')->limit('1')->fetchAssoc();
     }
 
     /**

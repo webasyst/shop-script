@@ -11,22 +11,28 @@ class shopCsvProductuploadController extends shopUploadController
         $fields = array(
             'row_type'              => _w('Row type'),
             'product'               => array(
-                'id'                  => _w('Product ID'),
-                'name'                => _w('Product name'), //1
-                'currency'            => _w('Currency'), //4
-                'summary'             => _w('Summary'),
-                'description'         => _w('Description'),
-                'badge'               => _w('Badge'),
-                'status'              => _w('Status'),
-                'sku_type'            => _w('Product variety selection'),
-                'type_name'           => _w('Product type'),
-                'tags'                => _w('Tags'),
-                'tax_name'            => _w('Taxable'),
-                'meta_title'          => _w('Title'),
-                'meta_keywords'       => _w('META Keyword'),
-                'meta_description'    => _w('META Description'),
-                'url'                 => _w('Storefront link'),
-                'images'              => array(
+                'id'                        => _w('Product ID'),
+                'name'                      => _w('Product name'), //1
+                'currency'                  => _w('Currency'), //4
+                'summary'                   => _w('Summary'),
+                'description'               => _w('Description'),
+                'badge'                     => _w('Badge'),
+                'status'                    => _w('Status'),
+                'sku_type'                  => _w('Product variety selection'),
+                'type_name'                 => _w('Product type'),
+                'tags'                      => _w('Tags'),
+                'tax_name'                  => _w('Taxable'),
+                'order_multiplicity_factor' => _w('Add-to-cart step'),
+                'stock_unit_id'             => _w('Stock quantity unit'),
+                'base_unit_id'              => _w('Base quantity unit'),
+                'stock_base_ratio'          => _w('Stock to base quantity units ratio'),
+                'order_count_min'           => _w('Minimum orderable quantity'),
+                'order_count_step'          => _w('Quantity adjustment value via “+/-” buttons'),
+                'meta_title'                => _w('Title'),
+                'meta_keywords'             => _w('META Keyword'),
+                'meta_description'          => _w('META Description'),
+                'url'                       => _w('Storefront link'),
+                'images'                    => array(
                     'title' => _w('Product images'),
                     'data'  => array(
                         'multiple' => true,
@@ -43,16 +49,16 @@ class shopCsvProductuploadController extends shopUploadController
             ),
             'product_custom_fields' => array(),
             'sku'                   => array(
-                'skus:-1:id'             => _w('SKU ID'), //2
-                'skus:-1:name'           => _w('SKU name'), //2
-                'skus:-1:sku'            => _w('SKU code'), //3
-                'skus:-1:price'          => _w('Price'),
-                'skus:-1:available'      => _w('Available for purchase'),
-                'skus:-1:status'         => _w('Visibility in the storefront'),
-                'skus:-1:compare_price'  => _w('Compare at price'),
-                'skus:-1:purchase_price' => _w('Purchase price'),
-                'skus:-1:stock:0'        => _w('In stock'),
-                'skus:-1:_primary'       => _w('Primary SKU'),
+                'skus:-1:id'               => _w('SKU ID'), //2
+                'skus:-1:name'             => _w('SKU name'), //2
+                'skus:-1:sku'              => _w('SKU code'), //3
+                'skus:-1:price'            => _w('Price'),
+                'skus:-1:available'        => _w('Available for purchase'),
+                'skus:-1:status'           => _w('Visibility in the storefront'),
+                'skus:-1:compare_price'    => _w('Compare at price'),
+                'skus:-1:purchase_price'   => _w('Purchase price'),
+                'skus:-1:stock:0'          => _w('In stock'),
+                'skus:-1:_primary'         => _w('Primary SKU'),
             ),
             'sku_custom_fields'     => array(),
         );
@@ -85,10 +91,16 @@ class shopCsvProductuploadController extends shopUploadController
                 'count',
                 'rating_count',
                 'category_id',
+                'base_price',
+                'min_base_price',
+                'max_base_price',
                 'base_price_selectable',
                 'compare_price_selectable',
                 'purchase_price_selectable',
                 'rating',
+                'stock_base_ratio',
+                'order_count_min',
+                'order_count_step',
             );
 
             $white_list = array(
@@ -185,7 +197,7 @@ class shopCsvProductuploadController extends shopUploadController
         $translates['product'] = _w('Basic fields');
         $translates['product_custom_fields'] = _w("Custom product fields");
         $translates['sku'] = _w('SKU fields');
-        $translates['sku_custom_fields'] = _w("Custom sku fields");
+        $translates['sku_custom_fields'] = _w("Custom SKU fields");
 
         $translates['feature'] = _w('Add to existing');
         $translates['feature+'] = _w('Add as new feature');

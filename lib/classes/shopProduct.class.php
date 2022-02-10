@@ -35,6 +35,9 @@
  * @property float $max_price
  * @property int $tax_id
  * @property int|null $count
+ * @property float $base_price
+ * @property float $min_base_price
+ * @property float $max_base_price
  * @property mixed[string] $video
  * @property string $video_url
  * @property-read int $video['product_id']
@@ -78,6 +81,7 @@ class shopProduct implements ArrayAccess
     protected static $data_storages = array();
     protected $is_frontend = false;
     protected $options = [];
+    protected $dependent_fields = [];
 
     /**
      * @var shopProductModel
@@ -107,9 +111,11 @@ class shopProduct implements ArrayAccess
             $this->is_frontend = func_num_args() > 1 ? $is_frontend : $data->is_frontend;
             $this->is_dirty = $data->is_dirty;
         } elseif (is_array($data)) {
-            $this->data = $data;
+            $this->data = $data + $this->model->getEmptyRow();
         } elseif ($data) {
             $this->data = $this->model->getById($data);
+        } else {
+            $this->data = $this->model->getEmptyRow();
         }
 
         $this->preparePromoPrices();
@@ -653,6 +659,11 @@ class shopProduct implements ArrayAccess
                         $product['sku_count'] = 0;
                     }
                 }
+                foreach (['stock_base_ratio', 'order_count_min', 'order_count_step'] as $product_field) {
+                    if (!isset($product[$product_field]) && !empty($this->type[$product_field])) {
+                        $product[$product_field] = $this->type[$product_field];
+                    }
+                }
 
                 if ($id = $this->model->insert($product)) {
                     $this->data = $this->model->getById($id) + $this->data;
@@ -840,10 +851,91 @@ class shopProduct implements ArrayAccess
                 break;
         }
 
+        if ($this->type) {
+            if (isset($this->data['type']['id']) && $this['type_id'] != $this->data['type']['id']) {
+                // Make sure cache does not give us type that has just been changed for this product
+                unset($this->data['type']);
+            }
+            $type = $this->type;
+            $value = $this->validateProductDataAgainstType($name, $value, $type);
+        }
+
         if ($this->getData($name) !== $value) {
             $this->data[$name] = $value;
             $this->is_dirty[$name] = true;
+
+            if ($name == 'order_multiplicity_factor') {
+                // Automatically change count_denominator when order_multiplicity_factor changes
+                $count_denominator = shopFrac::calculateCountDenominator($value);
+                $this->data['count_denominator'] = $count_denominator;
+                $this->is_dirty['count_denominator'] = true;
+            }
         }
+
+        return $value;
+    }
+
+    protected function validateProductDataAgainstType($name, $value, $type)
+    {
+        if ($name == 'stock_unit_id') {
+            if ($type['stock_unit_fixed'] == shopTypeModel::PARAM_ONLY_TYPES) {
+                $value = $type['stock_unit_id'];
+            } elseif ($type['stock_unit_fixed'] == shopTypeModel::PARAM_DISABLED) {
+                $value = 0; // built-in unit: pieces
+            }
+            // check if saved base_unit_id before stock_unit_id
+            if (!empty($this->dependent_fields['base_unit_id'])) {
+                $this->data['base_unit_id'] = $value;
+                $this->is_dirty['base_unit_id'] = true;
+                $this->dependent_fields['base_unit_id'] = false;
+            }
+        }
+        if ($name == 'base_unit_id') {
+            if ($type['base_unit_fixed'] == shopTypeModel::PARAM_ONLY_TYPES) {
+                $value = $type['base_unit_id'];
+            } elseif ($type['base_unit_fixed'] == shopTypeModel::PARAM_DISABLED) {
+                $value = $this->getData('stock_unit_id'); // base unit is the same as stock unit
+                $this->dependent_fields['base_unit_id'] = true;
+            } elseif (!is_numeric($value)) {
+                // $value == '' or $value === null means disable base units for this product;
+                // base unit being the same as stock unit means base unit is disabled
+                $value = $this->getData('stock_unit_id');
+                $this->dependent_fields['base_unit_id'] = true;
+            }
+        }
+        if ($name == 'order_multiplicity_factor') {
+            if ($type['order_multiplicity_factor_fixed'] == shopTypeModel::PARAM_ONLY_TYPES) {
+                $value = $type['order_multiplicity_factor'];
+            } elseif ($type['order_multiplicity_factor_fixed'] == shopTypeModel::PARAM_DISABLED) {
+                $value = 1;
+            }
+        }
+        if ($name == 'count_denominator') {
+            // Silently ignore any attempt to set count_denominator without order_multiplicity_factor
+            $value = $this->getData('count_denominator');
+        }
+        if ($name == 'order_count_min') {
+            if ($type['order_count_min_fixed'] == shopTypeModel::PARAM_ONLY_TYPES) {
+                $value = $type['order_count_min'];
+            } elseif ($type['order_count_min_fixed'] == shopTypeModel::PARAM_DISABLED) {
+                $value = 1 / $this->getData('count_denominator');
+            }
+        }
+        if ($name == 'order_count_step') {
+            if ($type['order_count_step_fixed'] == shopTypeModel::PARAM_ONLY_TYPES) {
+                $value = $type['order_count_step'];
+            } elseif ($type['order_count_step_fixed'] == shopTypeModel::PARAM_DISABLED) {
+                $value = 1 / $this->getData('count_denominator');
+            }
+        }
+        if ($name == 'stock_base_ratio') {
+            if ($type['stock_base_ratio_fixed'] == shopTypeModel::PARAM_ONLY_TYPES) {
+                $value = $type['stock_base_ratio'];
+            } elseif ($type['stock_base_ratio_fixed'] == shopTypeModel::PARAM_DISABLED) {
+                $value = 1;
+            }
+        }
+
         return $value;
     }
 
@@ -1235,7 +1327,7 @@ class shopProduct implements ArrayAccess
                 $model = shopFeatureModel::getValuesModel($type);
                 if ($type == shopFeatureModel::TYPE_BOOLEAN) {
                     $type_values[$type] = $model->getValues('feature_id', array_unique($value_ids));
-                } else {
+                } else if (is_object($model)) {
                     $type_values[$type] = $model->getValues('id', $value_ids);
                 }
             }
