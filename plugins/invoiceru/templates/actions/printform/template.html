@@ -13,8 +13,8 @@
     <header class="s-header-wrapper">
         <div class="s-header-notation">
             <div class="line">Приложение № 1</div>
-            <div class="line">к постановлению Правительства РФ от 26.12.2011 N 1137</div>
-            <div class="line">(в редакции постановления Правительства РФ от 19.08.2017 N 981)</div>
+            <div class="line">к постановлению Правительства Российской Федерации от 26 декабря 2011 г. № 1137</div>
+            <div class="line">(в ред. Постановления Правительства РФ от 02.04.2021 № 534)</div>
         </div>
         <div class="s-header-block">
             <table>
@@ -153,6 +153,32 @@
                 <td class="s-column-id">(5)</td>
             </tr>
 
+            <tr>
+                <td>
+                    <div class="s-layout">
+                        <div class="s-column s-column-title">Документ об отгрузке № п/п:</div>
+                        <div class="s-column s-column-value no-border">
+
+                            <div class="s-layout">
+                                <div class="s-column s-column-field" style="width: 18%;">
+                                    <div class="s-editable js-editable"></div>
+                                </div>
+                                <div class="s-column nowrap">№</div>
+                                <div class="s-column s-column-field" style="width: 18%;">
+                                    <div class="s-editable js-editable"></div>
+                                </div>
+                                <div class="s-column nowrap">от</div>
+                                <div class="s-column s-column-field" style="width: 64%;">
+                                    <div class="s-editable js-editable"></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </td>
+                <td class="s-column-id">(5а)</td>
+            </tr>
+
             {$company = $contact.company}
             {$company = ifempty($company,$order.billing_address.name)}
             {$company = ifempty($company,$order.contact_name)}
@@ -239,6 +265,8 @@
         <table>
             <thead>
                 <tr>
+                    <td class="b_left b_top" rowspan="2">№<br>п/п<br>
+                    </td>
                     <td class="s-column-1 b_left b_top" rowspan="2">
                         Наименование товара<br>(описание выполненных работ,<br>оказанных услуг),<br/>имущественного права
                     </td>
@@ -266,17 +294,22 @@
                         Стоимость товаров<br>(работ, услуг),<br>имущественных прав,<br>всего с учетом налога
                     </td>
                     <td class="b_left b_top" colspan="2">Страна происхож-<br>дения товара</td>
-                    <td class="b_left b_top b_right" rowspan="2">Регистра-<br>ционный<br>номер<br>таможенной<br>декларации</td>
-                    </tr>
+                    <td class="b_left b_top" rowspan="2">Регистрационный<br>номер декларации<br>на товары или<br>регистрационный<br>номер партии товара,<br>подлежащего<br>прослеживаемости</td>
+                    <td class="b_left b_top" colspan="2">Количественная единиц<br>измерения товара,<br>используемая в целях<br>осуществления<br>прослеживаемости</td>
+                    <td class="b_left b_top b_right" rowspan="2">Количество товара,<br>подлежащего<br>прослеживаемости, в<br>количественной<br>единице измерения<br>товара, используемой в<br>целях осуществления<br>прослеживаемости</td>
+                </tr>
                 <tr>
                     <td class="b_left b_top" title="Код ОКЕИ">код</td>
                     <td class="b_left b_top" title="национальное условное обозначение ОКЕИ">условное<br>обозначение<br>(национальное)</td>
                     <td class="b_left b_top">циф-<br>ровой<br>код</td>
                     <td class="b_left b_top">краткое<br>наимено-<br>вание</td>
+                    <td class="b_left b_top">код</td>
+                    <td class="b_left b_top">условное<br>обозначение</td>
                 </tr>
                 <tr>
-                    <td class="s-column-1 b_left b_top">1</td>
-                    <td class="b_left b_top">1а</td>
+                    <td class="b_left b_top">1</td>
+                    <td class="s-column-1 b_left b_top">1а</td>
+                    <td class="b_left b_top">1б</td>
                     <td class="b_left b_top" title="Код ОКЕИ">2</td>
                     <td class="b_left b_top" title="национальное условное обозначение ОКЕИ">2а</td>
                     <td class="b_left b_top">3</td>
@@ -288,13 +321,17 @@
                     <td class="b_left b_top">9</td>
                     <td class="b_left b_top">10</td>
                     <td class="b_left b_top">10а</td>
-                    <td class="b_left b_top b_right">11</td>
+                    <td class="b_left b_top">11</td>
+                    <td class="b_left b_top">12</td>
+                    <td class="b_left b_top">12а</td>
+                    <td class="b_left b_top b_right">13</td>
                 </tr>
             </thead>
             <tbody>
                 {$total_without_tax = 0}
                 {$total_tax = 0}
                 {$total_amount = 0}
+                {$i = 1}
                 {foreach $order.items as $id => $order_item}
                     {if $order_item.tax_included}
                         {$total_tax = $total_tax + round($order_item.tax, 2)}
@@ -302,6 +339,10 @@
                     {$total_amount = $total_amount + round($order_item.total, 2)}
 
                     <tr class="js-product-line">
+                        <td class="b_left b_top center">
+                            <div class="s-editable js-editable">{$i}</div>
+                        </td>
+                        {$i = $i + 1}
                         <td class="s-column-1 b_left b_top left">
                             <div class="s-name s-editable js-editable">{$order_item.name|default:"&nbsp;"}{if $order_item.sku} ({$order_item.sku}){/if}</div>
                         </td>
@@ -309,12 +350,12 @@
                             <div class="s-editable js-editable">-</div>
                         </td>
                         <td class="b_left b_top center">
-                            <div class="s-editable js-editable">796</div>
+                            <div class="s-editable js-editable">{if !empty($order_item.stock_unit_code)}{$order_item.stock_unit_code}{else}796{/if}</div>
                         </td>
                         <td class="b_left b_top center">
-                            <div class="s-editable js-editable">шт</div>
+                            <div class="s-editable js-editable">{$order_item.stock_unit|default:'шт'|escape}</div>
                         </td>
-                        <td class="js-column-3 b_left b_top right">{$order_item.quantity|string_format:"%d"}</td>
+                        <td class="js-column-3 b_left b_top right">{$order_item.quantity}</td>
                         <td class="js-column-4 b_left b_top right nowrap">{$order_item.price|wa_format_amount:$order.currency:'%2'}</td>
 
                         <td class="js-column-5 b_left b_top right nowrap">
@@ -344,7 +385,16 @@
                         <td class="b_left b_top">
                             <div class="s-editable js-editable"></div>
                         </td>
-                        <td class="b_top b_left b_right">
+                        <td class="b_top b_left">
+                            <div class="s-editable js-editable"></div>
+                        </td>
+                        <td class="b_left b_top center">
+                            <div class="s-editable js-editable"></div>
+                        </td>
+                        <td class="b_left b_top center">
+                            <div class="s-editable js-editable"></div>
+                        </td>
+                        <td class="b_left b_top b_right right">
                             <div class="s-editable js-editable"></div>
                         </td>
                     </tr>
@@ -357,6 +407,9 @@
                     {$total_without_tax = $total_without_tax + round($order.shipping, 2)}
 
                     <tr class="js-product-line">
+                        <td class="b_left b_top center">
+                            <div class="s-editable js-editable">{$i}</div>
+                        </td>
                         <td class="s-column-1 b_left b_top left">
                             <div class="s-name">доставка {$order.shipping_name|escape}</div>
                         </td>
@@ -384,13 +437,22 @@
                         <td class="js-column-9 b_left b_top right nowrap">{$order.shipping|wa_format_amount:$order.currency:'%2'}</td>
                         <td class="b_left b_top">&nbsp;</td>
                         <td class="b_left b_top">&nbsp;</td>
-                        <td class="b_top b_left b_right">&nbsp;</td>
+                        <td class="b_left b_top">&nbsp;</td>
+                        <td class="b_left b_top center">
+                            <div class="s-editable js-editable"></div>
+                        </td>
+                        <td class="b_left b_top center">
+                            <div class="s-editable js-editable"></div>
+                        </td>
+                        <td class="b_left b_top b_right right">
+                            <div class="s-editable js-editable"></div>
+                        </td>
                     </tr>
                 {/if}
             </tbody>
             <tfoot>
                 <tr class="js-total-line tfoot totals">
-                    <td colspan="6" class="b_left b_top b_bottom nowrap">Всего к оплате</td>
+                    <td colspan="7" class="b_top nowrap">Всего к оплате</td>
                     <td class="js-column-5 b_left b_top b_bottom right nowrap">
                         {$total_without_tax|wa_format_amount:$order.currency:'%2'}
                     </td>
@@ -398,6 +460,9 @@
                     <td class="js-column-8 b_left b_top b_bottom right">{$total_tax|wa_format_amount:$order.currency:'%2'}</td>
                     <td class="js-column-9 b_left b_top b_bottom right nowrap">{$total_amount|wa_format_amount:$order.currency:'%2'}</td>
                     <td class="b_left b_top">&nbsp;</td>
+                    <td class="b_top">&nbsp;</td>
+                    <td class="b_top">&nbsp;</td>
+                    <td class="b_top">&nbsp;</td>
                     <td class="b_top">&nbsp;</td>
                     <td class="b_top">&nbsp;</td>
                 </tr>
