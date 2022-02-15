@@ -14,11 +14,6 @@ $model->exec($sql);
 $sql = "ALTER TABLE `shop_product_stocks` MODIFY COLUMN `count` DECIMAL(15,3) NOT NULL";
 $model->exec($sql);
 
-foreach (array('before_count', 'after_count', 'diff_count') as $field) {
-    $sql = "ALTER TABLE `shop_product_stocks_log` MODIFY COLUMN `{$field}` DECIMAL(15,3)";
-    $model->exec($sql);
-}
-
 $sql = "ALTER TABLE `shop_transfer_products` MODIFY COLUMN `count` DECIMAL(15,3) NOT NULL DEFAULT '0'";
 $model->exec($sql);
 
