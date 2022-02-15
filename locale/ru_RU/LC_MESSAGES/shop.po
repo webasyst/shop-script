@@ -11467,10 +11467,10 @@ msgid "A stock unit must be selected."
 msgstr "Должна быть выбрана складская единица."
 
 msgid "Product quantity adjustment value via “+/-” buttons must be greater than 0 and must be divisible by the add-to-cart step."
-msgstr "Размер изменения количества кнопками «+-/» должен быть больше 0 и должен делиться без остатки на шаг добавления товара в корзину."
+msgstr "Размер изменения количества кнопками «+-/» должен быть больше 0 и должен делиться без остатка на шаг добавления товара в корзину."
 
 msgid "Minimum orderable quantity must be greater than 0 and must be divisible by the add-to-cart step."
-msgstr "Минимальное количество для заказа должно быть больше 0 и должно делиться без остатки на шаг добавления товара в корзину."
+msgstr "Минимальное количество для заказа должно быть больше 0 и должно делиться без остатка на шаг добавления товара в корзину."
 
 msgid "base price"
 msgstr "базовая цена"
@@ -11569,7 +11569,7 @@ msgid "PREMIUM license functionality"
 msgstr "Возможности лицензии «ПРЕМИУМ»"
 
 msgid "You can set up the add-to-cart step equal to 0.16 lb."
-msgstr "При этом можно настроить шаг добавления товара в корзину, равный 0,001 г."
+msgstr "При этом можно настроить шаг добавления товара в корзину, равный 0,001 кг."
 
 msgid "Add quantity unit"
 msgstr "Добавить единицу измерения количества"
@@ -11781,7 +11781,7 @@ msgstr "Продавайте товары дробными количества�
 msgid "Custom product add-to-cart step"
 msgstr "Любой шаг добавления товара в корзину"
 
-msgid "Configure an individual add-to-cart step for each product so that customers can add only quantities, divisible by the specified step values, to shopping cart. For weight products, the add-to-cart step may be set to 0.01 lb., or to 8.5 sq. ft. for ceramic tiles (quantity contained in an individual package)."
+msgid "Configure an individual add-to-cart step for each product so that customers can add only quantities, divisible by the specified step values, to the shopping cart. For weight products, the add-to-cart step may be set to 0.01 lb., or to 8.5 sq. ft. for ceramic tiles (quantity contained in an individual package)."
 msgstr "Настройте для каждого товара свой размер шага добавления в корзину: покупатель сможет добавить в корзину только такое количество товара, которое кратно указанному шагу. Например, для весовых товаров шаг может быть равен 0,001 кг, а для кафельной плитки — 0,8 м² (количество, которое содержится в одной упаковке)."
 
 msgid "Set a minimum quantity for each product below which cannot be added to the shopping cart. For example, 0.3 m for fabrics sold by linear feet, or 0.5 kg for fruits and vegetables, which are sold by weight."
@@ -11805,8 +11805,8 @@ msgstr "Для того чтобы вам стали доступны все р�
 msgid "Your online store will continue working as usual, and you will be free to enable any of the extended functions at any time when it is most convenient to you."
 msgstr "Ваш интернет-магазин продолжит работать, как обычно, и вы сможете включить любые расширенные возможности, когда вам это будет удобно."
 
-msgid "<a href=\"%s\">Check up</a> how the installed plugins, apps, and design themes are compatible with PREMIUM’s extended functionality."
-msgstr "<a href=\"%s\">Проверьте</a> совместимость установленных плагинов, приложений и тем дизайна с расширенными возможностями «ПРЕМИУМ»."
+msgid "<a href=\"%s\">Check up</a> how the installed plugins, apps, and design themes are compatible with PREMIUM’s extended features."
+msgstr "<a href=\"%s\">Проверьте</a> совместимость установленных плагинов, приложений и тем дизайна с возможностями «ПРЕМИУМ»."
 
 msgid "Your current license is %s."
 msgstr "Ваша текущая лицензия — «%s»."
