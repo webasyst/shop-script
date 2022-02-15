@@ -309,13 +309,13 @@
                 <td class="b_left b_bottom">{$id+1}</td>
                 <td class="b_left b_bottom leftAlign inline_edit js-editable">{$item.name|default:"&nbsp;"}{if $item.sku} ({$item.sku}){/if}</td>
                 <td class="b_left b_bottom">&nbsp;</td>
-                <td class="b_left b_bottom">шт.</td>
-                <td class="b_left b_bottom">796</td>
+                <td class="b_left b_bottom">{$item.stock_unit|default:'шт.'|escape}</td>
+                <td class="b_left b_bottom">{if !empty($item.stock_unit_code)}{$item.stock_unit_code}{else}796{/if}</td>
                 <td class="b_left b_bottom">&nbsp;</td>
                 <td class="b_left b_bottom">&nbsp;</td>
                 <td class="b_left b_bottom rightAlign">&nbsp;</td>
                 <td class="b_left b_bottom">&nbsp;</td>
-                <td class="js-column-10 b_left b_bottom rightAlign">{$item.quantity|string_format:"%0.3f"}</td>
+                <td class="js-column-10 b_left b_bottom rightAlign">{$item.quantity}</td>
                 <td class="js-column-11 b_left b_bottom rightAlign nobr">{$item.price_without_tax|wa_format_amount:$order.currency:'%2'}</td>
                 <td class="js-column-12 b_left b_bottom rightAlign nobr">{$item.total_without_tax|default:0|wa_format_amount:$order.currency:'%2'}</td>
                 <td class="js-column-13 b_left b_bottom">
