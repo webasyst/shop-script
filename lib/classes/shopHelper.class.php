@@ -2265,17 +2265,20 @@ SQL;
     public static function getShopSupportJson($app_path, $theme = false)
     {
         $result = [];
-        $support_path = ($theme ? $app_path.'/shop_support.json' : $app_path.'/lib/config/shop_support.json');
-        if (file_exists($support_path)) {
-            $support_json = waUtils::jsonDecode(file_get_contents($support_path), true);
-            if (isset($support_json['support_premium']) && in_array($support_json['support_premium'], ['no', 'yes', 'partial'])) {
-                $result['compatibility'] = shopSettingsCompatibilityAction::COMPATIBILITY[$support_json['support_premium']];
+        try {
+            $support_path = ($theme ? $app_path.'/shop_support.json' : $app_path.'/lib/config/shop_support.json');
+            if (file_exists($support_path)) {
+                $support_json = waUtils::jsonDecode(file_get_contents($support_path), true);
+                if (isset($support_json['support_premium']) && in_array($support_json['support_premium'], ['no', 'yes', 'partial'])) {
+                    $result['compatibility'] = shopSettingsCompatibilityAction::COMPATIBILITY[$support_json['support_premium']];
+                }
+                if (!empty($support_json['support_premium_description_'.wa()->getLocale()])) {
+                    $result['compatibility_description'] = $support_json['support_premium_description_'.wa()->getLocale()];
+                } elseif (!empty($support_json['support_premium_description'])) {
+                    $result['compatibility_description'] = $support_json['support_premium_description'];
+                }
             }
-            if (!empty($support_json['support_premium_description_'.wa()->getLocale()])) {
-                $result['compatibility_description'] = $support_json['support_premium_description_'.wa()->getLocale()];
-            } elseif (!empty($support_json['support_premium_description'])) {
-                $result['compatibility_description'] = $support_json['support_premium_description'];
-            }
+        } catch (waException $e) {
         }
 
         return $result;

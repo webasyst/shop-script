@@ -85,6 +85,9 @@ class shopProductsCollection
         if (!isset($this->options['round_prices'])) {
             $this->options['round_prices'] = $this->is_frontend;
         }
+        if ($this->is_frontend && !array_key_exists('defrac_counts', $this->options)) {
+            $this->options['defrac_counts'] = true;
+        }
 
         $this->setHash($hash);
 
@@ -2660,6 +2663,23 @@ SQL;
                 }
             }
             unset($product);
+        }
+
+        if (!empty($this->options['defrac_counts'])) {
+            foreach ($products as &$p) {
+                if (array_key_exists('count', $p)) {
+                    $p['count'] = shopFrac::defracCount($p['count'], $p);
+                }
+                if (!empty($p['skus'])) {
+                    foreach ($p['skus'] as &$s) {
+                        $s['count'] = shopFrac::defracCount($s['count'], $p);
+                        if (isset($skus[$s['id']]) && array_key_exists('count', $s)) {
+                            $skus[$s['id']]['count'] = $s['count'];
+                        }
+                    }
+                }
+            }
+            unset($p, $s);
         }
 
         if ($this->is_frontend && empty($this->options['no_plugins']) && empty($this->options['no_plugins_frontend_products'])) {

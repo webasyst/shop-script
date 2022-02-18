@@ -33,6 +33,24 @@ class shopFrac
         }
     }
 
+    /**
+     * @since 9.0.2
+     */
+    public static function defracCount($count, $product)
+    {
+        if ($count === null || $count === '') {
+            return null;
+        }
+        if (!self::isEnabled()) {
+            $denominator = 1;
+        } else if (!isset($product['count_denominator'])) {
+            return $count;
+        } else {
+            $denominator = $product['count_denominator'];
+        }
+        return self::formatQuantity($count, $denominator);
+    }
+
     public static function correctCountDenominator($number)
     {
         $is_correct = false;

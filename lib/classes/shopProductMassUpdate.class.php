@@ -103,7 +103,7 @@ class shopProductMassUpdate
         $product_stock_model = new shopProductStocksModel();
         $rows = $product_stock_model->where('product_id IN (?)', $product_ids)->query();
         foreach($rows as $row) {
-            $product_stock_counts[$row['sku_id']][$row['stock_id']] = wa_is_int($row['count']) ? (int) $row['count'] : null;
+            $product_stock_counts[$row['sku_id']][$row['stock_id']] = self::formatFloatValue($row['count']);
         }
         return $product_stock_counts;
     }
@@ -135,7 +135,7 @@ class shopProductMassUpdate
             // Update sku counts in memory
             $new_sku_stocks[$sku_id] = ifset($new_sku_stocks[$sku_id], array()) + $empty_stock_data;
             foreach($stock_counts as $stock_id => $count) {
-                $new_sku_stocks[$sku_id][$stock_id] = wa_is_int($count) ? (int) $count : null;
+                $new_sku_stocks[$sku_id][$stock_id] = self::formatFloatValue($count);
             }
         }
 
@@ -150,12 +150,13 @@ class shopProductMassUpdate
                 continue;
             }
             foreach($new_sku_stocks[$sku_id] as $stock_id => $count) {
-                if (wa_is_int($count)) {
+                $count = self::formatFloatValue($count);
+                if ($count !== null) {
                     $values[] = array(
                         'sku_id' => $sku_id,
                         'product_id' => $skus[$sku_id]['product_id'],
                         'stock_id' => $stock_id,
-                        'count' => (int) $count,
+                        'count' => $count,
                     );
                 }
             }
@@ -184,7 +185,7 @@ class shopProductMassUpdate
         $product_ids = array_keys($old_product_data);
         $rows = $product_skus_model->select('id,product_id,count,price,primary_price,available,status')->where('product_id IN (?)', array($product_ids))->query();
         foreach($rows as $row) {
-            $count = wa_is_int($row['count']) ? (int) $row['count'] : null;
+            $count = self::formatFloatValue($row['count']);
             $data[$row['product_id']][$row['id']] = array(
                 'id' => $row['id'],
                 'product_id' => $row['product_id'],
@@ -476,32 +477,23 @@ class shopProductMassUpdate
                     if (!wa_is_int($stock_id)) {
                         throw new waException('sku.stocks stock_ids must be integers: '.htmlspecialchars($stock_id), 400);
                     }
-                    if (!wa_is_int($count)) {
-                        if (!$count) {
-                            $count = null;
-                        } else {
-                            throw new waException('sku.stocks counts must be integers or empty strings: '.htmlspecialchars($count), 400);
-                        }
+                    $formatted_count = self::formatFloatValue($count, false);
+                    if ($formatted_count === false) {
+                        throw new waException('sku.stocks counts must be integers, fractional or empty strings: '.htmlspecialchars($count), 400);
                     }
                     if (!isset($stocks[$stock_id])) {
                         throw new waException('stock_id does not exist: '.htmlspecialchars($stock_id), 400);
                     }
-                    $sku_stocks[$sku['id']][$stock_id] = $count;
+                    $sku_stocks[$sku['id']][$stock_id] = $formatted_count;
                 }
                 unset($sku['count']);
             } else if (array_key_exists('count', $sku)) {
                 $sku_stocks[$sku['id']] = null;
-                if (wa_is_int($sku['count'])) {
-                    $sku['count'] = (int) $sku['count'];
+                $formatted_count = self::formatFloatValue($sku['count'], false);
+                if ($formatted_count === false) {
+                    throw new waException('sku.count must be integer, fractional or empty string: '.htmlspecialchars($sku['count']), 400);
                 } else {
-                    $sku['count'] = str_replace(',', '.', $sku['count']);
-                    if (is_numeric($sku['count'])) {
-                        $sku['count'] = (float) $sku['count'];
-                    } elseif (!$sku['count']) {
-                        $sku['count'] = null;
-                    } else {
-                        throw new waException('sku.count must be integer or empty string: '.htmlspecialchars($sku['count']), 400);
-                    }
+                    $sku['count'] = $formatted_count;
                 }
             }
             $skus[$sku['id']] = array_intersect_key($sku, $valid_fields);
@@ -523,6 +515,31 @@ class shopProductMassUpdate
         }
 
         return array($skus, $sku_stocks, $products);
+    }
+
+    /**
+     * @param $value
+     * @param bool $return_correct_value
+     * @return int|float|null|false
+     */
+    protected static function formatFloatValue($value, $return_correct_value = true)
+    {
+        if (wa_is_int($value)) {
+            $value = (int)$value;
+        } else {
+            if (is_string($value) && strpos($value, ',') !== false) {
+                $value = str_replace(',', '.', $value);
+            }
+            if (is_numeric($value)) {
+                $value = (float)$value;
+            } elseif (!$value || $return_correct_value) {
+                $value = null;
+            } else {
+                $value = false;
+            }
+        }
+
+        return $value;
     }
 
     protected static function getProductData($skus, $products)

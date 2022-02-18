@@ -205,6 +205,30 @@ class shopCart
     }
 
     /**
+     * @param $items
+     * @return mixed
+     * @since 9.0.2
+     */
+    public function formatItemsCount($items)
+    {
+        if (is_array($items)) {
+            foreach ($items as &$item) {
+                if (!empty($item['product'])) {
+                    $item['quantity'] = shopFrac::defracCount($item['quantity'], $item['product']);
+                    $item['product']['count'] = shopFrac::defracCount($item['product']['count'], $item['product']);
+                }
+                if (!empty($item['product']['skus']) && is_array($item['product']['skus'])) {
+                    foreach ($item['product']['skus'] as &$sku) {
+                        $sku['count'] = shopFrac::defracCount($sku['count'], $item['product']);
+                    }
+                }
+            }
+        }
+
+        return $items;
+    }
+
+    /**
      * Changes quantity for current shopping cart's item with specified id.
      *
      * @param int $item_id Item id

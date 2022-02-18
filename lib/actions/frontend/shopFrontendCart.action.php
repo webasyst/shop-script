@@ -48,6 +48,7 @@ class shopFrontendCartAction extends shopFrontendAction
         $cart_model = new shopCartItemsModel();
         //$items = $cart_model->where('code= ?', $code)->order('parent_id')->fetchAll('id');
         $items = $cart->items(false);
+        $items = $cart->formatItemsCount($items);
         shopOrderItemsModel::sortItemsByGeneralSettings($items);
         $total = $cart->total(false);
         $order = array(
@@ -131,12 +132,6 @@ class shopFrontendCartAction extends shopFrontendAction
                 }
             }
             $items[$item_id]['full_price'] = $price;
-
-            if (!empty($item['product']['skus'])) {
-                foreach ($item['product']['skus'] as $sku_id => $sku) {
-                    $items[$item_id]['product']['skus'][$sku_id]['count'] = shopFrac::formatQuantityWithMultiplicity($sku['count'], $item['product']['order_multiplicity_factor']);
-                }
-            }
         }
 
         $data = wa()->getStorage()->get('shop/checkout');

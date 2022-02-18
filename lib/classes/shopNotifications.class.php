@@ -275,7 +275,10 @@ class shopNotifications
 
         $collection = new shopProductsCollection(
             'id/'.join(',', array_keys($product_ids)),
-            array('absolute_image_url' => true)
+            array(
+                'absolute_image_url' => true,
+                'defrac_counts' => true,
+            )
         );
         $products = $collection->getProducts('*,image');
         foreach ($products as &$p) {
@@ -346,6 +349,7 @@ SQL;
             }
             if (!empty($products[$i['product_id']])) {
                 $i['product'] = $products[$i['product_id']];
+                $i['quantity'] = shopFrac::defracCount($i['quantity'], $i['product']);
                 if (isset($skus[$i['sku_id']]) && !empty($skus[$i['sku_id']]['image'])) {
                     $i['product']['image'] = $skus[$i['sku_id']]['image'];
                 }
@@ -353,7 +357,6 @@ SQL;
                 $i['product'] = array();
             }
         }
-
         unset($i);
 
         // Shipping info

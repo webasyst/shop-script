@@ -150,6 +150,9 @@ class shopViewHelper extends waAppViewHelper
         }
 
         $options['frontend'] = true;
+        if (!isset($options['defrac_counts'])) {
+            $options['defrac_counts'] = true;
+        }
         $collection = new shopProductsCollection($hash, $options);
 
         /**
