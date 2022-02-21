@@ -5,7 +5,10 @@ class shopProductAction extends waViewAction
     public function execute()
     {
         $force_old = !!waRequest::get('force-old');
-        $product = new shopProduct(waRequest::get('id', 0, waRequest::TYPE_INT));
+        $product = new shopProduct(waRequest::get('id', 0, waRequest::TYPE_INT), [
+            'format_fractional_values' => true,
+        ]);
+
         if (!$product->id) {
             if (waRequest::get('id') == 'new') {
                 $product->name = '';

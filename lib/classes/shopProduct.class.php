@@ -129,6 +129,8 @@ class shopProduct implements ArrayAccess
             $tmp = array(&$this->data);
             shopRounding::roundProducts($tmp, $options['round_currency']);
         }
+
+        $this->formatProductFractionalValues();
     }
 
     /**
@@ -544,6 +546,10 @@ class shopProduct implements ArrayAccess
             shopRounding::roundSkus($data, array($this->data), $this->options['round_currency']);
         }
 
+        if (isset($this->options['format_fractional_values'])) {
+            $data = $this->formatSkusFractionalValues($data);
+        }
+
         return $data;
     }
 
@@ -937,6 +943,31 @@ class shopProduct implements ArrayAccess
         }
 
         return $value;
+    }
+
+    /**
+     * @param array $skus
+     * @return mixed
+     */
+    protected function formatSkusFractionalValues($skus)
+    {
+        foreach ($skus as &$sku) {
+            $sku['count'] = shopFrac::defracCount($sku['count'], $this->data);
+            if (!empty($sku['stock'])) {
+                foreach ($sku['stock'] as &$value) {
+                    $value = shopFrac::defracCount($value, $this->data);
+                }
+            }
+        }
+
+        return $skus;
+    }
+
+    protected function formatProductFractionalValues()
+    {
+        if (isset($this->options['format_fractional_values'])) {
+            $this->data['count'] = shopFrac::defracCount($this->data['count'], $this->data);
+        }
     }
 
     /**

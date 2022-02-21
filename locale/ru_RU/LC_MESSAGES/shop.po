@@ -4063,8 +4063,8 @@ msgstr "Товары, которых нет на складе, будут авт
 msgid "In stock value updated to ∞"
 msgstr "Остаток на складе обновлен на ∞"
 
-msgid "In stock value updated to %.3f"
-msgstr "Остаток на складе обновлен на %.3f"
+msgid "In stock value updated to %s"
+msgstr "Остаток на складе обновлен на %s"
 
 msgid "Order %s was completed"
 msgstr "Заказ %s выполнен"

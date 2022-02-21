@@ -8,10 +8,19 @@ class shopProductsInlineEditorDataController extends waJsonController
 
         $this->response = array();
 
+        $products = [];
+        if ($ids) {
+            $product_model = new shopProductModel();
+            $products = $product_model->select('`id`, `count_denominator`')->where('`id` IN (?)', [$ids])->fetchAll('id');
+        }
+
         // Prices
         $product_skus_model = new shopProductSkusModel();
         foreach($product_skus_model->getByField('product_id', $ids, true) as $sku) {
             $this->response[$sku['product_id']]['price'] = $sku['price'];
+            if (isset($products[$sku['product_id']])) {
+                $sku['count'] = shopFrac::defracCount($sku['count'], $products[$sku['product_id']]);
+            }
             $this->response[$sku['product_id']]['stocks'] = $sku['count'];
         }
 
@@ -20,6 +29,9 @@ class shopProductsInlineEditorDataController extends waJsonController
         foreach($product_stocks_model->getByField('product_id', $ids, true) as $stock) {
             if (!is_array(ifset($this->response[$stock['product_id']]['stocks']))) {
                 $this->response[$stock['product_id']]['stocks'] = array();
+            }
+            if (isset($products[$stock['product_id']])) {
+                $stock['count'] = shopFrac::defracCount($stock['count'], $products[$stock['product_id']]);
             }
             $this->response[$stock['product_id']]['stocks'][$stock['stock_id']] = $stock['count'];
         }

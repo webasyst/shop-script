@@ -39,6 +39,8 @@ class shopReportsproductsActions extends waViewActions
             $product_total_sales += $p['sales'];
             $p['profit_percent'] = 0;
             $p['sales_percent'] = 0;
+            $p['count'] = shopFrac::defracCount($p['count'], $p);
+            $p['quantity'] = shopFrac::defracCount($p['quantity'], $p);
         }
 
         if ($max_sales > 0 || $max_profit > 0) {

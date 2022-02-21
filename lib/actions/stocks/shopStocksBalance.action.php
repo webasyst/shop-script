@@ -89,14 +89,17 @@ class shopStocksBalanceAction extends waViewAction
         $data = $this->product_model->getProductStocks($options);
 
         foreach ($data as &$product) {
+            $product['count'] = (string)shopFrac::defracCount($product['count'], $product);
             $product['icon'] = shopHelper::getStockCountIcon($product['count']);
             foreach ($product['skus'] as &$sku) {
+                $sku['count'] = (string)shopFrac::defracCount($sku['count'], $product);
                 $sku['icon'] = shopHelper::getStockCountIcon($sku['count']);
             }
             unset($sku);
 
             foreach ($product['stocks'] as $stock_id => &$stock) {
                 foreach ($stock as &$sku) {
+                    $sku['count'] = (string)shopFrac::defracCount($sku['count'], $product);
                     $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], $stock_id);
                 }
             }

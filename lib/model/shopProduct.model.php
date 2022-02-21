@@ -264,7 +264,7 @@ class shopProductModel extends waModel
 
         // get products sql array structure
         $sql_ar = array(
-            'SELECT' => array('p.id', 'p.name', 'p.count', 'p.image_id'),
+            'SELECT' => array('p.id', 'p.name', 'p.count', 'p.image_id', 'p.count_denominator'),
             'FROM' => $this->table . ' p',
             'LEFT JOIN' => array(),
             'WHERE' => array("p.id IN ( {$product_ids_str} )"),

@@ -2220,7 +2220,7 @@ class shopOrder implements ArrayAccess
         }
         // Do not try to split order that contains fractional quantities
         foreach ($order['items'] as $item) {
-            if (!wa_is_int($item['quantity'])) {
+            if (!is_numeric($item['quantity']) || intval($item['quantity']) != floatval($item['quantity'])) {
                 return false;
             }
         }
@@ -2235,6 +2235,7 @@ class shopOrder implements ArrayAccess
         // Select the most expensive item. Sort items by price, desc.
         // Items sorted by discount batch, desc
         $order_items = array_map(function($item_index, $i) {
+            $i['quantity'] = floatval($i['quantity']);
             return [
                 'id' => $item_index,
                 'discounted_price' => $i['price'] - $i['total_discount'] / ifempty($i, 'quantity', 1),
@@ -2308,7 +2309,7 @@ class shopOrder implements ArrayAccess
         foreach($data_array['items'] as $item) {
             if ($item['type'] == 'product') {
                 // Do not try to split order that contains fractional quantities
-                if (!wa_is_int($item['quantity'])) {
+                if (!is_numeric($item['quantity']) || intval($item['quantity']) != floatval($item['quantity'])) {
                     return $data_array;
                 }
 

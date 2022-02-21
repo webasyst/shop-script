@@ -149,7 +149,7 @@ class shopSettingsCompatibilityAction extends waViewAction
 
         $apps_data = $this->getStoreProductsData(array_keys($apps));
         foreach ($apps as $name => $app) {
-            $link = '/'.wa()->getConfig()->getBackendUrl()."/installer/store/app/$name/";
+            $link = wa()->getAppUrl('installer')."store/app/$name/";
             $apps[$name] += [
                 'id'                => $name,
                 'name'              => $app['name'],
@@ -210,7 +210,7 @@ class shopSettingsCompatibilityAction extends waViewAction
                 $image = '';
             }
 
-            $link = '/'.wa()->getConfig()->getBackendUrl().'/installer/store/plugin/';
+            $link = wa()->getAppUrl('installer').'store/plugin/';
             $type = '';
             if (strpos($plugin['slug'], 'wa-plugins/payment') !== false) {
                 $link .= 'payment/'.$plugin['id'].'/';
@@ -275,7 +275,7 @@ class shopSettingsCompatibilityAction extends waViewAction
                 $theme['compatibility'] = self::COMPATIBILITY['unknown'];
             }
 
-            $link = '/'.wa()->getConfig()->getBackendUrl().'/installer/store/theme/'.$theme['id'];
+            $link = wa()->getAppUrl('installer').'store/theme/'.$theme['id'];
             $html = sprintf(
                 _w('For additional information, please contact the developer. Their contact details are available on the  %stheme%s page.'),
                 '<a href="'.$link.'" target="_blank">',

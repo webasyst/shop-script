@@ -119,7 +119,7 @@
                        {% if (sku.count === null) { %}
                             placeholder="∞" value=""
                        {% } else { %}
-                            placeholder="{%#parseFloat(sku.count)%}" value="{%#parseFloat(sku.count)%}"
+                            placeholder="{%#String(sku.count)%}" value="{%#String(sku.count)%}"
                        {% } %}
                        {% if (!product.edit_rights) { %}readonly="readonly"{% } %}
                 >
@@ -136,7 +136,7 @@
                            {% if (count === null) { %}
                                 placeholder="∞" value=""
                            {% } else { %}
-                                placeholder="{%#parseFloat(count)%}" value="{%#parseFloat(count)%}"
+                                placeholder="{%#String(count)%}" value="{%#String(count)%}"
                            {% } %}
                            {% if (!product.edit_rights) { %}readonly="readonly"{% } %}
                     >

@@ -717,7 +717,7 @@ HTML;
         try {
             $total_items_discount_cents = 0;
             foreach ($order['items'] as $item) {
-                if (!empty($item['quantity'])) {
+                if (!empty($item['quantity']) && floatval($item['quantity'])) {
                     $total_item_discount_cents = round(ifset($item['total_discount'], 0) * $currency_precision);
                     // Quantity may be fractional. PHP's % operator only works with integers.
                     // Multiply by 1000 as a workaround.
@@ -783,7 +783,7 @@ HTML;
         $total_items_discount_cents = 0;
 
         foreach ($order['items'] as &$item) {
-            if ($item['quantity']) {
+            if (!empty($item['quantity']) && floatval($item['quantity'])) {
                 $total_item_discount_cents = round(ifset($item['total_discount'], 0) * $currency_precision);
                 if (!$discount_distrbution_split) {
                     // When not allowed to split order item into two, make sure initial item
@@ -822,7 +822,7 @@ HTML;
         $order_discount_percent = $order_discount_cents/$subtotal;
 
         foreach ($order['items'] as $item_id => &$item) {
-            if (empty($item['quantity'])) {
+            if (empty($item['quantity']) || !floatval($item['quantity'])) {
                 $item['smashed_discount_cents'] = 0;
                 $item['discount_batch_cents'] = 0;
                 $item['total_discount'] = 0;
@@ -871,7 +871,7 @@ HTML;
             // Attempt to modify item discount to decrease `abs($order_discount_cents)` if possible.
             foreach ($order_items as $item) {
                 $item_id = $item['id'];
-                if (empty($item['quantity'])) {
+                if (empty($item['quantity']) || !floatval($item['quantity'])) {
                     continue;
                 }
 
@@ -904,7 +904,7 @@ HTML;
                 // Use first item available to fix order discount into negative value.
                 $order_items = array_reverse($order_items);
                 foreach ($order_items as $item) {
-                    if (empty($item['quantity'])) {
+                    if (empty($item['quantity']) || !floatval($item['quantity'])) {
                         continue;
                     }
                     $item_id = $item['id'];

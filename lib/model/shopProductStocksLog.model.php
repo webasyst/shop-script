@@ -126,6 +126,12 @@ class shopProductStocksLogModel extends waModel
         }
 
         $transfers = array();
+        $product_ids = array_unique(array_column($list, 'product_id'));
+        $products = [];
+        if ($product_ids) {
+            $product_model = new shopProductModel();
+            $products = $product_model->select('`id`, `name`, `count_denominator`')->where('`id` IN (?)', [$product_ids])->fetchAll('id');
+        }
         foreach ($list as $v) {
             if ($v['type'] == self::TYPE_TRANSFER) {
                 $transfers[] = (int) $v['transfer_id'];
@@ -144,7 +150,11 @@ class shopProductStocksLogModel extends waModel
                 if ($v['after_count'] === null) {
                     $v['description'] = _w('In stock value updated to ∞');
                 } else {
-                    $v['description'] = sprintf(_w('In stock value updated to %.3f'), $v['after_count']);
+                    if (isset($products[$v['product_id']])) {
+                        $v['description'] = sprintf(_w('In stock value updated to %s'), shopFrac::defracCount($v['after_count'], $products[$v['product_id']]));
+                    } else {
+                        $v['description'] = sprintf(_w('In stock value updated to %s'), sprintf('%.3f', $v['after_count']));
+                    }
                 }
             } elseif ($v['type'] == self::TYPE_ORDER) {
                 $v['description'] = sprintf(
@@ -214,12 +224,6 @@ class shopProductStocksLogModel extends waModel
                 unset($v);
             }
             if ($f == 'product_name') {
-                $product_ids = array();
-                foreach ($list as $v) {
-                    $product_ids[] = $v['product_id'];
-                }
-                $model = new shopProductModel();
-                $products = $model->select('id,name')->where("id IN (".implode(',', array_unique($product_ids)).")")->fetchAll('id');
                 foreach ($list as &$v) {
                     if (isset($products[$v['product_id']])) {
                         $v['product_name'] = $products[$v['product_id']]['name'];
