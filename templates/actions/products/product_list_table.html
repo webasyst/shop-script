@@ -28,13 +28,15 @@
                     </a>{if $sort=='price'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
                 </span>
             </th>
-            <th class="short align-right" title="[`Base price`]">
-                <span class="sort">
-                    <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=base_price&order={if $order == 'asc' && $sort=='base_price'}desc{else}asc{/if}" class="inline-link selected">
-                        [`Base price`]
-                    </a>{if $sort=='base_price'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
-                </span>
-            </th>
+            {if shopUnits::baseUnitsEnabled() || $sort == 'base_price'}
+                <th class="short align-right" title="[`Base price`]">
+                    <span class="sort">
+                        <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=base_price&order={if $order == 'asc' && $sort=='base_price'}desc{else}asc{/if}" class="inline-link selected">
+                            [`Base price`]
+                        </a>{if $sort=='base_price'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
+                    </span>
+                </th>
+            {/if}
             <th class="short align-right" title="[`In stock`]">
                 <div>
                 <span class="sort">
@@ -123,11 +125,17 @@
         <td class="short nowrap align-right s-product-price" title="[`Price`]">
             <span class="editable">{%#p.price_range%}{% if (p.stock_unit) { %}/{%#p.stock_unit.name_short%}{% } %}</span>
         </td>
-        <td class="short nowrap align-right s-product-base-price" title="[`Base price`]">
-            <span class="not-editable">{%#p.base_price_range%}{% if (p.base_unit) { %}/{%#p.base_unit.name_short%}{% } %}</span>
-        </td>
+        {/literal}
+        {if shopUnits::baseUnitsEnabled() || $sort == 'base_price'}
+            {literal}
+            <td class="short nowrap align-right s-product-base-price" title="[`Base price`]">
+                <span class="not-editable">{%#p.base_price_range%}{% if (p.base_unit) { %}/{%#p.base_unit.name_short%}{% } %}</span>
+            </td>
+            {/literal}
+        {/if}
+        {literal}
         <td class="short nowrap align-right s-product-stock" title="[`In stock`]">
-            <span class="editable">{%#((p.count === null)?'<span class="gray">∞</span>': parseFloat(p.count))%}</span>
+            <span class="editable">{%#((p.count === null)?'<span class="gray">∞</span>': String(p.count))%}</span>
         </td>
         {/literal}
         {foreach $enabled_columns as $c}
@@ -155,7 +163,7 @@
             <input type="hidden" name="product_id" value="{%=o.product_id%}">
         {/literal}
         {foreach $stocks as $s}
-            <input type="text" class="short small number" name="stock[{$s.id}]" {literal}value="{%=parseFloat(o.values[{/literal}{$s.id}{literal}])||''%}"{/literal} placeholder="∞">
+            <input type="text" class="short small number" name="stock[{$s.id}]" {literal}value="{%=o.values[{/literal}{$s.id}{literal}]||''%}"{/literal} placeholder="∞">
             <span class="hint">@{$s.name|escape}</span><br>
         {/foreach}
         <br>
@@ -207,7 +215,9 @@
 
                         <div class="value"><input type="checkbox" checked disabled> [`Name`]</div>
                         <div class="value"><input type="checkbox" checked disabled> [`Price`]</div>
-                        <div class="value"><input type="checkbox" checked disabled> [`Base price`]</div>
+                        {if shopUnits::baseUnitsEnabled() || $sort == 'base_price'}
+                            <div class="value"><input type="checkbox" checked disabled> [`Base price`]</div>
+                        {/if}
                         <div class="value"><input type="checkbox" checked disabled> [`In stock`]</div>
                         <div class="hidden template value feature-checkbox-wrapper"><label>
                             <input type="checkbox" name="columns[%ID%]" value="1">

@@ -229,6 +229,7 @@ class shopReportsproductsActions extends waViewActions
             }
             foreach($products as &$p) {
                 $p['est_bar'] = 100;
+                $p['count'] = shopFrac::defracCount($p['count'], $p);
                 if ($p['est'] < $max_est) {
                     $p['est_bar'] = 100 * $p['est'] / $max_est;
                 }
@@ -290,7 +291,7 @@ class shopReportsproductsActions extends waViewActions
         }
 
         // Get top-100 products by margin
-        $sql = "SELECT p.id, p.name, p.image_id, p.image_filename, p.ext, p.sku_count, p.create_datetime,
+        $sql = "SELECT p.id, p.name, p.image_id, p.image_filename, p.ext, p.sku_count, p.create_datetime, p.count_denominator,
                     GROUP_CONCAT(s.id SEPARATOR ',') AS sku_ids,
                     GROUP_CONCAT(s.name SEPARATOR ', ') AS sku_names,
                     (s.price - s.purchase_price)*c.rate AS margin,
@@ -327,7 +328,7 @@ class shopReportsproductsActions extends waViewActions
                 'margin' => (float) $p['margin'],
                 'purchase' => (float) $p['purchase'],
                 'sku_count' => (int) $p['sku_count'],
-                'count' => (int) $p['count'],
+                'count' => shopFrac::defracCount($p['count'], $p),
             ) + $p + array(
                 'sold' => 0,
                 'image_url' => shopImage::getUrl(array(

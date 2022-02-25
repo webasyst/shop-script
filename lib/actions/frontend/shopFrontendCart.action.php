@@ -48,7 +48,6 @@ class shopFrontendCartAction extends shopFrontendAction
         $cart_model = new shopCartItemsModel();
         //$items = $cart_model->where('code= ?', $code)->order('parent_id')->fetchAll('id');
         $items = $cart->items(false);
-        $items = $cart->formatItemsCount($items);
         shopOrderItemsModel::sortItemsByGeneralSettings($items);
         $total = $cart->total(false);
         $order = array(

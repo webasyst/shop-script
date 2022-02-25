@@ -201,7 +201,7 @@ class shopCart
      */
     public function items($hierarchy = true)
     {
-        return $this->model()->getByCode($this->code, true, $hierarchy);
+        return $this->formatItemsCount($this->model()->getByCode($this->code, true, $hierarchy));
     }
 
     /**
@@ -220,6 +220,11 @@ class shopCart
                 if (!empty($item['product']['skus']) && is_array($item['product']['skus'])) {
                     foreach ($item['product']['skus'] as &$sku) {
                         $sku['count'] = shopFrac::defracCount($sku['count'], $item['product']);
+                    }
+                }
+                if (!empty($item['services'])) {
+                    foreach ($item['services'] as &$service) {
+                        $service['quantity'] = shopFrac::defracCount($service['quantity'], $item['product']);
                     }
                 }
             }

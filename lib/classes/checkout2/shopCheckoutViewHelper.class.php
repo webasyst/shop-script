@@ -134,7 +134,7 @@ class shopCheckoutViewHelper
         ];
         foreach (['currency', 'total', 'subtotal', 'discount', 'discount_description'] as $i) {
             if ($i == 'total' || $i == 'subtotal') {
-                $result[$i] = shop_currency($order[$i], null, null, false);
+                $result[$i] = shop_currency($order[$i], $order['currency'], null, false);
             } else {
                 $result[$i] = $order[$i];
             }

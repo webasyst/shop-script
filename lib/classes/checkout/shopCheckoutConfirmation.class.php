@@ -23,12 +23,10 @@ class shopCheckoutConfirmation extends shopCheckout
             $this->assign('error', _w('Not enough data in the contact information to place the order.'));
             return;
         }
-        $items = $this->cart->items(false);
-        $items = $this->cart->formatItemsCount($items);
         $order = array(
             'contact'  => $contact,
             'total'    => $this->cart->total(false),
-            'items'    => $items,
+            'items'    => $this->cart->items(false),
             'shipping' => 0,
         );
 

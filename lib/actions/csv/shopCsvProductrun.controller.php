@@ -1030,7 +1030,7 @@ SQL;
                 if ($count === '') {
                     $count = null;
                 } else {
-                    $count = intval($count);
+                    $count = shopFrac::isEnabled() ? floatval($count) : intval($count);
                     if ($id) {
                         $per_stock = true;
                     }
