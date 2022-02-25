@@ -3309,7 +3309,7 @@ SQL;
                 //XXX CPA bloody hack = used complex value
                 if (is_array($value) && isset($value['raw'])) {
                     $value = $value['raw'];
-                } elseif (is_int($value) || (is_string($value) && preg_match('@^\d+(\.\d+)?$@', $value))) {
+                } elseif (is_numeric($value) || (is_string($value) && preg_match('@^\d+(\.\d+)?$@', $value))) {
                     $count = intval($value);
                 } elseif (in_array($value, array(null, 'true', ''), true)) {
                     $count = 9999;// 100500;
