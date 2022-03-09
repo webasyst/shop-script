@@ -104,6 +104,16 @@ var OrderRefundSection = ( function($) {
             }
         });
 
+        that.$products.on("keyup click", ".js-quantity-field", function() {
+            var $invalid_quantity = $(this).parents('.s-product-wrapper').find('.s-product-invalid-quantity');
+
+            if ($(this).is(':invalid')) {
+                $invalid_quantity.show();
+            } else {
+                $invalid_quantity.hide();
+            }
+        });
+
         that.$products.on("change", ".js-quantity-field", function(event, force) {
             var $field = $(this),
                 $product = $field.closest(".s-product-wrapper"),
@@ -134,8 +144,6 @@ var OrderRefundSection = ( function($) {
                 if (value < 0 ) { value = 0; }
                 if (max > 0 && value > max) { value = max; }
 
-                value = Math.ceil(value);
-
                 return value;
             }
         });
@@ -156,6 +164,7 @@ var OrderRefundSection = ( function($) {
                 var max = ( is_active ? ( parseFloat($quantity.attr("max")) || 1 ) : 0 );
                 $quantity.val(max).trigger("change", true);
             }
+            $quantity.click();
 
             var $checkboxes = that.$products.find(".js-product-checkbox:not(.is-disabled)"),
                 count = $checkboxes.length,

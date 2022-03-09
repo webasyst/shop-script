@@ -84,7 +84,7 @@ class shopProdPricesAction extends waViewAction
                 $short_name = (!empty($_unit["storefront_name"]) ? $_unit["storefront_name"] : $_unit["short_name"]);
                 $formatted_product["stock_unit"] = [
                     "id" => (string)$_unit["id"],
-                    "name" => mb_convert_case($_unit["name"], MB_CASE_TITLE, 'UTF-8'),
+                    "name" => $_unit["name"],
                     "name_short" => $short_name
                 ];
                 break;

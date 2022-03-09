@@ -33,7 +33,7 @@ class shopWorkflowEditcodeAction extends shopWorkflowAction
     public function getHTML($order_id)
     {
         try {
-            $order = new shopOrder($order_id);
+            $order = new shopOrder($order_id, ['format_fractional_values' => true]);
         } catch (waException $ex) {
             if ($ex->getCode() === 404) {
                 return false;

@@ -952,10 +952,10 @@ class shopProduct implements ArrayAccess
     protected function formatSkusFractionalValues($skus)
     {
         foreach ($skus as &$sku) {
-            $sku['count'] = shopFrac::defracCount($sku['count'], $this->data);
+            $sku['count'] = shopFrac::discardZeros($sku['count']);
             if (!empty($sku['stock'])) {
                 foreach ($sku['stock'] as &$value) {
-                    $value = shopFrac::defracCount($value, $this->data);
+                    $value = shopFrac::discardZeros($value);
                 }
             }
         }
@@ -966,7 +966,7 @@ class shopProduct implements ArrayAccess
     protected function formatProductFractionalValues()
     {
         if (isset($this->options['format_fractional_values'])) {
-            $this->data['count'] = shopFrac::defracCount($this->data['count'], $this->data);
+            $this->data['count'] = shopFrac::discardZeros($this->data['count']);
         }
     }
 

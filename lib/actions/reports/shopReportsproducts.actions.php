@@ -39,8 +39,8 @@ class shopReportsproductsActions extends waViewActions
             $product_total_sales += $p['sales'];
             $p['profit_percent'] = 0;
             $p['sales_percent'] = 0;
-            $p['count'] = shopFrac::defracCount($p['count'], $p);
-            $p['quantity'] = shopFrac::defracCount($p['quantity'], $p);
+            $p['count'] = shopFrac::discardZeros($p['count']);
+            $p['quantity'] = shopFrac::discardZeros($p['quantity']);
         }
 
         if ($max_sales > 0 || $max_profit > 0) {
@@ -229,7 +229,7 @@ class shopReportsproductsActions extends waViewActions
             }
             foreach($products as &$p) {
                 $p['est_bar'] = 100;
-                $p['count'] = shopFrac::defracCount($p['count'], $p);
+                $p['count'] = shopFrac::discardZeros($p['count']);
                 if ($p['est'] < $max_est) {
                     $p['est_bar'] = 100 * $p['est'] / $max_est;
                 }
@@ -328,7 +328,7 @@ class shopReportsproductsActions extends waViewActions
                 'margin' => (float) $p['margin'],
                 'purchase' => (float) $p['purchase'],
                 'sku_count' => (int) $p['sku_count'],
-                'count' => shopFrac::defracCount($p['count'], $p),
+                'count' => shopFrac::discardZeros($p['count']),
             ) + $p + array(
                 'sold' => 0,
                 'image_url' => shopImage::getUrl(array(

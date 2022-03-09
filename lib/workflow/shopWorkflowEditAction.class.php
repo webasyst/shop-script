@@ -64,6 +64,9 @@ class shopWorkflowEditAction extends shopWorkflowAction
         $products = $product_model->getById($products);
 
         foreach ($data['items'] as &$item) {
+            if (isset($item['product']['stock_unit_id'])) {
+                $item['stock_unit_id'] = $item['product']['stock_unit_id'];
+            }
             $item['currency'] = $order['currency'];
             $item['price'] = $this->price($item['price'], $order['currency']);
 

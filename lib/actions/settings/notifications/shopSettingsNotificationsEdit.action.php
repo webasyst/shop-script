@@ -19,6 +19,7 @@ class shopSettingsNotificationsEditAction extends shopSettingsNotificationsActio
         shopHelper::workupOrders($test_orders);
         $im = new shopOrderItemsModel();
         foreach ($im->getByField('order_id', array_keys($test_orders), true) as $i) {
+            $i['quantity'] = shopFrac::discardZeros($i['quantity']);
             $test_orders[$i['order_id']]['items'][] = $i;
         }
         foreach ($test_orders as &$o) {

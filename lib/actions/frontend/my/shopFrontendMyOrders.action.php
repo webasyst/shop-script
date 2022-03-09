@@ -19,6 +19,7 @@ class shopFrontendMyOrdersAction extends shopFrontendAction
         $items = $im->getByField('order_id', array_keys($orders), true);
 
         foreach($items as $row) {
+            $row['quantity'] = shopFrac::discardZeros($row['quantity']);
             $orders[$row['order_id']]['items'][] = $row;
         }
 

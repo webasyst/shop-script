@@ -2876,7 +2876,7 @@
 
                                 $.each(sku_mod.stock, function(stock_id, stock_value) {
                                     var value = parseFloat(stock_value);
-                                    if (value >= 0) {
+                                    if (Math.abs(value) >= 0) {
                                         is_stocks_mode = true;
                                     } else {
                                         value = "";

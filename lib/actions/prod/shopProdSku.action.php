@@ -214,9 +214,10 @@ class shopProdSkuAction extends waViewAction
             // Форматируем значение склада в нормальное число без 1.000
             if (!empty($modification["stock"])) {
                 foreach($modification["stock"] as $_stock_id => $_stock_value) {
-                    $modification["stock"][$_stock_id] = (float)$_stock_value;
+                    $modification["stock"][$_stock_id] = shopFrac::discardZeros($_stock_value);
                 }
             }
+            $modification['count'] = shopFrac::discardZeros($modification['count']);
 
             foreach (['stock_base_ratio', 'order_count_min', 'order_count_step'] as $field) {
                 if (!empty($modification[$field]) && $modification[$field] > 0) {
@@ -1000,7 +1001,7 @@ class shopProdSkuAction extends waViewAction
                 $short_name = (!empty($_unit["storefront_name"]) ? $_unit["storefront_name"] : $_unit["short_name"]);
                 $fractional_units[] = [
                     "value" => (string)$_unit["id"],
-                    "name" => mb_convert_case($_unit["name"], MB_CASE_TITLE, 'UTF-8'),
+                    "name" => $_unit["name"],
                     "name_short" => $short_name
                 ];
             }

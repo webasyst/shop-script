@@ -71,20 +71,11 @@ class shopStocksLogListAction extends waViewAction
     {
         $stock_model = new shopStockModel();
         $stocks = $stock_model->getAll('id');
-        $product_ids = array_unique(array_column($list, 'product_id'));
-        $products = [];
-        if ($product_ids) {
-            $product_model = new shopProductModel();
-            $products = $product_model->select('`id`, `count_denominator`')->where('`id` in (?)', [$product_ids])->fetchAll('id');
-        }
         foreach ($list as &$item) {
             $item['sku_count_show'] = !$item['stock_id'] || !isset($stocks[$item['stock_id']]);
-            if (isset($products[$item['product_id']])) {
-                $product = $products[$item['product_id']];
-                foreach (['before_count', 'after_count', 'diff_count', 'sku_count'] as $log_field) {
-                    if (isset($item[$log_field])) {
-                        $item[$log_field] = shopFrac::defracCount($item[$log_field], $product);
-                    }
+            foreach (['before_count', 'after_count', 'diff_count', 'sku_count'] as $log_field) {
+                if (isset($item[$log_field])) {
+                    $item[$log_field] = shopFrac::discardZeros($item[$log_field]);
                 }
             }
         }

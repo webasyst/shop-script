@@ -770,7 +770,13 @@ class shopOrder implements ArrayAccess
     protected function getItemsProductCodes()
     {
         $order_item_codes_model = new shopOrderItemCodesModel();
-        return $order_item_codes_model->extendOrderItems($this['items']);
+        $items = $order_item_codes_model->extendOrderItems($this['items']);
+        if (!empty($this->options['format_fractional_values'])) {
+            foreach ($items as &$item) {
+                $item['quantity'] = shopFrac::discardZeros($item['quantity']);
+            }
+        }
+        return $items;
     }
 
     ###############################

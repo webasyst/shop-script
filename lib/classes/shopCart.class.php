@@ -213,18 +213,19 @@ class shopCart
     {
         if (is_array($items)) {
             foreach ($items as &$item) {
+                $item['quantity'] = shopFrac::discardZeros($item['quantity']);
                 if (!empty($item['product'])) {
-                    $item['quantity'] = shopFrac::defracCount($item['quantity'], $item['product']);
-                    $item['product']['count'] = shopFrac::defracCount($item['product']['count'], $item['product']);
+                    $item['quantity'] = shopFrac::discardZeros($item['quantity']);
+                    $item['product']['count'] = shopFrac::discardZeros($item['product']['count']);
                 }
                 if (!empty($item['product']['skus']) && is_array($item['product']['skus'])) {
                     foreach ($item['product']['skus'] as &$sku) {
-                        $sku['count'] = shopFrac::defracCount($sku['count'], $item['product']);
+                        $sku['count'] = shopFrac::discardZeros($sku['count']);
                     }
                 }
                 if (!empty($item['services'])) {
                     foreach ($item['services'] as &$service) {
-                        $service['quantity'] = shopFrac::defracCount($service['quantity'], $item['product']);
+                        $service['quantity'] = shopFrac::discardZeros($service['quantity']);
                     }
                 }
             }

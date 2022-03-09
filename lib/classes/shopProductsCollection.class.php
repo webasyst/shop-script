@@ -195,8 +195,8 @@ class shopProductsCollection
                             $promo_main_sku_price = "MAX(IF({$promo_prices_tmp_alias}.sku_id = p.sku_id, {$promo_prices_tmp_alias}.primary_price, -1))";
                             $promo_sku_price = "MIN({$promo_prices_tmp_alias}.primary_price)";
                         } else {
-                            $promo_main_sku_price = "MAX(IF({$promo_prices_tmp_alias}.sku_id = p.sku_id, {$promo_prices_tmp_alias}.primary_price {$promo_prices_tmp_alias}.stock_base_ratio, -1))";
-                            $promo_sku_price = "MIN({$promo_prices_tmp_alias}.primary_price / {$promo_prices_tmp_alias}.stock_base_ratio)";
+                            $promo_main_sku_price = "MAX(IF({$promo_prices_tmp_alias}.sku_id = p.sku_id, {$promo_prices_tmp_alias}.primary_price / IFNULL({$promo_prices_tmp_alias}.stock_base_ratio, p.stock_base_ratio), -1))";
+                            $promo_sku_price = "MIN({$promo_prices_tmp_alias}.primary_price / IFNULL({$promo_prices_tmp_alias}.stock_base_ratio, p.stock_base_ratio))";
                         }
                         $promo_main_sku_exists = '-1 < '.$promo_main_sku_price;
                         $promo_price = "IF($promo_main_sku_exists, $promo_main_sku_price, $promo_sku_price)";
@@ -416,7 +416,7 @@ class shopProductsCollection
 
             foreach ($price_filter as $price_filter_item) {
                 if ($unit_id !== null) {
-                    $this->addWhere("IF(p.stock_unit_id = {$unit_id}, {$where_conditional} {$price_filter_item}, {$where_conditional} / {$skus_alias}.stock_base_ratio {$price_filter_item})");
+                    $this->addWhere("IF(p.stock_unit_id = {$unit_id}, {$where_conditional} {$price_filter_item}, {$where_conditional} / IFNULL({$skus_alias}.stock_base_ratio, p.stock_base_ratio) {$price_filter_item})");
                 } else {
                     $this->addWhere($where_conditional.' '.$price_filter_item);
                 }
@@ -2668,11 +2668,11 @@ SQL;
         if (!empty($this->options['defrac_counts'])) {
             foreach ($products as &$p) {
                 if (array_key_exists('count', $p)) {
-                    $p['count'] = shopFrac::defracCount($p['count'], $p);
+                    $p['count'] = shopFrac::discardZeros($p['count']);
                 }
                 if (!empty($p['skus'])) {
                     foreach ($p['skus'] as &$s) {
-                        $s['count'] = shopFrac::defracCount($s['count'], $p);
+                        $s['count'] = shopFrac::discardZeros($s['count']);
                         if (isset($skus[$s['id']]) && array_key_exists('count', $s)) {
                             $skus[$s['id']]['count'] = $s['count'];
                         }

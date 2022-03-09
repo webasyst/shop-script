@@ -51,6 +51,18 @@ class shopFrac
         return self::formatQuantity($count, $denominator);
     }
 
+    public static function discardZeros($count)
+    {
+        if ($count === null || $count === '') {
+            return null;
+        }
+        if (!self::isEnabled()) {
+            return (int)$count;
+        } else {
+            return strpos($count, '.') !== false ? rtrim(rtrim($count, '0'), '.') : (int)$count;
+        }
+    }
+
     public static function correctCountDenominator($number)
     {
         $is_correct = false;

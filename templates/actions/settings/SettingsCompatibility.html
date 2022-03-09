@@ -228,7 +228,7 @@
                 {/if}
                 {if !empty($groups["apps"])}
                     {foreach $groups["apps"] as $_app}
-                        <tr class="s-app-row is-app">
+                        <tr class="s-app-row is-app" data-app-id="{$_app.id|escape}">
                             <td colspan="2">
                                 <div class="s-name-section">
                                     <div class="s-image">
@@ -264,7 +264,69 @@
                                     {/if}
                                 </div>
                             </td>
+                            {if $_app.id === 'shop'}
                             <td colspan="3"></td>
+                            {else}
+                            <td>
+                                {if $_app.id !== 'shop'}
+                                <div class="s-compatibility-section">
+                                    <div class="s-compatibility-wrapper">
+                                        <div class="s-image">
+                                            <span class="icon size-16">
+                                                {if $_app["compatibility"] === "0"}
+                                                    <svg class="color-red"><use xlink:href='{$_sprite_url}#times'></use></svg>
+                                                {elseif $_app["compatibility"] === "1"}
+                                                    <svg class="color-green"><use xlink:href='{$_sprite_url}#check'></use></svg>
+                                                {elseif $_app["compatibility"] === "2"}
+                                                    <svg class="color-yellow"><use xlink:href='{$_sprite_url}#warning'></use></svg>
+                                                {else}
+                                                    <svg class="color-yellow"><use xlink:href='{$_sprite_url}#warning'></use></svg>
+                                                {/if}
+                                            </span>
+                                        </div>
+                                        <div class="s-text-wrapper">
+                                            <div class="s-text">
+                                                {if $_app["compatibility"] === "0"}
+                                                    <span class="color-gray">[`No support`]</span>
+                                                {elseif $_app["compatibility"] === "1"}
+                                                    [`Full support`]
+                                                {elseif $_app["compatibility"] === "2"}
+                                                    [`Partial support`]
+                                                {else}
+                                                    [`No information`]
+                                                {/if}
+                                            </div>
+                                            {if !empty($_app["compatibility_description"])}
+                                                <div class="s-toggle s-text-hint">
+                                                    <a class="js-toggle" href="javascript:void(0);">{$_locales["show"]}</a>
+                                                </div>
+                                                <div class="s-description">{$_app["compatibility_description"]}</div>
+                                            {/if}
+                                        </div>
+                                    </div>
+                                </div>
+                                {/if}
+                            </td>
+                            <td>
+                                <div class="s-interaction-section">
+                                    <div>[`No settings`]</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="s-checkbox-section">
+                                    <div class="s-checkbox-wrapper">
+                                        <input class="js-ibutton" type="checkbox" {if $_app["enabled"] === true}checked{/if}>
+                                        <div class="s-label js-label s-text-hint">
+                                            {if $_app["enabled"] === true}
+                                                {$_locales["on"]}
+                                            {else}
+                                                {$_locales["off"]}
+                                            {/if}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            {/if}
                         </tr>
 
                         {foreach $_app["plugins"] as $_plugin}
@@ -331,7 +393,7 @@
                     tooltips: {$_tooltips|json_encode},
                     locales: {$_locales|json_encode},
                     urls: {
-                        "plugin_status": "{$wa_app_url}?module=settingsCompatibility&action=statusPlugin",
+                        "asset_status": "{$wa_app_url}?module=settingsCompatibility&action=statusAsset",
                         "compatibility_dialog": "{$wa_app_url}?module=settingsCompatibility&action=interactionEditDialog",
                         "compatibility_edit": "{$wa_app_url}?module=settingsCompatibility&action=interactionEdit",
                     },

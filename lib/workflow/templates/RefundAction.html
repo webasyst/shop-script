@@ -183,7 +183,7 @@
 
                                 <span class="s-visible">
                                     {if !$_is_service}
-                                        <input class="short js-quantity-field {if $_is_disabled}is-disabled{/if}" name="refund_items[{$item.id}][quantity]" type="number" value="0" min="0" max="{$item.quantity}" {if $_is_disabled}disabled{/if}>
+                                        <input class="short js-quantity-field {if $_is_disabled}is-disabled{/if}" name="refund_items[{$item.id}][quantity]" type="number" value="0" min="0" max="{$item.quantity}" step="{1 / $item.quantity_denominator}" {if $_is_disabled}disabled{/if}>
                                         <span class="">[`of`] {$item.quantity|floatval}</span>
                                     {else}
                                         <span class="js-quantity-text">{$item.quantity}</span>
@@ -192,6 +192,10 @@
                                 <span class="s-hidden">
                                     <span class="js-quantity-text">{$item.quantity}</span>
                                 </span>
+                                <div class="s-product-invalid-quantity" style="display: none">
+                                    <i class="icon10 exclamation"></i>
+                                    <span>[`Количество знаков после запятой<br>не должно превышать точность шага товара`]</span>
+                                </div>
                             </td>
 
                             <td class="s-price-column align-right nowrap">

@@ -40,6 +40,8 @@ class shopTransferInfoAction extends waViewAction
 
         foreach ($skus as &$sku) {
             $item = $items[$sku['id']];
+            $sku['count'] = shopFrac::discardZeros($sku['count']);
+            $item['count'] = shopFrac::discardZeros($item['count']);
             $sku['transfer'] = $item;
         }
         unset($sku);

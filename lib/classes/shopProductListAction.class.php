@@ -194,7 +194,7 @@ class shopProductListAction extends waViewAction
          */
         $currency = $config->getCurrency();
         foreach ($products as &$p) {
-            $p['count'] = shopFrac::defracCount($p['count'], $p);
+            $p['count'] = shopFrac::discardZeros($p['count']);
             if ($p['min_price'] == $p['max_price']) {
                 $p['price_range'] = wa_currency_html($p['min_price'], $currency);
                 $p['base_price_range'] = wa_currency_html($p['min_base_price'], $currency);
@@ -265,12 +265,13 @@ class shopProductListAction extends waViewAction
                     if ($sku['stock'] === null) {
                         $sku_stock_icon = shopHelper::getStockCountIcon($sku['count']);
                         $sku['count_icon_html'] = $sku_stock_icon;
+                        $sku['count'] = shopFrac::discardZeros($sku['count']);
                     } else if (is_array($sku['stock'])) {
                         foreach ($stocks as $stock_id => $stock) {
                             $sku_stock_count = ifset($sku['stock'], $stock['id'], null);
                             $sku_stock_icon = shopHelper::getStockCountIcon($sku_stock_count, $stock['id']);
                             $sku['stock'][$stock['id']] = array(
-                                'count'     => shopFrac::defracCount($sku_stock_count, $product),
+                                'count'     => shopFrac::discardZeros($sku_stock_count),
                                 'icon_html' => $sku_stock_icon,
                             );
                         }

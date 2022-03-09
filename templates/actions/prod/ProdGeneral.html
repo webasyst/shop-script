@@ -773,7 +773,7 @@
                                                                                v-model="sku_mod.count"
                                                                                v-bind:readonly="!!stocks_array.length"
                                                                                v-on:click="focusSkuModStocks(sku_mod)"
-                                                                               v-on:input="validate($event, 'number', sku_mod, 'count')">
+                                                                               v-on:input="validate($event, 'number-negative', sku_mod, 'count')">
                                                                     </div>
 
                                                                     <template v-if="stocks_array.length">
@@ -811,7 +811,7 @@
                                                                                                v-bind:style="{ 'opacity' : stock.is_virtual ? '.5' : ''}"
                                                                                                v-bind:class="{ 'transparent' : stock.is_virtual }"
                                                                                                v-on:change="changeSkuModStocks(sku_mod)"
-                                                                                               v-on:input="validate($event, 'number', sku_mod.stock, stock.id)">
+                                                                                               v-on:input="validate($event, 'number-negative', sku_mod.stock, stock.id)">
                                                                                     </div>
                                                                                 </div>
                                                                                 <div class="s-column wide">

@@ -1198,12 +1198,12 @@ class shopHelper
                 if ($stock_id && $all_balance_stocks) {
                     $all_balance_stocks_text =
                         "<span class='gray'>" .
-                            sprintf_wp('(On all stocks: %.3f)', $all_balance_stocks) .
+                            sprintf_wp('(On all stocks: %s)', shopFrac::discardZeros($all_balance_stocks)) .
                         "</span>";
                 }
                 $icon .=
                     "<span class='small s-stock-left-text $warn'>" .
-                        _w('%s left', '%s left', (float)$count) . " $all_balance_stocks_text</span>";
+                        _w('%s left', '%s left', shopFrac::discardZeros($count)) . " $all_balance_stocks_text</span>";
             }
         }
 
@@ -1920,7 +1920,7 @@ SQL;
                 'stock_unit'           => (string)$stock_unit,
                 'stock_unit_code'      => (int)$stock_unit_code,
                 'total_discount'       => (float)$item['total_discount'],
-                'discount'             => ($item_quantity ? floatval($item['total_discount'] / $item_quantity) : 0.0),
+                'discount'             => ($item_quantity > 0 ? floatval($item['total_discount'] / $item_quantity) : 0.0),
                 'product_codes'        => $product_codes // see shopOrderItemCodesModel::extendOrderItems for format
             );
         }

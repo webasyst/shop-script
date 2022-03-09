@@ -2511,7 +2511,7 @@ SQL;
             }
 
             if ($rights && $category_match) {
-                $shop_product = new shopProduct($product);
+                $shop_product = new shopProduct($product, ['format_fractional_values' => true]);
                 if (!empty($this->data['options']['features']) && !$extra_category_record) {
                     if (!isset($product['features'])) {
                         /** @var shopProductFeaturesModel $product_feature_model */

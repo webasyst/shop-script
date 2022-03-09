@@ -41,9 +41,11 @@ class shopFrontendMyOrderAction extends shopFrontendAction
         $order['state'] = $state;
         // Order subtotal
         $subtotal = 0;
-        foreach ($order['items'] as $item) {
+        foreach ($order['items'] as &$item) {
             $subtotal += $item['price'] * $item['quantity'];
+            $item['quantity'] = shopFrac::discardZeros($item['quantity']);
         }
+        unset($item);
 
         // Order comment
         $lm = new shopOrderLogModel();
@@ -88,7 +90,7 @@ class shopFrontendMyOrderAction extends shopFrontendAction
                 $contact[$field_id] = $value;
             }
         }
-        
+
         $payment = '';
         if (!$order['paid_date'] && # order not paid
             !empty($order['params']['payment_id']) # order has related payment plugin

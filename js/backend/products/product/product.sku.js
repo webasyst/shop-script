@@ -3427,8 +3427,6 @@
                             target_value = $field.val(),
                             value = (typeof target_value === "string" ? target_value : "" + target_value);
 
-                        value = $.wa.validate(type, value);
-
                         switch (type) {
                             case "price":
                                 value = $.wa.validate("number", value);
@@ -3451,22 +3449,13 @@
                                 }
 
                                 break;
-                            case "number":
-                                value = $.wa.validate("number", value);
-                                break;
-                            case "integer":
-                                value = $.wa.validate("integer", value);
-                                break;
                             default:
+                                value = $.wa.validate(type, value);
                                 break;
                         }
 
                         // set
-                        set(value);
-
-                        function set(value) {
-                            Vue.set(data, key, value);
-                        }
+                        self.$set(data, key, value);
                     },
 
                     //
@@ -4838,9 +4827,7 @@
                             is_stocks_mode = true;
 
                             var value = parseFloat(stock_value);
-                            if (value < 0) {
-                                value = "";
-                            }
+                            if (isNaN(value)) { value = ""; }
 
                             stocks_data.push({
                                 name: prefix + "[stock][" + stock_id + "]",

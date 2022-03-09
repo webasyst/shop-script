@@ -874,7 +874,7 @@ $.order_edit = {
 
                     if (parseFloat(value) > 0) {
                         //
-                    } else {
+                    } else if (parseFloat(value) !== 0) {
                         that.$field.val(that.min);
                         value = that.min;
                     }
@@ -952,23 +952,25 @@ $.order_edit = {
                 value = (typeof value !== "number" ? parseFloat(value) : value);
                 value = parseFloat(value.toFixed(3));
 
+                var min = 0.001;
+
                 if (value > 0) {
                     // левая граница
-                    if (value < that.min) { value = that.min; }
+                    if (value < min) { value = min; }
                     // правая граница
-                    else if (that.max && (that.max > that.min) && (value > that.max)) {
+                    else if (that.max && (that.max > min) && (value > that.max)) {
                         value = that.max;
                     }
                     // центр
-                    else {
-                        var steps_count = Math.floor(value/that.denominator);
-                        var x1 = (that.denominator * steps_count).toFixed(3) * 1;
-                        if (x1 !== value) {
-                            value = that.denominator * (steps_count + 1);
-                        }
-                    }
-                } else {
-                    value = that.min;
+                    // else {
+                    //     var steps_count = Math.floor(value/that.denominator);
+                    //     var x1 = (that.denominator * steps_count).toFixed(3) * 1;
+                    //     if (x1 !== value) {
+                    //         value = that.denominator * (steps_count + 1);
+                    //     }
+                    // }
+                } else if (value !== 0) {
+                    value = min;
                 }
 
                 return validate("float", value);

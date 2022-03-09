@@ -195,7 +195,7 @@ class shopOrdersGetProductController extends waJsonController
                     if ($stock['count'] === null) {
                         $counts_htmls[$stock_id] = '∞';
                     } else {
-                        $counts_htmls[$stock_id] = _w('%s left', '%s left', (float)$stock['count']);
+                        $counts_htmls[$stock_id] = _w('%s left', '%s left', shopFrac::discardZeros($stock['count']));
                     }
                 }
                 $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], null, true);

@@ -160,7 +160,19 @@ class shopSettingsCompatibilityAction extends waViewAction
                 'link_update'       => $link,
                 'plugins'           => [],
             ];
+
             // Информация о совместимости приложений
+            $tags = ifset($apps_data, $name, 'tags', []);
+            $support_frac = shopHelper::getShopSupportJson($app['path']);
+            if (in_array(self::TAG_SHOP_PREMIUM_YES, $tags)) {
+                $apps[$name] += ['compatibility' => self::COMPATIBILITY['yes']];
+            } elseif (in_array(self::TAG_SHOP_PREMIUM_NO, $tags)) {
+                $apps[$name] += ['compatibility' => self::COMPATIBILITY['no']];
+            } elseif (!empty($support_frac)) {
+                $apps[$name] += $support_frac;
+            } else {
+                $apps[$name] += ['compatibility' => self::COMPATIBILITY['unknown']];
+            }
         }
         unset($name, $app);
 

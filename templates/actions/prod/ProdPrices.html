@@ -402,7 +402,7 @@
                                                        v-bind:readonly="stock.is_virtual || !can_edit"
                                                        v-bind:style="{ 'opacity' : stock.is_virtual ? '.5' : ''}"
                                                        v-bind:class="{ 'transparent' : stock.is_virtual }"
-                                                       v-on:input="validate($event, 'number', sku_mod_stocks, stock.id); changeSkuModStocks(sku_mod);">
+                                                       v-on:input="validate($event, 'number-negative', sku_mod_stocks, stock.id); changeSkuModStocks(sku_mod);">
                                             </div>
                                         </div>
                                         <div class="s-column wide">
@@ -419,7 +419,7 @@
                             <div class="s-field-wrapper">
                                 <input class="wa-small s-field full-width is-number" type="text" placeholder="∞"
                                        v-model="values.sku_mod_count"
-                                       v-on:input="validate($event, 'number', values, 'sku_mod_count');">
+                                       v-on:input="validate($event, 'number-negative', values, 'sku_mod_count');">
                             </div>
 
                         </div>

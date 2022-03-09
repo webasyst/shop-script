@@ -81,9 +81,9 @@ class shopSettingsTypefeatTypeEditAction extends waViewAction
             if ($_unit['status'] !== '0') {
                 $short_name = (!empty($_unit["storefront_name"]) ? $_unit["storefront_name"] : $_unit["short_name"]);
                 $fractional_units[] = [
-                    "name" => mb_convert_case($_unit["name"], MB_CASE_TITLE, 'UTF-8'),
+                    "value" => (string)$_unit["id"],
+                    "name" => $_unit["name"],
                     "name_short" => $short_name,
-                    "value" => (string)$_unit["id"]
                 ];
             }
         }

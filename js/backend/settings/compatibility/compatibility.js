@@ -71,7 +71,7 @@
                         $loading = $("<i class=\"icon16 loading\" />");
 
                     var plugin_id = $field.closest(".s-item-row").data("plugin-id"),
-                        app_id = $field.closest(".s-item-row").data("app-id"),
+                        app_id = $field.closest(".s-item-row").data("app-id") || $field.closest(".s-app-row").data("app-id"),
                         is_checked = $(this).is(":checked");
 
                     var data = {
@@ -98,11 +98,7 @@
                     function request(data) {
                         var deferred = $.Deferred();
 
-                        // setTimeout( function() {
-                        //     deferred.resolve();
-                        // }, 2000);
-
-                        $.post(that.urls["plugin_status"], data, "json")
+                        $.post(that.urls["asset_status"], data, "json")
                             .fail( function() {
                                 deferred.reject();
                             })

@@ -171,7 +171,7 @@
     {$_active_sku = $product["skus"][$product["item"]["sku_id"]]|default:null}
     {$_stock_unit = null}
     {if $fractional_config["stock_units_enabled"]}
-        {$_stock_unit = $formatted_units[$product["item"]["stock_unit_id"]]}
+        {$_stock_unit = $formatted_units[$product["stock_unit_id"]]}
     {/if}
 
     <tr data-product-id="{$product.id}" data-index="{$index}" data-item-id="{$product.item.id}" class="s-order-item">
@@ -285,9 +285,12 @@
                     {$_order_count_min = $_active_sku["order_count_min"]}
                 {/if}
 
-                {$_max = $_active_sku.count|default:0}
-                {if !empty($_active_sku["stock"]) && !empty($_active_sku["stock"][$product.item.stock_id])}
-                    {$_max = $_active_sku["stock"][$product.item.stock_id]}
+                {$_max = 0}
+                {if !$wa->shop->settings('ignore_stock_count')}
+                    {$_max = $_active_sku.count|default:0}
+                    {if !empty($_active_sku["stock"]) && !empty($_active_sku["stock"][$product.item.stock_id])}
+                        {$_max = $_active_sku["stock"][$product.item.stock_id]}
+                    {/if}
                 {/if}
 
                 <div class="s-section-body">

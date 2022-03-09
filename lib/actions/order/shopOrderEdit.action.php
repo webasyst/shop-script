@@ -355,7 +355,7 @@ class shopOrderEditAction extends waViewAction
                         if ($stock['count'] === null) {
                             $counts_htmls[$stock_id] = sprintf(str_replace('%d', '%s', _w('%d left')), '∞');
                         } else {
-                            $counts_htmls[$stock_id] = _w('%s left', '%s left', (float)$stock['count']);
+                            $counts_htmls[$stock_id] = _w('%s left', '%s left', shopFrac::discardZeros($stock['count']));
                         }
                     }
                     $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], null, true);

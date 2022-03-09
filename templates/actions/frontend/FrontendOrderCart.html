@@ -306,12 +306,15 @@
                                                     promise.done( function(controller) {
                                                         var $wrapper = $(".wa-product[data-id=\"{$_item.id|escape}\"]");
                                                         if ($wrapper.length) {
+
+                                                            {$_max = 0}{if !$wa->shop->settings('ignore_stock_count') && $_active_sku.count > 0}{$_max = $_active_sku.count}{/if}
+
                                                             controller.initQuantity({
                                                                 $wrapper: $wrapper,
                                                                 denominator: {$_item.product["order_multiplicity_factor"]|default:1|floatval|json_encode},
                                                                 step: {$_active_sku["order_count_step"]|default:1|floatval|json_encode},
                                                                 min: {$_active_sku["order_count_min"]|default:1|floatval|json_encode},
-                                                                max: {$_active_sku.count|default:0|floatval|json_encode},
+                                                                max: {$_max|floatval|json_encode},
                                                                 locales: {
                                                                     "min": {_w("min. %s")|json_encode},
                                                                     "max": {_w("max. %s")|json_encode}

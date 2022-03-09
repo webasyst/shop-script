@@ -19,7 +19,7 @@ class shopProductsInlineEditorDataController extends waJsonController
         foreach($product_skus_model->getByField('product_id', $ids, true) as $sku) {
             $this->response[$sku['product_id']]['price'] = $sku['price'];
             if (isset($products[$sku['product_id']])) {
-                $sku['count'] = (string)shopFrac::defracCount($sku['count'], $products[$sku['product_id']]);
+                $sku['count'] = (string)shopFrac::discardZeros($sku['count']);
             }
             $this->response[$sku['product_id']]['stocks'] = $sku['count'];
         }
@@ -31,7 +31,7 @@ class shopProductsInlineEditorDataController extends waJsonController
                 $this->response[$stock['product_id']]['stocks'] = array();
             }
             if (isset($products[$stock['product_id']])) {
-                $stock['count'] = (string)shopFrac::defracCount($stock['count'], $products[$stock['product_id']]);
+                $stock['count'] = (string)shopFrac::discardZeros($stock['count']);
             }
             $this->response[$stock['product_id']]['stocks'][$stock['stock_id']] = $stock['count'];
         }

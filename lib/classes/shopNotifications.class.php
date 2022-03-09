@@ -340,6 +340,7 @@ SQL;
 
         // URLs and products for order items
         foreach ($data['order']['items'] as &$i) {
+            $i['quantity'] = shopFrac::discardZeros($i['quantity']);
             if (!empty($i['file_name'])) {
                 $i['download_link'] = wa()->getRouteUrl('shop/frontend/myOrderDownload', array(
                     'id'   => $data['order']['id'],
@@ -349,7 +350,6 @@ SQL;
             }
             if (!empty($products[$i['product_id']])) {
                 $i['product'] = $products[$i['product_id']];
-                $i['quantity'] = shopFrac::defracCount($i['quantity'], $i['product']);
                 if (isset($skus[$i['sku_id']]) && !empty($skus[$i['sku_id']]['image'])) {
                     $i['product']['image'] = $skus[$i['sku_id']]['image'];
                 }

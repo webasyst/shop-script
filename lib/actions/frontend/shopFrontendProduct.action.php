@@ -336,7 +336,7 @@ class shopFrontendProductAction extends shopFrontendAction
 
             $result[$_unit_id] = [
                 "id" => $_unit_id,
-                "name"  => mb_convert_case($_unit["name"], MB_CASE_TITLE, 'UTF-8'),
+                "name"  => $_unit["name"],
                 "name_short" => $short_name
             ];
         }

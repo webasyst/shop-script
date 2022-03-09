@@ -11520,8 +11520,8 @@ msgstr "осталось %d"
 msgid "Only %s pcs. of %s are available, and you already have all of them in your shopping cart."
 msgstr "Доступно только %s шт. из %s, и все это количество уже находится в вашей корзине покупок."
 
-msgid "(On all stocks: %.3f)"
-msgstr "(На всех складах: %.3f)"
+msgid "(On all stocks: %s)"
+msgstr "(На всех складах: %s)"
 
 msgid "millimeter"
 msgstr "миллиметр"
